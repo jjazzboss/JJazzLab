@@ -102,8 +102,8 @@ public final class YjzCreatorWizardAction implements ActionListener
 
         // Log event
         Analytics.logEvent("Wizard Yjz Creation");
-        
-        
+
+
         // Retrieve the Wizard results
         int nbMainA = (Integer) wiz.getProperty(YjzCreatorWizardAction.PROP_NB_MAIN_A);
         int nbMainB = (Integer) wiz.getProperty(YjzCreatorWizardAction.PROP_NB_MAIN_B);
@@ -115,8 +115,11 @@ public final class YjzCreatorWizardAction implements ActionListener
         RhythmInfo baseRhythmInfo = (RhythmInfo) wiz.getProperty(YjzCreatorWizardAction.PROP_BASE_RHYTHM);
 
 
-        LOGGER.log(Level.FINE, "baseRhythmInfo={0} nbMainA={1} nbMainB={2} nbMainC={3} nbMainD={4} includeIntroEndings={5} nbSrcPhrases={6}", new Object[]{baseRhythmInfo,
-            nbMainA, nbMainB, nbMainC, nbMainD, includeIntroEndings, nbSrcPhrases});
+        LOGGER.log(Level.FINE, "baseRhythmInfo={0} nbMainA={1} nbMainB={2} nbMainC={3} nbMainD={4} includeIntroEndings={5} nbSrcPhrases={6}", new Object[]
+        {
+            baseRhythmInfo,
+            nbMainA, nbMainB, nbMainC, nbMainD, includeIntroEndings, nbSrcPhrases
+        });
 
 
         // Build the sequence
@@ -127,7 +130,7 @@ public final class YjzCreatorWizardAction implements ActionListener
             sequence = builder.buildSequence();
         } catch (UnavailableRhythmException | InvalidMidiDataException | MusicGenerationException ex)
         {
-            String msg = ResUtil.getString(getClass(),"ERR_UnableToCreateYjzFile");
+            String msg = ResUtil.getString(getClass(), "ERR_UnableToCreateYjzFile");
             msg += ": " + ex.getLocalizedMessage();
             LOGGER.warning(msg);
             NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
@@ -154,8 +157,8 @@ public final class YjzCreatorWizardAction implements ActionListener
     {
         String ext = Utilities.getExtension(baseRhythm.file().getName());
         File yjzFile = getExtendedFile(baseRhythm);
-        String yjzPathNoExt = Utilities.replaceExtension(yjzFile.getAbsolutePath(), "");
-        return new File(yjzPathNoExt + "." + ext);
+        var res = Utilities.replaceExtension(yjzFile, ext);
+        return res;
     }
 
     /**
@@ -225,7 +228,10 @@ public final class YjzCreatorWizardAction implements ActionListener
             Files.copy(baseRhythmInfo.file().toPath(), baseCopyFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException ex)
         {
-            String msg = ResUtil.getString(getClass(),"ERR_UnableToCopy", new Object[] {baseRhythmInfo.file().toPath(), baseCopyFile.toPath()});
+            String msg = ResUtil.getString(getClass(), "ERR_UnableToCopy", new Object[]
+            {
+                baseRhythmInfo.file().toPath(), baseCopyFile.toPath()
+            });
             msg += " : " + ex.getLocalizedMessage();
             LOGGER.warning(msg);
             NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
@@ -234,7 +240,7 @@ public final class YjzCreatorWizardAction implements ActionListener
         }
 
 
-        StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(),"CTL_CreatedYjzFile", yjzFile.getAbsolutePath()));
+        StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "CTL_CreatedYjzFile", yjzFile.getAbsolutePath()));
 
 
         // Add the new style in the rhythm database
@@ -249,7 +255,7 @@ public final class YjzCreatorWizardAction implements ActionListener
         } catch (IOException ex)
         {
             LOGGER.log(Level.WARNING, "createFiles() ex={0}", ex);
-            String msg = ResUtil.getString(getClass(),"ERR_FileCreatedButCantRead", yjzFile.getAbsolutePath());
+            String msg = ResUtil.getString(getClass(), "ERR_FileCreatedButCantRead", yjzFile.getAbsolutePath());
             msg += ": " + ex.getLocalizedMessage();
             NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.INFORMATION_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
@@ -258,7 +264,7 @@ public final class YjzCreatorWizardAction implements ActionListener
 
 
         // Success, notify user
-        String msg = ResUtil.getString(getClass(),"CTL_CreatedYjzSuccess", yjzFile.getAbsolutePath());
+        String msg = ResUtil.getString(getClass(), "CTL_CreatedYjzSuccess", yjzFile.getAbsolutePath());
         NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.INFORMATION_MESSAGE);
         DialogDisplayer.getDefault().notify(d);
 

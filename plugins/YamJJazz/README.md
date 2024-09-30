@@ -7,5 +7,5 @@ This plugin provides 2 [RhythmProviders](../../core/Rhythm/src/main/java/org/jja
 
 See the [online documentation](https://jjazzlab.gitbook.io/user-guide/rhythm-engines/yamjjazz-rhythm-engine) for more information.
 
-The plugin embeds about 20 default style files. 
+The plugin embeds about 50 default style files. 
 

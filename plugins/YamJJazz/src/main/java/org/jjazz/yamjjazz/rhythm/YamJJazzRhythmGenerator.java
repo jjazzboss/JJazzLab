@@ -63,7 +63,6 @@ import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.Phrases;
 import org.jjazz.phrase.api.SourcePhrase;
 import org.jjazz.phrase.api.SourcePhraseSet;
-import org.jjazz.rhythm.api.Feel;
 import org.jjazz.rhythmmusicgeneration.api.Utilities;
 import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Fill;
 import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Intensity;
@@ -1168,7 +1167,7 @@ public class YamJJazzRhythmGenerator
     {
         SongStructure ss = contextWork.getSong().getSongStructure();
         int nbCellsPerBeat = Grid.getRecommendedNbCellsPerBeat(rhythm.getTimeSignature(),
-                rhythm.getFeatures().getFeel().equals(Feel.TERNARY));
+                rhythm.getFeatures().division().isSwing());
 
         LOGGER.fine("processAnticipationsAndAccents() --");
 

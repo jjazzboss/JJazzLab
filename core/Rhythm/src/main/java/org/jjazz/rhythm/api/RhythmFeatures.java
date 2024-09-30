@@ -24,53 +24,37 @@ package org.jjazz.rhythm.api;
 
 import java.io.Serializable;
 import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Rhythm general features.
  */
-public class RhythmFeatures implements Serializable
-{
+public record RhythmFeatures(Genre genre, Division division, TempoRange tempoRange) implements Serializable
+        {
 
     private static final long serialVersionUID = 1223380872L;
-    private Feel feel;
-    private Beat beat;
-    private Genre genre;
-    private TempoRange tempoRange;
-    private Intensity intensity;
+    private static final Logger LOGGER = Logger.getLogger(RhythmFeatures.class.getSimpleName());
 
     /**
      * Construct an object with all default values.
      * <p>
-     * Values are set to UNKNOWN, and ALL_TEMPO for TempoRange.
+     * Values are set to UNKNOWN, except for TempoRange which is set to TempoRange.ALL_TEMPO.
      * <p>
      */
     public RhythmFeatures()
     {
-        this(Feel.UNKNOWN, Beat.UNKNOWN, Genre.UNKNOWN, TempoRange.ALL_TEMPO, Intensity.UNKNOWN);
+        this(Genre.UNKNOWN, Division.UNKNOWN, TempoRange.ALL_TEMPO);
     }
 
-
-    public RhythmFeatures(Feel f, Beat b, Genre g, TempoRange rg, Intensity i)
-    {
-        if (f == null || b == null || g == null || rg == null || i == null)
-        {
-            throw new NullPointerException("f=" + f + " b=" + b + " g=" + g + " tg=" + rg + " i=" + i);
-        }
-        feel = f;
-        beat = b;
-        genre = g;
-        tempoRange = rg;
-        intensity = i;
-    }
 
     /**
-     * Compute a matching score between this RhythmFeatures and rf.
+     * Compute a matching score between this object and rf.
      * <p>
      * Score calculation on each variable:<br>
-     * - Add 0 point if both values are UNKNOWN (or ALL_TEMPO_RANGE)<br>
-     * - Add 70 points if genre values match  <br>
-     * - Add 30 points if 2 values match (other than genre)<br>
-     * - Add 10 points if 1 value matches with UNKNOWN <br>
+     * - Add 100 points if genre values are defined and match  <br>
+     * - Add 30 points division values are defined and match<br>
+     * - Add up to 30 points depending how TempoRange values match<br>
      *
      * @param rf
      * @return The matching score
@@ -78,218 +62,50 @@ public class RhythmFeatures implements Serializable
     public int getMatchingScore(RhythmFeatures rf)
     {
         int score = 0;
-        if (feel == Feel.UNKNOWN && rf.getFeel() == Feel.UNKNOWN)
+
+        if (genre != Genre.UNKNOWN && genre == rf.genre())
         {
-            // Nothing
-        } else if (feel == Feel.UNKNOWN || rf.getFeel() == Feel.UNKNOWN)
-        {
-            score += 10;
-        } else if (feel == rf.getFeel())
+            score += 100;
+        }
+
+        if (division != Division.UNKNOWN && division == rf.division())
         {
             score += 30;
         }
-        if (beat == Beat.UNKNOWN && rf.getBeat() == Beat.UNKNOWN)
+
+        if (tempoRange != TempoRange.ALL_TEMPO && rf.tempoRange != TempoRange.ALL_TEMPO)
         {
-            // Nothing
-        } else if (beat == Beat.UNKNOWN || rf.getBeat() == Beat.UNKNOWN)
-        {
-            score += 10;
-        } else if (beat == rf.getBeat())
-        {
-            score += 30;
-        }
-        if (genre == Genre.UNKNOWN && rf.getGenre() == Genre.UNKNOWN)
-        {
-            // Nothing
-        } else if (genre == Genre.UNKNOWN || rf.getGenre() == Genre.UNKNOWN)
-        {
-            score += 10;
-        } else if (genre == rf.getGenre())
-        {
-            score += 70;
-        }
-        if (intensity == Intensity.UNKNOWN && rf.getIntensity() == Intensity.UNKNOWN)
-        {
-            // Nothing
-        } else if (intensity == Intensity.UNKNOWN || rf.getIntensity() == Intensity.UNKNOWN)
-        {
-            score += 10;
-        } else if (intensity == rf.getIntensity())
-        {
-            score += 30;
-        }
-        if (tempoRange == TempoRange.ALL_TEMPO && rf.tempoRange == TempoRange.ALL_TEMPO)
-        {
-            // Nothing
-        } else
-        {
-            score += (int) (tempoRange.computeSimilarityLevel(rf.tempoRange) * 30);
+            score += Math.round(tempoRange.computeSimilarityLevel(rf.tempoRange) * 30);
         }
 
         return score;
     }
 
     /**
-     *
-     * @return Default to UNKNOWN.
-     */
-    public Feel getFeel()
-    {
-        return feel;
-    }
-
-    /**
-     *
-     * @return Default to UNKNOWN.
-     */
-    public Intensity getIntensity()
-    {
-        return intensity;
-    }
-
-    /**
-     *
-     * @return Default to UNKNOWN.
-     */
-    public Beat getBeat()
-    {
-        return beat;
-    }
-
-    /**
-     *
-     * @return Default to TempoRange.ALL_TEMPO.
-     */
-    public TempoRange getTempoRange()
-    {
-        return tempoRange;
-    }
-
-    /**
-     *
-     * @return Default to UNKNOWN.
-     */
-    public Genre getGenre()
-    {
-        return genre;
-    }
-
-
-    /**
-     * Try to set features from a rhythm name.
+     * Try to guess features from a text (for example a style name).
      * <p>
-     * Use featureValues to fix some values in the returned RhythmFeatures.
+     * Use defaultValues to set some values in the returned RhythmFeatures object.
      *
-     * @param rhythmName          eg "Bossa Nova"
-     * @param defaultValues If Intensity object use it for intensity, if Feel object use it for feel, etc.
-     * @return If no guess all features will be UNKNOWN or TempoRange.ALL_TEMPO
-     * TODO: to be completed!
+     * @param text  eg "Bossa Nova"
+     * @param tempo Ignored if negative
+     * @return If no match, all features will be UNKNOWN and TempoRange.ALL_TEMPO for the TempoRange
      */
-    static public RhythmFeatures guessFeatures(String rhythmName, Object... defaultValues)
+    static public RhythmFeatures guessFeatures(String text, int tempo)
     {
-        if (rhythmName == null || rhythmName.isBlank())
+        Objects.requireNonNull(text);
+
+        var lowerCaseText = text.toLowerCase();
+
+        Genre g = Genre.guess(lowerCaseText);
+        Division d = Division.guess(g, lowerCaseText, tempo);
+        TempoRange tr = tempo >= TempoRange.TEMPO_MIN ? TempoRange.getStandardTempoRange(tempo) : TempoRange.guess(g, text);
+        LOGGER.log(Level.FINE, "guessFeatures() text={0} tempo={1}  =>  g={2} d={3} tr={4}", new Object[]
         {
-            throw new IllegalArgumentException("rName=" + rhythmName + " fixedValues=" + defaultValues);
-        }
+            text, tempo, g, d, tr
+        });
 
-
-        Feel f = Feel.UNKNOWN;
-        Genre g = Genre.UNKNOWN;
-        Intensity i = Intensity.UNKNOWN;
-        TempoRange tr = TempoRange.ALL_TEMPO;
-        Beat b = Beat.UNKNOWN;
-
-
-        if (rhythmName.toLowerCase().contains("bossa"))
-        {
-            g = Genre.LATIN;
-            f = Feel.BINARY;
-            b = Beat.EIGHT;
-        } else if (rhythmName.toLowerCase().contains("funk"))
-        {
-            g = Genre.FUNK;
-            f = Feel.BINARY;
-            b = Beat.SIXTEEN;
-        }
-
-        // Override values
-        f = getDefaultValue(Feel.class, defaultValues) == null ? f : getDefaultValue(Feel.class, defaultValues);
-        g = getDefaultValue(Genre.class, defaultValues) == null ? g : getDefaultValue(Genre.class, defaultValues);
-        b = getDefaultValue(Beat.class, defaultValues) == null ? b : getDefaultValue(Beat.class, defaultValues);
-        tr = getDefaultValue(TempoRange.class, defaultValues) == null ? tr : getDefaultValue(TempoRange.class, defaultValues);
-        i = getDefaultValue(Intensity.class, defaultValues) == null ? i : getDefaultValue(Intensity.class, defaultValues);
-
-        return new RhythmFeatures(f, b, g, tr, i);
+        return new RhythmFeatures(g, d, tr);
     }
 
-    @Override
-    public int hashCode()
-    {
-        int hash = 7;
-        hash = 37 * hash + Objects.hashCode(this.feel);
-        hash = 37 * hash + Objects.hashCode(this.beat);
-        hash = 37 * hash + Objects.hashCode(this.genre);
-        hash = 37 * hash + Objects.hashCode(this.tempoRange);
-        hash = 37 * hash + Objects.hashCode(this.intensity);
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object obj)
-    {
-        if (this == obj)
-        {
-            return true;
-        }
-        if (obj == null)
-        {
-            return false;
-        }
-        if (getClass() != obj.getClass())
-        {
-            return false;
-        }
-        final RhythmFeatures other = (RhythmFeatures) obj;
-        if (this.feel != other.feel)
-        {
-            return false;
-        }
-        if (this.beat != other.beat)
-        {
-            return false;
-        }
-        if (this.genre != other.genre)
-        {
-            return false;
-        }
-        if (!Objects.equals(this.tempoRange, other.tempoRange))
-        {
-            return false;
-        }
-        return true;
-    }
-
-
-    /**
-     * Get the first default value which is an instance of c.
-     *
-     * @param <T>
-     * @param c
-     * @param defaultValues
-     * @return can be null
-     */
-    static private <T> T getDefaultValue(Class<T> c, Object... defaultValues)
-    {
-        for (Object value : defaultValues)
-        {
-            if (value != null && c.isInstance(value))
-            {
-                @SuppressWarnings("unchecked")
-                T res = (T) value;
-                return res;
-            }
-        }
-        return null;
-    }
 
 }

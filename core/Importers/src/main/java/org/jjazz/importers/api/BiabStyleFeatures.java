@@ -23,30 +23,24 @@
 package org.jjazz.importers.api;
 
 import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.rhythm.api.Beat;
-import org.jjazz.rhythm.api.Feel;
-import org.jjazz.rhythm.api.Intensity;
+import org.jjazz.rhythm.api.Division;
 import org.jjazz.rhythm.api.Genre;
 
 /**
- *
+ * Bridge to JJazzLab RhythmFeatures.
  */
 public class BiabStyleFeatures
 {
 
     public Genre genre;
-    public Beat beat;
-    public Intensity intensity;
-    public Feel feel;
+    public Division division;
     public TimeSignature timeSignature;
     private static BiabStyleFeatures[] DATA;
 
-    public BiabStyleFeatures(Genre g, Beat b, Intensity i, Feel f, TimeSignature ts)
+    public BiabStyleFeatures(Genre g, Division d, TimeSignature ts)
     {
         genre = g;
-        beat = b;
-        intensity = i;
-        feel = f;
+        division = d;
         timeSignature = ts;
     }
 
@@ -63,6 +57,7 @@ public class BiabStyleFeatures
     /**
      * Guess based on file extension.
      *
+     * @param fileName
      * @return Can be UNKNOWN
      */
 
@@ -94,30 +89,30 @@ public class BiabStyleFeatures
         }
         DATA = new BiabStyleFeatures[]
         {
-            new BiabStyleFeatures(Genre.JAZZ, Beat.UNKNOWN, Intensity.UNKNOWN, Feel.TERNARY, TimeSignature.FOUR_FOUR), // 1
-            new BiabStyleFeatures(Genre.COUNTRY, Beat.UNKNOWN, Intensity.UNKNOWN, Feel.TERNARY, TimeSignature.TWELVE_EIGHT), // 2
-            new BiabStyleFeatures(Genre.COUNTRY, Beat.UNKNOWN, Intensity.UNKNOWN, Feel.BINARY, TimeSignature.FOUR_FOUR), // 3
-            new BiabStyleFeatures(Genre.LATIN, Beat.EIGHT, Intensity.UNKNOWN, Feel.BINARY, TimeSignature.FOUR_FOUR), // 4
-            new BiabStyleFeatures(Genre.WORLD, Beat.UNKNOWN, Intensity.UNKNOWN, Feel.BINARY, TimeSignature.FOUR_FOUR),// 5
-            new BiabStyleFeatures(Genre.RB, Beat.UNKNOWN, Intensity.UNKNOWN, Feel.TERNARY, TimeSignature.FOUR_FOUR),// 6
-            new BiabStyleFeatures(Genre.RB, Beat.UNKNOWN, Intensity.UNKNOWN, Feel.BINARY, TimeSignature.FOUR_FOUR),// 7
-            new BiabStyleFeatures(Genre.BALLROOM, Beat.UNKNOWN, Intensity.UNKNOWN, Feel.BINARY, TimeSignature.THREE_FOUR),// 8
-            new BiabStyleFeatures(Genre.POP, Beat.UNKNOWN, Intensity.LIGHT, Feel.BINARY, TimeSignature.FOUR_FOUR),// 9
-            new BiabStyleFeatures(Genre.ROCK, Beat.UNKNOWN, Intensity.UNKNOWN, Feel.TERNARY, TimeSignature.FOUR_FOUR), // A
-            new BiabStyleFeatures(Genre.ROCK, Beat.UNKNOWN, Intensity.LIGHT, Feel.BINARY, TimeSignature.FOUR_FOUR), // B
-            new BiabStyleFeatures(Genre.ROCK, Beat.UNKNOWN, Intensity.MEDIUM, Feel.BINARY, TimeSignature.FOUR_FOUR), // C
-            new BiabStyleFeatures(Genre.ROCK, Beat.UNKNOWN, Intensity.HEAVY, Feel.BINARY, TimeSignature.FOUR_FOUR),// D
-            new BiabStyleFeatures(Genre.ROCK, Beat.UNKNOWN, Intensity.MEDIUM, Feel.BINARY, TimeSignature.FOUR_FOUR),// E
-            new BiabStyleFeatures(Genre.POP, Beat.UNKNOWN, Intensity.UNKNOWN, Feel.BINARY, TimeSignature.FOUR_FOUR),// F
-            new BiabStyleFeatures(Genre.FUNK, Beat.UNKNOWN, Intensity.UNKNOWN, Feel.BINARY, TimeSignature.FOUR_FOUR),// G
-            new BiabStyleFeatures(Genre.JAZZ, Beat.UNKNOWN, Intensity.UNKNOWN, Feel.TERNARY, TimeSignature.THREE_FOUR),// H
-            new BiabStyleFeatures(Genre.LATIN, Beat.UNKNOWN, Intensity.UNKNOWN, Feel.BINARY, TimeSignature.FOUR_FOUR),// I
-            new BiabStyleFeatures(Genre.LATIN, Beat.UNKNOWN, Intensity.UNKNOWN, Feel.BINARY, TimeSignature.FOUR_FOUR),// J
-            new BiabStyleFeatures(Genre.JAZZ, Beat.UNKNOWN, Intensity.UNKNOWN, Feel.TERNARY, TimeSignature.FOUR_FOUR),// K
-            new BiabStyleFeatures(Genre.COUNTRY, Beat.UNKNOWN, Intensity.UNKNOWN, Feel.BINARY, TimeSignature.FOUR_FOUR),// L
-            new BiabStyleFeatures(Genre.POP, Beat.UNKNOWN, Intensity.LIGHT, Feel.BINARY, TimeSignature.TWELVE_EIGHT),// M
-            new BiabStyleFeatures(Genre.COUNTRY, Beat.UNKNOWN, Intensity.UNKNOWN, Feel.BINARY, TimeSignature.TWELVE_EIGHT),// N
-            new BiabStyleFeatures(Genre.REGGAE, Beat.UNKNOWN, Intensity.UNKNOWN, Feel.BINARY, TimeSignature.FOUR_FOUR)// O
+            new BiabStyleFeatures(Genre.JAZZ, Division.EIGHTH_SWING, TimeSignature.FOUR_FOUR), // 1
+            new BiabStyleFeatures(Genre.COUNTRY, Division.EIGHTH_TRIPLET, TimeSignature.TWELVE_EIGHT), // 2
+            new BiabStyleFeatures(Genre.COUNTRY, Division.EIGHTH, TimeSignature.FOUR_FOUR), // 3
+            new BiabStyleFeatures(Genre.LATIN, Division.EIGHTH, TimeSignature.FOUR_FOUR), // 4
+            new BiabStyleFeatures(Genre.WORLD, Division.UNKNOWN, TimeSignature.FOUR_FOUR),// 5
+            new BiabStyleFeatures(Genre.RnB, Division.EIGHTH_SWING, TimeSignature.FOUR_FOUR),// 6
+            new BiabStyleFeatures(Genre.RnB, Division.EIGHTH, TimeSignature.FOUR_FOUR),// 7
+            new BiabStyleFeatures(Genre.BALLROOM, Division.UNKNOWN, TimeSignature.THREE_FOUR),// 8
+            new BiabStyleFeatures(Genre.POP, Division.UNKNOWN, TimeSignature.FOUR_FOUR),// 9
+            new BiabStyleFeatures(Genre.ROCK, Division.EIGHTH_SWING, TimeSignature.FOUR_FOUR), // A
+            new BiabStyleFeatures(Genre.ROCK, Division.UNKNOWN, TimeSignature.FOUR_FOUR), // B
+            new BiabStyleFeatures(Genre.ROCK, Division.UNKNOWN, TimeSignature.FOUR_FOUR), // C
+            new BiabStyleFeatures(Genre.ROCK, Division.UNKNOWN, TimeSignature.FOUR_FOUR),// D
+            new BiabStyleFeatures(Genre.ROCK, Division.UNKNOWN, TimeSignature.FOUR_FOUR),// E
+            new BiabStyleFeatures(Genre.POP, Division.UNKNOWN, TimeSignature.FOUR_FOUR),// F
+            new BiabStyleFeatures(Genre.FUNK, Division.SIXTEENTH, TimeSignature.FOUR_FOUR),// G
+            new BiabStyleFeatures(Genre.JAZZ, Division.EIGHTH_SWING, TimeSignature.THREE_FOUR),// H
+            new BiabStyleFeatures(Genre.LATIN, Division.UNKNOWN, TimeSignature.FOUR_FOUR),// I
+            new BiabStyleFeatures(Genre.LATIN, Division.UNKNOWN, TimeSignature.FOUR_FOUR),// J
+            new BiabStyleFeatures(Genre.JAZZ, Division.EIGHTH_SWING, TimeSignature.FOUR_FOUR),// K
+            new BiabStyleFeatures(Genre.COUNTRY, Division.EIGHTH, TimeSignature.FOUR_FOUR),// L
+            new BiabStyleFeatures(Genre.POP, Division.EIGHTH_TRIPLET, TimeSignature.TWELVE_EIGHT),// M
+            new BiabStyleFeatures(Genre.COUNTRY, Division.EIGHTH_TRIPLET, TimeSignature.TWELVE_EIGHT),// N
+            new BiabStyleFeatures(Genre.REGGAE, Division.UNKNOWN, TimeSignature.FOUR_FOUR)// O
         };
     }
 }

@@ -22,6 +22,7 @@
  */
 package org.jjazz.yamjjazz.rhythm;
 
+import com.google.common.collect.Lists;
 import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythm;
 import org.jjazz.yamjjazz.rhythm.api.YamJJazzDefaultRhythms;
 import java.beans.PropertyChangeListener;
@@ -44,6 +45,7 @@ import org.jjazz.midi.api.InstrumentSettings;
 import org.jjazz.midi.api.synths.GMSynth;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrasetransform.api.rps.RP_SYS_DrumsTransform;
+import org.jjazz.rhythm.api.Genre;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmFeatures;
 import org.jjazz.rhythm.api.RhythmParameter;
@@ -69,8 +71,7 @@ import org.jjazz.yamjjazz.rhythm.api.StylePartType;
  * A rhythm based on a Yamaha style file which can optionally be extended using a special Midi extension file.
  * <p>
  * - There can be an unlimited number of StyleParts<br>
- * - Each StylePart has different source phrases per complexity level, and for one complexity level we may have several source phrase
- * variations.<p>
+ * - Each StylePart has different source phrases per complexity level, and for one complexity level we may have several source phrase variations.<p>
  * Rhythm Parameters are:<br>
  * - RP_Variation (one value for each StylePart/Complexity pair)<br>
  * - RP_Intensity<br>
@@ -130,23 +131,26 @@ public class YamJJazzRhythmImpl implements YamJJazzRhythm, MusicGenerator
         version = "1";
 
         style = new Style();
-        style.readNonMusicData(stdFile);        // Throw exceptions
-
-        description = "Standard Yamaha style (" + style.sffType.toString() + ")";
-        preferredTempo = TempoRange.checkTempo(style.tempo) ? style.tempo : TempoRange.TEMPO_STD;
+        style.readNonMusicData(stdFile);        // Throw exceptions. Also compute style.division
         timeSignature = style.timeSignature;
-        features = YamJJazzDefaultRhythms.getInstance().getDefaultFeatures(name);
-        if (features == null)
+        description = "Standard Yamaha style (" + style.sffType.toString() + ")";
+
+        preferredTempo = TempoRange.checkTempo(style.tempo) ? style.tempo : TempoRange.TEMPO_STD;
+        var tempoRange = computeTempoRange(preferredTempo);
+
+        // If it's a default rhythm, we can retrieve its genre
+        var yjdr = YamJJazzDefaultRhythms.getInstance();
+        Genre genre = yjdr.getGenre(name);
+        if (genre == null)
         {
-            features = RhythmFeatures.guessFeatures(name,
-                    style.feel,
-                    new TempoRange(Math.max(TempoRange.TEMPO_MIN, preferredTempo - 15), Math.min(TempoRange.TEMPO_MAX, preferredTempo + 15),
-                            "Custom"));
+            // Not a default rhythm, try to guess it from name
+            genre = Genre.guess(name);      // Might be Genre.Unknown if no match
         }
-        tags = new String[]
-        {
-            "yamaha"
-        };
+        features = new RhythmFeatures(genre, style.division, tempoRange);
+
+        var tmpTags = Lists.newArrayList("yamaha");      // First item must be different from the extended style. See 
+        tmpTags.addAll(yjdr.getDefaultTags(name));      // Optional additional tags if it's a default rhythm
+        tags = tmpTags.toArray(String[]::new);
 
         // Generate the main data
         buildRhythmVoices();
@@ -180,19 +184,29 @@ public class YamJJazzRhythmImpl implements YamJJazzRhythm, MusicGenerator
         version = "1.0";
 
         style = new Style();
-        style.readNonMusicData(extFile, stdFile);        // Throw exceptions
+        style.readNonMusicData(extFile, stdFile);        // Throw exceptions. Also compute style.division
 
-        preferredTempo = style.tempo;
-        features = YamJJazzDefaultRhythms.getInstance().getDefaultFeatures(name);
-        if (features == null)
-        {
-            features = RhythmFeatures.guessFeatures(name, style.feel, new TempoRange(preferredTempo - 15, preferredTempo + 15, "Custom"));
-        }
+
         timeSignature = style.timeSignature;
-        tags = new String[]
+        preferredTempo = TempoRange.checkTempo(style.tempo) ? style.tempo : TempoRange.TEMPO_STD;
+        var tempoRange = computeTempoRange(preferredTempo);
+
+
+        // If it's a default rhythm, we can retrieve its genre
+        var yjdr = YamJJazzDefaultRhythms.getInstance();
+        Genre genre = yjdr.getGenre(name);
+        if (genre == null)
         {
-            "yamaha extended"
-        };
+            // Not a default rhythm, try to guess it from name
+            genre = Genre.guess(name);      // Might be Genre.Unknown if no match
+        }
+        features = new RhythmFeatures(genre, style.division, tempoRange);
+
+
+        var tmpTags = Lists.newArrayList("yamaha extended");           // First item must be different from the standard style. 
+        tmpTags.addAll(yjdr.getDefaultTags(name));      // Optional additional tags if it's a default rhythm
+        tags = tmpTags.toArray(String[]::new);
+
 
         buildRhythmVoices();             // Throw exceptions
         buildRhythmParameters();        // Throw exceptions
@@ -367,7 +381,10 @@ public class YamJJazzRhythmImpl implements YamJJazzRhythm, MusicGenerator
             }
         } catch (FormatNotSupportedException | IOException | InvalidMidiDataException ex)
         {
-            LOGGER.log(Level.SEVERE, "{0} - loadResources() problem reading file: {1}", new Object[]{getName(), ex.getLocalizedMessage()});
+            LOGGER.log(Level.SEVERE, "{0} - loadResources() problem reading file: {1}", new Object[]
+            {
+                getName(), ex.getLocalizedMessage()
+            });
             throw new MusicGenerationException(ex.getLocalizedMessage());
         }
 
@@ -503,7 +520,7 @@ public class YamJJazzRhythmImpl implements YamJJazzRhythm, MusicGenerator
     {
         LOGGER.log(Level.FINER, "buildRhythmVoices() --  this={0}", this);
         rhythmVoices = new ArrayList<>();
-        
+
         for (AccType at : style.getAllAccTypes())
         {
             InstrumentMix insMix = style.getSInt().get(at);
@@ -572,8 +589,8 @@ public class YamJJazzRhythmImpl implements YamJJazzRhythm, MusicGenerator
     /**
      * Build the RhythmParameters for this rhythm.
      * <p>
-     * The RP_Variation values are built from the "defined" StyleParts and complexity levels. We consider a StylePart/Complexity "defined"
-     * when there is at least one SourcePhraseSet defined, which can be empty (ie because music data are not yet loaded).<br>
+     * The RP_Variation values are built from the "defined" StyleParts and complexity levels. We consider a StylePart/Complexity "defined" when there is at
+     * least one SourcePhraseSet defined, which can be empty (ie because music data are not yet loaded).<br>
      * Examples: Main A-1, Main A-2, Main B-3, etc.
      * <p>
      * @throws org.jjazz.yamjjazz.FormatNotSupportedException If style does not contain a Main_A style part.
@@ -680,6 +697,16 @@ public class YamJJazzRhythmImpl implements YamJJazzRhythm, MusicGenerator
     public void removePropertyChangeListener(PropertyChangeListener l)
     {
         pcs.removePropertyChangeListener(l);
+    }
+
+    // ======================================================================================================
+    // private methods
+    // ======================================================================================================
+
+    private TempoRange computeTempoRange(int t)
+    {
+        var tr = new TempoRange(Math.max(TempoRange.TEMPO_MIN, t - 25), Math.min(TempoRange.TEMPO_MAX, t + 25), "Custom");
+        return tr;
     }
 
 }

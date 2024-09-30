@@ -34,17 +34,24 @@ import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.importers.api.ImprovisorFileReader;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.rhythm.api.Rhythm;
+import org.jjazz.rhythm.api.RhythmFeatures;
 import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Fill;
 import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Intensity;
 import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Variation;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Marker;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Mute;
+import org.jjazz.rhythmdatabase.api.RhythmDatabase;
+import org.jjazz.rhythmdatabase.api.RhythmInfo;
+import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.spi.SongImporter;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
+import org.jjazz.utilities.api.IntRange;
 import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythm;
+import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythmProvider;
+import org.jjazz.yamjjazz.rhythm.api.YamahaRhythmProvider;
 import org.openide.util.Exceptions;
 import org.openide.util.lookup.ServiceProvider;
 
@@ -92,16 +99,16 @@ public class ImprovisorImporter implements SongImporter
         List<SongPart> spts = ss.getSongParts();
         SongPart spt0 = spts.get(0);
         TimeSignature ts = spt0.getRhythm().getTimeSignature();
+        int tempo = song.getTempo();
 
 
-        // Find rhythm
-        Rhythm r = null;
-        r = ImporterRhythmFinder.findRhythm(styleText, ts, song.getTempo());
+        // Try to guess rhythm based on styleText
+        var r = guessRhythm(styleText, ts, tempo);
         if (r == null)
         {
             r = spt0.getRhythm();
         }
-        if (!(r instanceof YamJJazzRhythm) || r.getRhythmParameters().size() < 5)
+        if (!(r instanceof YamJJazzRhythm))
         {
             LOGGER.log(Level.INFO, "postProcessSong() Rhythm not supported for post-processing {0}, Post-processing aborted.", r);
             return;
@@ -209,4 +216,41 @@ public class ImprovisorImporter implements SongImporter
         return newSpt;
     }
 
+
+    private Rhythm guessRhythm(String text, TimeSignature ts, int tempo)
+    {
+        var rdb = RhythmDatabase.getDefault();
+        var rf = RhythmFeatures.guessFeatures(text, tempo);
+        var ri = rdb.findRhythm(rf, rii -> rii.timeSignature() == ts && isYamJJazz(rii));
+        if (ri == null)
+        {
+            ri = rdb.findRhythm(text, rii -> rii.timeSignature() == ts && new IntRange(tempo - 30, tempo + 30).contains(rii.preferredTempo()));
+        }
+        if (ri == null)
+        {
+            LOGGER.log(Level.INFO, "guessRhythm() Could not find a JJazzLab rhythm corresponding to {0}, using default rhythm for ts={1}", new Object[]
+            {
+                text, ts
+            });
+            ri = rdb.getDefaultRhythm(ts);
+        }
+        YamJJazzRhythm yjr = null;
+        try
+        {
+            yjr = (YamJJazzRhythm) rdb.getRhythmInstance(ri);
+        } catch (UnavailableRhythmException ex)
+        {
+            LOGGER.log(Level.WARNING, "guessRhythm() Could not get Rhythm instance from RhythmInfo={0}.  ex={1}", new Object[]
+            {
+                ri,
+                ex.getLocalizedMessage()
+            });
+        }
+        return yjr;
+    }
+
+    private boolean isYamJJazz(RhythmInfo ri)
+    {
+        return YamahaRhythmProvider.isMine(ri) || YamJJazzRhythmProvider.isMine(ri);
+    }
 }

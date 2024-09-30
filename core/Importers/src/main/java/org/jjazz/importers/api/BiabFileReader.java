@@ -37,15 +37,15 @@ import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.rhythm.api.Feel;
+import org.jjazz.rhythm.api.Division;
 import org.jjazz.song.api.Song;
 import org.jjazz.utilities.api.Utilities;
 
 /**
  * Band In A Box file reader.
  * <p>
- * The reader retrieves data from the BIAB file and creates a Song. The ChordLeadSheet is complete and the SongStructure reflects
- * the structure of the BIAB file, including the chorus repeats. SongPart names are also updated.<p>
+ * The reader retrieves data from the BIAB file and creates a Song. The ChordLeadSheet is complete and the SongStructure reflects the structure of the BIAB
+ * file, including the chorus repeats. SongPart names are also updated.<p>
  * What remains to be done is to customize the SongParts rhythm/style parameters.
  * <p>
  * Not parsed yet, although it would have an impact on the JJazzLab song :<br>
@@ -61,7 +61,7 @@ public class BiabFileReader
     private static final int NB_BARS_MAX = 255;
     public File file;
     public TimeSignature timeSignature;
-    public Feel feel;
+    public boolean swing;
     private int byteIndex;     // Keep track of where we are in the file
     private int styleFamilyId;
     public String styleFileName;
@@ -110,14 +110,13 @@ public class BiabFileReader
     /**
      * Create a reader.
      * <p>
-     * There is no time signature and Feel information in BIAB files, so if user knows this info it should pass it via the
-     * parameters.
+     * There is no time signature and Feel information in BIAB files, so if user knows this info it should pass it via the parameters.
      *
      * @param f
-     * @param ts Can be null, in this case, algorithm will try to guess the TimeSignature based on the file name.
-     * @param feel Can be null, in this case BINARY will be used.
+     * @param ts    Can be null, in this case, algorithm will try to guess the TimeSignature based on the file name.
+     * @param swing True if swing style
      */
-    public BiabFileReader(File f, TimeSignature ts, Feel feel)
+    public BiabFileReader(File f, TimeSignature ts, boolean swing)
     {
         if (f == null)
         {
@@ -125,7 +124,7 @@ public class BiabFileReader
         }
         this.file = f;
         this.timeSignature = ts;
-        this.feel = (feel == null) ? Feel.BINARY : feel;
+        this.swing = swing;
     }
 
     /**
@@ -164,7 +163,10 @@ public class BiabFileReader
     {
         // Song title
         title = readString(in, readUByte(in));
-        LOGGER.log(Level.FINE, "readFileDataOldFormat() title={0} byteIndex={1}", new Object[]{title, hex(byteIndex - title.length())});
+        LOGGER.log(Level.FINE, "readFileDataOldFormat() title={0} byteIndex={1}", new Object[]
+        {
+            title, hex(byteIndex - title.length())
+        });
 
         // Skip to byte 0x3e
         skipBytes(in, 0x3e - byteIndex);
@@ -175,19 +177,28 @@ public class BiabFileReader
         if (styleFeatures != null)
         {
             timeSignature = styleFeatures.timeSignature;
-            feel = styleFeatures.feel;
+            swing = styleFeatures.division == Division.EIGHTH_SWING;
         }
-        LOGGER.log(Level.FINE, "readFileDataOldFormat() styleFamilyId={0}, timeSignature={1}, feel={2} byteIndex={3}", new Object[]{styleFamilyId,
-            timeSignature, feel, hex(byteIndex - 1)});
+        LOGGER.log(Level.FINE, "readFileDataOldFormat() styleFamilyId={0}, timeSignature={1}, swing={2} byteIndex={3}", new Object[]
+        {
+            styleFamilyId,
+            timeSignature, swing, hex(byteIndex - 1)
+        });
 
         // Key - Not used 
         keyId = readUByte(in);
-        LOGGER.log(Level.FINE, "readFileDataOldFormat() keyId={0} byteIndex={1}", new Object[]{keyId, hex(byteIndex - 1)});
+        LOGGER.log(Level.FINE, "readFileDataOldFormat() keyId={0} byteIndex={1}", new Object[]
+        {
+            keyId, hex(byteIndex - 1)
+        });
 
 
         // Tempo
         tempo = readUByte(in) + (readUByte(in) << 8);
-        LOGGER.log(Level.FINE, "readFileDataOldFormat() tempo={0} byteIndex={1}", new Object[]{tempo, hex(byteIndex - 2)});
+        LOGGER.log(Level.FINE, "readFileDataOldFormat() tempo={0} byteIndex={1}", new Object[]
+        {
+            tempo, hex(byteIndex - 2)
+        });
 
         // Skip to byte 0x42
         skipBytes(in, 0x42 - byteIndex);
@@ -235,8 +246,11 @@ public class BiabFileReader
                 BiabChord chord = chords.get(index);
                 if (chord == null)
                 {
-                    LOGGER.log(Level.SEVERE, "readFileDataOldFormat() (root/bass) No chord found for index={0} at byte offset={1}. chords={2}", new Object[]{index,
-                        hex(byteIndex - 1), getChordsAsString()});
+                    LOGGER.log(Level.SEVERE, "readFileDataOldFormat() (root/bass) No chord found for index={0} at byte offset={1}. chords={2}", new Object[]
+                    {
+                        index,
+                        hex(byteIndex - 1), getChordsAsString()
+                    });
                     genericError(byteIndex - 1);
                     return;
                 }
@@ -262,15 +276,17 @@ public class BiabFileReader
 
     /**
      *
-     * @param useByteShift Use the optional byte offset after reading .STY see comments below for the "Melody and Style patch byte
-     * suite"
+     * @param useByteShift Use the optional byte offset after reading .STY see comments below for the "Melody and Style patch byte suite"
      * @throws IOException
      * @throws SongCreationException
      */
     private void readFileData(boolean useByteShift) throws IOException, SongCreationException
     {
         LOGGER.fine("\n\n------------------------------------------------------");
-        LOGGER.log(Level.FINE, "readFileData() -- useByteShift={0} reading file={1}", new Object[]{useByteShift, file.getAbsolutePath()});
+        LOGGER.log(Level.FINE, "readFileData() -- useByteShift={0} reading file={1}", new Object[]
+        {
+            useByteShift, file.getAbsolutePath()
+        });
 
 
         // Buffer must be big enough to store the whole file.
@@ -290,12 +306,15 @@ public class BiabFileReader
                 case 0x48:
                 case 0x49:  // Works OK
                 case 0xbc:  // old format!                    
-                case 0xbb:  // old format!                   
+                case 0xbb: // old format!                   
                     break;
                 default:
                     throw new SongCreationException(file.getName() + ": BIAB file version not supported: " + hex(version));
             }
-            LOGGER.log(Level.FINE, "readFileData() version={0} byteIndex={1}", new Object[]{hex(version), hex(byteIndex - 1)});
+            LOGGER.log(Level.FINE, "readFileData() version={0} byteIndex={1}", new Object[]
+            {
+                hex(version), hex(byteIndex - 1)
+            });
 
 
             if (version == 0xbb || version == 0xbc)
@@ -309,15 +328,21 @@ public class BiabFileReader
 
             // Song title 
             title = readString(in, readUByte(in));
-            LOGGER.log(Level.FINE, "readFileData() title={0} byteIndex={1}", new Object[]{title, hex(byteIndex - title.length())});
+            LOGGER.log(Level.FINE, "readFileData() title={0} byteIndex={1}", new Object[]
+            {
+                title, hex(byteIndex - title.length())
+            });
 
 
             // Skip to byte 0x3E
-             processSuite(in, byteIndex, 0x3D, (index, value) ->
+            processSuite(in, byteIndex, 0x3D, (index, value) -> 
             {
                 // Do nothing
-                LOGGER.log(Level.FINE, "readFileData() Unusual index/value index={0}, value={1}, byteIndex={2}", new Object[]{index,
-                    hex(value), hex(byteIndex - 1)});
+                LOGGER.log(Level.FINE, "readFileData() Unusual index/value index={0}, value={1}, byteIndex={2}", new Object[]
+                {
+                    index,
+                    hex(value), hex(byteIndex - 1)
+                });
             });
 
 
@@ -327,18 +352,27 @@ public class BiabFileReader
             styleFamilyId = readUByte(in);
             LOGGER.log(Level.FINE, "readFileData() styleFamilyId={0}", styleFamilyId);
 
-            
+
             // Key - Not used 
             keyId = readUByte(in);
-            LOGGER.log(Level.FINE, "readFileData() keyId={0} byteIndex={1}", new Object[]{keyId, hex(byteIndex - 1)});
-      
+            LOGGER.log(Level.FINE, "readFileData() keyId={0} byteIndex={1}", new Object[]
+            {
+                keyId, hex(byteIndex - 1)
+            });
+
 
             // Tempo
             tempo = readUByte(in) + (readUByte(in) << 8);
-            LOGGER.log(Level.FINE, "readFileData() tempo={0} byteIndex={1}", new Object[]{tempo, hex(byteIndex - 2)});
+            LOGGER.log(Level.FINE, "readFileData() tempo={0} byteIndex={1}", new Object[]
+            {
+                tempo, hex(byteIndex - 2)
+            });
             if (tempo > 500)
             {
-                LOGGER.log(Level.SEVERE, "readFileData() Invalid tempo value={0} at byte offset={1}", new Object[]{tempo, hex(byteIndex - 1)});
+                LOGGER.log(Level.SEVERE, "readFileData() Invalid tempo value={0} at byte offset={1}", new Object[]
+                {
+                    tempo, hex(byteIndex - 1)
+                });
                 genericError(byteIndex - 1);
                 return;
             }
@@ -347,7 +381,7 @@ public class BiabFileReader
             // Bar markers suite
             LOGGER.log(Level.FINE, "readFileData() reading bar markers >>>>>>>>>> byteIndex={0}", hex(byteIndex));
             startBar = readUByte(in);           // always 1 ?
-            processSuite(in, startBar, NB_BARS_MAX - 1, (barIndex, value) ->
+            processSuite(in, startBar, NB_BARS_MAX - 1, (barIndex, value) -> 
             {
                 // Save the barIndexes for which there is a marker defined
                 // value=marker type: 1=a, 2=b, 3=c, 4=d
@@ -360,7 +394,7 @@ public class BiabFileReader
             // The chords are listed as they appear in the song, without taking into account any structure info (repeats, coda, tags, etc.)
             // BIAB has 4 chords slots per bar (don't care the time signature)
             LOGGER.log(Level.FINE, "readFileData() reading chord types >>>>>>>>>>>>>>>>>>> byteIndex={0}", hex(byteIndex));
-            processSuite(in, 0, (NB_BARS_MAX * 4) - 1, (index, value) ->
+            processSuite(in, 0, (NB_BARS_MAX * 4) - 1, (index, value) -> 
             {
                 // Save the chordIndex for which there is a chord type defined
                 // index=chordIndex
@@ -374,7 +408,7 @@ public class BiabFileReader
 
             // Chord roots suite : coded to contain the optional bass note too
             LOGGER.log(Level.FINE, "readFileData() reading chord root/bass notes >>>>>>>>>>>>>>>>>> byteIndex={0}", hex(byteIndex));
-            int nextIndex = processSuite(in, 0, (NB_BARS_MAX * 4) - 1, (index, value) ->
+            int nextIndex = processSuite(in, 0, (NB_BARS_MAX * 4) - 1, (index, value) -> 
             {
                 // Save the chord root and bass notes for each chord
                 // idx=chordIndex
@@ -383,8 +417,11 @@ public class BiabFileReader
                 BiabChord chord = chords.get(index);
                 if (chord == null)
                 {
-                    LOGGER.log(Level.SEVERE, "readFileData() (root/bass) No chord found for index={0} at byte offset={1}. chords={2}", new Object[]{index,
-                        hex(byteIndex - 1), getChordsAsString()});
+                    LOGGER.log(Level.SEVERE, "readFileData() (root/bass) No chord found for index={0} at byte offset={1}. chords={2}", new Object[]
+                    {
+                        index,
+                        hex(byteIndex - 1), getChordsAsString()
+                    });
                     genericError(byteIndex - 1);
                     return;
                 }
@@ -400,51 +437,78 @@ public class BiabFileReader
             int startIndex = nextIndex - (NB_BARS_MAX * 4);     // Should be 0 or 1
             LOGGER.log(Level.FINE, "readFileData() reading overaAll, chorus and tags data >>>>>>>>>>>>>>>>>>> byteIndex={0}", hex(byteIndex));
             LOGGER.log(Level.FINE, "readFileData()   (startIndex={0})", startIndex);
-            nextIndex = processSuite(in, startIndex, 8, (index, value) ->
+            nextIndex = processSuite(in, startIndex, 8, (index, value) -> 
             {
                 switch (index)
                 {
                     case 0:
                         overallLoop = (value != 0);
-                        LOGGER.log(Level.FINE, "readFileData()   overallLoop={0}, byteIndex={1}", new Object[]{overallLoop,
-                            hex(byteIndex - 1)});
+                        LOGGER.log(Level.FINE, "readFileData()   overallLoop={0}, byteIndex={1}", new Object[]
+                        {
+                            overallLoop,
+                            hex(byteIndex - 1)
+                        });
                         break;
                     case 1:
                         chorusStart = value;
-                        LOGGER.log(Level.FINE, "readFileData()   chorusStart={0}, byteIndex={1}", new Object[]{chorusStart,
-                            hex(byteIndex - 1)});
+                        LOGGER.log(Level.FINE, "readFileData()   chorusStart={0}, byteIndex={1}", new Object[]
+                        {
+                            chorusStart,
+                            hex(byteIndex - 1)
+                        });
                         break;
                     case 2:
                         chorusEnd = value;
-                        LOGGER.log(Level.FINE, "readFileData()   chorusEnd={0}, byteIndex={1}", new Object[]{chorusEnd, hex(byteIndex - 1)});
+                        LOGGER.log(Level.FINE, "readFileData()   chorusEnd={0}, byteIndex={1}", new Object[]
+                        {
+                            chorusEnd, hex(byteIndex - 1)
+                        });
                         break;
                     case 3:
                         chorusNbRepeats = value;
-                        LOGGER.log(Level.FINE, "readFileData()   chorusNbRepeats={0}, byteIndex={1}", new Object[]{chorusNbRepeats,
-                            hex(byteIndex - 1)});
+                        LOGGER.log(Level.FINE, "readFileData()   chorusNbRepeats={0}, byteIndex={1}", new Object[]
+                        {
+                            chorusNbRepeats,
+                            hex(byteIndex - 1)
+                        });
                         break;
                     case 4:
                         varyStyleInMiddleChorus = (value != 0);
-                        LOGGER.log(Level.FINE, "readFileData()   varyStyleInMiddleChorus={0}, byteIndex={1}", new Object[]{varyStyleInMiddleChorus,
-                            hex(byteIndex - 1)});
+                        LOGGER.log(Level.FINE, "readFileData()   varyStyleInMiddleChorus={0}, byteIndex={1}", new Object[]
+                        {
+                            varyStyleInMiddleChorus,
+                            hex(byteIndex - 1)
+                        });
                         break;
                     case 5:
                         useTagJump = (value != 0);
-                        LOGGER.log(Level.FINE, "readFileData()   useTagJump={0}, byteIndex={1}", new Object[]{useTagJump, hex(byteIndex - 1)});
+                        LOGGER.log(Level.FINE, "readFileData()   useTagJump={0}, byteIndex={1}", new Object[]
+                        {
+                            useTagJump, hex(byteIndex - 1)
+                        });
                         break;
                     case 6:
                         tagAfterBar = value;
-                        LOGGER.log(Level.FINE, "readFileData()   tagAfterBar={0}, byteIndex={1}", new Object[]{tagAfterBar,
-                            hex(byteIndex - 1)});
+                        LOGGER.log(Level.FINE, "readFileData()   tagAfterBar={0}, byteIndex={1}", new Object[]
+                        {
+                            tagAfterBar,
+                            hex(byteIndex - 1)
+                        });
                         break;
                     case 7:
                         tagBeginBar = value;
-                        LOGGER.log(Level.FINE, "readFileData()   tagBeginBar={0}, byteIndex={1}", new Object[]{tagBeginBar,
-                            hex(byteIndex - 1)});
+                        LOGGER.log(Level.FINE, "readFileData()   tagBeginBar={0}, byteIndex={1}", new Object[]
+                        {
+                            tagBeginBar,
+                            hex(byteIndex - 1)
+                        });
                         break;
                     case 8:
                         tagEndBar = value;
-                        LOGGER.log(Level.FINE, "readFileData()   tagEndBar={0}, byteIndex={1}", new Object[]{tagEndBar, hex(byteIndex - 1)});
+                        LOGGER.log(Level.FINE, "readFileData()   tagEndBar={0}, byteIndex={1}", new Object[]
+                        {
+                            tagEndBar, hex(byteIndex - 1)
+                        });
                         break;
                     default:
                         throw new IllegalStateException("index=" + index + " value=" + value);   //NOI18N
@@ -455,7 +519,8 @@ public class BiabFileReader
             // With older versions the data after ".STY" is different, don't try to read, too many problems
             if (version <= 0x44)
             {
-                LOGGER.log(Level.INFO, "readFileData() old file format detected version ({0}), import is limited to chord symbols and song structure.", hex(version));
+                LOGGER.log(Level.INFO, "readFileData() old file format detected version ({0}), import is limited to chord symbols and song structure.", hex(
+                        version));
                 return;
             }
 
@@ -502,19 +567,25 @@ public class BiabFileReader
             }
             styleFileName = sb.toString();
 
-            LOGGER.log(Level.FINE, "readFileData() found .STY styleFileName={0} >>>>>>>>>>>>>>>>>>>>>>>> byteIndex={1}", new Object[]{styleFileName,
-                hex(byteIndex - 4)});
+            LOGGER.log(Level.FINE, "readFileData() found .STY styleFileName={0} >>>>>>>>>>>>>>>>>>>>>>>> byteIndex={1}", new Object[]
+            {
+                styleFileName,
+                hex(byteIndex - 4)
+            });
 
 
             // Usually 00-FF, but sometimes xx 00 FF, xx yy 00 FF, xx yy zz 00 FF with xx and yy and zz > 0. 
             // Also case with 00-FF 00-FF !!! SOLODEMO.SGU 
             // Meaning is unknown: it seems to change if Generate 2 bar ending or Force simple arrangement change, but not clear.
             // Handle this as a byte suite so that the next suite processing works whatever the possible data here
-            processSuite(in, 0, 0xFE, (index, value) ->
+            processSuite(in, 0, 0xFE, (index, value) -> 
             {
                 // Do nothing
-                LOGGER.log(Level.FINE, "readFileData() Unusual index/value index={0}, value={1}, byteIndex={2}", new Object[]{index,
-                    hex(value), hex(byteIndex - 1)});
+                LOGGER.log(Level.FINE, "readFileData() Unusual index/value index={0}, value={1}, byteIndex={2}", new Object[]
+                {
+                    index,
+                    hex(value), hex(byteIndex - 1)
+                });
             });
 
 
@@ -531,7 +602,7 @@ public class BiabFileReader
             startIndex = useByteShift ? -1 : 0;
 
             LOGGER.log(Level.FINE, "readFileData() reading melody and syle patches data >>>>>>>>>>>>>>>>>>> byteIndex={0}", hex(byteIndex));
-            nextIndex = processSuite(in, startIndex, 0x1C, (index, value) ->
+            nextIndex = processSuite(in, startIndex, 0x1C, (index, value) -> 
             {
                 switch (index)
                 {
@@ -548,70 +619,109 @@ public class BiabFileReader
                     case 0x0a:
                     case 0x0b:
                     case 0x0c:
-                        LOGGER.log(Level.FINE, "readFileData()   Unusual data index={0}, value={1}, byteIndex={2}", new Object[]{hex(index),
-                            hex(value), hex(byteIndex - 1)});
+                        LOGGER.log(Level.FINE, "readFileData()   Unusual data index={0}, value={1}, byteIndex={2}", new Object[]
+                        {
+                            hex(index),
+                            hex(value), hex(byteIndex - 1)
+                        });
                         break;
                     case 0x0d:
                         nbMelodyNotes = value;
-                        LOGGER.log(Level.FINE, "readFileData()   nbMelodyNotes (LSB)={0}, byteIndex={1}", new Object[]{nbMelodyNotes,
-                            hex(byteIndex - 1)});
+                        LOGGER.log(Level.FINE, "readFileData()   nbMelodyNotes (LSB)={0}, byteIndex={1}", new Object[]
+                        {
+                            nbMelodyNotes,
+                            hex(byteIndex - 1)
+                        });
                         break;
                     case 0x0e:
                         nbMelodyNotes += 256 * value;
-                        LOGGER.log(Level.FINE, "readFileData()   nbMelodyNotes (MSB1)={0}, byteIndex={1}", new Object[]{nbMelodyNotes,
-                            hex(byteIndex - 1)});
+                        LOGGER.log(Level.FINE, "readFileData()   nbMelodyNotes (MSB1)={0}, byteIndex={1}", new Object[]
+                        {
+                            nbMelodyNotes,
+                            hex(byteIndex - 1)
+                        });
                         break;
                     case 0x0f:
-                        LOGGER.log(Level.FINE, "readFileData()   Unusual data index={0}, value={1}, byteIndex={2}", new Object[]{hex(index),
-                            hex(value), hex(byteIndex - 1)});
+                        LOGGER.log(Level.FINE, "readFileData()   Unusual data index={0}, value={1}, byteIndex={2}", new Object[]
+                        {
+                            hex(index),
+                            hex(value), hex(byteIndex - 1)
+                        });
                         break;
                     case 0x10:
                         gmPatchBass = value;
-                        LOGGER.log(Level.FINE, "readFileData()   gmPatchBass={0}, byteIndex={1}", new Object[]{gmPatchBass,
-                            hex(byteIndex - 1)});
+                        LOGGER.log(Level.FINE, "readFileData()   gmPatchBass={0}, byteIndex={1}", new Object[]
+                        {
+                            gmPatchBass,
+                            hex(byteIndex - 1)
+                        });
                         break;
                     case 0x11:
                         gmPatchPiano = value;
-                        LOGGER.log(Level.FINE, "readFileData()   gmPatchPiano={0}, byteIndex={1}", new Object[]{gmPatchPiano,
-                            hex(byteIndex - 1)});
+                        LOGGER.log(Level.FINE, "readFileData()   gmPatchPiano={0}, byteIndex={1}", new Object[]
+                        {
+                            gmPatchPiano,
+                            hex(byteIndex - 1)
+                        });
                         break;
                     case 0x12:
                         gmPatchDrums = value;
-                        LOGGER.log(Level.FINE, "readFileData()   gmPatchDrums={0}, byteIndex={1}", new Object[]{gmPatchDrums,
-                            hex(byteIndex - 1)});
+                        LOGGER.log(Level.FINE, "readFileData()   gmPatchDrums={0}, byteIndex={1}", new Object[]
+                        {
+                            gmPatchDrums,
+                            hex(byteIndex - 1)
+                        });
                         break;
                     case 0x13:
                         gmPatchGuitar = value;
-                        LOGGER.log(Level.FINE, "readFileData()   gmPatchGuitar={0}, byteIndex={1}", new Object[]{gmPatchGuitar,
-                            hex(byteIndex - 1)});
+                        LOGGER.log(Level.FINE, "readFileData()   gmPatchGuitar={0}, byteIndex={1}", new Object[]
+                        {
+                            gmPatchGuitar,
+                            hex(byteIndex - 1)
+                        });
                         break;
                     case 0x14:
                         gmPatchSoloist = value;
-                        LOGGER.log(Level.FINE, "readFileData()   gmPatchSoloist={0}, byteIndex={1}", new Object[]{gmPatchSoloist,
-                            hex(byteIndex - 1)});
+                        LOGGER.log(Level.FINE, "readFileData()   gmPatchSoloist={0}, byteIndex={1}", new Object[]
+                        {
+                            gmPatchSoloist,
+                            hex(byteIndex - 1)
+                        });
                         break;
                     case 0x15:
                         gmPatchStrings = value;
-                        LOGGER.log(Level.FINE, "readFileData()   gmPatchStrings={0}, byteIndex={1}", new Object[]{gmPatchStrings,
-                            hex(byteIndex - 1)});
+                        LOGGER.log(Level.FINE, "readFileData()   gmPatchStrings={0}, byteIndex={1}", new Object[]
+                        {
+                            gmPatchStrings,
+                            hex(byteIndex - 1)
+                        });
                         break;
                     case 0x16:
                         gmPatchMelodist = value;
-                        LOGGER.log(Level.FINE, "readFileData()   gmPatchMelodist={0}, byteIndex={1}", new Object[]{gmPatchMelodist,
-                            hex(byteIndex - 1)});
+                        LOGGER.log(Level.FINE, "readFileData()   gmPatchMelodist={0}, byteIndex={1}", new Object[]
+                        {
+                            gmPatchMelodist,
+                            hex(byteIndex - 1)
+                        });
                         break;
                     case 0x17:
                         gmPatchThru = value;
-                        LOGGER.log(Level.FINE, "readFileData()   gmPatchThru={0}, byteIndex={1}", new Object[]{gmPatchThru,
-                            hex(byteIndex - 1)});
+                        LOGGER.log(Level.FINE, "readFileData()   gmPatchThru={0}, byteIndex={1}", new Object[]
+                        {
+                            gmPatchThru,
+                            hex(byteIndex - 1)
+                        });
                         break;
                     case 0x18:
                     case 0x19:
                     case 0x1A:
                     case 0x1B:
                     case 0x1C:
-                        LOGGER.log(Level.INFO, "readFileData()   Unusual data index={0}, value={1}, byteIndex={2}", new Object[]{index,
-                            hex(value), hex(byteIndex - 1)});
+                        LOGGER.log(Level.INFO, "readFileData()   Unusual data index={0}, value={1}, byteIndex={2}", new Object[]
+                        {
+                            index,
+                            hex(value), hex(byteIndex - 1)
+                        });
                         break;
                     default:
                         throw new IllegalStateException("index=" + index + " value=" + value);   //NOI18N
@@ -622,14 +732,17 @@ public class BiabFileReader
             // Chord push suite
             // Start at index=0x1D=29 
             startIndex = nextIndex - 0x1D;
-            LOGGER.log(Level.FINE, "readFileData() nextIndex={0}, startIndex={1}  reading chord pushes >>>>>>>>>>>>>>>>>>> byteIndex={2}", new Object[]{nextIndex,
-                startIndex, hex(byteIndex)});
+            LOGGER.log(Level.FINE, "readFileData() nextIndex={0}, startIndex={1}  reading chord pushes >>>>>>>>>>>>>>>>>>> byteIndex={2}", new Object[]
+            {
+                nextIndex,
+                startIndex, hex(byteIndex)
+            });
             final int CHORD_PUSH_SUITE_SIZE = 1024;
             int[] nbPushedChords =
             {
                 0
             };
-            nextIndex = processSuite(in, startIndex, CHORD_PUSH_SUITE_SIZE - 1, (index, value) ->
+            nextIndex = processSuite(in, startIndex, CHORD_PUSH_SUITE_SIZE - 1, (index, value) -> 
             {
                 // Save the chordIndex for which there is a chord push defined
                 // index=chordIndex
@@ -670,14 +783,17 @@ public class BiabFileReader
             // Chord hold/rest/shot suite
             // Start at index=29+1024=1053 for the usual 1020 beats
             startIndex = nextIndex - CHORD_PUSH_SUITE_SIZE;
-            LOGGER.log(Level.FINE, "readFileData() startIndex={0} reading chord hold/rest/shot >>>>>>>>>>>>>>>>>>> byteIndex={1}", new Object[]{startIndex,
-                hex(byteIndex)});
+            LOGGER.log(Level.FINE, "readFileData() startIndex={0} reading chord hold/rest/shot >>>>>>>>>>>>>>>>>>> byteIndex={1}", new Object[]
+            {
+                startIndex,
+                hex(byteIndex)
+            });
             final int CHORD_REST_SUITE_SIZE = 1020;
             int[] nbRestChords =
             {
                 0
             };
-            nextIndex = processSuite(in, startIndex, CHORD_REST_SUITE_SIZE - 1, (index, value) ->
+            nextIndex = processSuite(in, startIndex, CHORD_REST_SUITE_SIZE - 1, (index, value) -> 
             {
                 // Save the chordIndex for which there is a chord hold/rest/shot defined
                 // index=chordIndex
@@ -715,37 +831,55 @@ public class BiabFileReader
 
             // Song settings data suite
             startIndex = nextIndex - CHORD_REST_SUITE_SIZE;
-            LOGGER.log(Level.FINE, "readFileData() startIndex={0} reading song settings >>>>>>>>>>>>>>>>>>> byteIndex={1}", new Object[]{startIndex,
-                hex(byteIndex)});
-            processSuite(in, startIndex, 7, (index, value) ->
+            LOGGER.log(Level.FINE, "readFileData() startIndex={0} reading song settings >>>>>>>>>>>>>>>>>>> byteIndex={1}", new Object[]
+            {
+                startIndex,
+                hex(byteIndex)
+            });
+            processSuite(in, startIndex, 7, (index, value) -> 
             {
                 switch (index)
                 {
                     case 0:
                         allowPushInMiddleChorus = (value != 0);
-                        LOGGER.log(Level.FINE, "readFileData()   allowPushInMiddleChorus={0}, byteIndex={1}", new Object[]{allowPushInMiddleChorus,
-                            hex(byteIndex - 1)});
+                        LOGGER.log(Level.FINE, "readFileData()   allowPushInMiddleChorus={0}, byteIndex={1}", new Object[]
+                        {
+                            allowPushInMiddleChorus,
+                            hex(byteIndex - 1)
+                        });
                         break;
                     case 1:
                         allowRestInMiddleChorus = (value != 0);
-                        LOGGER.log(Level.FINE, "readFileData()   allowRestInMiddleChorus={0}, byteIndex={1}", new Object[]{allowRestInMiddleChorus,
-                            hex(byteIndex - 1)});
+                        LOGGER.log(Level.FINE, "readFileData()   allowRestInMiddleChorus={0}, byteIndex={1}", new Object[]
+                        {
+                            allowRestInMiddleChorus,
+                            hex(byteIndex - 1)
+                        });
                         break;
                     case 2:
                         allowRestInLastChorus = (value != 0);
-                        LOGGER.log(Level.FINE, "readFileData()   allowRestInLastChorus={0}, byteIndex={1}", new Object[]{allowRestInLastChorus,
-                            hex(byteIndex - 1)});
+                        LOGGER.log(Level.FINE, "readFileData()   allowRestInLastChorus={0}, byteIndex={1}", new Object[]
+                        {
+                            allowRestInLastChorus,
+                            hex(byteIndex - 1)
+                        });
                         break;
                     case 3:
                         // Inverse setting : by default it's true, if "1" in the file, it's false
                         generate2barsEnding = !(value != 0);
-                        LOGGER.log(Level.FINE, "readFileData()   generate2barsEnding={0}, byteIndex={1}", new Object[]{generate2barsEnding,
-                            hex(byteIndex - 1)});
+                        LOGGER.log(Level.FINE, "readFileData()   generate2barsEnding={0}, byteIndex={1}", new Object[]
+                        {
+                            generate2barsEnding,
+                            hex(byteIndex - 1)
+                        });
                         break;
                     case 4:
                         forceSongToSimpleArrangement = (value != 0);
-                        LOGGER.log(Level.FINE, "readFileData()   forceSongToSimpleArrangement={0}, byteIndex={1}", new Object[]{forceSongToSimpleArrangement,
-                            hex(byteIndex - 1)});
+                        LOGGER.log(Level.FINE, "readFileData()   forceSongToSimpleArrangement={0}, byteIndex={1}", new Object[]
+                        {
+                            forceSongToSimpleArrangement,
+                            hex(byteIndex - 1)
+                        });
                         break;
                     case 5:
                         // Unknown byte
@@ -755,8 +889,11 @@ public class BiabFileReader
                         break;
                     case 7:
                         allowRestInFirstChorus = (value != 0);
-                        LOGGER.log(Level.FINE, "readFileData()   allowRestInFirstChorus={0}, byteIndex={1}", new Object[]{allowRestInFirstChorus,
-                            hex(byteIndex - 1)});
+                        LOGGER.log(Level.FINE, "readFileData()   allowRestInFirstChorus={0}, byteIndex={1}", new Object[]
+                        {
+                            allowRestInFirstChorus,
+                            hex(byteIndex - 1)
+                        });
                         break;
                     default:
                         throw new IllegalStateException("index=" + index + " value=" + value);   //NOI18N
@@ -836,7 +973,7 @@ public class BiabFileReader
      *
      * @param in
      * @param startIndex
-     * @param maxIndex Process the suite while index &lt;= indexMax
+     * @param maxIndex   Process the suite while index &lt;= indexMax
      * @param p
      * @return The final value of index
      */
@@ -851,8 +988,11 @@ public class BiabFileReader
                 int indexOffset = readUByte(in);
                 if (indexOffset == 0)
                 {
-                    LOGGER.log(Level.SEVERE, "processSuite() Unexpected indexOffset=0, index={0} byteIndex={1}", new Object[]{index,
-                        hex(byteIndex - 1)});
+                    LOGGER.log(Level.SEVERE, "processSuite() Unexpected indexOffset=0, index={0} byteIndex={1}", new Object[]
+                    {
+                        index,
+                        hex(byteIndex - 1)
+                    });
                     genericError(byteIndex - 1);
                 }
                 index += indexOffset;

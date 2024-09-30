@@ -411,7 +411,9 @@ public class Utilities
      */
     public static String replaceExtension(String filename, String ext)
     {
-        if (filename == null || ext == null || ext.contains(" ") || ext.equals("."))
+        Objects.requireNonNull(filename);
+        Objects.requireNonNull(ext);
+        if (ext.contains(" ") || ext.equals("."))
         {
             throw new IllegalArgumentException("filename=" + filename + " ext=" + ext);
         }
@@ -427,6 +429,21 @@ public class Utilities
         return filename.substring(0, index) + ext;
     }
 
+    /**
+     * Return a new File with the extension set to ext.
+     * <p>
+     *
+     * @param file
+     * @param ext  A string without spaces in it. If ext does not start with "." it will be added. If ext is empty then extension is removed.
+     * @return The new File with extension replaced.
+     * @see #replaceExtension(java.lang.String, java.lang.String)
+     */
+    public static File replaceExtension(File file, String ext)
+    {
+        Objects.requireNonNull(file);
+        File res = new File(replaceExtension(file.getAbsolutePath(), ext));
+        return res;
+    }
 
     /**
      * Get the string of all the collection elements in brackets [], but limited to maxLength.
@@ -1027,6 +1044,33 @@ public class Utilities
     }
 
     /**
+     * Get the longest key which is contained in text.
+     *
+     * @param text If null return null.
+     * @param keys
+     * @return Can be null if none of the keys are contained in text.
+     */
+    public static String getLongestMatch(String text, Collection<String> keys)
+    {
+        Objects.requireNonNull(keys);
+        if (text == null)
+        {
+            return null;
+        }
+        String res = null;
+        int maxKeySize = 0;
+        for (String key : keys)
+        {
+            if (text.contains(key) && key.length() > maxKeySize)
+            {
+                maxKeySize = key.length();
+                res = key;
+            }
+        }
+        return res;
+    }
+
+    /**
      * Finds the first occurrence of the pattern in the text.
      * <p>
      * Use Knuth-Morris-Pratt Algorithm for Pattern Matching.
@@ -1148,7 +1192,8 @@ public class Utilities
             }
         } else
         {
-            errMsg = ResUtil.getString(Utilities.class, "ErrNoExternalCommand");
+            errMsg = ResUtil.getString(Utilities.class,
+                    "ErrNoExternalCommand");
         }
 
         if (errMsg != null)
@@ -1194,7 +1239,8 @@ public class Utilities
             }
         } else
         {
-            errMsg = ResUtil.getString(Utilities.class, "ErrNoExternalCommand");
+            errMsg = ResUtil.getString(Utilities.class,
+                    "ErrNoExternalCommand");
         }
 
         if (errMsg != null)
@@ -1251,7 +1297,8 @@ public class Utilities
             }
         } else
         {
-            errMsg = ResUtil.getString(Utilities.class, "ErrNoExternalCommand");
+            errMsg = ResUtil.getString(Utilities.class,
+                    "ErrNoExternalCommand");
         }
 
         if (errMsg != null)

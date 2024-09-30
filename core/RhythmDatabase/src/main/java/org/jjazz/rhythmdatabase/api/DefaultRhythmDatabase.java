@@ -526,6 +526,7 @@ public class DefaultRhythmDatabase implements RhythmDatabase
         return errReport;
     }
 
+  
 
     // ---------------------------------------------------------------------
     // Private 
@@ -550,6 +551,7 @@ public class DefaultRhythmDatabase implements RhythmDatabase
         return rId + "-" + ts.name();
 
     }
+
 
 
     // ================================================================================================

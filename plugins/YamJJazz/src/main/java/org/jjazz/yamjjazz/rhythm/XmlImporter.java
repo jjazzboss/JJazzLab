@@ -39,6 +39,7 @@ import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.importers.api.MusicXMLFileReader;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
+import org.jjazz.rhythm.api.RhythmFeatures;
 import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Fill;
 import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Variation;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
@@ -178,7 +179,9 @@ public class XmlImporter implements SongImporter
         var rdb = RhythmDatabase.getDefault();
         Rhythm rOrig = spts.get(0).getRhythm();            // The rhythm by default when song was first created, might be a stub rhythm (eg if rare timesignature)
         var ts0 = rOrig.getTimeSignature();
-        YamJJazzRhythm yjr0 = ImporterRhythmFinder.findRhythm(styleText, ts0, -1);
+
+        YamJJazzRhythm yjr0 = guessRhythm(styleText, ts0);
+
         if (yjr0 == null)
         {
             yjr0 = findDefaultYamJJazzRhythm(ts0);
@@ -263,6 +266,39 @@ public class XmlImporter implements SongImporter
     private boolean isYamJJazz(RhythmInfo ri)
     {
         return YamahaRhythmProvider.isMine(ri) || YamJJazzRhythmProvider.isMine(ri);
+    }
+
+
+    protected YamJJazzRhythm guessRhythm(String text, TimeSignature ts)
+    {
+        var rdb = RhythmDatabase.getDefault();
+        var rf = RhythmFeatures.guessFeatures(text, -1);
+        var ri = rdb.findRhythm(rf, rii -> rii.timeSignature() == ts && isYamJJazz(rii));
+        if (ri == null)
+        {
+            ri = rdb.findRhythm(text, rii -> rii.timeSignature() == ts && isYamJJazz(rii));
+        }
+        if (ri == null)
+        {
+            LOGGER.log(Level.INFO, "guessRhythm() Could not find a JJazzLab rhythm corresponding to {0}, using default rhythm for ts={1}", new Object[]
+            {
+                text, ts
+            });
+            ri = rdb.getDefaultRhythm(ts);
+        }
+        YamJJazzRhythm yjr = null;
+        try
+        {
+            yjr = (YamJJazzRhythm) rdb.getRhythmInstance(ri);
+        } catch (UnavailableRhythmException ex)
+        {
+            LOGGER.log(Level.WARNING, "guessRhythm() Could not get Rhythm instance from RhythmInfo={0}.  ex={1}", new Object[]
+            {
+                ri,
+                ex.getLocalizedMessage()
+            });
+        }
+        return yjr;
     }
 
     /**

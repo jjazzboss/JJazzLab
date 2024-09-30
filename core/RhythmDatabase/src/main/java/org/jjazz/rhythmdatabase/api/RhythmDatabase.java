@@ -22,10 +22,12 @@
  */
 package org.jjazz.rhythmdatabase.api;
 
+import java.util.Comparator;
 import org.jjazz.rhythmdatabase.spi.RhythmDatabaseFactory;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
+import java.util.logging.Logger;
 import javax.swing.event.ChangeListener;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.rhythm.api.AdaptedRhythm;
@@ -134,13 +136,90 @@ public interface RhythmDatabase
      */
     List<RhythmInfo> getRhythms(RhythmProvider rp);
 
-  
+
     /**
      * @return All rhythms stored in the database.
      */
     default List<RhythmInfo> getRhythms()
     {
         return getRhythms(r -> true);
+    }
+
+    /**
+     * Find the RhythmInfo which "best matches" rf.
+     * <p>
+     * Default implementation relies on RhythmFeatures.getMatchingScore().
+     *
+     * @param rf
+     * @param tester Limit the search to RhythmInfo instances which match this tester.
+     * @return Can be null if can't match genre
+     * @see RhythmFeatures#getMatchingScore(org.jjazz.rhythm.api.RhythmFeatures)
+     */
+    default RhythmInfo findRhythm(RhythmFeatures rf, Predicate<RhythmInfo> tester)
+    {
+        Objects.requireNonNull(rf);
+        Objects.requireNonNull(tester);
+
+        RhythmInfo ri = null;
+        var score = 0;
+        for (var rii : getRhythms(tester))
+        {
+            var s = rf.getMatchingScore(rii.rhythmFeatures());
+            if (s > score)
+            {
+                ri = rii;
+                score = s;
+            }
+        }
+
+        var res = score >= 100 ? ri : null;     // We return a result only if at least genre matched
+        Logger.getLogger(RhythmDatabase.class.getName()).fine("findRhythm() rf=" + rf + " res=" + res);
+        return res;
+    }
+
+    /**
+     * Find the RhythmInfo which "best matches" text.
+     * <p>
+     * Default implementation returns the first RhythmInfo for which one of the tags is contained in text. Or whose name or description contains text (ignoring
+     * case).
+     *
+     * @param text
+     * @param tester Limit the search to RhythmInfo instances which match this tester.
+     * @return Can be null
+     */
+    default RhythmInfo findRhythm(String text, Predicate<RhythmInfo> tester)
+    {
+        Objects.requireNonNull(text);
+        Objects.requireNonNull(tester);
+        RhythmInfo res = null;
+        var ris = getRhythms(tester);
+
+        var lText = text.toLowerCase();
+        for (var ri : ris)
+        {
+            for (var tag : ri.tags())
+            {
+                if (lText.contains(tag.toLowerCase()))
+                {
+                    res = ri;
+                    break;
+                }
+            }
+            if (res != null)
+            {
+                break;
+            }
+        }
+        if (res == null)
+        {
+            res = ris.stream()
+                    .filter(ri -> ri.name().toLowerCase().contains(lText) || ri.description().toLowerCase().contains(lText))
+                    .findAny()
+                    .orElse(null);
+        }
+
+        Logger.getLogger(RhythmDatabase.class.getName()).fine("findRhythm() text=" + text + " res=" + res);
+        return res;
     }
 
     /**

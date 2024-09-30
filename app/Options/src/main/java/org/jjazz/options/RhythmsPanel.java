@@ -611,9 +611,6 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
      */
     private void updateRhythmProviderList()
     {
-        // Reset the rhythm table
-        // rhythmTable.clear();
-
         // Refresh rhythm providers list
         RhythmDatabase rdb = RhythmDatabase.getDefault();
         RhythmProvider[] rps = rdb.getRhythmProviders().toArray(new RhythmProvider[0]);
@@ -629,7 +626,6 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
      * Reset the rhythm table with rp's rhythms and try to restore selection.
      * <p>
      * @param rp
-     * @param sri
      */
     private void updateRhythmTable(RhythmProvider rp)
     {

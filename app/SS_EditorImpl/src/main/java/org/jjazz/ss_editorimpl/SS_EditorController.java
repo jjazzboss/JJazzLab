@@ -197,7 +197,7 @@ public class SS_EditorController implements SS_EditorMouseListener
         Action a = Actions.forID("JJazz", "org.jjazz.ss_editorimpl.actions.editrhythm");
         if (a == null)
         {
-            LOGGER.log(Level.SEVERE, "Can't find action: org.jjazz.ss_editorimpl.actions.editrhythm");
+            LOGGER.log(Level.SEVERE, "Can''t find action: org.jjazz.ss_editorimpl.actions.editrhythm");
         } else
         {
             a.actionPerformed(null);
@@ -215,7 +215,7 @@ public class SS_EditorController implements SS_EditorMouseListener
         Action a = Actions.forID("JJazz", "org.jjazz.ss_editorimpl.actions.editsptname");
         if (a == null)
         {
-            LOGGER.log(Level.SEVERE, "Can't find the EditSptName action: org.jjazz.ss_editorimpl.actions.editsptname");
+            LOGGER.log(Level.SEVERE, "Can''t find the EditSptName action: org.jjazz.ss_editorimpl.actions.editsptname");
         } else
         {
             a.actionPerformed(null);
@@ -314,7 +314,7 @@ public class SS_EditorController implements SS_EditorMouseListener
             Action a = Actions.forID("JJazz", "org.jjazz.ss_editorimpl.actions.editsptname");
             if (a == null)
             {
-                LOGGER.log(Level.SEVERE, "Can't find the EditSptName action: org.jjazz.ss_editorimpl.actions.editsptname");
+                LOGGER.log(Level.SEVERE, "Can''t find the EditSptName action: org.jjazz.ss_editorimpl.actions.editsptname");
             } else if (selection.isSongPartSelected())
             {
                 a.actionPerformed(null);

@@ -302,8 +302,7 @@ public class YamJJazzRhythmProvider implements RhythmProvider
     {
         for (String ext : YamahaRhythmProvider.FILE_EXTENSIONS)
         {
-            String stdFilename = Utilities.replaceExtension(extFile.getAbsolutePath(), ext);
-            File stdFile = new File(stdFilename);
+            File stdFile = Utilities.replaceExtension(extFile, ext);
             if (stdFile.exists())
             {
                 return stdFile;

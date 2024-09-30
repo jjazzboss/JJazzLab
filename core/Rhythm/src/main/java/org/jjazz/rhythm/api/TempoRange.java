@@ -22,16 +22,15 @@
  */
 package org.jjazz.rhythm.api;
 
+import com.google.common.base.Preconditions;
 import com.thoughtworks.xstream.XStream;
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
-import org.jjazz.phrase.api.Phrase;
 import org.jjazz.xstream.spi.XStreamConfigurator;
 import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_LOAD;
 import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_SAVE;
@@ -48,15 +47,17 @@ public final class TempoRange implements Cloneable, Serializable
     private static final long serialVersionUID = -4112098277726L;
     // Standard tempo ranges 
     public static final TempoRange ALL_TEMPO = new TempoRange(TempoRange.TEMPO_MIN, TempoRange.TEMPO_MAX, "All Tempo");
-    public static final TempoRange SLOW = new TempoRange(TempoRange.TEMPO_MIN, 90, "Slow");
+    public static final TempoRange SLOW = new TempoRange(50, 90, "Slow");
     public static final TempoRange MEDIUM_SLOW = new TempoRange(75, 115, "Medium Slow");
     public static final TempoRange MEDIUM = new TempoRange(90, 135, "Medium");
     public static final TempoRange MEDIUM_FAST = new TempoRange(125, 180, "Medium Fast");
-    public static final TempoRange FAST = new TempoRange(160, TempoRange.TEMPO_MAX, "Fast");
+    public static final TempoRange FAST = new TempoRange(160, 250, "Fast");
     // Const
     public static final int TEMPO_MIN = 20;
     public static final int TEMPO_STD = 120;
     public static final int TEMPO_MAX = 400;
+
+
     // Variables
     /**
      * Minimum recommanded tempo.
@@ -74,9 +75,22 @@ public final class TempoRange implements Cloneable, Serializable
 
     static public List<TempoRange> getStandardTempoRanges()
     {
-        ArrayList<TempoRange> trs = new ArrayList<>();
-        Collections.addAll(trs, SLOW, MEDIUM, MEDIUM_FAST, FAST, ALL_TEMPO);
-        return trs;
+        return List.of(SLOW, MEDIUM_SLOW, MEDIUM, MEDIUM_FAST, FAST);
+    }
+
+    static public TempoRange getStandardTempoRange(int tempo)
+    {
+        Preconditions.checkArgument(TempoRange.checkTempo(tempo), "tempo=", tempo);
+
+        // As standard tempo ranges overlap, use a custom order
+        for (var tr : List.of(MEDIUM, MEDIUM_SLOW, MEDIUM_FAST, SLOW, FAST))
+        {
+            if (tr.contains(tempo))
+            {
+                return tr;
+            }
+        }
+        throw new IllegalStateException("tempo=" + tempo);
     }
 
     /**
@@ -204,6 +218,55 @@ public final class TempoRange implements Cloneable, Serializable
         {
             return true;
         }
+    }
+
+    /**
+     * Try to guess a standard TempoRange from the parameters.
+     *
+     * @param g
+     * @param text Typically a style name, eg "BossaNova.s626.prs"
+     * @return
+     */
+    public static TempoRange guess(Genre g, String text)
+    {
+        Objects.requireNonNull(g);
+        Objects.requireNonNull(text);
+
+        var res = switch (g)
+        {
+            case SAMBA, SOUL, RnB, HIP_HOP, BLUES, REGGAE, CLASSICAL ->
+                TempoRange.MEDIUM_SLOW;
+            case UNKNOWN ->
+                TempoRange.ALL_TEMPO;
+            default ->
+            {
+                if (containsOneOf(text.toLowerCase(), "fast", "upte", "up-te", "up "))
+                {
+                    yield TempoRange.FAST;
+                    
+                } else if (containsOneOf(text.toLowerCase(), "slow", "bld", "ballad"))
+                {
+                    yield TempoRange.SLOW;
+                    
+                } else
+                {
+                    yield TempoRange.MEDIUM;
+                }
+            }
+        };
+        return res;
+    }
+
+    static private boolean containsOneOf(String text, CharSequence... strs)
+    {
+        for (var str : strs)
+        {
+            if (text.contains(str))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

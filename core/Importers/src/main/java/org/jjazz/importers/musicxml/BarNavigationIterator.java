@@ -274,7 +274,7 @@ public class BarNavigationIterator implements Iterator<Integer>
                     } else
                     {
                         // Something's wrong
-                        LOGGER.log(Level.WARNING, "nextNavigationItem() Can't find destination coda {0} from tocoda at bar {1}. Continuing on next bar.",
+                        LOGGER.log(Level.WARNING, "nextNavigationItem() Can''t find destination coda {0} from tocoda at bar {1}. Continuing on next bar.",
                                 new Object[]
                                 {
                                     navItem.value(), pos.getBar()

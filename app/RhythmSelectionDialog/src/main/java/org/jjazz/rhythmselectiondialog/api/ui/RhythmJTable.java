@@ -26,30 +26,35 @@ import java.awt.Component;
 import java.awt.Font;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
-import javax.swing.table.TableModel;
-import javax.swing.table.TableRowSorter;
 import org.jjazz.midi.api.synths.GM1Instrument;
 import org.jjazz.rhythm.spi.RhythmDirsLocator;
 import org.jjazz.rhythmdatabaseimpl.api.FavoriteRhythms;
 import org.jjazz.rhythmdatabase.api.RhythmInfo;
 import org.jjazz.utilities.api.ResUtil;
+import org.jjazz.utilities.api.Utilities;
 
 /**
  * A JTable to show a list of rhythms.
@@ -80,11 +85,11 @@ public class RhythmJTable extends JTable implements PropertyChangeListener
 
     /**
      *
-     * @param hiddenColumns The indexes of the columns to hide. Can be null.
+     * @param hiddenColumns The indexes of the columns to hide. If null all columns are shown.
      */
     public void setHiddenColumns(List<Integer> hiddenColumns)
     {
-        hiddenColumnIndexes = (hiddenColumns == null) ? new ArrayList<Integer>() : hiddenColumns;
+        hiddenColumnIndexes = (hiddenColumns == null) ? new ArrayList<>() : hiddenColumns;
         adjustWidths();
     }
 
@@ -146,7 +151,6 @@ public class RhythmJTable extends JTable implements PropertyChangeListener
         int mIndex = model.getRhythms().indexOf(ri);
         if (mIndex != -1)
         {
-            TableRowSorter<? extends TableModel> sorter = (TableRowSorter<? extends TableModel>) this.getRowSorter();
             int vIndex = convertRowIndexToView(mIndex);      // Take into account sorting/filtering 
             if (vIndex != -1)
             {
@@ -160,17 +164,56 @@ public class RhythmJTable extends JTable implements PropertyChangeListener
         }
     }
 
+    /**
+     * Overridden to add tooltips to some column headers
+     *
+     * @return
+     */
+    @Override
+    protected JTableHeader createDefaultTableHeader()
+    {
+        return new JTableHeader(getColumnModel())
+        {
+            @Override
+            public String getToolTipText(MouseEvent e)
+            {
+                java.awt.Point p = e.getPoint();
+                int index = columnModel.getColumnIndexAtX(p.x);
+                int realIndex = columnModel.getColumn(index).getModelIndex();
+                return model.COLUMN_HEADER_TOOLTIPS[realIndex];
+            }
+        };
+    }
+
     public class Model extends AbstractTableModel
     {
 
         public static final int COL_ID = 0;
         public static final int COL_NAME = 1;
-        public static final int COL_FEEL = 3;
         public static final int COL_TEMPO = 2;
+        public static final int COL_DIVISION = 3;
         public static final int COL_NB_VOICES = 4;
-        public static final int COL_DIR = 5;
-        private List<? extends RhythmInfo> rhythms = new ArrayList<>();
-        private Set<RhythmInfo> highlightedRhythms = new HashSet<>();
+        public static final int COL_DEFAULT_MIX = 5;
+        public static final int COL_DIR = 6;
+        protected String[] COLUMN_HEADER_TOOLTIPS =
+        {
+            null,
+            null,
+            null,
+            "Binary, Shuffle or Triplet",
+            ResUtil.getString(getClass(), "COL_NbInstrumentsToolTip"),
+            ResUtil.getString(getClass(), "COL_DefaultMixTooltip"),
+            ResUtil.getString(getClass(), "COL_DirTooltip")
+        };
+        private List<RhythmInfo> rhythms = new ArrayList<>();
+        private final Set<RhythmInfo> highlightedRhythms = new HashSet<>();
+        private final Map<RhythmInfo, File> mapRhythmDefaultMixFile = new HashMap<>();
+
+        public Model()
+        {
+            // Consistency check
+            assert COLUMN_HEADER_TOOLTIPS.length == getColumnCount() : "COLUMN_HEADER_TOOLTIPS.length=" + COLUMN_HEADER_TOOLTIPS.length;
+        }
 
         public void setRhythms(List<RhythmInfo> rhythms)
         {
@@ -186,6 +229,9 @@ public class RhythmJTable extends JTable implements PropertyChangeListener
 
             fireTableDataChanged();
             adjustWidths();
+
+            // Start a background task to update the default rhythm mix column
+            Executors.newSingleThreadExecutor().submit((Runnable) () -> updateDefaultMixValues(this.rhythms));
         }
 
         List<? extends RhythmInfo> getRhythms()
@@ -212,11 +258,6 @@ public class RhythmJTable extends JTable implements PropertyChangeListener
                 return;
             }
 
-            if ((b && highlightedRhythms.contains(ri)) || (!b && !highlightedRhythms.contains(ri)))
-            {
-                return;
-            }
-
 
             if (b)
             {
@@ -237,48 +278,38 @@ public class RhythmJTable extends JTable implements PropertyChangeListener
         @Override
         public Class<?> getColumnClass(int col)
         {
-            switch (col)
+            Class<?> res = switch (col)
             {
-                case COL_TEMPO:
-                case COL_ID:
-                case COL_NB_VOICES:
-                    return Integer.class;
-                case COL_NAME:
-                case COL_FEEL:
-                case COL_DIR:
-                    return String.class;
-                default:
-                    throw new IllegalStateException("columnIndex=" + col);
-            }
+                case COL_TEMPO, COL_ID, COL_NB_VOICES ->
+                    Integer.class;
+                case COL_NAME, COL_DIVISION, COL_DEFAULT_MIX, COL_DIR ->
+                    String.class;
+                default -> throw new IllegalStateException("columnIndex=" + col);
+            };
+            return res;
         }
 
         @Override
         public String getColumnName(int columnIndex)
         {
-            String s;
-            switch (columnIndex)
+            String s = switch (columnIndex)
             {
-                case COL_TEMPO:
-                    s = ResUtil.getString(getClass(), "COL_Tempo");
-                    break;
-                case COL_NAME:
-                    s = ResUtil.getString(getClass(), "COL_Name");
-                    break;
-                case COL_NB_VOICES:
-                    s = ResUtil.getString(getClass(), "COL_NbInstruments");
-                    break;
-                case COL_FEEL:
-                    s = ResUtil.getString(getClass(), "COL_Feel");
-                    break;
-                case COL_DIR:
-                    s = ResUtil.getString(getClass(), "COL_Directory");
-                    break;
-                case COL_ID:
-                    s = "#   ";
-                    break;
-                default:
-                    throw new IllegalStateException("columnIndex=" + columnIndex);
-            }
+                case COL_TEMPO ->
+                    ResUtil.getString(getClass(), "COL_Tempo");
+                case COL_NAME ->
+                    ResUtil.getString(getClass(), "COL_Name");
+                case COL_NB_VOICES ->
+                    ResUtil.getString(getClass(), "COL_NbInstruments");
+                case COL_DIVISION ->
+                    ResUtil.getString(getClass(), "COL_Feel");  // previously called Feel
+                case COL_DEFAULT_MIX ->
+                    ResUtil.getString(getClass(), "COL_DefaultMix");
+                case COL_DIR ->
+                    ResUtil.getString(getClass(), "COL_Directory");
+                case COL_ID ->
+                    "#   ";
+                default -> throw new IllegalStateException("columnIndex=" + columnIndex);
+            };
             return s;
         }
 
@@ -291,7 +322,7 @@ public class RhythmJTable extends JTable implements PropertyChangeListener
         @Override
         public int getColumnCount()
         {
-            return 6;
+            return COL_DIR + 1;
         }
 
         @Override
@@ -302,17 +333,19 @@ public class RhythmJTable extends JTable implements PropertyChangeListener
                 return null;
             }
             RhythmInfo ri = rhythms.get(row);
-            switch (col)
-            {
-                case COL_TEMPO:
-                    return ri.preferredTempo();
 
-                case COL_DIR:
+            Object value = switch (col)
+            {
+                case COL_TEMPO ->
+                    ri.preferredTempo();
+
+                case COL_DIR ->
+                {
                     // Show the file path relative to the user rhythm directory
                     if (ri.file() == null || "".equals(ri.file().getPath()))
                     {
                         // Not file based
-                        return " - ";
+                        yield " - ";
                     }
 
 
@@ -321,13 +354,13 @@ public class RhythmJTable extends JTable implements PropertyChangeListener
                     if (!pFile.startsWith(pUserRhythmDir))
                     {
                         // File-based but builtin rhythm: don't show path
-                        return ResUtil.getString(getClass(), "DefaultRhythmsPath");
+                        yield ResUtil.getString(getClass(), "DefaultRhythmsPath");
                     }
 
 
                     // User-defined file-based, show path relative to user rhythm directory
                     Path pParentFile = ri.file().getParentFile().toPath();
-                    String s = null;
+                    String s;
                     try
                     {
                         Path relPath = pUserRhythmDir.relativize(pParentFile);
@@ -341,23 +374,93 @@ public class RhythmJTable extends JTable implements PropertyChangeListener
                         });
                         s = pParentFile.toString();
                     }
-                    return s;
+                    yield s;
+                }
 
-                case COL_NB_VOICES:
-                    return ri.rvInfos().size();
+                case COL_NB_VOICES ->
+                    ri.rvInfos().size();
 
-                case COL_NAME:
-                    return ri.name();
+                case COL_NAME ->
+                    ri.name();
 
-                case COL_FEEL:
-                    return ri.rhythmFeatures().getFeel().toString();
+                case COL_DIVISION ->
+                {
+                    var d = ri.rhythmFeatures().division();
+                    var sd = switch (d)
+                    {
+                        case BINARY ->
+                            "Binary";
+                        case EIGHTH_SWING ->
+                            "Shuffle";
+                        case EIGHTH_TRIPLET ->
+                            "Triplet";
+                        case UNKNOWN ->
+                            "Unknown";
+                        default -> throw new IllegalArgumentException("division=" + d);
+                    };
+                    yield sd;
+                }
 
-                case COL_ID:
-                    return row + 1;
+                case COL_DEFAULT_MIX ->
+                    getDefaultMix(ri) != null ? "Yes" : "   ";
 
-                default:
-                    throw new IllegalStateException("col=" + col);
+                case COL_ID ->
+                    row + 1;
+
+                default -> throw new IllegalStateException("col=" + col);
+            };
+
+            return value;
+        }
+
+
+        /**
+         * Get the optional default rhythm mix file associated to ri.
+         *
+         * @param ri
+         * @return Can be null
+         */
+        synchronized private File getDefaultMix(RhythmInfo ri)
+        {
+            return mapRhythmDefaultMixFile.get(ri);
+        }
+
+        /**
+         * Associate a defaultMixFile to a rhythm.
+         *
+         * @param ri
+         * @param defaultMixFile Can be null
+         */
+        synchronized private void setDefaultMix(RhythmInfo ri, File defaultMixFile)
+        {
+            var old = mapRhythmDefaultMixFile.put(ri, defaultMixFile);
+            if (Objects.equals(old, defaultMixFile))
+            {
+                int row = rhythms.indexOf(ri);
+                if (row == -1)
+                {
+                    LOGGER.log(Level.WARNING, "setDefaultMix() Unexpected ri={0} not found", ri);
+                    return;
+                }
+                fireTableCellUpdated(row, COL_DEFAULT_MIX);
             }
+        }
+
+
+        private void updateDefaultMixValues(List<RhythmInfo> ris)
+        {
+            LOGGER.fine("updateDefaultMixValues() -- starting updating default mix values");
+            for (var ri : ris)
+            {
+                File f = ri.file();
+                if (f.getName().equals(""))
+                {
+                    continue;
+                }
+                File mixFile = Utilities.replaceExtension(f, "mix");
+                setDefaultMix(ri, mixFile.exists() ? mixFile : null);
+            }
+            LOGGER.fine("updateDefaultMixValues() finished");
         }
 
         /**
@@ -462,22 +565,15 @@ public class RhythmJTable extends JTable implements PropertyChangeListener
             // Also set max size
             switch (colIndex)
             {
-                case Model.COL_NB_VOICES:
-                case Model.COL_TEMPO:
-                case Model.COL_ID:
-                    colModel.getColumn(colIndex).setMaxWidth(width);
-                    break;
-                case Model.COL_NAME:
-                    colModel.getColumn(colIndex).setMaxWidth(width + 20);
-                    break;
-                case Model.COL_FEEL:
-                    colModel.getColumn(colIndex).setMaxWidth(width);
-                    break;
-                case Model.COL_DIR:
+                case Model.COL_NB_VOICES, Model.COL_TEMPO, Model.COL_ID -> colModel.getColumn(colIndex).setMaxWidth(width);
+                case Model.COL_NAME -> colModel.getColumn(colIndex).setMaxWidth(width + 20);
+                case Model.COL_DIVISION -> colModel.getColumn(colIndex).setMaxWidth(width);
+                case Model.COL_DEFAULT_MIX -> colModel.getColumn(colIndex).setMaxWidth(width);
+                case Model.COL_DIR ->
+                {
                     // Nothing
-                    break;
-                default:
-                    throw new IllegalStateException("col=" + colIndex);
+                }
+                default -> throw new IllegalStateException("col=" + colIndex);
             }
         }
     }
@@ -530,17 +626,21 @@ public class RhythmJTable extends JTable implements PropertyChangeListener
 
             switch (col)
             {
-                case Model.COL_NB_VOICES:
-                    lbl.setToolTipText(RhythmJTable.this.getInstrumentsString(ri));
-                    break;
+                case Model.COL_NB_VOICES -> lbl.setToolTipText(RhythmJTable.this.getInstrumentsString(ri));
 
-                case Model.COL_NAME:
+                case Model.COL_NAME ->
+                {
                     String s = f == null ? "" : ", " + ResUtil.getString(getClass(), "COL_NameToolTip", f.getName());
                     lbl.setToolTipText(ResUtil.getString(getClass(), "COL_DescToolTip", ri.description() + s));
-                    break;
+                }
 
-                case Model.COL_DIR:
-                    lbl.setToolTipText(ResUtil.getString(getClass(), "COL_DirTooltip"));
+                case Model.COL_DEFAULT_MIX ->
+                {
+                    File rdm = model.getDefaultMix(ri);
+                    lbl.setToolTipText(rdm != null ? rdm.getAbsolutePath() : ResUtil.getString(getClass(), "NoRhythmDefaultMix", ri.name()));
+                }
+
+                case Model.COL_DIR -> lbl.setToolTipText(ResUtil.getString(getClass(), "COL_DirTooltip"));
 //                    // Left dots and the right part of the string visible in the cell
 //                    int availableWidth = table.getColumnModel().getColumn(col).getWidth();
 //                    availableWidth -= table.getIntercellSpacing().getWidth();
@@ -562,10 +662,10 @@ public class RhythmJTable extends JTable implements PropertyChangeListener
 //                            }
 //                        }
 //                        lbl.setText(dots + cellText.substring(nChars + 1));
-//                    }                  
-                    break;
-                default:
-                    break;
+//                    }
+                default ->
+                {
+                }
             }
 
             // Different rendering if it's a favorite
@@ -582,14 +682,12 @@ public class RhythmJTable extends JTable implements PropertyChangeListener
             {
                 switch (col)
                 {
-                    case Model.COL_ID:
-                        lbl.setText(">>>");
-                        break;
-                    case Model.COL_NAME:
-                        lbl.setText(">>> " + lbl.getText());
-                        break;
-                    default:
-                    // Nothing
+                    case Model.COL_ID -> lbl.setText(">>>");
+                    case Model.COL_NAME -> lbl.setText(">>> " + lbl.getText());
+                    default ->
+                    {
+                        // Nothing
+                    }
                 }
             }
 

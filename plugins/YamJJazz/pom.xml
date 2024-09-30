@@ -206,6 +206,11 @@
             <artifactId>utilities</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
+        <dependency>
+            <groupId>org.jjazzlab.core</groupId>
+            <artifactId>guava</artifactId>
+            <version>${project.version}</version>
+        </dependency>        
         <dependency> 
             <groupId>org.netbeans.api</groupId> 
             <artifactId>org-openide-awt</artifactId> 
@@ -226,6 +231,7 @@
             <artifactId>org-openide-windows</artifactId> 
             <version>${netbeans.version}</version>  
         </dependency>
+
     </dependencies>
 
 </project>

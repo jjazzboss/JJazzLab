@@ -155,7 +155,7 @@ public class YamJJazzAdaptedRhythmImpl implements YamJJazzRhythm, AdaptedRhythm,
         newStyle.timeSignature = newTs;
         newStyle.ticksPerQuarter = oldStyle.ticksPerQuarter;
         newStyle.tempo = oldStyle.tempo;
-        newStyle.feel = oldStyle.feel;
+        newStyle.division = oldStyle.division;
         newStyle.sffType = oldStyle.sffType;
 
         // Copy sInt

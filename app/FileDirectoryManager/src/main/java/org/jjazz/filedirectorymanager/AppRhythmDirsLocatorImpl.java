@@ -81,7 +81,7 @@ public class AppRhythmDirsLocatorImpl extends RhythmDirsLocatorImpl
         File dir = new File(jjDir, "Rhythms");
         if (!dir.isDirectory() && !dir.mkdir())
         {
-            LOGGER.log(Level.WARNING, "AppRhythmDirsLocator() Can't create user rhythm directory: {0} Using: {1} instead.", new Object[]
+            LOGGER.log(Level.WARNING, "AppRhythmDirsLocator() Can''t create user rhythm directory: {0} Using: {1} instead.", new Object[]
             {
                 dir.getAbsolutePath(), jjDir.getAbsolutePath()
             });

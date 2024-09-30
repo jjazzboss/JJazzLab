@@ -38,7 +38,7 @@ import javax.sound.midi.MidiSystem;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.parser.MidiParser;
-import org.jjazz.rhythm.api.Feel;
+import org.jjazz.rhythm.api.Division;
 import org.jjazz.yamjjazz.CASMDataReader;
 import org.jjazz.yamjjazz.FormatNotSupportedException;
 import org.jjazz.yamjjazz.MPL_ExtensionFile;
@@ -63,7 +63,7 @@ public class Style
     public TimeSignature timeSignature;
     public int ticksPerQuarter;
     public int tempo;
-    public Feel feel;     // Not part of the style file: computed by our parser
+    public Division division;     // Not part of the style file: computed by our parser
 
     public enum SFFtype
     {

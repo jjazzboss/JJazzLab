@@ -1268,7 +1268,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
 
     /**
      * Send the midi messages to initialize all the instrument mixes.
-     * 
+     * <p>
      * Midi messages are sent to the default JJazzLab Midi OUT device.
      */
     public void sendAllMidiMixMessages()
@@ -1284,7 +1284,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
 
     /**
      * Send the midi messages to set the volume of all instrument mixes.
-     * 
+     * <p>
      * Midi messages are sent to the default JJazzLab Midi OUT device.
      */
     public void sendAllMidiVolumeMessages()
@@ -1378,8 +1378,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         {
             return null;
         }
-        String songMixName = Utilities.replaceExtension(songFile.getName(), MIX_FILE_EXTENSION);
-        return new File(songFile.getParent(), songMixName);
+        var res = Utilities.replaceExtension(songFile, MIX_FILE_EXTENSION);
+        return res;
     }
 
     /**

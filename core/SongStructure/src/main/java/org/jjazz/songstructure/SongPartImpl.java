@@ -30,10 +30,8 @@ import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -44,6 +42,7 @@ import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.rhythm.api.MutableRpValue;
 import org.jjazz.rhythm.api.Rhythm;
+import org.jjazz.rhythm.api.RhythmFeatures;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.RhythmInfo;
@@ -64,7 +63,7 @@ import org.openide.util.lookup.ServiceProvider;
 
 public class SongPartImpl implements SongPart, Serializable, ChangeListener
 {
-
+    
     public static final String NO_NAME = "NoName";
     /**
      * The rhythm of this part.
@@ -138,13 +137,13 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
             }
         }
     }
-
+    
     @Override
     public String getName()
     {
         return name;
     }
-
+    
     public void setName(String name)
     {
         if (name == null || name.length() == 0)
@@ -159,13 +158,13 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
             pcs.firePropertyChange(PROP_NAME, oldName, name);
         }
     }
-
+    
     @Override
     public SongStructure getContainer()
     {
         return container;
     }
-
+    
     public void setContainer(SongStructure sgs)
     {
         container = sgs;
@@ -228,7 +227,7 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
             pcs.firePropertyChange(PROP_RP_VALUE, rp, value);
         }
     }
-
+    
     @Override
     public Rhythm getRhythm()
     {
@@ -253,13 +252,13 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
             pcs.firePropertyChange(SongPart.PROP_START_BAR_INDEX, old, startBarIndex);
         }
     }
-
+    
     @Override
     public synchronized int getStartBarIndex()
     {
         return startBarIndex;
     }
-
+    
     @Override
     @SuppressWarnings(
             {
@@ -278,8 +277,8 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
         {
             throw new IllegalArgumentException("r=" + r + " newRhythm=" + newRhythm + " cliSection=" + cliSection);
         }
-
-
+        
+        
         SongPartImpl newSpt = new SongPartImpl(newRhythm, newStartBarIndex, newNbBars, cliSection);
         newSpt.setContainer(container);
         newSpt.setName(name);
@@ -329,31 +328,31 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
             pcs.firePropertyChange(PROP_NB_BARS, old, nbBars);
         }
     }
-
+    
     @Override
     public int getNbBars()
     {
         return nbBars;
     }
-
+    
     @Override
     public CLI_Section getParentSection()
     {
         return parentSection;
     }
-
+    
     @Override
     public StringProperties getClientProperties()
     {
         return clientProperties;
     }
-
+    
     @Override
     public String toString()
     {
         return "[" + name + ", r=" + rhythm + ", startBarIndex=" + startBarIndex + ", nbBars=" + nbBars + "]";
     }
-
+    
     public String toDumpString()
     {
         StringBuilder sb = new StringBuilder();
@@ -364,13 +363,13 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
         }
         return sb.toString();
     }
-
+    
     @Override
     public void addPropertyChangeListener(PropertyChangeListener l)
     {
         pcs.addPropertyChangeListener(l);
     }
-
+    
     @Override
     public void removePropertyChangeListener(PropertyChangeListener l)
     {
@@ -398,25 +397,25 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
     // Implementation of interface Transferable
     // ------------------------------------------------------------------------------
     private static final DataFlavor flavor = DATA_FLAVOR;
-
+    
     private static final DataFlavor[] supportedFlavors =
     {
         DATA_FLAVOR,
         DataFlavor.stringFlavor
     };
-
+    
     @Override
     public DataFlavor[] getTransferDataFlavors()
     {
         return supportedFlavors;
     }
-
+    
     @Override
     public boolean isDataFlavorSupported(DataFlavor fl)
     {
         return fl.equals(DATA_FLAVOR) || fl.equals(DataFlavor.stringFlavor);
     }
-
+    
     @Override
     public Object getTransferData(DataFlavor fl) throws UnsupportedFlavorException
     {
@@ -441,7 +440,7 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
     @ServiceProvider(service = XStreamConfigurator.class)
     public static class XStreamConfig implements XStreamConfigurator
     {
-
+        
         @Override
         public void configure(XStreamConfigurator.InstanceId instanceId, XStream xstream)
         {
@@ -457,9 +456,9 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
                     xstream.useAttributeFor(SerializationProxy.class, "spNbBars");
                     xstream.useAttributeFor(SerializationProxy.class, "spRhythmId");
                     xstream.useAttributeFor(SerializationProxy.class, "spRhythmTs");
-
+                    
                 }
-
+                
                 case MIDIMIX_LOAD ->
                 {
                     // Nothing
@@ -480,12 +479,12 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
     {
         return new SerializationProxy(this);
     }
-
+    
     private void readObject(ObjectInputStream stream)
             throws InvalidObjectException
     {
         throw new InvalidObjectException("Serialization proxy required");
-
+        
     }
 
 
@@ -499,13 +498,13 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
      */
     private static class SerializationProxy implements Serializable
     {
-
+        
         private static final long serialVersionUID = 99812309123112L;
         /**
          * To avoid multiple error messages when one rhythm is not available, store it here for the session.
          */
         private static final transient Set<String> saveUnavailableRhythmIds = new HashSet<>();
-
+        
         private int spVERSION = 3;  // Do not make final!
         private String spRhythmId;
         private String spRhythmName;
@@ -536,7 +535,7 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
             spRhythmId = spt.getRhythm().getUniqueId();
             spRhythmName = spt.getRhythm().getName();
             spRhythmTs = spt.getRhythm().getTimeSignature();
-
+            
             for (RhythmParameter rp : spt.getRhythm().getRhythmParameters())
             {
                 Object value = spt.getRPValue(rp);
@@ -557,8 +556,8 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
             // From spVERSION 2
             spClientProperties = spt.getClientProperties();
         }
-
-
+        
+        
         @SuppressWarnings(
                 {
                     "unchecked", "rawtypes"
@@ -582,10 +581,10 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
                 // Problem ! The saved rhythm does not exist on the system, need to find another one
 
                 rhythmIsUnavailable = saveUnavailableRhythmIds.add(spRhythmId) ? 1 : 2;
-
+                
                 if (rhythmIsUnavailable == 1)
                 {
-                    LOGGER.log(Level.WARNING, "readResolve() spt={0}[{1}] Can''t get rhythm instance for rhythm id={2}. ex1={3}", new Object[]
+                    LOGGER.log(Level.WARNING, "readResolve() spt={0}[{1}] Could not get rhythm instance for rhythm id={2}. ex1={3}", new Object[]
                     {
                         spName,
                         spStartBarIndex,
@@ -594,13 +593,26 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
                     });
                 }
 
-                RhythmInfo ri = rdb.getDefaultRhythm(spRhythmTs);
+                // Try to find a similar rhythm 
+                var ri = rdb.findRhythm(spRhythmName, rii -> rii.timeSignature() == spRhythmTs);
+                if (ri == null)
+                {
+                    // Also try via RhythmFeatures
+                    var rf = RhythmFeatures.guessFeatures(spRhythmName, -1);
+                    ri = rdb.findRhythm(rf, rii -> rii.timeSignature() == spRhythmTs);
+                }
+                if (ri == null)
+                {
+                    // Just use default
+                    ri = rdb.getDefaultRhythm(spRhythmTs);
+                }                
                 try
                 {
+                    LOGGER.log(Level.INFO, "readResolve() Using {0} as replacement", ri.name());
                     r = rdb.getRhythmInstance(ri);
                 } catch (UnavailableRhythmException ex2)
                 {
-                    LOGGER.log(Level.WARNING, "readResolve() Can''t get substitute rhythm instance for {0}. ex2={1}", new Object[]
+                    LOGGER.log(Level.WARNING, "readResolve() Could not get rhythm instance for {0}. ex2={1}", new Object[]
                     {
                         ri, ex2.getMessage()
                     });
@@ -615,8 +627,8 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
             // Recreate a SongPart
             SongPartImpl newSpt = new SongPartImpl(r, spStartBarIndex, spNbBars, spParentSection);
             newSpt.setName(spName);
-
-
+            
+            
             if (spVERSION < 3)
             {
                 // Need to transfer the old SmallMap spMapRpIdValue content                
@@ -636,7 +648,7 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
                         .filter(rp -> rp.getId().equals(rpId))
                         .findAny()
                         .orElse(null);
-
+                
                 if (newRp != null)
                 {
                     Object newValue = null;
@@ -645,7 +657,7 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
                     {
                         newValue = newRp.loadFromString(savedRpStringValue);      // newValue can still be null after this
                     }
-
+                    
                     if (newValue == null)
                     {
                         if (rhythmIsUnavailable == 1)
@@ -663,7 +675,7 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
 
                     // Assign the value
                     newSpt.setRPValue(newRp, newValue);
-
+                    
                 } else if (rhythmIsUnavailable == 1)
                 {
                     String msg = "readResolve() Saved rhythm parameter " + rpId + " not found in rhythm " + r.getName();
@@ -683,8 +695,8 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
                     LOGGER.log(Level.WARNING, "readResolve() Unexpected null value for spClientProperties. spName={0}", spName);
                 }
             }
-
-
+            
+            
             if (rhythmIsUnavailable == 1)
             {
                 LOGGER.warning(errRhythm);
@@ -693,10 +705,10 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
                 DialogDisplayer.getDefault().notify(nd);
                 saveUnavailableRhythmIds.add(spRhythmId);
             }
-
+            
             return newSpt;
         }
-
-
+        
+        
     }
 }

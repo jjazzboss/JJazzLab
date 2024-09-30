@@ -41,6 +41,7 @@ import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
@@ -79,10 +80,10 @@ import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.song.api.Song;
 import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.quantizer.api.Quantizer;
-import org.jjazz.rhythm.api.Feel;
 import org.jjazz.cl_editor.api.SelectedBar;
 import org.jjazz.cl_editor.spi.BarRendererFactory;
 import org.jjazz.cl_editor.spi.BarRendererProvider;
+import org.jjazz.rhythm.api.Division;
 import org.openide.awt.UndoRedo;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
@@ -390,8 +391,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             {
                 if (spt.getParentSection().equals(cliSection))
                 {
-                    q = (spt.getRhythm().getFeatures().getFeel() == Feel.BINARY) ? Quantization.ONE_QUARTER_BEAT
-                            : Quantization.ONE_THIRD_BEAT;
+                    var d = spt.getRhythm().getFeatures().division();
+                    q = !EnumSet.of(Division.EIGHTH_SWING, Division.EIGHTH_TRIPLET).contains(d) ? Quantization.ONE_QUARTER_BEAT : Quantization.ONE_THIRD_BEAT;
                     break;
                 }
             }

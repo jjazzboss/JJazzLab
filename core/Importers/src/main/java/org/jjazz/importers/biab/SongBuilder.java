@@ -40,10 +40,8 @@ import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.importers.api.BiabFileReader;
-import org.jjazz.rhythm.api.Beat;
-import org.jjazz.rhythm.api.Feel;
+import org.jjazz.rhythm.api.Division;
 import org.jjazz.rhythm.api.Genre;
-import org.jjazz.rhythm.api.Intensity;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
@@ -94,7 +92,7 @@ public class SongBuilder
             {
                 g = BiabStyleFeatures.guessGenre(reader.file.getName());
             }
-            reader.styleFeatures = new BiabStyleFeatures(g, Beat.UNKNOWN, Intensity.UNKNOWN, Feel.UNKNOWN, reader.timeSignature);
+            reader.styleFeatures = new BiabStyleFeatures(g, Division.UNKNOWN,reader.timeSignature);
         }
 
         // Compute cls size
@@ -430,8 +428,8 @@ public class SongBuilder
                     // Handle push
                     switch (bc.push)
                     {
-                        case PUSH8 -> beat -= reader.feel.equals(Feel.BINARY) ? 0.5f : 0.33f;
-                        case PUSH16 -> beat -= reader.feel.equals(Feel.BINARY) ? 0.25f : 0.33f;
+                        case PUSH8 -> beat -= !reader.swing ? 0.5f : 0.33f;
+                        case PUSH16 -> beat -= !reader.swing ? 0.25f : 0.33f;
                     }
                     if (beat < 0)
                     {

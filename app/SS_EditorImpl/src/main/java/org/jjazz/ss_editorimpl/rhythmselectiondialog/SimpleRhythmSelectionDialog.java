@@ -109,7 +109,7 @@ public class SimpleRhythmSelectionDialog extends RhythmSelectionDialog implement
         }
         StringBuilder sb = new StringBuilder();
         TableModel tm = this.tbl_props.getModel();
-        TempoRange tr = ri.rhythmFeatures().getTempoRange();
+        TempoRange tr = ri.rhythmFeatures().tempoRange();
         tm.setValueAt("Description", 0, 0);
         tm.setValueAt(ri.description(), 0, 1);
 
@@ -148,7 +148,7 @@ public class SimpleRhythmSelectionDialog extends RhythmSelectionDialog implement
         tm.setValueAt(ri.author(), 7, 1);
 
         tm.setValueAt("Feel", 8, 0);
-        tm.setValueAt(ri.rhythmFeatures().getFeel(), 8, 1);
+        tm.setValueAt(ri.rhythmFeatures().division(), 8, 1);
     }
 
     @Override
