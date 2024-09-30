@@ -390,7 +390,7 @@ public class RhythmJTable extends JTable implements PropertyChangeListener
                     {
                         case BINARY ->
                             "Binary";
-                        case EIGHTH_SWING ->
+                        case EIGHTH_SHUFFLE ->
                             "Shuffle";
                         case EIGHTH_TRIPLET ->
                             "Triplet";

@@ -29,14 +29,14 @@ package org.jjazz.rhythm.api;
 public enum Division
 {
     BINARY,
-    EIGHTH_SWING,
+    EIGHTH_SHUFFLE,     // jazz swing with triplet division
     EIGHTH_TRIPLET,
     UNKNOWN;
 
 
     public boolean isSwing()
     {
-        return this == EIGHTH_SWING;
+        return this == EIGHTH_SHUFFLE;
     }
 
     static public Division valueOf(String s, Division defaultValue)
@@ -76,7 +76,7 @@ public enum Division
                     "dance", "electro", "house", "garage")
                     ? BINARY : UNKNOWN;
                 case JAZZ ->
-                    safeContainsOneOf(text, "rock", "fusi", "acid", "smoot") ? BINARY : EIGHTH_SWING;
+                    safeContainsOneOf(text, "rock", "fusi", "acid", "smoot") ? BINARY : EIGHTH_SHUFFLE;
                 default ->
                     BINARY;
             };

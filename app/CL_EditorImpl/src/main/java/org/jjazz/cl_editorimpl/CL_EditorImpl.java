@@ -392,7 +392,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
                 if (spt.getParentSection().equals(cliSection))
                 {
                     var d = spt.getRhythm().getFeatures().division();
-                    q = !EnumSet.of(Division.EIGHTH_SWING, Division.EIGHTH_TRIPLET).contains(d) ? Quantization.ONE_QUARTER_BEAT : Quantization.ONE_THIRD_BEAT;
+                    q = !EnumSet.of(Division.EIGHTH_SHUFFLE, Division.EIGHTH_TRIPLET).contains(d) ? Quantization.ONE_QUARTER_BEAT : Quantization.ONE_THIRD_BEAT;
                     break;
                 }
             }

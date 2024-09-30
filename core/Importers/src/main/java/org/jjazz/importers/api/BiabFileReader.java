@@ -177,7 +177,7 @@ public class BiabFileReader
         if (styleFeatures != null)
         {
             timeSignature = styleFeatures.timeSignature;
-            swing = styleFeatures.division == Division.EIGHTH_SWING;
+            swing = styleFeatures.division == Division.EIGHTH_SHUFFLE;
         }
         LOGGER.log(Level.FINE, "readFileDataOldFormat() styleFamilyId={0}, timeSignature={1}, swing={2} byteIndex={3}", new Object[]
         {

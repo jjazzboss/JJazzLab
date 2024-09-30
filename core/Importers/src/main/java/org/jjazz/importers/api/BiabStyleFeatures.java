@@ -89,30 +89,30 @@ public class BiabStyleFeatures
         }
         DATA = new BiabStyleFeatures[]
         {
-            new BiabStyleFeatures(Genre.JAZZ, Division.EIGHTH_SWING, TimeSignature.FOUR_FOUR), // 1
+            new BiabStyleFeatures(Genre.JAZZ, Division.EIGHTH_SHUFFLE, TimeSignature.FOUR_FOUR), // 1
             new BiabStyleFeatures(Genre.COUNTRY, Division.EIGHTH_TRIPLET, TimeSignature.TWELVE_EIGHT), // 2
-            new BiabStyleFeatures(Genre.COUNTRY, Division.EIGHTH, TimeSignature.FOUR_FOUR), // 3
-            new BiabStyleFeatures(Genre.LATIN, Division.EIGHTH, TimeSignature.FOUR_FOUR), // 4
-            new BiabStyleFeatures(Genre.WORLD, Division.UNKNOWN, TimeSignature.FOUR_FOUR),// 5
-            new BiabStyleFeatures(Genre.RnB, Division.EIGHTH_SWING, TimeSignature.FOUR_FOUR),// 6
-            new BiabStyleFeatures(Genre.RnB, Division.EIGHTH, TimeSignature.FOUR_FOUR),// 7
-            new BiabStyleFeatures(Genre.BALLROOM, Division.UNKNOWN, TimeSignature.THREE_FOUR),// 8
-            new BiabStyleFeatures(Genre.POP, Division.UNKNOWN, TimeSignature.FOUR_FOUR),// 9
-            new BiabStyleFeatures(Genre.ROCK, Division.EIGHTH_SWING, TimeSignature.FOUR_FOUR), // A
-            new BiabStyleFeatures(Genre.ROCK, Division.UNKNOWN, TimeSignature.FOUR_FOUR), // B
-            new BiabStyleFeatures(Genre.ROCK, Division.UNKNOWN, TimeSignature.FOUR_FOUR), // C
-            new BiabStyleFeatures(Genre.ROCK, Division.UNKNOWN, TimeSignature.FOUR_FOUR),// D
-            new BiabStyleFeatures(Genre.ROCK, Division.UNKNOWN, TimeSignature.FOUR_FOUR),// E
-            new BiabStyleFeatures(Genre.POP, Division.UNKNOWN, TimeSignature.FOUR_FOUR),// F
-            new BiabStyleFeatures(Genre.FUNK, Division.SIXTEENTH, TimeSignature.FOUR_FOUR),// G
-            new BiabStyleFeatures(Genre.JAZZ, Division.EIGHTH_SWING, TimeSignature.THREE_FOUR),// H
-            new BiabStyleFeatures(Genre.LATIN, Division.UNKNOWN, TimeSignature.FOUR_FOUR),// I
-            new BiabStyleFeatures(Genre.LATIN, Division.UNKNOWN, TimeSignature.FOUR_FOUR),// J
-            new BiabStyleFeatures(Genre.JAZZ, Division.EIGHTH_SWING, TimeSignature.FOUR_FOUR),// K
-            new BiabStyleFeatures(Genre.COUNTRY, Division.EIGHTH, TimeSignature.FOUR_FOUR),// L
+            new BiabStyleFeatures(Genre.COUNTRY, Division.BINARY, TimeSignature.FOUR_FOUR), // 3
+            new BiabStyleFeatures(Genre.LATIN, Division.BINARY, TimeSignature.FOUR_FOUR), // 4
+            new BiabStyleFeatures(Genre.WORLD, Division.BINARY, TimeSignature.FOUR_FOUR),// 5
+            new BiabStyleFeatures(Genre.RnB, Division.EIGHTH_SHUFFLE, TimeSignature.FOUR_FOUR),// 6
+            new BiabStyleFeatures(Genre.RnB, Division.BINARY, TimeSignature.FOUR_FOUR),// 7
+            new BiabStyleFeatures(Genre.BALLROOM, Division.BINARY, TimeSignature.THREE_FOUR),// 8
+            new BiabStyleFeatures(Genre.POP, Division.BINARY, TimeSignature.FOUR_FOUR),// 9
+            new BiabStyleFeatures(Genre.ROCK, Division.EIGHTH_SHUFFLE, TimeSignature.FOUR_FOUR), // A
+            new BiabStyleFeatures(Genre.ROCK, Division.BINARY, TimeSignature.FOUR_FOUR), // B
+            new BiabStyleFeatures(Genre.ROCK, Division.BINARY, TimeSignature.FOUR_FOUR), // C
+            new BiabStyleFeatures(Genre.ROCK, Division.BINARY, TimeSignature.FOUR_FOUR),// D
+            new BiabStyleFeatures(Genre.ROCK, Division.BINARY, TimeSignature.FOUR_FOUR),// E
+            new BiabStyleFeatures(Genre.POP, Division.BINARY, TimeSignature.FOUR_FOUR),// F
+            new BiabStyleFeatures(Genre.FUNK, Division.BINARY, TimeSignature.FOUR_FOUR),// G
+            new BiabStyleFeatures(Genre.JAZZ, Division.EIGHTH_SHUFFLE, TimeSignature.THREE_FOUR),// H
+            new BiabStyleFeatures(Genre.LATIN, Division.BINARY, TimeSignature.FOUR_FOUR),// I
+            new BiabStyleFeatures(Genre.LATIN, Division.BINARY, TimeSignature.FOUR_FOUR),// J
+            new BiabStyleFeatures(Genre.JAZZ, Division.EIGHTH_SHUFFLE, TimeSignature.FOUR_FOUR),// K
+            new BiabStyleFeatures(Genre.COUNTRY, Division.BINARY, TimeSignature.FOUR_FOUR),// L
             new BiabStyleFeatures(Genre.POP, Division.EIGHTH_TRIPLET, TimeSignature.TWELVE_EIGHT),// M
             new BiabStyleFeatures(Genre.COUNTRY, Division.EIGHTH_TRIPLET, TimeSignature.TWELVE_EIGHT),// N
-            new BiabStyleFeatures(Genre.REGGAE, Division.UNKNOWN, TimeSignature.FOUR_FOUR)// O
+            new BiabStyleFeatures(Genre.REGGAE, Division.BINARY, TimeSignature.FOUR_FOUR)// O
         };
     }
 }

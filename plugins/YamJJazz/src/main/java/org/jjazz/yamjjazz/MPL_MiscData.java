@@ -194,7 +194,7 @@ public class MPL_MiscData extends MidiParserListenerAdapter
             {
                 // Ternary : half-beat notes are rare in the off-beat notes        
                 // Choose swing if most of the off-beat notes are on the 3rd triplet
-                res = ratioEighthTriplet3OverTriplets > 0.68 ? Division.EIGHTH_SWING : Division.EIGHTH_TRIPLET;
+                res = ratioEighthTriplet3OverTriplets > 0.68 ? Division.EIGHTH_SHUFFLE : Division.EIGHTH_TRIPLET;
             } else 
             {
                 // Make it simple (no more try to distinguish 8-beat from 16-beat)

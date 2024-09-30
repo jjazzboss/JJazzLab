@@ -62,7 +62,7 @@
                             <directory>src/main/soundfont</directory>
                             <targetPath>modules/soundfont</targetPath>
                             <includes>
-                                <include>*.sf2</include>
+                                <include>JJazzLab-SoundFont.sf2</include>
                             </includes>
                         </nbmResource>     
                     </nbmResources>                                
