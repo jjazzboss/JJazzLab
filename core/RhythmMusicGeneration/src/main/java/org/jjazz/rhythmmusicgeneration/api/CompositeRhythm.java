@@ -22,7 +22,7 @@
  *   Contributor(s): 
  * 
  */
-package org.jjazz.test.rhythm;
+package org.jjazz.rhythmmusicgeneration.api;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.BiMap;
@@ -117,6 +117,7 @@ public class CompositeRhythm implements Rhythm, MusicGenerator
         }
         rhythmVoices = Collections.unmodifiableList(rvs);
         
+        
         LOGGER.log(Level.FINE, "CompositeRhythm() -- rhythm1={0} rhythm2={1} rhythmVoices={2}", new Object[]
         {
             rhythm1, rhythm2, rhythmVoices
@@ -127,6 +128,7 @@ public class CompositeRhythm implements Rhythm, MusicGenerator
         rhythmParameters = (List<RhythmParameter<?>>) findCommonRPs(r1, r2).stream()
                 .map(rp -> rp.getCopy(this))
                 .toList();
+        assert !rhythmParameters.isEmpty();
 
     }
 

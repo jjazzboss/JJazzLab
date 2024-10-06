@@ -55,12 +55,12 @@ import org.openide.util.lookup.ProxyLookup;
 /**
  * For debug purposes...
  */
-@ActionID(category = "JJazz", id = "org.jjazz.test.TestAction")
-@ActionRegistration(displayName = "Test Action")
-@ActionReferences(
-        {
-           @ActionReference(path = "Menu/Edit", position = 50000)
-        })
+//@ActionID(category = "JJazz", id = "org.jjazz.test.TestAction")
+//@ActionRegistration(displayName = "Test Action")
+//@ActionReferences(
+//        {
+//           @ActionReference(path = "Menu/Edit", position = 50000)
+//        })
 public final class TestAction implements ActionListener
 {
 
@@ -70,6 +70,12 @@ public final class TestAction implements ActionListener
     public void actionPerformed(ActionEvent ae)
     {
         LOGGER.log(Level.INFO, "TestAction.actionPerformed() called");
+        
+        testCompositeRhythm();
+    }
+
+    private void testCompositeRhythm()
+    {
         TestRhythmProvider p = new TestRhythmProvider();
         RhythmDatabase.getDefault().addRhythmInstance(p, p.getTestRhythm());
     }
