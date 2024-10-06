@@ -322,7 +322,8 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
      * Update the sequence with the specified parameter.
      * <p>
      * Update RhythmVoice tracks for which there is an actual change. Changes are first applied to muted "buffer tracks", then we switch the mute status between
-     * the buffer and the playing tracks. The transition might be noticeable if notes were still ringing when tracks mute state is switched.
+     * the buffer and the playing tracks. The transition might be noticeable if notes were still ringing when tracks mute state is switched, but usually it's
+     * unnoticeable.
      * <p>
      * Fire a PROP_UPDATED_RECEIVED change event.
      * <p>

@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.rhythmstubs;
+package org.jjazz.rhythmstubs.api;
 
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -77,7 +77,7 @@ public class RhythmStub implements Rhythm, MusicGenerator
     {
         if (uniqueId == null || uniqueId.trim().isEmpty() || ts == null)
         {
-            throw new IllegalArgumentException("uniqueId=" + uniqueId + " ts=" + ts);   
+            throw new IllegalArgumentException("uniqueId=" + uniqueId + " ts=" + ts);
         }
 
         this.uniqueId = uniqueId;
@@ -85,7 +85,8 @@ public class RhythmStub implements Rhythm, MusicGenerator
 
         // Rhythm voices
         GM1Bank gmb = GMSynth.getInstance().getGM1Bank();
-        rhythmVoices.add(new RhythmVoice(new DrumKit(Type.STANDARD, KeyMapGM.getInstance()), this, RhythmVoice.Type.DRUMS, "Drums", GMSynth.getInstance().getVoidInstrument(), 9));
+        rhythmVoices.add(new RhythmVoice(new DrumKit(Type.STANDARD, KeyMapGM.getInstance()), this, RhythmVoice.Type.DRUMS, "Drums",
+                GMSynth.getInstance().getVoidInstrument(), 9));
         rhythmVoices.add(new RhythmVoice(this, RhythmVoice.Type.BASS, "Bass", gmb.getDefaultInstrument(InstrumentFamily.Bass), 10));
 
         // Our Rhythm Parameters
@@ -94,10 +95,11 @@ public class RhythmStub implements Rhythm, MusicGenerator
     }
 
     @Override
-    public HashMap<RhythmVoice, Phrase> generateMusic(SongContext context) throws MusicGenerationException
+    public HashMap<RhythmVoice, Phrase> generateMusic(SongContext context, RhythmVoice... rvs) throws MusicGenerationException
     {
         return new DummyGenerator(this).generateMusic(context);
     }
+
 
     @Override
     public boolean equals(Object o)

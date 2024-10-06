@@ -37,6 +37,9 @@ import javax.sound.midi.Synthesizer;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.rhythm.spi.RhythmDirsLocator;
+import org.jjazz.rhythmdatabase.api.RhythmDatabase;
+import org.jjazz.test.rhythm.TestRhythmProvider;
+import org.jjazz.utilities.api.MultipleErrorsReport;
 import org.netbeans.api.progress.BaseProgressUtils;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -52,12 +55,12 @@ import org.openide.util.lookup.ProxyLookup;
 /**
  * For debug purposes...
  */
-//@ActionID(category = "JJazz", id = "org.jjazz.test.TestAction")
-//@ActionRegistration(displayName = "Test Action")
-//@ActionReferences(
-//        {
-//           @ActionReference(path = "Menu/Edit", position = 50000)
-//        })
+@ActionID(category = "JJazz", id = "org.jjazz.test.TestAction")
+@ActionRegistration(displayName = "Test Action")
+@ActionReferences(
+        {
+           @ActionReference(path = "Menu/Edit", position = 50000)
+        })
 public final class TestAction implements ActionListener
 {
 
@@ -66,8 +69,9 @@ public final class TestAction implements ActionListener
     @Override
     public void actionPerformed(ActionEvent ae)
     {
-        Runnable r = new MyRun();
-        BaseProgressUtils.showProgressDialogAndRun(r, "Executing testAction");
+        LOGGER.log(Level.INFO, "TestAction.actionPerformed() called");
+        TestRhythmProvider p = new TestRhythmProvider();
+        RhythmDatabase.getDefault().addRhythmInstance(p, p.getTestRhythm());
     }
 
     private class MyRun implements Runnable
@@ -123,34 +127,4 @@ public final class TestAction implements ActionListener
         }
     }
 
-    // @Override
-    public void actionPerformed2(ActionEvent ae)
-    {
-        LOGGER.log(Level.INFO, "TestAction.actionPerformed() called");
-        Lookup l1, l2, lc, lc1, lc2;
-        InstanceContent ic;
-        l1 = Lookups.fixed("L1");
-        l2 = Lookups.fixed("L2");
-
-        ic = new InstanceContent();
-        lc = new AbstractLookup(ic);
-        ic.add(1);
-        ic.add(1f);
-
-        lc1 = new ProxyLookup(l1, lc);
-        lc2 = new ProxyLookup(l2, lc);
-
-        String s = lc1.lookup(String.class);
-        Integer i = lc1.lookup(Integer.class);
-        LOGGER.log(Level.INFO, "lc1 s={0} i={1}", new Object[]
-        {
-            s, i
-        });
-        s = lc2.lookup(String.class);
-        Float f = lc1.lookup(Float.class);
-        LOGGER.log(Level.INFO, "lc2 s={0} f={1}", new Object[]
-        {
-            s, f
-        });
-    }
 }

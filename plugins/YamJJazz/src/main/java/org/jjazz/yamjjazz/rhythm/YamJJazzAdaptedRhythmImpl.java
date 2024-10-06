@@ -22,6 +22,7 @@
  */
 package org.jjazz.yamjjazz.rhythm;
 
+import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythmGenerator;
 import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythm;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -96,14 +97,15 @@ public class YamJJazzAdaptedRhythmImpl implements YamJJazzRhythm, AdaptedRhythm,
     // MusicGenerator interface
     // ==================================================================================================
     @Override
-    public HashMap<RhythmVoice, Phrase> generateMusic(SongContext context) throws MusicGenerationException
+    public HashMap<RhythmVoice, Phrase> generateMusic(SongContext context, RhythmVoice... rvs) throws MusicGenerationException
     {
         if (generator == null)
         {
             generator = new YamJJazzRhythmGenerator(this);
         }
-        return generator.generateMusic(context);
+        return generator.generateMusic(context, rvs);
     }
+
 
     // ==================================================================================================
     // AdaptedRhythm interface

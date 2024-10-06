@@ -1314,8 +1314,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
 
         if (res.isEmpty())
         {
-            LOGGER.log(Level.WARNING,
-                    "getDefaultVisibleRpsInCompactMode() no default compact-mode visible RPs for r={0}, using 1st RP as default", r);
+            LOGGER.log(Level.WARNING, "getDefaultVisibleRpsInCompactMode() no default compact-mode visible RPs for r={0}, using 1st RP as default", r);
             res.add(r.getRhythmParameters().get(0));
         }
 

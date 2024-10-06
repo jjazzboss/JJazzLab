@@ -41,8 +41,8 @@ import org.jjazz.utilities.api.LongRange;
 /**
  * Collect various data about a Song context in order to facilitate music generation.
  * <p>
- * Note that a SongContext instance should be discarded if song is structurally modified, because some SongContext methods may return data
- * not consistent anymore with the actual Song.
+ * Note that a SongContext instance should be discarded if song is structurally modified, because some SongContext methods may return data not consistent
+ * anymore with the actual Song.
  */
 public class SongContext
 {
@@ -107,7 +107,7 @@ public class SongContext
             this.barRange = bars;
         }
         songParts = song.getSongStructure().getSongParts().stream()
-                .filter(spt -> contains(spt))
+                .filter(spt -> isInRange(spt))
                 .toList();
         beatRange = song.getSongStructure().toBeatRange(barRange);
         tickRange = new LongRange((long) (beatRange.from * MidiConst.PPQ_RESOLUTION), (long) (beatRange.to * MidiConst.PPQ_RESOLUTION));
@@ -131,10 +131,10 @@ public class SongContext
      *
      * @param register If true the created song is registered by the SongFactory
      * @return
-     * @see SongContextCopy &nbsp; (if you need to keep a reference to the original song and midiMix)
+     * @see org.jjazz.songcontext.api.SongContextCopy &nbsp; (if you need to keep a reference to the original song and midiMix)
      */
     public SongContext deepClone(boolean register)
-    {        
+    {
         SongFactory sf = SongFactory.getInstance();
         Song songCopy = sf.getCopy(song, register);
         MidiMix mixCopy = midiMix.getDeepCopy();
@@ -176,8 +176,8 @@ public class SongContext
     /**
      * The range (computed at the time of this object creation) for which music should be produced.
      * <p>
-     * The range can start/end anywhere in the song (including in the middle of a song part). If getBarRange().from &gt; 0 then
- toBeatRange().from is also &gt; 0.
+     * The range can start/end anywhere in the song (including in the middle of a song part). If getBarRange().from &gt; 0 then toBeatRange().from is also &gt;
+     * 0.
      *
      * @return
      */
@@ -189,8 +189,8 @@ public class SongContext
     /**
      * The tick range (computed at the time of this object creation) corresponding to getBarRange() or getBeatRange().
      * <p>
- The range can start/end anywhere in the song (including in the middle of a song part). If toBeatRange().from &gt; 0 then
-     * getTickRange().from is also &gt; 0.
+     * The range can start/end anywhere in the song (including in the middle of a song part). If toBeatRange().from &gt; 0 then getTickRange().from is also &gt;
+     * 0.
      *
      * @return
      */
@@ -204,7 +204,7 @@ public class SongContext
      * <p>
      *
      * @return Can be empty.
-     * @see #contains(org.jjazz.songstructure.api.SongPart)
+     * @see #isInRange(org.jjazz.songstructure.api.SongPart)
      */
     public List<SongPart> getSongParts()
     {
@@ -255,7 +255,7 @@ public class SongContext
      * @param spt
      * @return
      */
-    public boolean contains(SongPart spt)
+    public boolean isInRange(SongPart spt)
     {
         return barRange.isIntersecting(spt.getBarRange());
     }
@@ -270,7 +270,7 @@ public class SongContext
         ArrayList<Rhythm> res = new ArrayList<>();
         for (SongPart spt : song.getSongStructure().getSongParts())
         {
-            if (contains(spt) && !res.contains(spt.getRhythm()))
+            if (isInRange(spt) && !res.contains(spt.getRhythm()))
             {
                 res.add(spt.getRhythm());
             }

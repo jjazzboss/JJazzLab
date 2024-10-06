@@ -22,6 +22,7 @@
  */
 package org.jjazz.yamjjazz.rhythm;
 
+import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythmGenerator;
 import com.google.common.collect.Lists;
 import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythm;
 import org.jjazz.yamjjazz.rhythm.api.YamJJazzDefaultRhythms;
@@ -340,15 +341,15 @@ public class YamJJazzRhythmImpl implements YamJJazzRhythm, MusicGenerator
     // MusicGenerator interface
     // ==================================================================================================
     @Override
-    public HashMap<RhythmVoice, Phrase> generateMusic(SongContext context) throws MusicGenerationException
+    public HashMap<RhythmVoice, Phrase> generateMusic(SongContext context, RhythmVoice... rvs) throws MusicGenerationException
     {
         if (generator == null)
         {
             generator = new YamJJazzRhythmGenerator(this);
         }
-        return generator.generateMusic(context);
+        return generator.generateMusic(context, rvs);
     }
-
+    
     // ================================================================================================
     // Rhythm implementation
     // ================================================================================================

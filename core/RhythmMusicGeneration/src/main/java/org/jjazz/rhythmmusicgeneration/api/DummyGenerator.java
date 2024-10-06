@@ -30,7 +30,6 @@ import java.util.logging.Level;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.synths.InstrumentFamily;
 import org.jjazz.phrase.api.PhraseSamples;
@@ -56,9 +55,8 @@ public class DummyGenerator implements MusicGenerator
         rhythm = r;
     }
 
-
     @Override
-    public HashMap<RhythmVoice, Phrase> generateMusic(SongContext sgContext) throws MusicGenerationException
+    public HashMap<RhythmVoice, Phrase> generateMusic(SongContext sgContext, RhythmVoice... rvs) throws MusicGenerationException
     {
         HashMap<RhythmVoice, Phrase> res = new HashMap<>();
 

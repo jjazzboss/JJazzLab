@@ -37,6 +37,21 @@
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>phrasetransform</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>rhythmstubs</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId>
+            <artifactId>guava</artifactId>
+            <version>${project.version}</version>
+        </dependency>          
+        <dependency> 
             <groupId>org.jjazzlab.app</groupId> 
             <artifactId>filedirectorymanager</artifactId> 
             <version>${project.version}</version>  

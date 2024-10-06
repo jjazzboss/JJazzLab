@@ -28,6 +28,11 @@ public class RP_SYS_CustomPhrase implements RhythmParameter<RP_SYS_CustomPhraseV
         this.primary = primary;
     }
 
+    @Override
+    public RP_SYS_CustomPhrase getCopy(Rhythm r)
+    {
+        return new RP_SYS_CustomPhrase(r, primary);
+    }
 
     @Override
     public boolean isPrimary()

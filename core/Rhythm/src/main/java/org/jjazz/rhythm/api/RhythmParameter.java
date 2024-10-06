@@ -27,12 +27,12 @@ import java.util.List;
 /**
  * Define a parameter that influences the way a Rhythm generates music.
  * <p>
- * A RhythmParameter implementation can have additional capabilities by implementing additional interfaces, such as RpEnumerable,
- * RpCustomEditorProvider, RpViewerRendererFactory, etc.
+ * A RhythmParameter implementation can have additional capabilities by implementing additional interfaces, such as RpEnumerable, RpCustomEditorProvider,
+ * RpViewerRendererFactory, etc.
  * <p>
  *
- * @param <E> The type of value of this RhythmParameter. E.toString() should return a short (max ~30 characters) user-readable string.
- *            Prefer an immutable class, but if value class is mutable, it must implement the MutableRpValue interface.
+ * @param <E> The type of value of this RhythmParameter. E.toString() should return a short (max ~30 characters) user-readable string. Prefer an immutable
+ *            class, but if value class is mutable, it must implement the MutableRpValue interface.
  */
 public interface RhythmParameter<E>
 {
@@ -118,8 +118,7 @@ public interface RhythmParameter<E>
     /**
      * Clone the specified value.
      * <p>
-     * The default implementation just return value, which is fine is E is an immutable class. If E is mutable, this method must be
-     * overridden.
+     * The default implementation just return value, which is fine is E is an immutable class. If E is mutable, this method must be overridden.
      *
      * @param value
      * @return A copy of the specified value.
@@ -150,6 +149,14 @@ public interface RhythmParameter<E>
      * @throws IllegalArgumentException If rp is not a compatible with this RhythmParameter.
      */
     <T> E convertValue(RhythmParameter<T> rp, T rpValue);
+
+    /**
+     * Get a copy of this RhythmParameter.
+     *
+     * @param r Can be null. Optionally set the target Rhythm of the returned RhythmParameter -though it might be ignored by the implementing method.
+     * @return
+     */
+    RhythmParameter<E> getCopy(Rhythm r);
 
     /**
      * Indicate if this RhythmParameter is a primary parameter for its rhythm.

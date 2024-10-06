@@ -230,11 +230,12 @@ public class DefaultMidiMixManager implements MidiMixManager, PropertyChangeList
                 if (mm.getInstrumentMix(channel) != null)
                 {
                     // If 2 rhythm voices have the same preferred channel (strange...)
-                    LOGGER.log(Level.WARNING, "createMix() 2 rhythm voices have the same preferredChannel. r={0} mm={1} channel={2}", new Object[]
+                    int newChannel = mm.findFreeChannel(rv.isDrums());
+                    LOGGER.log(Level.WARNING, "createMix() 2 RhythmVoices have the same preferredChannel. rv={0} mm={1} channel={2}  => using free channel {3}", new Object[]
                     {
-                        r.getName(), mm, channel
-                    });
-                    channel = mm.findFreeChannel(rv.isDrums());
+                        rv, mm, channel, newChannel
+                    });            
+                    channel = newChannel;
                     if (channel == -1)
                     {
                         throw new IllegalStateException("No Midi channel available in MidiMix. r=" + r + " rhythmVoices=" + r.getRhythmVoices());

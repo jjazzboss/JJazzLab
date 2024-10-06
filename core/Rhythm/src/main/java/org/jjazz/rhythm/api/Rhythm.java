@@ -30,17 +30,21 @@ import org.jjazz.harmony.api.TimeSignature;
 /**
  * A rhythm descriptor.
  * <p>
- * This interface provides all the descriptive attributes of a rhythm. In order to be able to actually generate music, a Rhythm
- * instance must also implement the MusicGenerator interface.
+ * This interface provides all the descriptive attributes of a rhythm. In order to be able to actually generate music, a Rhythm instance must also implement the
+ * <code>MusicGenerator</code> interface.
  * <p>
- * The framework will call the rhythm's loadResources() before accessing the MidiMusicGenerator object(s). This allow to save
- * memory usage when rhythm object is only used in catalogs.
+ * The framework will call the rhythm's loadResources() before using the MidiMusicGenerator object(s). This allow to save memory usage when rhythm object is
+ * only used in catalogs.
  * <p>
  */
 public interface Rhythm extends Comparable<Rhythm>
 {
 
-    public static final String PROP_RESOURCES_LOADED = "ResourcesLoaded";    
+    /**
+     * @see #loadResources()
+     * @see #releaseResources()
+     */
+    public static final String PROP_RESOURCES_LOADED = "ResourcesLoaded";
 
     /**
      * The general features of this rhythm.
@@ -137,8 +141,18 @@ public interface Rhythm extends Comparable<Rhythm>
         return getName().compareTo(o.getName());
     }
 
+    /**
+     * @param l
+     * @see #loadResources()
+     * @see #releaseResources()
+     */
     public void addPropertyChangeListener(PropertyChangeListener l);
 
+    /**
+     * @param l
+     * @see #loadResources()
+     * @see #releaseResources()
+     */
     public void removePropertyChangeListener(PropertyChangeListener l);
 
 }

@@ -24,19 +24,29 @@ public class RP_SYS_DrumsTransform implements RhythmParameter<RP_SYS_DrumsTransf
 
     /**
      *
-     * @param rv Must have a Rhythm container defined and type==RhythmVoice.Type.DRUMS
+     * @param rv      Must have a Rhythm container defined and type==RhythmVoice.Type.DRUMS
      * @param primary
      */
     public RP_SYS_DrumsTransform(RhythmVoice rv, boolean primary)
     {
         checkNotNull(rv);
         checkArgument(rv.getContainer() != null
-                && rv.getType().equals(Type.DRUMS),
+                && rv.getType() == Type.DRUMS,
                 "rv=%s", rv);
 
         rhythmVoice = rv;
         this.primary = primary;
         DEFAULT_VALUE = new RP_SYS_DrumsTransformValue(rhythmVoice);
+    }
+
+    @Override
+    public RP_SYS_DrumsTransform getCopy(Rhythm r)
+    {
+        var rv = r.getRhythmVoices().stream()
+                .filter(rvi -> rvi.getType() == Type.DRUMS)
+                .findAny()
+                .orElseThrow();
+        return new RP_SYS_DrumsTransform(rv, primary);
     }
 
     public Rhythm getRhythm()

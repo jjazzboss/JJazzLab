@@ -24,6 +24,7 @@
  */
 package org.jjazz.rhythmstubs;
 
+import org.jjazz.rhythmstubs.api.RhythmStub;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.List;

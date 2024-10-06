@@ -31,16 +31,16 @@ import java.util.logging.Logger;
 /**
  * A RhythmParameter whose value can be some specified strings.
  */
-public class RP_State implements RhythmParameter<String>, RpEnumerable<String>
+public class RP_State implements RhythmParameter<String>, RpEnumerable<String>, Cloneable
 {
 
-    private String id;
-    private String displayName;
-    private String description;
-    private String defaultValue;
-    private String minValue;
-    private String maxValue;
-    private String[] possibleValues;
+    private final String id;
+    private final String displayName;
+    private final String description;
+    private final String defaultValue;
+    private final String minValue;
+    private final String maxValue;
+    private final String[] possibleValues;
     private final boolean primary;
     protected static final Logger LOGGER = Logger.getLogger(RP_State.class.getName());
 
@@ -54,14 +54,14 @@ public class RP_State implements RhythmParameter<String>, RpEnumerable<String>
      * @param description
      * @param isPrimary
      * @param defaultValue   String The default value.
-     * @param possibleValues String[] The possible values for this parameter. By convention, min value is set to the 1st possible
-     *                       value, max value to the last one.
+     * @param possibleValues String[] The possible values for this parameter. By convention, min value is set to the 1st possible value, max value to the last
+     *                       one.
      */
     public RP_State(String id, String name, String description, boolean isPrimary, String defaultValue, String... possibleValues)
     {
         if (id == null || name == null || defaultValue == null || possibleValues == null || possibleValues.length == 0)
         {
-            throw new IllegalArgumentException( 
+            throw new IllegalArgumentException(
                     "id=" + id + " name=" + name + " defaultVal=" + defaultValue + " possibleValues=" + Arrays.asList(possibleValues));
         }
         this.id = id;
@@ -72,12 +72,17 @@ public class RP_State implements RhythmParameter<String>, RpEnumerable<String>
         this.maxValue = possibleValues[possibleValues.length - 1];
         if (indexOf(defaultValue) == -1)
         {
-            throw new IllegalArgumentException("n=" + name + " defaultVal=" + defaultValue + " possibleValues=" + Arrays.asList(possibleValues));   
+            throw new IllegalArgumentException("n=" + name + " defaultVal=" + defaultValue + " possibleValues=" + Arrays.asList(possibleValues));
         }
         this.defaultValue = defaultValue;
         this.primary = isPrimary;
     }
-
+    
+    @Override
+    public RP_State getCopy(Rhythm r)
+    {
+        return new RP_State(id, displayName, description, primary, defaultValue, possibleValues);
+    }
 
     @Override
     public boolean isPrimary()
@@ -161,7 +166,7 @@ public class RP_State implements RhythmParameter<String>, RpEnumerable<String>
     {
         if (y < 0 || y > 1)
         {
-            throw new IllegalArgumentException("y=" + y);   
+            throw new IllegalArgumentException("y=" + y);
         }
         int index = (int) Math.round(y * (possibleValues.length - 1));
         return possibleValues[index];
@@ -172,7 +177,7 @@ public class RP_State implements RhythmParameter<String>, RpEnumerable<String>
     {
         if (!isValidValue(value))
         {
-            throw new IllegalArgumentException("value=" + value + " this=" + this);   
+            throw new IllegalArgumentException("value=" + value + " this=" + this);
         }
         double index = indexOf(value);
         return index / (possibleValues.length - 1);
@@ -208,7 +213,7 @@ public class RP_State implements RhythmParameter<String>, RpEnumerable<String>
         int valueIndex = indexOf(value);
         if (valueIndex == -1)
         {
-            throw new IllegalArgumentException("value=" + value);   
+            throw new IllegalArgumentException("value=" + value);
         }
         return possibleValues[(valueIndex >= possibleValues.length - 1) ? 0 : valueIndex + 1];
 
@@ -220,7 +225,7 @@ public class RP_State implements RhythmParameter<String>, RpEnumerable<String>
         int valueIndex = indexOf(value);
         if (valueIndex == -1)
         {
-            throw new IllegalArgumentException("value=" + value);   
+            throw new IllegalArgumentException("value=" + value);
         }
         return possibleValues[(valueIndex == 0) ? possibleValues.length - 1 : valueIndex - 1];
     }
@@ -294,6 +299,7 @@ public class RP_State implements RhythmParameter<String>, RpEnumerable<String>
         return getDisplayName();
     }
 
+
     private int indexOf(String s)
     {
         for (int i = 0; i < possibleValues.length; i++)
@@ -305,5 +311,6 @@ public class RP_State implements RhythmParameter<String>, RpEnumerable<String>
         }
         return -1;
     }
+
 
 }

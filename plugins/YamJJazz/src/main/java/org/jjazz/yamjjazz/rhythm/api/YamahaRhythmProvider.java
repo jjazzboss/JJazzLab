@@ -50,6 +50,7 @@ import org.jjazz.rhythmdatabase.api.RhythmInfo;
 import org.jjazz.yamjjazz.rhythm.YamJJazzAdaptedRhythmImpl;
 import org.jjazz.yamjjazz.rhythm.YamJJazzRhythmImpl;
 import org.netbeans.api.annotations.common.StaticResource;
+import org.openide.util.Lookup;
 
 /**
  * A provider of standard Yamaha style rhythms.
@@ -58,6 +59,7 @@ import org.netbeans.api.annotations.common.StaticResource;
 public class YamahaRhythmProvider implements RhythmProvider
 {
 
+    private static YamahaRhythmProvider INSTANCE;
     public static final String RP_ID = "YamahaRhythmProviderID";
     private static final String DEFAULT_FILES_SUBDIR = "Yamaha";
     @StaticResource(relative = true)
@@ -72,13 +74,24 @@ public class YamahaRhythmProvider implements RhythmProvider
     private final ExtensionFileFilter fileFilter;
     private static final Logger LOGGER = Logger.getLogger(YamahaRhythmProvider.class.getSimpleName());
 
+
+    static public YamahaRhythmProvider getInstance()
+    {
+        return Lookup.getDefault().lookup(YamahaRhythmProvider.class);
+    }
+
+    /**
+     * Public because of @ServiceProvider
+     */
     public YamahaRhythmProvider()
     {
         info = new Info(RP_ID, "YamJJazz standard styles", "YamJJazz rhythm provider (.prs, .sty, .sst, .bcs)", "JL", "1");
 
         // Add the .yjz to be able to spot the
         fileFilter = new ExtensionFileFilter(getSupportedFileExtensions());
+        INSTANCE = this;
     }
+
 
     @Override
     public final String[] getSupportedFileExtensions()
@@ -195,7 +208,7 @@ public class YamahaRhythmProvider implements RhythmProvider
      * <p>
      *
      * @param stdFile
-     * @return
+     * @return 
      */
     @Override
     public Rhythm readFast(File stdFile) throws IOException

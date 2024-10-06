@@ -48,6 +48,7 @@ import org.jjazz.rhythmdatabase.api.RhythmInfo;
 import org.jjazz.yamjjazz.rhythm.YamJJazzAdaptedRhythmImpl;
 import org.jjazz.yamjjazz.rhythm.YamJJazzRhythmImpl;
 import org.netbeans.api.annotations.common.StaticResource;
+import org.openide.util.Lookup;
 
 
 /**
@@ -72,6 +73,11 @@ public class YamJJazzRhythmProvider implements RhythmProvider
     {
         info = new Info(RP_ID, "YamJJazz extended styles", "YamJJazz rhythm provider (." + FILE_EXTENSION + ")", "JL", "1");
         fileFilter = new ExtensionFileFilter(getSupportedFileExtensions());
+    }
+
+    static public YamJJazzRhythmProvider getInstance()
+    {
+        return Lookup.getDefault().lookup(YamJJazzRhythmProvider.class);
     }
 
     @Override

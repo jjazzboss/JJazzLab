@@ -20,16 +20,18 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.yamjjazz.rhythm;
+package org.jjazz.yamjjazz.rhythm.api;
 
-import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythm;
+import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 import org.jjazz.harmony.api.*;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
@@ -69,18 +71,15 @@ import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Intensity;
 import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Variation;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.rhythmmusicgeneration.api.SongChordSequence.SplitResult;
+import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.song.api.SongFactory;
 import org.openide.util.Exceptions;
-import org.jjazz.yamjjazz.rhythm.api.AccType;
-import org.jjazz.yamjjazz.rhythm.api.CtabChannelSettings;
-import org.jjazz.yamjjazz.rhythm.api.StylePart;
-import org.jjazz.yamjjazz.rhythm.api.StylePartType;
 import org.jjazz.yamjjazz.YamChord;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
-import org.jjazz.yamjjazz.rhythm.api.Ctb2ChannelSettings;
+import org.jjazz.yamjjazz.rhythm.SpsRandomPicker;
 import org.jjazz.yamjjazz.rhythm.api.Ctb2ChannelSettings.NoteTranspositionRule;
 import org.jjazz.yamjjazz.rhythm.api.Ctb2ChannelSettings.NoteTranspositionTable;
 import static org.jjazz.yamjjazz.rhythm.api.Ctb2ChannelSettings.RetriggerRule.NOTE_GENERATOR;
@@ -93,11 +92,20 @@ import static org.jjazz.yamjjazz.rhythm.api.Ctb2ChannelSettings.RetriggerRule.ST
 /**
  * Use YamJJazz style tracks to render music.
  */
-public class YamJJazzRhythmGenerator
+public class YamJJazzRhythmGenerator implements MusicGenerator
 {
 
+
+    /**
+     * The musical phrases for a subpart of a song which has one time signature.
+     */
+    private record ChordSeqPhrases(SimpleChordSequence simpleChordSequence, HashMap<AccType, Phrase> mapAccTypePhrase)
+            {
+
+    }
     public static boolean ENABLE_DRUM_KEY_MAPPING = true;
     private YamJJazzRhythm rhythm;
+    private List<RhythmVoice> rhythmVoices;
     private SongContext contextOriginal;
     private SongContext contextWork;
 
@@ -117,14 +125,15 @@ public class YamJJazzRhythmGenerator
         rhythm = r;
     }
 
-    public HashMap<RhythmVoice, Phrase> generateMusic(SongContext contextOrig) throws MusicGenerationException
+    @Override
+    public HashMap<RhythmVoice, Phrase> generateMusic(SongContext contextOrig, RhythmVoice... rvs) throws MusicGenerationException
     {
-        if (contextOrig == null)
-        {
-            throw new NullPointerException("contextOrig=" + contextOrig);   //NOI18N
-        }
+        Objects.requireNonNull(contextOrig);
+        var rhythmRvs = rhythm.getRhythmVoices();
+        Preconditions.checkArgument(!Stream.of(rvs).anyMatch(rv -> !rhythmRvs.contains(rv)), "rvs=", List.of(rvs));
+        
+        rhythmVoices = rvs.length == 0 ? rhythmRvs : List.of(rvs);
         contextOriginal = contextOrig;
-
 
         // Prepare a working context because SongStructure/ChordLeadsheet might be modified by preprocessFillParameter
         SongFactory sf = SongFactory.getInstance();
@@ -144,6 +153,7 @@ public class YamJJazzRhythmGenerator
 
         // The final result to fill in
         List<ChordSeqPhrases> chordSeqPhrases = getAllPhrasesAllChordSequences();
+        assert !chordSeqPhrases.isEmpty();
 
         // Get a simplified version: merge all ChordSequences which use our rhythm
         List<ChordSeqPhrases> chordSeqPhrasesMerged = mergeChordSequences(chordSeqPhrases);
@@ -159,7 +169,7 @@ public class YamJJazzRhythmGenerator
 
         // Fill the resulting phrase for each RhythmVoice    
         HashMap<RhythmVoice, Phrase> res = new HashMap<>();
-        for (RhythmVoice rv : rhythm.getRhythmVoices())       // Some can be RhythmVoiceDelegates
+        for (RhythmVoice rv : rhythmVoices)       // Some can be RhythmVoiceDelegates
         {
             // Get or create the resulting phrase
             Phrase pRes = res.get(rv);
@@ -174,8 +184,8 @@ public class YamJJazzRhythmGenerator
             AccType at = AccType.getAccType(rv);     // The AccType corresponding to this RhythmVoice
             for (ChordSeqPhrases csp : chordSeqPhrasesMerged)
             {
-                ChordSequence cSeq = csp.simpleChordSequence;
-                HashMap<AccType, Phrase> map = csp.mapAccTypePhrase;
+                ChordSequence cSeq = csp.simpleChordSequence();
+                HashMap<AccType, Phrase> map = csp.mapAccTypePhrase();
                 Phrase p = map.get(at);
                 if (p != null)
                 {
@@ -214,8 +224,8 @@ public class YamJJazzRhythmGenerator
         for (SplitResult<String> splitResult : splitResults)
         {
             // Generate music for each chord sequence
-            SimpleChordSequence cSeq = splitResult.simpleChordSequence;
-            String rpValue = splitResult.rpValue;
+            SimpleChordSequence cSeq = splitResult.simpleChordSequence();
+            String rpValue = splitResult.rpValue();
             StylePart stylePart = rhythm.getStylePart(rpValue);
             int complexity = rhythm.getComplexityLevel(rpValue);
             if (stylePart == null || complexity < 1)
@@ -338,6 +348,12 @@ public class YamJJazzRhythmGenerator
         // Get the phrase for each AccType = bass, chord1, drums, etc.
         for (AccType at : stylePart.getAccTypes())
         {
+            RhythmVoice rv = rhythm.getRhythmVoice(at);
+            if (!rhythmVoices.contains(rv))
+            {
+                // Skip the RhythmVoices which are not requested
+                continue;
+            }
             Phrase p = getOneAccTypePhraseOneShortChordSequence(stylePart, sps, at, shortcSeq);
             mapAccTypePhrase.put(at, p);
         }
@@ -1076,7 +1092,7 @@ public class YamJJazzRhythmGenerator
     {
         for (var chordSeqPhrase : chordSeqPhrases)
         {
-            HashMap<AccType, Phrase> mapAccTypePhrase = chordSeqPhrase.mapAccTypePhrase;
+            HashMap<AccType, Phrase> mapAccTypePhrase = chordSeqPhrase.mapAccTypePhrase();
 
             for (SongPart spt : contextWork.getSongParts())
             {
@@ -1112,8 +1128,8 @@ public class YamJJazzRhythmGenerator
         // Check each chord sequence
         for (var chordSeqPhrase : chordSeqPhrases)
         {
-            var cSeq = chordSeqPhrase.simpleChordSequence;
-            Phrase p = chordSeqPhrase.mapAccTypePhrase.get(AccType.BASS);
+            var cSeq = chordSeqPhrase.simpleChordSequence();
+            Phrase p = chordSeqPhrase.mapAccTypePhrase().get(AccType.BASS);
             if (p == null)
             {
                 // Some rare rhythms don't use a bass
@@ -1174,7 +1190,7 @@ public class YamJJazzRhythmGenerator
 
         for (var chordSeqPhrase : chordSeqPhrases)
         {
-            var cSeq = chordSeqPhrase.simpleChordSequence;
+            var cSeq = chordSeqPhrase.simpleChordSequence();
             float cSeqStartInBeats = ss.toPositionInNaturalBeats(cSeq.getBarRange().from);
 
 
@@ -1182,7 +1198,7 @@ public class YamJJazzRhythmGenerator
             AnticipatedChordProcessor acp = new AnticipatedChordProcessor(cSeq, cSeqStartInBeats, nbCellsPerBeat);
 
 
-            HashMap<AccType, Phrase> mapAtPhrase = chordSeqPhrase.mapAccTypePhrase;
+            HashMap<AccType, Phrase> mapAtPhrase = chordSeqPhrase.mapAccTypePhrase();
 
 
             Phrase p = mapAtPhrase.get(AccType.RHYTHM);
@@ -1258,13 +1274,13 @@ public class YamJJazzRhythmGenerator
     private List<ChordSeqPhrases> mergeChordSequences(List<ChordSeqPhrases> chordSeqPhrases)
     {
         List<ChordSeqPhrases> res = new ArrayList<>();
-        int startBar = chordSeqPhrases.get(0).simpleChordSequence.getBarRange().from;
+        int startBar = chordSeqPhrases.get(0).simpleChordSequence().getBarRange().from;
         int startIndex = 0;
         for (int i = 1; i <= chordSeqPhrases.size(); i++)
         {
-            SimpleChordSequence cSeq = i < chordSeqPhrases.size() ? chordSeqPhrases.get(i).simpleChordSequence
-                    : chordSeqPhrases.get(i - 1).simpleChordSequence;  // cSeq fake value on last iteration (just it must not be null)
-            SimpleChordSequence prevSeq = chordSeqPhrases.get(i - 1).simpleChordSequence;
+            SimpleChordSequence cSeq = i < chordSeqPhrases.size() ? chordSeqPhrases.get(i).simpleChordSequence()
+                    : chordSeqPhrases.get(i - 1).simpleChordSequence();  // cSeq fake value on last iteration (just it must not be null)
+            SimpleChordSequence prevSeq = chordSeqPhrases.get(i - 1).simpleChordSequence();
             int prevSeqLastBar = prevSeq.getBarRange().from + prevSeq.getBarRange().size() - 1;
             if (i == chordSeqPhrases.size() || cSeq.getBarRange().from != prevSeqLastBar + 1)
             {
@@ -1276,10 +1292,10 @@ public class YamJJazzRhythmGenerator
                 for (int j = startIndex; j < i; j++)
                 {
                     // Merge each ChordSequence into newSeq
-                    SimpleChordSequence cSeqj = chordSeqPhrases.get(j).simpleChordSequence;
+                    SimpleChordSequence cSeqj = chordSeqPhrases.get(j).simpleChordSequence();
                     newSeq.addAll(cSeqj);
                     // Merge its AccType phrases into newMap
-                    HashMap<AccType, Phrase> mapj = chordSeqPhrases.get(j).mapAccTypePhrase;
+                    HashMap<AccType, Phrase> mapj = chordSeqPhrases.get(j).mapAccTypePhrase();
                     for (AccType at : mapj.keySet())
                     {
                         Phrase pj = mapj.get(at);
@@ -1359,18 +1375,4 @@ public class YamJJazzRhythmGenerator
     // =====================================================================================================================
     // Inner classes
     // =====================================================================================================================
-    private static class ChordSeqPhrases
-    {
-
-        public SimpleChordSequence simpleChordSequence;
-        public HashMap<AccType, Phrase> mapAccTypePhrase;
-
-        public ChordSeqPhrases(SimpleChordSequence simpleChordSequence, HashMap<AccType, Phrase> mapAccTypePhrase)
-        {
-            this.simpleChordSequence = simpleChordSequence;
-            this.mapAccTypePhrase = mapAccTypePhrase;
-        }
-
-    }
-
 }

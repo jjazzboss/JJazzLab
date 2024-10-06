@@ -52,15 +52,17 @@ import org.jjazz.utilities.api.IntRange;
  */
 public class SongChordSequence extends ChordSequence
 {
+    public record SplitResult<T>(SimpleChordSequence simpleChordSequence, T rpValue)
+            {
 
+    }    
     private final Song song;
     private static final Logger LOGGER = Logger.getLogger(SongChordSequence.class.getSimpleName());
 
     /**
      * Build a ChordSequence for the specified song, or part of the song.
      * <p>
-     * The constructor relies on fillChordSequence() to add the chord symbols, then it makes sure that the created object has a ChordSymbol
-     * at beginning.<br>
+     * The constructor relies on fillChordSequence() to add the chord symbols, then it makes sure that the created object has a ChordSymbol at beginning.<br>
      *
      * @param song
      * @param barRange If null, use the whole song.
@@ -145,7 +147,7 @@ public class SongChordSequence extends ChordSequence
      * This is the duration until next chord or the end of the SongChordSequence.
      *
      * @param cliCs
-     * @param ts         The TimeSignature of the section where chordIndex belongs to (a chord symbol can not span on 2 sections).
+     * @param ts    The TimeSignature of the section where chordIndex belongs to (a chord symbol can not span on 2 sections).
      * @return
      */
     public float getChordDuration(CLI_ChordSymbol cliCs, TimeSignature ts)
@@ -161,8 +163,8 @@ public class SongChordSequence extends ChordSequence
     }
 
     /**
-     * Split this SongChordSequence in different SimpleChordSequences for each song contiguous Rhythm's SongParts which have the same
-     * specified RhythmParameter value.
+     * Split this SongChordSequence in different SimpleChordSequences for each song contiguous Rhythm's SongParts which have the same specified RhythmParameter
+     * value.
      * <p>
      * The resulting SimpleChordSequences will have a starting chord symbol.
      * <p>
@@ -246,8 +248,8 @@ public class SongChordSequence extends ChordSequence
     /**
      * Fill a ChordSequence with the chord symbols of the specified song (or part of the song).
      * <p>
-     * Use the song's SongStructure and ChordLeadSheet, limited to the specified bar range, to fill the specified ChordSequence. Process the
-     * alternate chord symbols when relevant.<br>
+     * Use the song's SongStructure and ChordLeadSheet, limited to the specified bar range, to fill the specified ChordSequence. Process the alternate chord
+     * symbols when relevant.<br>
      * Example: <br>
      * - ChordLeadSheet: Section B1: bar0=Cm7, bar1=empty Section B2: bar2=Bb bar3=empty<br>
      * - SongStructure: B1 B2 B1 <br>
@@ -317,35 +319,6 @@ public class SongChordSequence extends ChordSequence
                     cSeq.add(newCliCs);
                 }
             }
-        }
-    }
-
-    // ====================================================================================
-    // Inner classes
-    // ====================================================================================
-
-    /**
-     * A result of the split method.
-     *
-     * @param <T>
-     * @see #split(org.jjazz.rhythm.api.Rhythm, org.jjazz.rhythm.api.RhythmParameter)
-     */
-    static public class SplitResult<T>
-    {
-
-        public SimpleChordSequence simpleChordSequence;
-        public T rpValue;
-
-        public SplitResult(SimpleChordSequence simpleChordSequence, T rpValue)
-        {
-            this.simpleChordSequence = simpleChordSequence;
-            this.rpValue = rpValue;
-        }
-
-        @Override
-        public String toString()
-        {
-            return "rpValue=" + rpValue + " simpleCseq=" + simpleChordSequence;
         }
     }
 

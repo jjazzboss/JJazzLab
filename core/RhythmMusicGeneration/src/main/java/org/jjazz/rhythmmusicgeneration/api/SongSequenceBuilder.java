@@ -871,6 +871,7 @@ public class SongSequenceBuilder
 
 
             // The phrase to modify
+
             Phrase p = rvPhrases.get(rvDrums);
 
             // Make it a SizedPhrase only on the relevant slice and transform it

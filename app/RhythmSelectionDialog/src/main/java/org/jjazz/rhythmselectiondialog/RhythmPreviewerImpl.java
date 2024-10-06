@@ -240,7 +240,9 @@ public class RhythmPreviewerImpl implements RhythmPreviewer
      * @param song
      * @param spt
      * @param r
+     * @param rpValues
      * @return
+     * @throws org.jjazz.chordleadsheet.api.UnsupportedEditException
      */
     private Song buildPreviewSong(Song song, SongPart spt, Rhythm r, Map<RhythmParameter<?>, Object> rpValues) throws UnsupportedEditException
     {

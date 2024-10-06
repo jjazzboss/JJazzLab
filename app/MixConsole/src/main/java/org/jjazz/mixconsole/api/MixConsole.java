@@ -65,7 +65,6 @@ import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.rhythm.api.AdaptedRhythm;
-import org.jjazz.rhythmstubs.api.DummyRhythm;
 import org.openide.util.Lookup;
 import org.openide.util.LookupEvent;
 import org.openide.util.LookupListener;
@@ -84,6 +83,7 @@ import org.jjazz.mixconsole.MixChannelPanelControllerImpl;
 import org.jjazz.mixconsole.MixChannelPanelModelImpl;
 import org.jjazz.mixconsole.PhraseViewerPanel;
 import org.jjazz.mixconsole.MixConsoleLayoutManager;
+import org.jjazz.rhythmstubs.api.RhythmStub;
 import org.jjazz.songeditormanager.spi.SongEditorManager;
 import org.jjazz.utilities.api.ResUtil;
 import org.netbeans.api.options.OptionsDisplayer;
@@ -165,7 +165,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         SongEditorManager.getDefault().addPropertyChangeListener(this);
 
         // A dummy rhythm used by the visible rhythms combobox when all song rhythms are visible
-        RHYTHM_ALL = new DummyRhythm(ResUtil.getString(getClass(), "MixConsole.CTL_DummyRhythmAll"), TimeSignature.FOUR_FOUR);
+        RHYTHM_ALL = new RhythmStub(ResUtil.getString(getClass(), "MixConsole.CTL_DummyRhythmAll"), TimeSignature.FOUR_FOUR);
 
         mapVisibleRhythm = new WeakHashMap<>();
 
