@@ -40,6 +40,7 @@ import org.jjazz.importers.api.MusicXMLFileReader;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmFeatures;
+import org.jjazz.rhythm.api.TempoRange;
 import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Fill;
 import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Variation;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
@@ -95,15 +96,16 @@ public class XmlImporter implements SongImporter
         MusicXMLFileReader reader = new MusicXMLFileReader(f);
         Song song = reader.readSong();
 
-        postProcessSong(song, reader.getMusicalStyle());
+        postProcessSong(song, reader.getMusicalStyle());        // Choose the initial rhythm
 
         int tempo = reader.getTempo();
-        if (tempo == -1 && song.getSize() > 0)
+        if (tempo < TempoRange.TEMPO_MIN )
         {
             // Use preferred tempo from the initial rhythm
-            tempo = song.getSongStructure().getSongPart(0).getRhythm().getPreferredTempo();
-            song.setTempo(tempo);
+            tempo = song.getSize() > 0 ? song.getSongStructure().getSongPart(0).getRhythm().getPreferredTempo(): TempoRange.TEMPO_STD;
         }
+        song.setTempo(tempo);
+
 
         return song;
     }
@@ -163,6 +165,14 @@ public class XmlImporter implements SongImporter
         return xmlFile;
     }
 
+    /**
+     * Select the initial rhythm and update a few rhythm parameters.
+     * <p>
+     * If song containes 2 or more time signatures, use an AdaptedRhythm from the initial rhythm.
+     *
+     * @param song
+     * @param styleText
+     */
     private void postProcessSong(Song song, String styleText)
     {
         LOGGER.log(Level.FINE, "postProcessSong() -- styleText={0}", styleText);
@@ -180,15 +190,20 @@ public class XmlImporter implements SongImporter
         Rhythm rOrig = spts.get(0).getRhythm();            // The rhythm by default when song was first created, might be a stub rhythm (eg if rare timesignature)
         var ts0 = rOrig.getTimeSignature();
 
-        YamJJazzRhythm yjr0 = guessRhythm(styleText, ts0);
+        YamJJazzRhythm yjr0 = guessYamJJazzRhythm(styleText, ts0);
 
         if (yjr0 == null)
         {
             yjr0 = findDefaultYamJJazzRhythm(ts0);
             if (yjr0 == null)
             {
-                // Create an AdaptedRhythm from the default 4/4 rhythm
-                var r44 = findDefaultYamJJazzRhythm(TimeSignature.FOUR_FOUR);
+                // eg 6/4 or 7/4 - create an AdaptedRhythm from the nearest 4/4 rhythm (sure to find it)
+                var ts = ts0 == TimeSignature.SIX_FOUR ? TimeSignature.THREE_FOUR : TimeSignature.FOUR_FOUR;
+                var r44 = guessYamJJazzRhythm(styleText, ts);
+                if (r44 == null)
+                {
+                    r44 = findDefaultYamJJazzRhythm(TimeSignature.FOUR_FOUR);
+                }
                 if (r44 == null)
                 {
                     LOGGER.warning("postProcessSong() Unexpected no 4/4 YamJJazz rhythm available, exiting");
@@ -255,7 +270,7 @@ public class XmlImporter implements SongImporter
             }
 
             RP_STD_Fill rpFill = RP_STD_Fill.getFillRp(yjr0);
-            if (rpFill != null)
+            if (rpFill != null && newSpt.getNbBars() > 3)
             {
                 sgs.setRhythmParameterValue(newSpt, rpFill, "always");
             }
@@ -269,22 +284,24 @@ public class XmlImporter implements SongImporter
     }
 
 
-    protected YamJJazzRhythm guessRhythm(String text, TimeSignature ts)
+    /**
+     *
+     * @param text
+     * @param ts
+     * @return Can be null if no YamJJazz rhythm found
+     */
+    protected YamJJazzRhythm guessYamJJazzRhythm(String text, TimeSignature ts)
     {
         var rdb = RhythmDatabase.getDefault();
         var rf = RhythmFeatures.guessFeatures(text, -1);
-        var ri = rdb.findRhythm(rf, rii -> rii.timeSignature() == ts && isYamJJazz(rii));
+        var ri = rdb.findRhythm(rf, rii -> rii.timeSignature() == ts && isYamJJazz(rii) && !rii.isAdaptedRhythm());
         if (ri == null)
         {
-            ri = rdb.findRhythm(text, rii -> rii.timeSignature() == ts && isYamJJazz(rii));
+            ri = rdb.findRhythm(text, rii -> rii.timeSignature() == ts && isYamJJazz(rii) && !rii.isAdaptedRhythm());
         }
         if (ri == null)
         {
-            LOGGER.log(Level.INFO, "guessRhythm() Could not find a JJazzLab rhythm corresponding to {0}, using default rhythm for ts={1}", new Object[]
-            {
-                text, ts
-            });
-            ri = rdb.getDefaultRhythm(ts);
+            return null;
         }
         YamJJazzRhythm yjr = null;
         try
@@ -316,7 +333,7 @@ public class XmlImporter implements SongImporter
         {
             // No, search for the first one in the database
             yjri = rdb.getRhythms(ts).stream()
-                    .filter(rii -> isYamJJazz(rii))
+                    .filter(rii -> isYamJJazz(rii) && !rii.isAdaptedRhythm())
                     .findAny()
                     .orElse(null);
         }

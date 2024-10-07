@@ -107,6 +107,7 @@ public class MusicXMLFileReader
         }
         musicalStyle = songBuilder.getMusicalStyle();
         tempo = songBuilder.getTempo();
+        
 
 
         // Set name

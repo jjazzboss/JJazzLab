@@ -144,8 +144,9 @@ public class YamJJazzRhythmImpl implements YamJJazzRhythm, MusicGenerator
         Genre genre = yjdr.getGenre(name);
         if (genre == null)
         {
-            // Not a default rhythm, try to guess it from name
-            genre = Genre.guess(name);      // Might be Genre.Unknown if no match
+            // Not a default name, 
+            // Don't try Genre.guess(name) because if it matches (eg name contains "pop"), it might be used instead of the YamJJazzDefaultRhythms
+            genre = Genre.UNKNOWN;
         }
         features = new RhythmFeatures(genre, style.division, tempoRange);
 
@@ -198,8 +199,9 @@ public class YamJJazzRhythmImpl implements YamJJazzRhythm, MusicGenerator
         Genre genre = yjdr.getGenre(name);
         if (genre == null)
         {
-            // Not a default rhythm, try to guess it from name
-            genre = Genre.guess(name);      // Might be Genre.Unknown if no match
+            // Not a default name, 
+            // Don't try Genre.guess(name) because if it matches (eg name contains "pop"), it might be used instead of the YamJJazzDefaultRhythms
+            genre = Genre.UNKNOWN;
         }
         features = new RhythmFeatures(genre, style.division, tempoRange);
 

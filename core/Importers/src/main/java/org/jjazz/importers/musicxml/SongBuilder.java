@@ -368,7 +368,14 @@ public class SongBuilder implements MusicXmlParserListener
         // Retrieve the barlists and related sections
         List<CLI_Section> sectionsOrdered = new ArrayList<>();
         List<List<Integer>> barListsOrdered = new ArrayList<>();
-        computeBarListsWithSections(barListsOrdered, sectionsOrdered);
+        try
+        {
+            computeBarListsWithSections(barListsOrdered, sectionsOrdered);
+        } catch (ParseException ex)
+        {
+            LOGGER.warning(ex.getMessage());
+            return null;
+        }
 
 
         LOGGER.log(Level.FINE, "buildSong() ====");
@@ -412,7 +419,7 @@ public class SongBuilder implements MusicXmlParserListener
 
     private Song createSong(List<List<Integer>> barListsOrdered, List<CLI_Section> sectionsOrdered)
     {
-        var ts0 = sectionsOrdered.get(0).getData().getTimeSignature();        
+        var ts0 = sectionsOrdered.get(0).getData().getTimeSignature();
         var sg = SongFactory.getInstance().createEmptySong("MusicXML-import", 4, "A", ts0, null);
         var cls = sg.getChordLeadSheet();
         try
@@ -528,10 +535,11 @@ public class SongBuilder implements MusicXmlParserListener
         return sg;
     }
 
-    private void computeBarListsWithSections(List<List<Integer>> barListsOrdered, List<CLI_Section> sectionsOrdered)
+    private void computeBarListsWithSections(List<List<Integer>> barListsOrdered, List<CLI_Section> sectionsOrdered) throws ParseException
     {
         List<Integer> curBarList = new ArrayList<>();
         var it = new BarNavigationIterator(clsWork);
+        int robustness = 1000;
         while (it.hasNext())
         {
             var bar = it.next();
@@ -553,10 +561,15 @@ public class SongBuilder implements MusicXmlParserListener
 
             var barSection = curSection.getPosition().getBar() != bar ? null : curSection;
             String barSectionName = barSection != null ? barSection.getData().getName() : "";
-            LOGGER.log(Level.FINE, "buildSong()  bar= {0}    {1} ", new Object[]
+            LOGGER.log(Level.FINE, "computeBarListsWithSections()  bar= {0}    {1} ", new Object[]
             {
                 bar, barSectionName
             });
+
+            if (--robustness <= 0)
+            {
+                throw new ParseException("computeBarListsWithSections() error, endless loop detected (in general caused by unusual repeat bars), aborting.", 0);
+            }
 
         }
         // Add the last curBarList
