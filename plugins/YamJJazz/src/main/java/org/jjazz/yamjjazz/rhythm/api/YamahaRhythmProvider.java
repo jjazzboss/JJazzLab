@@ -89,7 +89,6 @@ public class YamahaRhythmProvider implements RhythmProvider
 
         // Add the .yjz to be able to spot the
         fileFilter = new ExtensionFileFilter(getSupportedFileExtensions());
-        INSTANCE = this;
     }
 
 
@@ -139,7 +138,7 @@ public class YamahaRhythmProvider implements RhythmProvider
 
 
         // Get the default rhythms
-        for (File f : getDefaultRhythmFiles())
+        for (File f : getDefaultRhythmFiles(forceRescan))
         {
             Rhythm r;
             try
@@ -208,7 +207,7 @@ public class YamahaRhythmProvider implements RhythmProvider
      * <p>
      *
      * @param stdFile
-     * @return 
+     * @return
      */
     @Override
     public Rhythm readFast(File stdFile) throws IOException
@@ -263,9 +262,10 @@ public class YamahaRhythmProvider implements RhythmProvider
      * <p>
      * If files are not yet present, extract them.
      *
+     * @param doCopy If true extract the files from zip resource file
      * @return
      */
-    private List<File> getDefaultRhythmFiles()
+    private List<File> getDefaultRhythmFiles(boolean doCopy)
     {
         List<File> res = new ArrayList<>();
         var ddir = RhythmDirsLocator.getDefault().getDefaultRhythmsDirectory();
@@ -277,7 +277,7 @@ public class YamahaRhythmProvider implements RhythmProvider
         }
 
         File[] files = rDir.listFiles(fileFilter);
-        if (files.length == 0)
+        if (doCopy || files.length==0)
         {
             for (File f : copyDefaultResourceFiles(rDir))
             {
@@ -287,11 +287,13 @@ public class YamahaRhythmProvider implements RhythmProvider
                 }
             }
         } else
-        {
+        {            
             res.addAll(Arrays.asList(files));
         }
         return res;
     }
+
+   
 
     /**
      * Copy the default rhythm files within the JAR to destPath.
