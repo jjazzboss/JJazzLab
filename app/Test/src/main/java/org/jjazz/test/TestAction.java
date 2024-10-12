@@ -34,23 +34,9 @@ import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Soundbank;
 import javax.sound.midi.Synthesizer;
-import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.rhythm.spi.RhythmDirsLocator;
-import org.jjazz.rhythmdatabase.api.RhythmDatabase;
-import org.jjazz.test.rhythm.TestRhythmProvider;
-import org.jjazz.utilities.api.MultipleErrorsReport;
-import org.netbeans.api.progress.BaseProgressUtils;
-import org.openide.awt.ActionID;
-import org.openide.awt.ActionReference;
-import org.openide.awt.ActionReferences;
-import org.openide.awt.ActionRegistration;
 import org.openide.util.Exceptions;
-import org.openide.util.Lookup;
-import org.openide.util.lookup.AbstractLookup;
-import org.openide.util.lookup.InstanceContent;
-import org.openide.util.lookup.Lookups;
-import org.openide.util.lookup.ProxyLookup;
 
 /**
  * For debug purposes...
@@ -70,16 +56,10 @@ public final class TestAction implements ActionListener
     public void actionPerformed(ActionEvent ae)
     {
         LOGGER.log(Level.INFO, "TestAction.actionPerformed() called");
-        
-        testCompositeRhythm();
+          
     }
 
-    private void testCompositeRhythm()
-    {
-        TestRhythmProvider p = new TestRhythmProvider();
-        RhythmDatabase.getDefault().addRhythmInstance(p, p.getTestRhythm());
-    }
-
+  
     private class MyRun implements Runnable
     {
 
