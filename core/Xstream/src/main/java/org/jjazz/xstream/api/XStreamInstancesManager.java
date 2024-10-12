@@ -25,6 +25,7 @@
 package org.jjazz.xstream.api;
 
 import com.thoughtworks.xstream.XStream;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.xstream.spi.XStreamConfigurator;
 import org.openide.util.Lookup;
@@ -143,6 +144,10 @@ public class XStreamInstancesManager
     {
         for (var configurator : Lookup.getDefault().lookupAll(XStreamConfigurator.class))
         {
+            LOGGER.log(Level.FINE, "configureInstance() configurator={0} id={1}", new Object[]
+            {
+                configurator, id
+            });
             configurator.configure(id, xstream);
         }
     }

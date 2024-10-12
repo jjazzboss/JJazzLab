@@ -22,14 +22,20 @@
  */
 package org.jjazz.yamjjazz.rhythm.api;
 
+import java.util.Map;
+import org.jjazz.phrase.api.Phrase;
+import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
+import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
+import org.jjazz.songcontext.api.SongContext;
 
 /**
  * Our Rhythm interface extension.
  */
-public interface YamJJazzRhythm extends Rhythm
+public interface YamJJazzRhythm extends Rhythm, MusicGenerator
 {
+
     /**
      * Get the AccType corresponding to a RP_SYS_Mute value.
      *
@@ -75,5 +81,19 @@ public interface YamJJazzRhythm extends Rhythm
      * @return
      */
     boolean isExtendedRhythm();
+
+    MusicGenerator getMusicGenerator();
+
+    void setMusicGenerator(MusicGenerator mg);
+
+
+    // ==================================================================================================
+    // MusicGenerator interface
+    // ==================================================================================================
+    @Override
+    default public Map<RhythmVoice, Phrase> generateMusic(SongContext context, RhythmVoice... rvs) throws MusicGenerationException
+    {
+        return getMusicGenerator().generateMusic(context, rvs);
+    }
 
 }

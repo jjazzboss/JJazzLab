@@ -22,6 +22,7 @@
  */
 package org.jjazz.rhythmmusicgeneration.api;
 
+import java.util.Collections;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.songcontext.api.SongContext;
@@ -29,6 +30,7 @@ import java.util.HashMap;
 import java.util.logging.Level;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import java.util.logging.Logger;
+import org.jjazz.harmony.api.Chord;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.synths.InstrumentFamily;
@@ -103,7 +105,9 @@ public class DummyGenerator implements MusicGenerator
                         pRes.add(p);
                     } else
                     {
-                        LOGGER.log(Level.FINE, "generateMusic() music generation not supported for this RhythmVoice: {0}", rv.getName());
+                        LOGGER.log(Level.FINE, "generateMusic() generate dummy melodic track for RhythmVoice: {0}", rv.getName());
+                        Phrase p = getBasicMelodicPhrase(sptPosInBeats, cSeq, destChannel);
+                        pRes.add(p);
                     }
                 }
             }
@@ -134,6 +138,41 @@ public class DummyGenerator implements MusicGenerator
             float posInBeats = cSeq.toPositionInBeats(cliCs.getPosition(), startPosInBeats);
             NoteEvent ne = new NoteEvent(bassPitch, duration, 80, posInBeats);
             p.add(ne);
+        }
+        return p;
+    }
+
+    /**
+     * Get a basic random phrase for a melodic instrument (use chord notes).
+     *
+     * @param startPosInBeats
+     * @param cSeq
+     * @param channel         The channel of the returned phrase
+     * @return
+     */
+    static public Phrase getBasicMelodicPhrase(float startPosInBeats, SimpleChordSequence cSeq, int channel)
+    {
+        if (cSeq == null || !MidiConst.checkMidiChannel(channel))
+        {
+            throw new IllegalArgumentException("cSeq=" + cSeq + " channel=" + channel);
+        }
+        Phrase p = new Phrase(channel, false);
+        for (var cliCs : cSeq)
+        {
+            float chordDuration = cSeq.getChordDuration(cliCs);
+            Chord c = cliCs.getData().getChord();
+            float noteDuration = (chordDuration / c.size()) - 0.001f;
+            float posInBeats = cSeq.toPositionInBeats(cliCs.getPosition(), startPosInBeats);
+            
+            var notes = c.getNotes();
+            Collections.shuffle(notes);
+            for (var n : notes)
+            {
+                int pitch = 5 * 12 + n.getRelativePitch();
+                NoteEvent ne = new NoteEvent(pitch, noteDuration, 65, posInBeats);
+                p.add(ne);
+                posInBeats += noteDuration;
+            }
         }
         return p;
     }

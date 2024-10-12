@@ -27,7 +27,6 @@ import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythm;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -42,7 +41,6 @@ import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.phrase.api.NoteEvent;
-import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SourcePhrase;
 import org.jjazz.phrase.api.SourcePhraseSet;
 import org.jjazz.phrasetransform.api.rps.RP_SYS_DrumsTransform;
@@ -55,7 +53,6 @@ import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Marker;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Mute;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_TempoFactor;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
-import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.yamjjazz.rhythm.api.AccType;
 import org.jjazz.yamjjazz.rhythm.api.CtabChannelSettings;
@@ -67,7 +64,7 @@ import org.jjazz.yamjjazz.rhythm.api.StylePartType;
  * A time signature adapter rhythm for our YamJJazz rhythms.
  * <p>
  */
-public class YamJJazzAdaptedRhythmImpl implements YamJJazzRhythm, AdaptedRhythm, MusicGenerator
+public class YamJJazzAdaptedRhythmImpl implements YamJJazzRhythm, AdaptedRhythm
 {
 
     private String rhythmProviderId;
@@ -76,7 +73,7 @@ public class YamJJazzAdaptedRhythmImpl implements YamJJazzRhythm, AdaptedRhythm,
     private YamJJazzRhythm yjr; // The original rhythm
     private TimeSignature newTs; // The new time signature
     private Style newStyle; // The style copy adapted to new time signature
-    YamJJazzRhythmGenerator generator;
+    MusicGenerator generator;
     private final transient SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(YamJJazzAdaptedRhythmImpl.class.getSimpleName());
 
@@ -93,19 +90,22 @@ public class YamJJazzAdaptedRhythmImpl implements YamJJazzRhythm, AdaptedRhythm,
         buildRhythmParameters();
     }
 
-    // ==================================================================================================
-    // MusicGenerator interface
-    // ==================================================================================================
     @Override
-    public HashMap<RhythmVoice, Phrase> generateMusic(SongContext context, RhythmVoice... rvs) throws MusicGenerationException
+    public MusicGenerator getMusicGenerator()
     {
         if (generator == null)
         {
             generator = new YamJJazzRhythmGenerator(this);
         }
-        return generator.generateMusic(context, rvs);
+        return generator;
     }
 
+    @Override
+    public void setMusicGenerator(MusicGenerator mg)
+    {
+        Objects.requireNonNull(mg);
+        generator = mg;
+    }
 
     // ==================================================================================================
     // AdaptedRhythm interface

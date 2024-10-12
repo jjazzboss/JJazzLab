@@ -53,7 +53,6 @@ import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.TempoRange;
 import org.jjazz.songcontext.api.SongContext;
-import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Fill;
 import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Intensity;
 import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Variation;
@@ -61,6 +60,7 @@ import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhrase;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Marker;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Mute;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_TempoFactor;
+import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.yamjjazz.rhythm.api.AccType;
 import org.jjazz.yamjjazz.FormatNotSupportedException;
 import org.jjazz.yamjjazz.MPL_ExtensionFile;
@@ -82,7 +82,7 @@ import org.jjazz.yamjjazz.rhythm.api.StylePartType;
  *
  * @see MPL_ExtensionFile
  */
-public class YamJJazzRhythmImpl implements YamJJazzRhythm, MusicGenerator
+public class YamJJazzRhythmImpl implements YamJJazzRhythm
 {
 
     private String uniqueId;
@@ -96,7 +96,7 @@ public class YamJJazzRhythmImpl implements YamJJazzRhythm, MusicGenerator
     private String[] tags;
     private File stdFile;
     private File extFile;
-    private YamJJazzRhythmGenerator generator;
+    private MusicGenerator generator;
     /**
      * The default RhythmParameters associated to this rhythm.
      */
@@ -217,6 +217,26 @@ public class YamJJazzRhythmImpl implements YamJJazzRhythm, MusicGenerator
         isExtendedRhythm = true;
     }
 
+    
+  
+    @Override
+    public MusicGenerator getMusicGenerator()
+    {
+        if (generator == null)
+        {
+            generator = new YamJJazzRhythmGenerator(this);
+        }
+        return generator;
+    }
+
+    @Override
+    public void setMusicGenerator(MusicGenerator mg)
+    {
+        Objects.requireNonNull(mg);
+        generator = mg;
+    }
+
+    
     /**
      * True if it's an extended rhythm, false if it's a standard Yamaha rhythm.
      *
@@ -339,19 +359,6 @@ public class YamJJazzRhythmImpl implements YamJJazzRhythm, MusicGenerator
         return getName();
     }
 
-    // ==================================================================================================
-    // MusicGenerator interface
-    // ==================================================================================================
-    @Override
-    public HashMap<RhythmVoice, Phrase> generateMusic(SongContext context, RhythmVoice... rvs) throws MusicGenerationException
-    {
-        if (generator == null)
-        {
-            generator = new YamJJazzRhythmGenerator(this);
-        }
-        return generator.generateMusic(context, rvs);
-    }
-    
     // ================================================================================================
     // Rhythm implementation
     // ================================================================================================
