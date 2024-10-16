@@ -50,6 +50,15 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
 {
 
     /**
+     * System property used to customize NoteEvent.toString().
+     * <p>
+     * Used as String.format() parameter with arguments 1=toPianoOctaveString(), 2=position, 3=durationInBeats, 4=velocity, 5=identityHashCode
+     * <p>
+     * Example: "[%1$s, dur=%3$.2f]"
+     */
+    public static final String SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT = "NoteEventToStringFormat";
+
+    /**
      * If true this note is an "adjusting note".
      * <p>
      * "Adjusting" means it's a temporary note used by an action which will eventually replace the temporary note by a non-adjusting note. For example if user
@@ -425,9 +434,9 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
     @Override
     public String toString()
     {
-        // return String.format("[%s, p=%.3f, d=%.3f, v=%d]", toPianoOctaveString(), position, getDurationInBeats(), getVelocity());
-        return String.format("[%s, p=%f, d=%f, v=%d, id=%d]", toPianoOctaveString(), position, getDurationInBeats(), getVelocity(),
-                System.identityHashCode(this));
+        final String defaultFormat = "[%1$s, p=%2$.3f, d=%3$.3f, v=%4$d, id=%5$d]";
+        String f = System.getProperty(SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT, defaultFormat);
+        return String.format(f, toPianoOctaveString(), position, getDurationInBeats(), getVelocity(), System.identityHashCode(this));
     }
 
     public void addClientPropertyChangeListener(PropertyChangeListener l)
