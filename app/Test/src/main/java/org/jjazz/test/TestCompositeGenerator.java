@@ -36,8 +36,8 @@ import org.jjazz.rhythm.api.RhythmVoice.Type;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.rhythmmusicgeneration.api.CompositeMusicGenerator;
-import org.jjazz.rhythmmusicgeneration.api.DummyGenerator;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
+import org.jjazz.test.walkingbass.WalkingBassGenerator;
 import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythm;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -48,17 +48,18 @@ import org.openide.util.Exceptions;
 /**
  * For debug purposes...
  */
-//@ActionID(category = "JJazz", id = "org.jjazz.test.TestAction")
-//@ActionRegistration(displayName = "Test CompositeGenerator Action")
-//@ActionReferences(
-//        {
-//            @ActionReference(path = "Menu/Edit", position = 50000)
-//        })
+@ActionID(category = "JJazz", id = "org.jjazz.test.TestAction")
+@ActionRegistration(displayName = "Test CompositeGenerator Action")
+@ActionReferences(
+        {
+            @ActionReference(path = "Menu/Edit", position = 50000)
+        })
 public final class TestCompositeGenerator implements ActionListener
 {
 
     private static final Logger LOGGER = Logger.getLogger(TestCompositeGenerator.class.getSimpleName());
-
+ 
+    
     @Override
     public void actionPerformed(ActionEvent ae)
     {
@@ -87,20 +88,20 @@ public final class TestCompositeGenerator implements ActionListener
             return;
         }
 
-        var newGen = new DummyGenerator(r);
-        
+        var newGen = new WalkingBassGenerator(r);
+
         Multimap<MusicGenerator, RhythmVoice> mmap = ArrayListMultimap.create();
-        EnumSet<Type> types1 = EnumSet.of(Type.BASS, Type.CHORD2, Type.PERCUSSION, Type.PHRASE2);
-        for (var rv: r.getRhythmVoices())
+        EnumSet<Type> types1 = EnumSet.of(Type.BASS);
+        for (var rv : r.getRhythmVoices())
         {
-            var mg = types1.contains(rv.getType()) ? oldGen : newGen;
+            var mg = types1.contains(rv.getType()) ? newGen : oldGen;
             mmap.put(mg, rv);
         }
-                
-        var compositeGen = new CompositeMusicGenerator(yjr, mmap);        
+
+        var compositeGen = new CompositeMusicGenerator(yjr, mmap);
         yjr.setMusicGenerator(compositeGen);
-        
-        LOGGER.log(Level.INFO, "testCompositeRhythm() yjr={0} updated with new CompositeMusicGenerator", yjr);        
+
+        LOGGER.log(Level.INFO, "testCompositeRhythm() yjr={0} updated with new CompositeMusicGenerator", yjr);
     }
 
 

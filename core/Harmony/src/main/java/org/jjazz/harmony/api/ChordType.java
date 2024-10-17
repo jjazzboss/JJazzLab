@@ -740,8 +740,8 @@ final public class ChordType
     /**
      * Compute how much "similar" is the specified ChordType with this object.
      * <p>
-     * Index is calculated by adding the weights below until a mismatch is found. Identical ChordTypes have a similarity index of 63. For
-     * example C7 and Cm7 have a similarity index=0 (different families). C7 and C9 have a similarity index=32+16+8=56 (same family, same
+     * Score is calculated by adding the weights below until a mismatch is found. Identical ChordTypes have a similarity score of 63. For
+     * example C7 and Cm7 have a similarity score=0 (different families). C7 and C9 have a similarity index=32+16+8=56 (same family, same
      * fifth, same sixth_seventh, but extension1 mismatch).
      * <p>
      * Same ChordType.FAMILY:32<br>
@@ -754,7 +754,7 @@ final public class ChordType
      * @param ct
      * @return
      */
-    public int getSimilarityIndex(ChordType ct)
+    public int getSimilarityScore(ChordType ct)
     {
         int res = 0;
         if (!family.equals(ct.family))

@@ -41,8 +41,7 @@ import org.jjazz.harmony.api.Position;
 import org.jjazz.utilities.api.IntRange;
 
 /**
- * A convenience class to analyze and manipulate a suite of chord symbols extracted from a ChordLeadSheet, possibly with different
- * TimeSignatures.
+ * A convenience class to analyze and manipulate a suite of chord symbols extracted from a ChordLeadSheet, possibly with different TimeSignatures.
  * <p>
  */
 public class ChordSequence extends TreeSet<CLI_ChordSymbol> implements Comparable<ChordSequence>, Cloneable
@@ -142,19 +141,20 @@ public class ChordSequence extends TreeSet<CLI_ChordSymbol> implements Comparabl
         var item = CLI_ChordSymbol.createItemTo(pos, true);
         return floor(item);
     }
-    
-   
-  
+
+
     /**
      * A new sub-sequence from this sequence.
      *
      * @param subRange           The range of the sub-sequence.
-     * @param addInitChordSymbol If true, try to add an init chordsymbol if the resulting subsequence does not have one: reuse the last
-     *                           chord symbol before subRange.from if any
+     * @param addInitChordSymbol If true, try to add an init chordsymbol if the resulting subsequence does not have one: reuse the last chord symbol before
+     *                           subRange.from if any
      * @return
      */
     public ChordSequence subSequence(IntRange subRange, boolean addInitChordSymbol)
     {
+        Preconditions.checkArgument(barRange.contains(subRange), "barRange=%s subRange=%s", barRange, subRange);
+
         ChordSequence cSeq = new ChordSequence(subRange);
         cSeq.addAll(subSet(CLI_ChordSymbol.createItemFrom(subRange.from), CLI_ChordSymbol.createItemTo(subRange.to)));
 
@@ -168,7 +168,7 @@ public class ChordSequence extends TreeSet<CLI_ChordSymbol> implements Comparabl
                 cSeq.add(newCs);
             }
         }
-        
+
         return cSeq;
     }
 
@@ -256,9 +256,7 @@ public class ChordSequence extends TreeSet<CLI_ChordSymbol> implements Comparabl
     @Override
     public String toString()
     {
-        StringBuilder sb = new StringBuilder();
-        sb.append("cSeq=<").append(barRange).append(super.toString()).append(">");
-        return sb.toString();
+        return "<" + barRange + super.toString() + ">";
     }
 
     // ====================================================================================

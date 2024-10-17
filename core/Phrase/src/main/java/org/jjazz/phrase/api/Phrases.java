@@ -31,12 +31,14 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IntSummaryStatistics;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiEvent;
@@ -45,7 +47,6 @@ import javax.sound.midi.Sequence;
 import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Track;
 import org.jjazz.harmony.api.Chord;
-import org.jjazz.harmony.api.Note;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.utilities.api.FloatRange;
@@ -126,7 +127,10 @@ public class Phrases
                         nes.add(ne);
                     } else
                     {
-                        LOGGER.warning("addMidiEvents() Ignoring zero-length note at tick position=" + tickOn + " pitch=" + pitch);
+                        LOGGER.log(Level.WARNING, "addMidiEvents() Ignoring zero-length note at tick position={0} pitch={1}", new Object[]
+                        {
+                            tickOn, pitch
+                        });
                     }
 
                     // Clean the last NoteOn

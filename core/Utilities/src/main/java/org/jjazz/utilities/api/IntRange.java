@@ -24,13 +24,15 @@
 package org.jjazz.utilities.api;
 
 import com.google.common.base.Preconditions;
+import java.util.Iterator;
+import java.util.stream.IntStream;
 
 /**
  * A basic integer (zero or positive) interval.
  * <p>
  * This is an immutable class.
  */
-public class IntRange
+public class IntRange implements Iterable<Integer>
 {
 
     /**
@@ -58,6 +60,11 @@ public class IntRange
     public boolean isEmpty()
     {
         return this == EMPTY_RANGE;
+    }
+
+    public IntStream stream()
+    {
+        return IntStream.rangeClosed(from, to);
     }
 
     /**
@@ -254,6 +261,12 @@ public class IntRange
         return true;
     }
 
+    @Override
+    public Iterator<Integer> iterator()
+    {
+        return new MyIterator();
+    }
+
     private static class VoidRange extends IntRange
     {
 
@@ -278,6 +291,29 @@ public class IntRange
         public String toString()
         {
             return "EmptyRange";
+        }
+    }
+
+    private class MyIterator implements Iterator<Integer>
+    {
+        private int index = from;
+
+        @Override
+        public boolean hasNext()
+        {
+            return index < to;
+        }
+
+        @Override
+        public Integer next()
+        {
+            return index++;
+        }
+
+        @Override
+        public void remove()
+        {
+            throw new UnsupportedOperationException("not supported");
         }
     }
 }

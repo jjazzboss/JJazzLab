@@ -36,8 +36,8 @@ import org.jjazz.utilities.api.IntRange;
 /**
  * A ChordSequence which has only one TimeSignature.
  * <p>
- * User is responsible to ensure CLI_ChordSymbols are added in the right position order, in the startBar/nbBars range, and are compatible
- * with the TimeSignature.
+ * User is responsible to ensure CLI_ChordSymbols are added in the right position order, in the startBar/nbBars range, and are compatible with the
+ * TimeSignature.
  */
 public class SimpleChordSequence extends ChordSequence
 {
@@ -174,12 +174,11 @@ public class SimpleChordSequence extends ChordSequence
     }
 
     /**
-     * A String which combines the relative root ascending intervals and chord durations, to allow a quick comparison between 2
+     * A String which combines the chord sequence size, the relative chord root ascending intervals+durations, to allow a quick comparison between 2
      * SimpleChordSequences.
      * <p>
-     * If 2 root profiles of 2 SimpleChordSequences are equal, it means that the 2 ChordSequences have the same size, same number of
-     * ChordSymbols at the same position, and that the root relative root ascending intervals are equals, like for e.g. |Dm|G7|C7M|%| and
-     * |E7|Am|Dm|%|.
+     * If 2 root profiles of 2 SimpleChordSequences are equal, it means that the 2 ChordSequences have the same size, same number of ChordSymbols at the same
+     * position, and that the root relative root ascending intervals are equals, like for e.g. |Dm|G7|C7M|%| and |E7|Am|Dm|%|.
      * <p>
      * Example: |Dm|G7|Ab7M|%| will produce "s4n3f0:a4i5:a4i1"  <br>
      * "s4" = size is 4 bars<br>
@@ -192,7 +191,6 @@ public class SimpleChordSequence extends ChordSequence
      * Example: if chord sequence has only 1 chord symbol, return a string like "s4n1f0".
      *
      * @return A String like "s4n3f0:a4i5:a4i1"
-     * @see #getChordTypeSimilarityIndex(org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence)
      */
     public String getRootProfile()
     {
@@ -254,22 +252,27 @@ public class SimpleChordSequence extends ChordSequence
     }
 
     /**
-     * Compute an index which indicates how similar are the chord types of cSeq and this object.
+     * Compute a score which indicates how similar are the chord types of cSeq and this object.
      * <p>
      *
-     * @param cSeq Must have the same number of chord symbols than this Simple ChordSequence.
-     * @return The sum of ChordType.getSimilarityIndex() run on each chord.
-     * @see org.jjazz.harmony.api.ChordType#getSimilarityIndex(org.jjazz.harmony.api.ChordType)
+     * @param cSeq2 Must have the same number of chord symbols than this Simple ChordSequence.
+     * @return The average of ChordType.getSimilarityIndex() run on each chord.
+     * @see org.jjazz.harmony.api.ChordType#getSimilarityScore(org.jjazz.harmony.api.ChordType)
      */
-    public int getChordTypeSimilarityIndex(SimpleChordSequence cSeq)
+    public float getChordTypeSimilarityScore(SimpleChordSequence cSeq2)
     {
-        checkArgument(cSeq.size() == size(), "cSeq=%s this=%s", cSeq, this);
-        int res = 0;
-        for (var cliCs:this)
+        int size = size();
+        checkArgument(cSeq2.size() == size, "cSeq=%s this=%s", cSeq2, this);
+        float res = 0;
+        var it1 = this.iterator();
+        var it2 = cSeq2.iterator();
+        while (it1.hasNext())
         {
-            res += cliCs.getData().getChordType().getSimilarityIndex(cliCs.getData().getChordType());
+            var cliCs1 = it1.next();
+            var cliCs2 = it2.next();
+            res += cliCs1.getData().getChordType().getSimilarityScore(cliCs2.getData().getChordType());
         }
-        return res;
+        return res / size;
     }
 
 }

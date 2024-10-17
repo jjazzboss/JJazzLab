@@ -350,7 +350,7 @@ public class Note implements Comparable<Note>, Cloneable
     /**
      * @param n A Note.
      *
-     * @return The ascendant interval in semitons towards n.
+     * @return The relative descendant interval in semitons towards n.
      */
     public int getRelativeDescInterval(Note n)
     {

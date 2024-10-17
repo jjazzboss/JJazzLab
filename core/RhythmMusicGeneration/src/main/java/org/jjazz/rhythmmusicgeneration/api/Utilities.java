@@ -134,8 +134,7 @@ public class Utilities
      * Adapt the notes from a bass melody-oriented source phrase to a destination chord symbol.
      * <p>
      * Notes are transposed to the destination root note and adapted to the destination chord type degrees.<br>
-     * If destination symbol bass note is different from the root note, it is used instead of the root note. The method takes also into account the
-     * ChordRenderingInfo.BassLineModifiers of the chord symbol.<br>
+     * If destination symbol bass note is different from the root note, it is used instead of the root note. <br>
      * Ex: if pSrc=C3,G3,B3,E4 and ecsSrc=C7M and ecsDest=F7b5/A, then destination phrase=A3,B3,Eb4,Ab4.<br>
      * <p>
      * Each destination note of the resulting phrase stores its corresponding source note in the PARENT_NOTE client property.
@@ -210,7 +209,7 @@ public class Utilities
             assert destDegree != null : "srcDegree=" + srcDegree + " srcNote=" + srcNote + " pSrc=" + pSrc;
             int destRelPitch = ecsDest.getRelativePitch(destDegree);
 
-            // Use the chord symbol bass note if BassLineModifier says so, or to replaceAll the chord symbol root note
+            // Use the chord symbol bass note if required
             if (useFixedNote || destDegree.equals(Degree.ROOT))
             {
                 destRelPitch = ecsDest.getBassNote().getRelativePitch();
