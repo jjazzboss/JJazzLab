@@ -275,11 +275,11 @@ public class GhostPhrasesModel implements PropertyChangeListener, ChangeListener
         LOGGER.fine("musicGenerationResultReceived() -- ");
         lastResult = result;
 
-        if (lastResult.userException() != null)
+        if (lastResult.throwable() != null)
         {
             // Problem occured, ignore
-            LOGGER.log(Level.FINE, "musicGenerationResultReceived() User error music generation exception ex={0}",
-                    lastResult.userException().getMessage());
+            LOGGER.log(Level.FINE, "musicGenerationResultReceived() Error music generation error ex={0}",
+                    lastResult.throwable().getMessage());
             lastResult = null;
             return;
         }

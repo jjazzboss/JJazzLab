@@ -255,17 +255,17 @@ public class SimpleChordSequence extends ChordSequence
      * Compute a score which indicates how similar are the chord types of cSeq and this object.
      * <p>
      *
-     * @param cSeq2 Must have the same number of chord symbols than this Simple ChordSequence.
+     * @param cSeq Must have the same number of chord symbols than this Simple ChordSequence.
      * @return The average of ChordType.getSimilarityIndex() run on each chord.
      * @see org.jjazz.harmony.api.ChordType#getSimilarityScore(org.jjazz.harmony.api.ChordType)
      */
-    public float getChordTypeSimilarityScore(SimpleChordSequence cSeq2)
+    public float getChordTypeSimilarityScore(SimpleChordSequence cSeq)
     {
         int size = size();
-        checkArgument(cSeq2.size() == size, "cSeq=%s this=%s", cSeq2, this);
+        checkArgument(cSeq.size() == size, "cSeq=%s this=%s", cSeq, this);
         float res = 0;
         var it1 = this.iterator();
-        var it2 = cSeq2.iterator();
+        var it2 = cSeq.iterator();
         while (it1.hasNext())
         {
             var cliCs1 = it1.next();

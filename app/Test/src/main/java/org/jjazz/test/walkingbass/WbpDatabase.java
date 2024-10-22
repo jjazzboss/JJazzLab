@@ -52,6 +52,7 @@ public class WbpDatabase
 
     private final List<WbpSession> wbpSessions;
     private final List<WbpSource> wbpSources;
+    private final Map<String, WbpSource> mapIdWbpSource;
     private final Map<KeyablePredicate<?>, List<WbpSource>> mapFilterSources = new HashMap<>();
 
     private static final Logger LOGGER = Logger.getLogger(WbpDatabase.class.getSimpleName());
@@ -72,7 +73,20 @@ public class WbpDatabase
     {
         wbpSessions = loadWbpSessionsFromMidiFile(MIDI_FILE_RESOURCE_PATH, TimeSignature.FOUR_FOUR);
         wbpSources = new ArrayList<>();
-        wbpSessions.forEach(wbps -> wbpSources.addAll(wbps.extractWbpSources(true)));
+        mapIdWbpSource = new HashMap<>();
+        for (var wbpSession : wbpSessions)
+        {
+            var wbps = wbpSession.extractWbpSources(true);
+            for (var wbpSource : wbps)
+            {
+                var old = mapIdWbpSource.put(wbpSource.getId(), wbpSource);
+                if (old != null)
+                {
+                    throw new IllegalStateException("Duplicate WbpSource.id found: wbpSource=" + wbpSource + " old=" + old);
+                }
+                wbpSources.add(wbpSource);
+            }
+        }
     }
 
     public List<WbpSession> getWbpSessions()

@@ -94,7 +94,7 @@ public class SongMidiExporter
         if (asmb != null)
         {
             var result = asmb.getLastResult();
-            if (asmb.getSong() == song && !asmb.isDirectlyGeneratingMusic() && result != null && result.userException() == null)
+            if (asmb.getSong() == song && !asmb.isDirectlyGeneratingMusic() && result != null && result.throwable()== null)
             {
                 // We can reuse the last music generation
                 songSequence = ssb.buildSongSequence(result.mapRvPhrases());

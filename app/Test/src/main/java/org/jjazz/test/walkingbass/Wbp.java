@@ -110,17 +110,17 @@ public class Wbp
     public String toString()
     {
         final int NB_CHORDS_MAX = 4;
-        return "nbBars=" + chordSequence.getBarRange().size() + " chords=" + chordSequence.stream().limit(NB_CHORDS_MAX).toList()
+        return "rg=" + chordSequence.getBarRange() + " chords=" + chordSequence.stream().limit(NB_CHORDS_MAX).toList()
                 + (chordSequence.size() > NB_CHORDS_MAX ? "..." : "");
     }
 
     public String toLongString()
     {
-        final int NB_NOTES_MAX = 3;
+        final int NB_NOTES_MAX = 5;
         return "cSeq=" + chordSequence
-                + " rootProfile=" + chordSequence.getRootProfile()
-                + " range=" + sizedPhrase.getBeatRange()
-                + " phrase=" + sizedPhrase.stream().limit(NB_NOTES_MAX).toList() + (sizedPhrase.size() > NB_NOTES_MAX ? "..." : "");
+                + " rp=" + chordSequence.getRootProfile()
+                + " rg=" + sizedPhrase.getBeatRange()
+                + " p=" + sizedPhrase.stream().limit(NB_NOTES_MAX).toList() + (sizedPhrase.size() > NB_NOTES_MAX ? "..." : "");
     }
 
 }

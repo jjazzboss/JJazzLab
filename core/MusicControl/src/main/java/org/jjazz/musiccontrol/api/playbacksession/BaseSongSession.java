@@ -625,7 +625,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
                     && !MusicController.getInstance().getState().equals(MusicController.State.STOPPED)
                     && !bmb.isDirectlyGeneratingMusic()
                     && sgContext.equals(lastResult)
-                    && lastResult.userException() == null)
+                    && lastResult.throwable() == null)
             {
                 // Build sequence directly from phrases
                 var mapRvPhrases = lastResult.mapRvPhrases();

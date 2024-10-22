@@ -23,6 +23,7 @@ public class WbpSource extends Wbp
     public final IntRange BASS_MAIN_PITCH_RANGE = new IntRange(28, 55);  // E1 - G3
     public final IntRange BASS_PITCH_RANGE = new IntRange(23, 64);  // B0 - E4
     private final String sessionId;
+    private final String id;
     private final int sessionBarOffset;
     private final float firstNoteBeatShift;
     private final List<String> tags;
@@ -53,6 +54,7 @@ public class WbpSource extends Wbp
         checkArgument(phrase.getSizeInBars() == 1 || phrase.getSizeInBars() == 2 || phrase.getSizeInBars() == 4, "phrase=%s", phrase);
         checkArgument(firstNoteBeatShift <= 0, "firstNoteBeatShift=%s", firstNoteBeatShift);
         this.sessionId = session.getId();
+        this.id = sessionId + ";" + sessionBarFrom + ";" + phrase.getSizeInBars();
         this.sessionBarOffset = sessionBarFrom;
         this.tags = session.getTags();
         this.firstNoteBeatShift = firstNoteBeatShift;
@@ -76,6 +78,11 @@ public class WbpSource extends Wbp
     public String getSessionId()
     {
         return sessionId;
+    }
+    
+    public String getId()
+    {
+        return id;
     }
 
     public int getSessionBarOffset()
@@ -104,7 +111,9 @@ public class WbpSource extends Wbp
         Note srcChordRoot = getSimpleChordSequence().first().getData().getRootNote();
         if (destChordRoot.equalsRelativePitch(srcChordRoot))
         {
-            return 100;
+            int score = 100;
+            mapDestChordRootTransposibility.put(destChordRoot.getRelativePitch(), new TransposibilityResult(score, 0));
+            return score;
         }
 
         // Check cache
@@ -121,7 +130,7 @@ public class WbpSource extends Wbp
         int countMainUp = 0;
         int countBassRangeUp = 0;
         int countOutsideUp = 0;
-        int transposeUp = srcChordRoot.getRelativeAscInterval(srcChordRoot);
+        int transposeUp = srcChordRoot.getRelativeAscInterval(destChordRoot);
         int pitchSum = 0;
         for (var ne : getSizedPhrase())
         {
@@ -145,7 +154,7 @@ public class WbpSource extends Wbp
         int countMainDown = 0;
         int countBassRangeDown = 0;
         int countOutsideDown = 0;
-        int transposeDown = srcChordRoot.getRelativeDescInterval(srcChordRoot);
+        int transposeDown = srcChordRoot.getRelativeDescInterval(destChordRoot);
         for (var ne : getSizedPhrase())
         {
             int pitch = ne.getPitch() - transposeDown;
@@ -164,26 +173,26 @@ public class WbpSource extends Wbp
 
         // Compare the 2 options
         final int IDEAL_CENTRAL_PITCH = 40;         // E2
-        boolean doDown;
-        if (countOutsideUp == 0 && countOutsideDown == 0)
+        boolean tDown;
+        if (countOutsideUp == countOutsideDown)
         {
-            if (countBassRangeDown == 0 && countBassRangeUp == 0)
+            if (countBassRangeDown == countBassRangeUp)
             {
-                doDown = Math.abs(pitchAvg - transposeDown - IDEAL_CENTRAL_PITCH) < Math.abs(pitchAvg + transposeUp - IDEAL_CENTRAL_PITCH);
+                tDown = Math.abs(pitchAvg - transposeDown - IDEAL_CENTRAL_PITCH) < Math.abs(pitchAvg + transposeUp - IDEAL_CENTRAL_PITCH);
             } else
             {
-                doDown = countBassRangeDown < countBassRangeUp;
+                tDown = countBassRangeDown < countBassRangeUp;
             }
         } else
         {
-            doDown = countOutsideDown < countOutsideUp;
+            tDown = countOutsideDown < countOutsideUp;
         }
 
 
-        float countOutside = doDown ? countOutsideDown : countOutsideUp;
-        float countBassRange = doDown ? countBassRangeDown : countBassRangeUp;
-        int transpose = doDown ? -transposeDown : transposeUp;
-        float distanceToIdealCentralPitch = Math.max(11, Math.abs(pitchAvg + transpose - IDEAL_CENTRAL_PITCH));
+        float countOutside = tDown ? countOutsideDown : countOutsideDown;
+        float countBassRange = tDown ? countBassRangeDown : countBassRangeUp;
+        int transpose = tDown ? -transposeDown : transposeUp;
+        float distanceToIdealCentralPitch = Math.min(11, Math.abs(pitchAvg + transpose - IDEAL_CENTRAL_PITCH));
         float outsideRatio = countOutside / nbNotes;
         float bassRangeRatio = countBassRange / nbNotes;
         float idealShiftRatio = distanceToIdealCentralPitch / 11;
@@ -191,14 +200,20 @@ public class WbpSource extends Wbp
 
 
         int res = Math.round(90 * (1 - ratio));
-        
+
         // Save cache
         mapDestChordRootTransposibility.put(destChordRoot.getRelativePitch(), new TransposibilityResult(res, transpose));
-
-        LOGGER.log(Level.SEVERE, "getTransposibilityScore() destChordRoot={0} res={1}", new Object[]
-        {
-            destChordRoot, res
-        });
+        LOGGER.log(Level.FINE, "getTransposibilityScore() countOutsideDown={0} countOutsideUp={1} countBassRangeDown={2} countBassRangeUp={3} pitchAvg={4}",
+                new Object[]
+                {
+                    countOutsideDown, countOutsideUp, countBassRangeDown, countBassRangeUp, pitchAvg
+                });
+        LOGGER.log(Level.FINE,
+                "                          srcChordRoot={0} destChordRoot={1} distToCentralPitch={2} transpose={3} score={4} phrase={5} ",
+                new Object[]
+                {
+                    srcChordRoot, destChordRoot, distanceToIdealCentralPitch, transpose, res, getSizedPhrase()
+                });
 
         return res;
     }
@@ -212,6 +227,7 @@ public class WbpSource extends Wbp
      */
     public SizedPhrase getTransposedPhrase(Note destChordRoot)
     {
+
         var tr = mapDestChordRootTransposibility.get(destChordRoot.getRelativePitch());
         if (tr == null)
         {
@@ -220,12 +236,16 @@ public class WbpSource extends Wbp
             assert tr != null;
         }
         int transpose = tr.transpose();
-        SizedPhrase sp = new SizedPhrase(getSizedPhrase());
-        sp.clear();
-        Phrase p = getSizedPhrase().getProcessedPhrasePitch(pitch -> pitch + transpose);
-        sp.add(p);
+        var sp = getSizedPhrase();
+        SizedPhrase res = new SizedPhrase(sp.getChannel(), sp.getBeatRange(), sp.getTimeSignature(), sp.isDrums());
+        Phrase p = sp.getProcessedPhrasePitch(pitch -> pitch + transpose);
+        LOGGER.log(Level.FINE, "getTransposedPhrase() transpose={0} => p={1}", new Object[]
+        {
+            transpose, p
+        });
+        res.add(p);
 
-        return sp;
+        return res;
     }
 
     /**
@@ -250,13 +270,13 @@ public class WbpSource extends Wbp
     @Override
     public String toString()
     {
-        return "WbpSource sessionId=" + sessionId + " " + super.toString();
+        return "WbpSource id=" + id + " " + super.toString();
     }
 
     @Override
     public String toLongString()
     {
-        var res = String.format("WbpSource sessionId=%s/%d beat0Shift=%.2f tags=%s %s", sessionId, sessionBarOffset, firstNoteBeatShift, tags, super.toLongString());
+        var res = String.format("WbpSource id=%s beat0Shift=%.2f tags=%s %s", id, firstNoteBeatShift, tags, super.toLongString());
         return res;
     }
 }

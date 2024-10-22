@@ -418,7 +418,9 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
      */
     public Phrase getProcessedPhrase(Predicate<NoteEvent> tester, Function<NoteEvent, NoteEvent> mapper)
     {
-        Phrase res = clone();           // Use clone() so that method also works for Phrase subclasses
+        Phrase res = clone();           // Use clone()+clear() so that method also works for Phrase subclasses
+        res.clear();
+        
         for (NoteEvent ne : this)
         {
             if (tester.test(ne))

@@ -30,6 +30,7 @@ import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
+import org.jjazz.utilities.api.CheckedRunnable;
 import org.openide.util.Exceptions;
 import org.openide.windows.WindowManager;
 
@@ -68,7 +69,7 @@ public class PleaseWaitDialog extends javax.swing.JDialog
     {
         Objects.requireNonNull(task);
         ExecutorService executor = Executors.newSingleThreadExecutor();
-        Future<?> future = executor.submit(task);
+        Future<?> future = executor.submit(new CheckedRunnable(task));
         show(text, future);
     }
 

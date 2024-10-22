@@ -44,6 +44,7 @@ import org.jjazz.rhythmdatabase.spi.RhythmDatabaseFactory;
 import org.jjazz.rhythmdatabaseimpl.RhythmDbCache;
 import org.jjazz.uiutilities.api.PleaseWaitDialog;
 import org.jjazz.upgrade.api.UpgradeManager;
+import org.jjazz.utilities.api.CheckedRunnable;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.util.lookup.ServiceProvider;
 import org.jjazz.utilities.api.MultipleErrorsReport;
@@ -136,7 +137,7 @@ public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory, Propert
 
 
             ExecutorService executor = Executors.newSingleThreadExecutor();
-            initFuture = executor.submit(() -> doInitialization());
+            initFuture = executor.submit(new CheckedRunnable(() -> doInitialization()));
         }
         return initFuture;
     }

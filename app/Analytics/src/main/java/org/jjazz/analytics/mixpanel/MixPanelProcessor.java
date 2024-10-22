@@ -17,6 +17,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.analytics.spi.AnalyticsProcessor;
+import org.jjazz.utilities.api.CheckedRunnable;
 import org.jjazz.utilities.api.Utilities;
 import org.json.JSONObject;
 
@@ -224,7 +225,7 @@ public class MixPanelProcessor implements AnalyticsProcessor
             } catch (IOException ex)
             {
                 LOGGER.log(Level.WARNING, "logEventsImmediatly.task.run() IOException ex={0}", ex.getMessage());
-            }
+            } 
         };
 
 
@@ -236,7 +237,7 @@ public class MixPanelProcessor implements AnalyticsProcessor
 
         // Run the task and wait no more than time out
         ExecutorService executor = Executors.newSingleThreadExecutor();
-        Future<?> future = executor.submit(task);
+        Future<?> future = executor.submit(new CheckedRunnable(task));
 
         try
         {

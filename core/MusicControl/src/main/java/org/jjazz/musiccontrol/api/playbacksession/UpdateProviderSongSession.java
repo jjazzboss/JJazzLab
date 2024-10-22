@@ -590,9 +590,9 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
         assert result != null;
 
         // Check for errors
-        if (result.userException() != null)
+        if (result.throwable() != null)
         {
-            if (result.userException() instanceof UserErrorGenerationException ue)
+            if (result.throwable() instanceof UserErrorGenerationException ue)
             {
                 if (userErrorExceptionHandler != null)
                 {

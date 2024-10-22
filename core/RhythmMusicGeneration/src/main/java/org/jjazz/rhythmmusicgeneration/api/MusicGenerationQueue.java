@@ -38,6 +38,7 @@ import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.UserErrorGenerationException;
 import org.jjazz.songcontext.api.SongContext;
+import org.jjazz.utilities.api.CheckedRunnable;
 import org.jjazz.utilities.api.Utilities;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -62,9 +63,9 @@ public class MusicGenerationQueue implements Runnable
      *
      * @param songContext
      * @param mapRvPhrases
-     * @param userException If not null an exception occured.
+     * @param throwable    If not null an unexpected problem occured.
      */
-    public record Result(SongContext songContext, Map<RhythmVoice, Phrase> mapRvPhrases, Exception userException)
+    public record Result(SongContext songContext, Map<RhythmVoice, Phrase> mapRvPhrases, Throwable throwable)
             {
 
     }
@@ -138,7 +139,7 @@ public class MusicGenerationQueue implements Runnable
         {
             running = true;
             executorService = Executors.newSingleThreadExecutor();
-            executorService.submit(this);
+            executorService.submit(new CheckedRunnable(this));
             generationExecutorService = Executors.newScheduledThreadPool(1);
         }
     }
@@ -185,7 +186,6 @@ public class MusicGenerationQueue implements Runnable
     public void run()
     {
         SongContext pendingSongContext = null;
-
 
         while (running)
         {
@@ -403,7 +403,7 @@ public class MusicGenerationQueue implements Runnable
 
             // Recompute the RhythmVoice mapRvPhrases            
             SongSequenceBuilder sgBuilder = new SongSequenceBuilder(songContext);
-            Exception exception = null;
+            Throwable throwable = null;
             Map<RhythmVoice, Phrase> map = null;
             try
             {
@@ -411,25 +411,26 @@ public class MusicGenerationQueue implements Runnable
             } catch (UserErrorGenerationException ex)
             {
                 LOGGER.warning(ex.getMessage());
-                exception = ex;
+                throwable = ex;
 
             } catch (MusicGenerationException ex)
             {
                 // This is not normal (e.g. rhythm generation failure), notify user
                 LOGGER.severe(ex.getMessage());
-                exception = ex;
+                throwable = ex;
                 NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
                 DialogDisplayer.getDefault().notify(d);
 
-            } catch (Exception ex)           // To make sure we catch other programming exceptions, sometimes not seen because in thread
+            } catch (Throwable t)     // To make sure we catch other programming exceptions or errors (eg AssertionError), otherwise not seen because task run via ExecutorService
             {
-                LOGGER.severe(ex.getMessage());
-                exception = ex;
-                ex.printStackTrace();
+                LOGGER.severe(t.getMessage());
+                throwable = t;
+                t.printStackTrace();
+                // Don't rethrow the exception, we need to update lastResult below
             }
 
 
-            lastResult = new Result(songContext, map, exception);
+            lastResult = new Result(songContext, map, throwable);
 
 
             LOGGER.log(Level.FINE, "UpdateGenerationTask.run() <<< ENDING generation  duration={0}ns", System.nanoTime() - startTime);

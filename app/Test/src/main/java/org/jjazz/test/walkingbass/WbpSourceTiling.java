@@ -26,15 +26,17 @@ package org.jjazz.test.walkingbass;
 
 import com.google.common.base.Preconditions;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.logging.Logger;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 
 /**
  * Which WbpSources (various sizes) cover which bars of a SimpleChordSequence.
+ * <p>
+ * A WbpSource instance might be used multiple times.
  */
 class WbpSourceTiling
 {
@@ -42,7 +44,6 @@ class WbpSourceTiling
     private final SimpleChordSequence simpleChordSequence;
     private final Object[] wbpSources; // a cell can contain: null (unset), a WbpSource instance, or an Integer (normally 1 or 3) for the subsequent bars covered by the WbpSource instance.
     private final int barOffset;
-    private final Map<WbpSource, Integer> mapWbpSourceIndex;
     private static final Logger LOGGER = Logger.getLogger(WbpSourceTiling.class.getSimpleName());
 
     public WbpSourceTiling(SimpleChordSequence scs)
@@ -50,7 +51,6 @@ class WbpSourceTiling
         this.simpleChordSequence = scs;
         wbpSources = new Object[scs.getBarRange().size()];
         barOffset = scs.getBarRange().from;
-        mapWbpSourceIndex = new HashMap<>();
     }
 
     public SimpleChordSequence getSimpleChordSequence()
@@ -79,7 +79,6 @@ class WbpSourceTiling
         }
 
         wbpSources[index] = wbpSource;
-        mapWbpSourceIndex.put(wbpSource, index);
         for (int i = 1; i < size; i++)
         {
             wbpSources[index + i] = Integer.valueOf(i);
@@ -88,26 +87,45 @@ class WbpSourceTiling
     }
 
     /**
-     * Remove wbpSource from this tiling.
+     * Remove a possible WbpSource at specified bar index.
+     * <p>
+     * If WbpSource is several bars long, all its bars are reset.
      *
-     * @param wbpSource
-     * @return True if wbpSource was actually removed.
+     * @param bar
+     * @return Null if bar was untiled, or the WbpSource that was removed.
      */
-    public boolean remove(WbpSource wbpSource)
+    public WbpSource reset(int bar)
     {
-        int bar = getStartBar(wbpSource);
-        if (bar == -1)
-        {
-            return false;
-        }
+        Preconditions.checkArgument(simpleChordSequence.getBarRange().contains(bar), "bar=%s", bar);
+
         int index = bar - barOffset;
-        int size = wbpSource.getBarRange().size();
-        for (int i = 0; i < size; i++)
+        if (wbpSources[index] == null)
         {
-            wbpSources[index + i] = null;
+            return null;
         }
-        mapWbpSourceIndex.remove(wbpSource);
-        return true;
+
+        while (getIntValueOrNull(index) != null)
+        {
+            wbpSources[index] = null;
+            index--;
+        }
+        assert wbpSources[index] instanceof WbpSource : "index=" + index + " this=" + this;
+        WbpSource res = (WbpSource) wbpSources[index];
+        wbpSources[index] = null;
+        return res;
+    }
+
+    public List<Integer> getNonTiledBars()
+    {
+        List<Integer> res = new ArrayList<>();
+        for (int i = 0; i < wbpSources.length; i++)
+        {
+            if (wbpSources[i] == null)
+            {
+                res.add(i);
+            }
+        }
+        return res;
     }
 
     /**
@@ -150,17 +168,6 @@ class WbpSourceTiling
         return res;
     }
 
-    /**
-     * Get the start bar of wbpSource.
-     *
-     * @param wbpSource
-     * @return -1 wbpSource is not used.
-     */
-    public int getStartBar(WbpSource wbpSource)
-    {
-        Integer index = mapWbpSourceIndex.get(wbpSource);
-        return index == null ? -1 : index + barOffset;
-    }
 
     public boolean isCompletlyTiled()
     {
@@ -201,7 +208,7 @@ class WbpSourceTiling
      *
      * @param wbpSrcArray Must be constructed on the same SimpleChordSequence
      */
-    public void tileMostCompatibleFirst(WbpSourceArray wbpSrcArray)
+    public void tileMostCompatibleFirst(BestWbpSourceAdaptations wbpSrcArray)
     {
         Preconditions.checkArgument(wbpSrcArray.getSimpleChordSequence() == simpleChordSequence, "simpleChordSequence=%s", simpleChordSequence);
 
@@ -230,9 +237,19 @@ class WbpSourceTiling
      *
      * @param wbpSrcArray
      */
-    public void tileMaximizeNbWbpSources(WbpSourceArray wbpSrcArray)
+    public void tileMaximizeNbWbpSources(BestWbpSourceAdaptations wbpSrcArray)
     {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    /**
+     * Get an iterator which allows to get the WbpSource instances with their start bar index.
+     *
+     * @return
+     */
+    public WbpSourceIterator iterator()
+    {
+        return new WbpSourceIterator(this);
     }
 
     @Override
@@ -301,5 +318,55 @@ class WbpSourceTiling
         return true;
     }
 
+    // ==========================================================================================================================
+    // Inner classes
+    // ==========================================================================================================================
 
+    /**
+     * This iterator lets user also retrieve the WbpSource start bar.
+     */
+    public static class WbpSourceIterator implements Iterator<WbpSource>
+    {
+
+        private final WbpSourceTiling tiling;
+        private int bar = 0;
+
+        public WbpSourceIterator(WbpSourceTiling tiling)
+        {
+            this.tiling = tiling;
+            advance();
+        }
+
+        public int getStartBar()
+        {
+            return bar;
+        }
+
+        @Override
+        public boolean hasNext()
+        {
+            return bar < tiling.wbpSources.length;
+        }
+
+        @Override
+        public WbpSource next()
+        {
+            if (!hasNext())
+            {
+                throw new NoSuchElementException();
+            }
+            WbpSource res = (WbpSource) tiling.wbpSources[bar];
+            advance();
+            return res;
+        }
+
+        private void advance()
+        {
+            while (bar < tiling.wbpSources.length && !(tiling.wbpSources[bar] instanceof WbpSource))
+            {
+                bar++;
+            }
+        }
+
+    }
 }

@@ -131,7 +131,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
         Objects.requireNonNull(contextOrig);
         var rhythmRvs = rhythm.getRhythmVoices();
         Preconditions.checkArgument(!Stream.of(rvs).anyMatch(rv -> !rhythmRvs.contains(rv)), "rvs=", List.of(rvs));
-        
+
         rhythmVoices = rvs.length == 0 ? rhythmRvs : List.of(rvs);
         contextOriginal = contextOrig;
 
@@ -1282,18 +1282,19 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
                     : chordSeqPhrases.get(i - 1).simpleChordSequence();  // cSeq fake value on last iteration (just it must not be null)
             SimpleChordSequence prevSeq = chordSeqPhrases.get(i - 1).simpleChordSequence();
             int prevSeqLastBar = prevSeq.getBarRange().from + prevSeq.getBarRange().size() - 1;
+            
             if (i == chordSeqPhrases.size() || cSeq.getBarRange().from != prevSeqLastBar + 1)
             {
                 // We finished the loop, or cSeq is not contiguous : create a longer ChordSequence with a new AccType/Phrase map
                 int nbBars = prevSeqLastBar - startBar + 1;
-                SimpleChordSequence newSeq = new SimpleChordSequence(new IntRange(startBar, startBar + nbBars - 1),
-                        rhythm.getTimeSignature());
+                SimpleChordSequence newSeq = new SimpleChordSequence(new IntRange(startBar, startBar + nbBars - 1), rhythm.getTimeSignature());
                 HashMap<AccType, Phrase> newMap = new HashMap<>();
                 for (int j = startIndex; j < i; j++)
                 {
                     // Merge each ChordSequence into newSeq
                     SimpleChordSequence cSeqj = chordSeqPhrases.get(j).simpleChordSequence();
                     newSeq.addAll(cSeqj);
+                    
                     // Merge its AccType phrases into newMap
                     HashMap<AccType, Phrase> mapj = chordSeqPhrases.get(j).mapAccTypePhrase();
                     for (AccType at : mapj.keySet())
@@ -1308,6 +1309,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
                         pAt.add(pj);
                     }
                 }
+                
                 // Save the result
                 ChordSeqPhrases csp = new ChordSeqPhrases(newSeq, newMap);
                 res.add(csp);

@@ -71,7 +71,7 @@ public final class TestCompositeGenerator implements ActionListener
     private void testCompositeRhythm()
     {
         var rdb = RhythmDatabase.getDefault();
-        var ri = rdb.getDefaultRhythm(TimeSignature.FOUR_FOUR);
+        var ri = rdb.getRhythm("MediumJazz.S737.sst-ID");
         Rhythm r = null;
         try
         {

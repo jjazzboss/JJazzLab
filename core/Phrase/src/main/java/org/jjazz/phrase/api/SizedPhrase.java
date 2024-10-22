@@ -206,12 +206,12 @@ public class SizedPhrase extends Phrase
     {
         StringBuilder sb = new StringBuilder();
         sb.append("SizedPhrase[ch=").append(getChannel())
-                .append(", beatRange=")
+                .append(", br=")
                 .append(beatRange)
                 .append(", ts=")
                 .append(timeSignature)
                 .append("] size=").append(size())
-                .append(" notes=").append(super.toString());
+                .append(" notes=").append(getNotes().toString());
         return sb.toString();
     }
 
