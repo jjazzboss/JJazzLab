@@ -29,22 +29,21 @@ import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.SortedSetMultimap;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.utilities.api.IntRange;
 
 /**
- * Store the best WbpSourceAdaptations for each usable bar of a SimpleChordSequence.
+ * Store the best WbpSourceAdaptations for the specified usable bars of a SimpleChordSequenceExt.
  */
 class BestWbpSourceAdaptations
 {
 
-    private final SimpleChordSequence simpleChordSequence;
+    private final SimpleChordSequenceExt simpleChordSequenceExt;
+    private final List<Integer> usableBars;
     private final SortedSetMultimap<Integer, WbpSourceAdaptation> mmapWbpsAdaptations;
     private final int wbpSourceSize;
-    private final List<Integer> usableBarIndexes;
     private final int nbBestMax;
     private static final Logger LOGGER = Logger.getLogger(BestWbpSourceAdaptations.class.getSimpleName());
 
@@ -52,30 +51,34 @@ class BestWbpSourceAdaptations
     /**
      * Create a BestWbpSourceAdaptations.
      *
-     * @param scs              Store WbpSources for the bars of this SimpleChordSequence
-     * @param size             Size of the WbpSources.
-     * @param usableBarIndexes
-     * @param nbBestMax        Max number of WbpSourceAdaptations kept for a bar
+     * @param scs        Store WbpSources for the usable bars of this SimpleChordSequenceExt
+     * @param usableBars Must be a subset of scs usable bars
+     * @param size       Size of the WbpSources.
+     * @param nbBestMax  Max number of WbpSourceAdaptations kept for a bar
      */
-    public BestWbpSourceAdaptations(SimpleChordSequence scs, int size, List<Integer> usableBarIndexes, int nbBestMax)
+    public BestWbpSourceAdaptations(SimpleChordSequenceExt scs, List<Integer> usableBars, int size, int nbBestMax)
     {
-        this.simpleChordSequence = scs;
+        Preconditions.checkArgument(usableBars.stream().allMatch(b -> scs.isUsable(b)), "scs=%s, usableBars=%s size=%d", scs, usableBars, size);
+        
+        this.simpleChordSequenceExt = scs;
+        this.usableBars = usableBars;
         this.wbpSourceSize = size;
         this.mmapWbpsAdaptations = MultimapBuilder.treeKeys()
-                .treeSetValues((WbpSourceAdaptation v1, WbpSourceAdaptation v2) -> Float.compare(v1.getCompatibilityScore(), v2.getCompatibilityScore()))
-                .build();
-        this.usableBarIndexes = List.copyOf(usableBarIndexes);
+            .treeSetValues((WbpSourceAdaptation v1, WbpSourceAdaptation v2) -> Float.compare(v1.getCompatibilityScore(), v2.getCompatibilityScore()))
+            .build();
         this.nbBestMax = nbBestMax;
+
+        initialize();
     }
 
-    public SimpleChordSequence getSimpleChordSequence()
+    public SimpleChordSequenceExt getSimpleChordSequenceExt()
     {
-        return simpleChordSequence;
+        return simpleChordSequenceExt;
     }
 
     public IntRange getBarRange()
     {
-        return simpleChordSequence.getBarRange();
+        return simpleChordSequenceExt.getBarRange();
 
     }
 
@@ -89,26 +92,91 @@ class BestWbpSourceAdaptations
         return wbpSourceSize;
     }
 
-    public List<Integer> getUsableBarIndexes()
+
+    /**
+     * Get the best WbpSourceAdaptations for specified bar, ordered by descending compatibility.
+     *
+     * @param bar
+     * @return Can be empty. List contains maximum getNbBestMax() elements.
+     * @throws IllegalArgumentException If bar is not a usable bar
+     */
+    public List<WbpSourceAdaptation> getWbpSourceAdaptations(int bar)
     {
-        return usableBarIndexes;
+        Preconditions.checkArgument(simpleChordSequenceExt.isUsable(bar), "bar=%s simpleChordSequenceExt=%s", bar, simpleChordSequenceExt);
+        var res = mmapWbpsAdaptations.get(bar);
+        return new ArrayList<>(res);
     }
+
+    /**
+     * Get all the WbpSourceAdaptations of specified rank.
+     * <p>
+     * For a given bar, if there is no more WbpSourceAdaptation at specified rank, return the last WbpSourceAdaptation, or null if no
+     * WbpSourceAdaptation at all.
+     *
+     * @param rank 0 means takes the best for each bar, 1 means the 2nd best etc.
+     * @return A list with one WbpSourceAdaptation per bar (value might be null for some bars).
+     */
+    public List<WbpSourceAdaptation> getWbpSourceAdaptationsRanked(int rank)
+    {
+        List<WbpSourceAdaptation> res = new ArrayList<>();
+
+        for (int bar : usableBars)
+        {
+            WbpSourceAdaptation wbpsa = null;
+            var wbpsas = new ArrayList<>(mmapWbpsAdaptations.get(bar));
+            if (!wbpsas.isEmpty())
+            {
+                wbpsa = wbpsas.size() >= rank + 1 ? wbpsas.get(rank) : wbpsas.get(wbpsas.size() - 1);
+            }
+            res.add(wbpsa);
+        }
+
+        return new ArrayList<>(res);
+    }
+
+
+    @Override
+    public String toString()
+    {
+        return mmapWbpsAdaptations.toString();
+    }
+
+    // =================================================================================================================
+    // Private methods
+    // =================================================================================================================
+    /**
+     * For each usable bar add the most compatible WbpSourceAdptations of wbpSourceSize.
+     */
+    private void initialize()
+    {
+        for (int bar : usableBars)
+        {
+            int lastBar = bar + wbpSourceSize - 1;
+            var br = new IntRange(bar, lastBar);
+            var subSeq = simpleChordSequenceExt.subSequence(br, true);
+            var rpSources = getRootProfileCompatibleWbpSources(subSeq);
+            for (var rpSource : rpSources)
+            {
+                WbpSourceAdaptation wbpsa = new WbpSourceAdaptation(rpSource, subSeq);
+                addIfCompatibleEnough(bar, wbpsa);
+            }
+        }
+    }
+
 
     /**
      * Add a WbpSourceAdaptation for the specified bar.
      * <p>
      * <p>
-     * If wbpsa compatibility score is not in the getNbBestMax() ones, wbpsa is not added.
+     * If wbpsa compatibility score is not in the getNbBestMax() best ones, wbpsa is not added.
      *
      * @param bar
      * @param wbpsa Can't be null
      * @return True if wbpsa was actually added.
      * @throws IllegalArgumentException If bar is not a usable bar
      */
-    public boolean add(int bar, WbpSourceAdaptation wbpsa)
+    private boolean addIfCompatibleEnough(int bar, WbpSourceAdaptation wbpsa)
     {
-        Objects.requireNonNull(wbpsa);
-        Preconditions.checkArgument(usableBarIndexes.contains(bar), "bar=%s", bar);
 
         mmapWbpsAdaptations.put(bar, wbpsa);
         boolean b = true;
@@ -123,119 +191,6 @@ class BestWbpSourceAdaptations
 
         return b;
     }
-
-    /**
-     * Remove a WbpSourceAdaptation for the specified bar.
-     *
-     * @param bar
-     * @param wbpsa
-     * @return True if wbpsa was actually removed.
-     */
-    public boolean remove(int bar, WbpSourceAdaptation wbpsa)
-    {
-        Objects.requireNonNull(wbpsa);
-        Preconditions.checkArgument(usableBarIndexes.contains(bar), "bar=%s", bar);
-        return mmapWbpsAdaptations.remove(bar, wbpsa);
-    }
-
-
-    /**
-     * Get the best WbpSourceAdaptations for specified bar, ordered by descending compatibility.
-     *
-     * @param bar
-     * @return Can be empty. List contains maximum getNbBestMax() elements.
-     * @throws IllegalArgumentException If bar is not a usable bar
-     */
-    public List<WbpSourceAdaptation> getWbpSourceAdaptations(int bar)
-    {
-        Preconditions.checkArgument(usableBarIndexes.contains(bar), "bar=%s usableBarIndexes=%s", bar, usableBarIndexes);
-        var res = mmapWbpsAdaptations.get(bar);
-        return new ArrayList<>(res);
-    }
-
-
-    @Override
-    public String toString()
-    {
-        return WbpSourceTiling.toString(barOffset, wbpSources);
-    }
-
-    // =================================================================================================================
-    // Private methods
-    // =================================================================================================================
-
-    /**
-     * For each usable bar set the most compatible WbpSourceAdptations of a given size.
-     */
-    private void initialize()
-    {
-        for (int bar : getUsableBarIndexes())
-        {
-            int lastBar = bar + wbpSourceSize - 1;
-            if (!getBarRange().contains(lastBar))
-            {
-                break;
-            }
-
-
-            var subSeq = simpleChordSequence.subSequence(new IntRange(bar, lastBar), true);
-            var rpSources = getRootProfileCompatibleWbpSources(subSeq);
-            var bestWpsas = selectBestWbpSources(rpSources, subSeq);    // max nbBestMax elements
-            for (var wbpsa : bestWpsas)
-            {
-                add(bar, wbpsa);
-            }
-
-            LOGGER.log(Level.SEVERE, "initialize() bar={0} bestWpsas.size()={1}", new Object[]
-            {
-                bar, bestWpsas.size()
-            });
-        }
-    }
-
-
-    /**
-     * Find the nbBestMax best WbpSources amongst wbpSources and return the corresponding WbpSourceAdaptations.
-     * <p>
-     *
-     * @param wbpSources
-     * @param scs        The SimpleChordSequence we search WbpSources for
-     * @return Can be empty
-     */
-    private List<WbpSourceAdaptation> selectBestWbpSources(List<WbpSource> wbpSources, SimpleChordSequence scs)
-    {
-        float maxScore = 0;
-        WbpSource res = null;
-        int count10 = 0;
-        for (var wbp : wbpSources)
-        {                                    
-            WbpSourceAdaptation wbpsa = new WbpSourceAdaptation(wbp, scs);
-            var barRange = wbp.getBarRange();
-            
-            float score = wbpsa.getCompatibilityScore();
-            if (score >= 10)
-            {
-                count10++;
-            }
-            if (score > 0 && barRange.size() > 1 && barRange.from >= songChordSequence.getBarRange().from && barRange.from <= songChordSequence.getBarRange().from + 1)
-            {
-                // Provide a little score boost for a "long" WbpSource at first bars: if several long WbpSources are top-scored including the first one, we prefer 
-                // that the initial one is chosen to start song with a good-quality bass pattern.
-                score += 10f;
-            }
-            if (score > maxScore)
-            {
-                res = wbp;
-                maxScore = score;
-            }
-        }
-        LOGGER.log(Level.SEVERE, "selectBestWbpSources() res={0} count10={1}", new Object[]
-        {
-            res, count10
-        });
-        return res;
-    }
-
 
     /**
      * Get the WbpSources which match the root profile of scs.

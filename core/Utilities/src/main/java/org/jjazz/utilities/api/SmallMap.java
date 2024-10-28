@@ -30,6 +30,7 @@ import java.util.*;
  *
  * @param <K>
  * @param <V>
+ * @deprecated
  */
 public class SmallMap<K, V> implements Serializable
 {

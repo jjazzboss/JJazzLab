@@ -30,11 +30,10 @@ import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.utilities.api.IntRange;
 
 /**
- * Describe how a standard WbpSource is adapted to a part of a song.
+ * Defines how a standard WbpSource is adapted to a part of a song.
  */
 public class WbpSourceAdaptation
 {
-
     private final WbpSource wbpSource;
     private final SimpleChordSequence simpleChordSequence;
     private float compatibilityScore = Float.NaN;
@@ -111,5 +110,11 @@ public class WbpSourceAdaptation
         float score = wbpSource.getTransposibilityScore(cliCs.getData().getRootNote());  // [0;100] 100 is best
         score = (100 - score) * 0.02f;
         return score;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "wbpsa{" + getBarRange() + "," + getWbpSource().getId() + "}";
     }
 }
