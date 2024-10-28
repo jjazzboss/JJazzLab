@@ -37,7 +37,7 @@ import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.rhythmmusicgeneration.api.CompositeMusicGenerator;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
-import org.jjazz.test.walkingbass.WalkingBassGenerator;
+import org.jjazz.test.walkingbass.generator.WalkingBassGenerator;
 import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythm;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;

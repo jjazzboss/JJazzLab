@@ -66,7 +66,7 @@ final public class ChordType
         ROOT,
         THIRD_OR_FOURTH, // Can't have both in the same time
         FIFTH,
-        SIXTH_OR_SEVENTH, 
+        SIXTH_OR_SEVENTH,
         EXTENSION1, // 9, 11, or 13
         EXTENSION2, // 11 or 13
         EXTENSION3;  // 13
@@ -118,8 +118,7 @@ final public class ChordType
      * @param i7  An integer -1, 0 or 1 that represent the status (flat,natural or sharp) of degree 7.
      * @param i9  An integer -1, 0 or 1 that represent the status (flat,natural or sharp) of degree 9.
      * @param i11 An integer -1, 0 or 1 that represent the status (flat,natural or sharp) of degree 11.
-     * @param i13 An integer -1, 0 or 1 that represent the status (flat,natural or sharp) of degree 13. Use NOT_PRESENT constant if a degree
-     *            is not present.
+     * @param i13 An integer -1, 0 or 1 that represent the status (flat,natural or sharp) of degree 13. Use NOT_PRESENT constant if a degree is not present.
      */
     public ChordType(String b, String e, Family f, int i9, int i3, int i11, int i5, int i13, int i7)
     {
@@ -312,8 +311,7 @@ final public class ChordType
     /**
      * The ordered list of each ChordDegree composing this chord.
      * <p>
-     * Order is ROOT, THIRD or FOURTH, FIFTH, [SIXTH_OR_THIRTEENTH(if==sixth)], [SEVENTH], [NINTH], [ELEVENTH],
-     * [SIXTH_OR_THIRTEENTH(if==extension)].
+     * Order is ROOT, THIRD or FOURTH, FIFTH, [SIXTH_OR_THIRTEENTH(if==sixth)], [SEVENTH], [NINTH], [ELEVENTH], [SIXTH_OR_THIRTEENTH(if==extension)].
      *
      * @return
      */
@@ -369,8 +367,7 @@ final public class ChordType
     /**
      * Find the most probable degree corresponding to relative pitch for this chordtype.
      * <p>
-     * First try to use getDegree(relPitch). If it returns null, make some assumptions based on the chord type to find the most probable
-     * degree.<br>
+     * First try to use getDegree(relPitch). If it returns null, make some assumptions based on the chord type to find the most probable degree.<br>
      * Ex: Cm7, relPitch=Eb=3, then returns THIRD_FLAT.<br>
      * Ex: C7, relPitch=Eb=3, then returns NINTH_SHARP.<br>
      * Ex: C7, relPitch=F=5, then returns FOURTH.<br>
@@ -685,8 +682,8 @@ final public class ChordType
     /**
      * Rely on fitDegreeAdvanced(Degree d, optScales).
      * <p>
-     * If di does not directly correspond to one of these ChordType degrees, make some assumptions, e.g. if di==DegreeIndex.SIXTH_OR_SEVENTH
-     * then try to fit to th seventh degree of this ChordType.
+     * If di does not directly correspond to one of these ChordType degrees, make some assumptions, e.g. if di==DegreeIndex.SIXTH_OR_SEVENTH then try to fit to
+     * th seventh degree of this ChordType.
      *
      * @param di
      * @param optScale Optional, can be null.
@@ -740,13 +737,13 @@ final public class ChordType
     /**
      * Compute how much "similar" is the specified ChordType with this object.
      * <p>
-     * Score is calculated by adding the weights below until a mismatch is found. Identical ChordTypes have a similarity score of 63. For
-     * example C7 and Cm7 have a similarity score=0 (different families). C7 and C9 have a similarity index=32+16+8=56 (same family, same
-     * fifth, same sixth_seventh, but extension1 mismatch).
+     * Score is calculated by adding the weights below until a mismatch is found. Identical ChordTypes (eg C and E, Fm69 and Ebm69) have a similarity score of
+     * 63. For example C7 and Cm7 have a similarity score=0 (different families). C7 and C9 have a similarity index=32+16+8=56 (same family, same fifth, same
+     * sixth_seventh, but extension1 mismatch).
      * <p>
      * Same ChordType.FAMILY:32<br>
      * Same DegreeIndex.FIFTH: 16<br>
-     * Same DegreeIndex.SIXTH_SEVENTH: 8<br>
+     * Same DegreeIndex.SIXTH_SEVENTH: 8<br>        
      * Same DegreeIndex.EXTENSION1: 4<br>
      * Same DegreeIndex.EXTENSION2: 2<br>
      * Same DegreeIndex.EXTENSION3: 1<br>
@@ -757,22 +754,23 @@ final public class ChordType
     public int getSimilarityScore(ChordType ct)
     {
         int res = 0;
-        if (!family.equals(ct.family))
+        if (family.equals(ct.family))
         {
-            return res;
-        }
-        res = 32;
-
-        for (int i = 2; i <= 6; i++)
-        {
-            Degree d = i < degrees.size() ? degrees.get(i) : null;
-            Degree dct = i < ct.degrees.size() ? ct.degrees.get(i) : null;
-            if (!Objects.equals(d, dct))
+            res = 32;
+            int add = 16;
+            for (int i = 2; i <= 6; i++)
             {
-                return res;
+                Degree d = i < degrees.size() ? degrees.get(i) : null;
+                Degree dct = i < ct.degrees.size() ? ct.degrees.get(i) : null;
+                if (!Objects.equals(d, dct))
+                {
+                    break;
+                }
+                res += add;
+                add /= 2;
             }
-            res += 2 ^ (6 - i);
         }
+
         return res;
     }
 
@@ -1006,8 +1004,9 @@ final public class ChordType
     // =============================================================================================
     /**
      * Return true if d equals -1, 0, 1 or NOT_PRESENT
+     *
      * @param d
-     * @return 
+     * @return
      */
     private boolean checkDegree(int d)
     {

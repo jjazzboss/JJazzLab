@@ -22,7 +22,7 @@
  *   Contributor(s): 
  * 
  */
-package org.jjazz.test.walkingbass;
+package org.jjazz.test.walkingbass.generator;
 
 import com.google.common.base.Preconditions;
 import java.util.ArrayList;
@@ -104,7 +104,7 @@ public class SimpleChordSequenceExt extends SimpleChordSequence
     @Override
     public String toString()
     {
-        return "<" + getBarRange() + super.toString() + " usableBars=" + usableBars + ">";
+        return super.toString() + "usableBars=" + usableBars;
     }
 
 }

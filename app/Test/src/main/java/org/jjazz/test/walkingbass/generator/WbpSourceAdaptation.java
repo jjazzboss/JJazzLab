@@ -22,27 +22,40 @@
  *   Contributor(s): 
  * 
  */
-package org.jjazz.test.walkingbass;
+package org.jjazz.test.walkingbass.generator;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
+import org.jjazz.test.walkingbass.WbpSource;
 import org.jjazz.utilities.api.IntRange;
 
 /**
  * Defines how a standard WbpSource is adapted to a part of a song.
+ * <p>
+ * NOTE: Comparable implementation is implemented so that natural order is by descending compatibility score.
  */
-public class WbpSourceAdaptation
+public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
 {
+
+    public static final int MIN_INDIVIDUAL_CHORDTYPE_COMPATIBILITY_SCORE = 56;
+
+    /**
+     *
+     */
+    public record CompatibilityScore(float overall, float ctScore, float trScore)
+            {
+
+    }
     private final WbpSource wbpSource;
     private final SimpleChordSequence simpleChordSequence;
-    private float compatibilityScore = Float.NaN;
+    private CompatibilityScore compatibilityScore;
     private static final Logger LOGGER = Logger.getLogger(WbpSourceAdaptation.class.getSimpleName());
 
     public WbpSourceAdaptation(WbpSource wbpSource, SimpleChordSequence scs)
     {
         this.wbpSource = wbpSource;
         this.simpleChordSequence = scs;
+        computeCompatibilityScore();
     }
 
     public IntRange getBarRange()
@@ -60,61 +73,56 @@ public class WbpSourceAdaptation
         return simpleChordSequence;
     }
 
-    public float getCompatibilityScore()
+    public CompatibilityScore getCompatibilityScore()
     {
-        if (compatibilityScore == Float.NaN)
-        {
-            compatibilityScore = computeCompatibilityScore();
-        }
         return compatibilityScore;
+    }
+
+    /**
+     * Note that natural order is by DESCENDING overall compatibility score.
+     *
+     * @param other
+     * @return
+     */
+    @Override
+    public int compareTo(WbpSourceAdaptation other)
+    {
+        return -Float.compare(getCompatibilityScore().overall(), other.getCompatibilityScore().overall());
     }
 
     // ===================================================================================================
     // Private methods
     // ===================================================================================================
-    public float computeCompatibilityScore()
+    private void computeCompatibilityScore()
     {
-        var ctScore = computeChortTypeCompatibilityScore();
-        var tScore = computeTranspositionCompatibilityScore();
-        var score = ctScore - tScore;
+        // ChordType
+        // Same family=32, fifth=16, seventh/sixth=8, ext1=4; ext2=2, ext3=1
+        // max value=63 if both chordtypes are equal
 
-        LOGGER.log(Level.FINE, "computeCompatibilityScore() ctScore={0} tScore={1} score={2}", new Object[]
-        {
-            ctScore, score, score
-        });
+        float ctScore = simpleChordSequence.getChordTypeSimilarityScore(wbpSource.getSimpleChordSequence(), MIN_INDIVIDUAL_CHORDTYPE_COMPATIBILITY_SCORE);
 
-        return score;
-    }
 
-    /**
-     * Compute a score which indicates how much wbp's chord sequence is suited to scs.
-     * <p>
-     * If score does not reach a minimum viable score, return value is 0.
-     *
-     * @return
-     */
-    public float computeChortTypeCompatibilityScore()
-    {
-        final int MIN_VIABLE_CHORDTYPE_COMPATIBILITY_SCORE = 40;  // same family=32, fifth=16, seventh/sixth=8, ext1=4; ext2=2, ext3=1
-        float score = simpleChordSequence.getChordTypeSimilarityScore(wbpSource.getSimpleChordSequence());
-        if (score < MIN_VIABLE_CHORDTYPE_COMPATIBILITY_SCORE)
-        {
-            score = 0;
-        }
-        return score;
-    }
-
-    public float computeTranspositionCompatibilityScore()
-    {
+        // Transposition
         var cliCs = simpleChordSequence.first();
-        float score = wbpSource.getTransposibilityScore(cliCs.getData().getRootNote());  // [0;100] 100 is best
-        score = (100 - score) * 0.02f;
-        return score;
+        float trScore = wbpSource.getTransposibilityScore(cliCs.getData().getRootNote()) * 0.05f;  // [0;5] 5 is best
+
+
+        // Overall
+        float overall = ctScore + trScore;
+
+        compatibilityScore = new CompatibilityScore(overall, ctScore, trScore);
+    }
+
+
+    public String toString2()
+    {
+        return "wbpsa{" + getBarRange() + " " + getWbpSource() + "}";
     }
 
     @Override
     public String toString()
     {
-        return "wbpsa{" + getBarRange() + "," + getWbpSource().getId() + "}";
+        var wbps = getWbpSource();
+        return "wbpsa{" + compatibilityScore + " " + getBarRange() + " " + wbps.getId() + " " + wbps.getSimpleChordSequence() + "}";
     }
 }

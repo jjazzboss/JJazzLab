@@ -177,8 +177,8 @@ public class SimpleChordSequence extends ChordSequence
      * A String which combines the chord sequence size, the relative chord root ascending intervals+durations, to allow a quick comparison between 2
      * SimpleChordSequences.
      * <p>
-     * If 2 root profiles of 2 SimpleChordSequences are equal, it means that the 2 ChordSequences have the same size, same number of ChordSymbols at
-     * the same position, and that the root relative root ascending intervals are equals, like for e.g. |Dm|G7|C7M|%| and |E7|Am|Dm|%|.
+     * If 2 root profiles of 2 SimpleChordSequences are equal, it means that the 2 ChordSequences have the same size, same number of ChordSymbols at the same
+     * position, and that the root relative root ascending intervals are equals, like for e.g. |Dm|G7|C7M|%| and |E7|Am|Dm|%|.
      * <p>
      * Example: |Dm|G7|Ab7M|%| will produce "s4n3f0:a4i5:a4i1"  <br>
      * "s4" = size is 4 bars<br>
@@ -254,15 +254,17 @@ public class SimpleChordSequence extends ChordSequence
     /**
      * Compute a score which indicates how similar are the chord types of cSeq and this object.
      * <p>
+     * Uses the average of ChordType.getSimilarityIndex() run on each individual chord pair.
      *
-     * @param cSeq Must have the same number of chord symbols than this Simple ChordSequence.
-     * @return The average of ChordType.getSimilarityIndex() run on each chord.
+     * @param cSeq                    Must have the same number (&gt;0) of chord symbols than this SimpleChordSequence.
+     * @param minChordSimilarityScore If compatibility score for an individual chord is &lt; this value, method will return 0 whatever the other chords.
+     * @return
      * @see org.jjazz.harmony.api.ChordType#getSimilarityScore(org.jjazz.harmony.api.ChordType)
      */
-    public float getChordTypeSimilarityScore(SimpleChordSequence cSeq)
+    public float getChordTypeSimilarityScore(SimpleChordSequence cSeq, float minChordSimilarityScore)
     {
         int size = size();
-        checkArgument(cSeq.size() == size, "cSeq=%s this=%s", cSeq, this);
+        checkArgument(size > 0 && cSeq.size() == size, "cSeq=%s this=%s", cSeq, this);
         float res = 0;
         var it1 = this.iterator();
         var it2 = cSeq.iterator();
@@ -270,7 +272,13 @@ public class SimpleChordSequence extends ChordSequence
         {
             var cliCs1 = it1.next();
             var cliCs2 = it2.next();
-            res += cliCs1.getData().getChordType().getSimilarityScore(cliCs2.getData().getChordType());
+            var chordScore = cliCs1.getData().getChordType().getSimilarityScore(cliCs2.getData().getChordType());
+            if (chordScore < minChordSimilarityScore)
+            {
+                res = 0;
+                break;
+            }
+            res += chordScore;
         }
         return res / size;
     }

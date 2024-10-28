@@ -256,7 +256,7 @@ public class ChordSequence extends TreeSet<CLI_ChordSymbol> implements Comparabl
     @Override
     public String toString()
     {
-        return "<" + barRange + super.toString() + ">";
+        return "<" + barRange + "-" + super.toString() + ">";
     }
 
     // ====================================================================================

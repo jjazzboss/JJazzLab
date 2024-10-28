@@ -54,7 +54,7 @@ public class WbpSource extends Wbp
         checkArgument(phrase.getSizeInBars() == 1 || phrase.getSizeInBars() == 2 || phrase.getSizeInBars() == 4, "phrase=%s", phrase);
         checkArgument(firstNoteBeatShift <= 0, "firstNoteBeatShift=%s", firstNoteBeatShift);
         this.sessionId = session.getId();
-        this.id = sessionId + ";" + sessionBarFrom + ";" + phrase.getSizeInBars();
+        this.id = sessionId + "#fr=" + sessionBarFrom + "#sz=" + phrase.getSizeInBars();
         this.sessionBarOffset = sessionBarFrom;
         this.tags = session.getTags();
         this.firstNoteBeatShift = firstNoteBeatShift;
@@ -79,7 +79,7 @@ public class WbpSource extends Wbp
     {
         return sessionId;
     }
-    
+
     public String getId()
     {
         return id;
@@ -227,11 +227,10 @@ public class WbpSource extends Wbp
      */
     public SizedPhrase getTransposedPhrase(Note destChordRoot)
     {
-
         var tr = mapDestChordRootTransposibility.get(destChordRoot.getRelativePitch());
         if (tr == null)
         {
-            getTransposibilityScore(destChordRoot); // This will update mapDestChordRootTransposibility to get transposition direction
+            getTransposibilityScore(destChordRoot);     // This will update mapDestChordRootTransposibility to get transposition direction
             tr = mapDestChordRootTransposibility.get(destChordRoot.getRelativePitch());
             assert tr != null;
         }
@@ -243,6 +242,7 @@ public class WbpSource extends Wbp
         {
             transpose, p
         });
+
         res.add(p);
 
         return res;
