@@ -405,9 +405,8 @@ public class SongSequenceBuilder
             track0.add(me);
         }
 
-        
-        // ========== RhythmVoice tracks settings =============
 
+        // ========== RhythmVoice tracks settings =============
         // Remove elements from muted tracks (don't remove the muted tracks because it would impact mapRvTrack)
         if (!ignoreMidiMixMute)
         {
@@ -443,7 +442,31 @@ public class SongSequenceBuilder
                 me = new MidiEvent(mm, 0);
                 track.add(me);
             }
+
+
+            // FIX Issue #496 (export to mp3 with FluidSynth synth): at tick 0, make sure that note MidiEvents are *after* the program change MidiEvents
+            List<MidiEvent> tick0Notes = new ArrayList<>();
+            for (int j = 0; j < track.size(); j++)
+            {
+                me = track.get(j);
+                if (me.getTick() > 0)
+                {
+                    break;
+                }
+                if (MidiUtilities.getNoteOnShortMessage(me.getMessage()) != null || MidiUtilities.getNoteOffShortMessage(me.getMessage()) != null)
+                {
+                    tick0Notes.add(me);
+                }
+            }
+            for (var note0: tick0Notes)
+            {
+                track.remove(note0);
+                track.add(new MidiEvent(note0.getMessage(), 0));
+            }
+
         }
+
+
     }
 
 
@@ -871,7 +894,6 @@ public class SongSequenceBuilder
 
 
             // The phrase to modify
-
             Phrase p = rvPhrases.get(rvDrums);
 
             // Make it a SizedPhrase only on the relevant slice and transform it
