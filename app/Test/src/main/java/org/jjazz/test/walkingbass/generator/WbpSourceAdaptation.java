@@ -96,10 +96,9 @@ public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
     private void computeCompatibilityScore()
     {
         // ChordType
-        // Same family=32, fifth=16, seventh/sixth=8, ext1=4; ext2=2, ext3=1
         // max value=63 if both chordtypes are equal
-
-        float ctScore = simpleChordSequence.getChordTypeSimilarityScore(wbpSource.getSimpleChordSequence(), MIN_INDIVIDUAL_CHORDTYPE_COMPATIBILITY_SCORE);
+        // Same 3rd=32, +fifth=48, +seventh/sixth=56, +ext1=60; +ext2=62        
+        float ctScore = simpleChordSequence.getChordTypeSimilarityScore(wbpSource.getSimpleChordSequence(), MIN_INDIVIDUAL_CHORDTYPE_COMPATIBILITY_SCORE, true);
 
 
         // Transposition

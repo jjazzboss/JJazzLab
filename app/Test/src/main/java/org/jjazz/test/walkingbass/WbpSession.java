@@ -49,13 +49,14 @@ public class WbpSession extends Wbp
     /**
      * Extract all the possible WbpSources from this session.
      * <p>
-     * We extract all the possible 1/2/4-bar WbpSources. So for one 4-bar phrase the method generates 8 WbpSource objects: 1 * 4-bar + 3 * 2-bar + 4 * 1-bar.
+     * We extract all the possible 1/2/4-bar WbpSources. So for one 4-bar phrase the method can generate 8 WbpSource objects: 1 * 4-bar + 3 * 2-bar + 4 * 1-bar.
      * <p>
      *
-     * @param disallowNonRootStartNote If true a WbpSource is not extracted if its first note is different from the chord root note.
+     * @param disallowNonRootStartNote     If true a WbpSource is not extracted if its first note is different from the chord root note.
+     * @param disallowNonChordToneLastNote If true a WbpSource is not extracted if its last note is note a chord note (ie no transition note).
      * @return
      */
-    public List<WbpSource> extractWbpSources(boolean disallowNonRootStartNote)
+    public List<WbpSource> extractWbpSources(boolean disallowNonRootStartNote, boolean disallowNonChordToneLastNote)
     {
         List<WbpSource> res = new ArrayList<>();
 
@@ -66,9 +67,11 @@ public class WbpSession extends Wbp
         for (int srcSize = 4; srcSize >= 1; srcSize /= 2)
         {
             for (int bar = 0; bar < sessionSizeInBars - srcSize + 1; bar++)
-            {                
+            {
                 WbpSource wbpSource = getWbpSource(bar, srcSize);
-                if (!disallowNonRootStartNote || wbpSource.isFirstNoteChordRoot())
+                boolean bFirst = !disallowNonRootStartNote || wbpSource.isFirstNoteChordRoot();
+                boolean bLast = !disallowNonChordToneLastNote || wbpSource.isLastNoteChordTone();
+                if (bFirst && bLast)
                 {
                     res.add(wbpSource);
                 }

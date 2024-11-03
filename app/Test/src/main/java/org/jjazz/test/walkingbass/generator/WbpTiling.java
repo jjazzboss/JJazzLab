@@ -33,7 +33,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
 import org.jjazz.utilities.api.IntRange;
-import org.jjazz.utilities.api.Utilities;
 
 /**
  * Which WbpSourceAdaptations (various sizes) cover which usable bars of a SimpleChordSequenceExt.
@@ -42,6 +41,7 @@ import org.jjazz.utilities.api.Utilities;
 public class WbpTiling
 {
 
+    public static final int MAX_NB_BEST_ADAPTATIONS = 5;
     private final SimpleChordSequenceExt simpleChordSequenceExt;
     private final TreeMap<Integer, WbpSourceAdaptation> mapBarWbpsa;
     private static final Logger LOGGER = Logger.getLogger(WbpTiling.class.getSimpleName());
@@ -70,7 +70,6 @@ public class WbpTiling
     public void tile()
     {
 
-        final int MAX_NB_BEST_ADAPTATIONS = 4;
 
         // For each bar, get the most compatible 4-bar WbpSources
         var store4 = new BestWbpsaStore(simpleChordSequenceExt, simpleChordSequenceExt.getUsableBars(), 4, MAX_NB_BEST_ADAPTATIONS);

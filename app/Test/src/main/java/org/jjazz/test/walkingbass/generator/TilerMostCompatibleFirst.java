@@ -51,73 +51,102 @@ public class TilerMostCompatibleFirst
     }
 
     /**
-     * Strategy is to place the most compatible WbpSourceAdaptations first, then continue with remaining WbpSourceAdaptations, until it's not possible to tile
-     * any remaining WbpSourceAdatation from bestWbpsas.<p>
+     * Place the most compatible WbpSourceAdaptations first, then continue with remaining WbpSourceAdaptations, until it's not possible to tile any remaining
+     * WbpSourceAdatation from bestWbpsas.<p>
      * <p>
      */
     public void tile()
     {
-        // Start with the best adaptations
-        List<WbpSourceAdaptation> wbpsasRank0OrderedByScore = bWpsaStore.getWbpSourceAdaptationsRanked(0);
-        Collections.sort(wbpsasRank0OrderedByScore);        // Descending score
-        for (WbpSourceAdaptation wbpsa : wbpsasRank0OrderedByScore)
+        resetWbpSourceCount();
+        int countLimit = 1;
+        for (int rank = 0; rank < WbpTiling.MAX_NB_BEST_ADAPTATIONS; rank++)
         {
-            if (wbpsa == null)
+            List<WbpSourceAdaptation> wbpsasOrderedByScore = bWpsaStore.getWbpSourceAdaptationsRanked(rank);
+            Collections.sort(wbpsasOrderedByScore);         // Descending score
+            for (WbpSourceAdaptation wbpsa : wbpsasOrderedByScore)
             {
-                continue;
+                if (wbpsa == null)
+                {
+                    continue;
+                }
+                WbpSource wbpSource = wbpsa.getWbpSource();
+                if (tiling.isUsableAndFree(wbpsa.getBarRange()) && getWbpSourceCount(wbpSource) < countLimit)
+                {
+                    tiling.add(wbpsa);
+                    increaseWbpSourceCount(wbpSource);
+                }
             }
-            WbpSource wbpSource = wbpsa.getWbpSource();
-            if (tiling.isUsableAndFree(wbpsa.getBarRange()) && !usedWbpSourceMoreThan(wbpSource, 0))
+        }
+
+        if (!tiling.isCompletlyTiled())
+        {
+            resetWbpSourceCount();
+            countLimit = 3;
+            for (int rank = 0; rank < WbpTiling.MAX_NB_BEST_ADAPTATIONS; rank++)
             {
-                tiling.add(wbpsa);
-                increaseWbpSourceCount(wbpSource);
+                List<WbpSourceAdaptation> wbpsasOrderedByScore = bWpsaStore.getWbpSourceAdaptationsRanked(rank);
+                Collections.sort(wbpsasOrderedByScore);         // Descending score
+                for (WbpSourceAdaptation wbpsa : wbpsasOrderedByScore)
+                {
+                    if (wbpsa == null)
+                    {
+                        continue;
+                    }
+                    WbpSource wbpSource = wbpsa.getWbpSource();
+                    if (tiling.isUsableAndFree(wbpsa.getBarRange()) && getWbpSourceCount(wbpSource) == countLimit)
+                    {
+                        tiling.add(wbpsa);
+                        increaseWbpSourceCount(wbpSource);
+                    }
+                }
             }
         }
         
-        // 2nd best adaptations
-        List<WbpSourceAdaptation> wbpsasRank1OrderedByScore = bWpsaStore.getWbpSourceAdaptationsRanked(1);
-        Collections.sort(wbpsasRank1OrderedByScore);
-        for (WbpSourceAdaptation wbpsa : wbpsasRank1OrderedByScore)
+           if (!tiling.isCompletlyTiled())
         {
-            if (wbpsa == null)
+            resetWbpSourceCount();
+            countLimit = 1000;
+            for (int rank = 0; rank < WbpTiling.MAX_NB_BEST_ADAPTATIONS; rank++)
             {
-                continue;
-            }
-            WbpSource wbpSource = wbpsa.getWbpSource();
-            if (tiling.isUsableAndFree(wbpsa.getBarRange()) && !usedWbpSourceMoreThan(wbpSource, 3))
-            {
-                tiling.add(wbpsa);
-                increaseWbpSourceCount(wbpSource);
-            }
-        }
-        
-        // 3rd best adaptations
-        List<WbpSourceAdaptation> wbpsasRank2OrderedByScore = bWpsaStore.getWbpSourceAdaptationsRanked(2);
-        Collections.sort(wbpsasRank2OrderedByScore);
-        for (WbpSourceAdaptation wbpsa : wbpsasRank2OrderedByScore)
-        {
-            if (wbpsa == null)
-            {
-                continue;
-            }
-            WbpSource wbpSource = wbpsa.getWbpSource();
-            if (tiling.isUsableAndFree(wbpsa.getBarRange()) && !usedWbpSourceMoreThan(wbpSource, 5))
-            {
-                tiling.add(wbpsa);
-                increaseWbpSourceCount(wbpSource);
+                List<WbpSourceAdaptation> wbpsasOrderedByScore = bWpsaStore.getWbpSourceAdaptationsRanked(rank);
+                Collections.sort(wbpsasOrderedByScore);         // Descending score
+                for (WbpSourceAdaptation wbpsa : wbpsasOrderedByScore)
+                {
+                    if (wbpsa == null)
+                    {
+                        continue;
+                    }
+                    WbpSource wbpSource = wbpsa.getWbpSource();
+                    if (tiling.isUsableAndFree(wbpsa.getBarRange()) && getWbpSourceCount(wbpSource) == countLimit)
+                    {
+                        tiling.add(wbpsa);
+                        increaseWbpSourceCount(wbpSource);
+                    }
+                }
             }
         }
     }
 
-    private boolean usedWbpSourceMoreThan(WbpSource wbpSource, int nbUses)
+    private void resetWbpSourceCount()
     {
-        java.lang.Integer count = mapSourceCount.get(wbpSource);
-        return count == null ? false : count > nbUses;
+        mapSourceCount.clear();
+    }
+
+    /**
+     * Get how many times a WbpSource has been used.
+     *
+     * @param wbpSource
+     * @return
+     */
+    private int getWbpSourceCount(WbpSource wbpSource)
+    {
+        Integer count = mapSourceCount.get(wbpSource);
+        return count == null ? 0 : count;
     }
 
     private void increaseWbpSourceCount(WbpSource wbpSource)
     {
-        java.lang.Integer count = mapSourceCount.get(wbpSource);
+        Integer count = mapSourceCount.get(wbpSource);
         if (count == null)
         {
             count = 0;

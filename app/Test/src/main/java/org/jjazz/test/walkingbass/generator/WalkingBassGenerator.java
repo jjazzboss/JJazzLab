@@ -20,6 +20,7 @@ import org.jjazz.rhythm.api.RhythmVoiceDelegate;
 import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Intensity;
 import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Variation;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
+import org.jjazz.test.walkingbass.WbpDatabase;
 
 /**
  * Walking bass generator based on pre-recorded patterns from WbpDatabase.
@@ -82,6 +83,8 @@ public class WalkingBassGenerator implements MusicGenerator
         // System.setProperty(NoteEvent.SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT, "[%1$s p=%2$.1f d=%3$.1f]");
         System.setProperty(NoteEvent.SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT, "%1$s");
         // WbpDatabase.getInstance().dump();
+        WbpDatabase.getInstance().checkConsistency();
+        
         LOGGER.log(Level.SEVERE, "generateMusic() -- rhythm={0} contextChordSequence={1}", new Object[]
         {
             rhythm.getName(), songChordSequence
@@ -182,8 +185,8 @@ public class WalkingBassGenerator implements MusicGenerator
         tiling.tile();
         if (!tiling.isCompletlyTiled())
         {
-            LOGGER.log(Level.SEVERE, "getBassPhrase() tiling is NOT complete, aborted: tiling={0}", tiling.toMultiLineString());
-            return res;
+            LOGGER.log(Level.SEVERE, "getBassPhrase() =============== tiling is NOT complete, aborted: tiling={0}", tiling.toMultiLineString());
+            // return res;
         }
 
         // Transpose WbpSources to target phrases

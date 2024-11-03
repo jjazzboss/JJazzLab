@@ -6,7 +6,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.harmony.api.Chord;
 import org.jjazz.harmony.api.Note;
+import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
@@ -260,6 +263,18 @@ public class WbpSource extends Wbp
         return b;
     }
 
+    /**
+     * Check if the last note of the phrase is a chord tone.
+     *
+     * @return
+     */
+    public boolean isLastNoteChordTone()
+    {
+        Chord lastChord = getSimpleChordSequence().last().getData().getChord();
+        int lastRelPitch = getSizedPhrase().last().getRelativePitch();
+        boolean b = lastChord.indexOfRelativePitch(lastRelPitch) != -1;
+        return b;
+    }
 
     public boolean hasTag(String tag)
     {

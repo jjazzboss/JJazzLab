@@ -95,7 +95,7 @@ final public class ChordType
     /**
      * Chord degrees that make this chord type
      */
-    private final ArrayList<Degree> degrees = new ArrayList<>();
+    private final List<Degree> degrees = new ArrayList<>();
 
     /**
      * The corresponding Chord object (redundant with d0 d3 etc...).
@@ -108,17 +108,20 @@ final public class ChordType
     private String degreeString;
 
     /**
-     * Constructed from a factory.
+     * Build a ChordType.
+     * <p>
+     * Use NOT_PRESENT constant if a degree is not present.
      *
      * @param b   Base of the chord type, e.g. "m7" for "m79"
      * @param e   Extension of the chord type, e.g. "9" for "m79"
-     * @param f   An integer representing the family to which this chordtype belongs to.
-     * @param i3  An integer -1, 0 or 1 that represent the status (flat,natural or sharp) of degree 3.
-     * @param i5  An integer -1, 0 or 1 that represent the status (flat,natural or sharp) of degree 5.
-     * @param i7  An integer -1, 0 or 1 that represent the status (flat,natural or sharp) of degree 7.
-     * @param i9  An integer -1, 0 or 1 that represent the status (flat,natural or sharp) of degree 9.
-     * @param i11 An integer -1, 0 or 1 that represent the status (flat,natural or sharp) of degree 11.
-     * @param i13 An integer -1, 0 or 1 that represent the status (flat,natural or sharp) of degree 13. Use NOT_PRESENT constant if a degree is not present.
+     * @param f   The family to which this chordtype belongs to.
+     * @param i3  An integer -1, 0 that represents the status (flat,natural) of degree 3.
+     * @param i5  An integer -1, 0 or 1 that represents the status (flat,natural or sharp) of degree 5.
+     * @param i7  An integer -1, 0 that represents the status (flat,natural) of degree 7.
+     * @param i9  An integer -1, 0 or 1 that represents the status (flat,natural or sharp) of degree 9.
+     * @param i11 An integer 0 or 1 that represents the status (natural or sharp) of degree 11.
+     * @param i13 An integer -1, 0 that represents the status (flat,natural) of degree 13.
+     *
      */
     public ChordType(String b, String e, Family f, int i9, int i3, int i11, int i5, int i13, int i7)
     {
@@ -205,14 +208,9 @@ final public class ChordType
         }
 
         // Build degreeString
-        StringBuilder sb = new StringBuilder("[");
-        for (Degree d : degrees)
-        {
-            sb.append(d.toStringShort()).append(" ");
-        }
-        sb.deleteCharAt(sb.length() - 1);
-        sb.append("]");
-        degreeString = sb.toString();
+        degreeString = degrees.stream()
+                .map(d -> d.toStringShort())
+                .collect(Collectors.joining(" ", "[", "]"));
     }
 
     /**
@@ -318,6 +316,16 @@ final public class ChordType
     public List<Degree> getDegrees()
     {
         return new ArrayList<>(degrees);
+    }
+
+    /**
+     * The number of degrees used by this ChordType.
+     *
+     * @return A value &gt;= 3
+     */
+    public int getNbDegrees()
+    {
+        return degrees.size();
     }
 
     /**
@@ -726,7 +734,7 @@ final public class ChordType
         {
             var resDegrees = getDegrees().stream()
                     .limit(nbMaxDegrees)
-                    .collect(Collectors.toList());
+                    .toList();
             res = ChordTypeDatabase.getDefault().getChordType(resDegrees);
             assert res != null : "this=" + this + " resDegrees=" + resDegrees;
         }
@@ -737,38 +745,56 @@ final public class ChordType
     /**
      * Compute how much "similar" is the specified ChordType with this object.
      * <p>
-     * Score is calculated by adding the weights below until a mismatch is found. Identical ChordTypes (eg C and E, Fm69 and Ebm69) have a similarity score of
-     * 63. For example C7 and Cm7 have a similarity score=0 (different families). C7 and C9 have a similarity index=32+16+8=56 (same family, same fifth, same
-     * sixth_seventh, but extension1 mismatch).
+     * Equal ChordTypes have a score of 63. Score is reduced when a ChordType Degree differs, according to the table below:
      * <p>
-     * Same ChordType.FAMILY:32<br>
-     * Same DegreeIndex.FIFTH: 16<br>
-     * Same DegreeIndex.SIXTH_SEVENTH: 8<br>        
-     * Same DegreeIndex.EXTENSION1: 4<br>
-     * Same DegreeIndex.EXTENSION2: 2<br>
-     * Same DegreeIndex.EXTENSION3: 1<br>
+     * DegreeIndex.THIRD: -32 (a score &gt;=32 means third matches)<br>
+     * DegreeIndex.FIFTH: -16 (a score &gt;=48 means third+fifth match) <br>
+     * DegreeIndex.SIXTH_SEVENTH: -8 (a score &gt;=56 means third+fifth+six_seventh match)<br>
+     * DegreeIndex.EXTENSION1: -4 (a score &gt;=60 means third+fifth+six_seventh match+ext1 match)<br>
+     * DegreeIndex.EXTENSION2: -2 (a score &gt;=62 means third+fifth+six_seventh match+ext1+ext2 match)<br>
+     * DegreeIndex.EXTENSION3: -1 (a score ==63 means equal ChordTypes)<br>
+     * <p>
+     * If acceptAbsentDegrees is true, we do not reduce the score if one of the ChordType uses a specific Degree but not the other (e.g C and C7 are considered
+     * equal).
+     * <p>
+     * Special handling: 6 and 7M are considered similar.
+     * <p>
+     * Examples:<br>
+     * - C and E, Fm69 and Ebm69 = 63. This is the max value for identical ChordTypes.<br>
+     * - C7 and Cm6 = 63-32-8 = 23 <br>
+     * - C7 and Cm69 = 63-32-8 = 23 if acceptAbsentDegrees==true , or 63-32-8-4 = 19 if acceptAbsentDegrees==false<br>
+     * - C7 and C9 = 63 if acceptAbsentDegrees==true , or 63-4 = 59 if acceptAbsentDegrees==false<br>
+     * - C and F13b9 = 63 if acceptAbsentDegrees==true, or 63-8-4-2 = 49 if acceptAbsentDegrees==false <br>
+     * - Cm6 and Cm7m = 63<br>
+     * - Cm6 and Cm7 = 55<br>
+     *
      *
      * @param ct
+     * @param acceptAbsentDegrees If true C and C9 will have same similarity score than C9 and C9 = 63. If false C and C9 will have a score of 48 (32+16).
      * @return
      */
-    public int getSimilarityScore(ChordType ct)
+    public int getSimilarityScore(ChordType ct, boolean acceptAbsentDegrees)
     {
-        int res = 0;
-        if (family.equals(ct.family))
+        int res = 63;
+        int weight = 32;
+
+        for (int i = 1; i <= 6; i++)
         {
-            res = 32;
-            int add = 16;
-            for (int i = 2; i <= 6; i++)
+            Degree d = i < degrees.size() ? degrees.get(i) : null;
+            Degree dct = i < ct.degrees.size() ? ct.degrees.get(i) : null;
+            if (!Objects.equals(d, dct))
             {
-                Degree d = i < degrees.size() ? degrees.get(i) : null;
-                Degree dct = i < ct.degrees.size() ? ct.degrees.get(i) : null;
-                if (!Objects.equals(d, dct))
+                if (((d == null || dct == null) && acceptAbsentDegrees)
+                        || (d == Degree.SIXTH_OR_THIRTEENTH && dct == Degree.SEVENTH)
+                        || (dct == Degree.SIXTH_OR_THIRTEENTH && d == Degree.SEVENTH))
                 {
-                    break;
+                    // Do nothing
+                } else
+                {
+                    res -= weight;
                 }
-                res += add;
-                add /= 2;
             }
+            weight /= 2;
         }
 
         return res;

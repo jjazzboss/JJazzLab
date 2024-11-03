@@ -258,10 +258,11 @@ public class SimpleChordSequence extends ChordSequence
      *
      * @param cSeq                    Must have the same number (&gt;0) of chord symbols than this SimpleChordSequence.
      * @param minChordSimilarityScore If compatibility score for an individual chord is &lt; this value, method will return 0 whatever the other chords.
+     * @param acceptAbsentDegrees     See ChordType.getSimilarityScore()
      * @return
-     * @see org.jjazz.harmony.api.ChordType#getSimilarityScore(org.jjazz.harmony.api.ChordType)
+     * @see org.jjazz.harmony.api.ChordType#getSimilarityScore(org.jjazz.harmony.api.ChordType, boolean)
      */
-    public float getChordTypeSimilarityScore(SimpleChordSequence cSeq, float minChordSimilarityScore)
+    public float getChordTypeSimilarityScore(SimpleChordSequence cSeq, float minChordSimilarityScore, boolean acceptAbsentDegrees)
     {
         int size = size();
         checkArgument(size > 0 && cSeq.size() == size, "cSeq=%s this=%s", cSeq, this);
@@ -272,7 +273,7 @@ public class SimpleChordSequence extends ChordSequence
         {
             var cliCs1 = it1.next();
             var cliCs2 = it2.next();
-            var chordScore = cliCs1.getData().getChordType().getSimilarityScore(cliCs2.getData().getChordType());
+            var chordScore = cliCs1.getData().getChordType().getSimilarityScore(cliCs2.getData().getChordType(), acceptAbsentDegrees);
             if (chordScore < minChordSimilarityScore)
             {
                 res = 0;

@@ -248,7 +248,7 @@ public class Chord implements Cloneable
     }
 
     /**
-     * Find a MidiNote within the Chord whose pitch equals p.
+     * Find a note within the Chord whose pitch equals p.
      *
      * @param p Pitch to search for.
      *
@@ -279,37 +279,32 @@ public class Chord implements Cloneable
     }
 
     /**
-     * Find a MidiNote within the MidiChord whose pitch relatively equals p, i.e independently of the octave (module 12 semitons).
+     * Find a note whose pitch relatively equals p, i.e independently of the octave (module 12 semitons).
      *
-     * @param p Relative pitch to search for, 0-11.
+     * @param relPitch Relative pitch to search for, 0-11.
      *
      * @return The index of the MidiNote if found, otherwise -1.
      */
-    public int indexOfRelativePitch(int p)
+    public int indexOfRelativePitch(int relPitch)
     {
-        if ((p < 0) || (p > 11))
+        if ((relPitch < 0) || (relPitch > 11))
         {
-            throw new IllegalArgumentException("p=" + p);
+            throw new IllegalArgumentException("relPitch=" + relPitch);
         }
-
+        int res = -1;
         for (int i = 0; i < notes.size(); i++)
         {
-            int pitch = notes.get(i).getRelativePitch();
-
-            if (pitch > p)
+            if (notes.get(i).getRelativePitch() == relPitch)
             {
-                break;
-            } else if (pitch == p)
-            {
-                return i;
+                res = i;
             }
         }
 
-        return -1;
+        return res;
     }
 
     /**
-     * Return the pitch of the highest note of the chord, 0 if no notes in the MidiChord.
+     * Return the pitch of the highest note of the chord, 0 if no notes in the chord.
      *
      * @return
      */
@@ -327,7 +322,7 @@ public class Chord implements Cloneable
     }
 
     /**
-     * Return the pitch of the lowest note of the chord, 0 if no notes in the MidiChord.
+     * Return the pitch of the lowest note of the chord, 0 if no notes in the chord.
      *
      * @return
      */

@@ -161,13 +161,13 @@ public class BestWbpsaStore
             if (isUsable(br))
             {
                 SimpleChordSequence subSeq = simpleChordSequenceExt.subSequence(br, true);
-                List<WbpSource> rpSources = getRootProfileCompatibleWbpSources(subSeq);
-                for (WbpSource rpSource : rpSources)
+                List<WbpSource> rpWbpSources = getRootProfileCompatibleWbpSources(subSeq);
+                for (WbpSource wbpSource : rpWbpSources)
                 {
-                    WbpSourceAdaptation wbpsa = new WbpSourceAdaptation(rpSource, subSeq);
+                    WbpSourceAdaptation wbpsa = new WbpSourceAdaptation(wbpSource, subSeq);
                     addIfCompatibleEnough(bar, wbpsa);
                 }
-                if (rpSources.isEmpty())
+                if (rpWbpSources.isEmpty())
                 {
                     LOGGER.log(Level.FINE, "initialize() No {0}-bar rpSources found for {1}", new Object[]
                     {

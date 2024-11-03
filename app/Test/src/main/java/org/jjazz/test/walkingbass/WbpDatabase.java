@@ -1,14 +1,20 @@
 package org.jjazz.test.walkingbass;
 
+import com.google.common.base.Preconditions;
 import static com.google.common.base.Preconditions.checkNotNull;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.MultimapBuilder;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -20,9 +26,11 @@ import javax.sound.midi.Sequence;
 import javax.sound.midi.Track;
 import org.jjazz.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
+import org.jjazz.harmony.api.ChordType;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.harmony.api.TimeSignature;
+import org.jjazz.harmony.spi.ChordTypeDatabase;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.phrase.api.Phrase;
@@ -53,6 +61,7 @@ public class WbpDatabase
     private final List<WbpSession> wbpSessions;
     private final List<WbpSource> wbpSources;
     private final Map<String, WbpSource> mapIdWbpSource;
+    private final Multimap<ChordType, WbpSource> mmapSimplifiedChordTypeOneBarWbpSource;
     private final Map<KeyablePredicate<?>, List<WbpSource>> mapFilterSources = new HashMap<>();
 
     private static final Logger LOGGER = Logger.getLogger(WbpDatabase.class.getSimpleName());
@@ -74,9 +83,12 @@ public class WbpDatabase
         wbpSessions = loadWbpSessionsFromMidiFile(MIDI_FILE_RESOURCE_PATH, TimeSignature.FOUR_FOUR);
         wbpSources = new ArrayList<>();
         mapIdWbpSource = new HashMap<>();
+        mmapSimplifiedChordTypeOneBarWbpSource = MultimapBuilder.hashKeys().arrayListValues().build();
+
+
         for (var wbpSession : wbpSessions)
         {
-            var wbps = wbpSession.extractWbpSources(true);
+            var wbps = wbpSession.extractWbpSources(true, true);
             for (var wbpSource : wbps)
             {
                 var old = mapIdWbpSource.put(wbpSource.getId(), wbpSource);
@@ -85,6 +97,11 @@ public class WbpDatabase
                     throw new IllegalStateException("Duplicate WbpSource.id found: wbpSource=" + wbpSource + " old=" + old);
                 }
                 wbpSources.add(wbpSource);
+                if (wbpSource.getBarRange().size() == 1)
+                {
+                    var ct = simplifyChordType(wbpSource.getSimpleChordSequence().first().getData().getChordType());
+                    mmapSimplifiedChordTypeOneBarWbpSource.put(ct, wbpSource);
+                }
             }
         }
     }
@@ -101,6 +118,29 @@ public class WbpDatabase
     }
 
     /**
+     * Perform various checks on the database.
+     *
+     */
+    public void checkConsistency()
+    {
+        // All main ChordTypes should have at least a 1-bar WbpSource
+        ChordTypeDatabase ctdb = ChordTypeDatabase.getDefault();
+        Set<ChordType> simplifiedCts = new HashSet<>();
+        for (var ct : ctdb.getChordTypes())
+        {
+            simplifiedCts.add(simplifyChordType(ct));
+        }
+        for (var ct : simplifiedCts)
+        {
+            var wbps = getWbpSourcesOneBar(ct);
+            if (wbps.isEmpty())
+            {
+                LOGGER.log(Level.SEVERE, "checkConsistency() No one-bar WbpSource found for ct={0}", ct);
+            }
+        }
+    }
+
+    /**
      * Get the WbpSources which are nbBars long.
      * <p>
      * Results are cached.
@@ -113,6 +153,19 @@ public class WbpDatabase
         Predicate<WbpSource> tester = wbps -> wbps.getBarRange().size() == nbBars;
         var dbTester = new KeyablePredicate(String.valueOf(nbBars), tester);
         return getWbpSources(dbTester);
+    }
+
+    /**
+     * Get the 1-bar WbpSources which uses the specified basic ChordType.
+     * <p>
+     *
+     * @param basicChordType Can not have more than 4 degrees
+     * @return
+     */
+    public List<WbpSource> getWbpSourcesOneBar(ChordType basicChordType)
+    {
+        Preconditions.checkArgument(basicChordType.getNbDegrees() <= 4, "basicChordType=%s", basicChordType);
+        return (List) mmapSimplifiedChordTypeOneBarWbpSource.get(basicChordType);
     }
 
     /**
@@ -393,6 +446,11 @@ public class WbpDatabase
         }
 
         return cSeq;
+    }
+
+    private ChordType simplifyChordType(ChordType ct)
+    {
+        return ct.getSimplified(4);
     }
 
 
