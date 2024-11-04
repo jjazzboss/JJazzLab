@@ -158,6 +158,13 @@ public class SimpleChordSequence extends ChordSequence
         return startBarPosInBeats + relPosInBeats;
     }
 
+    /**
+     * Remove successive identical chord symbols.
+     */
+    public void removeDuplicateChords()
+    {
+        
+    
 
     /**
      * Overridden to return a SimpleChordSequence.

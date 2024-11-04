@@ -6,10 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.harmony.api.Chord;
 import org.jjazz.harmony.api.Note;
-import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
@@ -47,14 +45,14 @@ public class WbpSource extends Wbp
      * @param session            The session from which this source phrase comes.
      * @param sessionBarFrom     The bar index in the session phrase from which this source phrase comes
      * @param cSeq
-     * @param phrase             Size must be 1, 2 or 4 bars.
+     * @param phrase             Size must be between 1 and 4 bars
      * @param firstNoteBeatShift A 0 or negative beat value. A phrase note starting at 0 should be shifted with this value.
      * @param targetNote
      */
     public WbpSource(WbpSession session, int sessionBarFrom, SimpleChordSequence cSeq, SizedPhrase phrase, float firstNoteBeatShift, Note targetNote)
     {
         super(cSeq, phrase, targetNote);
-        checkArgument(phrase.getSizeInBars() == 1 || phrase.getSizeInBars() == 2 || phrase.getSizeInBars() == 4, "phrase=%s", phrase);
+        checkArgument(phrase.getSizeInBars() >= 1 && phrase.getSizeInBars() <= 4, "phrase=%s", phrase);
         checkArgument(firstNoteBeatShift <= 0, "firstNoteBeatShift=%s", firstNoteBeatShift);
         this.sessionId = session.getId();
         this.id = sessionId + "#fr=" + sessionBarFrom + "#sz=" + phrase.getSizeInBars();

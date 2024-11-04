@@ -49,7 +49,8 @@ public class WbpSession extends Wbp
     /**
      * Extract all the possible WbpSources from this session.
      * <p>
-     * We extract all the possible 1/2/4-bar WbpSources. So for one 4-bar phrase the method can generate 8 WbpSource objects: 1 * 4-bar + 3 * 2-bar + 4 * 1-bar.
+     * We extract all the possible 1/2/3/4-bar WbpSources. So for one 4-bar session phrase, the method can generate 10 WbpSource objects: 1 * 4-bar + 2 * 3-bar
+     * + 3 * 2-bar + 4 * 1-bar.
      * <p>
      *
      * @param disallowNonRootStartNote     If true a WbpSource is not extracted if its first note is different from the chord root note.
@@ -63,8 +64,7 @@ public class WbpSession extends Wbp
         SizedPhrase sessionPhrase = getSizedPhrase();
         int sessionSizeInBars = sessionPhrase.getSizeInBars();
 
-        // 4-bar, 2-bar, 1-bar
-        for (int srcSize = 4; srcSize >= 1; srcSize /= 2)
+        for (int srcSize = 1; srcSize <= 4; srcSize++)
         {
             for (int bar = 0; bar < sessionSizeInBars - srcSize + 1; bar++)
             {

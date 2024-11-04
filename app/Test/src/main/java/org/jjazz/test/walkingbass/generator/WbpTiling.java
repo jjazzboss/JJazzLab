@@ -24,6 +24,7 @@
  */
 package org.jjazz.test.walkingbass.generator;
 
+import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -40,25 +41,25 @@ import org.jjazz.utilities.api.IntRange;
  */
 public class WbpTiling
 {
-
+    
     public static final int MAX_NB_BEST_ADAPTATIONS = 5;
     private final SimpleChordSequenceExt simpleChordSequenceExt;
     private final TreeMap<Integer, WbpSourceAdaptation> mapBarWbpsa;
     private static final Logger LOGGER = Logger.getLogger(WbpTiling.class.getSimpleName());
-
-
+    
+    
     public WbpTiling(SimpleChordSequenceExt scs)
     {
         this.simpleChordSequenceExt = scs;
         mapBarWbpsa = new TreeMap<>();
-
+        
     }
-
+    
     public SimpleChordSequenceExt getSimpleChordSequenceExt()
     {
         return simpleChordSequenceExt;
     }
-
+    
     public IntRange getBarRange()
     {
         return simpleChordSequenceExt.getBarRange();
@@ -70,14 +71,27 @@ public class WbpTiling
     public void tile()
     {
 
-
         // For each bar, get the most compatible 4-bar WbpSources
         var store4 = new BestWbpsaStore(simpleChordSequenceExt, simpleChordSequenceExt.getUsableBars(), 4, MAX_NB_BEST_ADAPTATIONS);
         LOGGER.severe("store4:");
         store4.dump();
+        // Tile with this store
         new TilerMostCompatibleFirst(this, store4).tile();
         LOGGER.log(Level.SEVERE, "tile() 4-bar:");
         LOGGER.log(Level.SEVERE, toMultiLineString());
+
+
+        // For each remaining 3-bar zone, get the most compatible 3-bar WbpSource
+        var usableBars3 = getNonTiledBars();
+        if (!usableBars3.isEmpty())
+        {
+            var store3 = new BestWbpsaStore(simpleChordSequenceExt, usableBars3, 3, MAX_NB_BEST_ADAPTATIONS);
+            LOGGER.severe("store3:");
+            store3.dump();
+            new TilerMostCompatibleFirst(this, store3).tile();
+            LOGGER.log(Level.SEVERE, "tile() 3-bar:");
+            LOGGER.log(Level.SEVERE, toMultiLineString());
+        }
 
 
         // For each remaining 2-bar zone, get the most compatible 2-bar WbpSource
@@ -90,7 +104,7 @@ public class WbpTiling
             new TilerMostCompatibleFirst(this, store2).tile();
             LOGGER.log(Level.SEVERE, "tile() 2-bar:");
             LOGGER.log(Level.SEVERE, toMultiLineString());
-
+            
         }
 
 
@@ -217,7 +231,7 @@ public class WbpTiling
         boolean res = true;
         var barRange = getBarRange();
         int bar = barRange.from;
-
+        
         for (var wbpsa : mapBarWbpsa.values())
         {
             var br = wbpsa.getBarRange();
@@ -228,12 +242,12 @@ public class WbpTiling
             }
             bar = br.to + 1;
         }
-
+        
         if (res)
         {
             res = !IntStream.rangeClosed(bar, barRange.to).anyMatch(b -> simpleChordSequenceExt.isUsable(b));
         }
-
+        
         return res;
     }
 
@@ -265,25 +279,26 @@ public class WbpTiling
     /**
      * Get the start bar indexes of zones not covered by a WbpSourceAdaptation.
      *
-     * @param zoneSize Typically 1, 2 or 4 bars.
+     * @param zoneSize 1 to 4 bars
      * @return
      */
     public List<Integer> getUntiledZonesStartBarIndexes(int zoneSize)
     {
+        Preconditions.checkArgument(zoneSize >= 1 && zoneSize <= 4, "zoneSize=%d", zoneSize);
         List<Integer> res = new ArrayList<>();
-
+        
         var nonTiledUsableBars = getNonTiledBars();
-
+        
         if (nonTiledUsableBars.isEmpty())
         {
             return res;
         }
-
+        
         if (zoneSize == 1)
         {
             return nonTiledUsableBars;
         }
-
+        
         for (int i = 0; i <= nonTiledUsableBars.size() - zoneSize; i++)
         {
             int bar = nonTiledUsableBars.get(i);
@@ -302,7 +317,7 @@ public class WbpTiling
                 i += zoneSize - 1;
             }
         }
-
+        
         return res;
     }
 
@@ -321,13 +336,13 @@ public class WbpTiling
         var floorEntry = mapBarWbpsa.floorEntry(barRange.to);
         return floorEntry == null || !floorEntry.getValue().getBarRange().isIntersecting(barRange);
     }
-
+    
     @Override
     public String toString()
     {
         return mapBarWbpsa.toString();
     }
-
+    
     public String toMultiLineString()
     {
         StringBuilder sb = new StringBuilder();
@@ -344,7 +359,7 @@ public class WbpTiling
             }
             sb.append(" ").append(bar).append(": ").append(s).append("\n");
         }
-
+        
         return sb.toString();
     }
 

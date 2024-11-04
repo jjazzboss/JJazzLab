@@ -110,7 +110,7 @@ public class BestWbpsaStore
         List<WbpSourceAdaptation> res = new ArrayList<>();
         for (int bar : usableBars)
         {
-            List<WbpSourceAdaptation> wbpsas = new ArrayList<>(mmapWbpsAdaptations.get(bar));
+            List<WbpSourceAdaptation> wbpsas = getWbpSourceAdaptations(bar);
             if (!wbpsas.isEmpty())
             {
                 WbpSourceAdaptation wbpsa = wbpsas.size() >= rank + 1 ? wbpsas.get(rank) : wbpsas.get(wbpsas.size() - 1);
@@ -137,13 +137,13 @@ public class BestWbpsaStore
             {
                 firstStr = wbpsas.get(0).toString();
             }
-            LOGGER.log(Level.INFO, "{0,number,##}: {1}", new Object[]
+            LOGGER.log(Level.INFO, "{0}: {1}", new Object[]
             {
-                bar, firstStr
+                String.format("%1$03d", bar), firstStr
             });
             wbpsas.stream()
                     .skip(1)
-                    .forEach(wbpsa -> LOGGER.log(Level.INFO, "   {0}", wbpsa));
+                    .forEach(wbpsa -> LOGGER.log(Level.INFO, "     {0}", wbpsa));
         }
     }
 

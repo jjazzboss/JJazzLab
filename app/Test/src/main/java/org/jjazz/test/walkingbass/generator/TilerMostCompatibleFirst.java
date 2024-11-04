@@ -31,7 +31,7 @@ import java.util.Map;
 import org.jjazz.test.walkingbass.WbpSource;
 
 /**
- * Do the tiling from WbpSourceAdaptations proposed in the bWpsaStore.
+ * Tile a WbpTiling object using selected WbpSourceAdaptations from a BestWbpsaStore.
  */
 public class TilerMostCompatibleFirst
 {
@@ -51,37 +51,19 @@ public class TilerMostCompatibleFirst
     }
 
     /**
-     * Place the most compatible WbpSourceAdaptations first, then continue with remaining WbpSourceAdaptations, until it's not possible to tile any remaining
-     * WbpSourceAdatation from bestWbpsas.<p>
+     * Tile the most compatible WbpSourceAdaptations first while avoiding using a same WbpSource twice. Then repeat with less compatible WbpSourceAdaptations,
+     * until it's not possible to tile anything.<p>
      * <p>
      */
     public void tile()
     {
-        resetWbpSourceCount();
-        int countLimit = 1;
-        for (int rank = 0; rank < WbpTiling.MAX_NB_BEST_ADAPTATIONS; rank++)
-        {
-            List<WbpSourceAdaptation> wbpsasOrderedByScore = bWpsaStore.getWbpSourceAdaptationsRanked(rank);
-            Collections.sort(wbpsasOrderedByScore);         // Descending score
-            for (WbpSourceAdaptation wbpsa : wbpsasOrderedByScore)
-            {
-                if (wbpsa == null)
-                {
-                    continue;
-                }
-                WbpSource wbpSource = wbpsa.getWbpSource();
-                if (tiling.isUsableAndFree(wbpsa.getBarRange()) && getWbpSourceCount(wbpSource) < countLimit)
-                {
-                    tiling.add(wbpsa);
-                    increaseWbpSourceCount(wbpSource);
-                }
-            }
-        }
+        boolean tiled;
 
-        if (!tiling.isCompletlyTiled())
+        do
         {
+            tiled = false;
             resetWbpSourceCount();
-            countLimit = 3;
+
             for (int rank = 0; rank < WbpTiling.MAX_NB_BEST_ADAPTATIONS; rank++)
             {
                 List<WbpSourceAdaptation> wbpsasOrderedByScore = bWpsaStore.getWbpSourceAdaptationsRanked(rank);
@@ -93,38 +75,16 @@ public class TilerMostCompatibleFirst
                         continue;
                     }
                     WbpSource wbpSource = wbpsa.getWbpSource();
-                    if (tiling.isUsableAndFree(wbpsa.getBarRange()) && getWbpSourceCount(wbpSource) == countLimit)
+                    if (tiling.isUsableAndFree(wbpsa.getBarRange()) && getWbpSourceCount(wbpSource) == 0)
                     {
                         tiling.add(wbpsa);
                         increaseWbpSourceCount(wbpSource);
+                        tiled = true;
                     }
                 }
             }
-        }
-        
-           if (!tiling.isCompletlyTiled())
-        {
-            resetWbpSourceCount();
-            countLimit = 1000;
-            for (int rank = 0; rank < WbpTiling.MAX_NB_BEST_ADAPTATIONS; rank++)
-            {
-                List<WbpSourceAdaptation> wbpsasOrderedByScore = bWpsaStore.getWbpSourceAdaptationsRanked(rank);
-                Collections.sort(wbpsasOrderedByScore);         // Descending score
-                for (WbpSourceAdaptation wbpsa : wbpsasOrderedByScore)
-                {
-                    if (wbpsa == null)
-                    {
-                        continue;
-                    }
-                    WbpSource wbpSource = wbpsa.getWbpSource();
-                    if (tiling.isUsableAndFree(wbpsa.getBarRange()) && getWbpSourceCount(wbpSource) == countLimit)
-                    {
-                        tiling.add(wbpsa);
-                        increaseWbpSourceCount(wbpSource);
-                    }
-                }
-            }
-        }
+        } while (tiled);
+
     }
 
     private void resetWbpSourceCount()
