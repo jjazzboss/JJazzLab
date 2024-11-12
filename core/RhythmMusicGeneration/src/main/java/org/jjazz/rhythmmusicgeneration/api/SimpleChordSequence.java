@@ -29,6 +29,7 @@ import java.text.DecimalFormat;
 import java.util.Objects;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
@@ -160,11 +161,28 @@ public class SimpleChordSequence extends ChordSequence
 
     /**
      * Remove successive identical chord symbols.
+     *
+     * @return True if sequence was modified
      */
-    public void removeDuplicateChords()
+    public boolean removeRedundantChords()
     {
-        
-    
+        boolean changed = false;
+        var it = iterator();
+        ExtChordSymbol lastEcs = null;
+        while (it.hasNext())
+        {
+            var ecs = it.next().getData();
+            if (Objects.equals(lastEcs, ecs))
+            {
+                it.remove();
+                changed = true;
+            } else
+            {
+                lastEcs = ecs;
+            }
+        }
+        return changed;
+    }
 
     /**
      * Overridden to return a SimpleChordSequence.

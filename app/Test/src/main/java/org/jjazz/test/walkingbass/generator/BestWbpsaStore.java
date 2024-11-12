@@ -38,12 +38,10 @@ import org.jjazz.test.walkingbass.WbpSource;
 import org.jjazz.utilities.api.IntRange;
 
 /**
- * Store the best WbpSourceAdaptations for each usable bar of a SimpleChordSequenceExt.
+ * Store the best WbpSourceAdaptations for some usable bars of a SimpleChordSequenceExt.
  */
 public class BestWbpsaStore
 {
-
-
     private final SimpleChordSequenceExt simpleChordSequenceExt;
     private final List<Integer> usableBars;
     private final SortedSetMultimap<Integer, WbpSourceAdaptation> mmapWbpsAdaptations;
@@ -81,6 +79,11 @@ public class BestWbpsaStore
     public int getWbpSourceSize()
     {
         return wbpSourceSize;
+    }
+    
+    public List<Integer> getUsableBars()
+    {
+        return usableBars;
     }
 
     /**

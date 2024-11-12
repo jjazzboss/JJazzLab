@@ -31,32 +31,30 @@ import java.util.Map;
 import org.jjazz.test.walkingbass.WbpSource;
 
 /**
- * Tile a WbpTiling object using selected WbpSourceAdaptations from a BestWbpsaStore.
+ * Tile the most compatible WbpSourceAdaptations first while avoiding using a same WbpSource twice.
+ * <p>
+ * Repeat with less compatible WbpSourceAdaptations, until it's not possible to tile anything.<p>
+ * <p>
  */
-public class TilerMostCompatibleFirst
+public class TilerMostCompatibleFirst implements Tiler
 {
 
-    private final BestWbpsaStore bWpsaStore;
     /**
      * Count how many time a WbpSource is used.
      */
     private final Map<WbpSource, Integer> mapSourceCount;
-    private final WbpTiling tiling;
 
-    public TilerMostCompatibleFirst(WbpTiling tiling, BestWbpsaStore store)
+    public TilerMostCompatibleFirst()
     {
-        this.tiling = tiling;
-        this.bWpsaStore = store;
         this.mapSourceCount = new HashMap<>();
     }
 
-    /**
-     * Tile the most compatible WbpSourceAdaptations first while avoiding using a same WbpSource twice. Then repeat with less compatible WbpSourceAdaptations,
-     * until it's not possible to tile anything.<p>
-     * <p>
-     */
-    public void tile()
+
+    @Override
+    public void tile(WbpTiling tiling, BestWbpsaStore store)
     {
+        clearState();
+
         boolean tiled;
 
         do
@@ -66,7 +64,7 @@ public class TilerMostCompatibleFirst
 
             for (int rank = 0; rank < WbpTiling.MAX_NB_BEST_ADAPTATIONS; rank++)
             {
-                List<WbpSourceAdaptation> wbpsasOrderedByScore = bWpsaStore.getWbpSourceAdaptationsRanked(rank);
+                List<WbpSourceAdaptation> wbpsasOrderedByScore = store.getWbpSourceAdaptationsRanked(rank);
                 Collections.sort(wbpsasOrderedByScore);         // Descending score
                 for (WbpSourceAdaptation wbpsa : wbpsasOrderedByScore)
                 {
@@ -75,7 +73,7 @@ public class TilerMostCompatibleFirst
                         continue;
                     }
                     WbpSource wbpSource = wbpsa.getWbpSource();
-                    if (tiling.isUsableAndFree(wbpsa.getBarRange()) && getWbpSourceCount(wbpSource) == 0)
+                    if (tiling.isUsableAndFree(wbpsa.getBarRange()) && mapSourceCount.getOrDefault(wbpSource, 0) == 0)
                     {
                         tiling.add(wbpsa);
                         increaseWbpSourceCount(wbpSource);
@@ -87,30 +85,24 @@ public class TilerMostCompatibleFirst
 
     }
 
+    // ===============================================================================================================
+    // Private methods
+    // ===============================================================================================================
+
+    private void clearState()
+    {
+        resetWbpSourceCount();
+    }
+
     private void resetWbpSourceCount()
     {
         mapSourceCount.clear();
     }
 
-    /**
-     * Get how many times a WbpSource has been used.
-     *
-     * @param wbpSource
-     * @return
-     */
-    private int getWbpSourceCount(WbpSource wbpSource)
-    {
-        Integer count = mapSourceCount.get(wbpSource);
-        return count == null ? 0 : count;
-    }
 
     private void increaseWbpSourceCount(WbpSource wbpSource)
     {
-        Integer count = mapSourceCount.get(wbpSource);
-        if (count == null)
-        {
-            count = 0;
-        }
+        Integer count = mapSourceCount.getOrDefault(wbpSource, 0);
         mapSourceCount.put(wbpSource, count + 1);
     }
 

@@ -41,34 +41,36 @@ import org.jjazz.utilities.api.IntRange;
  */
 public class WbpTiling
 {
-    
+
     public static final int MAX_NB_BEST_ADAPTATIONS = 5;
     private final SimpleChordSequenceExt simpleChordSequenceExt;
     private final TreeMap<Integer, WbpSourceAdaptation> mapBarWbpsa;
     private static final Logger LOGGER = Logger.getLogger(WbpTiling.class.getSimpleName());
-    
-    
+
+
     public WbpTiling(SimpleChordSequenceExt scs)
     {
         this.simpleChordSequenceExt = scs;
         mapBarWbpsa = new TreeMap<>();
-        
+
     }
-    
+
     public SimpleChordSequenceExt getSimpleChordSequenceExt()
     {
         return simpleChordSequenceExt;
     }
-    
+
     public IntRange getBarRange()
     {
         return simpleChordSequenceExt.getBarRange();
     }
 
     /**
-     * Do the tiling.
+     * Do the tiling using the specified tiler.
+     *
+     * @param tiler
      */
-    public void tile()
+    public void tileAll(Tiler tiler)
     {
 
         // For each bar, get the most compatible 4-bar WbpSources
@@ -76,7 +78,7 @@ public class WbpTiling
         LOGGER.severe("store4:");
         store4.dump();
         // Tile with this store
-        new TilerMostCompatibleFirst(this, store4).tile();
+        tiler.tile(this, store4);
         LOGGER.log(Level.SEVERE, "tile() 4-bar:");
         LOGGER.log(Level.SEVERE, toMultiLineString());
 
@@ -88,7 +90,7 @@ public class WbpTiling
             var store3 = new BestWbpsaStore(simpleChordSequenceExt, usableBars3, 3, MAX_NB_BEST_ADAPTATIONS);
             LOGGER.severe("store3:");
             store3.dump();
-            new TilerMostCompatibleFirst(this, store3).tile();
+            tiler.tile(this, store3);
             LOGGER.log(Level.SEVERE, "tile() 3-bar:");
             LOGGER.log(Level.SEVERE, toMultiLineString());
         }
@@ -101,10 +103,10 @@ public class WbpTiling
             var store2 = new BestWbpsaStore(simpleChordSequenceExt, usableBars2, 2, MAX_NB_BEST_ADAPTATIONS);
             LOGGER.severe("store2:");
             store2.dump();
-            new TilerMostCompatibleFirst(this, store2).tile();
+            tiler.tile(this, store2);
             LOGGER.log(Level.SEVERE, "tile() 2-bar:");
             LOGGER.log(Level.SEVERE, toMultiLineString());
-            
+
         }
 
 
@@ -115,7 +117,7 @@ public class WbpTiling
             var store1 = new BestWbpsaStore(simpleChordSequenceExt, usableBars1, 1, MAX_NB_BEST_ADAPTATIONS);
             LOGGER.severe("store1:");
             store1.dump();
-            new TilerMostCompatibleFirst(this, store1).tile();
+            tiler.tile(this, store1);
             LOGGER.log(Level.SEVERE, "tile() 1-bar:");
             LOGGER.log(Level.SEVERE, toMultiLineString());
         }
@@ -231,7 +233,7 @@ public class WbpTiling
         boolean res = true;
         var barRange = getBarRange();
         int bar = barRange.from;
-        
+
         for (var wbpsa : mapBarWbpsa.values())
         {
             var br = wbpsa.getBarRange();
@@ -242,12 +244,12 @@ public class WbpTiling
             }
             bar = br.to + 1;
         }
-        
+
         if (res)
         {
             res = !IntStream.rangeClosed(bar, barRange.to).anyMatch(b -> simpleChordSequenceExt.isUsable(b));
         }
-        
+
         return res;
     }
 
@@ -286,19 +288,19 @@ public class WbpTiling
     {
         Preconditions.checkArgument(zoneSize >= 1 && zoneSize <= 4, "zoneSize=%d", zoneSize);
         List<Integer> res = new ArrayList<>();
-        
+
         var nonTiledUsableBars = getNonTiledBars();
-        
+
         if (nonTiledUsableBars.isEmpty())
         {
             return res;
         }
-        
+
         if (zoneSize == 1)
         {
             return nonTiledUsableBars;
         }
-        
+
         for (int i = 0; i <= nonTiledUsableBars.size() - zoneSize; i++)
         {
             int bar = nonTiledUsableBars.get(i);
@@ -317,7 +319,7 @@ public class WbpTiling
                 i += zoneSize - 1;
             }
         }
-        
+
         return res;
     }
 
@@ -336,13 +338,13 @@ public class WbpTiling
         var floorEntry = mapBarWbpsa.floorEntry(barRange.to);
         return floorEntry == null || !floorEntry.getValue().getBarRange().isIntersecting(barRange);
     }
-    
+
     @Override
     public String toString()
     {
         return mapBarWbpsa.toString();
     }
-    
+
     public String toMultiLineString()
     {
         StringBuilder sb = new StringBuilder();
@@ -359,7 +361,7 @@ public class WbpTiling
             }
             sb.append(" ").append(bar).append(": ").append(s).append("\n");
         }
-        
+
         return sb.toString();
     }
 

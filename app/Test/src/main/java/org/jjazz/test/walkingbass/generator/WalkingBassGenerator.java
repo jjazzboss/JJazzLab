@@ -154,6 +154,7 @@ public class WalkingBassGenerator implements MusicGenerator
 
             // We have our big SimpleChordSequenceExt, generate the walking bass for it
             mergedScs.setUsableBars(usableBars);
+            mergedScs.removeRedundantChords();
             var phrase = getBassPhrase(mergedScs, rpValue);
             res.add(phrase);
         }
@@ -182,7 +183,7 @@ public class WalkingBassGenerator implements MusicGenerator
 
         // Tile scs with WbpSources
         WbpTiling tiling = new WbpTiling(scs);
-        tiling.tile();
+        tiling.tileAll(new TilerOneOutOfTwo(0.25f));
         if (!tiling.isCompletlyTiled())
         {
             LOGGER.log(Level.SEVERE, "getBassPhrase() =============== tiling is NOT complete, aborted: tiling={0}", tiling.toMultiLineString());
