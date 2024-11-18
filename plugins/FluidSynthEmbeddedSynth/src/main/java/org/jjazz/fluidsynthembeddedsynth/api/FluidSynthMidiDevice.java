@@ -97,7 +97,7 @@ public class FluidSynthMidiDevice implements MidiDevice
                 receiver.close();
             }
             receivers.clear();
-            LOGGER.info("close() --");
+            LOGGER.info("close()");
         }
     }
 

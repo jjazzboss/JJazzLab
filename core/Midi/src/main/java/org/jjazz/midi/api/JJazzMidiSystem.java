@@ -52,6 +52,7 @@ import org.jjazz.utilities.api.ResUtil;
 import org.netbeans.api.progress.BaseProgressUtils;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
+import org.openide.modules.OnStop;
 import org.openide.util.NbPreferences;
 import org.openide.util.Utilities;
 
@@ -652,7 +653,7 @@ public final class JJazzMidiSystem
                     md.open();
                 }
                 r = md.getReceiver();
-            } catch (MidiUnavailableException ex)
+            } catch (MidiUnavailableException | SecurityException ex)
             {
                 // Restore previous state
                 md.close();
@@ -1046,6 +1047,24 @@ public final class JJazzMidiSystem
             name = name.substring(0, name.length() - 3);
         }
         return name;
+    }
+
+    // ========================================================================================================
+    // Private classes
+    // ========================================================================================================
+    /**
+     * Close the default devices upon shutdown.
+     */
+    @OnStop
+    static public class CloseDevicesTask implements Runnable
+    {
+
+        @Override
+        public void run()
+        {
+            LOGGER.info("CloseDevicesTask.run() Closing Midi devices");
+            JJazzMidiSystem.getInstance().closeAll();
+        }
     }
 
     // ======================================================================================
