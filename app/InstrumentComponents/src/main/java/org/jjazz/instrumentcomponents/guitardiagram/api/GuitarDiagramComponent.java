@@ -90,6 +90,8 @@ public class GuitarDiagramComponent extends JPanel
     {
         setChordModel(chordModel);
         this.chordSymbol = cs;
+        String tt = chordModel.getNotes().toString();
+        setToolTipText(tt);
     }
 
     /**

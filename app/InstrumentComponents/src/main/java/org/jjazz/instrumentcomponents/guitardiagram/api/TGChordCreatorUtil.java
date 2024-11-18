@@ -147,7 +147,7 @@ public class TGChordCreatorUtil
             LOGGER.warning(msg);
             return Collections.EMPTY_LIST;
         }
-        
+
         int plusMin = 0;
         int ad5 = getAddParameter(ct.getDegree(Natural.FIFTH));
         int ad9 = 0;
@@ -608,27 +608,22 @@ public class TGChordCreatorUtil
         {
             // first combination is AL { AL(0), AL(1), AL(2), AL(3), AL(4),
             // ...AL(tuning.length) }
-            lastLevelCombination = new ArrayList<List<Integer>>();
+            lastLevelCombination = new ArrayList<>();
 
             for (int i = 0; i < this.tuning.length; i++)
             {
-                lastLevelCombination.add(new ArrayList<Integer>());
-                lastLevelCombination.get(i).add(new Integer(i));
+                lastLevelCombination.add(new ArrayList<>());
+                lastLevelCombination.get(i).add(i);
             }
         }
 
-        ArrayList<List<Integer>> thisLevelCombination = new ArrayList<List<Integer>>();
+        ArrayList<List<Integer>> thisLevelCombination = new ArrayList<>();
         for (int current = 1; current < this.tuning.length; current++)
         {
-            Iterator<List<Integer>> it = lastLevelCombination.iterator();
-
-            while (it.hasNext())
+            for (List<Integer> combination : lastLevelCombination)
             {
-                List<Integer> combination = it.next();
-                Integer currentInteger = new Integer(current);
-                if (((Integer) combination.get(combination.size() - 1))
-                        .intValue() < current
-                        && !combination.contains(currentInteger))
+                Integer currentInteger = current;
+                if (combination.get(combination.size() - 1) < current && !combination.contains(currentInteger))
                 {
 
                     // check if the string is already in combination
@@ -637,7 +632,6 @@ public class TGChordCreatorUtil
                     newCombination.add(currentInteger);
                     thisLevelCombination.add(newCombination);
                 }
-
             }
 
         }
@@ -1194,13 +1188,13 @@ public class TGChordCreatorUtil
 
         // open or not not open chord,
         // index finger is always on lowest fret possible
-        fingers[0].add(new Integer(min));
+        fingers[0].add(min);
 
         for (int i = lastZeroIndex; i < positions.length; i++)
         {
             if (positions[i] == min)
             {
-                fingers[0].add(new Integer(i));
+                fingers[0].add(i);
                 positions[i] = -1;
             }
         }
@@ -1214,8 +1208,8 @@ public class TGChordCreatorUtil
             {
                 if (finger < 4)
                 {
-                    fingers[finger].add(new Integer(positions[i]));
-                    fingers[finger].add(new Integer(i));
+                    fingers[finger].add(positions[i]);
+                    fingers[finger].add(i);
                     positions[i] = -1;
                 }
                 finger++;
@@ -1371,8 +1365,7 @@ public class TGChordCreatorUtil
     }
 
     /**
-     * If current StringValue is a subset or superset of already better ranked chords, it shouldn't be put inside, because it is
-     * duplicate.
+     * If current StringValue is a subset or superset of already better ranked chords, it shouldn't be put inside, because it is duplicate.
      *
      * @param stringValues current StringValue to be examined
      * @param betterOnes   ArrayList of already stored StringList chords
@@ -1478,8 +1471,11 @@ public class TGChordCreatorUtil
                 {
                     // m7b5, m9b5, m11b5
                     res = 5;
-                }
-                else if (ct.getExtension().equals("dim"))
+                } else if (ct.isSeventhMajor())
+                {
+                    // dim7M
+                    res = 16;
+                } else if (ct.getExtension().equals("dim"))
                 {
                     // dim
                     res = 12;
@@ -1487,14 +1483,14 @@ public class TGChordCreatorUtil
                 {
                     // dim7
                     res = 13;
-                } 
+                }
                 break;
             case SUS:
                 if (ct.isSeventhMinor())
                 {
                     // 7sus4
                     res = 11;
-                } else 
+                } else
                 {
                     // sus4
                     res = 9;

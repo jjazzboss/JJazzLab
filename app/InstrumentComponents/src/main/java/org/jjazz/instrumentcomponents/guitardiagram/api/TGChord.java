@@ -26,7 +26,10 @@
  */
 package org.jjazz.instrumentcomponents.guitardiagram.api;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import org.jjazz.harmony.api.Note;
 
 
 /**
@@ -111,6 +114,30 @@ public class TGChord
     public void setName(String name)
     {
         this.name = name;
+    }
+
+    /**
+     * Get the list of notes that make this TGChord.
+     *
+     * @return Can be empty
+     */
+    public List<Note> getNotes()
+    {
+        List<Note> res = new ArrayList<>();
+
+        for (int i = 0; i < getStrings().length; i++)
+        {
+            int fret = getFretValue(i);
+            if (fret >= 0)
+            {
+                TGString string = TGString.createDefaultInstrumentStrings().get(i);
+                int sValue = string.getValue();
+                Note ne = new Note(sValue + fret);
+                res.add(ne);
+            }
+        }
+
+        return res;
     }
 
     @Override

@@ -23,7 +23,7 @@ package org.jjazz.instrumentcomponents.guitardiagram.api;
  *  Contributor(s): 
  *  
  */
-/*
+ /*
  * NOTE: code reused and modified from the TuxGuitar software (GNU Lesser GPL license), author: Julián Gabriel Casadesús
  */
 /**
@@ -128,7 +128,11 @@ public class TGChordDatabase
         {
             1, 8
         }),
-
+        // JJazzLab addition dim7M ---- 16
+        new ChordInfo("dim7M", new int[]
+        {
+            1, 4, 7, 12
+        })
     };
 
     public static int length()
