@@ -89,6 +89,7 @@ public class SidePanel extends javax.swing.JPanel
         cpan_quantize = new org.jjazz.flatcomponents.api.CollapsiblePanel();
         cpan_showTracks = new org.jjazz.flatcomponents.api.CollapsiblePanel();
 
+        cpan_quantize.setCollapsed(false);
         cpan_quantize.setTitleComponentText(org.openide.util.NbBundle.getMessage(SidePanel.class, "SidePanel.cpan_quantize.titleComponentText")); // NOI18N
 
         cpan_showTracks.setTitleComponentText(org.openide.util.NbBundle.getMessage(SidePanel.class, "SidePanel.cpan_showTracks.titleComponentText")); // NOI18N
@@ -107,7 +108,7 @@ public class SidePanel extends javax.swing.JPanel
                 .addComponent(cpan_quantize, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(cpan_showTracks, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(23, Short.MAX_VALUE))
+                .addContainerGap(24, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 

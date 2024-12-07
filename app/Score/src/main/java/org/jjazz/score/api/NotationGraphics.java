@@ -1,7 +1,7 @@
 /*
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  * 
- *  Original author:  (c) 2006 ACCIDENTAL_DOUBLE_FLAT7 Karl Helgason from http://www.frinika.com. 
+ *  Original author:  (c) 2006 Karl Helgason from http://www.frinika.com. 
  *   
  *  JJazzLab is free software: you can redistribute it and/or modify
  *  it under the terms of the Lesser GNU General Public License (LGPLv3) 
@@ -36,6 +36,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.TreeMap;
 import org.jjazz.harmony.api.Note;
+import org.jjazz.harmony.api.SymbolicDuration;
+import static org.jjazz.harmony.api.SymbolicDuration.EIGHTH_DOTTED;
+import static org.jjazz.harmony.api.SymbolicDuration.HALF_DOTTED;
+import static org.jjazz.harmony.api.SymbolicDuration.HALF_TRIPLET;
+import static org.jjazz.harmony.api.SymbolicDuration.QUARTER_DOTTED;
+import static org.jjazz.harmony.api.SymbolicDuration.SIXTEENTH_TRIPLET;
+import static org.jjazz.harmony.api.SymbolicDuration.UNKNOWN;
+import static org.jjazz.harmony.api.SymbolicDuration.WHOLE_DOTTED;
 
 
 /**
@@ -186,7 +194,6 @@ public class NotationGraphics
     {
         cx += x;
     }
-    // Set Y-location of Staff First Line
 
     public void relativeY(float y)
     {
@@ -197,8 +204,8 @@ public class NotationGraphics
     {
         cx = x * grid_size;
     }
-    // Set Y-location of Staff First Line
 
+    // Set Y-location of Staff First Line
     public void absoluteLine(float y)
     {
         cy = y * grid_size;
@@ -208,6 +215,7 @@ public class NotationGraphics
     {
         cx += x * grid_size;
     }
+
     // Set Y-location of Staff First Line
 
     public void relativeLine(float y)
@@ -1396,14 +1404,61 @@ public class NotationGraphics
         {
         }
 
-        public ScoreNote(Note n, int dur, int linedir)
+        /**
+         *
+         * @param n
+         * @param lineDir
+         * @param useFclef If false use G clef
+         */
+        public ScoreNote(Note n, int lineDir, boolean useFclef)
+        {
+            this.x = cx;
+            this.linedir = lineDir;
+            setStaffLineAndAccidental(n, useFclef);
+
+            var sd = n.getSymbolicDuration();
+            if (sd == SymbolicDuration.UNKNOWN)
+            {
+                sd = SymbolicDuration.getClosestSymbolicDuration(n.getDurationInBeats());
+            }
+            dotted = sd.isDotted() ? 1 : 0;
+            dur = switch (sd)
+            {
+                case SIXTEENTH, SIXTEENTH_TRIPLET ->
+                    4;
+                case EIGHTH, EIGHTH_DOTTED, EIGHTH_TRIPLET ->
+                    3;
+                case UNKNOWN, QUARTER, QUARTER_DOTTED, QUARTER_TRIPLET ->
+                    2;
+                case HALF, HALF_DOTTED, HALF_TRIPLET ->
+                    1;
+                case WHOLE, WHOLE_DOTTED, WHOLE_TRIPLET ->
+                    0;
+                default -> throw new AssertionError(sd.name());
+            };
+
+        }
+
+        /**
+         *
+         * @param n
+         * @param dur
+         * @param linedir
+         * @param useFclef If false use G clef
+         */
+        public ScoreNote(Note n, int dur, int linedir, boolean useFclef)
         {
             this.x = cx;
             this.dur = dur;
             this.linedir = linedir;
+            setStaffLineAndAccidental(n, useFclef);
+        }
 
-
-            int MIDDLE_C = 60;
+        private void setStaffLineAndAccidental(Note n, boolean useFclef)
+        {
+            final int GCLEF_C_PITCH = 60;
+            final int FCLEF_C_PITCH = 48;
+            accidental = 0;
             switch (n.getRelativePitch())
             {
                 case 0 ->       // C
@@ -1496,7 +1551,16 @@ public class NotationGraphics
                 }
             }
 
-            staffLine = (n.getPitch() / 12 - 5) * 7 + staffLine;
+            int cPitch = GCLEF_C_PITCH;
+            if (useFclef)
+            {
+                staffLine += 5;
+                cPitch = FCLEF_C_PITCH;
+            }
+
+            // Adjust octave             
+            int octaveOffset = (int) Math.floor((n.getPitch() - cPitch) / 12f);
+            staffLine += octaveOffset * 7;    // one octave is 7 lines;
         }
 
         public ScoreNote(int staffLine, int dur)
@@ -1533,7 +1597,7 @@ public class NotationGraphics
             this.mark = mark;
         }
 
-        public ScoreNote(int note, int dur, int dotted, int accidental, int mark, int linedir)
+        public ScoreNote(int staffLine, int dur, int dotted, int accidental, int mark, int linedir)
         {
             this.x = cx;
             this.staffLine = staffLine;

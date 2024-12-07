@@ -395,7 +395,7 @@ public class Note implements Comparable<Note>, Cloneable
      * <p>
      *
      * @param t Transposition value in positive/negative semi-tons.
-     * @return A new note transposed with the same alteration display.
+     * @return A new note instance transposed with the same alteration display.
      */
     public Note getTransposed(int t)
     {

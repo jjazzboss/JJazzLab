@@ -55,7 +55,7 @@ public class ScoreChordViewer extends javax.swing.JPanel implements ChordViewer
     final private static Icon ICON = new ImageIcon(ScoreChordViewer.class.getResource(ICON_PATH));
 
     private CLI_ChordSymbol model;
-    private NotationGraphics ng;
+    private final NotationGraphics ng;
     private static final Logger LOGGER = Logger.getLogger(ScoreChordViewer.class.getSimpleName());
 
     /**
@@ -132,7 +132,7 @@ public class ScoreChordViewer extends javax.swing.JPanel implements ChordViewer
             Note previousNote = null;
             for (Note n : ssi.getNotes())
             {
-                Note nn = new Note(n.getPitch() + t, 1, 64, alt);
+                Note nn = new Note(n.getPitch() + t, 1f, 64, alt);
                 int line = nn.getGStaffLineNumber();
                 int accidental = 0;
                 if (!Note.isWhiteKey(nn.getPitch()))

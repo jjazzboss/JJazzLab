@@ -24,6 +24,7 @@ package org.jjazz.pianoroll.api;
 
 import com.google.common.base.Preconditions;
 import java.awt.BorderLayout;
+import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
@@ -64,6 +65,7 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -98,6 +100,9 @@ import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.song.api.Song;
 import org.jjazz.instrumentcomponents.keyboard.api.KeyboardComponent;
 import org.jjazz.instrumentcomponents.keyboard.api.KeyboardRange;
+import org.jjazz.pianoroll.BottomControlPanel;
+import org.jjazz.pianoroll.EditorPanel;
+import org.jjazz.pianoroll.ScorePanel;
 import org.jjazz.pianoroll.VelocityPanel;
 import org.jjazz.pianoroll.actions.InvertNoteSelection;
 import org.jjazz.uiutilities.api.SingleFileDragInTransferHandler;
@@ -118,8 +123,9 @@ import org.openide.util.lookup.InstanceContent;
 /**
  * A piano roll editor of a musical phrase.
  * <p>
- * Used to edit whole or part of a Phrase. Optional view-only "ghost phrases" can be shown faded in the background of the editor, based on the ghostPhrasesModel
- * state.
+ * Used to edit whole or part of a Phrase.
+ * <p>
+ * Optional view-only "ghost phrases" can be shown faded in the background of the editor, based on the ghostPhrasesModel state.
  * <p>
  * Editor's lookup must contain :<br>
  * - its ActionMap instance<br>
@@ -165,14 +171,17 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
      */
     public static final String PROP_PLAYBACK_POINT_POSITION = "PlaybackPointPosition";
     private static final float MAX_WIDTH_FACTOR = 1.5f;
-    private static final String CLIENT_PROP_VELOCITY_NV="VelocityNv";
     private NotesPanel notesPanel;
     private VelocityPanel velocityPanel;
+    private ScorePanel scorePanel;
+    private BottomControlPanel bottomControlPanel;
+    private final List<EditorPanel> editorPanels;
     private KeyboardComponent keyboard;
     private RulerPanel rulerPanel;
     private JScrollPane scrollPaneEditor;
-    private JScrollPane scrollPaneVelocity;
+    private JScrollPane bottomScrollPane;
     private JLabel lbl_velocity;
+
     private JPanel pnl_keyboard;
     private MouseDragLayerUI mouseDragLayerUI;
     private JLayer mouseDragLayer;
@@ -257,9 +266,11 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         // Build the UI
         createUI();
 
+        editorPanels = List.of(notesPanel, velocityPanel, scorePanel);
 
         // Install mouse listeners
         genericMouseListener = new GenericMouseListener();
+
         notesPanel.addMouseListener(genericMouseListener);
         notesPanel.addMouseMotionListener(genericMouseListener);
         notesPanel.addMouseWheelListener(genericMouseListener);
@@ -295,7 +306,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     /**
      * Associate an optional song to the editor.
      * <p>
-     * Put the song in the editor's lookup. Song undo manager is used. The ruler can show the chord symbols and listen to chord symbols changes.<p>
+     * Put the song in the editor's lookup. Song undo manager is used. Song can be used by subpanels to show e.g. chord symbols.<p>
      * <p>
      * This method can be called only once.
      *
@@ -312,10 +323,17 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         this.song = song;
         generalLookupContent.add(song);
         rulerPanel.setSong(song);
+        scorePanel.setSong(song);
         setUndoManager(JJazzUndoManagerFinder.getDefault().get(getSong()));
 
     }
 
+    /**
+     * Get the song the edited phrase belongs to.
+     *
+     * @return Might be null.
+     * @see #setSong(org.jjazz.song.api.Song) 
+     */
     public Song getSong()
     {
         return song;
@@ -422,7 +440,6 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
 
         // Update the subcomponents                  
         notesPanel.getXMapper().refresh();
-        notesPanel.repaint();
         rulerPanel.revalidate();
         rulerPanel.repaint();
 
@@ -432,10 +449,11 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
 
 
         notesPanel.scrollToFirstNote();
-        notesPanel.revalidate();
-        notesPanel.repaint();
-        velocityPanel.revalidate();
-        velocityPanel.repaint();
+        for (var ep : editorPanels)
+        {
+            ep.revalidate();
+            ep.repaint();
+        }
 
 
         firePropertyChange(PROP_MODEL_PHRASE, oldModel, model);
@@ -566,8 +584,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     {
         LOGGER.fine("cleanup() --");
         rulerPanel.cleanup();
-        notesPanel.cleanup();
-        velocityPanel.cleanup();
+        editorPanels.forEach(ep -> ep.cleanup());
         ghostPhrasesModel.removePropertyChangeListener(this);
         ghostPhrasesModel.cleanup();
         model.removeUndoableEditListener(undoManager);
@@ -596,8 +613,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
 
             // This updates notesPanel preferred size and calls revalidate(), which will update the size on the EDT
             float f = toScaleFactorX(zoom.hValue());
-            notesPanel.setScaleFactorX(f);
-            velocityPanel.setScaleFactorX(f);
+            editorPanels.forEach(ep -> ep.setScaleFactorX(f));
 
             // Restore position at center
             // Must be done later on the EDT to get the notesPanel effectively resized after previous command, so that
@@ -724,8 +740,15 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
                 nvs.add(nv);
             }
             nv.setSelected(b);
-            var nvVelocity=velocityPanel.getNoteView(n);
-            nvVelocity.setSelected(b);
+
+            for (var ep : getSubPanels())
+            {
+                nv = ep.getNoteView(n);
+                if (nv != null)
+                {
+                    nv.setSelected(b);
+                }
+            }
         }
 
         if (!nvs.isEmpty())
@@ -762,7 +785,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     }
 
     /**
-     * Get the NoteView associated to the specified NoteEvent.
+     * Get the NoteView from the main EditorPanel associated to the specified NoteEvent.
      *
      * @param ne
      * @return Can be null
@@ -773,7 +796,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     }
 
     /**
-     * Get all the NoteViews sorted by NoteEvent natural order.
+     * Get all the NoteViews from the main EditorPanel sorted by NoteEvent natural order.
      * <p>
      * @return
      */
@@ -1126,17 +1149,17 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
                 {
                     List<NoteEvent> nes = (List<NoteEvent>) evt.getNewValue();
                     addNotes(nes);
-                    notesPanel.revalidate();
-                    velocityPanel.revalidate();
+                    editorPanels.forEach(ep -> ep.revalidate());
                 }
                 case Phrase.PROP_NOTES_REMOVED, Phrase.PROP_NOTES_REMOVED_ADJUSTING ->
                 {
                     List<NoteEvent> nes = (List<NoteEvent>) evt.getNewValue();
                     removeNotes(nes);
-                    notesPanel.revalidate();
-                    notesPanel.repaint();
-                    velocityPanel.revalidate();
-                    velocityPanel.repaint();
+                    editorPanels.forEach(ep -> 
+                    {
+                        ep.revalidate();
+                        ep.repaint();
+                    });
                 }
                 case Phrase.PROP_NOTES_MOVED, Phrase.PROP_NOTES_MOVED_ADJUSTING, Phrase.PROP_NOTES_REPLACED, Phrase.PROP_NOTES_REPLACED_ADJUSTING ->
                 {
@@ -1144,13 +1167,13 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
                     for (var oldNe : mapOldNew.keySet())
                     {
                         var newNe = mapOldNew.get(oldNe);
-                        notesPanel.setNoteViewModel(oldNe, newNe);
-                        velocityPanel.setNoteViewModel(oldNe, newNe);
+                        editorPanels.forEach(ep -> ep.setNoteViewModel(oldNe, newNe));
                     }
-                    notesPanel.revalidate();
-                    notesPanel.repaint();
-                    velocityPanel.revalidate();
-                    velocityPanel.repaint();
+                    editorPanels.forEach(ep -> 
+                    {
+                        ep.revalidate();
+                        ep.repaint();
+                    });
                 }
                 default ->
                 {
@@ -1174,6 +1197,18 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     // =======================================================================================================================
 
     /**
+     * All the editor panels except the main notesPanel.
+     *
+     * @return
+     */
+    private List<EditorPanel> getSubPanels()
+    {
+        return editorPanels.stream()
+                .filter(ep -> ep != notesPanel)
+                .toList();
+    }
+
+    /**
      * Caller is responsible to call revalidate() and/or repaint() as required.
      * <p>
      * Don't add if not in the beat range.
@@ -1189,9 +1224,14 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         {
             for (var ne : rangeNotes)
             {
-                var nv = notesPanel.addNoteView(ne);
-                registerNoteView(nv);
-                velocityPanel.addNoteView(ne);
+                for (var ep : editorPanels)
+                {
+                    var nv = ep.addNoteView(ne);
+                    if (ep == notesPanel)
+                    {
+                        registerNoteView(nv);
+                    }
+                }
             }
         }
     }
@@ -1222,7 +1262,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
                     unregisterNoteView(nv);
                 }
                 notesPanel.removeNoteView(ne);
-                velocityPanel.removeNoteView(ne);
+                getSubPanels().forEach(ep -> ep.removeNoteView(ne));
             }
         }
     }
@@ -1301,36 +1341,49 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         hsb.setUnitIncrement(hsb.getUnitIncrement() * 10);
 
 
-        // The velocity bottom 
-        scrollPaneVelocity = new JScrollPane(JScrollPane.VERTICAL_SCROLLBAR_NEVER, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        lbl_velocity = new JLabel(ResUtil.getString(getClass(), "Velocity"));
-        lbl_velocity.setVerticalAlignment(SwingConstants.TOP);
+        // The bottom component
         velocityPanel = new VelocityPanel(this, notesPanel);
-        scrollPaneVelocity.setViewportView(velocityPanel);
-        scrollPaneVelocity.setRowHeaderView(lbl_velocity);
+        scorePanel = new ScorePanel(this, notesPanel);
+        bottomControlPanel = new BottomControlPanel(velocityPanel, scorePanel);
+        JPanel bottomEditorPanelsContainer = new JPanel();
+        var cardLayout = new CardLayout();
+        bottomEditorPanelsContainer.setLayout(cardLayout);
+        bottomEditorPanelsContainer.add(velocityPanel, BottomControlPanel.VELOCITY_EDITOR_PANEL_STRING);
+        bottomEditorPanelsContainer.add(scorePanel, BottomControlPanel.SCORE_EDITOR_PANEL_STRING);
+        bottomControlPanel.addPropertyChangeListener(BottomControlPanel.PROP_EDITOR_PANEL_STRING,
+                evt -> cardLayout.show(bottomEditorPanelsContainer, bottomControlPanel.getSelectedPanelString()));
+        cardLayout.show(bottomEditorPanelsContainer, bottomControlPanel.getSelectedPanelString());
+
+
+        bottomScrollPane = new JScrollPane(JScrollPane.VERTICAL_SCROLLBAR_NEVER, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        bottomScrollPane.setViewportView(bottomEditorPanelsContainer);
+        bottomScrollPane.setRowHeaderView(bottomControlPanel);
+
+
+        // Split pane
         JSplitPane splitPane = new JSplitPane();
         splitPane.setDividerSize(10);
         splitPane.setOneTouchExpandable(true);
         splitPane.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
-        splitPane.setResizeWeight(0.9);
+        splitPane.setResizeWeight(0.8);     // 20% to bottom height
         splitPane.setTopComponent(scrollPaneEditor);
-        splitPane.setBottomComponent(scrollPaneVelocity);
+        splitPane.setBottomComponent(bottomScrollPane);
 
 
-        // We need to keep velocityPanel vertically aligned with notesPanel        
-        update_lbl_velocityPreferredWidth();
+        // We need to keep the bottom control panel vertically aligned with notesPanel        
+        updateBottomControlPanelWidth();
         pnl_keyboard.addComponentListener(new ComponentAdapter()
         {
             @Override
             public void componentResized(ComponentEvent e)
             {
-                update_lbl_velocityPreferredWidth();
+                updateBottomControlPanelWidth();
             }
         });
 
 
         // Link scrollPaneVelocity to scrollPaneEditor for horizontal scroll
-        scrollPaneVelocity.getHorizontalScrollBar().setModel(scrollPaneEditor.getHorizontalScrollBar().getModel());
+        bottomScrollPane.getHorizontalScrollBar().setModel(scrollPaneEditor.getHorizontalScrollBar().getModel());
 
 
         // Final layout
@@ -1440,14 +1493,24 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     }
 
     /**
-     * Make the label have the same size than the keyboard panel, so that velocityPanel and notesPanel remain always left-aligned.
+     * Make the panel have the same size than the keyboard panel, so that velocityPanel and notesPanel remain always left-aligned.
      */
+    private void updateBottomControlPanelWidth()
+    {
+        int keyboardWidth = pnl_keyboard.getWidth();        // + scrollPaneEditor.getInsets().left;
+        // LOGGER.log(Level.SEVERE, "createUI().componentResized() -- keyboardWidth={0}", keyboardWidth);
+        var pd = bottomControlPanel.getPreferredSize();
+        bottomControlPanel.setPreferredSize(new Dimension(keyboardWidth, pd.height));
+        bottomControlPanel.revalidate();      // required when keyboard got smaller
+        bottomControlPanel.repaint();         // required when keyboard got smaller
+    }
+
     private void update_lbl_velocityPreferredWidth()
     {
         int keyboardWidth = pnl_keyboard.getWidth();        // + scrollPaneEditor.getInsets().left;
         // LOGGER.log(Level.SEVERE, "createUI().componentResized() -- keyboardWidth={0}", keyboardWidth);
         var pd = lbl_velocity.getPreferredSize();
-        lbl_velocity.setPreferredSize(new Dimension(keyboardWidth, pd.height)); 
+        lbl_velocity.setPreferredSize(new Dimension(keyboardWidth, pd.height));
         lbl_velocity.revalidate();      // required when keyboard got smaller
         lbl_velocity.repaint();         // required when keyboard got smaller
     }
@@ -1550,7 +1613,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
 
 
             // Compute optimal scaleX
-            float factorX = notesPanel.getScaleFactorX(visibleWidthPixel, beatRange);
+            float factorX = notesPanel.computeScaleFactorX(visibleWidthPixel, beatRange);
             int zoomH = toZoomHValue(factorX);
             setZoomXFactor(zoomH, false);
 

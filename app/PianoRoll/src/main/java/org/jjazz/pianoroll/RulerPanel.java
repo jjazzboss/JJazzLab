@@ -44,6 +44,7 @@ import java.beans.PropertyChangeListener;
 import java.text.AttributedString;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JPanel;
 import javax.swing.JViewport;
 import javax.swing.SwingUtilities;
 import org.jjazz.harmony.api.TimeSignature;
@@ -73,7 +74,7 @@ import org.jjazz.utilities.api.ResUtil;
  * If a song is associated, show also the chord symbols and song parts. The RulerPanel listens to chord symbols changes to refresh itself (song structure
  * changes are handled by the PianoRollEditor).
  */
-public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener, PropertyChangeListener
+public class RulerPanel extends JPanel implements ClsChangeListener, PropertyChangeListener
 {
 
     private static final int BAR_TICK_LENGTH = 7;
@@ -233,7 +234,7 @@ public class RulerPanel extends javax.swing.JPanel implements ClsChangeListener,
 
 
         // Get X coordinate of all beat positions
-        var tmapPosX = xMapper.getBeatsXPositions(null);
+        var tmapPosX = xMapper.getBeatsXPositions(editor.getVisibleBarRange());
         var allBeatPositions = tmapPosX.navigableKeySet();
         float oneBeatPixelSize = xMapper.getOneBeatPixelSize();
 

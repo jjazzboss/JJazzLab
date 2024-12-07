@@ -32,7 +32,6 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -47,10 +46,8 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import org.jjazz.harmony.api.Position;
-import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.pianoroll.api.NoteView;
@@ -58,12 +55,11 @@ import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.uiutilities.api.HSLColor;
 import org.jjazz.uiutilities.api.RedispatchingMouseAdapter;
 import org.jjazz.utilities.api.FloatRange;
-import org.jjazz.utilities.api.ResUtil;
 
 /**
  * Show the velocity of notes in the bottom side of the editor.
  */
-public class VelocityPanel extends JPanel implements PropertyChangeListener
+public class VelocityPanel extends EditorPanel implements PropertyChangeListener
 {
 
     private static final int TOP_PADDING = 2;
@@ -123,6 +119,7 @@ public class VelocityPanel extends JPanel implements PropertyChangeListener
      * @param ne
      * @return
      */
+    @Override
     public NoteView addNoteView(NoteEvent ne)
     {
         Preconditions.checkNotNull(ne);
@@ -149,6 +146,7 @@ public class VelocityPanel extends JPanel implements PropertyChangeListener
      *
      * @param ne
      */
+    @Override
     public void removeNoteView(NoteEvent ne)
     {
         Preconditions.checkNotNull(ne);
@@ -173,6 +171,7 @@ public class VelocityPanel extends JPanel implements PropertyChangeListener
      * @param ne Must be a ne added via addNoteView(NoteEvent ne)
      * @return Can be null
      */
+    @Override
     public NoteView getNoteView(NoteEvent ne)
     {
         var res = mapNoteViews.get(ne);
@@ -184,6 +183,7 @@ public class VelocityPanel extends JPanel implements PropertyChangeListener
      *
      * @return
      */
+    @Override
     public List<NoteView> getNoteViews()
     {
         return new ArrayList<>(mapNoteViews.values());
@@ -197,6 +197,7 @@ public class VelocityPanel extends JPanel implements PropertyChangeListener
      * @param oldNe
      * @param newNe
      */
+    @Override
     public void setNoteViewModel(NoteEvent oldNe, NoteEvent newNe)
     {
         var nv = getNoteView(oldNe);
@@ -209,8 +210,6 @@ public class VelocityPanel extends JPanel implements PropertyChangeListener
     @Override
     public void paintComponent(Graphics g)
     {
-        super.paintComponent(g);        // Honor the opaque property
-
         Graphics2D g2 = (Graphics2D) g;
 
 //        LOGGER.log(Level.FINE, "paintComponent() -- width={0} height={1}", new Object[]
@@ -225,7 +224,7 @@ public class VelocityPanel extends JPanel implements PropertyChangeListener
         }
 
         // Fill background corresponding to notesPanel width
-        Color c = editor.getSettings().getBackgroundColor1();
+        Color c = editor.getSettings().getBackgroundColor2();
         g2.setColor(c);
         g2.fillRect(0, 0, notesPanel.getWidth(), getHeight());
 
@@ -244,6 +243,7 @@ public class VelocityPanel extends JPanel implements PropertyChangeListener
 
         // Grid
         notesPanel.drawVerticalGrid(g2, 0, getHeight() - 1);
+
     }
 
     /**
@@ -279,6 +279,7 @@ public class VelocityPanel extends JPanel implements PropertyChangeListener
      *
      * @param factorX A value &gt; 0
      */
+    @Override
     public void setScaleFactorX(float factorX)
     {
         Preconditions.checkArgument(factorX > 0);
@@ -297,11 +298,13 @@ public class VelocityPanel extends JPanel implements PropertyChangeListener
      *
      * @return
      */
+    @Override
     public float getScaleFactorX()
     {
         return scaleFactorX;
     }
 
+    @Override
     public void cleanup()
     {
         for (var nv : mapNoteViews.values().toArray(NoteView[]::new))

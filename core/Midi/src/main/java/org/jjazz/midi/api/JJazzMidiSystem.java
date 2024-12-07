@@ -1049,24 +1049,6 @@ public final class JJazzMidiSystem
         return name;
     }
 
-    // ========================================================================================================
-    // Private classes
-    // ========================================================================================================
-    /**
-     * Close the default devices upon shutdown.
-     */
-    @OnStop
-    static public class CloseDevicesTask implements Runnable
-    {
-
-        @Override
-        public void run()
-        {
-            LOGGER.info("CloseDevicesTask.run() Closing Midi devices");
-            JJazzMidiSystem.getInstance().closeAll();
-        }
-    }
-
     // ======================================================================================
     // Private methods
     // ======================================================================================
@@ -1079,6 +1061,23 @@ public final class JJazzMidiSystem
             res.add(s);
         }
         return res;
+    }
+
+    // ========================================================================================================
+    // Private classes
+    // ========================================================================================================
+    /**
+     * Close the default devices upon shutdown.
+     */
+    @OnStop
+    static public class CloseMidiDevicesTask implements Runnable
+    {
+        @Override
+        public void run()
+        {
+            LOGGER.info("CloseDevicesTask.run() Closing Midi devices");
+            JJazzMidiSystem.getInstance().closeAll();
+        }
     }
 
 

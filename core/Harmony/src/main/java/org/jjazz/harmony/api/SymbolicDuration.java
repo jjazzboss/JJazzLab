@@ -22,6 +22,9 @@
  */
 package org.jjazz.harmony.api;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 
 public enum SymbolicDuration
 {
@@ -43,6 +46,7 @@ public enum SymbolicDuration
     private final float duration;
     private final String name;
 
+    private static final Logger LOGGER = Logger.getLogger(SymbolicDuration.class.getSimpleName());
 
     SymbolicDuration(float d, String name)
     {
@@ -84,15 +88,57 @@ public enum SymbolicDuration
         return (this == EIGHTH_TRIPLET) || (this == QUARTER_TRIPLET) || (this == HALF_TRIPLET) || (this == WHOLE_TRIPLET);
     }
 
+    /**
+     * Get the symbolic duration for specified beat duration.
+     * <p>
+     * Duration must match at +/- 0.01 beat. If no match, returns UNKNOWN.
+     *
+     * @param bd duration in beats
+     * @return
+     */
     public static SymbolicDuration getSymbolicDuration(float bd)
     {
         for (SymbolicDuration sd : SymbolicDuration.values())
         {
-            if (Math.abs(bd - sd.getDuration()) < 0.0001f)
+            if (Math.abs(bd - sd.getDuration()) < 0.01f)
             {
                 return sd;
             }
         }
         return SymbolicDuration.UNKNOWN;
+    }
+
+    /**
+     * Get the closest symbolic duration for specified beat duration.
+     * <p>
+     *
+     * @param bd
+     * @return
+     */
+    public static SymbolicDuration getClosestSymbolicDuration(float bd)
+    {
+        SymbolicDuration res = WHOLE_DOTTED;   // Max value        
+        // special cases
+        if (bd == 0)
+        {
+            res = UNKNOWN;
+        } else if (bd <= SIXTEENTH_TRIPLET.getDuration())
+        {
+            res = SIXTEENTH_TRIPLET;
+        } else
+        {
+            var values = SymbolicDuration.values();
+            for (int i = 1; i < values.length - 1; i++)
+            {
+                var sd = values[i];
+                var sdNext = values[i + 1];
+                if (bd <= sdNext.getDuration())
+                {
+                    res = Math.abs(bd - sd.getDuration()) < Math.abs(bd - sdNext.getDuration()) ? sd : sdNext;
+                    break;
+                }
+            }
+        }
+        return res;
     }
 }

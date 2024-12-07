@@ -145,6 +145,11 @@
         </dependency>  
         <dependency> 
             <groupId>org.jjazzlab.app</groupId> 
+            <artifactId>score</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>upgrade</artifactId> 
             <version>${project.version}</version>  
         </dependency>  

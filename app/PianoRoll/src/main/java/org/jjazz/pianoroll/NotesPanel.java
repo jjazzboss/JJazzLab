@@ -62,7 +62,7 @@ import org.jjazz.utilities.api.Utilities;
  * <p>
  * Y metrics are taken from the associated vertical keyboard. The XMapper and YMapper objects provide the methods to position notes.
  */
-public class NotesPanel extends javax.swing.JPanel implements PropertyChangeListener
+public class NotesPanel extends EditorPanel implements PropertyChangeListener
 {
 
     private static final Color[] GHOST_NOTE_COLORS = new Color[]
@@ -225,6 +225,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
      *
      * @param factorX A value &gt; 0
      */
+    @Override
     public void setScaleFactorX(float factorX)
     {
         Preconditions.checkArgument(factorX > 0);
@@ -243,6 +244,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
      *
      * @return
      */
+    @Override
     public float getScaleFactorX()
     {
         return scaleFactorX;
@@ -255,7 +257,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
      * @param beatRange
      * @return
      */
-    public float getScaleFactorX(int pixelWidth, float beatRange)
+    public float computeScaleFactorX(int pixelWidth, float beatRange)
     {
         beatRange = Math.max(beatRange, 1f);
         float factor = pixelWidth / (beatRange * ONE_BEAT_SIZE_IN_PIXELS_AT_ZOOM_ONE);
@@ -326,8 +328,9 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
      * <p>
      * Caller must call revalidate() and/or repaint() after as needed.
      *
-     * @param nes
+     * @param ne
      */
+    @Override
     public void removeNoteView(NoteEvent ne)
     {
         Preconditions.checkNotNull(ne);
@@ -352,6 +355,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
      * @param oldNe
      * @param newNe
      */
+    @Override
     public void setNoteViewModel(NoteEvent oldNe, NoteEvent newNe)
     {
         var nv = getNoteView(oldNe);
@@ -368,6 +372,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
      * @param ne Must be a ne added via addNoteView(NoteEvent ne)
      * @return Can be null
      */
+    @Override
     public NoteView getNoteView(NoteEvent ne)
     {
         var res = mapNoteViews.get(ne);
@@ -379,6 +384,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
      *
      * @return
      */
+    @Override
     public List<NoteView> getNoteViews()
     {
         return new ArrayList<>(mapNoteViews.values());
@@ -433,6 +439,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         return mapChannelGhostPhrase;
     }
 
+    @Override
     public void cleanup()
     {
         for (var nv : mapNoteViews.values().toArray(NoteView[]::new))
@@ -464,8 +471,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         Color cl3_lz = HSLColor.changeLuminance(cl2_lz, 3);
 
 
-        var barRange = editor.getVisibleBarRange();
-        var mapQPosX = xMapper.getQuantizedXPositions(barRange);              // only draw what's visible        
+        var mapQPosX = xMapper.getQuantizedXPositions(null);              
         boolean paintSixteenth = xMapper.getOneBeatPixelSize() > 20;
         IntRange loopZone = editor.getLoopZone();
 
@@ -856,7 +862,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         /**
          * Get the beat position corresponding to the specified xPos in this panel's coordinates.
          *
-         * @param yPos
+         * @param xPos
          * @return A beat position within getPhraseBeatRange(). -1 if xPos is out of the bounds of this panel.
          */
         public float getPositionInBeats(int xPos)
@@ -873,7 +879,7 @@ public class NotesPanel extends javax.swing.JPanel implements PropertyChangeList
         /**
          * Get the position (bar, beat) corresponding to the specified xPos in this panel's coordinates.
          *
-         * @param yPos
+         * @param xPos
          * @return
          */
         public Position getPosition(int xPos)
