@@ -20,20 +20,15 @@
   <Layout>
     <DimensionLayout dim="0">
       <Group type="103" groupAlignment="0" attributes="0">
-          <Group type="102" alignment="0" attributes="0">
+          <Group type="102" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
                   <Component id="rb_velocity" alignment="0" min="-2" max="-2" attributes="0"/>
                   <Component id="rb_score" alignment="0" min="-2" max="-2" attributes="0"/>
-                  <Group type="102" alignment="0" attributes="0">
-                      <EmptySpace min="21" pref="21" max="-2" attributes="0"/>
-                      <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="sp_displayTransposition" min="-2" pref="52" max="-2" attributes="0"/>
-                          <Component id="lbl_displayTransposition" min="-2" max="-2" attributes="0"/>
-                      </Group>
-                  </Group>
+                  <Component id="lbl_displayTransposition" alignment="0" min="-2" max="-2" attributes="0"/>
+                  <Component id="sp_displayTransposition" alignment="0" min="-2" pref="52" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace pref="57" max="32767" attributes="0"/>
+              <EmptySpace pref="68" max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -48,7 +43,7 @@
               <Component id="lbl_displayTransposition" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="sp_displayTransposition" min="-2" max="-2" attributes="0"/>
-              <EmptySpace pref="35" max="32767" attributes="0"/>
+              <EmptySpace pref="37" max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -102,7 +97,7 @@
         <Property name="columns" type="int" value="2"/>
         <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.editors2.FontEditor">
           <FontInfo relative="true">
-            <Font component="sp_displayTransposition" property="font" relativeSize="true" size="-1"/>
+            <Font component="sp_displayTransposition" property="font" relativeSize="true" size="-2"/>
           </FontInfo>
         </Property>
       </Properties>
@@ -114,7 +109,7 @@
       <Properties>
         <Property name="font" type="java.awt.Font" editor="org.netbeans.modules.form.editors2.FontEditor">
           <FontInfo relative="true">
-            <Font component="lbl_displayTransposition" property="font" relativeSize="true" size="-1"/>
+            <Font component="lbl_displayTransposition" property="font" relativeSize="true" size="-2"/>
           </FontInfo>
         </Property>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">

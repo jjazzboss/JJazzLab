@@ -42,31 +42,30 @@ import java.beans.PropertyChangeListener;
 import java.text.AttributedString;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JViewport;
 import javax.swing.SwingUtilities;
-import org.jjazz.chordleadsheet.api.ClsChangeListener;
-import org.jjazz.chordleadsheet.api.UnsupportedEditException;
-import org.jjazz.chordleadsheet.api.event.ClsActionEvent;
-import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
+import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.pianoroll.api.NoteView;
 import org.jjazz.pianoroll.api.PianoRollEditor;
-import org.jjazz.rhythmmusicgeneration.api.ChordSequence;
-import org.jjazz.rhythmmusicgeneration.api.SongChordSequence;
 import org.jjazz.score.api.NotationGraphics;
+import org.jjazz.score.api.MeasureContext;
 import org.jjazz.song.api.Song;
 import org.jjazz.uiutilities.api.HSLColor;
 import org.jjazz.uiutilities.api.RedispatchingMouseAdapter;
 import org.jjazz.uiutilities.api.StringMetrics;
+import org.jjazz.uiutilities.api.UIUtilities;
 
 /**
  * Show the notes in a notation staff in the bottom side of the editor.
  */
-public class ScorePanel extends EditorPanel implements PropertyChangeListener, ClsChangeListener
+public class ScorePanel extends EditorPanel implements PropertyChangeListener
 {
 
     private static final int TOP_PADDING = 2;
@@ -85,6 +84,8 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener, C
         this.setDoubleBuffered(true);
 
         this.editor = editor;
+        this.editor.addPropertyChangeListener(PianoRollEditor.PROP_CHORD_SEQUENCE, this);
+
         this.notesPanel = notesPanel;
         ng = new NotationGraphics();
         ng.setSize(30f);
@@ -197,7 +198,7 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener, C
             c = HSLColor.changeLuminance(c, -6);
             g2.setColor(c);
             int xFrom = xMapper.getX(new Position(loopZone.from));
-            int xTo = xMapper.getBarRange().contains(loopZone.to + 1) ? xMapper.getX(new Position(loopZone.to + 1)) : xMapper.getLastWidth() - 1;
+            int xTo = editor.getPhraseBarRange().contains(loopZone.to + 1) ? xMapper.getX(new Position(loopZone.to + 1)) : xMapper.getLastWidth() - 1;
             g2.fillRect(xFrom, 0, xTo - xFrom, getHeight());
         }
 
@@ -209,25 +210,28 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener, C
         final Color CLEF_COLOR = new Color(NOTE_COLOR.getRed(), NOTE_COLOR.getGreen(), NOTE_COLOR.getBlue(), 150); // A bit transparent
 
 
-        // Show chord symbols if available
-        if (song != null)
+        // Save chord symbols beat position for notes drawing below
+        TreeMap<Float, CLI_ChordSymbol> tmapPosChordSymbol = new TreeMap<>();
+
+
+        var chordSequence = editor.getChordSequence();
+        if (chordSequence != null)
         {
+            // Show chord symbols if available
             final Color COLOR_CHORD_SYMBOL_FONT = CLEF_COLOR;
             g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-            Font baseFont = editor.getSettings().getRulerBaseFont();      
-            int baseFontHeight = (int) Math.ceil(new StringMetrics(g2, baseFont).getHeight("F"));
+
+            Font baseFont = UIUtilities.changeFontSize(editor.getSettings().getRulerBaseFont(), 1f);
+            int baseFontHeight = (int) Math.ceil(new StringMetrics(g2, baseFont).getHeight("I"));
             float oneBeatPixelSize = xMapper.getOneBeatPixelSize();
-            
+
             // Take into account the possible different rulerStartBar
             int barOffset = editor.getRulerStartBar() - editor.getPhraseStartBar();
 
             // Draw chord symbols
-            var offsettedBarRange = editor.getPhraseBarRange().getTransformed(barOffset);
-            ChordSequence cs = new ChordSequence(offsettedBarRange);
-            SongChordSequence.fillChordSequence(cs, song, offsettedBarRange);
             int lastBar = -1;
 
-            for (var cliCs : cs)
+            for (var cliCs : chordSequence)
             {
                 var pos = cliCs.getPosition();
 
@@ -236,6 +240,7 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener, C
                     // Draw the chord symbol
                     var posOffsetted = pos.getMoved(-barOffset, 0); // Convert to phraseStartBar
                     var posInBeats = editor.toPositionInBeats(posOffsetted);
+                    tmapPosChordSymbol.put(posInBeats, cliCs);      // Save chord beat position
                     int x = editor.getXFromPosition(posInBeats);
                     int y = baseFontHeight;
                     AttributedString aStr;
@@ -262,10 +267,9 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener, C
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         ng.setGraphics(g2);
 
-        final int G_STAFF_FIRST_LINE = 8;
+        final int G_STAFF_FIRST_LINE = 9;
         final int F_STAFF_FIRST_LINE = G_STAFF_FIRST_LINE + 9;
         final int G_STAFF_LOWEST_PITCH = 57;
-        final int F_STAFF_HIGHEST_PITCH = 60;
 
 
         // G staff 
@@ -293,8 +297,16 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener, C
         // Notes
         g2.setColor(NOTE_COLOR);
 
+        MeasureContext mContext = null;
         for (var ne : editor.getModel())
         {
+            float posInBeats = ne.getPositionInBeats();
+            int bar = xMapper.toPosition(posInBeats).getBar();
+            if (mContext == null || mContext.getBarIndex() != bar)
+            {
+                mContext = new MeasureContext(bar, new Note(60));
+            }
+
             int p = ne.getPitch();
             if (displayTransposition != 0)
             {
@@ -308,7 +320,10 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener, C
             int line = useFstaff ? F_STAFF_FIRST_LINE : G_STAFF_FIRST_LINE;
             ng.absoluteLine(line);
 
-            ng.drawNote(ng.new ScoreNote(ne, 2, -1, useFstaff)); // dur=2=quarter, linedir=-1=no tie
+            Float csPos = tmapPosChordSymbol.floorKey(posInBeats);
+            var cs = csPos == null ? null : tmapPosChordSymbol.get(csPos).getData();
+            var sn = mContext.buildScoreNote(ne, useFstaff, cs);
+            ng.drawNote(sn.staffLine, NotationGraphics.NOTE_DURATION_QUARTER, 0, sn.accidental, 0, NotationGraphics.LINE_DIR_NO);
         }
 
     }
@@ -346,54 +361,13 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener, C
         return scaleFactorX;
     }
 
-    /**
-     * Let the ScorePanel show chord symbols.
-     *
-     * @param song
-     */
-    public void setSong(Song song)
-    {
-        this.song = song;
-
-        // Listen to chord leadsheet changes (song structure changes must be managed at a higher level)
-        song.getChordLeadSheet().addClsChangeListener(this);
-        repaint();
-    }
-
     @Override
     public void cleanup()
     {
+        editor.removePropertyChangeListener(this);
         editor.getSettings().removePropertyChangeListener(this);
-        if (song != null)
-        {
-            song.getChordLeadSheet().removeClsChangeListener(this);
-        }
-    }
-    // ==========================================================================================================
-    // ClsChangeListener interface
-    // ==========================================================================================================    
-
-    @Override
-    public void authorizeChange(ClsChangeEvent e) throws UnsupportedEditException
-    {
-        // Nothing
     }
 
-    @Override
-    public void chordLeadSheetChanged(ClsChangeEvent e)
-    {
-        if (e instanceof ClsActionEvent ae && ae.isActionComplete())
-        {
-            // Listen to all user actions which do not trigger a song structure change
-            switch (ae.getActionId())
-            {
-                case "addItem", "changeItem", "removeItem", "moveItem", "setSectionName" ->
-                {
-                    repaint();
-                }
-            }
-        }
-    }
     // ==========================================================================================================
     // PropertyChangeListener interface
     // ==========================================================================================================    
@@ -409,6 +383,9 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener, C
         if (evt.getSource() == editor.getSettings())
         {
             settingsChanged();
+        } else if (evt.getSource() == editor)
+        {
+            repaint();
         }
     }
 

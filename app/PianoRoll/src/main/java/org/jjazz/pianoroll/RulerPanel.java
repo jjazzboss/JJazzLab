@@ -48,10 +48,6 @@ import javax.swing.JPanel;
 import javax.swing.JViewport;
 import javax.swing.SwingUtilities;
 import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.chordleadsheet.api.ClsChangeListener;
-import org.jjazz.chordleadsheet.api.UnsupportedEditException;
-import org.jjazz.chordleadsheet.api.event.ClsActionEvent;
-import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.pianoroll.api.PianoRollEditor;
@@ -74,7 +70,7 @@ import org.jjazz.utilities.api.ResUtil;
  * If a song is associated, show also the chord symbols and song parts. The RulerPanel listens to chord symbols changes to refresh itself (song structure
  * changes are handled by the PianoRollEditor).
  */
-public class RulerPanel extends JPanel implements ClsChangeListener, PropertyChangeListener
+public class RulerPanel extends JPanel implements PropertyChangeListener
 {
 
     private static final int BAR_TICK_LENGTH = 7;
@@ -112,12 +108,14 @@ public class RulerPanel extends JPanel implements ClsChangeListener, PropertyCha
     public RulerPanel(PianoRollEditor editor, NotesPanel notesPanel)
     {
         this.editor = editor;
+        this.editor.addPropertyChangeListener(PianoRollEditor.PROP_CHORD_SEQUENCE, this);
+
         this.notesPanel = notesPanel;
         this.xMapper = notesPanel.getXMapper();
 
 
         this.editor.getSettings().addPropertyChangeListener(this);
-        
+
         setToolTipText(ResUtil.getString(getClass(), "RulerPanelTooltip"));
 
 
@@ -171,9 +169,6 @@ public class RulerPanel extends JPanel implements ClsChangeListener, PropertyCha
         }
 
         this.song = song;
-
-        // Listen to chord leadsheet changes (song structure changes must be managed at a higher level)
-        song.getChordLeadSheet().addClsChangeListener(this);
 
         revalidate();
         repaint();
@@ -246,13 +241,8 @@ public class RulerPanel extends JPanel implements ClsChangeListener, PropertyCha
         // Draw chord symbols
         if (song != null)
         {
-            var offsettedBarRange = editor.getPhraseBarRange().getTransformed(barOffset);
-            ChordSequence cs = new ChordSequence(offsettedBarRange);
-            SongChordSequence.fillChordSequence(cs, song, offsettedBarRange);
             int lastBar = -1;
-
-
-            for (var cliCs : cs)
+            for (var cliCs : editor.getChordSequence())
             {
                 var pos = cliCs.getPosition();
 
@@ -481,11 +471,8 @@ public class RulerPanel extends JPanel implements ClsChangeListener, PropertyCha
 
     public void cleanup()
     {
+        editor.removePropertyChangeListener(this);
         editor.getSettings().removePropertyChangeListener(this);
-        if (song != null)
-        {
-            song.getChordLeadSheet().removeClsChangeListener(this);
-        }
     }
 
     // ==========================================================================================================
@@ -494,41 +481,28 @@ public class RulerPanel extends JPanel implements ClsChangeListener, PropertyCha
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
+        LOGGER.log(Level.FINE, "propertyChange() evt.source.class={0}prop={1} old={2} new={3}", new Object[]
+        {
+            evt.getSource().getClass().getSimpleName(), evt.getPropertyName(), evt.getOldValue(), evt.getNewValue()
+        });
+
         if (evt.getSource() == editor.getSettings())
+        {
+            settingsChanged();
+        } else if (evt.getSource() == editor)
         {
             repaint();
         }
     }
 
-    // ==========================================================================================================
-    // ClsChangeListener interface
-    // ==========================================================================================================    
-
-    @Override
-    public void authorizeChange(ClsChangeEvent e) throws UnsupportedEditException
-    {
-        // Nothing
-    }
-
-    @Override
-    public void chordLeadSheetChanged(ClsChangeEvent e)
-    {
-        if (e instanceof ClsActionEvent ae && ae.isActionComplete())
-        {
-            // Listen to all user actions which do not trigger a song structure change
-            switch (ae.getActionId())
-            {
-                case "addItem", "changeItem", "removeItem", "moveItem", "setSectionName" ->
-                {
-                    repaint();
-                }
-            }
-        }
-    }
 
     // ==========================================================================================================
     // Private methods
     // ==========================================================================================================    
+    private void settingsChanged()
+    {
+        repaint();
+    }
 
     /**
      * Manage click and dragging operations on the ruler.

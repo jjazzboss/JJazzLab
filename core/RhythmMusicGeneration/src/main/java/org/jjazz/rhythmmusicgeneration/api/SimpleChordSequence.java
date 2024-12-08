@@ -151,12 +151,28 @@ public class SimpleChordSequence extends ChordSequence
      */
     public float toPositionInBeats(Position pos, float startBarPosInBeats)
     {
-        if (pos == null || startBarPosInBeats < 0)
-        {
-            throw new IllegalArgumentException("pos=" + pos + " startBarPosInBeats=" + startBarPosInBeats);
-        }
+        Objects.requireNonNull(pos);
+        Preconditions.checkArgument(startBarPosInBeats >= 0, "startBarPosInBeats=%f", startBarPosInBeats);
+
         float relPosInBeats = (pos.getBar() - getBarRange().from) * timeSignature.getNbNaturalBeats() + pos.getBeat();
         return startBarPosInBeats + relPosInBeats;
+    }
+
+    /**
+     * Convert the specified position in beats into a Position.
+     *
+     * @param posInBeats
+     * @param startBarPosInBeats The start position of this chord sequence.
+     * @return If posInBeats is beyond the end of this ChordSequence, then returned value will also be beyond this ChordSequence.
+     */
+    public Position toPosition(float posInBeats, float startBarPosInBeats)
+    {
+        Preconditions.checkArgument(posInBeats >= 0 && posInBeats >= startBarPosInBeats, "posInBeats=%f startBarPosInBeats=%f", posInBeats, startBarPosInBeats);
+        float relPosInBeats = posInBeats - startBarPosInBeats;
+        int relBars = (int) Math.floor(relPosInBeats / getTimeSignature().getNbNaturalBeats());
+        float beat = relPosInBeats - relBars * getTimeSignature().getNbNaturalBeats();
+        Position pos = new Position(getBarRange().from + relBars, beat);
+        return pos;
     }
 
     /**

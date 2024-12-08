@@ -110,7 +110,7 @@ public class BottomControlPanel extends javax.swing.JPanel
         sp_displayTransposition.setModel(new javax.swing.SpinnerNumberModel(0, -24, 24, 1));
         sp_displayTransposition.setToolTipText(org.openide.util.NbBundle.getMessage(BottomControlPanel.class, "BottomControlPanel.sp_displayTransposition.toolTipText")); // NOI18N
         sp_displayTransposition.setColumns(2);
-        sp_displayTransposition.setFont(sp_displayTransposition.getFont().deriveFont(sp_displayTransposition.getFont().getSize()-1f));
+        sp_displayTransposition.setFont(sp_displayTransposition.getFont().deriveFont(sp_displayTransposition.getFont().getSize()-2f));
         sp_displayTransposition.addChangeListener(new javax.swing.event.ChangeListener()
         {
             public void stateChanged(javax.swing.event.ChangeEvent evt)
@@ -119,7 +119,7 @@ public class BottomControlPanel extends javax.swing.JPanel
             }
         });
 
-        lbl_displayTransposition.setFont(lbl_displayTransposition.getFont().deriveFont(lbl_displayTransposition.getFont().getSize()-1f));
+        lbl_displayTransposition.setFont(lbl_displayTransposition.getFont().deriveFont(lbl_displayTransposition.getFont().getSize()-2f));
         org.openide.awt.Mnemonics.setLocalizedText(lbl_displayTransposition, org.openide.util.NbBundle.getMessage(BottomControlPanel.class, "BottomControlPanel.lbl_displayTransposition.text")); // NOI18N
         lbl_displayTransposition.setToolTipText(sp_displayTransposition.getToolTipText());
 
@@ -132,12 +132,9 @@ public class BottomControlPanel extends javax.swing.JPanel
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(rb_velocity)
                     .addComponent(rb_score)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(21, 21, 21)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(sp_displayTransposition, javax.swing.GroupLayout.PREFERRED_SIZE, 52, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(lbl_displayTransposition))))
-                .addContainerGap(57, Short.MAX_VALUE))
+                    .addComponent(lbl_displayTransposition)
+                    .addComponent(sp_displayTransposition, javax.swing.GroupLayout.PREFERRED_SIZE, 52, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(68, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -150,7 +147,7 @@ public class BottomControlPanel extends javax.swing.JPanel
                 .addComponent(lbl_displayTransposition)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(sp_displayTransposition, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(35, Short.MAX_VALUE))
+                .addContainerGap(37, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 

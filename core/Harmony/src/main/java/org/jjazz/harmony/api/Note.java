@@ -110,6 +110,7 @@ public class Note implements Comparable<Note>, Cloneable
         this(p, bd, VELOCITY_STD);
     }
 
+
     /**
      * Create a Note with a pitch, a duration in beat, standard velocity and an alteration if any.
      *
@@ -120,6 +121,27 @@ public class Note implements Comparable<Note>, Cloneable
     public Note(int p, float bd, int v)
     {
         this(p, bd, v, Alteration.FLAT);
+    }
+
+    /**
+     * Create a Note with a pitch, a symbolic duration, a velocity and an alteration if any.
+     *
+     * @param p
+     * @param sd
+     * @param v   velocity
+     * @param alt
+     */
+    public Note(int p, SymbolicDuration sd, int v, Alteration alt)
+    {
+        if (!checkPitch(p) || sd == null || alt == null || !checkVelocity(v))
+        {
+            throw new IllegalArgumentException("p=" + p + " sd=" + sd + " alt=" + alt + " v=" + v);
+        }
+        pitch = p;
+        beatDuration = sd.getDuration();
+        symbolicDuration = sd;
+        alterationDisplay = alt;
+        velocity = v;
     }
 
     /**
@@ -138,7 +160,7 @@ public class Note implements Comparable<Note>, Cloneable
         }
         pitch = p;
         beatDuration = bd;
-        symbolicDuration = SymbolicDuration.getSymbolicDuration(beatDuration);;
+        symbolicDuration = SymbolicDuration.getSymbolicDuration(bd);
         alterationDisplay = alt;
         velocity = v;
     }
@@ -431,8 +453,7 @@ public class Note implements Comparable<Note>, Cloneable
     /**
      * Get a new transposed note.
      * <p>
-     * If the new note is beyond pitchLimit, the note's octave is changed to remain below (pitchShift &gt; 0) or above (pitchSshift &lt; 0)
-     * pitchLimit.
+     * If the new note is beyond pitchLimit, the note's octave is changed to remain below (pitchShift &gt; 0) or above (pitchSshift &lt; 0) pitchLimit.
      * <p>
      * @param pitchShift A negative or positive value i semi-tons.
      * @param pitchLimit Authorized values are [13, 119]
@@ -766,9 +787,20 @@ public class Note implements Comparable<Note>, Cloneable
     }
 
     /**
+     * Get the F-clef staff line for this note.
+     *
+     * @return 0 for the line of E (Midi 40), 1 for F (41), -1 for D (38), etc.
+     */
+    public int getFStaffLineNumber()
+    {
+        int res = getGStaffLineNumber() + 12;
+        return res;
+    }
+
+    /**
      * Get the G-clef staff line for this note.
      *
-     * @return 0 for the line of middle C (Midi 60) or C#, 1 for D or Db or D#, 2 for E or Eb, 3 for F or F#, etc.
+     * @return 0 for the line of middle C (Midi 60) or C# (61), 1 for D (62) or Db or D#, -1 for B (59), etc.
      */
     public int getGStaffLineNumber()
     {
@@ -801,7 +833,37 @@ public class Note implements Comparable<Note>, Cloneable
 
             default -> throw new IllegalStateException("pitch=" + pitch);
         };
-        int res = (getOctave() - 5) * 7 + line;
+        int res = (getOctave() - 5) * 7 + line;     // One octabe is 7 lines on the staff
+        return res;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public boolean isWhiteKey()
+    {
+        return isWhiteKey(this.pitch);
+    }
+
+    /**
+     * Return the note pitch without the alteration.
+     * <p>
+     * Examples: <br>
+     * - if note==C#(61) then return 60, if note==Db(61) then return 62.<br>
+     * - if note==D(62) return 62.
+     *
+     * @return
+     */
+    public int getWhiteKeyPitch()
+    {
+        int res = getPitch();
+        if (!isWhiteKey())
+        {
+            res = isFlat() ? res + 1 : res - 1;
+            res = Math.max(0, res);
+            res = Math.min(127, res);
+        }
         return res;
     }
 
@@ -890,8 +952,9 @@ public class Note implements Comparable<Note>, Cloneable
         return relPitch;
     }
 
+
     /**
-     * Return Check if a pitch corresponds to keyboard white key (C major scale).
+     * Check if a pitch corresponds to a keyboard white key (C major scale).
      *
      * @param pitch
      * @return
@@ -899,18 +962,11 @@ public class Note implements Comparable<Note>, Cloneable
     static public boolean isWhiteKey(int pitch)
     {
         pitch = pitch % 12;
-        if ((pitch == 1) || (pitch == 3) || (pitch == 6) || (pitch == 8) || (pitch == 10))
-        {
-            return false;
-        } else
-        {
-            return true;
-        }
+        return !((pitch == 1) || (pitch == 3) || (pitch == 6) || (pitch == 8) || (pitch == 10));
     }
 
     /**
-     * Return a pitch which is guaranteed to be between lowPitch and highPitch. If pitch is out of bounds, go up/down 1 octave until we're
-     * within the limits.
+     * Return a pitch which is guaranteed to be between lowPitch and highPitch. If pitch is out of bounds, go up/down 1 octave until we're within the limits.
      *
      * @param pitch
      * @param lowPitch  Constraint: highPitch-lowPitch must be &gt; 11.
@@ -964,8 +1020,7 @@ public class Note implements Comparable<Note>, Cloneable
     /**
      * Round a float value to avoid musically meaningless differences when doing conversions (eg from/to tick positions).
      * <p>
-     * This facilitates e.g. NoteEvent or Phrase.equals() even when there are minimal differences of duration or position, like in
-     * RP_SYS_CustomPhraseComp.java.
+     * This facilitates e.g. NoteEvent or Phrase.equals() even when there are minimal differences of duration or position, like in RP_SYS_CustomPhraseComp.java.
      *
      * @param oldValue
      * @return

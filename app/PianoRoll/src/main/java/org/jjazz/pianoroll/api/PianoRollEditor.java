@@ -65,10 +65,12 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-import javax.swing.JTabbedPane;
 import javax.swing.KeyStroke;
-import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import org.jjazz.chordleadsheet.api.ClsChangeListener;
+import org.jjazz.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.chordleadsheet.api.event.ClsActionEvent;
+import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.midi.api.DrumKit;
@@ -105,6 +107,8 @@ import org.jjazz.pianoroll.EditorPanel;
 import org.jjazz.pianoroll.ScorePanel;
 import org.jjazz.pianoroll.VelocityPanel;
 import org.jjazz.pianoroll.actions.InvertNoteSelection;
+import org.jjazz.rhythmmusicgeneration.api.ChordSequence;
+import org.jjazz.rhythmmusicgeneration.api.SongChordSequence;
 import org.jjazz.uiutilities.api.SingleFileDragInTransferHandler;
 import org.jjazz.uiutilities.api.UIUtilities;
 import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
@@ -131,7 +135,7 @@ import org.openide.util.lookup.InstanceContent;
  * - its ActionMap instance<br>
  * - a Zoomable instance
  */
-public class PianoRollEditor extends JPanel implements PropertyChangeListener
+public class PianoRollEditor extends JPanel implements PropertyChangeListener, ClsChangeListener
 {
 
     /**
@@ -170,6 +174,10 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
      * newValue=playback point position in beats
      */
     public static final String PROP_PLAYBACK_POINT_POSITION = "PlaybackPointPosition";
+    /**
+     * oldValue=old ChordSequence newValue=new ChordSequence
+     */
+    public static final String PROP_CHORD_SEQUENCE = "ChordSequence";
     private static final float MAX_WIDTH_FACTOR = 1.5f;
     private NotesPanel notesPanel;
     private VelocityPanel velocityPanel;
@@ -204,12 +212,15 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     private boolean playbackAutoScrollEnabled;
     private final List<EditTool> editTools;
     private Song song;
+    private IntRange barRange;
     private FloatRange beatRange;
     private int channel = 0;
     private NavigableMap<Float, TimeSignature> mapPosTimeSignature;
     private int phraseStartBar;
     private final GhostPhrasesModel ghostPhrasesModel;
+    private ChordSequence chordSequence;
     private static final Logger LOGGER = Logger.getLogger(PianoRollEditor.class.getSimpleName());
+
 
     /**
      * Create a piano roll editor for a dummy phrase model.
@@ -232,6 +243,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         this.model = new Phrase(0, false);
         this.channel = 0;
         this.beatRange = new FloatRange(0, 8f);
+        this.barRange = new IntRange(0,1);
         this.keyMap = null;
         this.quantization = Quantization.ONE_QUARTER_BEAT;
         this.mapPosTimeSignature = new TreeMap<>();
@@ -304,13 +316,15 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     }
 
     /**
-     * Associate an optional song to the editor.
+     * Associate an optional song to the editor -this method can be called only once.
      * <p>
-     * Put the song in the editor's lookup. Song undo manager is used. Song can be used by subpanels to show e.g. chord symbols.<p>
-     * <p>
-     * This method can be called only once.
+     * - Song isput in the editor's lookup<br>
+     * - Song undo manager is used for undo/redo<br>
+     * - Song can be used by subpanels to show e.g. chord symbols.<br>
+     * - The Chord sequence associated to the edited phrase is kept uptodate.<br>
      *
      * @param song Can't be null
+     * @see #getChordSequence()
      */
     public void setSong(Song song)
     {
@@ -321,18 +335,21 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         }
 
         this.song = song;
+        updateChordSequence();
+
         generalLookupContent.add(song);
         rulerPanel.setSong(song);
-        scorePanel.setSong(song);
         setUndoManager(JJazzUndoManagerFinder.getDefault().get(getSong()));
 
+
+        song.getChordLeadSheet().addClsChangeListener(this);
     }
 
     /**
      * Get the song the edited phrase belongs to.
      *
      * @return Might be null.
-     * @see #setSong(org.jjazz.song.api.Song) 
+     * @see #setSong(org.jjazz.song.api.Song)
      */
     public Song getSong()
     {
@@ -398,8 +415,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         Preconditions.checkNotNull(beatRange);
         Preconditions.checkArgument(rulerStartBar >= 0);
         Preconditions.checkArgument(phraseStartBar >= 0);
-        Preconditions.checkArgument(!mapPosTs.isEmpty() && mapPosTs.firstKey() <= beatRange.from, "mapPosTs=%s  beatRange=%s",
-                mapPosTs, beatRange);
+        Preconditions.checkArgument(!mapPosTs.isEmpty() && mapPosTs.firstKey() <= beatRange.from, "mapPosTs=%s  beatRange=%s", mapPosTs, beatRange);
 
         LOGGER.log(Level.FINE, "setModel() -- p={0}", p);
 
@@ -425,17 +441,21 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         var oldLoopZone = loopZone;
         loopZone = null;
         keyMap = kMap;
-        int oldChannel = this.channel;
+        int oldChannel = channel;
         this.channel = channel;
         this.beatRange = beatRange;
-        this.mapPosTimeSignature = mapPosTs;
+        mapPosTimeSignature = mapPosTs;
         labelNotes(keyboard, keyMap);
         ghostPhrasesModel.setVisibleChannels(null);
         ghostPhrasesModel.setEditedChannel(channel);
 
-
         model.addPropertyChangeListener(this);
         model.addUndoableEditListener(undoManager);
+
+        barRange = computePhraseBarRange();
+
+
+        updateChordSequence();
 
 
         // Update the subcomponents                  
@@ -486,6 +506,16 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         return new IntRange(rulerStartBar, rulerStartBar + getPhraseBarRange().size() - 1);
     }
 
+    /**
+     * The chord sequence associated to the edited phrase.
+     *
+     * @return Can be null if song is not set.
+     */
+    public ChordSequence getChordSequence()
+    {
+        return chordSequence;
+    }
+
 
     /**
      * The time signature at the specified beat position.
@@ -525,9 +555,14 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         return phraseStartBar;
     }
 
+    /**
+     * Get the bar range of the edited phrase.
+     *
+     * @return
+     */
     public IntRange getPhraseBarRange()
     {
-        return notesPanel.getXMapper().getBarRange();
+        return barRange;
     }
 
     /**
@@ -589,6 +624,10 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         ghostPhrasesModel.cleanup();
         model.removeUndoableEditListener(undoManager);
         model.removePropertyChangeListener(this);
+        if (song != null)
+        {
+            song.getChordLeadSheet().removeClsChangeListener(this);
+        }
         firePropertyChange(PROP_EDITOR_ALIVE, true, false);
     }
 
@@ -1132,6 +1171,31 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
     {
         return "PianoRollEditor[" + song.getName() + "]";
     }
+    // ==========================================================================================================
+    // ClsChangeListener interface
+    // ==========================================================================================================    
+
+    @Override
+    public void authorizeChange(ClsChangeEvent e) throws UnsupportedEditException
+    {
+        // Nothing
+    }
+
+    @Override
+    public void chordLeadSheetChanged(ClsChangeEvent e)
+    {
+        if (e instanceof ClsActionEvent ae && ae.isActionComplete())
+        {
+            // Listen to all user actions which do not trigger a song structure change
+            switch (ae.getActionId())
+            {
+                case "addItem", "changeItem", "removeItem", "moveItem", "setSectionName" ->
+                {
+                    updateChordSequence();
+                }
+            }
+        }
+    }
 
     // ==========================================================================================================
     // PropertyChangeListener interface
@@ -1505,14 +1569,46 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener
         bottomControlPanel.repaint();         // required when keyboard got smaller
     }
 
-    private void update_lbl_velocityPreferredWidth()
+    private void updateChordSequence()
     {
-        int keyboardWidth = pnl_keyboard.getWidth();        // + scrollPaneEditor.getInsets().left;
-        // LOGGER.log(Level.SEVERE, "createUI().componentResized() -- keyboardWidth={0}", keyboardWidth);
-        var pd = lbl_velocity.getPreferredSize();
-        lbl_velocity.setPreferredSize(new Dimension(keyboardWidth, pd.height));
-        lbl_velocity.revalidate();      // required when keyboard got smaller
-        lbl_velocity.repaint();         // required when keyboard got smaller
+        if (song == null)
+        {
+            return;
+        }
+        var old = chordSequence;
+
+        // Take into account the possible different rulerStartBar
+        int barOffset = getRulerStartBar() - getPhraseStartBar();
+        var offsettedBarRange = getPhraseBarRange().getTransformed(barOffset);
+        chordSequence = new ChordSequence(offsettedBarRange);
+        SongChordSequence.fillChordSequence(chordSequence, song, offsettedBarRange);
+
+        firePropertyChange(PROP_CHORD_SEQUENCE, old, chordSequence);
+    }
+
+
+    private IntRange computePhraseBarRange()
+    {
+        int nbBars = 0;
+
+        float tsPos = beatRange.from;
+        TimeSignature ts = getTimeSignature(tsPos);
+
+        for (var tsNextPos : mapPosTimeSignature.subMap(tsPos + 1f, Float.MAX_VALUE).keySet())
+        {
+            var tsNext = mapPosTimeSignature.get(tsNextPos);
+            tsNextPos = Math.min(tsNextPos, beatRange.to);
+            nbBars += (int)Math.round((tsNextPos - tsPos) / ts.getNbNaturalBeats());
+            ts = tsNext;
+            tsPos = tsNextPos;
+        }
+        
+        if (tsPos < beatRange.to)
+        {
+            nbBars += (int)Math.round((beatRange.to - tsPos) / ts.getNbNaturalBeats());
+        }
+
+        return new IntRange(phraseStartBar, phraseStartBar + nbBars - 1);
     }
 
 

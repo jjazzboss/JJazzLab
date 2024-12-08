@@ -236,7 +236,7 @@ public class VelocityPanel extends EditorPanel implements PropertyChangeListener
             c = HSLColor.changeLuminance(c, -6);
             g2.setColor(c);
             int xFrom = xMapper.getX(new Position(loopZone.from));
-            int xTo = xMapper.getBarRange().contains(loopZone.to + 1) ? xMapper.getX(new Position(loopZone.to + 1)) : xMapper.getLastWidth() - 1;
+            int xTo = editor.getPhraseBarRange().contains(loopZone.to + 1) ? xMapper.getX(new Position(loopZone.to + 1)) : xMapper.getLastWidth() - 1;
             g2.fillRect(xFrom, 0, xTo - xFrom, getHeight());
         }
 

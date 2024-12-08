@@ -130,7 +130,7 @@ public class Chord implements Cloneable
     {
         return notes.stream()
                 .map(n -> n.getPitch())
-                .collect(Collectors.toList());
+                .toList();
     }
 
     /**

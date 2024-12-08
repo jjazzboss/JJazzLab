@@ -30,9 +30,28 @@
         <dependency>
             <groupId>org.jjazzlab.core</groupId>
             <artifactId>harmony</artifactId>
-            <version>${project.version}</version>
-            
+            <version>${project.version}</version>            
         </dependency>
+        <dependency>
+            <groupId>org.jjazzlab.core</groupId>
+            <artifactId>phrase</artifactId>
+            <version>${project.version}</version>            
+        </dependency>        
+        <dependency>
+            <groupId>org.jjazzlab.core</groupId>
+            <artifactId>rhythmmusicgeneration</artifactId>
+            <version>${project.version}</version>            
+        </dependency>        
+        <dependency>
+            <groupId>org.jjazzlab.core</groupId>
+            <artifactId>guava</artifactId>
+            <version>${project.version}</version>            
+        </dependency>        
+        <dependency>
+            <groupId>org.jjazzlab.core</groupId>
+            <artifactId>uiutilities</artifactId>
+            <version>${project.version}</version>            
+        </dependency>        
         <dependency>
             <groupId>org.netbeans.api</groupId>
             <artifactId>org-openide-windows</artifactId>

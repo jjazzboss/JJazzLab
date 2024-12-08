@@ -270,6 +270,22 @@ public class ChordSymbol implements Cloneable
     {
         return originalName;
     }
+    
+    
+    /**
+     * Return the most probable alteration to use when representing black key notes based on this chord symbol.
+     * 
+     * @return 
+     */
+    public Note.Alteration getDefaultAlteration()
+    {
+            Alteration res = getChord().getNotes().stream()
+                    .filter(n -> !Note.isWhiteKey(n.getPitch()))
+                    .findFirst()
+                    .map(n -> n.getAlterationDisplay())
+                    .orElse(Alteration.FLAT);
+            return res;
+    }
 
     @Override
     public String toString()

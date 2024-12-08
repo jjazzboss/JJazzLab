@@ -215,6 +215,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         editor.setModel(p, getBeatRange(), 0, 0, channel, mapPosTs, keyMap);
 
         refreshToolbarTitle();
+        
     }
 
 

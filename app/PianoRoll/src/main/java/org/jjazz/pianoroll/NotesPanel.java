@@ -471,7 +471,7 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
         Color cl3_lz = HSLColor.changeLuminance(cl2_lz, 3);
 
 
-        var mapQPosX = xMapper.getQuantizedXPositions(null);              
+        var mapQPosX = xMapper.getQuantizedXPositions(null);
         boolean paintSixteenth = xMapper.getOneBeatPixelSize() > 20;
         IntRange loopZone = editor.getLoopZone();
 
@@ -547,7 +547,7 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
             cb1_loopZone = HSLColor.changeLuminance(cb1, -6);
             cb2_loopZone = HSLColor.changeLuminance(cb2, -6);
             loopZoneXfrom = xMapper.getX(new Position(loopZone.from));
-            int xTo = xMapper.getBarRange().contains(loopZone.to + 1) ? xMapper.getX(new Position(loopZone.to + 1)) : xMapper.getLastWidth() - 1;
+            int xTo = editor.getPhraseBarRange().contains(loopZone.to + 1) ? xMapper.getX(new Position(loopZone.to + 1)) : xMapper.getLastWidth() - 1;
             loopZoneWidth = xTo - loopZoneXfrom;
         }
 
@@ -687,8 +687,6 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
          */
         private final NavigableMap<Position, Integer> tmap_allIntPos2X = new TreeMap<>();
         private BiMap<Position, Float> bimap_pos_posInBeats;
-        private IntRange barRange = IntRange.EMPTY_RANGE;
-
 
         private XMapper()
         {
@@ -702,16 +700,6 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
         public boolean isUptodate()
         {
             return lastWidth == getWidth();
-        }
-
-        /**
-         * Get the bar range of the edited phrase range.
-         *
-         * @return
-         */
-        public IntRange getBarRange()
-        {
-            return barRange;
         }
 
         /**
@@ -792,9 +780,7 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
             } while (barPosInBeats <= beatRange.to);
 
 
-            barRange = new IntRange(editor.getPhraseStartBar(), bar - 2);
-
-            // LOGGER.log(Level.SEVERE, "refresh() output barRange=" + barRange + " tmap_allQuantizedPos2X=" + Utilities.toMultilineString(tmap_allQuantizedPos2X));
+            // LOGGER.log(Level.SEVERE, "refresh() output tmap_allQuantizedPos2X=" + Utilities.toMultilineString(tmap_allQuantizedPos2X));
 
         }
 
@@ -955,7 +941,7 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
          */
         public float toPositionInBeats(Position pos)
         {
-            Preconditions.checkArgument(barRange.contains(pos.getBar()), "pos=%s getBarRange()=%s", pos, getBarRange());
+            Preconditions.checkArgument(editor.getPhraseBarRange().contains(pos.getBar()), "pos=%s getBarRange()=%s", pos, editor.getPhraseBarRange());
             float posBeatFloor = (float) Math.floor(pos.getBeat());
             Position posFloor = new Position(pos.getBar(), posBeatFloor);
             float posInBeats = bimap_pos_posInBeats.get(posFloor);

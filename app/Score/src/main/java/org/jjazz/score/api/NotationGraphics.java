@@ -35,15 +35,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.TreeMap;
-import org.jjazz.harmony.api.Note;
-import org.jjazz.harmony.api.SymbolicDuration;
-import static org.jjazz.harmony.api.SymbolicDuration.EIGHTH_DOTTED;
-import static org.jjazz.harmony.api.SymbolicDuration.HALF_DOTTED;
-import static org.jjazz.harmony.api.SymbolicDuration.HALF_TRIPLET;
-import static org.jjazz.harmony.api.SymbolicDuration.QUARTER_DOTTED;
-import static org.jjazz.harmony.api.SymbolicDuration.SIXTEENTH_TRIPLET;
-import static org.jjazz.harmony.api.SymbolicDuration.UNKNOWN;
-import static org.jjazz.harmony.api.SymbolicDuration.WHOLE_DOTTED;
 
 
 /**
@@ -58,6 +49,24 @@ public class NotationGraphics
     public final static int CLEF_NEUTRAL = 128;
     public final static int CLEF_TAB = 129;
 
+
+    public final static int NOTE_DURATION_WHOLE4 = -2;
+    public final static int NOTE_DURATION_WHOLE2 = -1;
+    public final static int NOTE_DURATION_WHOLE = 0;
+    public final static int NOTE_DURATION_HALF = 1;
+    public final static int NOTE_DURATION_QUARTER = 2;
+    public final static int NOTE_DURATION_EIGHTH = 3;
+    public final static int NOTE_DURATION_SIXTEENTH = 4;
+    public final static int NOTE_DURATION_SIXTEENTH2 = 5;
+    public final static int NOTE_DURATION_SIXTEENTH3 = 6;
+    public final static int NOTE_DURATION_SIXTEENTH4 = 7;
+
+    public final static int LINE_DIR_NO = -1;
+    public final static int LINE_DIR_AUTO = 0;
+    public final static int LINE_DIR_UP = 1;        // on the note's right side
+    public final static int LINE_DIR_DOWN = 2;      // on the note's left side
+
+    public final static int ACCIDENTAL_NO = 0;
     public final static int ACCIDENTAL_NATURAL = 32768;
     public final static int ACCIDENTAL_DOUBLE_SHARP = 200;
     public final static int ACCIDENTAL_SHARP_AND_A_HALF = 150;
@@ -336,7 +345,7 @@ public class NotationGraphics
         int[] accidentals = new int[notes.length];
         for (int i = 0; i < accidentals.length; i++)
         {
-            accidentals[i] = 100;
+            accidentals[i] = ACCIDENTAL_SHARP;
         }
         return drawKeySignature(notes, accidentals);
     }
@@ -448,50 +457,60 @@ public class NotationGraphics
     // linedir = 2 (line is on left, going down)	
     public ScoreNote drawNote(int staffLine, int dur)
     {
-        return drawNote(new ScoreNote(staffLine, dur));
+        var sn = new ScoreNote(staffLine, dur);
+        sn.x = cx;
+        return drawNote(sn);
     }
 
     public ScoreNote drawNote(int staffLine, int dur, int dotted)
     {
-        return drawNote(new ScoreNote(staffLine, dur, dotted));
+        var sn = new ScoreNote(staffLine, dur, dotted);
+        sn.x = cx;
+        return drawNote(sn);
     }
 
     public ScoreNote drawNote(int staffLine, int dur, int dotted, int accidental)
     {
-        return drawNote(new ScoreNote(staffLine, dur, dotted, accidental));
+        var sn = new ScoreNote(staffLine, dur, dotted, accidental);
+        sn.x = cx;
+        return drawNote(sn);
     }
 
     public ScoreNote drawNote(int staffLine, int dur, int dotted, int accidental, int mark)
     {
-        return drawNote(new ScoreNote(staffLine, dur, dotted, accidental, mark));
+        var sn = new ScoreNote(staffLine, dur, dotted, accidental, mark);
+        sn.x = cx;
+        return drawNote(sn);
     }
 
     public ScoreNote drawNote(int staffLine, int dur, int dotted, int accidental, int mark, int linedir)
     {
-        return drawNote(new ScoreNote(staffLine, dur, dotted, accidental, mark, linedir));
+        var sn = new ScoreNote(staffLine, dur, dotted, accidental, mark, linedir);
+        sn.x = cx;
+        return drawNote(sn);
     }
 
     public ScoreNote drawNote(ScoreNote scoreNote)
     {
-        if (scoreNote.linedir == 0)
+        if (scoreNote.linedir == LINE_DIR_AUTO)
         {
             if (scoreNote.staffLine > 4)
             {
-                scoreNote.linedir = 2;
+                scoreNote.linedir = LINE_DIR_DOWN;
             } else
             {
-                scoreNote.linedir = 1;
+                scoreNote.linedir = LINE_DIR_UP;
             }
         } else
         {
-            if (scoreNote.linedir == -1)
+            if (scoreNote.linedir == LINE_DIR_NO)
             {
-                scoreNote.linedir = 0;
+                scoreNote.linedir = LINE_DIR_AUTO;
             }
         }
-        if (scoreNote.dur < 1)
+        if (scoreNote.dur < NOTE_DURATION_HALF)
         {
-            scoreNote.linedir = 0;
+            scoreNote.linedir = LINE_DIR_AUTO;
         }
 
         boolean breakgroup = false;
@@ -503,7 +522,7 @@ public class NotationGraphics
                 breakgroup = false;
                 break;
             }
-            if (scoreNote.linedir != 0 && sn.linedir != 0)
+            if (scoreNote.linedir != LINE_DIR_AUTO && sn.linedir != LINE_DIR_AUTO)
             {
                 if (sn.linedir != scoreNote.linedir)
                 {
@@ -536,7 +555,7 @@ public class NotationGraphics
                     }
                 }
             }
-            if (sn.dur <= 2)
+            if (sn.dur <= NOTE_DURATION_QUARTER)
             {
                 if (Math.abs(sn.x - cx) > 0.0000001)
                 {
@@ -544,9 +563,9 @@ public class NotationGraphics
                     break;
                 }
             }
-            if (scoreNote.dur <= 2)
+            if (scoreNote.dur <= NOTE_DURATION_QUARTER)
             {
-                if (sn.dur > 2)
+                if (sn.dur > NOTE_DURATION_QUARTER)
                 {
                     breakgroup = true;
                     break;
@@ -573,13 +592,13 @@ public class NotationGraphics
     {
         return (char) (switch (dur)
         {
-            case -2 ->
+            case NOTE_DURATION_WHOLE4 ->
                 0xE1BD;
-            case -1 ->
+            case NOTE_DURATION_WHOLE2 ->
                 0xE11A;
-            case 0 ->
+            case NOTE_DURATION_WHOLE ->
                 0xE11B;
-            case 1 ->
+            case NOTE_DURATION_HALF ->
                 0xE11C;
             default ->
                 0xE11D;
@@ -822,7 +841,7 @@ public class NotationGraphics
 
             for (ScoreNote sn : timepart.notes)
             {
-                if (sn.accidental != 0)
+                if (sn.accidental != ACCIDENTAL_NO)
                 {
                     if (lastStaffLineWithAccidental != Integer.MAX_VALUE && Math.abs(lastStaffLineWithAccidental - sn.staffLine) <= 4)
                     {
@@ -837,7 +856,7 @@ public class NotationGraphics
                 if (lastpart != null && (Math.abs(lastpart.staffLine - sn.staffLine) == 1))
                 {
                     // The last note is just one line apart, shift the note on the left or the right
-                    if (linedir == 0 || linedir == 1)
+                    if (linedir == LINE_DIR_AUTO || linedir == LINE_DIR_UP)
                     {
                         drawNoteBase(sn, 1, useSecondPosForAccidental);
                     } else
@@ -863,7 +882,7 @@ public class NotationGraphics
                 maxdur = notepart.dur;
             }
         }
-        if (maxdur > 4)
+        if (maxdur > NOTE_DURATION_SIXTEENTH)
         {
             stem_length += (maxdur - 4) * (beamheight + beamspace);
         }
@@ -901,29 +920,29 @@ public class NotationGraphics
 
                 // Draw the line + the attached "wave" (simple for eight, double for sixteenth etc.)
 
-                if (linedir == 1)
+                if (linedir == LINE_DIR_UP)
                 {
                     Line2D.Float line = new Line2D.Float(cxLocal + notebasewidth, cy - stem_length - (maxnote * grid * 0.5f),
                             cxLocal + notebasewidth,
                             cy - (grid * 0.3f) - (minnote * grid * 0.5f));
                     g.draw(line);
 
-                    if (dur == 3)
+                    if (dur == NOTE_DURATION_EIGHTH)
                     {
                         g.drawString("" + (char) 0xE17F, cxLocal + notebasewidth + (grid * 0.1f),
                                 cy - (stem_length) - (maxnote * grid * 0.5f));
                     }
-                    if (dur == 4)
+                    if (dur == NOTE_DURATION_SIXTEENTH)
                     {
                         g.drawString("" + (char) 0xE180, cxLocal + notebasewidth + (grid * 0.1f),
                                 cy - (stem_length) - (maxnote * grid * 0.5f));
                     }
-                    if (dur == 5)
+                    if (dur == NOTE_DURATION_SIXTEENTH2)
                     {
                         g.drawString("" + (char) 0xE181, cxLocal + notebasewidth + (grid * 0.1f),
                                 cy - (stem_length) - (maxnote * grid * 0.5f));
                     }
-                    if (dur == 6)
+                    if (dur == NOTE_DURATION_SIXTEENTH3)
                     {
                         g.drawString("" + (char) 0xE182, cxLocal + notebasewidth + (grid * 0.1f),
                                 cy - (stem_length) - (maxnote * grid * 0.5f));
@@ -931,25 +950,25 @@ public class NotationGraphics
 
                 }
 
-                if (linedir == 2)
+                if (linedir == LINE_DIR_DOWN)
                 {
                     Line2D.Float line = new Line2D.Float(cxLocal, cy + stem_length - (minnote * grid * 0.5f), cxLocal,
                             cy + (grid * 0.3f) - (maxnote * grid * 0.5f));
                     g.draw(line);
 
-                    if (dur == 3)
+                    if (dur == NOTE_DURATION_EIGHTH)
                     {
                         g.drawString("" + (char) 0xE183, cxLocal + (grid * 0.1f), cy + (stem_length) - (minnote * grid * 0.5f));
                     }
-                    if (dur == 4)
+                    if (dur == NOTE_DURATION_SIXTEENTH)
                     {
                         g.drawString("" + (char) 0xE186, cxLocal + (grid * 0.1f), cy + (stem_length) - (minnote * grid * 0.5f));
                     }
-                    if (dur == 5)
+                    if (dur == NOTE_DURATION_SIXTEENTH2)
                     {
                         g.drawString("" + (char) 0xE187, cxLocal + (grid * 0.1f), cy + (stem_length) - (minnote * grid * 0.5f));
                     }
-                    if (dur == 6)
+                    if (dur == NOTE_DURATION_SIXTEENTH3)
                     {
                         g.drawString("" + (char) 0xE188, cxLocal + (grid * 0.1f), cy + (stem_length) - (minnote * grid * 0.5f));
                     }
@@ -1142,7 +1161,7 @@ public class NotationGraphics
 
             }
 
-            if (linedir == 2)
+            if (linedir == LINE_DIR_DOWN)
             {
                 float h = 0;
                 if (Math.abs(maxnote_x - minnote_x) > 0.00000001f)
@@ -1341,20 +1360,20 @@ public class NotationGraphics
 
         switch (dur)
         {
-            case -2 ->
+            case NOTE_DURATION_WHOLE4 ->
             {
                 g.drawString("" + (char) 0xE142, cx, cy - grid * 2.5f);
                 g.drawString("" + (char) 0xE142, cx, cy - grid * 1.5f);
             }
-            case -1 -> g.drawString("" + (char) 0xE142, cx, cy - grid * 2.5f);
-            case 0 -> g.drawString("" + (char) 0xE100, cx, cy - grid * 3);
-            case 1 -> g.drawString("" + (char) 0xE101, cx, cy - grid * 2);
-            case 2 -> g.drawString("" + (char) 0xE107, cx, cy - grid * 2);
-            case 3 -> g.drawString("" + (char) 0xE109, cx, cy - grid * 2);
-            case 4 -> g.drawString("" + (char) 0xE10A, cx, cy - grid * 3);
-            case 5 -> g.drawString("" + (char) 0xE10B, cx, cy - grid * 2);
-            case 6 -> g.drawString("" + (char) 0xE10C, cx, cy - grid * 3);
-            case 7 -> g.drawString("" + (char) 0xE10D, cx, cy - grid * 2);
+            case NOTE_DURATION_WHOLE2 -> g.drawString("" + (char) 0xE142, cx, cy - grid * 2.5f);
+            case NOTE_DURATION_WHOLE -> g.drawString("" + (char) 0xE100, cx, cy - grid * 3);
+            case NOTE_DURATION_HALF -> g.drawString("" + (char) 0xE101, cx, cy - grid * 2);
+            case NOTE_DURATION_QUARTER -> g.drawString("" + (char) 0xE107, cx, cy - grid * 2);
+            case NOTE_DURATION_EIGHTH -> g.drawString("" + (char) 0xE109, cx, cy - grid * 2);
+            case NOTE_DURATION_SIXTEENTH -> g.drawString("" + (char) 0xE10A, cx, cy - grid * 3);
+            case NOTE_DURATION_SIXTEENTH2 -> g.drawString("" + (char) 0xE10B, cx, cy - grid * 2);
+            case NOTE_DURATION_SIXTEENTH3 -> g.drawString("" + (char) 0xE10C, cx, cy - grid * 3);
+            case NOTE_DURATION_SIXTEENTH4 -> g.drawString("" + (char) 0xE10D, cx, cy - grid * 2);
             default ->
             {
             }
@@ -1388,7 +1407,7 @@ public class NotationGraphics
     // linedir = 0 (auto)
     // linedir = 1 (line is on right going up)
     // linedir = 2 (line is on left, going down)
-    public class ScoreNote
+    static public class ScoreNote
     {
 
         public float x = 0.0f;
@@ -1402,177 +1421,17 @@ public class NotationGraphics
 
         public ScoreNote()
         {
-        }
-
-        /**
-         *
-         * @param n
-         * @param lineDir
-         * @param useFclef If false use G clef
-         */
-        public ScoreNote(Note n, int lineDir, boolean useFclef)
-        {
-            this.x = cx;
-            this.linedir = lineDir;
-            setStaffLineAndAccidental(n, useFclef);
-
-            var sd = n.getSymbolicDuration();
-            if (sd == SymbolicDuration.UNKNOWN)
-            {
-                sd = SymbolicDuration.getClosestSymbolicDuration(n.getDurationInBeats());
-            }
-            dotted = sd.isDotted() ? 1 : 0;
-            dur = switch (sd)
-            {
-                case SIXTEENTH, SIXTEENTH_TRIPLET ->
-                    4;
-                case EIGHTH, EIGHTH_DOTTED, EIGHTH_TRIPLET ->
-                    3;
-                case UNKNOWN, QUARTER, QUARTER_DOTTED, QUARTER_TRIPLET ->
-                    2;
-                case HALF, HALF_DOTTED, HALF_TRIPLET ->
-                    1;
-                case WHOLE, WHOLE_DOTTED, WHOLE_TRIPLET ->
-                    0;
-                default -> throw new AssertionError(sd.name());
-            };
-
-        }
-
-        /**
-         *
-         * @param n
-         * @param dur
-         * @param linedir
-         * @param useFclef If false use G clef
-         */
-        public ScoreNote(Note n, int dur, int linedir, boolean useFclef)
-        {
-            this.x = cx;
-            this.dur = dur;
-            this.linedir = linedir;
-            setStaffLineAndAccidental(n, useFclef);
-        }
-
-        private void setStaffLineAndAccidental(Note n, boolean useFclef)
-        {
-            final int GCLEF_C_PITCH = 60;
-            final int FCLEF_C_PITCH = 48;
-            accidental = 0;
-            switch (n.getRelativePitch())
-            {
-                case 0 ->       // C
-                {
-                    staffLine = -2;
-                }
-                case 1 ->           // C#/Db
-                {
-                    if (n.isFlat())
-                    {
-                        staffLine = -1;
-                        accidental = ACCIDENTAL_FLAT;
-                    } else
-                    {
-                        staffLine = -2;
-                        accidental = ACCIDENTAL_SHARP;
-                    }
-                }
-                case 2 ->           // D
-                {
-                    staffLine = -1;
-                }
-                case 3 ->           // D#/Eb
-                {
-                    if (n.isFlat())
-                    {
-                        staffLine = 0;
-                        accidental = ACCIDENTAL_FLAT;
-                    } else
-                    {
-                        staffLine = -1;
-                        accidental = ACCIDENTAL_SHARP;
-                    }
-                }
-                case 4 ->           // E
-                {
-                    staffLine = 0;
-                }
-                case 5 ->           // F
-                {
-                    staffLine = 1;
-                }
-                case 6 ->           // F#/Gb
-                {
-                    if (n.isFlat())
-                    {
-                        staffLine = 2;
-                        accidental = ACCIDENTAL_FLAT;
-                    } else
-                    {
-                        staffLine = 1;
-                        accidental = ACCIDENTAL_SHARP;
-                    }
-                }
-                case 7 ->           // G
-                {
-                    staffLine = 2;
-                }
-                case 8 ->           // G#/Ab
-                {
-                    if (n.isFlat())
-                    {
-                        staffLine = 3;
-                        accidental = ACCIDENTAL_FLAT;
-                    } else
-                    {
-                        staffLine = 2;
-                        accidental = ACCIDENTAL_SHARP;
-                    }
-                }
-                case 9 ->           // A
-                {
-                    staffLine = 3;
-                }
-                case 10 ->           // A#/Bb
-                {
-                    if (n.isFlat())
-                    {
-                        staffLine = 4;
-                        accidental = ACCIDENTAL_FLAT;
-                    } else
-                    {
-                        staffLine = 3;
-                        accidental = ACCIDENTAL_SHARP;
-                    }
-                }
-                case 11 ->           // B
-                {
-                    staffLine = 4;
-                }
-            }
-
-            int cPitch = GCLEF_C_PITCH;
-            if (useFclef)
-            {
-                staffLine += 5;
-                cPitch = FCLEF_C_PITCH;
-            }
-
-            // Adjust octave             
-            int octaveOffset = (int) Math.floor((n.getPitch() - cPitch) / 12f);
-            staffLine += octaveOffset * 7;    // one octave is 7 lines;
+            
         }
 
         public ScoreNote(int staffLine, int dur)
         {
-            this.x = cx;
             this.staffLine = staffLine;
             this.dur = dur;
         }
 
         public ScoreNote(int staffLine, int dur, int dotted)
         {
-            this.x = cx;
             this.staffLine = staffLine;
             this.dur = dur;
             this.dotted = dotted;
@@ -1580,7 +1439,6 @@ public class NotationGraphics
 
         public ScoreNote(int staffLine, int dur, int dotted, int accidental)
         {
-            this.x = cx;
             this.staffLine = staffLine;
             this.dur = dur;
             this.dotted = dotted;
@@ -1589,7 +1447,6 @@ public class NotationGraphics
 
         public ScoreNote(int staffLine, int dur, int dotted, int accidental, int mark)
         {
-            this.x = cx;
             this.staffLine = staffLine;
             this.dur = dur;
             this.dotted = dotted;
@@ -1599,7 +1456,6 @@ public class NotationGraphics
 
         public ScoreNote(int staffLine, int dur, int dotted, int accidental, int mark, int linedir)
         {
-            this.x = cx;
             this.staffLine = staffLine;
             this.dur = dur;
             this.linedir = linedir;

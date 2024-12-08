@@ -578,8 +578,9 @@ public class UIUtilities
      *
      * @param menu
      * @param fontSizeOffset
+     * @param sizeMinMax     If specified limit the size of the returned value, first arg is the min size, second is the max size
      */
-    static public void changeMenuFontSize(JMenu menu, float fontSizeOffset)
+    static public void changeMenuFontSize(JMenu menu, float fontSizeOffset, float... sizeMinMax)
     {
         changeFontSize(menu, fontSizeOffset);
         int nbMenuComponents = menu.getMenuComponentCount();
@@ -588,10 +589,10 @@ public class UIUtilities
             Component c = menu.getMenuComponent(j);
             if (c instanceof JMenu)
             {
-                changeMenuFontSize((JMenu) c, fontSizeOffset);
+                changeMenuFontSize((JMenu) c, fontSizeOffset, sizeMinMax);
             } else if (c != null)
             {
-                changeFontSize(c, fontSizeOffset);
+                changeFontSize(c, fontSizeOffset, sizeMinMax);
             }
         }
     }
@@ -601,20 +602,35 @@ public class UIUtilities
      *
      * @param c
      * @param fontSizeOffset eg -2 (smaller) or +1.5 (bigger)
+     * @param sizeMinMax     If specified limit the size of the returned value, first arg is the min size, second is the max size
      */
-    static public void changeFontSize(Component c, float fontSizeOffset)
+    static public void changeFontSize(Component c, float fontSizeOffset, float... sizeMinMax)
     {
-        if (c == null)
-        {
-            throw new NullPointerException("c=" + c + " fontSizeOffset=" + fontSizeOffset);
-        }
+        Objects.requireNonNull(c);
         Font f = c.getFont();
         if (f != null)
         {
-            float newSize = Math.max(6, f.getSize() + fontSizeOffset);
-            Font newFont = f.deriveFont(newSize);
-            c.setFont(newFont);
+            c.setFont(changeFontSize(f, fontSizeOffset, sizeMinMax));
         }
+    }
+
+    /**
+     * Get a new font with size modified by adding fontSizeOffset.
+     *
+     * @param f
+     * @param fontSizeOffset
+     * @param sizeMinMax     If specified limit the size of the returned value, first arg is the min size, second is the max size
+     * @return
+     */
+    static public Font changeFontSize(Font f, float fontSizeOffset, float... sizeMinMax)
+    {
+        Objects.requireNonNull(f);
+        float min = sizeMinMax.length >= 1 ? sizeMinMax[0] : 4f;
+        float max = sizeMinMax.length >= 2 ? sizeMinMax[1] : 100f;
+        float newSize = Math.max(min, f.getSize() + fontSizeOffset);
+        newSize = Math.min(max, newSize);
+        Font res = f.deriveFont(newSize);
+        return res;
     }
 
     /**
