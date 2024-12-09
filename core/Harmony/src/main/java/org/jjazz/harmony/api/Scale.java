@@ -104,7 +104,7 @@ public class Scale
         for (Note n : notesInC)
         {
             scale.add(new Note(pitch + n.getPitch(), startNote.getDurationInBeats(), startNote.getVelocity(),
-                    startNote.getAlterationDisplay()));
+                    startNote.getAlteration()));
         }
         return scale;
     }

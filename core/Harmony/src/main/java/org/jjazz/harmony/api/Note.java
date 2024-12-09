@@ -96,7 +96,7 @@ public class Note implements Comparable<Note>, Cloneable
      */
     public Note(int p)
     {
-        this(p, SymbolicDuration.QUARTER.getDuration());
+        this(p, SymbolicDuration.QUARTER, VELOCITY_STD, Alteration.FLAT);
     }
 
     /**
@@ -347,7 +347,7 @@ public class Note implements Comparable<Note>, Cloneable
         return pitch / 12;
     }
 
-    public final Alteration getAlterationDisplay()
+    public final Alteration getAlteration()
     {
         return alterationDisplay;
     }

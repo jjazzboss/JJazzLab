@@ -35,6 +35,7 @@ import java.awt.Rectangle;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -59,7 +60,6 @@ import java.util.logging.Logger;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JLayer;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
@@ -110,7 +110,7 @@ import org.jjazz.pianoroll.ScorePanel;
 import org.jjazz.pianoroll.VelocityPanel;
 import org.jjazz.pianoroll.actions.InvertNoteSelection;
 import org.jjazz.pianoroll.actions.JumpToEnd;
-import org.jjazz.pianoroll.actions.JumpToHome;
+import org.jjazz.pianoroll.actions.JumpToStart;
 import org.jjazz.rhythmmusicgeneration.api.ChordSequence;
 import org.jjazz.rhythmmusicgeneration.api.SongChordSequence;
 import org.jjazz.uiutilities.api.SingleFileDragInTransferHandler;
@@ -208,7 +208,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
     private int rulerStartBar;
     private EditTool activeTool;
     private final EditToolProxyMouseListener editToolProxyMouseListener;
-    private final GenericMouseListener genericMouseListener;
+    private final NotesPanelMouseListener notesPanelMouseListener;
+    private final MoveZoomMouseListener moveZoomMouseListener;
     private boolean snapEnabled;
     private float playbackPointPosition;
     private boolean playbackAutoScrollEnabled;
@@ -283,16 +284,33 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
         editorPanels = List.of(notesPanel, velocityPanel, scorePanel);
 
         // Install mouse listeners
-        genericMouseListener = new GenericMouseListener();
-
-        notesPanel.addMouseListener(genericMouseListener);
-        notesPanel.addMouseMotionListener(genericMouseListener);
-        notesPanel.addMouseWheelListener(genericMouseListener);
-        velocityPanel.addMouseWheelListener(genericMouseListener);
+        notesPanelMouseListener = new NotesPanelMouseListener();
         editToolProxyMouseListener = new EditToolProxyMouseListener();
+        moveZoomMouseListener = new MoveZoomMouseListener();
+
+        notesPanel.addMouseListener(notesPanelMouseListener);
+        notesPanel.addMouseMotionListener(notesPanelMouseListener);
+        notesPanel.addMouseWheelListener(notesPanelMouseListener);
+
+        notesPanel.addMouseListener(moveZoomMouseListener);
+        notesPanel.addMouseMotionListener(moveZoomMouseListener);
+        notesPanel.addMouseWheelListener(moveZoomMouseListener);
+
         notesPanel.addMouseListener(editToolProxyMouseListener);
         notesPanel.addMouseMotionListener(editToolProxyMouseListener);
         notesPanel.addMouseWheelListener(editToolProxyMouseListener);
+
+        rulerPanel.addMouseListener(moveZoomMouseListener);
+        rulerPanel.addMouseMotionListener(moveZoomMouseListener);
+        rulerPanel.addMouseWheelListener(moveZoomMouseListener);
+
+        velocityPanel.addMouseListener(moveZoomMouseListener);
+        velocityPanel.addMouseMotionListener(moveZoomMouseListener);
+        velocityPanel.addMouseWheelListener(moveZoomMouseListener);
+
+        scorePanel.addMouseListener(moveZoomMouseListener);
+        scorePanel.addMouseMotionListener(moveZoomMouseListener);
+        scorePanel.addMouseWheelListener(moveZoomMouseListener);
 
 
         // By default enable the drag in transfer handler
@@ -1337,11 +1355,11 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
     {
         Preconditions.checkNotNull(nv);
         nv.addMouseListener(editToolProxyMouseListener);
-        nv.addMouseListener(genericMouseListener);
+        nv.addMouseListener(notesPanelMouseListener);
         nv.addMouseMotionListener(editToolProxyMouseListener);
-        nv.addMouseMotionListener(genericMouseListener);
+        nv.addMouseMotionListener(notesPanelMouseListener);
         nv.addMouseWheelListener(editToolProxyMouseListener);
-        nv.addMouseWheelListener(genericMouseListener);
+        nv.addMouseWheelListener(notesPanelMouseListener);
         nv.setInheritsPopupMenu(true);
 
     }
@@ -1350,11 +1368,11 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
     {
         Preconditions.checkNotNull(nv);
         nv.removeMouseListener(editToolProxyMouseListener);
-        nv.removeMouseListener(genericMouseListener);
+        nv.removeMouseListener(notesPanelMouseListener);
         nv.removeMouseMotionListener(editToolProxyMouseListener);
-        nv.removeMouseMotionListener(genericMouseListener);
+        nv.removeMouseMotionListener(notesPanelMouseListener);
         nv.removeMouseWheelListener(editToolProxyMouseListener);
-        nv.removeMouseWheelListener(genericMouseListener);
+        nv.removeMouseWheelListener(notesPanelMouseListener);
     }
 
     private int toZoomHValue(float scaleFactorX)
@@ -1530,16 +1548,35 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
         getActionMap().put(ZoomToFit.ACTION_ID, new ZoomToFit(this));
         getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(UIUtilities.getGenericControlShiftKeyStroke(KeyEvent.VK_I), InvertNoteSelection.ACTION_ID);
         getActionMap().put(InvertNoteSelection.ACTION_ID, new InvertNoteSelection(this));
+        
         // Use the notesPanel input map to avoid the arrow keys being captured by the enclosing JScrollPane
-        notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("HOME"), JumpToHome.ACTION_ID);
-        notesPanel.getActionMap().put(JumpToHome.ACTION_ID, new JumpToHome(this));
+        var jumpToEndAction = new JumpToEnd(this);
+        var jumpToStartAction = new JumpToStart(this);
+        notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("HOME"), JumpToStart.ACTION_ID);
+        notesPanel.getActionMap().put(JumpToStart.ACTION_ID, jumpToStartAction);
         notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("END"), JumpToEnd.ACTION_ID);
-        notesPanel.getActionMap().put(JumpToEnd.ACTION_ID, new JumpToEnd(this));
+        notesPanel.getActionMap().put(JumpToEnd.ACTION_ID, jumpToEndAction);        
+        velocityPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("HOME"), JumpToStart.ACTION_ID);
+        velocityPanel.getActionMap().put(JumpToStart.ACTION_ID, jumpToStartAction);
+        velocityPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("END"), JumpToEnd.ACTION_ID);
+        velocityPanel.getActionMap().put(JumpToEnd.ACTION_ID, jumpToEndAction);
+        rulerPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("HOME"), JumpToStart.ACTION_ID);
+        rulerPanel.getActionMap().put(JumpToStart.ACTION_ID, jumpToStartAction);
+        rulerPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("END"), JumpToEnd.ACTION_ID);
+        rulerPanel.getActionMap().put(JumpToEnd.ACTION_ID, jumpToEndAction);        
+        scorePanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("HOME"), JumpToStart.ACTION_ID);
+        scorePanel.getActionMap().put(JumpToStart.ACTION_ID, jumpToStartAction);
+        scorePanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("END"), JumpToEnd.ACTION_ID);
+        scorePanel.getActionMap().put(JumpToEnd.ACTION_ID, jumpToEndAction);
+        
+        notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("HOME"), JumpToStart.ACTION_ID);
+        notesPanel.getActionMap().put(JumpToStart.ACTION_ID, jumpToStartAction);
+        notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("END"), JumpToEnd.ACTION_ID);
+        notesPanel.getActionMap().put(JumpToEnd.ACTION_ID, jumpToEndAction);
         notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("LEFT"), "MoveSelectionLeft");
         notesPanel.getActionMap().put("MoveSelectionLeft", new MoveSelectionLeft(this));
         notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("RIGHT"), "MoveSelectionRight");
         notesPanel.getActionMap().put("MoveSelectionRight", new MoveSelectionRight(this));
-
         notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("alt LEFT"), "ResizeSelectionShorter");
         notesPanel.getActionMap().put("ResizeSelectionShorter", new ResizeSelection(this, false));
         notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("alt RIGHT"), "ResizeSelectionLonger");
@@ -1737,107 +1774,59 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
 
     };
 
+
     /**
-     * Provide generic services.
+     * Handle the move and zoom of the editor.
      * <p>
-     * - Handle the selection rectangle when dragging on the editor.<br>
-     * - Show the corresponding key on the keyboard when mouse is moved.<br>
-     * - Handle ctrl-mousewheel for zoom<br>
+     * - Handle ctrl-mousewheel for zoom in and out<br>
      * - Handle ctrl-drag to move the editor<br>
      * <p>
      */
-    private class GenericMouseListener implements MouseListener, MouseMotionListener, MouseWheelListener
+    private class MoveZoomMouseListener extends MouseAdapter
     {
 
         /**
          * Null if no dragging.
          */
-        private Point startDraggingPointSelectionMode;
-        private Point startDraggingPointMoveMode;
-        int lastHighlightedPitch = -1;
-
-
-        @Override
-        public void mouseClicked(MouseEvent e)
-        {
-            // Nothing
-        }
+        private Point startDraggingPoint;
 
 
         @Override
         public void mousePressed(MouseEvent e)
         {
-            notesPanel.requestFocusInWindow();          // Needed for InputMap/ActionMap actions
-        }
-
-
-        @Override
-        public void mouseMoved(MouseEvent e)
-        {
-            showMarkOnKeyboard(e);
-        }
-
-
-        @Override
-        public void mouseEntered(MouseEvent e)
-        {
-            // Nothing
-        }
-
-
-        @Override
-        public void mouseExited(MouseEvent e)
-        {
-            if (lastHighlightedPitch != -1)
+            if (e.isControlDown())
             {
-                keyboard.getKey(lastHighlightedPitch).release();
+                return;
             }
-            lastHighlightedPitch = -1;
+            JPanel panel = e.getComponent() instanceof JPanel p ? p : (JPanel) SwingUtilities.getAncestorOfClass(JPanel.class, e.getComponent());
+            if (panel != null)
+            {
+                panel.requestFocusInWindow();          // Needed for InputMap/ActionMap actions
+            }
         }
 
 
         @Override
         public void mouseDragged(MouseEvent e)
         {
-            showMarkOnKeyboard(e);
-
-            if (e.getSource() == notesPanel && SwingUtilities.isLeftMouseButton(e))
+            if (SwingUtilities.isLeftMouseButton(e) && e.isControlDown())
             {
-                if (startDraggingPointMoveMode != null || (e.isControlDown() && startDraggingPointSelectionMode == null))
+                // Move editor
+                if (startDraggingPoint == null)
                 {
-                    // Move editor
-                    if (startDraggingPointMoveMode == null)
-                    {
-                        startDraggingPointMoveMode = e.getPoint();
-                        notesPanel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-                    } else
-                    {
-                        JViewport viewPort = (JViewport) SwingUtilities.getAncestorOfClass(JViewport.class, notesPanel);
-                        if (viewPort != null)
-                        {
-                            int deltaX = startDraggingPointMoveMode.x - e.getX();
-                            Rectangle view = viewPort.getViewRect();
-                            view.x += deltaX;
-                            notesPanel.scrollRectToVisible(view);
-                        }
-                    }
-                } else if (activeTool.isEditMultipleNotesSupported())
+                    startDraggingPoint = e.getPoint();
+                    e.getComponent().setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
+                } else
                 {
-                    // Selection rectangle
-                    if (startDraggingPointSelectionMode == null)
+                    JViewport viewPort = (JViewport) SwingUtilities.getAncestorOfClass(JViewport.class, notesPanel);
+                    if (viewPort != null)
                     {
-                        startDraggingPointSelectionMode = e.getPoint();
-                        unselectAll();
-                    } else
-                    {
-                        ((JPanel) e.getSource()).scrollRectToVisible(new Rectangle(e.getX(), e.getY(), 1, 1));
-
-                        Rectangle r = new Rectangle(startDraggingPointSelectionMode);
-                        r.add(e.getPoint());
-                        showSelectionRectangle(r);
+                        int deltaX = startDraggingPoint.x - e.getX();
+                        Rectangle view = viewPort.getViewRect();
+                        view.x += deltaX;
+                        notesPanel.scrollRectToVisible(view);
                     }
                 }
-
             }
 
         }
@@ -1846,22 +1835,10 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
         @Override
         public void mouseReleased(MouseEvent e)
         {
-            if (startDraggingPointSelectionMode != null && activeTool.isEditMultipleNotesSupported())
+            if (startDraggingPoint != null)
             {
-                Rectangle r = new Rectangle(startDraggingPointSelectionMode);
-                r.add(e.getPoint());
-                showSelectionRectangle(null);
-                startDraggingPointSelectionMode = null;
-
-                var nvs = notesPanel.getNoteViews(r);
-                if (!nvs.isEmpty())
-                {
-                    activeTool.editMultipleNotes(nvs);
-                }
-            } else if (startDraggingPointMoveMode != null)
-            {
-                startDraggingPointMoveMode = null;
-                notesPanel.setCursor(Cursor.getDefaultCursor());
+                startDraggingPoint = null;
+                e.getComponent().setCursor(Cursor.getDefaultCursor());
             }
         }
 
@@ -1879,8 +1856,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
                 }
 
                 // We don't want to lose the event because it is processed by the the enclosing JScrollPane to moveAll the scrollbar up/down or left-right if shift pressed
-                Container source = e.getSource() instanceof NoteView ? ((Component) e.getSource()).getParent()
-                        : (Container) e.getSource();
+                Container source = e.getSource() instanceof NoteView ? ((Component) e.getSource()).getParent() : (Container) e.getSource();
                 Container parent = source.getParent();
                 MouseEvent parentEvent = SwingUtilities.convertMouseEvent(source, e, parent);
                 parent.dispatchEvent(parentEvent);
@@ -1923,6 +1899,91 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
             }
         }
 
+    }
+
+    /**
+     * Listener specific to the NotesPanel
+     * <p>
+     * - Handle the selection rectangle when dragging on the editor.<br>
+     * - Show the corresponding key on the keyboard when mouse is moved.<br>
+     * <p>
+     */
+    private class NotesPanelMouseListener extends MouseAdapter
+    {
+
+        /**
+         * Null if no dragging.
+         */
+        private Point startDraggingPoint;
+        int lastHighlightedPitch = -1;
+
+
+        @Override
+        public void mousePressed(MouseEvent e)
+        {
+            notesPanel.requestFocusInWindow();          // Needed for InputMap/ActionMap actions
+        }
+
+
+        @Override
+        public void mouseMoved(MouseEvent e)
+        {
+            showMarkOnKeyboard(e);
+        }
+
+        @Override
+        public void mouseExited(MouseEvent e)
+        {
+            if (lastHighlightedPitch != -1)
+            {
+                keyboard.getKey(lastHighlightedPitch).release();
+            }
+            lastHighlightedPitch = -1;
+        }
+
+
+        @Override
+        public void mouseDragged(MouseEvent e)
+        {
+            showMarkOnKeyboard(e);
+
+            if (activeTool.isEditMultipleNotesSupported() && SwingUtilities.isLeftMouseButton(e) && !e.isControlDown())
+            {
+                // Draw rectangle selection
+                if (startDraggingPoint == null)
+                {
+                    startDraggingPoint = e.getPoint();
+                    unselectAll();
+                } else
+                {
+                    ((JPanel) e.getSource()).scrollRectToVisible(new Rectangle(e.getX(), e.getY(), 1, 1));
+
+                    Rectangle r = new Rectangle(startDraggingPoint);
+                    r.add(e.getPoint());
+                    showSelectionRectangle(r);
+                }
+            }
+
+        }
+
+
+        @Override
+        public void mouseReleased(MouseEvent e)
+        {
+            if (startDraggingPoint != null && activeTool.isEditMultipleNotesSupported())
+            {
+                Rectangle r = new Rectangle(startDraggingPoint);
+                r.add(e.getPoint());
+                showSelectionRectangle(null);
+                startDraggingPoint = null;
+
+                var nvs = notesPanel.getNoteViews(r);
+                if (!nvs.isEmpty())
+                {
+                    activeTool.editMultipleNotes(nvs);
+                }
+            }
+        }
 
         private void showMarkOnKeyboard(MouseEvent e)
         {
@@ -2042,7 +2103,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
 
                 // Event needs also to be processed by the GenericMouseListener
                 MouseEvent e2 = SwingUtilities.convertMouseEvent(nv, e, notesPanel);
-                genericMouseListener.mouseMoved(e2);
+                notesPanelMouseListener.mouseMoved(e2);
             }
 
         }

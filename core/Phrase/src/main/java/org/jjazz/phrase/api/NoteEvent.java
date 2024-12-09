@@ -376,7 +376,7 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
      */
     public Note toNote()
     {
-        return new Note(getPitch(), getDurationInBeats(), getVelocity(), getAlterationDisplay());
+        return new Note(getPitch(), getDurationInBeats(), getVelocity(), getAlteration());
     }
 
     /**

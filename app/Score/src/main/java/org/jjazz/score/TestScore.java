@@ -19,6 +19,9 @@ import static org.jjazz.score.api.NotationGraphics.ACCIDENTAL_NATURAL;
 import static org.jjazz.score.api.NotationGraphics.ACCIDENTAL_NO;
 import static org.jjazz.score.api.NotationGraphics.ACCIDENTAL_SHARP;
 import static org.jjazz.score.api.NotationGraphics.ACCIDENTAL_SHARP_AND_A_HALF;
+import static org.jjazz.score.api.NotationGraphics.LINE_DIR_DOWN;
+import static org.jjazz.score.api.NotationGraphics.LINE_DIR_NO;
+import static org.jjazz.score.api.NotationGraphics.LINE_DIR_UP;
 import static org.jjazz.score.api.NotationGraphics.NOTE_DURATION_EIGHTH;
 import static org.jjazz.score.api.NotationGraphics.NOTE_DURATION_HALF;
 import static org.jjazz.score.api.NotationGraphics.NOTE_DURATION_QUARTER;
@@ -140,26 +143,25 @@ public class TestScore extends JPanel
         g2.setColor(Color.BLACK);
 
 
-        ng.drawNote(0,  NOTE_DURATION_EIGHTH);
+        ng.drawNote(0, NOTE_DURATION_EIGHTH);
         ng.relative(3);
-        ng.drawNote(2,  NOTE_DURATION_EIGHTH);
+        ng.drawNote(2, NOTE_DURATION_EIGHTH);
 
         ng.relative(3);
-        ng.drawNote(0,  NOTE_DURATION_EIGHTH, 1);
+        ng.drawNote(0, NOTE_DURATION_EIGHTH, 1);
         ng.relative(3);
-        ng.drawNote(2,  NOTE_DURATION_SIXTEENTH, 0);
+        ng.drawNote(2, NOTE_DURATION_SIXTEENTH, 0);
 
         ng.startNoteGroup();
         ng.relative(3);
-        ng.drawNote(0,  NOTE_DURATION_EIGHTH);
+        ng.drawNote(0, NOTE_DURATION_EIGHTH);
         ng.relative(3);
-        ng.drawNote(2,  NOTE_DURATION_EIGHTH);
+        ng.drawNote(2, NOTE_DURATION_EIGHTH);
 
         ng.relative(3);
-        ng.drawNote(0,  NOTE_DURATION_EIGHTH, 1);
+        ng.drawNote(0, NOTE_DURATION_EIGHTH, 1);
         ng.relative(3);
-        ng.drawNote(2,  NOTE_DURATION_SIXTEENTH, 0);
-
+        ng.drawNote(2, NOTE_DURATION_SIXTEENTH, 0);
         ng.endNoteGroup();
 
 
@@ -176,36 +178,36 @@ public class TestScore extends JPanel
 
         ng.startNoteGroup();
 
-        ng.drawNote(1,  NOTE_DURATION_QUARTER);
+        ng.drawNote(1, NOTE_DURATION_QUARTER);
         ng.relative(3);
-        ng.drawNote(6,  NOTE_DURATION_QUARTER);
+        ng.drawNote(6, NOTE_DURATION_QUARTER);
 
         ng.relative(3);
         ng.drawNote(6, NOTE_DURATION_WHOLE4);
         ng.relative(3);
         ng.drawNote(4, NOTE_DURATION_WHOLE2);
         ng.relative(3);
-        ng.drawNote(4,  NOTE_DURATION_WHOLE);
+        ng.drawNote(4, NOTE_DURATION_WHOLE);
         ng.relative(3);
-        ng.drawNote(4,  NOTE_DURATION_HALF);
+        ng.drawNote(4, NOTE_DURATION_HALF);
         ng.relative(3);
-        ng.drawNote(4,  NOTE_DURATION_QUARTER);
+        ng.drawNote(4, NOTE_DURATION_QUARTER);
         ng.relative(3);
-        ng.drawNote(4,  NOTE_DURATION_EIGHTH);
+        ng.drawNote(4, NOTE_DURATION_EIGHTH);
         ng.relative(3);
-        ng.drawNote(4,  NOTE_DURATION_SIXTEENTH);
+        ng.drawNote(4, NOTE_DURATION_SIXTEENTH);
 
         ng.relative(3);
-        ng.drawNote(4,  NOTE_DURATION_QUARTER);
+        ng.drawNote(4, NOTE_DURATION_QUARTER);
         ng.relative(3);
-        ng.drawNote(4,  NOTE_DURATION_EIGHTH);
+        ng.drawNote(4, NOTE_DURATION_EIGHTH);
         ng.relative(3);
-        ng.drawNote(4,  NOTE_DURATION_SIXTEENTH);
+        ng.drawNote(4, NOTE_DURATION_SIXTEENTH);
 
         ng.relative(3);
-        ng.drawNote(0,  NOTE_DURATION_QUARTER);
-        ng.drawNote(2,  NOTE_DURATION_QUARTER);
-        ng.drawNote(4,  NOTE_DURATION_EIGHTH);
+        ng.drawNote(0, NOTE_DURATION_QUARTER);
+        ng.drawNote(2, NOTE_DURATION_QUARTER);
+        ng.drawNote(4, NOTE_DURATION_EIGHTH);
 
         ng.relative(3);
         ng.drawNote(-1, NOTE_DURATION_EIGHTH);
@@ -218,11 +220,11 @@ public class TestScore extends JPanel
         ng.relative(3);
 
 
-        ng.drawNote(12,  NOTE_DURATION_EIGHTH, 0);
+        ng.drawNote(12, NOTE_DURATION_EIGHTH, 0);
         ng.relative(3);
-        ng.drawNote(10,  NOTE_DURATION_EIGHTH, 1);
+        ng.drawNote(10, NOTE_DURATION_EIGHTH, 1);
         ng.relative(3);
-        ng.drawNote(9,  NOTE_DURATION_EIGHTH, 2);
+        ng.drawNote(9, NOTE_DURATION_EIGHTH, 2);
 
 
         ng.relative(3);
@@ -275,111 +277,117 @@ public class TestScore extends JPanel
         ng.drawTimeSignature(4, 4);
         ng.relative(6);
 
-        ng.drawNote(1,  NOTE_DURATION_QUARTER, 0, ACCIDENTAL_DOUBLE_FLAT);
+        ng.drawNote(1, NOTE_DURATION_QUARTER, 0, ACCIDENTAL_DOUBLE_FLAT);
         ng.relative(6);
-        ng.drawNote(1,  NOTE_DURATION_QUARTER, 0, ACCIDENTAL_FLAT_AND_A_HALF);
+        ng.drawNote(1, NOTE_DURATION_QUARTER, 0, ACCIDENTAL_FLAT_AND_A_HALF);
         ng.relative(6);
-        ng.drawNote(1,  NOTE_DURATION_QUARTER, 0,  ACCIDENTAL_FLAT);
+        ng.drawNote(1, NOTE_DURATION_QUARTER, 0, ACCIDENTAL_FLAT);
         ng.relative(6);
-        ng.drawNote(1,  NOTE_DURATION_QUARTER, 0, ACCIDENTAL_DEMIFLAT);
+        ng.drawNote(1, NOTE_DURATION_QUARTER, 0, ACCIDENTAL_DEMIFLAT);
         ng.relative(6);
-        ng.drawNote(1,  NOTE_DURATION_QUARTER, 0, ACCIDENTAL_NATURAL);
+        ng.drawNote(1, NOTE_DURATION_QUARTER, 0, ACCIDENTAL_NATURAL);
         ng.relative(6);
-        ng.drawNote(1,  NOTE_DURATION_QUARTER, 0, ACCIDENTAL_NO);
+        ng.drawNote(1, NOTE_DURATION_QUARTER, 0, ACCIDENTAL_NO);
         ng.relative(6);
-        ng.drawNote(1,  NOTE_DURATION_QUARTER, 0, ACCIDENTAL_DEMISHARP);
+        ng.drawNote(1, NOTE_DURATION_QUARTER, 0, ACCIDENTAL_DEMISHARP);
         ng.relative(6);
-        ScoreNote n1 = ng.drawNote(1,  NOTE_DURATION_QUARTER, 0,  ACCIDENTAL_SHARP);
+        ScoreNote n1 = ng.drawNote(1, NOTE_DURATION_QUARTER, 0, ACCIDENTAL_SHARP);
         ng.relative(6);
-        ScoreNote n2 = ng.drawNote(1,  NOTE_DURATION_QUARTER, 0, ACCIDENTAL_SHARP_AND_A_HALF);
+        ScoreNote n2 = ng.drawNote(1, NOTE_DURATION_QUARTER, 0, ACCIDENTAL_SHARP_AND_A_HALF);
         ng.drawNoteTie(n1, n2);
 
         ng.relative(6);
-        ng.drawNote(2,  NOTE_DURATION_QUARTER, 0, 200);
+        ng.drawNote(2, NOTE_DURATION_QUARTER, 0, 200);
         ng.relative(6);
 
         ng.startNoteGroup();
-        ng.drawNote(2,  NOTE_DURATION_EIGHTH);
-        ng.drawNote(3,  NOTE_DURATION_EIGHTH);
-        ng.drawNote(6,  NOTE_DURATION_EIGHTH);
+        ng.drawNote(2, NOTE_DURATION_EIGHTH, 0, ACCIDENTAL_NO, 0, LINE_DIR_NO);
+        ng.drawNote(3, NOTE_DURATION_EIGHTH, 0, ACCIDENTAL_NO, 0, LINE_DIR_NO);
+        ng.drawNote(6, NOTE_DURATION_EIGHTH, 0, ACCIDENTAL_NO, 0, LINE_DIR_NO);;
+        ng.relative(4);
+        ng.endNoteGroup();
+
+        // Same but without NoteGroup
+        ng.drawNote(2, NOTE_DURATION_EIGHTH, 0, ACCIDENTAL_NO, 0, LINE_DIR_NO);
+        ng.drawNote(3, NOTE_DURATION_EIGHTH, 0, ACCIDENTAL_NO, 0, LINE_DIR_NO);
+        ng.drawNote(6, NOTE_DURATION_EIGHTH, 0, ACCIDENTAL_NO, 0, LINE_DIR_NO);
+        ng.relative(4);
+
+        ng.startNoteGroup();
+        ng.drawNote(2, NOTE_DURATION_QUARTER);
+        ng.drawNote(4, NOTE_DURATION_QUARTER);
+        ng.drawNote(6, NOTE_DURATION_QUARTER);
         ng.relative(4);
         ng.endNoteGroup();
 
         ng.startNoteGroup();
-        ng.drawNote(2,  NOTE_DURATION_QUARTER);
-        ng.drawNote(4,  NOTE_DURATION_QUARTER);
-        ng.drawNote(6,  NOTE_DURATION_QUARTER);
+        ng.drawNote(2, NOTE_DURATION_HALF);
+        ng.drawNote(5, NOTE_DURATION_HALF);
+        ng.drawNote(6, NOTE_DURATION_HALF);
         ng.relative(4);
         ng.endNoteGroup();
 
         ng.startNoteGroup();
-        ng.drawNote(2,  NOTE_DURATION_HALF);
-        ng.drawNote(5,  NOTE_DURATION_HALF);
-        ng.drawNote(6,  NOTE_DURATION_HALF);
+        ng.drawNote(2, NOTE_DURATION_WHOLE);
+        ng.drawNote(4, NOTE_DURATION_WHOLE);
+        ng.drawNote(6, NOTE_DURATION_WHOLE);
+        ng.relative(3);
+        ng.endNoteGroup();
+
+
+        ng.startNoteGroup();
+        ng.drawNote(2, NOTE_DURATION_EIGHTH, 0, ACCIDENTAL_NO, 0, LINE_DIR_UP);
+        ng.drawNote(4, NOTE_DURATION_EIGHTH, 0, ACCIDENTAL_NO, 0, LINE_DIR_UP);
+        ng.drawNote(6, NOTE_DURATION_EIGHTH, 0, ACCIDENTAL_NO, 0, LINE_DIR_UP);
         ng.relative(4);
         ng.endNoteGroup();
 
         ng.startNoteGroup();
-        ng.drawNote(2,  NOTE_DURATION_WHOLE);
-        ng.drawNote(4,  NOTE_DURATION_WHOLE);
-        ng.drawNote(6,  NOTE_DURATION_WHOLE);
+        ng.drawNote(8, NOTE_DURATION_EIGHTH);
         ng.relative(3);
-        ng.endNoteGroup();
-
-
-        ng.startNoteGroup();
-        ng.drawNote(2,  NOTE_DURATION_EIGHTH, 0,  ACCIDENTAL_NO, 0, 1);
-        ng.drawNote(4,  NOTE_DURATION_EIGHTH, 0,  ACCIDENTAL_NO, 0, 1);
-        ng.drawNote(6,  NOTE_DURATION_EIGHTH, 0,  ACCIDENTAL_NO, 0, 1);
+        ng.drawNote(5, NOTE_DURATION_SIXTEENTH);
         ng.relative(3);
-        ng.endNoteGroup();
-
-        ng.startNoteGroup();
-        ng.drawNote(8,  NOTE_DURATION_EIGHTH);
-        ng.relative(3);
-        ng.drawNote(5,  NOTE_DURATION_SIXTEENTH);
-        ng.relative(3);
-        ng.drawNote(4,  NOTE_DURATION_SIXTEENTH);
+        ng.drawNote(4, NOTE_DURATION_SIXTEENTH);
         ng.relative(3);
         ng.endNoteGroup();
 
 
         ng.startNoteGroup();
         // ng.drawNote(0,  NOTE_DURATION_QUARTER).mark = NotationGraphics.ARTICULATION_MARK_OPEN_NOTE;       // seems not implemented
-        ng.drawNote(0,  NOTE_DURATION_QUARTER, 0,  ACCIDENTAL_NO, NotationGraphics.ARTICULATION_MARK_ACCENT);     // seems not implemented
+        ng.drawNote(0, NOTE_DURATION_QUARTER, 0, ACCIDENTAL_NO, NotationGraphics.ARTICULATION_MARK_ACCENT);     // seems not implemented
         ng.relative(3);
-        ng.drawNote(0,  NOTE_DURATION_EIGHTH);
+        ng.drawNote(0, NOTE_DURATION_EIGHTH);
         ng.relative(3);
-        ng.drawNote(2,  NOTE_DURATION_SIXTEENTH).mark = NotationGraphics.ORNAMENT_MARK_TRILL;          // seems not implemented
+        ng.drawNote(2, NOTE_DURATION_SIXTEENTH).mark = NotationGraphics.ORNAMENT_MARK_TRILL;          // seems not implemented
         ng.relative(3);
-        ng.drawNote(6,  NOTE_DURATION_SIXTEENTH2).mark = NotationGraphics.ORNAMENT_MARK_TURN;           // seems not implemented
+        ng.drawNote(6, NOTE_DURATION_SIXTEENTH2).mark = NotationGraphics.ORNAMENT_MARK_TURN;           // seems not implemented
         ng.relative(3);
-        ng.drawNote(4,  NOTE_DURATION_HALF);
+        ng.drawNote(4, NOTE_DURATION_HALF);
         ng.relative(3);
         ng.endNoteGroup();
 
         ng.relative(3);
 
         ng.startNoteGroup();
-        ng.drawNote(4,  NOTE_DURATION_SIXTEENTH, 0, ACCIDENTAL_SHARP);        
-        ng.drawNote(5,  NOTE_DURATION_SIXTEENTH);        
-        ng.drawNote(8,  NOTE_DURATION_SIXTEENTH);
+        ng.drawNote(4, NOTE_DURATION_SIXTEENTH, 0, ACCIDENTAL_SHARP);
+        ng.drawNote(5, NOTE_DURATION_SIXTEENTH);
+        ng.drawNote(8, NOTE_DURATION_SIXTEENTH);
         ng.endNoteGroup();
 
         ng.relative(6);
 
         ng.startNoteGroup();
         ng.drawNote(-1, NOTE_DURATION_SIXTEENTH);
-        ng.drawNote(0,  NOTE_DURATION_SIXTEENTH, 0, ACCIDENTAL_NATURAL);
-        ng.drawNote(4,  NOTE_DURATION_SIXTEENTH);
+        ng.drawNote(0, NOTE_DURATION_SIXTEENTH, 0, ACCIDENTAL_NATURAL);
+        ng.drawNote(4, NOTE_DURATION_SIXTEENTH);
         ng.endNoteGroup();
 
         ng.relative(6);
 
         ng.startNoteGroup();
-        ng.drawNote(2,  NOTE_DURATION_SIXTEENTH);
-        ng.drawNote(3,  NOTE_DURATION_SIXTEENTH, 0, ACCIDENTAL_FLAT);
-        ng.drawNote(6,  NOTE_DURATION_SIXTEENTH, 0, ACCIDENTAL_FLAT);
+        ng.drawNote(2, NOTE_DURATION_SIXTEENTH);
+        ng.drawNote(3, NOTE_DURATION_SIXTEENTH, 0, ACCIDENTAL_FLAT);
+        ng.drawNote(6, NOTE_DURATION_SIXTEENTH, 0, ACCIDENTAL_FLAT);
         ng.endNoteGroup();
     }
 

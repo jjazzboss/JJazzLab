@@ -32,6 +32,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -93,7 +94,7 @@ public class VelocityPanel extends EditorPanel implements PropertyChangeListener
             }
         });
 
-        var vml = new VelocityMouseListener();
+        var vml = new VelocityPanelMouseListener();
         addMouseListener(vml);
         addMouseMotionListener(vml);
 
@@ -349,9 +350,8 @@ public class VelocityPanel extends EditorPanel implements PropertyChangeListener
      * Handle mouse events.
      * <p>
      * - Dragging or clicking update notes velocity.<br>
-     * - ctrl+drag move the editor.
      */
-    private class VelocityMouseListener implements MouseListener, MouseMotionListener, MouseWheelListener
+    private class VelocityPanelMouseListener extends MouseAdapter
     {
 
         private final String UNDO_TEXT = "Update note(s) velocity";
@@ -369,11 +369,10 @@ public class VelocityPanel extends EditorPanel implements PropertyChangeListener
         public void mouseClicked(MouseEvent e)
         {
             // LOGGER.severe("mouseClicked()");
-            if (SwingUtilities.isLeftMouseButton(e))
+            if (SwingUtilities.isLeftMouseButton(e) && !e.isControlDown())
             {
+                editor.getUndoManager().startCEdit(editor, UNDO_TEXT);
                 updateVelocity(e);
-
-                // End undoable action
                 editor.getUndoManager().endCEdit(UNDO_TEXT);
 
             }
@@ -381,22 +380,13 @@ public class VelocityPanel extends EditorPanel implements PropertyChangeListener
 
 
         @Override
-        public void mousePressed(MouseEvent e)
-        {
-            // LOGGER.severe("mousePressed()");
-
-            if (SwingUtilities.isLeftMouseButton(e))
-            {
-                // Start undoable action
-                editor.getUndoManager().startCEdit(editor, UNDO_TEXT);
-            }
-
-        }
-
-
-        @Override
         public void mouseMoved(MouseEvent e)
         {
+            if (e.isControlDown() || startDraggingPoint != null)
+            {
+                return;
+            }
+
             updateImpactedNotes(e);
 
             if (impactedNotes.isEmpty() && startDraggingPoint == null)
@@ -410,32 +400,20 @@ public class VelocityPanel extends EditorPanel implements PropertyChangeListener
 
 
         @Override
-        public void mouseEntered(MouseEvent e)
-        {
-            // Nothing
-        }
-
-
-        @Override
-        public void mouseExited(MouseEvent e)
-        {
-        }
-
-
-        @Override
         public void mouseDragged(MouseEvent e)
         {
 
-            if (SwingUtilities.isLeftMouseButton(e))
+            if (SwingUtilities.isLeftMouseButton(e) && !e.isControlDown())
             {
                 if (startDraggingPoint == null)
                 {
                     startDraggingPoint = e.getPoint();
                     setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                    
+                    editor.getUndoManager().startCEdit(editor, UNDO_TEXT);
                 } else
                 {
                     // LOGGER.severe("mouseDragged() continue");
-                    scrollRectToVisible(new Rectangle(e.getX(), e.getY(), 1, 1));
                     if (contains(e.getX(), e.getY()))
                     {
                         updateImpactedNotes(e);
@@ -451,7 +429,7 @@ public class VelocityPanel extends EditorPanel implements PropertyChangeListener
         public void mouseReleased(MouseEvent e)
         {
             // LOGGER.severe("mouseReleased()");
-            if (startDraggingPoint != null && SwingUtilities.isLeftMouseButton(e))
+            if (startDraggingPoint != null && SwingUtilities.isLeftMouseButton(e) && !e.isControlDown())
             {
                 startDraggingPoint = null;
                 setCursor(Cursor.getDefaultCursor());
@@ -459,12 +437,6 @@ public class VelocityPanel extends EditorPanel implements PropertyChangeListener
                 // End undoable action
                 editor.getUndoManager().endCEdit(UNDO_TEXT);
             }
-        }
-
-
-        @Override
-        public void mouseWheelMoved(MouseWheelEvent e)
-        {
         }
 
         // ============================================================================================

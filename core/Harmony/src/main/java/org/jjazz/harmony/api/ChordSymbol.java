@@ -282,7 +282,7 @@ public class ChordSymbol implements Cloneable
             Alteration res = getChord().getNotes().stream()
                     .filter(n -> !Note.isWhiteKey(n.getPitch()))
                     .findFirst()
-                    .map(n -> n.getAlterationDisplay())
+                    .map(n -> n.getAlteration())
                     .orElse(Alteration.FLAT);
             return res;
     }
@@ -530,7 +530,7 @@ public class ChordSymbol implements Cloneable
      */
     public String toNoteString()
     {
-        return getChord().toRelativeNoteString(rootNote.getAlterationDisplay());
+        return getChord().toRelativeNoteString(rootNote.getAlteration());
     }
 
     /**
@@ -690,7 +690,7 @@ public class ChordSymbol implements Cloneable
 
     private Note buildStdNote(Note n)
     {
-        return new Note(n.getRelativePitch(), 1, 64, n.getAlterationDisplay());
+        return new Note(n.getRelativePitch(), 1, 64, n.getAlteration());
     }
 
   

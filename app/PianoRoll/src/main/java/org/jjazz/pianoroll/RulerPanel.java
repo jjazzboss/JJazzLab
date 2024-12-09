@@ -51,8 +51,6 @@ import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.pianoroll.api.PianoRollEditor;
-import org.jjazz.rhythmmusicgeneration.api.ChordSequence;
-import org.jjazz.rhythmmusicgeneration.api.SongChordSequence;
 import org.jjazz.song.api.Song;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.uisettings.api.ColorSetManager;
@@ -508,7 +506,6 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
      * Manage click and dragging operations on the ruler.
      * <p>
      * - dragging sets the loop zone by dragging the ruler (shift+drag to extend existing loop zone)<br>
-     * - ctrl+dragging moves the editor.<br>
      * - A simple click resets the loop zone and update the selection on chord leadsheet and song structure editors.<br>
      * - A shift+click extends loop zone if already set.
      */
@@ -516,7 +513,7 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
     {
 
         private int xOrigin = Integer.MIN_VALUE;    // If MIN_VALUE drag has not started
-        private int loopZoneBarOrigin = -1;     // If >= 0 it's a drag to set the loop zone
+        private int loopZoneBarOrigin = -1;         // If >= 0 it's a drag to set the loop zone
 
         @Override
         public void mousePressed(MouseEvent e)
@@ -612,29 +609,16 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
         @Override
         public void mouseDragged(MouseEvent e)
         {
-            if (xOrigin == Integer.MIN_VALUE)
+            if (xOrigin < 0 || loopZoneBarOrigin < 0 || e.isControlDown())
             {
                 return;
             }
-            if (loopZoneBarOrigin < 0)
-            {
-                // Move the editor
-                JViewport viewPort = (JViewport) SwingUtilities.getAncestorOfClass(JViewport.class, notesPanel);
-                if (viewPort != null)
-                {
-                    int deltaX = xOrigin - e.getX();
-                    Rectangle view = viewPort.getViewRect();
-                    view.x += deltaX;
-                    notesPanel.scrollRectToVisible(view);
-                }
-            } else
-            {
-                // Set loop zone
-                int bar = xMapper.getPosition(e.getX()).getBar();
-                int min = Math.min(bar, loopZoneBarOrigin);
-                int max = Math.max(bar, loopZoneBarOrigin);
-                editor.setLoopZone(new IntRange(min, max));
-            }
+            
+            // Set loop zone
+            int bar = xMapper.getPosition(e.getX()).getBar();
+            int min = Math.min(bar, loopZoneBarOrigin);
+            int max = Math.max(bar, loopZoneBarOrigin);
+            editor.setLoopZone(new IntRange(min, max));
         }
     }
 }

@@ -24,18 +24,13 @@ package org.jjazz.pianoroll;
 
 import com.google.common.base.Preconditions;
 import java.awt.Color;
-import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.awt.font.TextAttribute;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -45,20 +40,18 @@ import java.util.List;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JViewport;
-import javax.swing.SwingUtilities;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.harmony.api.ChordSymbol;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.phrase.api.NoteEvent;
+import org.jjazz.phrase.api.Phrase;
 import org.jjazz.pianoroll.api.NoteView;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.score.api.NotationGraphics;
 import org.jjazz.score.api.MeasureContext;
-import org.jjazz.song.api.Song;
 import org.jjazz.uiutilities.api.HSLColor;
-import org.jjazz.uiutilities.api.RedispatchingMouseAdapter;
 import org.jjazz.uiutilities.api.StringMetrics;
 import org.jjazz.uiutilities.api.UIUtilities;
 
@@ -68,14 +61,14 @@ import org.jjazz.uiutilities.api.UIUtilities;
 public class ScorePanel extends EditorPanel implements PropertyChangeListener
 {
 
-    private static final int TOP_PADDING = 2;
+    private static final int G_STAFF_FIRST_LINE = 9;
+    private static final int F_STAFF_FIRST_LINE = G_STAFF_FIRST_LINE + 9;
+    private static final int G_STAFF_LOWEST_PITCH = 57;
     private final PianoRollEditor editor;
     private final NotesPanel notesPanel;
     private float scaleFactorX = 1;
     private int displayTransposition;
-    private final RedispatchingMouseAdapter mouseRedispatcher;
     private final NotationGraphics ng;
-    private Song song;
     private static final Logger LOGGER = Logger.getLogger(ScorePanel.class.getSimpleName());
 
 
@@ -90,8 +83,6 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
         ng = new NotationGraphics();
         ng.setSize(30f);
         displayTransposition = 0;
-
-        this.mouseRedispatcher = new RedispatchingMouseAdapter();
 
         var settings = editor.getSettings();
         settings.addPropertyChangeListener(this);
@@ -108,11 +99,6 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
                 repaint();
             }
         });
-
-
-        var vml = new ScoreMouseListener();
-        addMouseListener(vml);
-        addMouseMotionListener(vml);
 
     }
 
@@ -267,10 +253,6 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         ng.setGraphics(g2);
 
-        final int G_STAFF_FIRST_LINE = 9;
-        final int F_STAFF_FIRST_LINE = G_STAFF_FIRST_LINE + 9;
-        final int G_STAFF_LOWEST_PITCH = 57;
-
 
         // G staff 
         g2.setColor(NOTE_COLOR);
@@ -297,33 +279,40 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
         // Notes
         g2.setColor(NOTE_COLOR);
 
+        // Group notes by position so that chords are correctly displayed (eg with adjacent notes)
         MeasureContext mContext = null;
-        for (var ne : editor.getModel())
+        List<NoteEvent> samePosNotes = new ArrayList<>();
+        Phrase p = editor.getModel();
+
+        for (var ne : p)
         {
-            float posInBeats = ne.getPositionInBeats();
-            int bar = xMapper.toPosition(posInBeats).getBar();
-            if (mContext == null || mContext.getBarIndex() != bar)
+            boolean draw = true;
+            boolean last = ne == p.last();
+            if (samePosNotes.isEmpty() || samePosNotes.get(0).equalsAsNoteNearPosition(ne, 0.1f))
             {
-                mContext = new MeasureContext(bar, new Note(60));
+                // Store notes with same position
+                samePosNotes.add(ne);
+                draw = false;
             }
 
-            int p = ne.getPitch();
-            if (displayTransposition != 0)
+            if (draw || last)
             {
-                p = MidiUtilities.limit(p + displayTransposition);
-                ne = ne.setPitch(p);
+                // Draw the notes
+                float posInBeats = samePosNotes.get(0).getPositionInBeats();
+                int bar = xMapper.toPosition(posInBeats).getBar();
+                int x = xMapper.getX(posInBeats);
+                Float csPos = tmapPosChordSymbol.floorKey(posInBeats);
+                var cs = csPos == null ? null : tmapPosChordSymbol.get(csPos).getData();
+                if (mContext == null || mContext.getBarIndex() != bar)
+                {
+                    mContext = new MeasureContext(bar, new Note(60));
+                }
+
+                drawSamePositionNotes(samePosNotes, x, mContext, cs);
+
+                samePosNotes.clear();
+                samePosNotes.add(ne);
             }
-            int x = xMapper.getX(ne.getPositionInBeats());
-            ng.absoluteX(x);
-
-            boolean useFstaff = p < G_STAFF_LOWEST_PITCH;
-            int line = useFstaff ? F_STAFF_FIRST_LINE : G_STAFF_FIRST_LINE;
-            ng.absoluteLine(line);
-
-            Float csPos = tmapPosChordSymbol.floorKey(posInBeats);
-            var cs = csPos == null ? null : tmapPosChordSymbol.get(csPos).getData();
-            var sn = mContext.buildScoreNote(ne, useFstaff, cs);
-            ng.drawNote(sn.staffLine, NotationGraphics.NOTE_DURATION_QUARTER, 0, sn.accidental, 0, NotationGraphics.LINE_DIR_NO);
         }
 
     }
@@ -398,62 +387,52 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
         repaint();
     }
 
+    /**
+     * Draw one or more notes at same position.
+     *
+     * @param nes      Notes must be approximatively at same position. Can't be empty.
+     * @param x        x coordinate where to draw the notes
+     * @param mContext
+     * @param cs       Optional chord symbol
+     */
+    private void drawSamePositionNotes(List<NoteEvent> nes, int x, MeasureContext mContext, ChordSymbol cs)
+    {
+        Preconditions.checkArgument(!nes.isEmpty());
+
+        ng.absoluteX(x);
+
+        if (nes.size() > 1)
+        {
+            // Manage note shift for chord adjacent notes and a unique line
+            ng.startNoteGroup();
+        }
+
+        for (var ne : nes)
+        {
+            int p = ne.getPitch();
+            if (displayTransposition != 0)
+            {
+                p = MidiUtilities.limit(p + displayTransposition);
+                ne = ne.setPitch(p);
+            }
+            boolean useFstaff = p < G_STAFF_LOWEST_PITCH;
+            int line = useFstaff ? F_STAFF_FIRST_LINE : G_STAFF_FIRST_LINE;
+            ng.absoluteLine(line);
+
+            var sn = mContext.buildScoreNote(ne, useFstaff, cs);
+            ng.drawNote(sn.staffLine, NotationGraphics.NOTE_DURATION_QUARTER, 0, sn.accidental, 0, NotationGraphics.LINE_DIR_NO);
+        }
+
+        if (nes.size() > 1)
+        {
+            ng.endNoteGroup();
+        }
+
+    }
 
     // ==========================================================================================================
     // Inner classes
     // ==========================================================================================================    
-    /**
-     * Handle mouse events.
-     * <p>
-     * - Drag = move the editor.
-     */
-    private class ScoreMouseListener extends MouseAdapter
-    {
-
-        /**
-         * Null if no dragging.
-         */
-        private Point startDraggingPoint;
-
-        @Override
-        public void mouseDragged(MouseEvent e)
-        {
-            if (SwingUtilities.isLeftMouseButton(e))
-            {
-                if (startDraggingPoint == null)
-                {
-                    startDraggingPoint = e.getPoint();
-                    setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-                } else
-                {
-                    // LOGGER.severe("mouseDragged() continue");
-                    // Move the editor
-                    JViewport viewPort = (JViewport) SwingUtilities.getAncestorOfClass(JViewport.class, notesPanel);
-                    if (viewPort != null)
-                    {
-                        int deltaX = startDraggingPoint.x - e.getX();
-                        Rectangle view = viewPort.getViewRect();
-                        view.x += deltaX;
-                        notesPanel.scrollRectToVisible(view);
-                    }
-                }
-            }
-
-        }
-
-
-        @Override
-        public void mouseReleased(MouseEvent e)
-        {
-            // LOGGER.severe("mouseReleased()");
-            if (SwingUtilities.isLeftMouseButton(e))
-            {
-                startDraggingPoint = null;
-                setCursor(Cursor.getDefaultCursor());
-            }
-        }
-
-    }
 
 
 }

@@ -111,7 +111,7 @@ public class MeasureContext
         var prevPitchAlt = mapPitchAlteration.get(whiteKeyPitch);
         if (!Note.isWhiteKey(pitch))
         {
-            var alt = adjustedNote.getAlterationDisplay();
+            var alt = adjustedNote.getAlteration();
             res.accidental = alt == prevPitchAlt ? ACCIDENTAL_NO : toScoreNoteAlteration(alt); // Possibly take into accound previous alteration on same pitch
             mapPitchAlteration.put(whiteKeyPitch, alt);
         } else
@@ -166,9 +166,9 @@ public class MeasureContext
             // If it's a note of the chord reuse its alteration, otherwise use chord symbol default alteration
             Chord c = cs.getChord();
             int index = c.indexOfRelativePitch(n.getRelativePitch());
-            var alt = index > -1 ? c.getNote(index).getAlterationDisplay() : cs.getDefaultAlteration();
+            var alt = index > -1 ? c.getNote(index).getAlteration() : cs.getDefaultAlteration();
 
-            if (n.getAlterationDisplay() != alt)
+            if (n.getAlteration() != alt)
             {
                 res = new Note(n, alt);
             }

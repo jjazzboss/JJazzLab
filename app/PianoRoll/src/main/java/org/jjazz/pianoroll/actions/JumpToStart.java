@@ -31,14 +31,14 @@ import org.jjazz.pianoroll.api.PianoRollEditor;
 /**
  * Move editor to start.
  */
-public class JumpToHome extends AbstractAction
+public class JumpToStart extends AbstractAction
 {
 
-    public static final String ACTION_ID = "JumpHome";
+    public static final String ACTION_ID = "JumpStart";
     private final PianoRollEditor editor;
-    private static final Logger LOGGER = Logger.getLogger(JumpToHome.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(JumpToStart.class.getSimpleName());
 
-    public JumpToHome(PianoRollEditor editor)
+    public JumpToStart(PianoRollEditor editor)
     {
         this.editor = editor;
 
