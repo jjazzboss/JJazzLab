@@ -29,7 +29,6 @@ package org.jjazz.pianoroll;
  */
 public class BottomControlPanel extends javax.swing.JPanel
 {
-
     public static final String VELOCITY_EDITOR_PANEL_STRING = "Velocity";
     public static final String SCORE_EDITOR_PANEL_STRING = "Score";
     /**
@@ -52,7 +51,11 @@ public class BottomControlPanel extends javax.swing.JPanel
         this.velocityPanel = vPanel;
         this.scorePanel = sPanel;
         initComponents();
-
+        
+        // Keep spinner updated
+        this.sp_displayTransposition.setValue(scorePanel.getOctaveTransposition());
+        this.scorePanel.addPropertyChangeListener(ScorePanel.PROP_OCTAVE_TRANSPOSITION, e -> sp_displayTransposition.setValue(scorePanel.getOctaveTransposition()));          
+        
         selectionChanged();
     }
 
@@ -107,7 +110,7 @@ public class BottomControlPanel extends javax.swing.JPanel
             }
         });
 
-        sp_displayTransposition.setModel(new javax.swing.SpinnerNumberModel(0, -24, 24, 1));
+        sp_displayTransposition.setModel(new javax.swing.SpinnerNumberModel(0, -3, 3, 1));
         sp_displayTransposition.setToolTipText(org.openide.util.NbBundle.getMessage(BottomControlPanel.class, "BottomControlPanel.sp_displayTransposition.toolTipText")); // NOI18N
         sp_displayTransposition.setColumns(2);
         sp_displayTransposition.setFont(sp_displayTransposition.getFont().deriveFont(sp_displayTransposition.getFont().getSize()-2f));
@@ -120,6 +123,7 @@ public class BottomControlPanel extends javax.swing.JPanel
         });
 
         lbl_displayTransposition.setFont(lbl_displayTransposition.getFont().deriveFont(lbl_displayTransposition.getFont().getSize()-2f));
+        lbl_displayTransposition.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         org.openide.awt.Mnemonics.setLocalizedText(lbl_displayTransposition, org.openide.util.NbBundle.getMessage(BottomControlPanel.class, "BottomControlPanel.lbl_displayTransposition.text")); // NOI18N
         lbl_displayTransposition.setToolTipText(sp_displayTransposition.getToolTipText());
 
@@ -129,10 +133,10 @@ public class BottomControlPanel extends javax.swing.JPanel
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(rb_velocity)
-                    .addComponent(rb_score)
-                    .addComponent(lbl_displayTransposition)
+                    .addComponent(rb_score, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(lbl_displayTransposition, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(sp_displayTransposition, javax.swing.GroupLayout.PREFERRED_SIZE, 52, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(68, Short.MAX_VALUE))
         );
@@ -163,7 +167,7 @@ public class BottomControlPanel extends javax.swing.JPanel
 
     private void sp_displayTranspositionStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_sp_displayTranspositionStateChanged
     {//GEN-HEADEREND:event_sp_displayTranspositionStateChanged
-        scorePanel.setDisplayTransposition((Integer)sp_displayTransposition.getValue());
+        scorePanel.setOctaveTransposition((Integer)sp_displayTransposition.getValue());
     }//GEN-LAST:event_sp_displayTranspositionStateChanged
 
 

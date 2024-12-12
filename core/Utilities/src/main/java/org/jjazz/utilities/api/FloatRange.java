@@ -36,6 +36,10 @@ public class FloatRange
      * EMPTY_FLOAT_RANGE.size() returns 0.
      */
     public static final FloatRange EMPTY_FLOAT_RANGE = new VoidFloatRange();
+    /**
+     * The biggest FloatRange possible.
+     */
+    public static final FloatRange MAX_FLOAT_RANGE = new FloatRange(0, Float.MAX_VALUE);
 
     /**
      * A range representing [from; to].
@@ -50,7 +54,7 @@ public class FloatRange
     {
         if (from < 0 || from >= to)
         {
-            throw new IllegalArgumentException("from=" + from + " to=" + to);   
+            throw new IllegalArgumentException("from=" + from + " to=" + to);
         }
         this.from = from;
         this.to = to;

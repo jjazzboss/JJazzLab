@@ -22,10 +22,10 @@
       <Group type="103" groupAlignment="0" attributes="0">
           <Group type="102" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="0" attributes="0">
+              <Group type="103" groupAlignment="0" max="-2" attributes="0">
                   <Component id="rb_velocity" alignment="0" min="-2" max="-2" attributes="0"/>
-                  <Component id="rb_score" alignment="0" min="-2" max="-2" attributes="0"/>
-                  <Component id="lbl_displayTransposition" alignment="0" min="-2" max="-2" attributes="0"/>
+                  <Component id="rb_score" alignment="1" max="32767" attributes="0"/>
+                  <Component id="lbl_displayTransposition" alignment="0" max="32767" attributes="0"/>
                   <Component id="sp_displayTransposition" alignment="0" min="-2" pref="52" max="-2" attributes="0"/>
               </Group>
               <EmptySpace pref="68" max="32767" attributes="0"/>
@@ -89,7 +89,7 @@
     <Component class="org.jjazz.flatcomponents.api.WheelSpinner" name="sp_displayTransposition">
       <Properties>
         <Property name="model" type="javax.swing.SpinnerModel" editor="org.netbeans.modules.form.editors2.SpinnerModelEditor">
-          <SpinnerModel initial="0" maximum="24" minimum="-24" numberType="java.lang.Integer" stepSize="1" type="number"/>
+          <SpinnerModel initial="0" maximum="3" minimum="-3" numberType="java.lang.Integer" stepSize="1" type="number"/>
         </Property>
         <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
           <ResourceString bundle="org/jjazz/pianoroll/Bundle.properties" key="BottomControlPanel.sp_displayTransposition.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
@@ -112,6 +112,7 @@
             <Font component="lbl_displayTransposition" property="font" relativeSize="true" size="-2"/>
           </FontInfo>
         </Property>
+        <Property name="horizontalAlignment" type="int" value="0"/>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
           <ResourceString bundle="org/jjazz/pianoroll/Bundle.properties" key="BottomControlPanel.lbl_displayTransposition.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>

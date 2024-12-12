@@ -106,7 +106,6 @@ public class AddDrumsMidiPhraseTransform implements PhraseTransform
         if (replace)
         {
             // Remove all notes from same pitches before adding the new notes            
-            // var addPhrasePitches = addPhrase.getNotesByPitch(ne -> true).keySet();
             var addPhrasePitches = Phrases.getNotesByPitch(addPhrase, ne -> true).keySet();
             res.removeIf(ne -> addPhrasePitches.contains(ne.getPitch()));
             res.add(p);

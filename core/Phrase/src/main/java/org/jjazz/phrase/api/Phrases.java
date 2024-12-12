@@ -24,6 +24,8 @@ package org.jjazz.phrase.api;
 
 import com.google.common.base.Preconditions;
 import static com.google.common.base.Preconditions.checkArgument;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.MultimapBuilder;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -549,27 +551,21 @@ public class Phrases
      *
      * @param p
      * @param tester
-     * @return The matching notes grouped per pitch.
+     * @return The matching notes grouped per pitch, in ascending order.
      */
-    static public Map<Integer, List<NoteEvent>> getNotesByPitch(Phrase p, Predicate<NoteEvent> tester)
+    static public ListMultimap<Integer, NoteEvent> getNotesByPitch(Phrase p, Predicate<NoteEvent> tester)
     {
-        var resMap = new HashMap<Integer, List<NoteEvent>>();
+        ListMultimap<Integer, NoteEvent> res = MultimapBuilder.treeKeys().arrayListValues().build();
 
         for (var ne : p)
         {
             if (tester.test(ne))
             {
-                List<NoteEvent> nes = resMap.get(ne.getPitch());
-                if (nes == null)
-                {
-                    nes = new ArrayList<>();
-                    resMap.put(ne.getPitch(), nes);
-                }
-                nes.add(ne);
+                res.put(ne.getPitch(), ne);
             }
         }
 
-        return resMap;
+        return res;
     }
 
 

@@ -36,6 +36,7 @@ import java.awt.event.ComponentEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +44,7 @@ import java.util.NavigableMap;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.phrase.api.NoteEvent;
@@ -274,16 +276,15 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
         return xMapper;
     }
 
-
     @Override
     public void paintComponent(Graphics g)
     {
         super.paintComponent(g);        // Honor the opaque property
         Graphics2D g2 = (Graphics2D) g;
 
-//        LOGGER.log(Level.FINE, "paintComponent() -- width={0} height={1} yMapper.lastKeyboardHeight={2}", new Object[]
+//        LOGGER.log(Level.INFO, "paintComponent() -- clip={0}", new Object[]
 //        {
-//            getWidth(), getHeight(), yMapper.lastKeyboardHeight
+//            g2.getClipBounds()
 //        });
 
         if (!yMapper.isUptodate() || !xMapper.isUptodate())
@@ -293,9 +294,9 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
             return;
         }
 
-        drawHorizontalGrid(g2);
-        drawVerticalGrid(g2, yMapper.getKeyboardYRange(0).to, yMapper.getKeyboardYRange(127).from);
-        drawGhostPhrases(g2);
+        paintHorizontalGrid(g2);
+        paintVerticalGrid(g2, yMapper.getKeyboardYRange(0).to, yMapper.getKeyboardYRange(127).from);
+        paintGhostPhrases(g2);
 
     }
 
@@ -307,6 +308,7 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
      * @param ne
      * @return
      */
+    @Override
     public NoteView addNoteView(NoteEvent ne)
     {
         Preconditions.checkNotNull(ne);
@@ -390,21 +392,6 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
         return new ArrayList<>(mapNoteViews.values());
     }
 
-    /**
-     * The NoteViews which belong (whole or partly) to the specified Rectangle, sorted by NoteEvent natural order.
-     *
-     * @param r
-     * @return
-     */
-    public List<NoteView> getNoteViews(Rectangle r)
-    {
-        var res = mapNoteViews.values()
-                .stream()
-                .filter(nv -> nv.getBounds().intersects(r))
-                .toList();
-        return res;
-    }
-
 
     /**
      * Adjust the enclosing scrollPane so that the first note is visible.
@@ -451,19 +438,81 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
 
 
     /**
-     * Draw the vertical lines for each bar/beat on g2.
+     * Get the bar range corresponding to the graphics clip.
+     *
+     * @param g
+     * @return
+     */
+    public IntRange getClipBarRange(Graphics g)
+    {
+        var clip = g.getClipBounds();
+        int barFrom = xMapper.getPosition(clip.x).getBar();
+        int barTo = xMapper.getPosition(clip.x + clip.width - 1).getBar();
+        return new IntRange(barFrom, barTo);
+    }
+
+    /**
+     * Get the beat range corresponding to the graphics clip.
+     *
+     * @param g
+     * @return Can be an empty FloatRange if clip width is 0
+     */
+    public FloatRange getClipBeatRange(Graphics g)
+    {
+        var clip = g.getClipBounds();
+        if (clip.width == 0)    // Not sure it can really happen
+        {
+            return FloatRange.EMPTY_FLOAT_RANGE;        
+        }
+        float posFrom = xMapper.toPositionInBeats(xMapper.getPosition(clip.x));
+        float posTo = xMapper.toPositionInBeats(xMapper.getPosition(clip.x + clip.width - 1));
+        return posTo > posFrom ? new FloatRange(posFrom, posTo) : new FloatRange(posFrom, posFrom + xMapper.getOnePixelBeatSize());
+    }
+
+    /**
+     * Get the x positions corresponding to the loop zone.
+     *
+     * @return Can be null if no loop zone set.
+     */
+    public IntRange getLoopZoneXRange()
+    {
+        IntRange res = null;
+        var loopZone = editor.getLoopZone();
+        if (loopZone != null)
+        {
+            int xFrom = xMapper.getX(new Position(loopZone.from));
+            int xTo = editor.getPhraseBarRange().contains(loopZone.to + 1) ? xMapper.getX(new Position(loopZone.to + 1)) - 1 : xMapper.getLastWidth() - 1;
+            res = new IntRange(xFrom, xTo);
+        }
+        return res;
+    }
+
+    /**
+     * Get the NoteViews which intersect with the specified Rectangle, sorted by NoteEvent natural order.
+     *
+     * @param r
+     * @return
+     */
+    public List<NoteView> getNoteViews(Rectangle r)
+    {
+        return getNoteViews(mapNoteViews, r);
+    }
+
+    /**
+     * Draw the vertical lines for each bar/beat.
      *
      * @param g2
      * @param y0 start of the vertical lines
      * @param y1 end of the vertical lines
      */
-    public void drawVerticalGrid(Graphics2D g2, int y0, int y1)
+    public void paintVerticalGrid(Graphics2D g2, int y0, int y1)
     {
         var settings = PianoRollEditorSettings.getDefault();
         if (settings == null)
         {
             return;
         }
+
         Color cl1 = settings.getBarLineColor();
         Color cl2 = HSLColor.changeLuminance(cl1, 9);      // lighter color
         Color cl2_lz = HSLColor.changeLuminance(cl1, 4);      // not so lighter in loop zone
@@ -471,7 +520,7 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
         Color cl3_lz = HSLColor.changeLuminance(cl2_lz, 3);
 
 
-        var mapQPosX = xMapper.getQuantizedXPositions(null);
+        var mapQPosX = xMapper.getQuantizedXPositions(getClipBarRange(g2)); // Get only positions within the clip
         boolean paintSixteenth = xMapper.getOneBeatPixelSize() > 20;
         IntRange loopZone = editor.getLoopZone();
 
@@ -522,13 +571,69 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
     // Private methods
     // ========================================================================================
 
-    private void drawHorizontalGrid(Graphics2D g2)
+    /**
+     * Used by ScorePanel, VelocityPanel.
+     *
+     * @param jc
+     * @param g
+     */
+    protected void paintLoopZone(JComponent jc, Graphics g)
+    {
+        var loopZoneXRange = getLoopZoneXRange();
+        if (loopZoneXRange != null)
+        {
+            var lZone = new Rectangle(loopZoneXRange.from, 0, loopZoneXRange.size(), jc.getHeight() - 1);
+            lZone = lZone.intersection(g.getClipBounds());
+            Color c = editor.getSettings().getBackgroundColor2();
+            c = HSLColor.changeLuminance(c, -6);
+            g.setColor(c);
+            g.fillRect(lZone.x, lZone.y, lZone.width, lZone.height);
+        }
+    }
+
+
+    /**
+     * Get the NoteViews which intersect the specified Rectangle, sorted by NoteEvent natural order.
+     *
+     * @param tmap
+     * @param r
+     * @return
+     */
+    protected List<NoteView> getNoteViews(TreeMap<NoteEvent, NoteView> tmap, Rectangle r)
+    {
+        Collection<NoteView> nvs;
+        if (xMapper.isUptodate())
+        {
+            // We can limit the search to some NoteViews, useful when many many notes
+            float brFrom = xMapper.toPositionInBeats(xMapper.getPosition(r.x));
+            float brTo = xMapper.toPositionInBeats(xMapper.getPosition(r.x + r.width - 1));
+            NoteEvent neMin = new NoteEvent(0, 1, 0, Math.max(0, brFrom - 48f)); // we manage up to a 48 beats-long note that would cross our rectangle
+            NoteEvent neMax = new NoteEvent(0, 1, 0, brTo + 0.1f);
+            nvs = tmap.subMap(neMin, neMax).values();       // ordered by note position
+        } else
+        {
+            // Check all NoteViews
+            nvs = tmap.values();
+        }
+
+        var res = nvs.stream()
+                .filter(nv -> nv.getBounds().intersects(r))
+                .toList();
+
+        return res;
+    }
+
+
+    private void paintHorizontalGrid(Graphics2D g2)
     {
         var settings = PianoRollEditorSettings.getDefault();
         if (settings == null)
         {
             return;
         }
+        var clip = g2.getClipBounds();
+
+
         Color cb1 = settings.getBackgroundColor1();
         Color cb2 = settings.getBackgroundColor2();
         Color cB_C = settings.getBarLineColor();
@@ -537,19 +642,10 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
 
 
         // prepare LoopZone data
-        int loopZoneXfrom = -1;
-        int loopZoneWidth = -1;
-        Color cb1_loopZone = null;
-        Color cb2_loopZone = null;
-        IntRange loopZone = editor.getLoopZone();
-        if (loopZone != null)
-        {
-            cb1_loopZone = HSLColor.changeLuminance(cb1, -6);
-            cb2_loopZone = HSLColor.changeLuminance(cb2, -6);
-            loopZoneXfrom = xMapper.getX(new Position(loopZone.from));
-            int xTo = editor.getPhraseBarRange().contains(loopZone.to + 1) ? xMapper.getX(new Position(loopZone.to + 1)) : xMapper.getLastWidth() - 1;
-            loopZoneWidth = xTo - loopZoneXfrom;
-        }
+        IntRange loopZoneXRange = getLoopZoneXRange();
+        Color cb1_loopZone = loopZoneXRange != null ? HSLColor.changeLuminance(cb1, -6) : null;
+        Color cb2_loopZone = loopZoneXRange != null ? HSLColor.changeLuminance(cb2, -6) : null;
+
 
         // only draw what's visible
         IntRange pitchRange = editor.getVisiblePitchRange();
@@ -562,15 +658,19 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
             Color c = (pp == 0 || pp == 2 || pp == 4 || pp == 5 || pp == 7 || pp == 9 || pp == 11) ? cb2 : cb1;
             g2.setColor(c);
             var yRange = yMapper.getNoteViewChannelYRange(p);
-            g2.fillRect(0, yRange.from, w, yRange.size());
+            var rPitch = new Rectangle(0, yRange.from, w, yRange.size());
+            rPitch = rPitch.intersection(clip);
+            g2.fillRect(rPitch.x, rPitch.y, rPitch.width, rPitch.height);
 
 
             // Draw loop zone if any
-            if (loopZone != null)
+            if (loopZoneXRange != null)
             {
                 Color cLz = (c == cb1) ? cb1_loopZone : cb2_loopZone;
                 g2.setColor(cLz);
-                g2.fillRect(loopZoneXfrom, yRange.from, loopZoneWidth, yRange.size());
+                var rZone = new Rectangle(loopZoneXRange.from, 0, loopZoneXRange.size(), yRange.size());
+                rZone = rZone.intersection(clip);
+                g2.fillRect(rZone.x, rZone.y, rZone.width, rZone.height);
             }
 
 
@@ -578,20 +678,21 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
             if (pp == 0 || pp == 5)
             {
                 g2.setColor(pp == 0 ? cB_C : cE_F);
-                g2.drawLine(0, yRange.to, w - 1, yRange.to);
+                g2.drawLine(clip.x, yRange.to, clip.x + clip.width - 1, yRange.to);
             }
         }
 
     }
 
 
-    private void drawGhostPhrases(Graphics2D g2)
+    private void paintGhostPhrases(Graphics2D g2)
     {
         if (mapChannelGhostPhrase == null)
         {
             return;
         }
 
+        var clipBr = getClipBeatRange(g2);
 
         for (var channel : mapChannelGhostPhrase.keySet())
         {
@@ -602,14 +703,15 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
 
             for (var ne : p)
             {
-                if (editor.getPhraseBeatRange().contains(ne.getBeatRange(), false))
+                var neBr = ne.getBeatRange();
+                if (editor.getPhraseBeatRange().contains(neBr, false) && clipBr.intersects(neBr))
                 {
                     int y = yMapper.getNoteViewChannelYRange(ne.getPitch()).from;
                     int h = yMapper.getNoteViewHeight();
 
                     if (!p.isDrums())
                     {
-                        IntRange xRange = xMapper.getXRange(ne);
+                        IntRange xRange = xMapper.getXRange(ne.getBeatRange());
                         g2.setColor(c1);
                         g2.fillRect(xRange.from, y, xRange.size(), h);
                         g2.setColor(c2);
@@ -781,7 +883,6 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
 
 
             // LOGGER.log(Level.SEVERE, "refresh() output tmap_allQuantizedPos2X=" + Utilities.toMultilineString(tmap_allQuantizedPos2X));
-
         }
 
         /**
@@ -846,6 +947,17 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
         }
 
         /**
+         * Get the size in beats of 1 pixel.
+         *
+         * @return
+         */
+        public float getOnePixelBeatSize()
+        {
+            int w = getWidth();
+            return w == 0 ? Float.MIN_VALUE : editor.getPhraseBeatRange().size() / getWidth();
+        }
+
+        /**
          * Get the beat position corresponding to the specified xPos in this panel's coordinates.
          *
          * @param xPos
@@ -892,15 +1004,14 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
         }
 
         /**
-         * Get the X start/end positions of the specified phrase note.
+         * Get the X start/end positions of the specified beatPosition range.
          *
-         * @param ne
+         * @param fr
          * @return
          */
-        public IntRange getXRange(NoteEvent ne)
+        public IntRange getXRange(FloatRange fr)
         {
-            var br = ne.getBeatRange();
-            return new IntRange(getX(br.from), getX(br.to));
+            return new IntRange(getX(fr.from), getX(fr.to));
         }
 
 

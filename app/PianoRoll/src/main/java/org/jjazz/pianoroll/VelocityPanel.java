@@ -34,10 +34,6 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
@@ -47,8 +43,8 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
-import org.jjazz.harmony.api.Position;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.pianoroll.api.NoteView;
@@ -218,6 +214,7 @@ public class VelocityPanel extends EditorPanel implements PropertyChangeListener
 //            getWidth(), getHeight()
 //        });
 
+        var clip = g.getClipBounds();
         var xMapper = notesPanel.getXMapper();
         if (!xMapper.isUptodate())
         {
@@ -227,23 +224,15 @@ public class VelocityPanel extends EditorPanel implements PropertyChangeListener
         // Fill background corresponding to notesPanel width
         Color c = editor.getSettings().getBackgroundColor2();
         g2.setColor(c);
-        g2.fillRect(0, 0, notesPanel.getWidth(), getHeight());
-
-
-        // Possible loop zone
-        var loopZone = editor.getLoopZone();
-        if (loopZone != null)
-        {
-            c = HSLColor.changeLuminance(c, -6);
-            g2.setColor(c);
-            int xFrom = xMapper.getX(new Position(loopZone.from));
-            int xTo = editor.getPhraseBarRange().contains(loopZone.to + 1) ? xMapper.getX(new Position(loopZone.to + 1)) : xMapper.getLastWidth() - 1;
-            g2.fillRect(xFrom, 0, xTo - xFrom, getHeight());
-        }
+        g2.fillRect(clip.x, clip.y, clip.width, clip.height);
+        
+        
+        // Paint loop zone
+       notesPanel.paintLoopZone(this, g);
 
 
         // Grid
-        notesPanel.drawVerticalGrid(g2, 0, getHeight() - 1);
+        notesPanel.paintVerticalGrid(g2, clip.y, clip.y + clip.height - 1);
 
     }
 
@@ -342,6 +331,7 @@ public class VelocityPanel extends EditorPanel implements PropertyChangeListener
         repaint();
     }
 
+
     // ==========================================================================================================
     // Inner classes
     // ==========================================================================================================    
@@ -409,7 +399,7 @@ public class VelocityPanel extends EditorPanel implements PropertyChangeListener
                 {
                     startDraggingPoint = e.getPoint();
                     setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-                    
+
                     editor.getUndoManager().startCEdit(editor, UNDO_TEXT);
                 } else
                 {

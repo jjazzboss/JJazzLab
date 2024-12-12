@@ -25,6 +25,7 @@ package org.jjazz.uiutilities.api;
 import java.awt.*;
 import java.awt.geom.*;
 import java.awt.font.*;
+import java.awt.image.BufferedImage;
 
 /**
  * Compute string metrics.
@@ -34,15 +35,35 @@ import java.awt.font.*;
 public class StringMetrics
 {
 
-    Font font;
-    FontRenderContext fontRendererContext;
-    LineMetrics lineMetrics;
-    Rectangle2D bounds, boundsNoLeading, boundsNoLeadingNoDescent;
-    String lastText;
+    private Font font;
+    private FontRenderContext fontRendererContext;
+    private LineMetrics lineMetrics;
+    private Rectangle2D bounds, boundsNoLeading, boundsNoLeadingNoDescent;
+    private String lastText;
+    static private BufferedImage IMG;
+    static private Graphics2D G2;
+    static private FontRenderContext FRC;
 
-    public StringMetrics(Graphics2D g2, Font font)
+
+    private static void initInternalGraphics()
     {
-        fontRendererContext = g2.getFontRenderContext();
+        if (IMG == null)
+        {
+            IMG = new BufferedImage(3, 3, BufferedImage.TYPE_INT_ARGB);       // Size does not matter
+            G2 = IMG.createGraphics();
+            FRC = G2.getFontRenderContext();
+        }
+    }
+
+    /**
+     * Create an instance which uses a shared Graphics2D instance from a bufferedImage.
+     * <p>
+     * @param font
+     */
+    public StringMetrics(Font font)
+    {
+        initInternalGraphics();
+        fontRendererContext = FRC;
         this.font = font;
     }
 
@@ -50,6 +71,13 @@ public class StringMetrics
     {
         this(g2, g2.getFont());
     }
+
+    public StringMetrics(Graphics2D g2, Font font)
+    {
+        fontRendererContext = g2.getFontRenderContext();
+        this.font = font;
+    }
+
 
     /**
      * Return a rectangle in baseline relative coordinates, include the leading (interline spacing).
@@ -94,7 +122,8 @@ public class StringMetrics
             bounds = font.getStringBounds(text, fontRendererContext);
             lineMetrics = font.getLineMetrics(text, fontRendererContext);
             boundsNoLeading = new Rectangle2D.Double(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight() - lineMetrics.getLeading());
-            boundsNoLeadingNoDescent = new Rectangle2D.Double(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight() - lineMetrics.getLeading() - lineMetrics.getDescent());
+            boundsNoLeadingNoDescent = new Rectangle2D.Double(bounds.getX(), bounds.getY(), bounds.getWidth(),
+                    bounds.getHeight() - lineMetrics.getLeading() - lineMetrics.getDescent());
         }
         lastText = text;
         return boundsNoLeading;
@@ -119,7 +148,8 @@ public class StringMetrics
         {
             bounds = font.getStringBounds(text, fontRendererContext);
             lineMetrics = font.getLineMetrics(text, fontRendererContext);
-            boundsNoLeadingNoDescent = new Rectangle2D.Double(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight() - lineMetrics.getLeading() - lineMetrics.getDescent());
+            boundsNoLeadingNoDescent = new Rectangle2D.Double(bounds.getX(), bounds.getY(), bounds.getWidth(),
+                    bounds.getHeight() - lineMetrics.getLeading() - lineMetrics.getDescent());
             boundsNoLeading = new Rectangle2D.Double(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight() - lineMetrics.getLeading());
         }
         lastText = text;

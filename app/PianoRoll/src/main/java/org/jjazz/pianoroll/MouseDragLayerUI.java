@@ -38,7 +38,7 @@ public class MouseDragLayerUI extends LayerUI<JComponent>
 
     private Rectangle rectangle;
     private int playbackPointX;
-    
+
     private static final Color COLOR_BORDER_OUT = Color.DARK_GRAY;
     private static final Color COLOR_BORDER_IN = Color.WHITE;
     public static final Color COLOR_PLAYBACK_LINE = Color.WHITE;
@@ -51,21 +51,26 @@ public class MouseDragLayerUI extends LayerUI<JComponent>
     }
 
     /**
-     * Show the selection rectangle.
+     * Set the selection rectangle.
      *
      * @param r If null does not show anything
      */
-    public void showSelectionRectangle(Rectangle r)
+    public void setSelectionRectangle(Rectangle r)
     {
         rectangle = r;
     }
 
+    public Rectangle getSelectionRectangle()
+    {
+        return rectangle;
+    }
+
     /**
-     * Show the playback point.
+     * Set the playback point.
      *
      * @param xPos If &lt; 0 show nothing
      */
-    public void showPlaybackPoint(int xPos)
+    public void setPlaybackPoint(int xPos)
     {
         playbackPointX = xPos;
     }
@@ -96,7 +101,7 @@ public class MouseDragLayerUI extends LayerUI<JComponent>
             }
             g2.setColor(COLOR_PLAYBACK_LINE);
             g2.drawLine(playbackPointX, 0, playbackPointX, jc.getHeight() - 1);
-            
+
         }
 
         if (g2 != null)

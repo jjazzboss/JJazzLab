@@ -161,6 +161,11 @@ public class NotationGraphics
     {
         return grid_size;
     }
+    
+    public float getNoteBaseWidth()
+    {
+        return getGridSize() * 1.3f;        
+    }
 
     public void setGraphics(Graphics2D g)
     {
@@ -610,7 +615,7 @@ public class NotationGraphics
 
         g.setStroke(music_stroke);
         float grid = getGridSize();
-        float notebasewidth = grid * 1.3f;
+        float notebasewidth = getNoteBaseWidth();
 
         float ledge_width = grid * 0.3f;
         for (int gi = 1; note <= -gi * 2; gi++)

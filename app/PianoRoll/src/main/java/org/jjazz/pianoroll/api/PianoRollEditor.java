@@ -30,6 +30,7 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.Panel;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ComponentAdapter;
@@ -53,6 +54,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Objects;
+import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Level;
@@ -359,6 +361,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
 
         generalLookupContent.add(song);
         rulerPanel.setSong(song);
+        scorePanel.setSong(song);
         setUndoManager(JJazzUndoManagerFinder.getDefault().get(getSong()));
 
 
@@ -408,7 +411,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
     /**
      * Get the Phrase edited by this editor.
      *
-     * @return
+     * @return Can not be null but can be empty.
      */
     public Phrase getModel()
     {
@@ -440,8 +443,13 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
         LOGGER.log(Level.FINE, "setModel() -- p={0}", p);
 
 
-        if (p.equals(model) && this.channel == channel && rulerStartBar == this.rulerStartBar && beatRange.equals(this.beatRange)
-                && this.mapPosTimeSignature.equals(mapPosTs) && Objects.equals(kMap, this.keyMap) && phraseStartBar == this.phraseStartBar)
+        if (p.equals(model)
+                && this.channel == channel
+                && rulerStartBar == this.rulerStartBar
+                && beatRange.equals(this.beatRange)
+                && this.mapPosTimeSignature.equals(mapPosTs)
+                && Objects.equals(kMap, this.keyMap)
+                && phraseStartBar == this.phraseStartBar)
         {
             return;
         }
@@ -925,7 +933,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
     /**
      * Set the loop zone.
      *
-     * @param barRange If null there is no loop zone
+     * @param barRange If null there is no loop zone. If not null must be contained in the phrase bar range.
      */
     public void setLoopZone(IntRange barRange)
     {
@@ -974,7 +982,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
         }
 
         rulerPanel.showPlaybackPoint(xPos);
-        mouseDragLayerUI.showPlaybackPoint(xPos);
+        mouseDragLayerUI.setPlaybackPoint(xPos);
         mouseDragLayer.repaint();
 
 
@@ -1489,8 +1497,41 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
 
     private void showSelectionRectangle(Rectangle r)
     {
-        mouseDragLayerUI.showSelectionRectangle(r);
-        mouseDragLayer.repaint();
+        var rOld = mouseDragLayerUI.getSelectionRectangle();
+        mouseDragLayerUI.setSelectionRectangle(r);
+        
+        if (rOld == null && r == null)
+        {
+            return;
+        }
+
+        // Important optimization: use repaint(Rectangle) instead of repaint(): it repaints less but furthermore it avoids a surprising behavior, where 
+        // each call to mouseDragLayer.repaint() triggered (via RepaintManager) a complete editor repaint including subcomponents such as JSplitePane and the 
+        // Score panel, with a bad impact on performance with many notes.        
+        Rectangle rRepaint;        
+        rRepaint = notesPanel.getVisibleRect();
+        
+        // More optimized but... does not work! It leaves some garbage when dragging down then up (or right then left).
+        // Take the union of the old and new rectangles
+//                if (rOld != null)
+//                {
+//                    rRepaint = new Rectangle(rOld);
+//                    if (r != null)
+//                    {
+//                        rRepaint.add(r);
+//                    }
+//                } else
+//                {
+//                    rRepaint = r;
+//                }
+
+        mouseDragLayer.repaint(rRepaint);
+        
+        
+//        LOGGER.log(Level.INFO, "showSelectionRectangle() r={0} rRepaint={1}", new Object[]
+//        {
+//            r, rRepaint
+//        });
     }
 
     private IntRange getYRange(Rectangle r)
@@ -1548,14 +1589,14 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
         getActionMap().put(ZoomToFit.ACTION_ID, new ZoomToFit(this));
         getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(UIUtilities.getGenericControlShiftKeyStroke(KeyEvent.VK_I), InvertNoteSelection.ACTION_ID);
         getActionMap().put(InvertNoteSelection.ACTION_ID, new InvertNoteSelection(this));
-        
+
         // Use the notesPanel input map to avoid the arrow keys being captured by the enclosing JScrollPane
         var jumpToEndAction = new JumpToEnd(this);
         var jumpToStartAction = new JumpToStart(this);
         notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("HOME"), JumpToStart.ACTION_ID);
         notesPanel.getActionMap().put(JumpToStart.ACTION_ID, jumpToStartAction);
         notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("END"), JumpToEnd.ACTION_ID);
-        notesPanel.getActionMap().put(JumpToEnd.ACTION_ID, jumpToEndAction);        
+        notesPanel.getActionMap().put(JumpToEnd.ACTION_ID, jumpToEndAction);
         velocityPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("HOME"), JumpToStart.ACTION_ID);
         velocityPanel.getActionMap().put(JumpToStart.ACTION_ID, jumpToStartAction);
         velocityPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("END"), JumpToEnd.ACTION_ID);
@@ -1563,12 +1604,12 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
         rulerPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("HOME"), JumpToStart.ACTION_ID);
         rulerPanel.getActionMap().put(JumpToStart.ACTION_ID, jumpToStartAction);
         rulerPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("END"), JumpToEnd.ACTION_ID);
-        rulerPanel.getActionMap().put(JumpToEnd.ACTION_ID, jumpToEndAction);        
+        rulerPanel.getActionMap().put(JumpToEnd.ACTION_ID, jumpToEndAction);
         scorePanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("HOME"), JumpToStart.ACTION_ID);
         scorePanel.getActionMap().put(JumpToStart.ACTION_ID, jumpToStartAction);
         scorePanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("END"), JumpToEnd.ACTION_ID);
         scorePanel.getActionMap().put(JumpToEnd.ACTION_ID, jumpToEndAction);
-        
+
         notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("HOME"), JumpToStart.ACTION_ID);
         notesPanel.getActionMap().put(JumpToStart.ACTION_ID, jumpToStartAction);
         notesPanel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("END"), JumpToEnd.ACTION_ID);
