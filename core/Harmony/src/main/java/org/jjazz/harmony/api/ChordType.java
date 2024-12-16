@@ -601,7 +601,7 @@ final public class ChordType
                     } else if ((dTmp = getDegree(6)) != null)
                     {
                         destDegree = dTmp;                                 // If chord type has #11/b5 go there
-                    } else if ((dTmp = getDegree(Degree.Natural.NINTH)) != null && dTmp.getAlteration() != 0)
+                    } else if ((dTmp = getDegree(Degree.Natural.NINTH)) != null && dTmp.getAccidental() != 0)
                     {
                         destDegree = Degree.ELEVENTH_SHARP;                // 11# ok as a "transition note" if no #11 and no altered 9th
                     } else
@@ -999,7 +999,7 @@ final public class ChordType
     }
 
     /**
-     * @return A copy of the corresponding Chord with a default C root and flat (if alteration is needed).
+     * @return A copy of the corresponding Chord with a default C root and flat (if accidental is needed).
      */
     public Chord getChord()
     {

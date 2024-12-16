@@ -32,7 +32,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import org.jjazz.chordinspector.spi.ChordViewer;
 import org.jjazz.harmony.api.Note;
-import org.jjazz.harmony.api.Note.Alteration;
+import org.jjazz.harmony.api.Note.Accidental;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.harmony.api.TimeSignature;
@@ -101,16 +101,16 @@ public class ScoreChordViewer extends javax.swing.JPanel implements ChordViewer
 
 
         // Draw chord notes
-        MeasureContext mContext = new MeasureContext(0, new Note(0));
+        MeasureContext mContext = new MeasureContext(ng, 0, new Note(0));
         ng.relative(8);
         ExtChordSymbol ecs = model.getData();
         ng.startNoteGroup();
-        var chord = ecs.getChord();     // chord notes alterations are made consistent with the chord symbol
+        var chord = ecs.getChord();     // chord notes accidentals are made consistent with the chord symbol
         int t = chord.getMinPitch() < 9 ? 60 : 48;
         chord.transpose(t);
         for (Note n : chord.getNotes())
         {
-            var sn = mContext.buildScoreNote(n, false, null);
+            var sn = mContext.buildScoreNote(n, null);
             sn.x  = ng.getCurrentX();
             ng.drawNote(sn);
         }
@@ -123,7 +123,7 @@ public class ScoreChordViewer extends javax.swing.JPanel implements ChordViewer
         {
             ng.relative(4);
 
-            Alteration defaultAlt = ecs.getDefaultAlteration();
+            Accidental defaultAlt = ecs.getDefaultAccidental();
 
             var notes = ssi.getNotes();
             Note firstNote = chord.getNote(0);

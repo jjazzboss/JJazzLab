@@ -97,7 +97,7 @@ public final class TransposeDown extends AbstractAction implements ContextAwareA
         for (CLI_ChordSymbol cliCs : selection.getSelectedChordSymbols())
         {
             ExtChordSymbol ecs = cliCs.getData();
-            ExtChordSymbol newEcs = ecs.getTransposedChordSymbol(-1, Note.Alteration.FLAT);
+            ExtChordSymbol newEcs = ecs.getTransposedChordSymbol(-1, Note.Accidental.FLAT);
             cliCs.getContainer().changeItem(cliCs, newEcs);     // will generate undoable edits
         }
 

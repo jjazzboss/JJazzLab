@@ -224,7 +224,7 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
     static public List<NoteEvent> getNotes(Collection<NoteView> noteViews)
     {
         Preconditions.checkNotNull(noteViews);
-        List<NoteEvent> res = new ArrayList<>();
+        List<NoteEvent> res = new ArrayList<>(noteViews.size());
         noteViews.forEach(nv -> res.add(nv.getModel()));
         return res;
     }

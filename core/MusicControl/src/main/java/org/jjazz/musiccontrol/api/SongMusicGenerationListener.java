@@ -69,7 +69,7 @@ public class SongMusicGenerationListener implements PropertyChangeListener
      */
     public SongMusicGenerationListener(Song song, MidiMix midiMix, int preFireChangeEventDelayMs)
     {
-        Preconditions.checkArgument(preFireChangeEventDelayMs >= 0, "preFireChangeEventDelayMs=%d", preFireChangeEventDelayMs);
+        Preconditions.checkArgument(preFireChangeEventDelayMs >= 0, "preFireChangeEventDelayMs=%s", preFireChangeEventDelayMs);
         this.song = song;
         this.midiMix = midiMix;
         this.preFireChangeEventDelayMs = preFireChangeEventDelayMs;

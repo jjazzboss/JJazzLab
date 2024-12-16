@@ -504,7 +504,7 @@ public class SongSequenceBuilder
      */
     static public MetaMessage getTempoFactorMetaMessage(float tempoFactor)
     {
-        Preconditions.checkArgument(tempoFactor >= .5f && tempoFactor <= 2f, "tempoFactor=%f", tempoFactor);
+        Preconditions.checkArgument(tempoFactor >= .5f && tempoFactor <= 2f, "tempoFactor=%s", tempoFactor);
         return new MmTempoFactor(tempoFactor);
     }
 
@@ -516,7 +516,7 @@ public class SongSequenceBuilder
      */
     static public float getTempoFactor(MetaMessage tempoFactorMm)
     {
-        Preconditions.checkArgument(tempoFactorMm.getType() == TEMPO_FACTOR_META_EVENT_TYPE, "MeatMessage=%s type=%d", tempoFactorMm,
+        Preconditions.checkArgument(tempoFactorMm.getType() == TEMPO_FACTOR_META_EVENT_TYPE, "MeatMessage=%s type=%s", tempoFactorMm,
                 tempoFactorMm.getType());
         return ((MmTempoFactor) tempoFactorMm).tempoFactor;
     }

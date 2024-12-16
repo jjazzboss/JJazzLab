@@ -195,6 +195,25 @@ public class IntRange implements Iterable<Integer>
     }
 
     /**
+     * Clamps the value to fit in this range.
+     *
+     * @param value
+     * @return
+     */
+    public int clamp(int value)
+    {
+        int res = value;
+        if (value < from)
+        {
+            res = from;
+        } else if (value > to)
+        {
+            res = to;
+        }
+        return res;
+    }
+
+    /**
      * Get a new range with bounds modified.
      * <p>
      * If this object is the the empty range, just return the empty range.
@@ -296,6 +315,7 @@ public class IntRange implements Iterable<Integer>
 
     private class MyIterator implements Iterator<Integer>
     {
+
         private int index = from;
 
         @Override

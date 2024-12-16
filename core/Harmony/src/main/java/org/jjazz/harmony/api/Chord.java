@@ -469,10 +469,10 @@ public class Chord implements Cloneable
     }
 
     /**
-     * @param flatOrSharp Alteration display (if required) = Note.FLAT or Note.SHARP
+     * @param flatOrSharp Accidental display (if required) = Note.FLAT or Note.SHARP
      * @return E.g. the string "[D,F#,C,E,D,A#]".
      */
-    public String toRelativeNoteString(Note.Alteration flatOrSharp)
+    public String toRelativeNoteString(Note.Accidental flatOrSharp)
     {
         StringBuilder sb = new StringBuilder("[");
         for (Note n : notes)

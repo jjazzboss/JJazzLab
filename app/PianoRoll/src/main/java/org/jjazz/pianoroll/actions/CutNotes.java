@@ -55,18 +55,18 @@ public class CutNotes extends AbstractAction
     {
         LOGGER.fine("actionPerformed() --");
         
-        var nvs = editor.getSelectedNoteViews();
-        if (nvs.isEmpty())
+        var nes = editor.getSelectedNoteEvents();
+        if (nes.isEmpty())
         {
             return;
         }
-        CopyNoteBuffer.getInstance().copy(NoteView.getNotes(nvs));
+        CopyNoteBuffer.getInstance().copy(nes);
 
 
         String undoText = ResUtil.getString(getClass(), "CutNotes");
         editor.getUndoManager().startCEdit(editor, undoText);
 
-        editor.getModel().removeAll(NoteView.getNotes(nvs));
+        editor.getModel().removeAll(nes);
 
         editor.getUndoManager().endCEdit(undoText);
 

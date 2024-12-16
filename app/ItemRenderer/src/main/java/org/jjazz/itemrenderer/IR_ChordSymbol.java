@@ -276,7 +276,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
         {
             // Chord Symbol
             ChordRenderingInfo cri = ecs.getRenderingInfo();
-            StringBuilder sb = new StringBuilder(ecs.getChord().toRelativeNoteString(ecs.getRootNote().getAlteration()));
+            StringBuilder sb = new StringBuilder(ecs.getChord().toRelativeNoteString(ecs.getRootNote().getAccidental()));
 
 
             // Rendering info

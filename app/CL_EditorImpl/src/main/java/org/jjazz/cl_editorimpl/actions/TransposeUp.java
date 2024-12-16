@@ -91,7 +91,7 @@ public final class TransposeUp extends AbstractAction implements ContextAwareAct
         for (CLI_ChordSymbol cliCs : selection.getSelectedChordSymbols())
         {
             ExtChordSymbol ecs = cliCs.getData();
-            ExtChordSymbol newEcs = ecs.getTransposedChordSymbol(+1, Note.Alteration.SHARP);
+            ExtChordSymbol newEcs = ecs.getTransposedChordSymbol(+1, Note.Accidental.SHARP);
             cliCs.getContainer().changeItem(cliCs, newEcs);
         }
 

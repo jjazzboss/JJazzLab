@@ -312,7 +312,7 @@ final class ChordSymbolsPanel extends javax.swing.JPanel implements ListSelectio
                 case 0:
                     return "C" + ct.getName();
                 case 1:
-                    return ct.getChord().toRelativeNoteString(Note.Alteration.FLAT);
+                    return ct.getChord().toRelativeNoteString(Note.Accidental.FLAT);
                 case 2:
                     StringBuilder sb = new StringBuilder();
                     for (String alias : ctdb.getAliases(ct))

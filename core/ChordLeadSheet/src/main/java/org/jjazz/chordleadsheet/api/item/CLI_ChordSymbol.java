@@ -103,7 +103,7 @@ public interface CLI_ChordSymbol extends ChordLeadSheetItem<ExtChordSymbol>
                 throw new ParseException(str + " : " + ResUtil.getString(CLI_ChordSymbol.class, "MissingClosingBracket"), 0);
             }
             newPos = new Position();
-            newPos.valueOf(s.substring(openIndex, closeIndex + 1), defaultPos.getBar());
+            newPos.setFromString(s.substring(openIndex, closeIndex + 1), defaultPos.getBar());
 
         }
 

@@ -91,7 +91,7 @@ public class Scale
      * The list of ascending notes starting on the specified note.
      *
      * @param startNote
-     * @return Returned notes reuse startNote's duration, velocity and Alteration.
+     * @return Returned notes reuse startNote's duration, velocity and Accidental.
      */
     public List<Note> getNotes(Note startNote)
     {
@@ -104,7 +104,7 @@ public class Scale
         for (Note n : notesInC)
         {
             scale.add(new Note(pitch + n.getPitch(), startNote.getDurationInBeats(), startNote.getVelocity(),
-                    startNote.getAlteration()));
+                    startNote.getAccidental()));
         }
         return scale;
     }

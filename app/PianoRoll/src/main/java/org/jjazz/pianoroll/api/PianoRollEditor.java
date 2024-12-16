@@ -30,7 +30,6 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.Panel;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ComponentAdapter;
@@ -38,8 +37,6 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.beans.PropertyChangeEvent;
@@ -49,12 +46,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Objects;
-import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Level;
@@ -71,10 +68,12 @@ import javax.swing.JSplitPane;
 import javax.swing.JViewport;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
+import javax.swing.event.MouseInputListener;
 import org.jjazz.chordleadsheet.api.ClsChangeListener;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.event.ClsActionEvent;
 import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
+import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.midi.api.DrumKit;
@@ -132,8 +131,6 @@ import org.openide.util.lookup.InstanceContent;
 
 /**
  * A piano roll editor of a musical phrase.
- * <p>
- * Used to edit whole or part of a Phrase.
  * <p>
  * Optional view-only "ghost phrases" can be shown faded in the background of the editor, based on the ghostPhrasesModel state.
  * <p>
@@ -202,16 +199,17 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
     private IntRange loopZone;
     private DrumKit.KeyMap keyMap;
     private final PianoRollEditorSettings settings;
-    private final TreeSet<NoteView> selectedNoteViews = new TreeSet<>((nv1, nv2) -> nv1.getModel().compareTo(nv2.getModel()));
     private Quantization quantization;
     private final Lookup lookup;
     private JJazzUndoManager undoManager;
     private final InstanceContent generalLookupContent;
     private int rulerStartBar;
     private EditTool activeTool;
-    private final EditToolProxyMouseListener editToolProxyMouseListener;
+    private final NoteSelection noteSelection;
     private final NotesPanelMouseListener notesPanelMouseListener;
-    private final MoveZoomMouseListener moveZoomMouseListener;
+    private final EditToolProxyMouseListener editToolProxyMouseListener;
+    private final ZoomEditorMouseListener zoomEditorMouseListener;
+    private final MoveEditorMouseListener moveXEditorMouseListener;
     private boolean snapEnabled;
     private float playbackPointPosition;
     private boolean playbackAutoScrollEnabled;
@@ -221,7 +219,6 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
     private FloatRange beatRange;
     private int channel = 0;
     private NavigableMap<Float, TimeSignature> mapPosTimeSignature;
-    private int phraseStartBar;
     private final GhostPhrasesModel ghostPhrasesModel;
     private ChordSequence chordSequence;
     private static final Logger LOGGER = Logger.getLogger(PianoRollEditor.class.getSimpleName());
@@ -243,8 +240,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
 
         this.settings = settings;
         this.ghostPhrasesModel = ghostPhrasesModel;
-        this.phraseStartBar = 0;
-        this.rulerStartBar = this.phraseStartBar;
+        this.rulerStartBar = 0;
         this.model = new Phrase(0, false);
         this.channel = 0;
         this.beatRange = new FloatRange(0, 8f);
@@ -255,6 +251,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
         this.snapEnabled = true;
         this.mapPosTimeSignature.put(0f, TimeSignature.FOUR_FOUR);
         this.loopZone = null;
+        this.noteSelection = new NoteSelection();
+
 
         // Be notified of changes, note added, moved, removed, set
         model.addPropertyChangeListener(this);
@@ -286,33 +284,24 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
         editorPanels = List.of(notesPanel, velocityPanel, scorePanel);
 
         // Install mouse listeners
-        notesPanelMouseListener = new NotesPanelMouseListener();
         editToolProxyMouseListener = new EditToolProxyMouseListener();
-        moveZoomMouseListener = new MoveZoomMouseListener();
+        zoomEditorMouseListener = new ZoomEditorMouseListener();
+        moveXEditorMouseListener = new MoveEditorMouseListener(true);
+        notesPanelMouseListener = new NotesPanelMouseListener();
+        var moveXYEditorMouseListener = new MoveEditorMouseListener(false);
 
-        notesPanel.addMouseListener(notesPanelMouseListener);
-        notesPanel.addMouseMotionListener(notesPanelMouseListener);
-        notesPanel.addMouseWheelListener(notesPanelMouseListener);
 
-        notesPanel.addMouseListener(moveZoomMouseListener);
-        notesPanel.addMouseMotionListener(moveZoomMouseListener);
-        notesPanel.addMouseWheelListener(moveZoomMouseListener);
+        notesPanelMouseListener.install(notesPanel);
+        editToolProxyMouseListener.install(notesPanel);
+        moveXYEditorMouseListener.install(notesPanel);
+        zoomEditorMouseListener.install(notesPanel);
 
-        notesPanel.addMouseListener(editToolProxyMouseListener);
-        notesPanel.addMouseMotionListener(editToolProxyMouseListener);
-        notesPanel.addMouseWheelListener(editToolProxyMouseListener);
-
-        rulerPanel.addMouseListener(moveZoomMouseListener);
-        rulerPanel.addMouseMotionListener(moveZoomMouseListener);
-        rulerPanel.addMouseWheelListener(moveZoomMouseListener);
-
-        velocityPanel.addMouseListener(moveZoomMouseListener);
-        velocityPanel.addMouseMotionListener(moveZoomMouseListener);
-        velocityPanel.addMouseWheelListener(moveZoomMouseListener);
-
-        scorePanel.addMouseListener(moveZoomMouseListener);
-        scorePanel.addMouseMotionListener(moveZoomMouseListener);
-        scorePanel.addMouseWheelListener(moveZoomMouseListener);
+        moveXEditorMouseListener.install(rulerPanel);
+        zoomEditorMouseListener.install(rulerPanel);
+        moveXEditorMouseListener.install(velocityPanel);
+        zoomEditorMouseListener.install(velocityPanel);
+        moveXEditorMouseListener.install(scorePanel);
+        zoomEditorMouseListener.install(scorePanel);
 
 
         // By default enable the drag in transfer handler
@@ -411,7 +400,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
     /**
      * Get the Phrase edited by this editor.
      *
-     * @return Can not be null but can be empty.
+     * @return Can not be null but can be empty. Starts at bar/beat=0.
      */
     public Phrase getModel()
     {
@@ -423,22 +412,20 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
      * <p>
      * Can fire PROP_MODEL_PHRASE and PROP_MODEL_CHANNEL change events.
      *
-     * @param p              The phrase model
-     * @param beatRange      The edited part of the phrase model
-     * @param phraseStartBar The start bar corresponding to beatRange.from
-     * @param rulerStartBar  The start bar displayed on the ruler corresponding to beatRange.from. Usually it has the same value than phraseStartBar, but it can
-     *                       be different to make the edited range appear at a different bar range.
-     * @param channel        The Midi channel of the edited Phrase (p.getChannel() is ignored).
-     * @param mapPosTs       The position of each time signature. Must have at least 1 entry at beatRange.from position or before.
-     * @param kMap           If null means it's a melodic phrase
+     * @param p             The phrase model. Must start at bar/beat 0.
+     * @param beatRange     The beat range of the phrase model. Must start at beat 0.
+     * @param rulerStartBar The start bar displayed on the ruler. Might be &gt; 0, e.g. for a custom phrase of a song part in the middle of the song.
+     * @param channel       The Midi channel of the phrase model (p.getChannel() is ignored).
+     * @param mapPosTs      The position of each time signature. Must have at least 1 entry at beatRange.from position or before.
+     * @param kMap          If null means it's a melodic phrase
      */
-    public void setModel(Phrase p, FloatRange beatRange, int phraseStartBar, int rulerStartBar, int channel, NavigableMap<Float, TimeSignature> mapPosTs, DrumKit.KeyMap kMap)
+    public void setModel(Phrase p, FloatRange beatRange, int rulerStartBar, int channel, NavigableMap<Float, TimeSignature> mapPosTs, DrumKit.KeyMap kMap)
     {
         Preconditions.checkNotNull(p);
-        Preconditions.checkNotNull(beatRange);
+        Preconditions.checkArgument(beatRange != null && beatRange.from == 0, "beatRange=%s", beatRange);
         Preconditions.checkArgument(rulerStartBar >= 0);
-        Preconditions.checkArgument(phraseStartBar >= 0);
-        Preconditions.checkArgument(!mapPosTs.isEmpty() && mapPosTs.firstKey() <= beatRange.from, "mapPosTs=%s  beatRange=%s", mapPosTs, beatRange);
+        Preconditions.checkArgument(mapPosTs != null && !mapPosTs.isEmpty() && mapPosTs.firstKey() <= beatRange.from, "mapPosTs=%s  beatRange=%s", mapPosTs,
+                beatRange);
 
         LOGGER.log(Level.FINE, "setModel() -- p={0}", p);
 
@@ -448,8 +435,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
                 && rulerStartBar == this.rulerStartBar
                 && beatRange.equals(this.beatRange)
                 && this.mapPosTimeSignature.equals(mapPosTs)
-                && Objects.equals(kMap, this.keyMap)
-                && phraseStartBar == this.phraseStartBar)
+                && Objects.equals(kMap, this.keyMap))
         {
             return;
         }
@@ -465,7 +451,6 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
         var oldModel = model;
         model = p;
         this.rulerStartBar = rulerStartBar;
-        this.phraseStartBar = phraseStartBar;
         var oldLoopZone = loopZone;
         loopZone = null;
         keyMap = kMap;
@@ -536,14 +521,30 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
 
     /**
      * The chord sequence associated to the edited phrase.
+     * <p>
+     * Important: Chord sequence first bar is equals to getRulerStartBar().
      *
      * @return Can be null if song is not set.
+     * @see #toPhraseRelativeBeatPosition(org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol)
      */
     public ChordSequence getChordSequence()
     {
         return chordSequence;
     }
 
+    /**
+     * Compute the phrase-based beat position of a CLI_ChordSymbol obtained via getChordSequence().
+     *
+     * @param cliCs
+     * @return
+     * @see #getChordSequence()
+     */
+    public float toPhraseRelativeBeatPosition(CLI_ChordSymbol cliCs)
+    {
+        var posOffsetted = cliCs.getPosition().getMoved(-getRulerStartBar(), 0);
+        var res = toPositionInBeats(posOffsetted);
+        return res;
+    }
 
     /**
      * The time signature at the specified beat position.
@@ -567,26 +568,20 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
         return mapPosTimeSignature;
     }
 
-
+    /**
+     * Get the phase beat range of the edited phrase.
+     *
+     * @return A FloatRange with from=0.
+     */
     public FloatRange getPhraseBeatRange()
     {
         return beatRange;
     }
 
     /**
-     * Get the bar index corresponding to getPhraseBeatRange().from.
-     *
-     * @return
-     */
-    public int getPhraseStartBar()
-    {
-        return phraseStartBar;
-    }
-
-    /**
      * Get the bar range of the edited phrase.
      *
-     * @return
+     * @return An IntRange with from=0.
      */
     public IntRange getPhraseBarRange()
     {
@@ -676,7 +671,13 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
         if (zoomValue == null || zoomValue.hValue() != zoom.hValue())
         {
             // Save position center
-            float saveCenterPosInBeats = getVisibleBeatRange().getCenter();
+            var vbr = getVisibleBeatRange();
+            if (vbr.isEmpty())
+            {
+                LOGGER.log(Level.WARNING, "setZoom() zoom={0} Unexpected getVisibleBeatRange() empty", zoom);
+                return;
+            }
+            float saveCenterPosInBeats = vbr.getCenter();
 
             // This updates notesPanel preferred size and calls revalidate(), which will update the size on the EDT
             float f = toScaleFactorX(zoom.hValue());
@@ -766,12 +767,12 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
 
     public boolean isNoteSelected(NoteEvent ne)
     {
-        return selectedNoteViews.contains(getNoteView(ne));
+        return noteSelection.getSelectedNoteEventsImpl().contains(ne);
     }
 
     public void selectNote(NoteEvent ne, boolean b)
     {
-        selectNotes(Arrays.asList(ne), b);
+        selectNotes(List.of(ne), b);
     }
 
     /**
@@ -784,44 +785,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
      */
     public void selectNotes(Collection<NoteEvent> notes, boolean b)
     {
-        if (notes.isEmpty())
-        {
-            return;
-        }
-
-        List<NoteView> nvs = new ArrayList<>();
-        for (var n : notes)
-        {
-            var nv = getNoteView(n);
-            if (nv == null)
-            {
-                continue;
-            }
-            if (b && !selectedNoteViews.contains(nv))
-            {
-                selectedNoteViews.add(nv);
-                nvs.add(nv);
-            } else if (!b && selectedNoteViews.contains(nv))
-            {
-                selectedNoteViews.remove(nv);
-                nvs.add(nv);
-            }
-            nv.setSelected(b);
-
-            for (var ep : getSubPanels())
-            {
-                nv = ep.getNoteView(n);
-                if (nv != null)
-                {
-                    nv.setSelected(b);
-                }
-            }
-        }
-
-        if (!nvs.isEmpty())
-        {
-            firePropertyChange(PROP_SELECTED_NOTE_VIEWS, nvs, b);
-        }
+        noteSelection.selectNotesImpl(notes, b);
     }
 
     /**
@@ -877,17 +841,27 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
      */
     public void unselectAll()
     {
-        selectNotes(NoteView.getNotes(selectedNoteViews), false);
+        selectNotes(noteSelection.getSelectedNoteEventsImpl(), false);
     }
 
     /**
      * Get the currently selected NoteViews sorted by NoteEvent natural order.
      *
-     * @return
+     * @return Unmodifiable list
      */
     public List<NoteView> getSelectedNoteViews()
     {
-        return new ArrayList<>(selectedNoteViews);
+        return noteSelection.getSelectedNoteViewsImpl();
+    }
+
+    /**
+     * Get the currently selected NoteEvents sorted by NoteEvent natural order.
+     *
+     * @return Unmodifiable list
+     */
+    public List<NoteEvent> getSelectedNoteEvents()
+    {
+        return noteSelection.getSelectedNoteEventsImpl();
     }
 
     /**
@@ -988,7 +962,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
 
         // Scroll if required so that playback point is on the left side
         var visibleBr = getVisibleBeatRange();
-        if (xPos >= 0 && playbackAutoScrollEnabled && !visibleBr.contains(pos, true))
+        if (!visibleBr.isEmpty() && xPos >= 0 && playbackAutoScrollEnabled && !visibleBr.contains(pos, true))
         {
             float shiftedPos = Math.min(getPhraseBeatRange().to - visibleBr.size() / 2, pos + visibleBr.size() / 2 - 1f);
             scrollToCenter(shiftedPos);
@@ -1113,7 +1087,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
 
 
     /**
-     * Get the min/max notes which are currently visible.
+     * Get the min/max phrase notes which are currently visible.
      *
      * @return
      */
@@ -1138,15 +1112,15 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
      */
     public FloatRange getVisibleBeatRange()
     {
-        assert notesPanel.getXMapper().isUptodate() : "notesPanel.getWidth()=" + notesPanel.getWidth()
-                + "XMapper.getLastWidth()=" + notesPanel.getXMapper().getLastWidth()
+        var xMapper = notesPanel.getXMapper();
+        assert xMapper.isUptodate() : "notesPanel.getWidth()=" + notesPanel.getWidth()
+                + "xMapper.getLastWidth()=" + xMapper.getLastWidth()
                 + "notesPanel.getPreferredWidth()=" + notesPanel.getPreferredSize().getWidth();
-        var vpRect = scrollPaneEditor.getViewport().getViewRect();
-        var notesPanelBounds = notesPanel.getBounds();
-        var vRect = vpRect.intersection(notesPanelBounds);
-        var posLeft = notesPanel.getXMapper().getPositionInBeats(vRect.x);
-        var posRight = notesPanel.getXMapper().getPositionInBeats(vRect.x + vRect.width - 1);
-        return posLeft >= posRight ? FloatRange.EMPTY_FLOAT_RANGE : new FloatRange(posLeft, posRight);
+        var r = scrollPaneEditor.getViewport().getViewRect();
+        var bounds = notesPanel.getBounds();
+        SwingUtilities.computeIntersection(bounds.x, bounds.y, bounds.width, bounds.height, r);    // Avoids a new rectangle allocation
+        var res = r.isEmpty() ? FloatRange.EMPTY_FLOAT_RANGE : xMapper.getPositionInBeatsRange(new IntRange(r.x, r.x + r.width - 1));
+        return res;
     }
 
     /**
@@ -1162,14 +1136,18 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
     /**
      * Get the min/max bar indexes which are visible.
      *
-     * @return
+     * @return Can be IntRange.EMPTY_RANGE
      */
     public IntRange getVisibleBarRange()
     {
+        var res = IntRange.EMPTY_RANGE;
         var visibleBr = getVisibleBeatRange();
-        Position posFrom = notesPanel.getXMapper().toPosition(visibleBr.from);
-        Position posTo = notesPanel.getXMapper().toPosition(visibleBr.to);
-        var res = new IntRange(posFrom.getBar(), posTo.getBar());
+        if (!visibleBr.isEmpty())
+        {
+            Position posFrom = notesPanel.getXMapper().toPosition(visibleBr.from);
+            Position posTo = notesPanel.getXMapper().toPosition(visibleBr.to);
+            res = new IntRange(posFrom.getBar(), posTo.getBar());
+        }
         return res;
     }
 
@@ -1362,12 +1340,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
     private void registerNoteView(NoteView nv)
     {
         Preconditions.checkNotNull(nv);
-        nv.addMouseListener(editToolProxyMouseListener);
-        nv.addMouseListener(notesPanelMouseListener);
-        nv.addMouseMotionListener(editToolProxyMouseListener);
-        nv.addMouseMotionListener(notesPanelMouseListener);
-        nv.addMouseWheelListener(editToolProxyMouseListener);
-        nv.addMouseWheelListener(notesPanelMouseListener);
+        editToolProxyMouseListener.install(nv);
+        zoomEditorMouseListener.install(nv);
         nv.setInheritsPopupMenu(true);
 
     }
@@ -1375,12 +1349,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
     private void unregisterNoteView(NoteView nv)
     {
         Preconditions.checkNotNull(nv);
-        nv.removeMouseListener(editToolProxyMouseListener);
-        nv.removeMouseListener(notesPanelMouseListener);
-        nv.removeMouseMotionListener(editToolProxyMouseListener);
-        nv.removeMouseMotionListener(notesPanelMouseListener);
-        nv.removeMouseWheelListener(editToolProxyMouseListener);
-        nv.removeMouseWheelListener(notesPanelMouseListener);
+        editToolProxyMouseListener.uninstall(nv);
+        zoomEditorMouseListener.uninstall(nv);
     }
 
     private int toZoomHValue(float scaleFactorX)
@@ -1499,7 +1469,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
     {
         var rOld = mouseDragLayerUI.getSelectionRectangle();
         mouseDragLayerUI.setSelectionRectangle(r);
-        
+
         if (rOld == null && r == null)
         {
             return;
@@ -1508,9 +1478,9 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
         // Important optimization: use repaint(Rectangle) instead of repaint(): it repaints less but furthermore it avoids a surprising behavior, where 
         // each call to mouseDragLayer.repaint() triggered (via RepaintManager) a complete editor repaint including subcomponents such as JSplitePane and the 
         // Score panel, with a bad impact on performance with many notes.        
-        Rectangle rRepaint;        
+        Rectangle rRepaint;
         rRepaint = notesPanel.getVisibleRect();
-        
+
         // More optimized but... does not work! It leaves some garbage when dragging down then up (or right then left).
         // Take the union of the old and new rectangles
 //                if (rOld != null)
@@ -1526,8 +1496,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
 //                }
 
         mouseDragLayer.repaint(rRepaint);
-        
-        
+
+
 //        LOGGER.log(Level.INFO, "showSelectionRectangle() r={0} rRepaint={1}", new Object[]
 //        {
 //            r, rRepaint
@@ -1655,9 +1625,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
         }
         var old = chordSequence;
 
-        // Take into account the possible different rulerStartBar
-        int barOffset = getRulerStartBar() - getPhraseStartBar();
-        var offsettedBarRange = getPhraseBarRange().getTransformed(barOffset);
+        var offsettedBarRange = getPhraseBarRange().getTransformed(getRulerStartBar());
         chordSequence = new ChordSequence(offsettedBarRange);
         SongChordSequence.fillChordSequence(chordSequence, song, offsettedBarRange);
 
@@ -1686,7 +1654,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
             nbBars += (int) Math.round((beatRange.to - tsPos) / ts.getNbNaturalBeats());
         }
 
-        return new IntRange(phraseStartBar, phraseStartBar + nbBars - 1);
+        return new IntRange(0, nbBars - 1);
     }
 
 
@@ -1817,72 +1785,23 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
 
 
     /**
-     * Handle the move and zoom of the editor.
+     * Handle the zoom in/out of the editor using ctrl[-shift]-mousewheel.
      * <p>
      * - Handle ctrl-mousewheel for zoom in and out<br>
-     * - Handle ctrl-drag to move the editor<br>
      * <p>
      */
-    private class MoveZoomMouseListener extends MouseAdapter
+    private class ZoomEditorMouseListener implements MouseWheelListener
     {
 
-        /**
-         * Null if no dragging.
-         */
-        private Point startDraggingPoint;
-
-
-        @Override
-        public void mousePressed(MouseEvent e)
+        public void install(JComponent jc)
         {
-            if (e.isControlDown())
-            {
-                return;
-            }
-            JPanel panel = e.getComponent() instanceof JPanel p ? p : (JPanel) SwingUtilities.getAncestorOfClass(JPanel.class, e.getComponent());
-            if (panel != null)
-            {
-                panel.requestFocusInWindow();          // Needed for InputMap/ActionMap actions
-            }
+            jc.addMouseWheelListener(this);
         }
 
-
-        @Override
-        public void mouseDragged(MouseEvent e)
+        public void uninstall(JComponent jc)
         {
-            if (SwingUtilities.isLeftMouseButton(e) && e.isControlDown())
-            {
-                // Move editor
-                if (startDraggingPoint == null)
-                {
-                    startDraggingPoint = e.getPoint();
-                    e.getComponent().setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
-                } else
-                {
-                    JViewport viewPort = (JViewport) SwingUtilities.getAncestorOfClass(JViewport.class, notesPanel);
-                    if (viewPort != null)
-                    {
-                        int deltaX = startDraggingPoint.x - e.getX();
-                        Rectangle view = viewPort.getViewRect();
-                        view.x += deltaX;
-                        notesPanel.scrollRectToVisible(view);
-                    }
-                }
-            }
-
+            jc.removeMouseWheelListener(this);
         }
-
-
-        @Override
-        public void mouseReleased(MouseEvent e)
-        {
-            if (startDraggingPoint != null)
-            {
-                startDraggingPoint = null;
-                e.getComponent().setCursor(Cursor.getDefaultCursor());
-            }
-        }
-
 
         @Override
         public void mouseWheelMoved(MouseWheelEvent e)
@@ -1939,7 +1858,90 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
                 zoomable.setZoomYFactor(vFactor, false);
             }
         }
+    }
 
+
+    /**
+     * Handle the move of the editor with ctrl-drag;
+     * <p>
+     */
+    private class MoveEditorMouseListener extends MouseAdapter
+    {
+
+        /**
+         * Null if no dragging.
+         */
+        private Point startDraggingPoint;
+        private final boolean disableVerticalMove;
+
+        public MoveEditorMouseListener(boolean disableVerticalMove)
+        {
+            this.disableVerticalMove = disableVerticalMove;
+        }
+
+        public void install(JComponent jc)
+        {
+            jc.addMouseListener(this);
+            jc.addMouseMotionListener(this);
+        }
+
+        public void uninstall(JComponent jc)
+        {
+            jc.removeMouseListener(this);
+            jc.removeMouseMotionListener(this);
+        }
+
+
+        @Override
+        public void mousePressed(MouseEvent e)
+        {
+            if (e.isControlDown())
+            {
+                return;
+            }
+            JPanel panel = e.getComponent() instanceof JPanel p ? p : (JPanel) SwingUtilities.getAncestorOfClass(JPanel.class, e.getComponent());
+            if (panel != null)
+            {
+                panel.requestFocusInWindow();          // Needed for InputMap/ActionMap actions
+            }
+        }
+
+
+        @Override
+        public void mouseDragged(MouseEvent e)
+        {
+            if (SwingUtilities.isLeftMouseButton(e) && e.isControlDown())
+            {
+                // Move editor
+                if (startDraggingPoint == null)
+                {
+                    startDraggingPoint = e.getPoint();
+                    e.getComponent().setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
+                } else
+                {
+                    JViewport viewPort = (JViewport) SwingUtilities.getAncestorOfClass(JViewport.class, notesPanel);
+                    if (viewPort != null)
+                    {
+                        int deltaX = startDraggingPoint.x - e.getX();
+                        int deltaY = disableVerticalMove ? 0 : startDraggingPoint.y - e.getY();
+                        Rectangle view = viewPort.getViewRect();
+                        view.x += deltaX;
+                        view.y += deltaY;
+                        notesPanel.scrollRectToVisible(view);
+                    }
+                }
+            }
+        }
+
+        @Override
+        public void mouseReleased(MouseEvent e)
+        {
+            if (startDraggingPoint != null)
+            {
+                startDraggingPoint = null;
+                e.getComponent().setCursor(Cursor.getDefaultCursor());
+            }
+        }
     }
 
     /**
@@ -1958,6 +1960,17 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
         private Point startDraggingPoint;
         int lastHighlightedPitch = -1;
 
+        public void install(JComponent jc)
+        {
+            jc.addMouseListener(this);
+            jc.addMouseMotionListener(this);
+        }
+
+        public void uninstall(JComponent jc)
+        {
+            jc.removeMouseListener(this);
+            jc.removeMouseMotionListener(this);
+        }
 
         @Override
         public void mousePressed(MouseEvent e)
@@ -2059,9 +2072,22 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
     /**
      * Redirect mouse events to the active EditTool.
      */
-    private class EditToolProxyMouseListener implements MouseListener, MouseMotionListener, MouseWheelListener
+    private class EditToolProxyMouseListener implements MouseInputListener, MouseWheelListener
     {
 
+        public void install(JComponent jc)
+        {
+            jc.addMouseListener(this);
+            jc.addMouseMotionListener(this);
+            jc.addMouseWheelListener(this);
+        }
+
+        public void uninstall(JComponent jc)
+        {
+            jc.removeMouseListener(this);
+            jc.removeMouseMotionListener(this);
+            jc.removeMouseWheelListener(this);
+        }
 
         @Override
         public void mouseClicked(MouseEvent e)
@@ -2240,6 +2266,81 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
         protected Collection<String> getAcceptedFileExtensions()
         {
             return Arrays.asList("mid");
+        }
+    }
+
+
+    /**
+     * Manage selection data.
+     */
+    private class NoteSelection
+    {
+
+        /**
+         * Store selected NoteEvents and their NoteViews ordered by position.
+         */
+        private final TreeSet<NoteView> selectedNoteViews = new TreeSet<>((nv1, nv2) -> nv1.getModel().compareTo(nv2.getModel()));
+        private List<NoteView> cacheNoteViewOrderedList = Collections.emptyList();
+        private List<NoteEvent> cacheNoteEventOrderedList = Collections.emptyList();
+
+        private void selectNotesImpl(Collection<NoteEvent> notes, boolean b)
+        {
+            if (notes.isEmpty())
+            {
+                return;
+            }
+
+            List<NoteView> nvs = new ArrayList<>();
+            for (var n : notes)
+            {
+                var nv = getNoteView(n);
+                if (nv == null)
+                {
+                    continue;
+                }
+                if (b && !selectedNoteViews.contains(nv))
+                {
+                    selectedNoteViews.add(nv);
+                    nvs.add(nv);
+                } else if (!b && selectedNoteViews.contains(nv))
+                {
+                    selectedNoteViews.remove(nv);
+                    nvs.add(nv);
+                }
+                nv.setSelected(b);
+
+                for (var ep : getSubPanels())
+                {
+                    nv = ep.getNoteView(n);
+                    if (nv != null)
+                    {
+                        nv.setSelected(b);
+                    }
+                }
+            }
+
+            if (!nvs.isEmpty())
+            {
+                // Update our cache data
+                cacheNoteViewOrderedList = List.copyOf(selectedNoteViews);
+                cacheNoteEventOrderedList = cacheNoteViewOrderedList.stream()
+                        .map(nv -> nv.getModel())
+                        .toList();
+
+                // Notify listeners
+                firePropertyChange(PROP_SELECTED_NOTE_VIEWS, nvs, b);
+            }
+        }
+
+        private List<NoteView> getSelectedNoteViewsImpl()
+        {
+            return cacheNoteViewOrderedList;
+        }
+
+
+        private List<NoteEvent> getSelectedNoteEventsImpl()
+        {
+            return cacheNoteEventOrderedList;
         }
     }
 }

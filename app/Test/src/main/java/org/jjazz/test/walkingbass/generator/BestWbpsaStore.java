@@ -59,7 +59,7 @@ public class BestWbpsaStore
      */
     public BestWbpsaStore(SimpleChordSequenceExt scs, List<Integer> usableBars, int size, int nbBestMax)
     {
-        Preconditions.checkArgument(usableBars.stream().allMatch(b -> scs.isUsable(b)), "scs=%s, usableBars=%s size=%d", scs, usableBars, size);
+        Preconditions.checkArgument(usableBars.stream().allMatch(b -> scs.isUsable(b)), "scs=%s, usableBars=%s size=%s", scs, usableBars, size);
         this.simpleChordSequenceExt = scs;
         this.usableBars = usableBars;
         this.wbpSourceSize = size;

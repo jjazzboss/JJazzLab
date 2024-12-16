@@ -26,6 +26,7 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import javax.swing.JComponent;
 import javax.swing.plaf.LayerUI;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
@@ -35,15 +36,16 @@ import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
  */
 public class MouseDragLayerUI extends LayerUI<JComponent>
 {
-
+    
     private Rectangle rectangle;
     private int playbackPointX;
-
+    
     private static final Color COLOR_BORDER_OUT = Color.DARK_GRAY;
     private static final Color COLOR_BORDER_IN = Color.WHITE;
     public static final Color COLOR_PLAYBACK_LINE = Color.WHITE;
     private final Color COLOR_BACKGROUND;
-
+    private final boolean DEBUG_SHOW_COORDINATES = false;
+    
     public MouseDragLayerUI()
     {
         Color bg = PianoRollEditorSettings.getDefault().getSelectedNoteColor();
@@ -59,7 +61,7 @@ public class MouseDragLayerUI extends LayerUI<JComponent>
     {
         rectangle = r;
     }
-
+    
     public Rectangle getSelectionRectangle()
     {
         return rectangle;
@@ -74,14 +76,14 @@ public class MouseDragLayerUI extends LayerUI<JComponent>
     {
         playbackPointX = xPos;
     }
-
+    
     @Override
     public void paint(Graphics g, JComponent jc)
     {
         super.paint(g, jc);
-
+        
         Graphics2D g2 = null;
-
+        
         if (rectangle != null)
         {
             g2 = (Graphics2D) g.create();
@@ -91,8 +93,18 @@ public class MouseDragLayerUI extends LayerUI<JComponent>
             g2.drawRect(rectangle.x + 1, rectangle.y + 1, rectangle.width - 2, rectangle.height - 2);
             g2.setColor(COLOR_BACKGROUND);
             g2.fillRect(rectangle.x + 2, rectangle.y + 2, rectangle.width - 4, rectangle.height - 4);
+            
+            if (DEBUG_SHOW_COORDINATES)
+            {
+                g2.setColor(Color.BLUE);
+                g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+                int xRight = rectangle.x + rectangle.width - 1;
+                String s = rectangle.toString().substring(18);
+                g2.drawString(s, xRight + 3, rectangle.y + 3);
+            }
+            
         }
-
+        
         if (playbackPointX >= 0)
         {
             if (g2 == null)
@@ -101,14 +113,14 @@ public class MouseDragLayerUI extends LayerUI<JComponent>
             }
             g2.setColor(COLOR_PLAYBACK_LINE);
             g2.drawLine(playbackPointX, 0, playbackPointX, jc.getHeight() - 1);
-
+            
         }
-
+        
         if (g2 != null)
         {
             g2.dispose();
         }
-
+        
     }
-
+    
 }

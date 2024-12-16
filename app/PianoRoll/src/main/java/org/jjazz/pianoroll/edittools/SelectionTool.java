@@ -171,7 +171,7 @@ public class SelectionTool implements EditTool
 
 
             // Adjust selection if required
-            var selectedNotes = NoteView.getNotes(editor.getSelectedNoteViews());
+            var selectedNotes = editor.getSelectedNoteEvents();
             if (!selectedNotes.contains(neSource))
             {
                 // If moved note was not previously selected, just select it and create its drag note

@@ -1096,12 +1096,12 @@ public final class MusicXmlParser
         XMLtoJJazzChordMap.put("major-ninth", "M9");
         XMLtoJJazzChordMap.put("minor-ninth", "m9");
 
-        // 11ths (usually as the basis for alteration):        
+        // 11ths (usually as the basis for accidental):        
         XMLtoJJazzChordMap.put("dominant-11th", "9sus");
         XMLtoJJazzChordMap.put("major-11th", "M9");
         XMLtoJJazzChordMap.put("minor-11th", "m11");
 
-        // 13ths (usually as the basis for alteration):        
+        // 13ths (usually as the basis for accidental):        
         XMLtoJJazzChordMap.put("dominant-13th", "13");
         XMLtoJJazzChordMap.put("major-13th", "M13");
         XMLtoJJazzChordMap.put("minor-13th", "m13");

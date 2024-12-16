@@ -52,12 +52,12 @@ public class CopyNotes extends AbstractAction
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        var nvs = editor.getSelectedNoteViews();
-        if (nvs.isEmpty())
+        var nes = editor.getSelectedNoteEvents();
+        if (nes.isEmpty())
         {
             return;
         }
-        CopyNoteBuffer.getInstance().copy(NoteView.getNotes(nvs));
+        CopyNoteBuffer.getInstance().copy(nes);
     }
 
 

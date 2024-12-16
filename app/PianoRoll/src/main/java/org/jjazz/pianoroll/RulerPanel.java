@@ -30,7 +30,6 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
-import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -45,7 +44,6 @@ import java.text.AttributedString;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JPanel;
-import javax.swing.JViewport;
 import javax.swing.SwingUtilities;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
@@ -200,6 +198,13 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
     public void paintComponent(Graphics g)
     {
         Graphics2D g2 = (Graphics2D) g;
+        var clip = g2.getClipBounds();
+        // Make sure clip is restricted to a valid area
+        SwingUtilities.computeIntersection(0, 0, notesPanel.getWidth(), getHeight(), clip);
+        if (clip.isEmpty())
+        {
+            return;
+        }
 
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
@@ -227,35 +232,35 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
 
 
         // Get X coordinate of all beat positions
-        var tmapPosX = xMapper.getBeatsXPositions(editor.getVisibleBarRange());
+        var vbr = editor.getVisibleBarRange();
+        if (vbr.isEmpty())
+        {
+            return;
+        }
+        var tmapPosX = xMapper.getBeatsXPositions(vbr);
         var allBeatPositions = tmapPosX.navigableKeySet();
         float oneBeatPixelSize = xMapper.getOneBeatPixelSize();
-
-
-        // Take into account the possible different rulerStartBar
-        int barOffset = editor.getRulerStartBar() - editor.getPhraseStartBar();
 
 
         // Draw chord symbols
         if (song != null)
         {
-            int lastBar = -1;
+            int lastCliCsBar = -1;
             for (var cliCs : editor.getChordSequence())
             {
-                var pos = cliCs.getPosition();
+                var posCliCs = cliCs.getPosition();
 
-                if (oneBeatPixelSize > 14 || (pos.getBar() != lastBar && pos.isFirstBarBeat()))
+                if (oneBeatPixelSize > 14 || (posCliCs.getBar() != lastCliCsBar && posCliCs.isFirstBarBeat()))
                 {
                     // Draw the chord symbol
-                    var posOffsetted = pos.getMoved(-barOffset, 0); // Convert to phraseStartBar
-                    var posInBeats = editor.toPositionInBeats(posOffsetted);
+                    var posInBeats = editor.toPhraseRelativeBeatPosition(cliCs);
                     int x = editor.getXFromPosition(posInBeats);
                     int y = yBottomChordSymbolLane - 1;
                     AttributedString aStr;
                     aStr = new AttributedString(cliCs.getData().getOriginalName(), baseFont.getAttributes());
                     aStr.addAttribute(TextAttribute.FOREGROUND, COLOR_CHORD_SYMBOL_FONT);
                     aStr.addAttribute(TextAttribute.BACKGROUND, settings.getRulerBackgroundColor());    // so that some chords remain visible when they overlap
-                    if (posOffsetted.isFirstBarBeat())
+                    if (posCliCs.isFirstBarBeat())
                     {
                         x += 1;
                     }
@@ -266,7 +271,7 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
                     continue;
                 }
 
-                lastBar = pos.getBar();
+                lastCliCsBar = posCliCs.getBar();
             }
         }
 
@@ -309,7 +314,7 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
             // Possibly draw song part
             if (song != null && pos.isFirstBarBeat())
             {
-                int offsettedBar = pos.getBar() + barOffset;
+                int offsettedBar = pos.getBar() + editor.getRulerStartBar();
                 var spt = song.getSongStructure().getSongPart(offsettedBar);
                 if (spt.getStartBarIndex() == offsettedBar)
                 {
@@ -420,7 +425,7 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
 
             // Draw bar or beat number
             AttributedString aStr = null;
-            int offsettedBar = pos.getBar() + 1 + barOffset;
+            int offsettedBar = pos.getBar() + 1 + editor.getRulerStartBar();
             if (pos.isFirstBarBeat())
             {
                 var strBar = String.valueOf(offsettedBar);
@@ -613,7 +618,7 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
             {
                 return;
             }
-            
+
             // Set loop zone
             int bar = xMapper.getPosition(e.getX()).getBar();
             int min = Math.min(bar, loopZoneBarOrigin);

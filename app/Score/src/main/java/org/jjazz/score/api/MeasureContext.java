@@ -24,9 +24,12 @@
  */
 package org.jjazz.score.api;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.logging.Logger;
 import org.jjazz.harmony.api.Chord;
 import org.jjazz.harmony.api.ChordSymbol;
 import org.jjazz.harmony.api.Note;
@@ -53,21 +56,35 @@ import static org.jjazz.score.api.NotationGraphics.ACCIDENTAL_SHARP;
 import org.jjazz.score.api.NotationGraphics.ScoreNote;
 
 /**
- * A single measure context to help build ScoreNotes to be used by NotationGraphics.
+ * A single measure context to build ScoreNotes for NotationGraphics.
  */
 public class MeasureContext
 {
 
-    // private final NotationGraphics ng;
+    public static final int G_STAFF_LOWEST_PITCH = 57;
+    private final NotationGraphics ng;
     private final Note majorKey;
-    private final Map<Integer, Note.Alteration> mapPitchAlteration = new HashMap<>();
+    private final Map<Integer, Note.Accidental> mapPitchAccidental = new HashMap<>();
     private final int barIndex;
+    private final int gStaffLowestPitch;
+    private static final Logger LOGGER = Logger.getLogger(MeasureContext.class.getSimpleName());
 
-
-    public MeasureContext(int barIndex, Note majorKey)
+    public MeasureContext(NotationGraphics ng, int barIndex, Note majorKey, int gStaffLowestPitch)
     {
+        this.ng = ng;
         this.barIndex = barIndex;
         this.majorKey = majorKey;
+        this.gStaffLowestPitch = gStaffLowestPitch;
+    }
+
+    public MeasureContext(NotationGraphics ng, int barIndex, Note majorKey)
+    {
+        this(ng, barIndex, majorKey, G_STAFF_LOWEST_PITCH);
+    }
+
+    public int getgStaffLowestPitch()
+    {
+        return gStaffLowestPitch;
     }
 
     public Note getMajorKey()
@@ -81,50 +98,153 @@ public class MeasureContext
     }
 
     /**
-     * Build the ScoreNote for the specified note.
+     * Build several ScoreNotes which belong to a chord (same position).
+     * <p>
+     * Handle accidental selection and note base shift.
      *
-     * @param n
-     * @param useFclef If true ScoreNote is built for a staff with F clef, otherwise for a staff with G clef.
-     * @param cs       Can be null. If specified used to try to select the appropriate ScoreNote alteration
+     * @param notes
+     * @param cs    Can be null. If specified used to try to select the appropriate ScoreNote accidental
      * @return
      */
-    public ScoreNote buildScoreNote(Note n, boolean useFclef, ChordSymbol cs)
+    public List<ScoreNote> buildChordScoreNotes(List<Note> notes, ChordSymbol cs)
     {
-        Objects.requireNonNull(n);
-        ScoreNote res = new ScoreNote();
-        int pitch = n.getPitch();
+        Objects.requireNonNull(notes);
+        List<ScoreNote> res = new ArrayList<>();
 
+//        LOGGER.log(Level.SEVERE, "buildChordScoreNotes() cs={0} notes={1}", new Object[]
+//        {
+//            cs, notes
+//        });
 
-        // Duration
-        var sd = n.getSymbolicDuration();
-        if (sd == SymbolicDuration.UNKNOWN)
+        // Adjust all notes to the chord symbol                    
+        List<Note> adjustedNotes = new ArrayList<>(notes.size());
+        for (int i = 0; i < notes.size(); i++)
         {
-            sd = SymbolicDuration.getClosestSymbolicDuration(n.getDurationInBeats());
-        }
-        res.dur = getScoreNoteDuration(sd);
-        res.dotted = sd.isDotted() ? 1 : 0;
-
-
-        // Alteration
-        Note adjustedNote = adjustNote(n, cs);
-        int whiteKeyPitch = adjustedNote.getWhiteKeyPitch();
-        var prevPitchAlt = mapPitchAlteration.get(whiteKeyPitch);
-        if (!Note.isWhiteKey(pitch))
-        {
-            var alt = adjustedNote.getAlteration();
-            res.accidental = alt == prevPitchAlt ? ACCIDENTAL_NO : toScoreNoteAlteration(alt); // Possibly take into accound previous alteration on same pitch
-            mapPitchAlteration.put(whiteKeyPitch, alt);
-        } else
-        {
-            res.accidental = prevPitchAlt == null ? ACCIDENTAL_NO : ACCIDENTAL_NATURAL;
-            mapPitchAlteration.remove(whiteKeyPitch);
+            var ne = getAdjustedNoteToChordSymbol(notes.get(i), cs);
+            adjustedNotes.add(ne);
         }
 
-        res.staffLine = (useFclef ? adjustedNote.getFStaffLineNumber() : adjustedNote.getGStaffLineNumber()) - 2;
+
+        // Fix notes on the same line
+        // Search for adjacent notes and shift the top one
+        // The algorithm does not check for all the possible adjacency combinations, but should be enough most of the time
+        List<Note> needShift = new ArrayList<>();
+        for (int i = 0; i < adjustedNotes.size() - 1; i++)
+        {
+            var ne = adjustedNotes.get(i);
+            boolean neFstaff = isFstaff(ne.getPitch());
+            int neLine = neFstaff ? ne.getFStaffLineNumber() : ne.getGStaffLineNumber();
+            var neNext = adjustedNotes.get(i + 1);
+
+
+            if (neFstaff != isFstaff(neNext.getPitch()))
+            {
+                // Different staves, no risk
+                continue;
+            }
+
+            // Adjust if 2 notes on same line            
+            var neNextLine = neFstaff ? neNext.getFStaffLineNumber() : neNext.getGStaffLineNumber();
+            if (neLine == neNextLine)
+            {
+                if (ne.isWhiteKey())
+                {
+                    // ne=A  neNext=A# -> use a flat for next note  (we assume that a chord rarely contains 3 successive chromatic notes in a row)
+//                    LOGGER.log(Level.FINE, "buildChordScoreNotes() adjacent lines ne={0} neNext={1} => neNext will be changed to FLAT", new Object[]
+//                    {
+//                        ne,
+//                        neNext
+//                    });
+                    neNext = new Note(neNext, Note.Accidental.FLAT);
+                    neNextLine++;
+                    adjustedNotes.set(i + 1, neNext);
+
+                } else
+                {
+                    // ne=Bb  neNext=B -> use a sharp for first note
+                    ne = new Note(ne, Note.Accidental.SHARP);
+                    neLine--;
+                    adjustedNotes.set(i, ne);
+                }
+            }
+
+
+            // Adjust shift for adjacent notes
+            if (neNextLine == neLine + 1)
+            {
+                // Shift the next note
+                needShift.add(neNext);
+                i++;        // Make sure we don't process neNext again
+            }
+        }
+
+
+        for (int i = 0; i < adjustedNotes.size(); i++)
+        {
+            var n = adjustedNotes.get(i);
+            ScoreNote sn = new ScoreNote();
+
+            // Set accidental depending on last accidental used for the same staff line
+            updateAccidental(sn, n);
+
+            // Set duration
+            updateDuration(sn, n);
+
+
+            // Set staff line
+            updateStaffLine(sn, n);
+
+            sn.lateralShift = needShift.contains(n) ? 1 : 0;
+
+            sn.note = notes.get(i);
+
+            res.add(sn);
+        }
+
 
         return res;
     }
 
+    /**
+     * Build the ScoreNote for the specified note.
+     *
+     * @param n
+     * @param cs Can be null. If specified used to try to select the appropriate ScoreNote accidental
+     * @return
+     */
+    public ScoreNote buildScoreNote(Note n, ChordSymbol cs)
+    {
+//        LOGGER.log(Level.SEVERE, "buildChordScoreNotes() cs={0} note={1}", new Object[]
+//        {
+//            cs, n
+//        });
+
+
+        Objects.requireNonNull(n);
+        ScoreNote res = new ScoreNote();
+
+        // Use chord symbol to adjust the note
+        Note adjustedNote = getAdjustedNoteToChordSymbol(n, cs);
+
+        // Set accidental depending on last accidental used for the same staff line
+        updateAccidental(res, adjustedNote);
+
+        // Set duration
+        updateDuration(res, n);
+
+        // Set staff line
+        updateStaffLine(res, adjustedNote);
+
+        res.note = n;
+
+        return res;
+    }
+
+
+    public boolean isFstaff(int pitch)
+    {
+        return pitch < gStaffLowestPitch;
+    }
 
     // =============================================================================================================================
     // Private methods
@@ -148,14 +268,43 @@ public class MeasureContext
         return res;
     }
 
+
+    private void updateDuration(ScoreNote sn, Note n)
+    {
+        var sd = n.getSymbolicDuration();
+        if (sd == SymbolicDuration.UNKNOWN)
+        {
+            sd = SymbolicDuration.getClosestSymbolicDuration(n.getDurationInBeats());
+        }
+        sn.dur = getScoreNoteDuration(sd);
+        sn.dotted = sd.isDotted() ? 1 : 0;
+    }
+
+    private void updateAccidental(ScoreNote res, Note adjustedNote)
+    {
+        // Set accidental
+        int whiteKeyPitch = adjustedNote.getWhiteKeyPitch();
+        var prevPitchAlt = mapPitchAccidental.get(whiteKeyPitch);
+        if (!Note.isWhiteKey(adjustedNote.getPitch()))
+        {
+            var acc = adjustedNote.getAccidental();
+            res.accidental = acc == prevPitchAlt ? ACCIDENTAL_NO : toScoreNoteAccidental(acc); // Possibly take into accound previous accidental on same pitch
+            mapPitchAccidental.put(whiteKeyPitch, acc);
+        } else
+        {
+            res.accidental = prevPitchAlt == null ? ACCIDENTAL_NO : ACCIDENTAL_NATURAL;
+            mapPitchAccidental.remove(whiteKeyPitch);
+        }
+    }
+
     /**
-     * If note is not a white key, adjust the note alteration to this context, e.g. change Db into C# if required.
+     * If note is not a white key, get an accidental-adjusted note for this context, e.g. change Db into C# if required.
      *
      * @param n
      * @param cs Can be null. The current chord symbol.
      * @return
      */
-    private Note adjustNote(Note n, ChordSymbol cs)
+    private Note getAdjustedNoteToChordSymbol(Note n, ChordSymbol cs)
     {
         Note res = n;
 
@@ -163,23 +312,29 @@ public class MeasureContext
 
         if (!n.isWhiteKey() && cs != null)
         {
-            // If it's a note of the chord reuse its alteration, otherwise use chord symbol default alteration
+            // If it's a note of the chord reuse its accidental, otherwise use chord symbol default accidental
             Chord c = cs.getChord();
             int index = c.indexOfRelativePitch(n.getRelativePitch());
-            var alt = index > -1 ? c.getNote(index).getAlteration() : cs.getDefaultAlteration();
+            var acc = index > -1 ? c.getNote(index).getAccidental() : cs.getDefaultAccidental();
 
-            if (n.getAlteration() != alt)
+            if (n.getAccidental() != acc)
             {
-                res = new Note(n, alt);
+                res = new Note(n, acc);
             }
         }
 
         return res;
     }
 
-    private int toScoreNoteAlteration(Note.Alteration alt)
+    private int toScoreNoteAccidental(Note.Accidental acc)
     {
-        return alt == Note.Alteration.FLAT ? ACCIDENTAL_FLAT : ACCIDENTAL_SHARP;
+        return acc == Note.Accidental.FLAT ? ACCIDENTAL_FLAT : ACCIDENTAL_SHARP;
+    }
+
+    private void updateStaffLine(ScoreNote res, Note n)
+    {
+        res.isFstaff = isFstaff(n.getPitch());
+        res.staffLine = (res.isFstaff ? n.getFStaffLineNumber() : n.getGStaffLineNumber()) - 2;
     }
 
 

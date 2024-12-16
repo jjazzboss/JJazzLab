@@ -37,15 +37,18 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
+import java.util.Objects;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
+import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
@@ -129,10 +132,10 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
     @Override
     public void doLayout()
     {
-        // LOGGER.severe("doLayout() -- ");
+        LOGGER.fine("doLayout() -- ");
         if (!xMapper.isUptodate() || !yMapper.isUptodate())
         {
-            // LOGGER.severe(" ==> doLayout() EXIT NOT UPTODATE");
+            LOGGER.fine("   ==> doLayout() xMapper/yMapper is not up to date");
             return;
         }
 
@@ -441,33 +444,41 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
      * Get the bar range corresponding to the graphics clip.
      *
      * @param g
-     * @return
+     * @return Can be an empty FloatRange if clip is empty
      */
     public IntRange getClipBarRange(Graphics g)
     {
+        var res = IntRange.EMPTY_RANGE;
         var clip = g.getClipBounds();
-        int barFrom = xMapper.getPosition(clip.x).getBar();
-        int barTo = xMapper.getPosition(clip.x + clip.width - 1).getBar();
-        return new IntRange(barFrom, barTo);
+        // Needed in case notesPanel is smaller than the clip (e.g. when max zoomed out, notesPanel smaller than enclosing ViewPort)             
+        SwingUtilities.computeIntersection(0, 0, getWidth(), getHeight(), clip);
+        if (!clip.isEmpty())    // Not sure it can really happen
+        {
+            int barFrom = xMapper.getPosition(clip.x).getBar();
+            int barTo = xMapper.getPosition(clip.x + clip.width - 1).getBar();
+            res = new IntRange(barFrom, barTo);
+        }
+        return res;
     }
 
     /**
      * Get the beat range corresponding to the graphics clip.
      *
      * @param g
-     * @return Can be an empty FloatRange if clip width is 0
+     * @return Can be an empty FloatRange if clip is empty
      */
     public FloatRange getClipBeatRange(Graphics g)
     {
+        var res = FloatRange.EMPTY_FLOAT_RANGE;
         var clip = g.getClipBounds();
-        if (clip.width == 0)    // Not sure it can really happen
+        var r = clip.intersection(getBounds());     // Needed in case notesPanel is smaller than the clip (e.g. when max zoomed out, notesPanel smaller than enclosing ViewPort)        
+        if (!r.isEmpty())    // Not sure it can really happen
         {
-            return FloatRange.EMPTY_FLOAT_RANGE;        
+            res = xMapper.getPositionInBeatsRange(new IntRange(r.x, r.x + r.width - 1));
         }
-        float posFrom = xMapper.toPositionInBeats(xMapper.getPosition(clip.x));
-        float posTo = xMapper.toPositionInBeats(xMapper.getPosition(clip.x + clip.width - 1));
-        return posTo > posFrom ? new FloatRange(posFrom, posTo) : new FloatRange(posFrom, posFrom + xMapper.getOnePixelBeatSize());
+        return res;
     }
+
 
     /**
      * Get the x positions corresponding to the loop zone.
@@ -495,7 +506,31 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
      */
     public List<NoteView> getNoteViews(Rectangle r)
     {
-        return getNoteViews(mapNoteViews, r);
+        if (r.isEmpty())
+        {
+            return Collections.emptyList();
+        }
+        Collection<NoteView> nvs;
+        if (xMapper.isUptodate())
+        {
+            // We can limit the search to some NoteViews, useful when many many notes
+            SwingUtilities.computeIntersection(0, 0, getWidth(), getHeight(), r);
+            float brFrom = xMapper.toPositionInBeats(xMapper.getPosition(r.x));
+            float brTo = xMapper.toPositionInBeats(xMapper.getPosition(r.x + r.width - 1));
+            NoteEvent neMin = new NoteEvent(0, 1, 0, Math.max(0, brFrom - 48f)); // we manage up to a 48 beats-long note that would cross our rectangle
+            NoteEvent neMax = new NoteEvent(0, 1, 0, brTo + 0.1f);
+            nvs = mapNoteViews.subMap(neMin, neMax).values();       // ordered by note position
+        } else
+        {
+            // Check all NoteViews
+            nvs = mapNoteViews.values();
+        }
+
+        var res = nvs.stream()
+                .filter(nv -> nv.getBounds().intersects(r))
+                .toList();
+
+        return res;
     }
 
     /**
@@ -519,8 +554,12 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
         Color cl3 = HSLColor.changeLuminance(cl2, 3);      // even lighter
         Color cl3_lz = HSLColor.changeLuminance(cl2_lz, 3);
 
-
-        var mapQPosX = xMapper.getQuantizedXPositions(getClipBarRange(g2)); // Get only positions within the clip
+        var clipBarRange = getClipBarRange(g2);
+        if (clipBarRange.isEmpty())
+        {
+            return;
+        }
+        var mapQPosX = xMapper.getQuantizedXPositions(clipBarRange); // Get only positions within the clip
         boolean paintSixteenth = xMapper.getOneBeatPixelSize() > 20;
         IntRange loopZone = editor.getLoopZone();
 
@@ -590,39 +629,6 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
             g.fillRect(lZone.x, lZone.y, lZone.width, lZone.height);
         }
     }
-
-
-    /**
-     * Get the NoteViews which intersect the specified Rectangle, sorted by NoteEvent natural order.
-     *
-     * @param tmap
-     * @param r
-     * @return
-     */
-    protected List<NoteView> getNoteViews(TreeMap<NoteEvent, NoteView> tmap, Rectangle r)
-    {
-        Collection<NoteView> nvs;
-        if (xMapper.isUptodate())
-        {
-            // We can limit the search to some NoteViews, useful when many many notes
-            float brFrom = xMapper.toPositionInBeats(xMapper.getPosition(r.x));
-            float brTo = xMapper.toPositionInBeats(xMapper.getPosition(r.x + r.width - 1));
-            NoteEvent neMin = new NoteEvent(0, 1, 0, Math.max(0, brFrom - 48f)); // we manage up to a 48 beats-long note that would cross our rectangle
-            NoteEvent neMax = new NoteEvent(0, 1, 0, brTo + 0.1f);
-            nvs = tmap.subMap(neMin, neMax).values();       // ordered by note position
-        } else
-        {
-            // Check all NoteViews
-            nvs = tmap.values();
-        }
-
-        var res = nvs.stream()
-                .filter(nv -> nv.getBounds().intersects(r))
-                .toList();
-
-        return res;
-    }
-
 
     private void paintHorizontalGrid(Graphics2D g2)
     {
@@ -845,7 +851,7 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
 
 
             // Precompute all positions and relative X coordinate
-            int bar = editor.getPhraseStartBar();
+            int bar = 0;
             float barPosInBeats = beatRange.from;
             float x = 0;
 
@@ -975,19 +981,38 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
         }
 
         /**
+         * Get the beat position range corresponding to the specified xPosRange in this panel's coordinates.
+         *
+         * @param xPosRange
+         * @return A beat position range within getPhraseBeatRange(). Can be an empty range if xPosRange is not contained in this panel.
+         */
+        public FloatRange getPositionInBeatsRange(IntRange xPosRange)
+        {
+            Objects.requireNonNull(xPosRange);
+            var res = FloatRange.EMPTY_FLOAT_RANGE;
+            float posInBeatsFrom = getPositionInBeats(xPosRange.from);
+            float posInBeatsTo = getPositionInBeats(xPosRange.to);
+            if (posInBeatsFrom >= 0 && posInBeatsTo >= 0)
+            {
+                res = posInBeatsFrom == posInBeatsTo ? new FloatRange(posInBeatsFrom, posInBeatsFrom + getOnePixelBeatSize() - 0.01f)
+                        : new FloatRange(posInBeatsFrom, posInBeatsTo);
+            }
+            return res;
+        }
+
+        /**
          * Get the position (bar, beat) corresponding to the specified xPos in this panel's coordinates.
          *
          * @param xPos
-         * @return
+         * @return Null if xPos is out of range
          */
         public Position getPosition(int xPos)
         {
             var posInBeats = getPositionInBeats(xPos);
-            return toPosition(posInBeats);
+            return posInBeats < 0 ? null : toPosition(posInBeats);
         }
 
         /**
-         *
          * Get the X position (in this panel's coordinates) corresponding to the specified phrase beat position.
          *
          * @param posInBeats A beat position within getPhraseBeatRange()
@@ -1024,6 +1049,7 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
          */
         public int getX(Position pos)
         {
+            Objects.requireNonNull(pos);
             var xPos = getX(toPositionInBeats(pos));
             return xPos;
         }
@@ -1037,7 +1063,7 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
         public Position toPosition(float posInBeats)
         {
             var br = editor.getPhraseBeatRange();
-            Preconditions.checkArgument(br.contains(posInBeats, true), "posInBeats=%s", posInBeats);
+            Preconditions.checkArgument(br.contains(posInBeats, true), "br=%s posInBeats=%s", br, posInBeats);
             float posInBeatsFloor = (float) Math.floor(posInBeats);
             Position pos = new Position(bimap_pos_posInBeats.inverse().get(posInBeatsFloor));
             pos.setBeat(pos.getBeat() + posInBeats - posInBeatsFloor);
@@ -1052,6 +1078,7 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
          */
         public float toPositionInBeats(Position pos)
         {
+            Objects.requireNonNull(pos);
             Preconditions.checkArgument(editor.getPhraseBarRange().contains(pos.getBar()), "pos=%s getBarRange()=%s", pos, editor.getPhraseBarRange());
             float posBeatFloor = (float) Math.floor(pos.getBeat());
             Position posFloor = new Position(pos.getBar(), posBeatFloor);
@@ -1093,7 +1120,7 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
         }
 
         /**
-         * To be called when associated keyboard height has changed (
+         * To be called when associated keyboard height has changed.
          * <p>
          * Recompute internal data to make this yMapper up-to-date. Call revalidate() and repaint() when done.
          *

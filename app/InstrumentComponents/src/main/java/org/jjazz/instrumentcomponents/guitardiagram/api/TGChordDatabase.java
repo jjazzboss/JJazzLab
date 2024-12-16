@@ -27,7 +27,7 @@ package org.jjazz.instrumentcomponents.guitardiagram.api;
  * NOTE: code reused and modified from the TuxGuitar software (GNU Lesser GPL license), author: Julián Gabriel Casadesús
  */
 /**
- * Stores the information about the chord name, structure and alteration abilities into a list
+ * Stores the information about the chord name, structure and accidental abilities into a list
  *
  * @author Nikola Kolarovic &lt;nikola.kolarovic@gmail.com&gt;
  *

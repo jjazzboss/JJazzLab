@@ -329,11 +329,11 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
      * Get a transposed ExtChordSymbol.
      *
      * @param t   The amount of transposition in semi-tons.
-     * @param alt If not null alteration is unchanged, otherwise use alt
+     * @param alt If not null accidental is unchanged, otherwise use alt
      * @return A new transposed ExtChordSymbol.
      */
     @Override
-    public ExtChordSymbol getTransposedChordSymbol(int t, Note.Alteration alt)
+    public ExtChordSymbol getTransposedChordSymbol(int t, Note.Accidental alt)
     {
         ChordSymbol cs = super.getTransposedChordSymbol(t, alt);
         ChordRenderingInfo cri = getRenderingInfo().getTransposed(t);
@@ -364,7 +364,7 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
     public static ExtChordSymbol createRandomChordSymbol()
     {
         int p = Note.OCTAVE_STD * 12 + (int) Math.round(Math.random() * 12f);
-        Note.Alteration alt = (Math.random() < .5) ? Note.Alteration.FLAT : Note.Alteration.SHARP;
+        Note.Accidental alt = (Math.random() < .5) ? Note.Accidental.FLAT : Note.Accidental.SHARP;
         Note n = new Note(p, SymbolicDuration.QUARTER.getDuration(), 64, alt);
         ChordTypeDatabase ctb = ChordTypeDatabase.getDefault();
         int index = (int) (ctb.getSize() * Math.random());

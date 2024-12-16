@@ -26,7 +26,7 @@ import java.text.ParseException;
 import java.util.Objects;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.ChordType.DegreeIndex;
-import org.jjazz.harmony.api.Note.Alteration;
+import org.jjazz.harmony.api.Note.Accidental;
 import org.jjazz.harmony.spi.ChordTypeDatabase;
 import org.jjazz.utilities.api.ResUtil;
 
@@ -273,17 +273,17 @@ public class ChordSymbol implements Cloneable
     
     
     /**
-     * Return the most probable alteration to use when representing black key notes based on this chord symbol.
+     * Return the most probable accidental to use when representing black key notes based on this chord symbol.
      * 
      * @return 
      */
-    public Note.Alteration getDefaultAlteration()
+    public Note.Accidental getDefaultAccidental()
     {
-            Alteration res = getChord().getNotes().stream()
+            Accidental res = getChord().getNotes().stream()
                     .filter(n -> !Note.isWhiteKey(n.getPitch()))
                     .findFirst()
-                    .map(n -> n.getAlteration())
-                    .orElse(Alteration.FLAT);
+                    .map(n -> n.getAccidental())
+                    .orElse(Accidental.FLAT);
             return res;
     }
 
@@ -308,10 +308,10 @@ public class ChordSymbol implements Cloneable
      * The originalName is also updated.
      *
      * @param t   The amount of transposition in semi-tons.
-     * @param alt If null, alteration of returned root & bass notes is unchanged. If not null use alt as root & bass notes alteration.
+     * @param alt If null, accidental of returned root & bass notes is unchanged. If not null use alt as root & bass notes accidental.
      * @return A new transposed ChordSymbol.
      */
-    public ChordSymbol getTransposedChordSymbol(int t, Note.Alteration alt)
+    public ChordSymbol getTransposedChordSymbol(int t, Note.Accidental alt)
     {
         Note root = alt == null ? rootNote : new Note(rootNote, alt);
         Note bass = alt == null ? bassNote : new Note(bassNote, alt);
@@ -379,22 +379,22 @@ public class ChordSymbol implements Cloneable
 
         Chord c = new Chord();      // Use flats by default        
 
-        Alteration defaultAlt = Alteration.FLAT;
+        Accidental defaultAlt = Accidental.FLAT;
         if (name.length() >= 2 && name.charAt(1) == '#')
         {
-            defaultAlt = Alteration.SHARP;
+            defaultAlt = Accidental.SHARP;
             for (var n : c.getNotes())
             {
                 // Change all notes
                 c.removeNote(n.getPitch());
-                c.add(new Note(n, Alteration.SHARP));
+                c.add(new Note(n, Accidental.SHARP));
             }
         }
 
 
         for (Degree d : chordType.getDegrees())
         {
-            Alteration alt = defaultAlt;
+            Accidental alt = defaultAlt;
             int extensionOffset = 0;
             switch (d)
             {
@@ -412,7 +412,7 @@ public class ChordSymbol implements Cloneable
                     alt = switch (rootNote.getRelativePitch())
                     {
                         case E, B ->
-                            Alteration.SHARP;
+                            Accidental.SHARP;
                         default ->
                             defaultAlt;
                     };
@@ -423,7 +423,7 @@ public class ChordSymbol implements Cloneable
                     alt = switch (rootNote.getRelativePitch())
                     {
                         case C, Eb, G, Bb ->
-                            Alteration.SHARP;
+                            Accidental.SHARP;
                         default ->
                             defaultAlt;
                     };
@@ -437,7 +437,7 @@ public class ChordSymbol implements Cloneable
                     alt = switch (rootNote.getRelativePitch())
                     {
                         case D, E, A, B ->
-                            Alteration.SHARP;
+                            Accidental.SHARP;
                         default ->
                             defaultAlt;
                     };
@@ -452,7 +452,7 @@ public class ChordSymbol implements Cloneable
                     alt = switch (rootNote.getRelativePitch())
                     {
                         case C, D, E, G, A ->
-                            Alteration.SHARP;
+                            Accidental.SHARP;
                         default ->
                             defaultAlt;
                     };
@@ -466,7 +466,7 @@ public class ChordSymbol implements Cloneable
                     alt = switch (rootNote.getRelativePitch())
                     {
                         case B ->
-                            Alteration.SHARP;
+                            Accidental.SHARP;
                         default ->
                             defaultAlt;
                     };
@@ -476,7 +476,7 @@ public class ChordSymbol implements Cloneable
                     alt = switch (rootNote.getRelativePitch())
                     {
                         case C, D, F, G, Bb ->
-                            Alteration.SHARP;
+                            Accidental.SHARP;
                         default ->
                             defaultAlt;
                     };
@@ -491,7 +491,7 @@ public class ChordSymbol implements Cloneable
                     alt = switch (rootNote.getRelativePitch())
                     {
                         case E, A, B ->
-                            Alteration.SHARP;
+                            Accidental.SHARP;
                         default ->
                             defaultAlt;
                     };
@@ -505,7 +505,7 @@ public class ChordSymbol implements Cloneable
                     alt = switch (rootNote.getRelativePitch())
                     {
                         case D, E, G, A, B ->
-                            Alteration.SHARP;
+                            Accidental.SHARP;
                         default ->
                             defaultAlt;
                     };
@@ -530,7 +530,7 @@ public class ChordSymbol implements Cloneable
      */
     public String toNoteString()
     {
-        return getChord().toRelativeNoteString(rootNote.getAlteration());
+        return getChord().toRelativeNoteString(rootNote.getAccidental());
     }
 
     /**
@@ -690,7 +690,7 @@ public class ChordSymbol implements Cloneable
 
     private Note buildStdNote(Note n)
     {
-        return new Note(n.getRelativePitch(), 1, 64, n.getAlteration());
+        return new Note(n.getRelativePitch(), 1, 64, n.getAccidental());
     }
 
   

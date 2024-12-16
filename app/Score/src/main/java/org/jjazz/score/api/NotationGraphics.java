@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.TreeMap;
+import org.jjazz.harmony.api.Note;
 
 
 /**
@@ -161,15 +162,20 @@ public class NotationGraphics
     {
         return grid_size;
     }
-    
+
     public float getNoteBaseWidth()
     {
-        return getGridSize() * 1.3f;        
+        return getGridSize() * 1.3f;
     }
 
     public void setGraphics(Graphics2D g)
     {
         this.g = g;
+    }
+
+    public Graphics2D getGraphics()
+    {
+        return this.g;
     }
 
 
@@ -1422,11 +1428,16 @@ public class NotationGraphics
         public int dotted = 0;
         public int accidental = 0;
         public int mark = 0;
+        public int lateralShift = 0;    // -1, 0, 1, used for adjacent chord notes
+        public boolean isFstaff = false;
+        public Note note;   // Might be null
+        
+
         public Color color = null;
 
         public ScoreNote()
         {
-            
+
         }
 
         public ScoreNote(int staffLine, int dur)

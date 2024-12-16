@@ -28,8 +28,15 @@ package org.jjazz.utilities.api;
 public class FloatRange
 {
 
+    /**
+     * Don't use negative value.
+     */
     public float from;
+    /**
+     * Don't use negative value.
+     */
     public float to;
+
     /**
      * The special shared instance for the empty range.
      * <p>
@@ -48,7 +55,7 @@ public class FloatRange
      *
      * @param from Must be &gt;= 0
      * @param to   Must be &gt; from
-     * @throws IllegalArgumentException If from==to
+     * @throws IllegalArgumentException If from and to are not valid
      */
     public FloatRange(float from, float to)
     {
@@ -147,6 +154,28 @@ public class FloatRange
     }
 
     /**
+     * Clamps the value to fit in this range.
+     * <p>
+     * If value is &gt;= upper bound, return value is (upper bound - upperBoundDelta).
+     *
+     * @param value
+     * @param upperBoundDelta Use 0 to clamp at the upper bound. If non zero, upperBoundDelta should be consistent with value and float precision (7 digits).
+     * @return
+     */
+    public float clamp(float value, float upperBoundDelta)
+    {
+        float res = value;
+        if (value < from)
+        {
+            res = from;
+        } else if (value >= to)
+        {
+            res = to - upperBoundDelta;
+        }
+        return res;
+    }
+
+    /**
      * Get a new range with bounds modified.
      * <p>
      * Modifying the empty range returns the empty range.
@@ -154,6 +183,7 @@ public class FloatRange
      * @param fromOffset
      * @param toOffset
      * @return
+     * @throws IllegalArgumentException If adding fromOffset and toOffset result in non-valid range values.
      */
     public FloatRange getTransformed(float fromOffset, float toOffset)
     {
@@ -161,6 +191,7 @@ public class FloatRange
         {
             return this;
         }
+
         return new FloatRange(from + fromOffset, to + toOffset);
     }
 
@@ -171,6 +202,7 @@ public class FloatRange
      *
      * @param offset
      * @return
+     * @throws IllegalArgumentException If adding soffset result in non-valid range values.
      */
     public FloatRange getTransformed(float offset)
     {

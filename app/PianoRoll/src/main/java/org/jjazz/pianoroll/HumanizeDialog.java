@@ -271,7 +271,7 @@ public class HumanizeDialog extends javax.swing.JDialog implements ChangeListene
         }
 
         humanizer.reset();
-        var nes = b ? NoteView.getNotes(editor.getSelectedNoteViews()) : editor.getModel();
+        var nes = b ? editor.getSelectedNoteEvents() : editor.getModel();
         humanizer.registerNotes(nes);
 
         if (wasHumanizing)
@@ -289,7 +289,7 @@ public class HumanizeDialog extends javax.swing.JDialog implements ChangeListene
             IntRange barRange = null;     // By default play the whole phrase
             if (cb_selectedNotesOnly.isSelected())
             {
-                var selNotes = NoteView.getNotes(editor.getSelectedNoteViews());
+                var selNotes = editor.getSelectedNoteEvents();
                 assert !selNotes.isEmpty();
                 int barFrom = editor.toPosition(selNotes.get(0).getPositionInBeats()).getBar();
                 int barTo = editor.toPosition(selNotes.get(selNotes.size() - 1).getPositionInBeats()).getBar();

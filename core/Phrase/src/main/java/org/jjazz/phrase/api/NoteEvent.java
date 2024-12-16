@@ -370,13 +370,13 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
     }
 
     /**
-     * Get a new Note instance built from this object's pitch, duration, velocity and alteration.
+     * Get a new Note instance built from this object's pitch, duration, velocity and accidental.
      *
      * @return
      */
     public Note toNote()
     {
-        return new Note(getPitch(), getDurationInBeats(), getVelocity(), getAlteration());
+        return new Note(getPitch(), getDurationInBeats(), getVelocity(), getAccidental());
     }
 
     /**
@@ -466,7 +466,7 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
     /**
      * Create a NoteEvent from the specified string.
      * <p>
-     * Example "60,FLAT,102,2.5:1.25" means pitch=60, AlterationDisplay=FLAT, velocity=102, duration=2.5 beats, and position=1.25 beats
+     * Example "60,FLAT,102,2.5:1.25" means pitch=60, AccidentalDisplay=FLAT, velocity=102, duration=2.5 beats, and position=1.25 beats
      *
      * @param s
      * @return

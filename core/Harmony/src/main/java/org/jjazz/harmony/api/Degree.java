@@ -111,12 +111,12 @@ public enum Degree
     private static final Logger LOGGER = Logger.getLogger(Degree.class.getSimpleName());
 
     private final Natural natural;
-    private final int alteration;
+    private final int accidental;
 
     private Degree(Natural n, int alt)
     {
         this.natural = n;
-        this.alteration = alt;
+        this.accidental = alt;
     }
 
     /**
@@ -126,7 +126,7 @@ public enum Degree
      */
     public int getPitch()
     {
-        return natural.getPitch() + alteration;
+        return natural.getPitch() + accidental;
     }
 
     public Natural getNatural()
@@ -137,9 +137,9 @@ public enum Degree
     /**
      * @return -1, 0 or 1. For ex. -1 for b9.
      */
-    public int getAlteration()
+    public int getAccidental()
     {
-        return alteration;
+        return accidental;
     }
 
     /**
@@ -147,10 +147,10 @@ public enum Degree
      */
     public String toStringShort()
     {
-        if (alteration == -1)
+        if (accidental == -1)
         {
             return "b" + natural.toStringShort();
-        } else if (alteration == +1)
+        } else if (accidental == +1)
         {
             return "#" + natural.toStringShort();
         }
@@ -172,7 +172,7 @@ public enum Degree
         }
         for (Degree d : Degree.values())
         {
-            if (d.getNatural() == n && d.getAlteration() == alt)
+            if (d.getNatural() == n && d.getAccidental() == alt)
             {
                 return d;
             }

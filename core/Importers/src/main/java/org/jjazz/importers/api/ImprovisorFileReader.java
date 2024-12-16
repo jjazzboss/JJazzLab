@@ -344,8 +344,8 @@ public class ImprovisorFileReader
             // Bass note has been stripped from token
             String strRootNote;
             String strChordType;
-            boolean alteration = str.length() > 1 && (str.charAt(1) == 'b' || str.charAt(1) == '#');
-            if (alteration)
+            boolean accidental = str.length() > 1 && (str.charAt(1) == 'b' || str.charAt(1) == '#');
+            if (accidental)
             {
                 strRootNote = str.substring(0, 2);
                 strChordType = str.substring(2, str.length());

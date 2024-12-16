@@ -83,9 +83,9 @@ public class TGChordCreatorUtil
 
     // ------ attributes ------
     /**
-     * the alteration List selectionIndex
+     * the accidental List selectionIndex
      */
-    private int alteration;
+    private int accidental;
 
     private int chordIndex;
 
@@ -213,9 +213,9 @@ public class TGChordCreatorUtil
      *
      * @param tuning
      * @param chordIndex Index of TGChordDatabase
-     * @param alteration 0="", 1="9", 2="11", 3="13", 11 implies 7+9+11, etc.
-     * @param plusMinus  0="", 1="+", 2="-" : change the alteration
-     * @param add        If true just add the alteration, e.g. C11 is C7 +11 (no 9)
+     * @param accidental 0="", 1="9", 2="11", 3="13", 11 implies 7+9+11, etc.
+     * @param plusMinus  0="", 1="+", 2="-" : change the accidental
+     * @param add        If true just add the accidental, e.g. C11 is C7 +11 (no 9)
      * @param add5       0="", 1="+", 2="-"
      * @param add9
      * @param add11
@@ -226,7 +226,7 @@ public class TGChordCreatorUtil
      */
     public List<TGChord> getChords(int[] tuning,
             int chordIndex,
-            int alteration,
+            int accidental,
             int plusMinus,
             boolean add,
             int add5,
@@ -248,27 +248,27 @@ public class TGChordCreatorUtil
 
         this.bassTonic = bassTonic;
 
-        this.alteration = alteration;
+        this.accidental = accidental;
 
 
         // find the notes that expand the chord
-        if (this.alteration != 0)
+        if (this.accidental != 0)
         {
             if (add)
             {
                 this.expandingNotes = new int[1];
-                this.expandingNotes[0] = getAddNote(this.alteration - 1, plusMinus);
+                this.expandingNotes[0] = getAddNote(this.accidental - 1, plusMinus);
             } else
             { // not just add...
                 // 9+- = 7b !9(+-)    (index=1)
                 // 11+- = 7b !11(+-) 9(+-)  (index=2)
                 // 13+- = 7b !13(+-) 9(+-) 11(+-) (index=3)
-                this.expandingNotes = new int[1 + this.alteration];
+                this.expandingNotes = new int[1 + this.accidental];
                 this.expandingNotes[0] = 11; //7b
-                this.expandingNotes[1] = getAddNote(this.alteration - 1, plusMinus); //this.alteration+-
+                this.expandingNotes[1] = getAddNote(this.accidental - 1, plusMinus); //this.accidental+-
 
                 // rest
-                for (int i = 2; i <= this.alteration; i++)
+                for (int i = 2; i <= this.accidental; i++)
                 {
                     this.expandingNotes[i] = getAddNote(i - 2, i == 2 ? add9 : add11); // @2=add9+-, @3=add11+- tone
                 }
@@ -425,7 +425,7 @@ public class TGChordCreatorUtil
             }
         }
 
-        // alterations
+        // accidentals
         if (this.expandingNotes.length != 0)
         {
             for (int i = 0; i < this.expandingNotes.length; i++)
@@ -941,7 +941,7 @@ public class TGChordCreatorUtil
         }
 
         // required notes count should decrease the penalty
-        int noteCount = (this.alteration == 0 ? 0 : 1 + this.alteration) + currentIndex + (this.bassTonic == this.chordTonic ? 0 : 1);
+        int noteCount = (this.accidental == 0 ? 0 : 1 + this.accidental) + currentIndex + (this.bassTonic == this.chordTonic ? 0 : 1);
 
         // sometimes, when noteCount is bigger then tunning length, this pennalty will become positive, which may help
         return -TGChordSettings.getInstance().getRequiredBasicsGrade()
@@ -1241,7 +1241,7 @@ public class TGChordCreatorUtil
      * <p>
      * Tone semantics is good if:<br>
      * - there appear tones from chord basis or bass tone<br>
-     * - there appear alteration tones on their specific places<br><br>
+     * - there appear accidental tones on their specific places<br><br>
      * <p>
      * Algorithm:<br>
      * - search for chord tonic. If some note is found before (and it's not bass) do penalty<br>
@@ -1328,7 +1328,7 @@ public class TGChordCreatorUtil
         }
 
         // penalties for not founding an expanding note
-        if (this.alteration != 0)
+        if (this.accidental != 0)
         {
             int essentials = 0, nonEssentials = 0;
             for (int i = 0; i < foundExpanding.length; i++)
@@ -1516,10 +1516,10 @@ public class TGChordCreatorUtil
             return -1;
         }
         int res = 0;
-        if (d.getAlteration() == -1)
+        if (d.getAccidental() == -1)
         {
             res = 2;
-        } else if (d.getAlteration() == 1)
+        } else if (d.getAccidental() == 1)
         {
             res = 1;
         }

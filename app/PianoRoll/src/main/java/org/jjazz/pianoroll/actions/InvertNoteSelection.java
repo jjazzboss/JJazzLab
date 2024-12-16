@@ -46,7 +46,7 @@ public class InvertNoteSelection extends AbstractAction
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        var selNotes = NoteView.getNotes(editor.getSelectedNoteViews());
+        var selNotes = editor.getSelectedNoteEvents();
         var notes = new ArrayList<>(editor.getModel());
         notes.removeAll(selNotes);
         editor.unselectAll();

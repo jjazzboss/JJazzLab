@@ -69,9 +69,9 @@ public class Humanizer
 
         public Config  
         {
-            Preconditions.checkArgument(timingRandomness >= 0 && timingRandomness <= 1, "timingRandomness=%f", timingRandomness);
-            Preconditions.checkArgument(timingBias >= -0.5f && timingBias <= 0.5f, "timingBias=%f", timingBias);
-            Preconditions.checkArgument(velocityRandomness >= 0 && velocityRandomness <= 1, "velocityRandomness=%f", velocityRandomness);
+            Preconditions.checkArgument(timingRandomness >= 0 && timingRandomness <= 1, "timingRandomness=%s", timingRandomness);
+            Preconditions.checkArgument(timingBias >= -0.5f && timingBias <= 0.5f, "timingBias=%s", timingBias);
+            Preconditions.checkArgument(velocityRandomness >= 0 && velocityRandomness <= 1, "velocityRandomness=%s", velocityRandomness);
         }
 
         public Config setTimingRandomness(float newValue)
@@ -204,7 +204,7 @@ public class Humanizer
         Objects.nonNull(sourcePhrase);
         Objects.nonNull(allowedBeatRange);
         Objects.nonNull(ts);
-        Preconditions.checkArgument(tempo >= 10 && tempo <= 400, "tempo=%f", tempo);
+        Preconditions.checkArgument(tempo >= 10 && tempo <= 400, "tempo=%s", tempo);
         Preconditions.checkArgument(sourcePhrase.isEmpty() || allowedBeatRange.contains(sourcePhrase.getBeatRange(), false), "phrase=%s allowedBeatRange=%s",
                 sourcePhrase,
                 allowedBeatRange);

@@ -53,8 +53,8 @@ public class MoveSelectionLeft extends AbstractAction
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        var nvs = editor.getSelectedNoteViews();
-        if (nvs.isEmpty())
+        var nes = editor.getSelectedNoteEvents();
+        if (nes.isEmpty())
         {
             return;
         }
@@ -70,7 +70,7 @@ public class MoveSelectionLeft extends AbstractAction
         editor.getUndoManager().startCEdit(editor, undoText);
 
         Map<NoteEvent,Float> mapNoteNewPos = new HashMap<>();
-        for (var ne : NoteView.getNotes(nvs))
+        for (var ne : nes)
         {
             float newPos =   ne.getPositionInBeats() - qDur;
             if (editor.isSnapEnabled())

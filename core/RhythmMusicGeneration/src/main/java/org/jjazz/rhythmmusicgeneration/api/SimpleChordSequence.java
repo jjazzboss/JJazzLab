@@ -152,7 +152,7 @@ public class SimpleChordSequence extends ChordSequence
     public float toPositionInBeats(Position pos, float startBarPosInBeats)
     {
         Objects.requireNonNull(pos);
-        Preconditions.checkArgument(startBarPosInBeats >= 0, "startBarPosInBeats=%f", startBarPosInBeats);
+        Preconditions.checkArgument(startBarPosInBeats >= 0, "startBarPosInBeats=%s", startBarPosInBeats);
 
         float relPosInBeats = (pos.getBar() - getBarRange().from) * timeSignature.getNbNaturalBeats() + pos.getBeat();
         return startBarPosInBeats + relPosInBeats;
@@ -167,7 +167,7 @@ public class SimpleChordSequence extends ChordSequence
      */
     public Position toPosition(float posInBeats, float startBarPosInBeats)
     {
-        Preconditions.checkArgument(posInBeats >= 0 && posInBeats >= startBarPosInBeats, "posInBeats=%f startBarPosInBeats=%f", posInBeats, startBarPosInBeats);
+        Preconditions.checkArgument(posInBeats >= 0 && posInBeats >= startBarPosInBeats, "posInBeats=%s startBarPosInBeats=%s", posInBeats, startBarPosInBeats);
         float relPosInBeats = posInBeats - startBarPosInBeats;
         int relBars = (int) Math.floor(relPosInBeats / getTimeSignature().getNbNaturalBeats());
         float beat = relPosInBeats - relBars * getTimeSignature().getNbNaturalBeats();

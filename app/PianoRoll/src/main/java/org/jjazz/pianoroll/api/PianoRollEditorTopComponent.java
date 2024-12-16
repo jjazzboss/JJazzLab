@@ -181,7 +181,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         TreeMap<Float, TimeSignature> mapPosTs = new TreeMap<>();
         mapPosTs.put(0f, songPart.getRhythm().getTimeSignature());
 
-        editor.setModel(p, beatRange0, 0, spt.getStartBarIndex(), channel, mapPosTs, keyMap);
+        editor.setModel(p, beatRange0, spt.getStartBarIndex(), channel, mapPosTs, keyMap);
 
         refreshToolbarTitle();
 
@@ -191,7 +191,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
      * Configure the TopComponent to edit a user phrase on the whole song.
      * <p>
      *
-     * @param p
+     * @param p       The phrase must start at bar/beat 0
      * @param channel The Midi channel of the edited Phrase (p.getChannel() is ignored). Must correspond to a UserRhythmVoice in the song's MidiMix.
      * @param keyMap  Null for melodic phrase
      */
@@ -212,7 +212,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         spts.forEach(spt -> mapPosTs.put(ss.toPositionInNaturalBeats(spt.getStartBarIndex()), spt.getRhythm().getTimeSignature()));
 
 
-        editor.setModel(p, getBeatRange(), 0, 0, channel, mapPosTs, keyMap);
+        editor.setModel(p, getBeatRange(), 0, channel, mapPosTs, keyMap);
 
         refreshToolbarTitle();
         

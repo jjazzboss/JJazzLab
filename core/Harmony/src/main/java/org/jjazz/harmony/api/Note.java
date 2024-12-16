@@ -47,7 +47,7 @@ public class Note implements Comparable<Note>, Cloneable
     public static final int OCTAVE_MAX = 10;
     private static final Logger LOGGER = Logger.getLogger(Note.class.getSimpleName());
 
-    public enum Alteration
+    public enum Accidental
     {
         FLAT, SHARP;
     }
@@ -77,12 +77,12 @@ public class Note implements Comparable<Note>, Cloneable
     /**
      * Sharp or flat
      */
-    private final Alteration alterationDisplay;
+    private final Accidental accidental;
     private final int velocity;
     private String pianoOctaveString;
 
     /**
-     * Use MidiConst.PITCH_STD, Quarter duration, Alteration.Flat and standard velocity.
+     * Use MidiConst.PITCH_STD, Quarter duration, Accidental.Flat and standard velocity.
      */
     public Note()
     {
@@ -96,7 +96,7 @@ public class Note implements Comparable<Note>, Cloneable
      */
     public Note(int p)
     {
-        this(p, SymbolicDuration.QUARTER, VELOCITY_STD, Alteration.FLAT);
+        this(p, SymbolicDuration.QUARTER, VELOCITY_STD, Accidental.FLAT);
     }
 
     /**
@@ -112,7 +112,7 @@ public class Note implements Comparable<Note>, Cloneable
 
 
     /**
-     * Create a Note with a pitch, a duration in beat, standard velocity and an alteration if any.
+     * Create a Note with a pitch, a duration in beat, standard velocity and an accidental if any.
      *
      * @param p
      * @param bd
@@ -120,18 +120,18 @@ public class Note implements Comparable<Note>, Cloneable
      */
     public Note(int p, float bd, int v)
     {
-        this(p, bd, v, Alteration.FLAT);
+        this(p, bd, v, Accidental.FLAT);
     }
 
     /**
-     * Create a Note with a pitch, a symbolic duration, a velocity and an alteration if any.
+     * Create a Note with a pitch, a symbolic duration, a velocity and an accidental if any.
      *
      * @param p
      * @param sd
      * @param v   velocity
      * @param alt
      */
-    public Note(int p, SymbolicDuration sd, int v, Alteration alt)
+    public Note(int p, SymbolicDuration sd, int v, Accidental alt)
     {
         if (!checkPitch(p) || sd == null || alt == null || !checkVelocity(v))
         {
@@ -140,19 +140,19 @@ public class Note implements Comparable<Note>, Cloneable
         pitch = p;
         beatDuration = sd.getDuration();
         symbolicDuration = sd;
-        alterationDisplay = alt;
+        accidental = alt;
         velocity = v;
     }
 
     /**
-     * Create a Note with a pitch, a duration in beat, a velocity and an alteration if any.
+     * Create a Note with a pitch, a duration in beat, a velocity and an accidental if any.
      *
      * @param p
      * @param bd  Must be &gt; 0
      * @param v   velocity
      * @param alt
      */
-    public Note(int p, float bd, int v, Alteration alt)
+    public Note(int p, float bd, int v, Accidental alt)
     {
         if (!checkPitch(p) || bd <= 0 || alt == null || !checkVelocity(v))
         {
@@ -161,7 +161,7 @@ public class Note implements Comparable<Note>, Cloneable
         pitch = p;
         beatDuration = bd;
         symbolicDuration = SymbolicDuration.getSymbolicDuration(bd);
-        alterationDisplay = alt;
+        accidental = alt;
         velocity = v;
     }
 
@@ -173,16 +173,16 @@ public class Note implements Comparable<Note>, Cloneable
      */
     public Note(Note n, int newPitch)
     {
-        this(newPitch, n.beatDuration, n.velocity, n.alterationDisplay);
+        this(newPitch, n.beatDuration, n.velocity, n.accidental);
     }
 
     /**
-     * A new note based on n but with the specified alteration.
+     * A new note based on n but with the specified accidental.
      *
      * @param n
      * @param alt
      */
-    public Note(Note n, Alteration alt)
+    public Note(Note n, Accidental alt)
     {
         this(n.pitch, n.beatDuration, n.velocity, alt);
     }
@@ -206,7 +206,7 @@ public class Note implements Comparable<Note>, Cloneable
             throw new NullPointerException("s");
         }
         String str = s.trim();
-        Alteration alt = Alteration.FLAT;         // By default
+        Accidental alt = Accidental.FLAT;         // By default
 
         if (str.length() == 0)
         {
@@ -235,44 +235,44 @@ public class Note implements Comparable<Note>, Cloneable
             octaveStr = str.substring(octaveIndex + 1);
         }
 
-        // Get the pitch and alteration
+        // Get the pitch and accidental
         int relPitch = -1;
         for (int i = 0; i < notesFlat.length; i++)
         {
             if (degreeStr.compareTo("Cb") == 0)
             {
                 relPitch = 11;
-                alt = Alteration.FLAT;
+                alt = Accidental.FLAT;
                 break;
             }
             if (degreeStr.compareToIgnoreCase("B#") == 0)
             {
                 relPitch = 0;
-                alt = Alteration.SHARP;
+                alt = Accidental.SHARP;
                 break;
             }
             if (degreeStr.compareToIgnoreCase("E#") == 0)
             {
                 relPitch = 5;
-                alt = Alteration.SHARP;
+                alt = Accidental.SHARP;
                 break;
             }
             if (degreeStr.compareToIgnoreCase("Fb") == 0)
             {
                 relPitch = 4;
-                alt = Alteration.FLAT;
+                alt = Accidental.FLAT;
                 break;
             }
             if (degreeStr.compareToIgnoreCase(notesFlat[i]) == 0)
             {
                 relPitch = i;
-                alt = Alteration.FLAT;
+                alt = Accidental.FLAT;
                 break;
             }
             if (degreeStr.compareToIgnoreCase(notesSharp[i]) == 0)
             {
                 relPitch = i;
-                alt = Alteration.SHARP;
+                alt = Accidental.SHARP;
                 break;
             }
         }
@@ -304,14 +304,14 @@ public class Note implements Comparable<Note>, Cloneable
         pitch = octave * 12 + relPitch;
         beatDuration = SymbolicDuration.QUARTER.getDuration();
         symbolicDuration = SymbolicDuration.QUARTER;
-        alterationDisplay = alt;
+        accidental = alt;
         velocity = VELOCITY_STD;
     }
 
     @Override
     public Note clone()
     {
-        return new Note(this.pitch, this.beatDuration, this.velocity, this.alterationDisplay);
+        return new Note(this.pitch, this.beatDuration, this.velocity, this.accidental);
     }
 
     public final int getPitch()
@@ -347,9 +347,9 @@ public class Note implements Comparable<Note>, Cloneable
         return pitch / 12;
     }
 
-    public final Alteration getAlteration()
+    public final Accidental getAccidental()
     {
-        return alterationDisplay;
+        return accidental;
     }
 
     /**
@@ -417,7 +417,7 @@ public class Note implements Comparable<Note>, Cloneable
      * <p>
      *
      * @param t Transposition value in positive/negative semi-tons.
-     * @return A new note instance transposed with the same alteration display.
+     * @return A new note instance transposed with the same accidental display.
      */
     public Note getTransposed(int t)
     {
@@ -429,7 +429,7 @@ public class Note implements Comparable<Note>, Cloneable
      *
      * @param lowPitch  Must be &lt; (highPitch-12)
      * @param highPitch
-     * @return The new note with corrected pitch and same alteration display
+     * @return The new note with corrected pitch and same accidental display
      */
     public Note getCentered(int lowPitch, int highPitch)
     {
@@ -457,7 +457,7 @@ public class Note implements Comparable<Note>, Cloneable
      * <p>
      * @param pitchShift A negative or positive value i semi-tons.
      * @param pitchLimit Authorized values are [13, 119]
-     * @return The new transposed Note with same alteration display
+     * @return The new transposed Note with same accidental display
      */
     public Note getTransposed(int pitchShift, int pitchLimit)
     {
@@ -488,7 +488,7 @@ public class Note implements Comparable<Note>, Cloneable
      * <p>
      *
      * @param t Transposition value in positive/negative semi-tons.
-     * @return A new note transposed from t semi-tons but within the same octave and same alteration display.
+     * @return A new note transposed from t semi-tons but within the same octave and same accidental display.
      */
     public Note getTransposedWithinOctave(int t)
     {
@@ -603,7 +603,7 @@ public class Note implements Comparable<Note>, Cloneable
      * Compare 2 objects.
      * <p>
      *
-     * @return True if 2 notes have same pitch, beatDuration and velocity. AlterationDisplay is ignored.
+     * @return True if 2 notes have same pitch, beatDuration and velocity. AccidentalDisplay is ignored.
      */
     @Override
     public boolean equals(Object obj)
@@ -637,7 +637,7 @@ public class Note implements Comparable<Note>, Cloneable
     }
 
     /**
-     * Uses pitch, beatDuration and velocity, alterationDisplay is ignored.
+     * Uses pitch, beatDuration and velocity, accidentalDisplay is ignored.
      *
      * @return
      */
@@ -654,7 +654,7 @@ public class Note implements Comparable<Note>, Cloneable
     /**
      * Compare 2 notes.
      * <p>
-     * Uses pitch, then beatDuration, then velocity. AlterationDisplay is ignored.
+     * Uses pitch, then beatDuration, then velocity. AccidentalDisplay is ignored.
      *
      * @param n
      * @return
@@ -699,17 +699,17 @@ public class Note implements Comparable<Note>, Cloneable
      */
     public String toRelativeNoteString()
     {
-        return toRelativeNoteString(alterationDisplay);
+        return toRelativeNoteString(accidental);
     }
 
     /**
-     * @param alt Use the specified alteration.
+     * @param alt Use the specified accidental.
      *
      * @return E.g. "Db" if alt=FLAT, "C#" if alt=SHARP.
      */
-    public String toRelativeNoteString(Alteration alt)
+    public String toRelativeNoteString(Accidental alt)
     {
-        if (alt == Alteration.FLAT)
+        if (alt == Accidental.FLAT)
         {
             return notesFlat[getRelativePitch()];
         } else
@@ -783,7 +783,7 @@ public class Note implements Comparable<Note>, Cloneable
 
     public boolean isFlat()
     {
-        return alterationDisplay.equals(Alteration.FLAT);
+        return accidental.equals(Accidental.FLAT);
     }
 
     /**
@@ -847,7 +847,7 @@ public class Note implements Comparable<Note>, Cloneable
     }
 
     /**
-     * Return the note pitch without the alteration.
+     * Return the note pitch without the accidental.
      * <p>
      * Examples: <br>
      * - if note==C#(61) then return 60, if note==Db(61) then return 62.<br>
@@ -885,7 +885,7 @@ public class Note implements Comparable<Note>, Cloneable
             try
             {
                 int p = Integer.parseInt(strs[0]);
-                Alteration alt = strs.length == 3 ? Alteration.FLAT : Alteration.valueOf(strs[1]);
+                Accidental alt = strs.length == 3 ? Accidental.FLAT : Accidental.valueOf(strs[1]);
                 int v = Integer.parseInt(strs[strs.length == 3 ? 1 : 2]);
                 float bd = Float.parseFloat(strs[strs.length == 3 ? 2 : 3]);
                 n = new Note(p, bd, v, alt);
@@ -907,23 +907,23 @@ public class Note implements Comparable<Note>, Cloneable
     /**
      * Save a Note as a String object.
      * <p>
-     * Example "60,FLAT,102,2.5" means pitch=60, AlterationDisplay=FLAT, velocity=102, duration=2.5 beats
+     * Example "60,FLAT,102,2.5" means pitch=60, AccidentalDisplay=FLAT, velocity=102, duration=2.5 beats
      *
      * @param n
-     * @param skipAlteration Don't save the alteration
+     * @param skipAccidental Don't save the accidental
      * @return
      * @see loadAsString(String)
      */
-    static public String saveAsString(Note n, boolean skipAlteration)
+    static public String saveAsString(Note n, boolean skipAccidental)
     {
         checkNotNull(n);
         String s;
-        if (skipAlteration)
+        if (skipAccidental)
         {
             s = n.pitch + "," + n.velocity + "," + n.beatDuration;
         } else
         {
-            s = n.pitch + "," + n.alterationDisplay + "," + n.velocity + "," + n.beatDuration;
+            s = n.pitch + "," + n.accidental + "," + n.velocity + "," + n.beatDuration;
         }
         return s;
     }

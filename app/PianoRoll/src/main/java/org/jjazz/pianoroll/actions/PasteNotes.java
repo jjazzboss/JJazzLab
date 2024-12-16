@@ -86,6 +86,11 @@ public class PasteNotes extends AbstractAction
         {
             // Find the first visible round beat
             var beatRange = editor.getVisibleBeatRange();
+            if (beatRange.isEmpty())
+            {
+                LOGGER.warning("actionPerformed() Unexpected editor.getVisibleBeatRange() is empty");
+                return;
+            }
             targetStartPos = beatRange.size() >= 1f ? (float) Math.ceil(beatRange.from) : beatRange.from;
         } else
         {

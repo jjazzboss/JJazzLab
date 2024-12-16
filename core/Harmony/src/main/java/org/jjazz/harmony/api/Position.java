@@ -22,6 +22,7 @@
  */
 package org.jjazz.harmony.api;
 
+import com.google.common.base.Preconditions;
 import com.thoughtworks.xstream.XStream;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -91,75 +92,90 @@ public final class Position implements Comparable<Position>, Serializable
      */
     public Position(int bar, float beat)
     {
-        if ((beat < 0) || (bar < 0))
-        {
-            throw new IllegalArgumentException("b=" + beat + " bar=" + bar);
-        }
+        Preconditions.checkArgument(bar >= 0 && beat >= 0, "bar=%s beat=%s", (Object) bar, beat);
         this.bar = bar;
         this.beat = beat;
     }
 
-    public void setBeat(float beat)
+    /**
+     * Set the beat parameter.
+     *
+     * @param beat
+     * @return This instance
+     */
+    public Position setBeat(float beat)
     {
-        if (beat < 0)
-        {
-            throw new IllegalArgumentException("beat=" + beat);
-        }
+        Preconditions.checkArgument(beat >= 0, "beat=%s", beat);
         float old = this.beat;
-//        this.beat = Note.roundForMusic(beat);
         this.beat = beat;
         pcs.firePropertyChange(PROP_BEAT, old, this.beat);
-
+        return this;
     }
 
-    public void setBar(int bar)
+    /**
+     * Set the bar parameter.
+     *
+     * @param bar
+     * @return This instance
+     */
+    public Position setBar(int bar)
     {
-        if (bar < 0)
-        {
-            throw new IllegalArgumentException("bar=" + bar);
-        }
+        Preconditions.checkArgument(bar >= 0, "bar=%", bar);
         int old = this.bar;
         this.bar = bar;
         pcs.firePropertyChange(PROP_BAR, old, this.bar);
+        return this;
     }
 
     /**
      * Set bar and beat to 0.
+     *
+     * @return This instance
      */
-    public void reset()
+    public Position reset()
     {
         setBar(0);
         setBeat(0);
+        return this;
     }
 
     /**
      * Set the position from another position.
      * <p>
      * @param p A Position.
+     * @return This instance
      */
-    public void set(Position p)
+    public Position set(Position p)
     {
         setBeat(p.getBeat());
         setBar(p.getBar());
+        return this;
     }
 
 
     /**
      * Change position to be on first beat.
+     *
+     * @return This instance
      */
-    public void setFirstBarBeat()
+    public Position setFirstBarBeat()
     {
         setBeat(0);
+        return this;
     }
 
     /**
      * Change position to be on last beat of the bar which has the specified TimeSignature.
+     * <p>
+     * For example set beat=3 for a 4/4 bar.
      *
      * @param ts The TimeSignature of the bar.
+     * @return This instance
      */
-    public void setLastBarBeat(TimeSignature ts)
+    public Position setLastBarBeat(TimeSignature ts)
     {
         setBeat(ts.getNbNaturalBeats() - 1);
+        return this;
     }
 
     @Override
@@ -504,10 +520,11 @@ public final class Position implements Comparable<Position>, Serializable
      *
      * @param userString The string as returned by toString()
      * @param defaultBar If bar is not specified, defaultBar is used.
+     * @return This instance
      *
      * @throws ParseException If syntax error in string.
      */
-    public void valueOf(String userString, int defaultBar) throws ParseException
+    public Position setFromString(String userString, int defaultBar) throws ParseException
     {
         int newBar = bar;
         float newBeat = beat;
@@ -578,6 +595,8 @@ public final class Position implements Comparable<Position>, Serializable
 
         setBar(newBar);
         setBeat(newBeat);
+        
+        return this;
     }
 
     /**
@@ -682,7 +701,7 @@ public final class Position implements Comparable<Position>, Serializable
             Position pos = new Position();
             try
             {
-                pos.valueOf(spPos, 0);
+                pos.setFromString(spPos, 0);
             } catch (ParseException ex)
             {
                 LOGGER.log(Level.WARNING, "Can''t read position " + spPos + ", using position(0,0) instead", ex);

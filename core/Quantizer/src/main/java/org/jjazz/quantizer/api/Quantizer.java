@@ -170,7 +170,7 @@ public class Quantizer
         Preconditions.checkNotNull(ts);
         Preconditions.checkArgument(ts.checkBeat(pos.getBeat()), "ts=%s pos=%s", ts, pos);
         Preconditions.checkArgument(pos.getBar() <= maxBarIndex, "pos=%s maxBarIndex=%s", pos, maxBarIndex);
-        Preconditions.checkArgument(qStrength > 0 && qStrength <= 1, "qStrength=%f", qStrength);
+        Preconditions.checkArgument(qStrength > 0 && qStrength <= 1, "qStrength=%s", qStrength);
 
         Position newPos = switch (q)
         {

@@ -121,7 +121,7 @@ public class GhostPhrasesModel implements PropertyChangeListener, ChangeListener
      */
     public void setEditedChannel(int editedChannel)
     {
-        Preconditions.checkArgument(MidiConst.checkMidiChannel(editedChannel), "editedChannel=%d", editedChannel);
+        Preconditions.checkArgument(MidiConst.checkMidiChannel(editedChannel), "editedChannel=%s", editedChannel);
         this.editedChannel = editedChannel;
         visibleChannels.remove(editedChannel);
         pcs.firePropertyChange(PROP_PHRASE_LIST, false, true);

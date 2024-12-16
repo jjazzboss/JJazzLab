@@ -83,7 +83,7 @@ public class NCExtChordSymbol extends ExtChordSymbol implements Serializable
 
 
     @Override
-    public ExtChordSymbol getTransposedChordSymbol(int t, Note.Alteration alt)
+    public ExtChordSymbol getTransposedChordSymbol(int t, Note.Accidental alt)
     {
         return this;
     }

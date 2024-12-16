@@ -435,7 +435,7 @@ public interface ChordLeadSheet
      */
     default CLI_Section getSection(int barIndex)
     {
-        Preconditions.checkArgument(barIndex >= 0, "barIndex=%d" + barIndex);
+        Preconditions.checkArgument(barIndex >= 0, "barIndex=%s" + barIndex);
         return getLastItemBefore(new Position(barIndex), true, CLI_Section.class, cli -> true);
     }
 

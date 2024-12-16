@@ -37,15 +37,18 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.AttributedString;
 import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.SwingUtilities;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.harmony.api.ChordSymbol;
 import org.jjazz.harmony.api.Note;
+import org.jjazz.harmony.api.Position;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
@@ -54,6 +57,7 @@ import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.rhythmmusicgeneration.api.ChordSequence;
 import org.jjazz.score.api.NotationGraphics;
 import org.jjazz.score.api.MeasureContext;
+import org.jjazz.score.api.NotationGraphics.ScoreNote;
 import org.jjazz.song.api.Song;
 import org.jjazz.uiutilities.api.StringMetrics;
 import org.jjazz.uiutilities.api.UIUtilities;
@@ -74,7 +78,7 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
     public static final String CLIENT_PROP_OCTAVE_TRANSPOSITION_BASE = "NoteEditorScoreOctaveTransposition";
     private static final int G_STAFF_FIRST_LINE = 9;
     private static final int F_STAFF_FIRST_LINE = G_STAFF_FIRST_LINE + 9;
-    private static final int G_STAFF_LOWEST_PITCH = 57;
+
     private final PianoRollEditor editor;
     private final NotesPanel notesPanel;
     private float scaleFactorX = 1;
@@ -116,6 +120,9 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
 
         baseChordFont = UIUtilities.changeFontSize(editor.getSettings().getRulerBaseFont(), 1f);
         baseChordFontHeight = (int) Math.ceil(new StringMetrics(baseChordFont).getHeight("I")); // include baseline
+
+        LOGGER.severe("ScorePanel() DEBUG Updating SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT");
+        System.setProperty(NoteEvent.SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT, "%1$s p=%2$.1f");
 
     }
 
@@ -196,7 +203,9 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
     {
         Graphics2D g2 = (Graphics2D) g;
         var clip = g2.getClipBounds();
-        IntRange barRange = notesPanel.getClipBarRange(g);
+        // Make sure clip is restricted to a valid area
+        SwingUtilities.computeIntersection(0, 0, notesPanel.getWidth(), getHeight(), clip);
+
 
 //        LOGGER.log(Level.INFO, "paintComponent() -- width={0} height={1} clip={2}", new Object[]
 //        {
@@ -209,71 +218,62 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
             return;
         }
 
-        // Fill background corresponding to notesPanel width
+        // Fill background
         Color c = editor.getSettings().getBackgroundColor2();
         g2.setColor(c);
         g2.fillRect(clip.x, clip.y, clip.width, clip.height);
 
 
-        notesPanel.paintLoopZone(this, g);
+        notesPanel.paintLoopZone(this, g2);
 
         notesPanel.paintVerticalGrid(g2, 0, getHeight() - 1);
 
 
-        // Show chord symbols if available        
-        TreeMap<Float, CLI_ChordSymbol> tmapPosChordSymbol = new TreeMap<>();       // Save chord symbols beat position for notes drawing below
+        // Chord sequence
         var chordSequence = editor.getChordSequence();
         if (chordSequence != null)
         {
-            paintChords(g2, chordSequence, barRange, tmapPosChordSymbol);
+            // Important: we need all chord symbols from the start for paintNotes()
+            IntRange brClip = notesPanel.getClipBarRange(g2);
+            chordSequence = chordSequence.subSequence(brClip, true);
+            paintChordSymbols(g2, chordSequence);
         }
 
 
-        paintNotes(g2, tmapPosChordSymbol);
+        paintNotes(g2);
 
     }
 
     /**
-     * Paint the chords
+     * Paint the chord symbols.
      *
      * @param g2
      * @param chordSequence
-     * @param barRange
-     * @param tmapPosChordSymbol Method will save the calculated positions of the chords here
      */
-    private void paintChords(Graphics2D g2, ChordSequence chordSequence, IntRange barRange, TreeMap<Float, CLI_ChordSymbol> tmapPosChordSymbol)
+    private void paintChordSymbols(Graphics2D g2, ChordSequence chordSequence)
     {
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
         float oneBeatPixelSize = notesPanel.getXMapper().getOneBeatPixelSize();
 
-        // Take into account the possible different rulerStartBar
-        int barOffset = editor.getRulerStartBar() - editor.getPhraseStartBar();
-
         // Draw chord symbols
-        int lastBar = -1;
+        int lastCliCsBar = -1;
 
         for (var cliCs : chordSequence)
         {
-            var pos = cliCs.getPosition();
-            if (!barRange.contains(pos.getBar()))
-            {
-                continue;
-            }
+            var posCliCs = cliCs.getPosition();
 
-            if (oneBeatPixelSize > 14 || (pos.getBar() != lastBar && pos.isFirstBarBeat()))
+            if (oneBeatPixelSize > 14 || (posCliCs.getBar() != lastCliCsBar && posCliCs.isFirstBarBeat()))
             {
                 // Draw the chord symbol
-                var posOffsetted = pos.getMoved(-barOffset, 0); // Convert to phraseStartBar
-                var posInBeats = editor.toPositionInBeats(posOffsetted);
-                tmapPosChordSymbol.put(posInBeats, cliCs);      // Save chord beat position
+                var posInBeats = editor.toPhraseRelativeBeatPosition(cliCs);
                 int x = editor.getXFromPosition(posInBeats);
                 int y = baseChordFontHeight;
                 AttributedString aStr;
                 aStr = new AttributedString(cliCs.getData().getOriginalName(), baseChordFont.getAttributes());
                 aStr.addAttribute(TextAttribute.FOREGROUND, COLOR_CHORD_SYMBOL_FONT);
                 aStr.addAttribute(TextAttribute.BACKGROUND, editor.getSettings().getBackgroundColor2());
-                if (posOffsetted.isFirstBarBeat())
+                if (posCliCs.isFirstBarBeat())
                 {
                     x += 1;
                 }
@@ -284,11 +284,11 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
                 continue;
             }
 
-            lastBar = pos.getBar();
+            lastCliCsBar = posCliCs.getBar();
         }
     }
 
-    private void paintNotes(Graphics2D g2, TreeMap<Float, CLI_ChordSymbol> tmapPosChordSymbol)
+    private void paintNotes(Graphics2D g2)
     {
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         ng.setGraphics(g2);
@@ -317,42 +317,42 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
         ng.drawClef(NotationGraphics.CLEF_F);
 
 
-        // Paint all the notes  intersecting the clip
-        g2.setColor(NOTE_COLOR);
+        // Paint notes         
+        var noteEvents = computeClipImpactedNoteEvents(g2);
+        var selectedNoteEvents = editor.getSelectedNoteEvents();
         var xMapper = notesPanel.getXMapper();
-        var clipBr = notesPanel.getClipBeatRange(g2);
+        var chordNotes = new ChordNotes(noteEvents.size());
         MeasureContext mContext = null;
-        var nes = editor.getModel().getNotes(ne -> clipBr.intersects(ne.getBeatRange()), FloatRange.MAX_FLOAT_RANGE, true);
-        PitchSortedNotes samePosNotes = new PitchSortedNotes();
-
 
         int i = 0;
-        while (i < nes.size())
+        while (i < noteEvents.size())
         {
-            var ne = nes.get(i);
-            samePosNotes.clear();
-            samePosNotes.addOrdered(ne);
+            var ne = noteEvents.get(i);
+            chordNotes.clear();
+            chordNotes.addOrdered(transpose(ne), selectedNoteEvents.contains(ne));
             i++;
 
+
             // Group all the next notes if they are at the same position
-            while (i < nes.size() && nes.get(i).isNear(ne.getPositionInBeats(), 0.1f))
+            while (i < noteEvents.size() && noteEvents.get(i).isNear(ne.getPositionInBeats(), 0.1f))
             {
-                samePosNotes.addOrdered(nes.get(i));
+                var samePosNe = noteEvents.get(i);
+                chordNotes.addOrdered(transpose(samePosNe), selectedNoteEvents.contains(samePosNe));
                 i++;
             }
 
             // Prepare to paint the group of notes
             float posInBeats = ne.getPositionInBeats();
-            int bar = xMapper.toPosition(posInBeats).getBar();
             int x = xMapper.getX(posInBeats);
-            Float csPos = tmapPosChordSymbol.floorKey(posInBeats);
-            var cs = csPos == null ? null : tmapPosChordSymbol.get(csPos).getData();
+            Position pos = xMapper.toPosition(posInBeats);
+            int bar = pos.getBar();
+            ChordSymbol cs = getChordSymbol(pos);
             if (mContext == null || mContext.getBarIndex() != bar)
             {
-                mContext = new MeasureContext(bar, new Note(60));
+                mContext = new MeasureContext(ng, bar, new Note(60));
             }
 
-            paintSamePositionNotes(g2, samePosNotes, x, mContext, cs, NoteView.getNotes(editor.getSelectedNoteViews()));
+            paintChordNotes(chordNotes, x, mContext, cs);
 
         }
 
@@ -441,7 +441,7 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
                     } else
                     {
                         // We can probably do a much smaller repaint
-                        final int EXTRA = 100;   // Need to cover for note width, tie, shift, alterations, ...
+                        final int EXTRA = 100;   // Need to cover for note width, tie, shift, accidentals, ...
                         List<NoteView> nes = (List<NoteView>) evt.getOldValue();
                         NoteEvent neFirst = nes.get(0).getModel();
                         NoteEvent neLast = nes.get(nes.size() - 1).getModel();
@@ -469,65 +469,66 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
     }
 
     /**
-     * Draw one or more notes at same position.
+     * Paint one ScoreNote.
      *
-     * @param g2
-     * @param nes           Notes must be approximatively at same position, and ordered by pitch. Can't be empty.
-     * @param x             x coordinate where to draw the notes
-     * @param mContext
-     * @param cs            Optional chord symbol
-     * @param selectedNotes
+     * @param sn
+     * @param c
      */
-    private void paintSamePositionNotes(Graphics2D g2, List<NoteEvent> nes, int x, MeasureContext mContext, ChordSymbol cs, List<NoteEvent> selectedNotes)
+    private void paintOneScoreNote(ScoreNote sn, Color c)
     {
-        Preconditions.checkArgument(!nes.isEmpty());
-//        LOGGER.log(Level.INFO, "paintSamePositionNotes() -- nes={0} selectedNotes={1}", new Object[]
+        final int ADJACENT_NOTE_SHIFT = (int) ng.getNoteBaseWidth();
+
+        int line = sn.isFstaff ? F_STAFF_FIRST_LINE : G_STAFF_FIRST_LINE;
+        ng.absoluteLine(line);
+
+        sn.dur = NotationGraphics.NOTE_DURATION_QUARTER;
+        sn.linedir = NotationGraphics.LINE_DIR_NO;
+        int shift = sn.lateralShift == 1 ? ADJACENT_NOTE_SHIFT : 0;
+        sn.dotted = 0;
+        sn.x = ng.getCurrentX() + shift;
+
+        ng.getGraphics().setColor(c);
+        ng.drawNote(sn);
+    }
+
+    /**
+     * Paint one or more notes at same position.
+     *
+     * @param chordNotes
+     * @param x          x coordinate where to draw the notes
+     * @param mContext
+     * @param cs         Optional chord symbol
+     */
+    private void paintChordNotes(ChordNotes chordNotes, int x, MeasureContext mContext, ChordSymbol cs)
+    {
+        Preconditions.checkArgument(!chordNotes.isEmpty());
+//        LOGGER.log(Level.INFO, "paintChordNotes() -- nes={0} mContext.barIndex={1}", new Object[]
 //        {
-//            new ArrayList<>(nes), new ArrayList<>(selectedNotes)
+//            new ArrayList<>(chordNotes), mContext.getBarIndex()
 //        });
 
         ng.absoluteX(x);
-        final int ADJACENT_NOTE_SHIFT = (int) ng.getNoteBaseWidth();
-        NoteEvent unshiftableNote = null;
 
-        for (int i = 0; i < nes.size(); i++)
+
+        List<ScoreNote> scoreNotes;
+        if (chordNotes.size() == 1)
         {
-            var ne = nes.get(i);
-            var p = ne.getPitch();
-            int shift = 0;
+            scoreNotes = List.of(mContext.buildScoreNote(chordNotes.get(0), cs));
+        } else
+        {
+            scoreNotes = mContext.buildChordScoreNotes(chordNotes, cs);
+        }
 
-            if (i < nes.size() - 1 && nes.get(i + 1).getPitch() <= p + 2)
-            {
-                unshiftableNote = nes.get(i + 1);
-                shift = ADJACENT_NOTE_SHIFT;
-            }
-
-
-            Color c = selectedNotes.contains(ne) ? Color.RED.brighter() : Color.BLACK;
-            g2.setColor(c);
-
-            if (octaveTransposition != 0)
-            {
-                p = MidiUtilities.limit(p + octaveTransposition * 12);
-                ne = ne.setPitch(p);
-            }
-            boolean useFstaff = p < G_STAFF_LOWEST_PITCH;
-            int line = useFstaff ? F_STAFF_FIRST_LINE : G_STAFF_FIRST_LINE;
-            ng.absoluteLine(line);
-
-            var sn = mContext.buildScoreNote(ne, useFstaff, cs);
-            sn.dur = NotationGraphics.NOTE_DURATION_QUARTER;
-            sn.linedir = NotationGraphics.LINE_DIR_NO;
-            sn.x = ng.getCurrentX() + shift;
-            ng.drawNote(sn);
-
-//            LOGGER.log(Level.SEVERE, "drawSamePositionNotes()     drawing {0} c={1}", new Object[]
-//            {
-//                ne, c
-//            });
+        for (int i = 0; i < chordNotes.size(); i++)
+        {
+            var n = chordNotes.get(i);
+            var sn = scoreNotes.get(i);
+            Color c = chordNotes.isSelected(n) ? Color.RED.brighter() : Color.BLACK;
+            paintOneScoreNote(sn, c);
         }
 
     }
+
 
     /**
      * Try to restore transposition from song client properties, otherwise compute it from phrase
@@ -584,41 +585,131 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
         return res;
     }
 
-
-    // ==========================================================================================================
-    // Inner classes
-    // ==========================================================================================================    
-    class PitchSortedNotes extends LinkedList<NoteEvent>
+    /**
+     * Compute which notes must be painted depending on clip.
+     * <p>
+     * We need to paint ALL the notes from the bar corresponding to clip.x, so that MeasureContext works consistently across repaints (otherwise staff
+     * line/accidentals may vary). Also add some extra room on the left and right of the clip to possibly render accidentals of first-beat notes and of notes
+     * which start right after the clip.
+     *
+     * @param g2
+     * @return
+     */
+    private List<NoteEvent> computeClipImpactedNoteEvents(Graphics2D g2)
     {
+        List<NoteEvent> res;
+
+        var clip = g2.getClipBounds();
+        // Make sure we don't go beyond notesPanel. Might be eeded when notesPanel is max zoomed out (smaller than enclosing viewport)
+        SwingUtilities.computeIntersection(0, 0, notesPanel.getWidth(), getHeight(), clip);
+
+        if (!clip.isEmpty())
+        {
+            var xMapper = notesPanel.getXMapper();
+            var clipLastX = clip.x + clip.width - 1;
+
+            var fromPos = xMapper.getPosition(clip.x);
+            fromPos.setFirstBarBeat().setBar(Math.max(0, fromPos.getBar() - 1));
+            var fromPosInBeats = xMapper.toPositionInBeats(fromPos);
+
+            var toPosInBeats = xMapper.getPositionInBeats(clipLastX);
+            toPosInBeats = editor.getPhraseBeatRange().clamp(toPosInBeats + 4f, 0.01f);
+
+            var beatRange = new FloatRange(fromPosInBeats, toPosInBeats);
+            res = editor.getModel().getNotes(ne -> beatRange.intersects(ne.getBeatRange()), FloatRange.MAX_FLOAT_RANGE, true);
+
+        } else
+        {
+            res = new ArrayList<>();
+        }
+
+        return res;
+    }
+
+
+    private NoteEvent transpose(NoteEvent ne)
+    {
+        return octaveTransposition == 0 ? ne : ne.setPitch(MidiUtilities.limit(ne.getPitch() + octaveTransposition * 12));
+    }
+
+    /**
+     * Get the active ChordSymbol at specified pos.
+     *
+     * @param pos
+     * @return
+     */
+    private ChordSymbol getChordSymbol(Position pos)
+    {
+        ChordSymbol res = null;
+        var cSeq = editor.getChordSequence();
+        if (cSeq != null)
+        {
+            pos = pos.getMoved(editor.getRulerStartBar(), 0);
+            var cliCs = cSeq.getLastBefore(pos, true, cli -> true);
+            res = cliCs != null ? cliCs.getData() : null;
+        }
+        return res;
+    }
+
+
+// ==========================================================================================================
+// Inner classes
+// ==========================================================================================================    
+    /**
+     * Store notes ordered per ascending pitch.
+     * <p>
+     * Also store the selected state of each note.
+     */
+    private class ChordNotes extends ArrayList<Note>
+    {
+
+        private final Set<Note> selectedNotes = new HashSet<>();
+
+        private ChordNotes(int size)
+        {
+            super(size);
+        }
 
         /**
          * Add a NoteEvent ordered by pitch.
          *
-         * @param ne
+         * @param n
+         * @param isSelected
          */
-        public void addOrdered(NoteEvent ne)
+        public void addOrdered(Note n, boolean isSelected)
         {
             boolean added = false;
             var it = listIterator();
             while (it.hasNext())
             {
                 var next = it.next();
-                if (ne.getPitch() == next.getPitch())
+                if (n.getPitch() == next.getPitch())
                 {
                     // Special case, we should not normally have this (same pos and same pitch), just ignore the note
                     added = true;
                     break;
-                } else if (ne.getPitch() < next.getPitch())
+                } else if (n.getPitch() < next.getPitch())
                 {
-                    it.add(ne);
+                    it.add(n);
                     added = true;
                     break;
                 }
             }
             if (!added)
             {
-                add(ne);
+                add(n);
             }
+            if (isSelected)
+            {
+                selectedNotes.add(n);
+            }
+
         }
+
+        public boolean isSelected(Note n)
+        {
+            return selectedNotes.contains(n);
+        }
+
     }
 }

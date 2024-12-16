@@ -105,7 +105,7 @@ public class IR_AnnotationText extends ItemRenderer implements IR_Copiable
 
     public void setNbLines(int n)
     {
-        Preconditions.checkArgument(n >= 1 && n <= MAX_NB_LINES, "n=%d", n);
+        Preconditions.checkArgument(n >= 1 && n <= MAX_NB_LINES, "n=%s", n);
         this.nbLines = n;
         textArea.setRows(nbLines);
         revalidate();

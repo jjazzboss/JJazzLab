@@ -80,7 +80,7 @@ public class CLI_BarAnnotationImpl implements CLI_BarAnnotation, WritableItem<St
     public CLI_BarAnnotationImpl(String annotation, int barIndex)
     {
         Preconditions.checkNotNull(annotation);
-        Preconditions.checkArgument(barIndex >= 0, "barIndex=%d", barIndex);
+        Preconditions.checkArgument(barIndex >= 0, "barIndex=%s", barIndex);
 
         data = annotation;
         position = new Position(barIndex);
