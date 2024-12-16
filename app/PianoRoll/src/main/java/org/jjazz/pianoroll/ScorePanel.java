@@ -41,11 +41,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.TreeMap;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
-import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.harmony.api.ChordSymbol;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.Position;
@@ -613,10 +612,15 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
             var fromPosInBeats = xMapper.toPositionInBeats(fromPos);
 
             var toPosInBeats = xMapper.getPositionInBeats(clipLastX);
-            toPosInBeats = editor.getPhraseBeatRange().clamp(toPosInBeats + 4f, 0.01f);
+            toPosInBeats = editor.getPhraseBeatRange().clamp(toPosInBeats + 4f, 0.001f);
 
-            var beatRange = new FloatRange(fromPosInBeats, toPosInBeats);
-            res = editor.getModel().getNotes(ne -> beatRange.intersects(ne.getBeatRange()), FloatRange.MAX_FLOAT_RANGE, true);
+            var br = new FloatRange(fromPosInBeats, toPosInBeats);
+            Predicate<NoteEvent> tester = ne -> 
+            {
+                var brNe = ne.getBeatRange();
+                return brNe.to <= br.to && br.intersects(brNe);
+            };
+            res = editor.getModel().getNotes(tester, FloatRange.MAX_FLOAT_RANGE, true);
 
         } else
         {
