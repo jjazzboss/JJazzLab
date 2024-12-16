@@ -32,7 +32,7 @@ import org.jjazz.songstructure.api.SongStructure;
  * "setRhythmParameterValueContent" actionId is used when SongStructure propagates a MutableRpValue change event.
  * <p>
  * There is the guarantee that if a start SgsActionEvent is received, the complete sgsActionEvent will be received on the same actionId.
- * It's possible that no lower-level change event occur between 2 started/complete action events on the same actionId.
+ * It's possible that no lower-level change event occurs between 2 started/complete action events on the same actionId.
  */
 public class SgsActionEvent extends SgsChangeEvent
 {
@@ -46,7 +46,7 @@ public class SgsActionEvent extends SgsChangeEvent
     /**
      *
      * @param sgs
-     * @param actionId   The corresponding method name from the SongStructure interface which performs the change, e.g. "addSongParts".
+     * @param actionId   For example the corresponding method name from the SongStructure interface which performs the change, e.g. "addSongParts".
      * @param isComplete False means action has started, true action is complete
      * @param undo       True if we're actually undoing the action
      * @param data       Optional data associated to the event

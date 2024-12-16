@@ -408,12 +408,12 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
     }
 
     /**
-     * Set the edited model.
+     * Set the phrase model.
      * <p>
      * Can fire PROP_MODEL_PHRASE and PROP_MODEL_CHANNEL change events.
      *
      * @param p             The phrase model. Must start at bar/beat 0.
-     * @param beatRange     The beat range of the phrase model. Must start at beat 0.
+     * @param beatRange     The beat range of the phrase model to edit. It must start at beat 0. It might be only a part of the phrase model or be longer.
      * @param rulerStartBar The start bar displayed on the ruler. Might be &gt; 0, e.g. for a custom phrase of a song part in the middle of the song.
      * @param channel       The Midi channel of the phrase model (p.getChannel() is ignored).
      * @param mapPosTs      The position of each time signature. Must have at least 1 entry at beatRange.from position or before.
@@ -427,7 +427,10 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
         Preconditions.checkArgument(mapPosTs != null && !mapPosTs.isEmpty() && mapPosTs.firstKey() <= beatRange.from, "mapPosTs=%s  beatRange=%s", mapPosTs,
                 beatRange);
 
-        LOGGER.log(Level.FINE, "setModel() -- p={0}", p);
+        LOGGER.log(Level.FINE, "setModel() -- p.size()={0} beatRange={1} rulerStartBar={2} channel={3} mapPosTs={4} kMap={5}", new Object[]
+        {
+            p.size(), beatRange, rulerStartBar, channel, mapPosTs, kMap
+        });
 
 
         if (p.equals(model)

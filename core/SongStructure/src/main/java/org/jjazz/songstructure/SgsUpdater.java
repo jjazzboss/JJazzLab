@@ -50,6 +50,7 @@ import org.jjazz.chordleadsheet.api.event.SizeChangedEvent;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.songstructure.api.event.SgsClsActionEvent;
 import org.openide.util.Exceptions;
 
 /**
@@ -136,16 +137,19 @@ public class SgsUpdater implements ClsChangeListener
         {
             case DEFAULT ->
             {
-                if (evt instanceof ClsActionEvent cae
-                        && cae.getActionId().equals("insertBars")
-                        && cae.isActionStarted()
-                        && cae.getData().equals(Integer.valueOf(0)))
+                if (evt instanceof ClsActionEvent cae)
                 {
-                    // When inserting initial bars ("before" bar 0), ChordLeadSheet produces an unusual change event sequence because of the special init section. 
-                    // This leads to a song structure not updated as the user would expect (see Issue #459).
-                    // So it's better to wait for the "insert initial bars ClsActionEvent" to be completed then update song structure properly.                    
-                    state = State.INSERT_INIT_BARS;
-
+                    if (cae.getActionId().equals("insertBars") && cae.isActionStarted() && cae.getData().equals(Integer.valueOf(0)))
+                    {
+                        // When inserting initial bars ("before" bar 0), ChordLeadSheet produces an unusual change event sequence because of the special init section. 
+                        // This leads to song structure not updated as the user would expect (see Issue #459).
+                        // So it's better to wait for the "insert initial bars ClsActionEvent" to be completed then update song structure properly.                    
+                        state = State.INSERT_INIT_BARS;
+                    } else
+                    {
+                        // Make SongStructure fire the corresponding SgsClsActionEvent with undo support
+                        songStructure.fireUndoableSgsClsActionEvent(cae);
+                    }
                 } else if (evt instanceof SizeChangedEvent)
                 {
                     processSizeChanged(authorizeOnly);
@@ -179,6 +183,9 @@ public class SgsUpdater implements ClsChangeListener
                 } else if (evt instanceof ItemClientPropertyChangedEvent e)
                 {
                     // Nothing
+                } else
+                {
+                    LOGGER.fine("processChangeEvent() -> evt not handled");
                 }
             }
 
@@ -190,7 +197,7 @@ public class SgsUpdater implements ClsChangeListener
                 {
                     // Now we can update the song structure
 
-                    
+
                     // Reaffect the parent section of the song parts that were assigned to the initial section (before the insert bars action)
                     var initSection = parentCls.getSection(0);
                     var secondSection = (CLI_Section) parentCls.getNextItem(initSection);
@@ -202,11 +209,10 @@ public class SgsUpdater implements ClsChangeListener
                     songStructure.replaceSongParts(oldSpts, newSpts);
 
 
-                    
                     // Now add the new initial song part linked to the new initial section
                     var ts = initSection.getData().getTimeSignature();
                     Rhythm r = songStructure.getLastUsedRhythm(ts);     // Might be null in special cases where songStructure is empty
-                    if (r == null)  
+                    if (r == null)
                     {
                         var rdb = RhythmDatabase.getDefault();
                         try

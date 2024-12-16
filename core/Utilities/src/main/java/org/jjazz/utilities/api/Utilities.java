@@ -459,8 +459,14 @@ public class Utilities
             throw new IllegalArgumentException("collection=" + collection + " maxLength=" + maxLength);
         }
         String s = collection.toString();
-        s = s.substring(1, s.length() - 1);   // Remove the []        
-        return "[" + Utilities.truncateWithDots(s, maxLength - 2) + "]";
+        String prefix = "", suffix = "";
+        if (s.startsWith("["))
+        {
+            s = s.substring(1, s.length() - 1);   // Remove the []      
+            prefix = "[";
+            suffix = "]";
+        }
+        return prefix + Utilities.truncateWithDots(s, maxLength - 2) + suffix;
     }
 
     /**

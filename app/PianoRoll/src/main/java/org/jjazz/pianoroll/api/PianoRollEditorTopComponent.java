@@ -41,7 +41,6 @@ import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.pianoroll.SidePanel;
 import org.jjazz.pianoroll.ToolbarPanel;
-import org.jjazz.pianoroll.VelocityPanel;
 import org.jjazz.pianoroll.actions.PasteNotes;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.jjazz.rhythm.api.RhythmVoice;
@@ -50,6 +49,7 @@ import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.event.SgsActionEvent;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
+import org.jjazz.songstructure.api.event.SgsClsActionEvent;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
 import org.jjazz.utilities.api.ResUtil;
@@ -81,6 +81,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     private final MidiMix midiMix;
     private SongPart songPart;
     private String titleBase;
+    private boolean waitForSgsClsActionEventComplete;
 
     private static final Logger LOGGER = Logger.getLogger(PianoRollEditorTopComponent.class.getSimpleName());
 
@@ -138,7 +139,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         initComponents();
         splitpane_tools_editor.setLeftComponent(sidePanel);
         splitpane_tools_editor.setRightComponent(editor);
-        
+
 
         // Reset splitpane divider location when a CollapsiblePanel of the sidePanel is collapsed/expanded
         sidePanel.addPropertyChangeListener(SidePanel.PROP_COLLAPSED_STATE, e -> updateDividerLocation());
@@ -215,7 +216,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         editor.setModel(p, getBeatRange(), 0, channel, mapPosTs, keyMap);
 
         refreshToolbarTitle();
-        
+
     }
 
 
@@ -466,19 +467,34 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     @Override
     public void songStructureChanged(SgsChangeEvent e)
     {
+        LOGGER.log(Level.FINE, "songStructureChanged() e={0}", e);
 
-        // Use high-level actions to not be polluted by intermediate states
-        if (e instanceof SgsActionEvent evt && evt.isActionComplete())
+        boolean doUpdate = false;
+
+
+        // We're only interested to update the editor when all song structure changes are complete, so we only listen to SgsActionEvents 
+        // to not be polluted by intermediate SgsChangeEvents.
+        // We can also ignore the SgsActionEvents from SgsUpdater which are enclosed in SgsClsActionEvents (fix Issue #508).
+        if (e instanceof SgsClsActionEvent scae)
         {
-            LOGGER.log(Level.FINE, "songStructureChanged() actionId={0}", evt.getActionId());
-
-
-            if (evt.getActionId().startsWith("setRhythmParameterValue"))
+            if (waitForSgsClsActionEventComplete && scae.isActionComplete())
             {
-                // No impact on structure change
-                return;
+                doUpdate = true;
+                waitForSgsClsActionEventComplete = false;
+            } else if (!waitForSgsClsActionEventComplete && scae.isActionStarted())
+            {
+                waitForSgsClsActionEventComplete = true;
             }
+        } else if (!waitForSgsClsActionEventComplete && e instanceof SgsActionEvent evt && evt.isActionComplete())
+        {
+            if (!evt.getActionId().startsWith("setRhythmParameterValue"))  // No impact on structure change
+            {
+                doUpdate = true;
+            }
+        }
 
+        if (doUpdate)
+        {
             // Check if the underlying model is gone
             var allSpts = getSong().getSongStructure().getSongParts();
             if (allSpts.isEmpty() || (isRP_SYS_CustomPhraseMode() && !allSpts.contains(songPart)))
@@ -487,8 +503,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
                 return;
             }
 
-
-            // Refresh the editor when the bar range can be impacted
+            // Refresh the editor 
             if (!isRP_SYS_CustomPhraseMode())
             {
                 setModelForUserPhrase(editor.getModel(), editor.getChannel(), editor.getDrumKeyMap());
@@ -498,9 +513,10 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
             }
         }
     }
-    // ============================================================================================
-    // Private methods
-    // ============================================================================================
+
+// ============================================================================================
+// Private methods
+// ============================================================================================
 
     private void refreshToolbarTitle()
     {

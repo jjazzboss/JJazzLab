@@ -57,6 +57,7 @@ import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.undomanager.api.SimpleEdit;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.chordleadsheet.api.event.ClsActionEvent;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.rhythm.api.AdaptedRhythm;
@@ -66,6 +67,7 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.event.SgsActionEvent;
+import org.jjazz.songstructure.api.event.SgsClsActionEvent;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
 import org.jjazz.utilities.api.Utilities;
@@ -529,6 +531,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
     //=============================================================================
     // PropertyChangeListener interface
     //=============================================================================
+
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
@@ -1037,11 +1040,43 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
     }
 
     /**
+     * Fire an undoable SgsClsActionEvent which encapsulates a ClsActionEvent.
+     *
+     * @param cae
+     * @see SgsUpdater#processChangeEvent(org.jjazz.chordleadsheet.api.event.ClsChangeEvent, boolean) 
+     */
+    protected void fireUndoableSgsClsActionEvent(ClsActionEvent cae)
+    {
+
+        // Create an undoable event for this event which does nothing but refiring the SgsClsActionEvent
+        UndoableEdit edit = new SimpleEdit("SgsClsActionEventEdit(" + cae.getActionId() + "-complete=" + cae.isActionComplete() + ")")
+        {
+            @Override
+            public void undoBody()
+            {
+                fireAuthorizedChangeEvent(new SgsClsActionEvent(SongStructureImpl.this, cae.getActionId(), !cae.isActionComplete(), true, cae));
+            }
+
+            @Override
+            public void redoBody()
+            {
+                fireAuthorizedChangeEvent(new SgsClsActionEvent(SongStructureImpl.this, cae.getActionId(), cae.isActionComplete(), false, cae));
+            }
+        };
+        fireUndoableEditHappened(edit);
+
+
+        fireAuthorizedChangeEvent(new SgsClsActionEvent(SongStructureImpl.this, cae.getActionId(), cae.isActionComplete(), false, cae));
+
+    }
+
+    /**
      * Fire an undoable ActionEvent.
      *
      * @param doFire   If false do nothing.
      * @param actionId
      * @param complete
+     * @param data
      */
     private void fireUndoableActionEvent(boolean doFire, String actionId, boolean complete, Object data)
     {
@@ -1077,7 +1112,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
      *
      * @param spt
      */
-    protected void addSongPartImpl(final SongPart spt)
+    private void addSongPartImpl(final SongPart spt)
     {
         if (spt == null)
         {
