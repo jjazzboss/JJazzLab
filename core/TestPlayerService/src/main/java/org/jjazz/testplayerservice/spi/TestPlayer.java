@@ -46,6 +46,8 @@ public interface TestPlayer
 
     /**
      * Play a few test notes on channel 0, blocking until sequence is complete.
+     * <p>
+     * Note that MusicController is stopped before playing the test notes.
      *
      * @throws MusicGenerationException
      */
@@ -56,6 +58,8 @@ public interface TestPlayer
      * <p>
      * If fixPitch &lt; 0 then fixPitch is ignored: play a series of notes starting at 60+transpose. If fixPitch&gt;=0 then play a series of notes with same
      * pitch=fixPitch.
+     * <p>
+     * Note that MusicController is stopped before playing the test notes.
      *
      * @param channel
      * @param fixPitch  -1 means not used.
@@ -68,6 +72,7 @@ public interface TestPlayer
     /**
      * Play the test notes from specified phrase.
      * <p>
+     * Note that MusicController is stopped before playing the test notes.
      *
      * @param phrase
      * @param endAction Called when sequence is over. Can be null.

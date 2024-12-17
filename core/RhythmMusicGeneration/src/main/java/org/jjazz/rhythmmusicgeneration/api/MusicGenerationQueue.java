@@ -51,7 +51,7 @@ import org.openide.util.ChangeSupport;
  * If several music generation requests arrive while a music generation task is already running, only the last request is kept. When generation task is done, a
  * new music generation task is started with that last request.
  * <p>
- * A ChangeEvent is fired when a music generation task is complete and a result is available. Note that ChangeEvent is fired outside of the Swing EDT.
+ * A ChangeEvent is fired (outside of the Swing EDT) when a music generation task is complete and a result is available.
  */
 public class MusicGenerationQueue implements Runnable
 {
@@ -176,9 +176,15 @@ public class MusicGenerationQueue implements Runnable
     {
         if (running)
         {
-            running = false;
-            Utilities.shutdownAndAwaitTermination(generationExecutorService, 1000, 100);
-            Utilities.shutdownAndAwaitTermination(executorService, 1, 1);
+            LOGGER.fine("stop()");
+            running = false;    
+            new Thread(() -> 
+            {
+                // This will block so better in a thread, not a problem since generationExecutorService and executorService will no longer be used
+                Utilities.shutdownAndAwaitTermination(generationExecutorService, 3000, 1000);        
+                Utilities.shutdownAndAwaitTermination(executorService, 100, 100);
+            }).start();
+
         }
     }
 
@@ -444,7 +450,7 @@ public class MusicGenerationQueue implements Runnable
                 Thread.sleep(postUpdateSleepTime);
             } catch (InterruptedException ex)
             {
-                LOGGER.log(Level.WARNING, "UpdateGenerator.run() Unexpected UpdateGenerator thread.sleep interruption ex={0}", ex.getMessage());
+                LOGGER.log(Level.FINE, "UpdateGenerator.run() UpdateGenerator thread.sleep interrupted ex={0}", ex.getMessage());
                 return;
             }
 

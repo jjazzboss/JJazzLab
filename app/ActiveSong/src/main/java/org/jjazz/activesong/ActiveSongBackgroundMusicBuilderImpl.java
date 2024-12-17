@@ -331,8 +331,10 @@ public class ActiveSongBackgroundMusicBuilderImpl implements PropertyChangeListe
     {
         if (songMusicBuilderTask != null)
         {
+            LOGGER.fine("stopListeningToNonPlayingSong()");
             songMusicBuilderTask.removeChangeListener(this);
             songMusicBuilderTask.stop();
+            
         }
         songMusicBuilderTask = null;
     }

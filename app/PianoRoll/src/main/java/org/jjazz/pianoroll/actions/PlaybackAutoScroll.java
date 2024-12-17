@@ -65,8 +65,7 @@ public class PlaybackAutoScroll extends ToggleAction implements PropertyChangeLi
         putValue("hideActionText", true);
 
 
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KEYBOARD_SHORTCUT),
-                PlaybackAutoScroll.ACTION_ID);
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KEYBOARD_SHORTCUT), PlaybackAutoScroll.ACTION_ID);
         editor.getActionMap().put(PlaybackAutoScroll.ACTION_ID, this);
 
 
@@ -168,7 +167,7 @@ public class PlaybackAutoScroll extends ToggleAction implements PropertyChangeLi
                 return;
             }
 
-            editor.showPlaybackPoint(editor.toPositionInBeats(newPos.getMoved(- editor.getRulerStartBar(), 0)));
+            editor.showPlaybackPoint(editor.toPositionInBeats(newPos.getMoved(-editor.getRulerStartBar(), 0)));
         }
 
     }

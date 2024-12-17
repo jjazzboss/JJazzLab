@@ -87,7 +87,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     public static final String PROP_STATE = "PropPlaybackState";
     /**
      * oldValue=old session, newValue=new session
-     */    
+     */
     public static final String PROP_PLAYBACK_SESSION = "PropPlaybackSession";
 
     /**
@@ -567,6 +567,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         executeEndOfPlaybackAction();
     }
 
+
     /**
      * Change the current bar when in PAUSED state.
      * <p>
@@ -577,7 +578,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      */
     public void changePausedBar(int barIndex)
     {
-        if (!state.equals(State.PAUSED))
+        if (state != State.PAUSED)
         {
             return;
         }
@@ -645,6 +646,18 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     {
         return playbackSession;
     }
+
+
+    /**
+     * Helper method equivalent to getState() == State.PLAYING.
+     *
+     * @return
+     */
+    public boolean isPlaying()
+    {
+        return state == State.PLAYING;
+    }
+
 
     /**
      * True if the current playing session is a special arranger session.

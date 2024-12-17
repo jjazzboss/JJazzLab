@@ -1523,7 +1523,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             throw new IllegalArgumentException("barBoxIndex=" + barBoxIndex + " getBarBoxes().size()=" + getBarBoxes().size());
         }
         // getComponents() should be called on EDT, otherwise need treeLock
-        assert SwingUtilities.isEventDispatchThread() : "barBoxIndex=" + barBoxIndex;
+        assert SwingUtilities.isEventDispatchThread() : "Not running in the EDT! barBoxIndex=" + barBoxIndex;
         int bbIndex = 0;
         int index = 0;
         for (Component c : getComponents())

@@ -58,13 +58,11 @@ import org.openide.util.*;
  * - PlaybackSettings playback transposition changes<br>
  * - MidiMix instrument transposition/velocity changes, plus drum keymap and drum rerouting changes<br>
  * <p>
- * If change can't be handled as an update (eg a song part tempo factor change or a click setting), session is marked dirty (ie needs
- * regeneration). If session is dirty, editors can still show the playback point using the control track but the "dirty" changes are not
- * heard.
+ * If change can't be handled as an update (eg a song part tempo factor change or a click setting), session is marked dirty (ie needs regeneration). If session
+ * is dirty, editors can still show the playback point using the control track but the "dirty" changes are not heard.
  * <p>
- * A more serious change like a structural change of the song context will make the session dirty, plus it disables the control track and
- * any future update. So editors should stop showing the playback point, and any further change will not be heard (until a new session is
- * generated).
+ * A more serious change like a structural change of the song context will make the session dirty, plus it disables the control track and any future update. So
+ * editors should stop showing the playback point, and any further change will not be heard (until a new session is generated).
  */
 public class UpdateProviderSongSession extends BaseSongSession implements UpdatableSongSession.UpdateProvider
 {
@@ -94,8 +92,8 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
      * Create or reuse a session for the specified parameters.
      * <p>
      * <p>
-     * Sessions are cached: if a non-dirty session in the NEW or GENERATED state already exists for the same parameters then return it,
-     * otherwise a new session is created.
+     * Sessions are cached: if a non-dirty session in the NEW or GENERATED state already exists for the same parameters then return it, otherwise a new session
+     * is created.
      * <p>
      *
      * @param sgContext
@@ -104,8 +102,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
      * @param includePrecountTrack        If true add the precount track, and loopStartTick will depend on the PlaybackSettings
      * @param includeControlTrack         if true add a control track (beat positions + chord symbol markers)
      * @param enableUpdateControl         If true updates are authorized depending on the PlaybackSettings AutoUpdateEnabled value.
-     * @param loopCount                   See Sequencer.setLoopCount(). Use PLAYBACK_SETTINGS_LOOP_COUNT to rely on the PlaybackSettings
-     *                                    instance value.
+     * @param loopCount                   See Sequencer.setLoopCount(). Use PLAYBACK_SETTINGS_LOOP_COUNT to rely on the PlaybackSettings instance value.
      * @param endOfPlaybackAction         Action executed when playback is stopped. Can be null.
      * @return A session in the NEW or GENERATED state.
      */
@@ -212,6 +209,10 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
         {
             songMusicGenerationListener.removePropertyChangeListener(this);
             songMusicGenerationListener.cleanup();
+        }
+        if (musicGenerationQueue != null)
+        {
+            musicGenerationQueue.stop();
         }
         sessions.remove(this);
     }

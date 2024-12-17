@@ -1345,7 +1345,7 @@ public class Utilities
                 // Wait a while for tasks to respond to being cancelled
                 if (!pool.awaitTermination(waitCancelTimeMs, TimeUnit.MILLISECONDS))
                 {
-                    LOGGER.log(Level.WARNING, "shutdownAndAwaitTermination() Pool did not terminate within {0}{1}ms", new Object[]
+                    LOGGER.log(Level.WARNING, "shutdownAndAwaitTermination() Pool did not terminate with waitTerminationTimeMs={0} and waitCancelTimeMs={1}", new Object[]
                     {
                         waitTerminationTimeMs,
                         waitCancelTimeMs

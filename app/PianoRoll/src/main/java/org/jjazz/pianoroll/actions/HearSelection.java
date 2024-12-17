@@ -31,6 +31,8 @@ import javax.swing.Action;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.pianoroll.api.NoteView;
@@ -72,6 +74,11 @@ public class HearSelection extends ToggleAction implements PropertyChangeListene
                 HearSelection.ACTION_ID);
         this.editor.getActionMap().put(HearSelection.ACTION_ID, this);
 
+
+        // Disable when music is being played
+        var mc = MusicController.getInstance();
+        mc.addPropertyChangeListener(this);
+        setEnabled(mc.getState() != MusicController.State.PLAYING);
     }
 
 
@@ -80,10 +87,10 @@ public class HearSelection extends ToggleAction implements PropertyChangeListene
     {
         if (b)
         {
-            editor.addPropertyChangeListener(PianoRollEditor.PROP_SELECTED_NOTE_VIEWS, this);
+            editor.addPropertyChangeListener(this);
         } else
         {
-            editor.removePropertyChangeListener(PianoRollEditor.PROP_SELECTED_NOTE_VIEWS, this);
+            editor.removePropertyChangeListener(this);
         }
     }
 
@@ -93,22 +100,37 @@ public class HearSelection extends ToggleAction implements PropertyChangeListene
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        // This is PianoRollEditor.PROP_SELECTED_NOTE_VIEWS
-        boolean b = (boolean) evt.getNewValue();
-        if (b)
+        var mc = MusicController.getInstance();
+        if (evt.getSource() == editor)
         {
-            List<NoteView> nvs = (List<NoteView>) evt.getOldValue();
-            hearNotes(NoteView.getNotes(nvs));
+            if (evt.getPropertyName().equals(PianoRollEditor.PROP_SELECTED_NOTE_VIEWS))
+            {
+                boolean b = (boolean) evt.getNewValue();
+                if (b)
+                {
+                    List<NoteView> nvs = (List<NoteView>) evt.getOldValue();
+                    hearNotes(NoteView.getNotes(nvs));
+                }
+            } else if (evt.getPropertyName().equals(PianoRollEditor.PROP_EDITOR_ALIVE))
+            {
+                editor.removePropertyChangeListener(this);
+            }
+        } else if (evt.getSource() == mc)
+        {
+            if (evt.getPropertyName().equals(MusicController.PROP_STATE))
+            {
+                setEnabled(mc.getState() != MusicController.State.PLAYING);
+            }
         }
     }
 
 
-    // ====================================================================================
-    // Private methods
-    // ====================================================================================
+// ====================================================================================
+// Private methods
+// ====================================================================================
     private void hearNotes(List<NoteEvent> noteEvents)
     {
-        if (noteEvents.isEmpty())
+        if (noteEvents.isEmpty() || !isEnabled())
         {
             return;
         }
@@ -124,14 +146,13 @@ public class HearSelection extends ToggleAction implements PropertyChangeListene
 
         try
         {
-            TestPlayer.getDefault().playTestNotes(p, null);
+            TestPlayer.getDefault().playTestNotes(p, null);     // playTestNotes will stop MusicController first
         } catch (MusicGenerationException ex)
         {
             LOGGER.log(Level.WARNING, "hearNotes() {0}", ex.getMessage());
             NotifyDescriptor nd = new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(nd);
         }
-
     }
 
 }
