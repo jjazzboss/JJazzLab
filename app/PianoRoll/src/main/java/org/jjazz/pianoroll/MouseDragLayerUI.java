@@ -27,6 +27,8 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JComponent;
 import javax.swing.plaf.LayerUI;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
@@ -45,6 +47,7 @@ public class MouseDragLayerUI extends LayerUI<JComponent>
     public static final Color COLOR_PLAYBACK_LINE = Color.WHITE;
     private final Color COLOR_BACKGROUND;
     private final boolean DEBUG_SHOW_COORDINATES = false;
+    private static final Logger LOGGER = Logger.getLogger(MouseDragLayerUI.class.getSimpleName());
     
     public MouseDragLayerUI()
     {

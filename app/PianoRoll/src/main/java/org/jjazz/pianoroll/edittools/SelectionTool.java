@@ -532,8 +532,6 @@ public class SelectionTool implements EditTool
     public void editorWheelMoved(MouseWheelEvent e)
     {
         // alt-wheel to change velocity of selected notes
-
-
         if (e.isAltDown() && !e.isControlDown())
         {
             final int STEP = 4;

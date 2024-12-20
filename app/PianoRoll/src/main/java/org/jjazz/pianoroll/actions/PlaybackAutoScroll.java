@@ -73,14 +73,10 @@ public class PlaybackAutoScroll extends ToggleAction implements PropertyChangeLi
 
 
         editor.addPropertyChangeListener(this);
-
-        musicListener.enabled = switch (MusicController.getInstance().getState())
-        {
-            case PAUSED, PLAYING ->
-                true;
-            default ->
-                false;
-        };
+        
+        
+        var mc = MusicController.getInstance();        
+        musicListener.enabled = mc.isPlaying() || mc.isPaused();
     }
 
 

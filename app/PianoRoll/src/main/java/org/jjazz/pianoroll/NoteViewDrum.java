@@ -40,7 +40,7 @@ public class NoteViewDrum extends NoteView
     public NoteViewDrum(NoteEvent ne)
     {
         super(ne);
-        setOpaque(false);
+        setOpaque(false);       // We only draw a diamond, not the complete bounds
     }
 
     /**
@@ -63,9 +63,9 @@ public class NoteViewDrum extends NoteView
         p.addPoint(w - 1, h / 2);
         p.addPoint(w / 2, 0);
         
-        g2.setColor(getBackground());
+        g2.setColor(getNoteColor());
         g2.fill(p);
-        g2.setColor(getLineBorder().getLineColor());
+        g2.setColor(getNoteBorderColor());
         g2.draw(p);
     }
 }

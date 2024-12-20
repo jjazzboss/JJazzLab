@@ -61,6 +61,14 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
     private static final int FONT_HEIGHT = (int) UIUtilities.getStringBounds("A", FONT).getHeight();
     private static final NoteColorManager noteColorManager = NoteColorManager.getDefault();
 
+    /**
+     * We use our own variable to avoid using setBackground() (which calls repaint() which can slow down UI a lot when selecting hundreds of notes).
+     */
+    private Color noteColor;
+    /**
+     * We use our own variable to avoid using setBorder() (which calls repaint() which can slow down UI a lot when selecting hundreds of notes).
+     */
+    private LineBorder noteBorder;
     private NoteEvent noteEvent;
     private String noteAsString;
     private boolean selected;
@@ -78,7 +86,7 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
         noteEvent = ne;
         settings = PianoRollEditorSettings.getDefault();
         showNoteString = true;
-        updateGraphics();
+        updateGraphics(false);
 
         settings.addPropertyChangeListener(this);
 
@@ -93,8 +101,7 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
         }
         var old = noteEvent;
         noteEvent = ne;
-        updateGraphics();
-        repaint();
+        updateGraphics(true);
         firePropertyChange(PROP_MODEL, old, noteEvent);
     }
 
@@ -103,19 +110,31 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
         return noteEvent;
     }
 
+    public Color getNoteColor()
+    {
+        return noteColor;
+    }
+
+    public Color getNoteBorderColor()
+    {
+        return noteBorder.getLineColor();
+    }
+
     /**
      * Select this NoteView.
      * <p>
      * Fire a PROP_SELECTED change event.
      *
      * @param b
+     * @param repaint If true call repaint() after. Use false to greatly improve performance when updating many NoteViews at once (call repaint() on the
+     *                container at the end)
      */
-    public void setSelected(boolean b)
+    public void setSelected(boolean b, boolean repaint)
     {
         if (selected != b)
         {
             selected = b;
-            updateGraphics();
+            updateGraphics(repaint);
             firePropertyChange(PROP_SELECTED, !b, b);
         }
     }
@@ -134,8 +153,7 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
     public void setMuted(boolean muted)
     {
         this.muted = muted;
-        updateGraphics();
-        repaint();
+        updateGraphics(true);
     }
 
     public boolean isShowNoteString()
@@ -168,15 +186,25 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
     {
         Objects.requireNonNull(text);
         this.extraTooltip = text;
-        updateGraphics();
+        updateGraphics(false);
     }
 
     @Override
-    public void paintComponent(Graphics g)
+    public void paint(Graphics g)
     {
-        super.paintComponent(g);        // Paint background
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+
+        // Paint background and line border ourselves with our own variables (avoids useless calls to repaint() by setBackground() and setBorder())
+        g2.setColor(noteColor);
+        g2.fillRect(0, 0, getWidth(), getHeight());
+        
+        // g2.setStroke(new BasicStroke(0.7f));                
+        // g2.setColor(noteBorderColor);
+        noteBorder.paintBorder(this, g, 0, 0, getWidth(), getHeight());        
+        // g2.drawRect(0, 0, getWidth() - 1, getHeight() - 1);
+
 
         var r = UIUtilities.getUsableArea(this);
 
@@ -192,16 +220,6 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
             g2.drawString(noteAsString, xStr, yStr);
         }
 
-    }
-
-    /**
-     * Convenience method to get the LineBorder used by this NoteView.
-     *
-     * @return
-     */
-    public LineBorder getLineBorder()
-    {
-        return (LineBorder) getBorder();
     }
 
     public void cleanup()
@@ -238,8 +256,7 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
     {
         if (evt.getSource() instanceof PianoRollEditorSettings)
         {
-            updateGraphics();
-            repaint();
+            updateGraphics(true);
         }
     }
 
@@ -269,12 +286,17 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
     // ==============================================================================================================
     // Private methods
     // ==============================================================================================================
-
-    private void updateGraphics()
+        
+    /**
+     * Update graphics state.
+     *
+     * @param repaint If true calls repaint() after updating the graphics variables.
+     */
+    private void updateGraphics(boolean repaint)
     {
-        Color bgColor = selected ? noteColorManager.getSelectedNoteColor(noteEvent.getVelocity()) : noteColorManager.getNoteColor(noteEvent.getVelocity());
-        setBackground(bgColor);
-        setBorder(BorderFactory.createLineBorder(getBorderColor(bgColor, selected), 1));
+        noteColor = selected ? noteColorManager.getSelectedNoteColor(noteEvent.getVelocity()) : noteColorManager.getNoteColor(noteEvent.getVelocity());
+        var borderColor = !selected ? HSLColor.changeLuminance(noteColor, -12) : Color.BLACK;
+        noteBorder = (LineBorder)BorderFactory.createLineBorder(borderColor, 1);
         noteAsString = new Note(noteEvent.getPitch()).toPianoOctaveString();
         String tt = noteAsString + " (" + noteEvent.getPitch() + ") v=" + noteEvent.getVelocity();
         if (!extraTooltip.isBlank())
@@ -282,18 +304,11 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
             tt += ". " + extraTooltip;
         }
         setToolTipText(tt);
-    }
 
-    /**
-     * Compute the border color.
-     *
-     * @param bgColor
-     * @param selected
-     * @return
-     */
-    private Color getBorderColor(Color bgColor, boolean selected)
-    {
-        return !selected ? HSLColor.changeLuminance(bgColor, -12) : Color.BLACK;
+        if (repaint)
+        {
+            repaint();
+        }
     }
 
 

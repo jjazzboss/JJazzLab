@@ -31,7 +31,6 @@ import javax.swing.Action;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
@@ -78,7 +77,7 @@ public class HearSelection extends ToggleAction implements PropertyChangeListene
         // Disable when music is being played
         var mc = MusicController.getInstance();
         mc.addPropertyChangeListener(this);
-        setEnabled(mc.getState() != MusicController.State.PLAYING);
+        setEnabled(!mc.isPlaying());
     }
 
 

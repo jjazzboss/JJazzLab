@@ -259,7 +259,7 @@ public class HumanizeDialog extends javax.swing.JDialog implements ChangeListene
         mc.stop();
 
 
-        boolean wasHumanizing = humanizer.getState().equals(State.HUMANIZING);
+        boolean wasHumanizing = humanizer.getState() == State.HUMANIZING;
 
         if (wasHumanizing)
         {

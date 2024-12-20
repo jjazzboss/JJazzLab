@@ -282,7 +282,6 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
     @Override
     public void paintComponent(Graphics g)
     {
-        super.paintComponent(g);        // Honor the opaque property
         Graphics2D g2 = (Graphics2D) g;
 
 //        LOGGER.log(Level.INFO, "paintComponent() -- clip={0}", new Object[]
