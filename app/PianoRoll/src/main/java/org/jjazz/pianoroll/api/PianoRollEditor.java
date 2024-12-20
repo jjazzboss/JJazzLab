@@ -438,7 +438,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
         });
 
 
-        if (p.equals(model)
+        if (p ==model
                 && this.channel == channel
                 && rulerStartBar == this.rulerStartBar
                 && beatRange.equals(this.beatRange)

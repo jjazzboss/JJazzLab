@@ -572,44 +572,56 @@ public class Phrases
     /**
      * Remove overlapped phrase notes with identical pitch.
      * <p>
-     * A note N1 is overlapped by N2 if N1's noteOn event occurs after N2's noteOn event and N1's noteOff event occurs before N2's noteOff event.
+     * - Remove a note completely overlapped by another note.<br>
+     * - Shorten a note partially overlapped by another one.
      *
      * @param p
      */
-    static public void removeOverlappedNotes(Phrase p)
+    static public void fixOverlappedNotes(Phrase p)
     {
         // Get all the notes grouped per pitch
         var mapPitchNotes = getNotesByPitch(p, ne -> true);
 
-
-        // Search for overlapped notes
-        HashSet<NoteEvent> overlappedNotes = new HashSet<>();
+        
+        List<NoteEvent> noteOnBuffer = new ArrayList<>();
         for (Integer pitch : mapPitchNotes.keySet())
         {
-            List<NoteEvent> notes = mapPitchNotes.get(pitch);
+            List<NoteEvent> notes = mapPitchNotes.get(pitch);       // Ordered by position
             if (notes.size() == 1)
             {
                 continue;
             }
-            ArrayList<NoteEvent> noteOnBuffer = new ArrayList<>();
+
+            noteOnBuffer.clear();
+            
+            
             for (NoteEvent ne : notes)
             {
-                FloatRange fr = ne.getBeatRange();
+                FloatRange br = ne.getBeatRange();
                 boolean removed = false;
-                Iterator<NoteEvent> itOn = noteOnBuffer.iterator();
+
+                var itOn = noteOnBuffer.listIterator();
                 while (itOn.hasNext())
                 {
                     NoteEvent noteOn = itOn.next();
-                    FloatRange frOn = noteOn.getBeatRange();
-                    if (frOn.to < fr.from)
+                    FloatRange brOn = noteOn.getBeatRange();
+                    if (brOn.to <= br.from)
                     {
                         // Remove noteOns which are now Off
                         itOn.remove();
-                    } else if (frOn.to >= fr.to)
+                    } else if (brOn.to >= br.to)
                     {
-                        // Cur note is overlapped !
-                        overlappedNotes.add(ne);
+                        // Note is fully overlapped
+                        p.remove(ne);
                         removed = true;
+                        break;
+                    } else
+                    {
+                        // Note is partially overlapped, shorten noteOn
+                        float newDur = br.from - brOn.from;
+                        var newNoteOn = noteOn.setDuration(newDur);         
+                        p.replace(noteOn, newNoteOn);
+                        itOn.remove();
                         break;
                     }
                 }
@@ -620,8 +632,6 @@ public class Phrases
             }
         }
 
-        // Now remove the notes
-        p.removeAll(overlappedNotes);
     }
 
     /**

@@ -150,6 +150,31 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
         this.isDrums = isDrums;
     }
 
+    @Override
+    public boolean equals(Object o)
+    {
+        throw new UnsupportedOperationException("Use p1 == p2 or equalsAsNoteNearPosition()");
+    }
+
+    /**
+     * Compare to a phrase using only NoteEvent.equalsAsNoteNearPosition() on each note.
+     *
+     * @param p
+     * @param nearWindow
+     * @return
+     * @see NoteEvent#equalsAsNoteNearPosition(org.jjazz.phrase.api.NoteEvent, float)
+     */
+    public boolean equalsAsNoteNearPosition(Phrase p, float nearWindow)
+    {
+        boolean b = false;
+        if (p.size() == size())
+        {
+            var pIt = p.iterator();
+            b = stream().allMatch(ne -> pIt.next().equalsAsNoteNearPosition(ne, nearWindow));
+        }
+        return b;
+    }
+
     /**
      * Check if the phrase is for non-melodic instruments.
      *
@@ -420,7 +445,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
     {
         Phrase res = clone();           // Use clone()+clear() so that method also works for Phrase subclasses
         res.clear();
-        
+
         for (NoteEvent ne : this)
         {
             if (tester.test(ne))

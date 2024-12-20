@@ -13,6 +13,11 @@
     <name>ChordLeadSheet</name>
     <packaging>nbm</packaging>
 
+
+    <properties>
+        <!--<jjazzlab.surefire.skipTests>false</jjazzlab.surefire.skipTests>-->
+    </properties>  
+
     <build>
         <plugins>
             <plugin>

@@ -392,7 +392,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
             LOGGER.log(Level.FINE, "     updatedPhrase={0}", updatedPhrase);
 
 
-            if (currentPhrase.equals(updatedPhrase))
+            if (currentPhrase.equalsAsNoteNearPosition(updatedPhrase, 0.01f))
             {
                 // No change do nothing
                 continue;

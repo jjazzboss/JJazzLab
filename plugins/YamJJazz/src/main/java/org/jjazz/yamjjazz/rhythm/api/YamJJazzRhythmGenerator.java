@@ -655,7 +655,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
         } // END  for (Integer srcChannel : sourceChannels)
 
 
-        Phrases.removeOverlappedNotes(pRes);
+        Phrases.fixOverlappedNotes(pRes);
 
         LOGGER.log(Level.FINE, "getOneAccTypePhraseOneShortChordSequence()   pRes={0}", pRes);
 

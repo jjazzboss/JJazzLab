@@ -41,6 +41,7 @@ import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.midi.api.synths.InstrumentFamily;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
+import org.jjazz.phrase.api.Phrases;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.utilities.api.FloatRange;
 
@@ -328,7 +329,7 @@ public class Humanizer
      * Humanize the registered notes with the current config.
      * <p>
      * For each note the method multiplies the note random factors (calculated upon object creation, or when newSeed() is called) by the corresponding value
-     * from newUserConfig.
+     * from newUserConfig. Then possible overlapping same-pitch notes are fixed.
      * <p>
      * If state was INIT it is changed to HUMANIZED.
      *
@@ -395,6 +396,8 @@ public class Humanizer
             });
             return newNe;
         });
+        
+        Phrases.fixOverlappedNotes(sourcePhrase);
 
         changeState(State.HUMANIZING);
     }
