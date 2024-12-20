@@ -290,7 +290,7 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
             if (jms.getDefaultInDevice() == null)
             {
                 errorMessage = ResUtil.getString(getClass(), "ErrNoMidiInputDevice");
-            } else if (mc.getState().equals(MusicController.State.PLAYING))
+            } else if (mc.isPlaying())
             {
                 errorMessage = ResUtil.getString(getClass(), "ErrSequenceAlreadyPlaying");
             } else if (song == null)

@@ -239,9 +239,9 @@ public class Pause extends BooleanStateAction implements PropertyChangeListener,
         boolean b = (currentSong != null && currentSong == activeSong);
 
         MusicController mc = MusicController.getInstance();
-        b &= !mc.isArrangerPlaying() && (mc.getState().equals(MusicController.State.PLAYING) || mc.getState().equals(MusicController.State.PAUSED));
+        b &= !mc.isArrangerPlaying() && (mc.isPlaying() || mc.isPaused());
         setEnabled(b);
-        setBooleanState(mc.getState().equals(MusicController.State.PAUSED));
+        setBooleanState(mc.isPaused());
     }
 
 

@@ -222,12 +222,12 @@ public class ActiveSongBackgroundMusicBuilderImpl implements PropertyChangeListe
                 var newState = (MusicController.State) evt.getNewValue();
 
 
-                if ((oldState.equals(State.PAUSED) && newState.equals(State.PLAYING))
-                        || (oldState.equals(State.PLAYING) && newState.equals(State.PAUSED)))
+                if ((oldState == State.PAUSED && newState== State.PLAYING)
+                        || (oldState == State.PLAYING && newState == State.PAUSED))
                 {
                     // Do nothing
 
-                } else if (newState.equals(State.PLAYING))
+                } else if (newState == State.PLAYING)
                 {
                     // Check if our song is playing
                     var session = mc.getPlaybackSession();

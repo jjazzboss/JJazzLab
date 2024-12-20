@@ -247,7 +247,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
 
         // Process beat changed only if music is playing
         var mc = MusicController.getInstance();
-        boolean isPlaying = !mc.isArrangerPlaying() && mc.getState().equals(MusicController.State.PLAYING);
+        boolean isPlaying = !mc.isArrangerPlaying() && mc.isPlaying();
         if (!isPlaying)
         {
             return;

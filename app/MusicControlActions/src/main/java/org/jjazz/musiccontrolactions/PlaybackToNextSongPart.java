@@ -112,7 +112,7 @@ public class PlaybackToNextSongPart extends AbstractAction implements PropertyCh
     static public void jumpToSongPart(boolean nextOrPrevious)
     {
         var mc = MusicController.getInstance();
-        if (!mc.getState().equals(MusicController.State.PLAYING) && !mc.getState().equals(MusicController.State.PAUSED))
+        if (!mc.isPlaying() && !mc.isPaused())
         {
             return;
         }
@@ -151,7 +151,7 @@ public class PlaybackToNextSongPart extends AbstractAction implements PropertyCh
         }
 
 
-        if (mc.getState().equals(State.PAUSED))
+        if (mc.isPaused())
         {
             mc.changePausedBar(nextPlayingSpt.getStartBarIndex());
 
@@ -249,7 +249,7 @@ public class PlaybackToNextSongPart extends AbstractAction implements PropertyCh
         MusicController mc = MusicController.getInstance();
         Song activeSong = ActiveSongManager.getDefault().getActiveSong();
         boolean b = (currentSong != null && currentSong == activeSong);
-        b &= !mc.isArrangerPlaying() && (mc.getState().equals(MusicController.State.PLAYING) || mc.getState().equals(MusicController.State.PAUSED));
+        b &= !mc.isArrangerPlaying() && (mc.isPlaying() || mc.isPaused());
         setEnabled(b);
     }
 

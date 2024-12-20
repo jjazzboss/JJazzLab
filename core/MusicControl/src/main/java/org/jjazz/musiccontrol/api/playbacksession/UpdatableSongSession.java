@@ -186,7 +186,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
         {
             throw new IllegalArgumentException("session=" + session);
         }
-        if (session.getState().equals(State.CLOSED))
+        if (session.getState() == State.CLOSED)
         {
             throw new IllegalStateException("session=" + session);
         }
@@ -223,7 +223,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
         baseSongSession.addPropertyChangeListener(this);
 
 
-        if (baseSongSession.getState().equals(State.GENERATED))
+        if (baseSongSession.getState() == State.GENERATED)
         {
             prepareData();
         }
@@ -650,7 +650,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
                 newEvent = new PropertyChangeEvent(this, e.getPropertyName(), e.getOldValue(), mapTrackIdMuted);
 
 
-            } else if (getState().equals(State.GENERATED)
+            } else if (getState() == State.GENERATED
                     && (baseSongSession instanceof UpdateProvider up)
                     && e.getPropertyName().equals(UpdateProvider.PROP_UPDATE_AVAILABLE))
             {
@@ -658,7 +658,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
                 var update = up.getLastUpdate();
                 updateSequence(update);
 
-            } else if (getState().equals(State.GENERATED)
+            } else if (getState() == State.GENERATED
                     && (baseSongSession instanceof UpdateProvider up)
                     && e.getPropertyName().equals(UpdateProvider.PROP_UPDATE_PROVISION_ENABLED))
             {

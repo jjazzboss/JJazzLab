@@ -251,7 +251,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
     private void exit(boolean ok)
     {
         MusicController mc = MusicController.getInstance();
-        boolean wasPlaying = mc.getState().equals(State.PLAYING);
+        boolean wasPlaying = mc.isPlaying();
         mc.stop();
 
 
@@ -564,7 +564,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements Prop
         // If song was already playing, directly switch to the preview mode
         previousPlaybackSession = null;
         var mc = MusicController.getInstance();
-        if (mc.getState().equals(State.PLAYING))
+        if (mc.isPlaying())
         {
             mc.stop();
 

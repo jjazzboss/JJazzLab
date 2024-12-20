@@ -103,7 +103,7 @@ public class ActiveSongManagerImpl implements PropertyChangeListener, VetoableCh
         MusicController mc = MusicController.getInstance();
         PlaybackSession session = mc.getPlaybackSession();
         SongContext sgContext = session instanceof SongContextProvider scp ? scp.getSongContext() : null;
-        if (mc.getState() == MusicController.State.PLAYING && (sgContext == null || sg != sgContext.getSong()))
+        if (mc.isPlaying() && (sgContext == null || sg != sgContext.getSong()))
         {
             err = ResUtil.getString(getClass(), "ErrSongIsPlaying");
         }

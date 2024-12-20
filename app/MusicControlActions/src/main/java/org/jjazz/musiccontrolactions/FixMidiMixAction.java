@@ -75,7 +75,7 @@ public class FixMidiMixAction implements VetoableChangeListener, Runnable
 
         if (evt.getSource() != PlaybackSettings.getInstance()
                 || !evt.getPropertyName().equals(PlaybackSettings.PROP_VETO_PRE_PLAYBACK)
-                || !MusicController.getInstance().getState().equals(MusicController.State.STOPPED))  // Don't check in pause mode
+                || !MusicController.getInstance().isStopped())  // Don't check in pause mode
         {
             return;
         }

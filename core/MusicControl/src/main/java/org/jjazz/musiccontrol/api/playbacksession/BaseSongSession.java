@@ -177,7 +177,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     @Override
     public void generate(boolean silent) throws MusicGenerationException
     {
-        if (!state.equals(State.NEW))
+        if (state!= State.NEW)
         {
             throw new IllegalStateException("state=" + state);
         }
@@ -268,19 +268,19 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     @Override
     public Sequence getSequence()
     {
-        return state.equals(State.GENERATED) ? sequence : null;
+        return state == State.GENERATED ? sequence : null;
     }
 
     @Override
     public long getLoopStartTick()
     {
-        return state.equals(State.GENERATED) ? loopStartTick : -1;
+        return state == State.GENERATED ? loopStartTick : -1;
     }
 
     @Override
     public long getLoopEndTick()
     {
-        return state.equals(State.GENERATED) ? loopEndTick : -1;
+        return state == State.GENERATED ? loopEndTick : -1;
     }
 
     @Override
@@ -293,7 +293,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     public long getTick(int barIndex)
     {
         long tick = -1;
-        if (state.equals(State.GENERATED))
+        if (state == State.GENERATED)
         {
             if (PlaybackSettings.getInstance().isClickPrecountEnabled() && barIndex == getBarRange().from)
             {
@@ -315,7 +315,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     @Override
     public IntRange getBarRange()
     {
-        return state.equals(State.GENERATED) ? songContext.getBarRange() : null;
+        return state == State.GENERATED ? songContext.getBarRange() : null;
     }
 
     /**
@@ -328,7 +328,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     @Override
     public HashMap<Integer, Boolean> getTracksMuteStatus()
     {
-        return state.equals(State.GENERATED) ? new HashMap<>(mapTrackIdMuted) : null;
+        return state == State.GENERATED ? new HashMap<>(mapTrackIdMuted) : null;
     }
 
     @Override
@@ -362,7 +362,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
      */
     public Map<RhythmVoice, Integer> getRvTrackIdMap()
     {
-        return state.equals(State.GENERATED) ? new HashMap<>(mapRvTrackId) : null;
+        return state == State.GENERATED ? new HashMap<>(mapRvTrackId) : null;
     }
 
 
@@ -374,7 +374,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
      */
     public Map<RhythmVoice, Phrase> getRvPhraseMap()
     {
-        return state.equals(State.GENERATED) ? new HashMap<>(mapRvPhrase) : null;
+        return state == State.GENERATED ? new HashMap<>(mapRvPhrase) : null;
     }
 
 
@@ -433,7 +433,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     @Override
     public ControlTrack getControlTrack()
     {
-        return state.equals(State.GENERATED) ? controlTrack : null;
+        return state == State.GENERATED ? controlTrack : null;
     }
 
 
@@ -453,7 +453,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     @Override
     public void propertyChange(PropertyChangeEvent e)
     {
-        if (state.equals(State.CLOSED))
+        if (state == State.CLOSED)
         {
             return;
         }
@@ -622,7 +622,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
         {
             var lastResult = bmb.getLastResult();
             if (useBackgroundMusicBuilder
-                    && !MusicController.getInstance().getState().equals(MusicController.State.STOPPED)
+                    && !MusicController.getInstance().isStopped()
                     && !bmb.isDirectlyGeneratingMusic()
                     && sgContext.equals(lastResult)
                     && lastResult.throwable() == null)

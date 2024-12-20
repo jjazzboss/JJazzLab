@@ -169,7 +169,7 @@ public class PlaybackToPreviousSongPart extends AbstractAction implements Proper
         MusicController mc = MusicController.getInstance();
         Song activeSong = ActiveSongManager.getDefault().getActiveSong();
         boolean b = (currentSong != null && currentSong == activeSong);
-        b &= !mc.isArrangerPlaying() && (mc.getState().equals(MusicController.State.PLAYING) || mc.getState().equals(MusicController.State.PAUSED));
+        b &= !mc.isArrangerPlaying() && (mc.isPlaying() || mc.isPaused());
         setEnabled(b);
     }
 

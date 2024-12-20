@@ -227,7 +227,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         {
             // lock already acquired
             return sequencer;
-        } else if (sequencerLockHolder == null && state.equals(State.STOPPED))
+        } else if (sequencerLockHolder == null && isStopped())
         {
             // lock acquired by external entity: get disabled
             sequencerLockHolder = lockHolder;
@@ -283,7 +283,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         initSequencer();
 
         // Change state
-        assert state.equals(State.DISABLED);
+        assert isDisabled();
         setState(State.STOPPED);
     }
 
@@ -470,10 +470,10 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      */
     public void resume() throws MusicGenerationException
     {
-        if (state == State.DISABLED)
+        if (isDisabled())
         {
             throw new MusicGenerationException(ResUtil.getString(getClass(), "PLAYBACK_IS_DISABLED"));
-        } else if (!state.equals(State.PAUSED))
+        } else if (!isPaused())
         {
             return;
         }
@@ -543,7 +543,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      */
     public void pause()
     {
-        if (!state.equals(State.PLAYING))
+        if (!isPlaying())
         {
             return;
         }
@@ -578,7 +578,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      */
     public void changePausedBar(int barIndex)
     {
-        if (state != State.PAUSED)
+        if (!isPaused())
         {
             return;
         }
@@ -658,6 +658,35 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         return state == State.PLAYING;
     }
 
+    /**
+     * Helper method equivalent to getState() == State.PAUSED.
+     *
+     * @return
+     */
+    public boolean isPaused()
+    {
+        return state == State.PAUSED;
+    }
+
+    /**
+     * Helper method equivalent to getState() == State.STOPPED.
+     *
+     * @return
+     */
+    public boolean isStopped()
+    {
+        return state == State.STOPPED;
+    }
+
+    /**
+     * Helper method equivalent to getState() == State.DISABLED.
+     *
+     * @return
+     */
+    public boolean isDisabled()
+    {
+        return state == State.DISABLED;
+    }
 
     /**
      * True if the current playing session is a special arranger session.
@@ -666,7 +695,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      */
     public boolean isArrangerPlaying()
     {
-        if (!state.equals(State.PLAYING) || !(playbackSession instanceof SongContextProvider))
+        if (!isPlaying() || !(playbackSession instanceof SongContextProvider))
         {
             return false;
         }
@@ -870,7 +899,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 }
                 case PlaybackSession.PROP_DIRTY ->
                 {
-                    if (state.equals(State.PAUSED))
+                    if (isPaused())
                     {
                         stop();
                     }
@@ -879,7 +908,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 case PlaybackSession.PROP_MUTED_TRACKS -> updateTracksMuteStatus();
                 case PlaybackSession.PROP_LOOP_COUNT ->
                 {
-                    if (!state.equals(State.DISABLED))
+                    if (!isDisabled())
                     {
                         int lc = (Integer) e.getNewValue();
                         sequencer.setLoopCount(lc);
@@ -919,7 +948,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
     private void setPosition(int fromBar)
     {
-        assert !state.equals(State.DISABLED) : "state=" + state;
+        assert !isDisabled() : "state=" + state;
         LOGGER.log(Level.FINE, "setPosition() fromBar={0}", fromBar);
         long tick = Math.max(playbackSession.getTick(fromBar), 0);
         sequencer.setTickPosition(tick);
@@ -1138,7 +1167,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
     private void updateCurrentPosition(int bar, float barBeat, float posInBeats)
     {
-        assert !state.equals(State.DISABLED);
+        assert !isDisabled();
         Position oldPos = new Position(currentBeatPosition);
         currentBeatPosition.setBar(bar);
         currentBeatPosition.setBeat(barBeat);
@@ -1196,7 +1225,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      */
     private void updateTempoFactor()
     {
-        assert !state.equals(State.DISABLED);
+        assert !isDisabled();
 
         // Recommended way instead of setTempoInBpm() which cause problems when playback is looped
         float f = songPartTempoFactor * songTempoFactor;

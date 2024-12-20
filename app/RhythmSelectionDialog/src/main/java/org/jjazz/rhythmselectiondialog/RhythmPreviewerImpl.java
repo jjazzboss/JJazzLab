@@ -143,7 +143,7 @@ public class RhythmPreviewerImpl implements RhythmPreviewer
         });
 
         MusicController mc = MusicController.getInstance();
-        if (mc.getState().equals(MusicController.State.PLAYING))
+        if (mc.isPlaying())
         {
             if (getPreviewedRhythm() == r && Objects.equals(this.rpValues, rpValues))
             {
@@ -201,7 +201,7 @@ public class RhythmPreviewerImpl implements RhythmPreviewer
     public Rhythm getPreviewedRhythm()
     {
         var mc = MusicController.getInstance();
-        return mc.getState().equals(MusicController.State.PLAYING) && mc.getPlaybackSession() == session ? rhythm : null;
+        return mc.isPlaying() && mc.getPlaybackSession() == session ? rhythm : null;
     }
 
     // ===============================================================================================
