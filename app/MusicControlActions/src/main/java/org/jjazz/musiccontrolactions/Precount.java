@@ -68,8 +68,8 @@ public class Precount extends BooleanStateAction implements PropertyChangeListen
         PlaybackSettings cm = PlaybackSettings.getInstance();
         cm.addPropertyChangeListener(this);
         updateUI(cm.getClickPrecountMode());
-        
-        putValue("JJazzDisabledIcon", new ImageIcon(getClass().getResource("/org/jjazz/musiccontrolactions/resources/precountDisabled-24x24.png")));                           
+
+        putValue("JJazzDisabledIcon", new ImageIcon(getClass().getResource("/org/jjazz/musiccontrolactions/resources/precountDisabled-24x24.png")));
         putValue("hideActionText", true);
 
         setSelected(cm.isClickPrecountEnabled());
@@ -133,7 +133,7 @@ public class Precount extends BooleanStateAction implements PropertyChangeListen
             newSong = s;
             i++;
         }
-        assert i < 2 : "i=" + i + " lookupResult.allInstances()=" + lookupResult.allInstances();   
+        assert i < 2 : "i=" + i + " lookupResult.allInstances()=" + lookupResult.allInstances();
         if (newSong != null)
         {
             // Current song has changed
@@ -226,23 +226,25 @@ public class Precount extends BooleanStateAction implements PropertyChangeListen
     {
         switch (mode)
         {
-            case ONE_BAR:
+            case ONE_BAR ->
+            {
                 putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/musiccontrolactions/resources/precount1-OFF-24x24.png")));
                 putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/musiccontrolactions/resources/precount1-ON-24x24.png")));
                 putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_Precount1Bar"));
-                break;
-            case TWO_BARS:
+            }
+            case TWO_BARS ->
+            {
                 putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/musiccontrolactions/resources/precount2-OFF-24x24.png")));
                 putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/musiccontrolactions/resources/precount2-ON-24x24.png")));
                 putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_Precount2Bar"));
-                break;
-            case AUTO:
+            }
+            case AUTO ->
+            {
                 putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/musiccontrolactions/resources/precountA-OFF-24x24.png")));
                 putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/musiccontrolactions/resources/precountA-ON-24x24.png")));
                 putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_PrecountBarAuto"));
-                break;
-            default:
-                throw new AssertionError(mode.name());
+            }
+            default -> throw new AssertionError(mode.name());
 
         }
 

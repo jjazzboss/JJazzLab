@@ -70,7 +70,7 @@ public class Click extends BooleanStateAction implements PropertyChangeListener,
         putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(),"CTL_ClickTooltip"));   
         putValue("hideActionText", true);       
 
-        // Listen to clickbackState and position changes
+        // Listen to click state and position changes
         PlaybackSettings.getInstance().addPropertyChangeListener(this);
 
         // Listen to the Midi active song changes
