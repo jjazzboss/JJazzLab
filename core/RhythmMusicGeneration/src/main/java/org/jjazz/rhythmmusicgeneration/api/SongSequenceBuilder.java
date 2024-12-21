@@ -986,7 +986,7 @@ public class SongSequenceBuilder
                 Phrase p = rvPhrases.get(rv);
 
                 // From 100% to 0%
-                p.processNotes(ne -> true, ne -> 
+                p.processNotes(ne -> beatRange.contains(ne.getPositionInBeats(), true), ne -> 
                 {
                     float f = 1 - beatRange.getPercentage(ne.getPositionInBeats());
                     int vel = Math.round(f * ne.getVelocity());
