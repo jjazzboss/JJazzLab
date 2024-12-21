@@ -86,10 +86,33 @@ public class FloatRange
      * The center of the range.
      *
      * @return (to-from)/2 + from
+     * @throws IllegalStateException If range is empty
      */
     public float getCenter()
     {
+        if (isEmpty())
+        {
+            throw new IllegalStateException("FloatRange is empty.");
+        }
         return (to - from) / 2 + from;
+    }
+
+    /**
+     * Get the value expressed as a percentage of the range.
+     *
+     * @param value
+     * @return 0 for a value &lt;= from, 0.5 for getCenter(), 1 for a value &gt;= to.
+     * @throws IllegalStateException If range is empty
+     * @see #getCenter() 
+     */
+    public float getPercentage(float value)
+    {
+        if (isEmpty())
+        {
+            throw new IllegalStateException("FloatRange is empty. value=" + value);
+        }
+        value = clamp(value, 0);
+        return (value - from) / size();
     }
 
     /**

@@ -38,27 +38,30 @@ public class RP_STD_Fill extends RP_State
     public static final String VALUE_RANDOM = "random";
     public static final String VALUE_RANDOM_RARE = "random_rare";
     public static final String VALUE_BREAK = "break";
+    public static final String VALUE_FADE_OUT = "fade_out";
 
     /**
      * Possible values: "" (default), "always", "random_rare", "random", "break"
-     * 
+     *
      * @param isPrimary
      */
     public RP_STD_Fill(boolean isPrimary)
     {
-        super(ID, ResUtil.getString(RP_STD_Fill.class, "CTL_RpFillName"), ResUtil.getString(RP_STD_Fill.class, "CTL_RpFillDesc"), isPrimary, "", "", VALUE_ALWAYS, VALUE_RANDOM, VALUE_RANDOM_RARE, VALUE_BREAK);
+        super(ID, ResUtil.getString(RP_STD_Fill.class, "CTL_RpFillName"), ResUtil.getString(RP_STD_Fill.class, "CTL_RpFillDesc"), isPrimary, "", "",
+                 VALUE_ALWAYS, VALUE_RANDOM, VALUE_RANDOM_RARE, VALUE_BREAK, VALUE_FADE_OUT);
     }
 
     public RP_STD_Fill(boolean isPrimary, String defaultVal, String... possibleValues)
     {
-        super(ID, ResUtil.getString(RP_STD_Fill.class, "CTL_RpFillName"), ResUtil.getString(RP_STD_Fill.class, "CTL_RpFillDesc"), isPrimary, defaultVal, possibleValues);
+        super(ID, ResUtil.getString(RP_STD_Fill.class, "CTL_RpFillName"), ResUtil.getString(RP_STD_Fill.class, "CTL_RpFillDesc"), isPrimary, defaultVal,
+                possibleValues);
     }
 
     static public RP_STD_Fill getFillRp(Rhythm rhythm)
     {
         if (rhythm == null)
         {
-            throw new NullPointerException("r");   
+            throw new NullPointerException("r");
         }
         return (RP_STD_Fill) rhythm.getRhythmParameters()
                 .stream()

@@ -188,11 +188,17 @@ public class IntRange implements Iterable<Integer>
      * The center of the range.
      *
      * @return (to-from)/2 + from
+     * @throws IllegalStateException If range is empty
      */
     public float getCenter()
     {
+        if (isEmpty())
+        {
+            throw new IllegalStateException("FloatRange is empty.");
+        }
         return (to - from) / 2f + from;
     }
+
 
     /**
      * Clamps the value to fit in this range.

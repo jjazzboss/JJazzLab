@@ -81,6 +81,7 @@ import org.jjazz.utilities.api.IntRange;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.util.Exceptions;
 import org.jjazz.outputsynth.spi.OutputSynthManager;
+import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Fill;
 
 /**
  * Methods to convert a Song into Phrases and Midi sequence.
@@ -163,6 +164,7 @@ public class SongSequenceBuilder
      * AdaptedRhythm reuses the same RP_SYS_DrumsMix instance.<br>
      * - Apply the RP_SYS_CustomPhrase changes<br>
      * - Apply the RP_SYS_DrumsTransform changes<br>
+     * - Apply the RP_STD_Fill/fade_out value changes<br>
      * - Apply drums rerouting if needed <br>
      * - Handle the NC chord symbols<br>
      * <p>
@@ -458,7 +460,7 @@ public class SongSequenceBuilder
                     tick0Notes.add(me);
                 }
             }
-            for (var note0: tick0Notes)
+            for (var note0 : tick0Notes)
             {
                 track.remove(note0);
                 track.add(new MidiEvent(note0.getMessage(), 0));
@@ -623,6 +625,9 @@ public class SongSequenceBuilder
 
         // Handle instrument settings which impact the phrases: transposition, velocity shift, ...
         processInstrumentsSettings(songContext, res);
+
+        // Handle the RP_SYS_Fill with value fade_out
+        processFadeOut(songContext, res);
 
 
         // Process the drums rerouting
@@ -951,6 +956,44 @@ public class SongSequenceBuilder
                     rv
                 });
             }
+        }
+    }
+
+    /**
+     * Continuously decrease velocity for song parts with RP_STD_Fill value "fade_out".
+     *
+     * @param context
+     * @param rvPhrases
+     */
+    private void processFadeOut(SongContext context, Map<RhythmVoice, Phrase> rvPhrases)
+    {
+        LOGGER.fine("processFadeOut() -- ");
+        for (SongPart spt : context.getSongParts())
+        {
+            // Check Fill RhythmParameter + fade_out value
+            Rhythm r = spt.getRhythm();
+            RP_STD_Fill rpFill = RP_STD_Fill.getFillRp(r);
+            if (rpFill == null || !spt.getRPValue(rpFill).equals(RP_STD_Fill.VALUE_FADE_OUT))
+            {
+                continue;
+            }
+
+            LOGGER.log(Level.FINE, "processFadeOut() processing spt={0}", spt);
+            FloatRange beatRange = context.getSptBeatRange(spt);        // Might be smaller than spt.toBeatRange()
+
+            for (RhythmVoice rv : rvPhrases.keySet())
+            {
+                Phrase p = rvPhrases.get(rv);
+
+                // From 100% to 0%
+                p.processNotes(ne -> true, ne -> 
+                {
+                    float f = 1 - beatRange.getPercentage(ne.getPositionInBeats());
+                    int vel = Math.round(f * ne.getVelocity());
+                    return ne.setVelocity(vel);
+                });
+            }
+
         }
     }
 

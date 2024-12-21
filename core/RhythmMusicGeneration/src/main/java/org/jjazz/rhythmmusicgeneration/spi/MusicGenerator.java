@@ -48,6 +48,7 @@ public interface MusicGenerator
      * - RP_SYS_Mute rhythm parameter handling (muting a specific track for a specific SongPart)<br>
      * - RP_SYS_DrumsMix rhythm parameter handling (adjusting some drums track instruments velocity)<br>
      * - RP_SYS_CustomPhrase rhythm parameter handling <br>
+     * - RP_STD_Fill rhythm parameter handling for the "fade_out" value (MusicGenerator must handle the other values)<br>
      * - Handling of the channel's specific velocity shift<br>
      * - Handling of the instrument's specific transposition<br>
      * - Drums rerouting<br>
