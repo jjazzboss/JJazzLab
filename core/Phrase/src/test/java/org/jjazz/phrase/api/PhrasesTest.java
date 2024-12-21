@@ -80,33 +80,38 @@ public class PhrasesTest
         System.out.println("fixOverlappedNotes");
         Phrase p1 = new Phrase(0);
         Phrase p2 = new Phrase(0);
-        p1.add(new NoteEvent(50, 1, 64, 0));         // (pitch, dur, velo, pos)
+        
+        p1.add(new NoteEvent(50, 2, 64, 0));         // (pitch, dur, velo, pos)
+        p1.add(new NoteEvent(50, 1, 64, 0));                 
         p2.add(new NoteEvent(50, 1, 64, 0));
-
+        
         p1.add(new NoteEvent(50, 3, 64, 1));
         p2.add(new NoteEvent(50, 3, 64, 1));
 
-        p1.add(new NoteEvent(50, 1, 64, 1.5f));  // fully overlapped => to be removed
-        // p2.add(new NoteEvent(50, 1, 64, 1.5f));
+        p1.add(new NoteEvent(50, 1, 64, 1.5f));  
 
         p1.add(new NoteEvent(50, 5, 64, 5));
         p2.add(new NoteEvent(50, 1, 64, 5));
 
-        p1.add(new NoteEvent(50, 5, 64, 6));     // Partial overlap previous => previous note shorten
+        p1.add(new NoteEvent(50, 5, 64, 6));     
         p2.add(new NoteEvent(50, 1.5f, 64, 6));
 
-        p1.add(new NoteEvent(50, 1, 64, 7));     // fully overlapped
-        // p2.add(new NoteEvent(50, 1, 64, 7));           
+        p1.add(new NoteEvent(50, 1, 64, 7));     
 
         p1.add(new NoteEvent(50, 10, 64, 7.5f));
         p2.add(new NoteEvent(50, 10, 64, 7.5f));
+        
+        p1.add(new NoteEvent(50, 1, 64, 20f));
+        p1.add(new NoteEvent(50, 2, 64, 20f));
+        p2.add(new NoteEvent(50, 2, 64, 20f));
+        
 
-        System.out.println("# p1=" + Utilities.toMultilineString(p1.getNotes()));
+        System.out.println("# p1=\n" + Utilities.toMultilineString(p1.getNotes()));
         
         Phrases.fixOverlappedNotes(p1);
 
-        System.out.println("\n# p1=" + Utilities.toMultilineString(p1.getNotes()));
-        System.out.println("\n# p2=" + Utilities.toMultilineString(p2.getNotes()));
+        System.out.println("\n# p1=\n" + Utilities.toMultilineString(p1.getNotes()));
+        System.out.println("\n# p2=\n" + Utilities.toMultilineString(p2.getNotes()));
         assertTrue(p1.equalsAsNoteNearPosition(p2, 0));
     }
 

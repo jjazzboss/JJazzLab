@@ -582,7 +582,7 @@ public class Phrases
         // Get all the notes grouped per pitch
         var mapPitchNotes = getNotesByPitch(p, ne -> true);
 
-        
+
         List<NoteEvent> noteOnBuffer = new ArrayList<>();
         for (Integer pitch : mapPitchNotes.keySet())
         {
@@ -593,8 +593,8 @@ public class Phrases
             }
 
             noteOnBuffer.clear();
-            
-            
+
+
             for (NoteEvent ne : notes)
             {
                 FloatRange br = ne.getBeatRange();
@@ -603,8 +603,8 @@ public class Phrases
                 var itOn = noteOnBuffer.listIterator();
                 while (itOn.hasNext())
                 {
-                    NoteEvent noteOn = itOn.next();
-                    FloatRange brOn = noteOn.getBeatRange();
+                    NoteEvent prevNoteOn = itOn.next();
+                    FloatRange brOn = prevNoteOn.getBeatRange();
                     if (brOn.to <= br.from)
                     {
                         // Remove noteOns which are now Off
@@ -615,14 +615,26 @@ public class Phrases
                         p.remove(ne);
                         removed = true;
                         break;
+                    } else if (br.from == brOn.from)
+                    {
+                        // 2 notes start in the same time, remove the shortest
+                        if (br.size() <= brOn.size())
+                        {
+                            p.remove(ne);
+                            removed = true;
+                            break;
+                        } else
+                        {
+                            p.remove(prevNoteOn);
+                            itOn.remove();
+                        }
                     } else
                     {
                         // Note is partially overlapped, shorten noteOn
                         float newDur = br.from - brOn.from;
-                        var newNoteOn = noteOn.setDuration(newDur);         
-                        p.replace(noteOn, newNoteOn);
+                        var newNoteOn = prevNoteOn.setDuration(newDur);
+                        p.replace(prevNoteOn, newNoteOn);
                         itOn.remove();
-                        break;
                     }
                 }
                 if (!removed)
