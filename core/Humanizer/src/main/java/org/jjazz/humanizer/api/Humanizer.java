@@ -329,7 +329,7 @@ public class Humanizer
      * Humanize the registered notes with the current config.
      * <p>
      * For each note the method multiplies the note random factors (calculated upon object creation, or when newSeed() is called) by the corresponding value
-     * from newUserConfig. Then possible overlapping same-pitch notes are fixed.
+     * from the current Config. Then overlapping same-pitch notes are fixed.
      * <p>
      * If state was INIT it is changed to HUMANIZED.
      *
