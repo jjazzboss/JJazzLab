@@ -29,28 +29,25 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.sound.midi.Sequencer;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.ImageIcon;
 import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.musiccontrol.api.MusicController;
-import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrol.api.playbacksession.SongContextProvider;
-import org.jjazz.songcontext.api.SongContext;
-import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.Song;
-import org.openide.DialogDisplayer;
-import org.openide.NotifyDescriptor;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.musiccontrolactions.api.RemoteAction;
 import org.jjazz.musiccontrolactions.api.RemoteActionProvider;
+import org.jjazz.rhythm.api.MusicGenerationException;
+import org.jjazz.songcontext.api.SongContext;
+import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.utilities.api.ResUtil;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
 import org.openide.util.Lookup;
 import org.openide.util.LookupEvent;
 import org.openide.util.LookupListener;
@@ -58,29 +55,29 @@ import org.openide.util.Utilities;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
- * Make playback jump to next song part.
+ * Make playback jump to song's start.
  * <p>
  * Action is enabled when playback is on.<p>
  */
-@ActionID(category = "MusicControls", id = "org.jjazz.musiccontrolactions.playbacktonextsongpart")
-@ActionRegistration(displayName = "#CTL_PlaybackToNextSongPart", lazy = false)
+@ActionID(category = "MusicControls", id = "org.jjazz.musiccontrolactions.playbacktohead")
+@ActionRegistration(displayName = "#CTL_PlaybackToHead", lazy = false)
 @ActionReferences(
         {
-            @ActionReference(path = "Shortcuts", name = "F2")
+            @ActionReference(path = "Shortcuts", name = "F3")
         })
-public class PlaybackToNextSongPart extends AbstractAction implements PropertyChangeListener, LookupListener
+public class PlaybackToHead extends AbstractAction implements PropertyChangeListener, LookupListener
 {
 
-    private final Lookup.Result<Song> lookupResult;
+    private Lookup.Result<Song> lookupResult;
     private Song currentSong;
-    private static final Logger LOGGER = Logger.getLogger(PlaybackToNextSongPart.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(PlaybackToHead.class.getSimpleName());
 
-    public PlaybackToNextSongPart()
+    public PlaybackToHead()
     {
-        putValue(Action.NAME, ResUtil.getString(getClass(), "CTL_PlaybackToNextSongPart"));        // For our RemoteActionProvider
-        putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/musiccontrolactions/resources/NextSongpart-24x24.png")));
-        putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_PlaybackToNextSongPartTooltip"));
-        putValue("hideActionText", true);
+        putValue(Action.NAME, ResUtil.getString(getClass(), "CTL_PlaybackToHead"));         // For our RemovoteActionProvider
+//        putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/musiccontrolactions/resources/PreviousSongpart-24x24.png")));
+//        putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_PlaybackToPreviousSongPartTooltip"));
+//        putValue("hideActionText", true);
 
         // Listen to playbackState and position changes
         MusicController.getInstance().addPropertyChangeListener(this);
@@ -93,22 +90,10 @@ public class PlaybackToNextSongPart extends AbstractAction implements PropertyCh
         lookupResult.addLookupListener(this);
         setEnabled(false);              // By default
         resultChanged(null);            // Might enable the action
-
     }
 
     @Override
     public void actionPerformed(ActionEvent e)
-    {
-        jumpToSongPart(true);
-    }
-
-
-    /**
-     * Do the job of both actions.
-     *
-     * @param nextOrPrevious If true go to next songpart, otherwise go to previous.
-     */
-    static public void jumpToSongPart(boolean nextOrPrevious)
     {
         var mc = MusicController.getInstance();
         if (!mc.isPlaying() && !mc.isPaused())
@@ -121,41 +106,11 @@ public class PlaybackToNextSongPart extends AbstractAction implements PropertyCh
             return;
         }
 
-        // Get the song being played
-        var session = mc.getPlaybackSession();
-        if (!(session instanceof SongContextProvider))
-        {
-            return;
-        }
-        SongContext songContext = ((SongContextProvider) session).getSongContext();
-
-
-        // Retrieve the song part
-        SongPart songPart = mc.getCurrentSongPart();
-        Position pos = mc.getCurrentBeatPosition();
-        if (songPart == null || pos == null)
-        {
-            LOGGER.log(Level.WARNING, "actionPerformed() unexpected null value songPart={0} pos={1}", new Object[]
-            {
-                songPart, pos
-            });
-            return;
-        }
-
-
-        // Find next SongPart to be played
-        var nextPlayingSpt = nextOrPrevious
-                ? getNextSongPart(session, songContext.getSongParts(), songPart)
-                : getPreviousSongPart(session, songContext.getSongParts(), songPart, pos);
-        if (nextPlayingSpt == null)
-        {
-            return;
-        }
-
-
+        int startBar = mc.getPlaybackSession().getBarRange().from;
+        
         if (mc.isPaused())
         {
-            mc.changePausedBar(nextPlayingSpt.getStartBarIndex());
+            mc.changePausedBar(startBar);
 
         } else
         {
@@ -165,7 +120,7 @@ public class PlaybackToNextSongPart extends AbstractAction implements PropertyCh
             mc.pause();
             try
             {
-                mc.play(nextPlayingSpt.getStartBarIndex());
+                mc.play(startBar);
             } catch (MusicGenerationException ex)
             {
                 NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
@@ -173,10 +128,11 @@ public class PlaybackToNextSongPart extends AbstractAction implements PropertyCh
             }
         }
     }
+
+
     // ======================================================================
     // LookupListener interface
     // ======================================================================  
-
     @Override
     public synchronized void resultChanged(LookupEvent ev)
     {
@@ -208,13 +164,13 @@ public class PlaybackToNextSongPart extends AbstractAction implements PropertyCh
         MusicController mc = MusicController.getInstance();
         if (evt.getSource() == mc)
         {
-            if (evt.getPropertyName() == MusicController.PROP_STATE)
+            if (evt.getPropertyName().equals(MusicController.PROP_STATE))
             {
                 updateEnabledState();
             }
         } else if (evt.getSource() == ActiveSongManager.getDefault())
         {
-            if (evt.getPropertyName() == ActiveSongManager.PROP_ACTIVE_SONG)
+            if (evt.getPropertyName().equals(ActiveSongManager.PROP_ACTIVE_SONG))
             {
                 updateEnabledState();
             }
@@ -225,26 +181,26 @@ public class PlaybackToNextSongPart extends AbstractAction implements PropertyCh
     // ======================================================================   
 
     @ServiceProvider(service = RemoteActionProvider.class)
-    public static class NextSongPartRemoteActionProvider implements RemoteActionProvider
+    public static class PlaybackToHeadRemoteActionProvider implements RemoteActionProvider
     {
 
         @Override
         public List<RemoteAction> getRemoteActions()
         {
-            RemoteAction ra = RemoteAction.loadFromPreference("MusicControls", "org.jjazz.musiccontrolactions.playbacktonextsongpart");
+            RemoteAction ra = RemoteAction.loadFromPreference("MusicControls", "org.jjazz.musiccontrolactions.playbacktohead");
             if (ra == null)
             {
-                ra = new RemoteAction("MusicControls", "org.jjazz.musiccontrolactions.playbacktonextsongpart");
-                ra.setMidiMessages(RemoteAction.noteOnMidiMessages(0, 27));
+                ra = new RemoteAction("MusicControls", "org.jjazz.musiccontrolactions.playbacktohead");
+                ra.setMidiMessages(RemoteAction.noteOnMidiMessages(0, 28));
             }
-            ra.setDefaultMidiMessages(RemoteAction.noteOnMidiMessages(0, 27));
+            ra.setDefaultMidiMessages(RemoteAction.noteOnMidiMessages(0, 28));
             return Arrays.asList(ra);
         }
     }
 
     //=====================================================================================
     // Private methods
-    //=====================================================================================    
+    //=====================================================================================   
 
     private void updateEnabledState()
     {
@@ -255,45 +211,4 @@ public class PlaybackToNextSongPart extends AbstractAction implements PropertyCh
         setEnabled(b);
     }
 
-    static private SongPart getNextSongPart(PlaybackSession session, List<SongPart> spts, SongPart songPart)
-    {
-        int index = spts.indexOf(songPart);
-        assert index != -1 : "songPart=" + songPart + " spts=" + spts;
-        index++;
-        if (index == spts.size())
-        {
-            if (session.getLoopCount() != Sequencer.LOOP_CONTINUOUSLY)
-            {
-                // No next song part, we're done
-                return null;
-            }
-            index = 0;
-        }
-        return spts.get(index);
-    }
-
-    static private SongPart getPreviousSongPart(PlaybackSession session, List<SongPart> spts, SongPart songPart, Position pos)
-    {
-        int index = spts.indexOf(songPart);
-        assert index != -1 : "songPart=" + songPart + " spts=" + spts;
-        if (pos.getBar() == songPart.getStartBarIndex() && pos.getBeat() < 2)
-        {
-            // Go to previous bar only if we're in pause mode, or we're already at the beginning of the song part
-            index--;
-            if (index < 0)
-            {
-                if (session.getLoopCount() != Sequencer.LOOP_CONTINUOUSLY)
-                {
-                    // No next song part, we're done
-                    return null;
-                }
-                index = spts.size() - 1;
-            }
-        } else
-        {
-            // Nothing: this will reset position at the beginning of the song part
-        }
-
-        return spts.get(index);
-    }
 }
