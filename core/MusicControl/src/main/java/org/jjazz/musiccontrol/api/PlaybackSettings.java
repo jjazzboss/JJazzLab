@@ -87,8 +87,8 @@ public class PlaybackSettings
     public static String CLICK_TRACK_NAME = "JJazzClickTrack";
     public static String PRECOUNT_CLICK_TRACK_NAME = "JJazzPreCountClickTrack";
     /**
-     * This vetoable property change can be fired by playback actions (eg Play, Pause) just before playing a song and can be vetoed by
-     * vetoables listeners to cancel playback start.
+     * This vetoable property change can be fired by playback actions (eg Play, Pause) just before playing a song and can be vetoed by vetoables listeners to
+     * cancel playback start.
      * <p>
      * NewValue=If non null it contains the SongContext object.
      */
@@ -224,7 +224,7 @@ public class PlaybackSettings
         boolean old = isPlaybackClickEnabled();
         prefs.putBoolean(PROP_PLAYBACK_CLICK_ENABLED, b);
         pcs.firePropertyChange(PROP_PLAYBACK_CLICK_ENABLED, old, b);
-        fireIsMusicGenerationModified(PROP_PLAYBACK_CLICK_ENABLED, b);        
+        fireIsMusicGenerationModified(PROP_PLAYBACK_CLICK_ENABLED, b);
 
     }
 
@@ -355,8 +355,8 @@ public class PlaybackSettings
     /**
      * The actual Midi channel to be used with he specified MidiMix.
      * <p>
-     * If in the midiMix channel=getPreferredClickChannel() is used and is not a drums/percussion instrument, return the Midi channel
-     * MidiConst.CHANNEL_DRUMS. Otherwise return getPreferredClickChannel().
+     * If in the midiMix channel=getPreferredClickChannel() is used and is not a drums/percussion instrument, return the Midi channel MidiConst.CHANNEL_DRUMS.
+     * Otherwise return getPreferredClickChannel().
      *
      * @param midiMix
      * @return
@@ -369,8 +369,11 @@ public class PlaybackSettings
         {
             return prefChannel;
         }
-        LOGGER.log(Level.WARNING, "getClickChannel() Can''t use preferred click channel {0}{1}, using channel {2}{3} instead", new Object[]{prefChannel,
-            1, MidiConst.CHANNEL_DRUMS, 1});
+        LOGGER.log(Level.WARNING, "getClickChannel() Can''t use preferred click channel {0}{1}, using channel {2}{3} instead", new Object[]
+        {
+            prefChannel,
+            1, MidiConst.CHANNEL_DRUMS, 1
+        });
         return MidiConst.CHANNEL_DRUMS;
     }
 
@@ -502,8 +505,7 @@ public class PlaybackSettings
     /**
      * Add a precount click track to the sequence for the specified song.
      * <p>
-     * Except for the cases below, all existing sequence MidiEvents are shifted 1 or 2 bars later in order to leave room for the precount
-     * bars.
+     * Except for the cases below, all existing sequence MidiEvents are shifted 1 or 2 bars later in order to leave room for the precount bars.
      * <p>
      * The following initial events (at tick 0) are not moved:<br>
      * - Meta track name<br>
@@ -600,8 +602,8 @@ public class PlaybackSettings
     /**
      * Listeners will be notified via the PROP_VETO_PRE_PLAYBACK property change before a playback is started.
      * <p>
-     * The NewValue is a SongContext object. A listener who has already notified the end-user via its own UI must throw a
-     * PropertyVetoException with a null message to avoid another notification by the framework.
+     * The NewValue is a SongContext object. A listener who has already notified the end-user via its own UI must throw a PropertyVetoException with a null
+     * message to avoid another notification by the framework.
      *
      * @param listener
      */
@@ -646,17 +648,46 @@ public class PlaybackSettings
         }
         float nbNaturalBeatsPerBar = ts.getNbNaturalBeats();
         float nbNaturalBeats = nbBars * nbNaturalBeatsPerBar;
+        
         try
         {
-            for (int beat = 0; beat < nbNaturalBeats; beat++)
+            if (nbBars == 2 && ts == TimeSignature.FOUR_FOUR)
             {
-                int velocity = ((beat % nbNaturalBeatsPerBar) == 0) ? getClickVelocityHigh() : getClickVelocityLow();
-                int pitch = ((beat % nbNaturalBeatsPerBar) == 0) ? getClickPitchHigh() : getClickPitchLow();
-                ShortMessage smOn = new ShortMessage(ShortMessage.NOTE_ON, channel, pitch, velocity);
-                ShortMessage smOff = new ShortMessage(ShortMessage.NOTE_OFF, channel, pitch, 0);
-                long tick = tickOffset + beat * MidiConst.PPQ_RESOLUTION;
-                track.add(new MidiEvent(smOn, tick));
-                track.add(new MidiEvent(smOff, tick + MidiConst.PPQ_RESOLUTION / 2));  // Half-beat duration
+                // Special case, bar1=click-rest-click-rest, bar2=click click click click
+                for (int beat = 0; beat < 4; beat++)
+                {
+                    int velocity = (beat % 2) == 0 ? getClickVelocityHigh() : getClickVelocityLow() / 4;
+                    int pitch = (beat % 2) == 0 ? getClickPitchHigh() : getClickPitchLow();
+                    ShortMessage smOn = new ShortMessage(ShortMessage.NOTE_ON, channel, pitch, velocity);
+                    ShortMessage smOff = new ShortMessage(ShortMessage.NOTE_OFF, channel, pitch, 0);
+                    long tick = tickOffset + beat * MidiConst.PPQ_RESOLUTION;
+                    track.add(new MidiEvent(smOn, tick));
+                    track.add(new MidiEvent(smOff, tick + MidiConst.PPQ_RESOLUTION / 2));  // Half-beat duration
+                }
+
+                for (int beat = 4; beat < 8; beat++)
+                {
+                    int velocity = beat == 4 ? getClickVelocityHigh() : getClickVelocityLow();
+                    int pitch = beat == 4 ? getClickPitchHigh() : getClickPitchLow();
+                    ShortMessage smOn = new ShortMessage(ShortMessage.NOTE_ON, channel, pitch, velocity);
+                    ShortMessage smOff = new ShortMessage(ShortMessage.NOTE_OFF, channel, pitch, 0);
+                    long tick = tickOffset + beat * MidiConst.PPQ_RESOLUTION;
+                    track.add(new MidiEvent(smOn, tick));
+                    track.add(new MidiEvent(smOff, tick + MidiConst.PPQ_RESOLUTION / 2));  // Half-beat duration
+                }
+
+            } else
+            {
+                for (int beat = 0; beat < nbNaturalBeats; beat++)
+                {
+                    int velocity = (beat % nbNaturalBeatsPerBar) == 0 ? getClickVelocityHigh() : getClickVelocityLow();
+                    int pitch = (beat % nbNaturalBeatsPerBar) == 0 ? getClickPitchHigh() : getClickPitchLow();
+                    ShortMessage smOn = new ShortMessage(ShortMessage.NOTE_ON, channel, pitch, velocity);
+                    ShortMessage smOff = new ShortMessage(ShortMessage.NOTE_OFF, channel, pitch, 0);
+                    long tick = tickOffset + beat * MidiConst.PPQ_RESOLUTION;
+                    track.add(new MidiEvent(smOn, tick));
+                    track.add(new MidiEvent(smOff, tick + MidiConst.PPQ_RESOLUTION / 2));  // Half-beat duration
+                }
             }
         } catch (InvalidMidiDataException ex)
         {
