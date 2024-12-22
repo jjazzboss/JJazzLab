@@ -50,7 +50,6 @@ import org.jjazz.chordleadsheet.api.event.SizeChangedEvent;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.songstructure.api.event.SgsClsActionEvent;
 import org.openide.util.Exceptions;
 
 /**

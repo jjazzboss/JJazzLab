@@ -72,6 +72,7 @@ import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.event.SgsActionEvent;
+import org.jjazz.songstructure.api.event.SgsClsActionEvent;
 import org.jjazz.undomanager.api.SimpleEdit;
 import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.utilities.api.StringProperties;
@@ -127,7 +128,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
      * <p>
      * Use PROP_MODIFIED_OR_SAVED_OR_RESET to get notified of any song change, including non-musical ones like tempo change, phrase name change, etc.
      */
-    public static final String PROP_MUSIC_GENERATION = "SongMusicGeneration";
+    public static final String PROP_MUSIC_GENERATION = "PROP_MUSIC_GENERATION";
     private SongStructure songStructure;
     private ChordLeadSheet chordLeadSheet;
     private String name;
@@ -1033,7 +1034,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
         if (event instanceof ClsActionEvent ae && ae.isActionComplete())
         {
             String actionId = ae.getActionId();
-            if (!(actionId.equals("setSectionName") || actionId.equals("itemClientPropertyChange")))
+            if (!actionId.equals("setSectionName") && !actionId.equals("itemClientPropertyChange"))
             {
                 fireIsMusicallyModified(actionId, ae.getData());
             }
@@ -1053,7 +1054,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
     @Override
     public void songStructureChanged(SgsChangeEvent e)
     {
-        if (e instanceof SgsActionEvent ae && ae.isActionComplete())
+        if (e instanceof SgsActionEvent ae && !(ae instanceof SgsClsActionEvent) && ae.isActionComplete())
         {
             String actionId = ae.getActionId();
             switch (actionId)

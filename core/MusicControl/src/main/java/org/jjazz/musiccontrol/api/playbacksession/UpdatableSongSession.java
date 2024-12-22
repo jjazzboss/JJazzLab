@@ -329,8 +329,6 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
      * <p>
      * The method does nothing if session is disabled.
      *
-     *
-     *
      * @param update
      * @throws IllegalArgumentException If a MidiEvent tick position is beyond getOriginalSequenceSize(), or if session is not in the GENERATED state.
      */
@@ -392,7 +390,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
             LOGGER.log(Level.FINE, "     updatedPhrase={0}", updatedPhrase);
 
 
-            if (currentPhrase.equalsAsNoteNearPosition(updatedPhrase, 0.01f))
+            if (currentPhrase.equalsAsNoteNearPosition(updatedPhrase, 0))
             {
                 // No change do nothing
                 continue;

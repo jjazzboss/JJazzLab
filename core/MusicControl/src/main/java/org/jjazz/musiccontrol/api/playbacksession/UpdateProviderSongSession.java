@@ -128,7 +128,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
                     enableUpdateControl,
                     loopCount,
                     endOfPlaybackAction);
-
+            
             sessions.add(newSession);
             LOGGER.fine("getSession() create new session");
             return newSession;
@@ -150,8 +150,8 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
     {
         return getSession(sgContext, true, true, true, true, true, PLAYBACK_SETTINGS_LOOP_COUNT, null);
     }
-
-
+    
+    
     private UpdateProviderSongSession(SongContext sgContext,
             boolean enablePlaybackTransposition,
             boolean includeClickTrack, boolean includePrecountTrack, boolean includeControlTrack,
@@ -162,11 +162,11 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
                 enablePlaybackTransposition,
                 includeClickTrack, includePrecountTrack, includeControlTrack,
                 loopCount, endOfPlaybackAction, true);
-
+        
         isUpdateControlEnabled = enableUpdateControl;
         userErrorExceptionHandler = e -> StatusDisplayer.getDefault().setStatusText(e.getLocalizedMessage());
     }
-
+    
     @Override
     public UpdateProviderSongSession getFreshCopy(SongContext sgContext)
     {
@@ -179,9 +179,9 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
                 isUpdateControlEnabled,
                 getLoopCount(),
                 getEndOfPlaybackAction());
-
+        
         sessions.add(newSession);
-
+        
         return newSession;
     }
 
@@ -195,12 +195,12 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
     public void generate(boolean silent) throws MusicGenerationException
     {
         super.generate(silent);
-
+        
         var song = getSongContext().getSong();
         songMusicGenerationListener = new SongMusicGenerationListener(song, getSongContext().getMidiMix(), 0);  // 0ms because we can't miss an event which might disable updates
         songMusicGenerationListener.addPropertyChangeListener(this);
     }
-
+    
     @Override
     public void close()
     {
@@ -296,7 +296,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
         {
             return;
         }
-
+        
         if (e.getSource() != songMusicGenerationListener || !e.getPropertyName().equals(SongMusicGenerationListener.PROP_CHANGED))
         {
             return;
@@ -305,7 +305,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
 
         //
         // If we're here it means that 
-        // - song has changed in a way that impact music generation
+        // - song has changed in a way that impacts music generation
         // - state==GENERATED
         //
         // LOGGER.fine("propertyChange() e=" + e);
@@ -317,14 +317,14 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
         // Analyze the PROP_CHANGED change event origin
         String id = (String) e.getOldValue();
         Object data = e.getNewValue();
-
-
+        
+        
         LOGGER.log(Level.FINE, "propertyChange() -- id={0} data={1}", new Object[]
         {
             id, data
         });
-
-
+        
+        
         switch (id)
         {
             //
@@ -417,22 +417,25 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
                     doUpdate = true;
                 }
             }
-
-
+            
+            
             default ->
             {
-                throw new IllegalStateException("id=" + id + " data=" + data);
+                LOGGER.log(Level.WARNING, "propertyChange() Ignoring unrecognized event id={0} data={1}", new Object[]
+                {
+                    id, data
+                });
             }
         }
-
-
+        
+        
         LOGGER.log(Level.FINE,
                 "propertyChange() output: dirty={0} doUpdate={1} doDisableUpdates={2}", new Object[]
                 {
                     dirty, doUpdate, doDisableUpdates
                 }
         );
-
+        
         if (doDisableUpdates)
         {
             disableUpdates();
@@ -451,7 +454,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
                 }
             }
         }
-
+        
     }
 
 
@@ -463,7 +466,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
     {
         return update;
     }
-
+    
     @Override
     public boolean isUpdateProvisionEnabled()
     {
@@ -529,7 +532,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
                     musicGenerationQueue.getLastAddedSongContext());
             Exceptions.printStackTrace(e);
         }
-
+        
     }
 
 
@@ -610,7 +613,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
 
         // Create a new control track
         ControlTrack cTrack = null;
-
+        
         if (isControlTrackEnabled && isControlTrackIncluded())
         {
             var sessionCtrack = getControlTrack();      // Might be null if session was closed in the meantime (usually we're NOT on the Swing EDT!)
@@ -684,5 +687,5 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
         }
         return sb.toString();
     }
-
+    
 }
