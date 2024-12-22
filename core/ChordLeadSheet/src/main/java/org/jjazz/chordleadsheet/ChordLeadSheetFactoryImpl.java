@@ -162,6 +162,10 @@ public class ChordLeadSheetFactoryImpl implements ChordLeadSheetFactory
     public ChordLeadSheet getCopy(ChordLeadSheet cls)
     {
         CLI_Section initSection = cls.getSection(0);
+        if (cls == null)
+        {
+            throw new IllegalStateException("No initSection found in cls=" + cls.toDebugString());
+        }
         ChordLeadSheet clsCopy = new ChordLeadSheetImpl(initSection.getData().getName(), initSection.getData().getTimeSignature(), cls.getSizeInBars());
         for (var item : cls.getItems())
         {

@@ -74,6 +74,7 @@ public interface ChordLeadSheetFactory
      *
      * @param cls
      * @return
+     * @throws IllegalStateException If cls does not have an initial section
      */
     ChordLeadSheet getCopy(ChordLeadSheet cls);
 

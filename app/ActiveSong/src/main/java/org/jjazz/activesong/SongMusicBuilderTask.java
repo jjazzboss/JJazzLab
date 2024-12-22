@@ -218,6 +218,13 @@ public class SongMusicBuilderTask implements ChangeListener, PropertyChangeListe
         // Prepare a copy of the song context
         // Can't use a thread here because this might lead to concurrent modification (eg of a user phrase) while copy is being made                
         LOGGER.log(Level.FINE, "stateChanged() -- posting music generation request for {0}", song.getName());
+        if (song.getChordLeadSheet().getSection(0) == null)
+        {
+            // Robustness check, happened once but can't reproduce...
+            LOGGER.log(Level.WARNING, "postMusicGenerationRequest() called but missing initial section in chordleadsheet={0}",
+                    song.getChordLeadSheet().toDebugString());
+            return;
+        }
         SongContextCopy sgContextCopy = new SongContextCopy(song, midiMix, false);
         ClsUtilities.transpose(sgContextCopy.getSong().getChordLeadSheet(),
                 PlaybackSettings.getInstance().getPlaybackKeyTransposition());

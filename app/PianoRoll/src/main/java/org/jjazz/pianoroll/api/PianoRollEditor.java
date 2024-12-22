@@ -149,7 +149,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
      */
     public static final String PROP_EDITOR_ALIVE = "EditorAlive";
     /**
-     * oldValue=old Phrase model, newValue=new Phrase model.
+     * oldValue=old phrase model, newValue=new Phrase model.
      */
     public static final String PROP_MODEL_PHRASE = "PhraseModel";
     /**
@@ -497,7 +497,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
         }
 
 
-        firePropertyChange(PROP_MODEL_PHRASE, oldModel, model);
+        firePropertyChange(PROP_MODEL_PHRASE, oldModel, model);     
         firePropertyChange(PROP_MODEL_CHANNEL, oldChannel, this.channel);
         firePropertyChange(PROP_LOOP_ZONE, oldLoopZone, this.loopZone);
     }

@@ -22,7 +22,6 @@
  */
 package org.jjazz.phrase.api;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.common.collect.HashBiMap;
 import com.thoughtworks.xstream.XStream;
 import java.beans.PropertyChangeListener;
@@ -150,10 +149,19 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
         this.isDrums = isDrums;
     }
 
+    /**
+     * Relies on ==.
+     * <p>
+     * For a "musical" comparison method, use equalsAsNoteNearPosition().
+     *
+     * @param o
+     * @return
+     * @see #equalsAsNoteNearPosition(org.jjazz.phrase.api.Phrase, float)
+     */
     @Override
     public boolean equals(Object o)
     {
-        throw new UnsupportedOperationException("Use p1 == p2 or equalsAsNoteNearPosition()");
+        return this == o;
     }
 
     /**
@@ -339,32 +347,6 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
         return p;
     }
 
-    /**
-     * Compare the notes (pitch, velocity), but tolerate slight differences in position and duration.
-     *
-     *
-     * @param p
-     * @param nearWindow Used to compare NoteEvents position and duration.
-     * @return
-     * @see NoteEvent#equalsNearPosition(org.jjazz.phrase.api.NoteEvent, float)
-     */
-    public boolean equalsNearPosition(Phrase p, float nearWindow)
-    {
-        checkNotNull(p);
-        if (size() != p.size())
-        {
-            return false;
-        }
-        Iterator<NoteEvent> pIt = p.iterator();
-        for (NoteEvent ne : this)
-        {
-            if (!pIt.next().equalsAsNoteNearPosition(ne, nearWindow))
-            {
-                return false;
-            }
-        }
-        return true;
-    }
 
     /**
      *
