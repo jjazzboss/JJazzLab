@@ -25,7 +25,7 @@
 package org.jjazz.test.walkingbass.generator;
 
 /**
- * Tile a WbpTiling with selected WbpSourceAdaptations from a bestWbpsaStore.
+ * Tile a WbpTiling with selected WbpSourceAdaptations from a WbpsaStore.
  */
 public interface Tiler
 {
@@ -36,6 +36,6 @@ public interface Tiler
      * @param tiling
      * @param store
      */
-    void tile(WbpTiling tiling, BestWbpsaStore store);
+    void tile(WbpTiling tiling, WbpsaStore store);
 
 }

@@ -84,7 +84,7 @@ public class WalkingBassGenerator implements MusicGenerator
         System.setProperty(NoteEvent.SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT, "%1$s");
         // WbpDatabase.getInstance().dump();
         WbpDatabase.getInstance().checkConsistency();
-        
+
         LOGGER.log(Level.SEVERE, "generateMusic() -- rhythm={0} contextChordSequence={1}", new Object[]
         {
             rhythm.getName(), songChordSequence
@@ -183,7 +183,7 @@ public class WalkingBassGenerator implements MusicGenerator
 
         // Tile scs with WbpSources
         WbpTiling tiling = new WbpTiling(scs);
-        tiling.tileAll(new TilerOneOutOfTwo(0.25f));
+        tiling.tileAll(new TilerOneOutOfX2(0.20f, 1000));
         if (!tiling.isCompletlyTiled())
         {
             LOGGER.log(Level.SEVERE, "getBassPhrase() =============== tiling is NOT complete, aborted: tiling={0}", tiling.toMultiLineString());

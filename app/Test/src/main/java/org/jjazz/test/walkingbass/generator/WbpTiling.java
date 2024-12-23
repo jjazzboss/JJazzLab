@@ -72,7 +72,9 @@ public class WbpTiling
      */
     public void tileAll(Tiler tiler)
     {
-
+        // Build the store
+        tiler.tile(this);
+        
         // For each bar, get the most compatible 4-bar WbpSources
         var store4 = new BestWbpsaStore(simpleChordSequenceExt, simpleChordSequenceExt.getUsableBars(), 4, MAX_NB_BEST_ADAPTATIONS);
         LOGGER.severe("store4:");
@@ -286,7 +288,7 @@ public class WbpTiling
      */
     public List<Integer> getUntiledZonesStartBarIndexes(int zoneSize)
     {
-        Preconditions.checkArgument(zoneSize >= 1 && zoneSize <= 4, "zoneSize=%d", zoneSize);
+        Preconditions.checkArgument(zoneSize >= 1 && zoneSize <= 4, "zoneSize=%s", zoneSize);
         List<Integer> res = new ArrayList<>();
 
         var nonTiledUsableBars = getNonTiledBars();
@@ -345,7 +347,7 @@ public class WbpTiling
         return mapBarWbpsa.toString();
     }
 
-    public String toMultiLineString()
+ public String toMultiLineString()
     {
         StringBuilder sb = new StringBuilder();
         for (int bar : simpleChordSequenceExt.getUsableBars())
@@ -359,9 +361,9 @@ public class WbpTiling
             {
                 s = "  (repeat)";
             }
-            sb.append(" ").append(bar).append(": ").append(s).append("\n");
+            sb.append(" ").append(String.format("%1$03d", bar)).append(": ").append(s).append("\n");
         }
-
+        
         return sb.toString();
     }
 

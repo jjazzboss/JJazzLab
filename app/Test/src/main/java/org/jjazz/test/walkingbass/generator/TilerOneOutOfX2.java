@@ -26,39 +26,47 @@ package org.jjazz.test.walkingbass.generator;
 
 import com.google.common.base.Preconditions;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import org.jjazz.test.walkingbass.WbpSource;
 
 /**
- * Tile in bar order, using a given WbpSource one out of two times.
+ * Tile in bar order, using a given WbpSource one out of X times.
  * <p>
- * A WbpSource can't be used to cover more than wbpSourceMaxCoveragePercent of the tiling.
+ * When a 2/3/4-bar WbpSource is used, its "sub-WbpSources" (1/2/3 bars) are also considered used. Also, a WbpSource can't be used to cover more than
+ * wbpSourceMaxCoveragePercentage of the tiling.
  */
-public class TilerOneOutOfTwo implements Tiler
+public class TilerOneOutOfX2 implements Tiler
 {
 
     private final float wbpSourceMaxCoveragePercentage;
-    private final Set<WbpSource> wbpSourcesToBeSkipped;
-    private final Map<WbpSource, Integer> mapSourceCount;   // How many times a WbpSource has been used
+    /**
+     * How many times a WbpSource was used
+     */
+    private final Map<WbpSource, Integer> mapSourceCountUsed;
+    /**
+     * How many times a WbpSource was used or could have been used
+     */
+    private final Map<WbpSource, Integer> mapSourceCount;
+    private final int x;
     private int wbpSourceCountMax;
 
     /**
      *
      * @param wbpSourceMaxCoveragePercentage A value in the ]0;1] range
+     * @param x                              Tile a given WbpSource one out of x times
      * @see #getWbpSourceMaxCoveragePercentage()
      */
-    public TilerOneOutOfTwo(float wbpSourceMaxCoveragePercentage)
+    public TilerOneOutOfX2(float wbpSourceMaxCoveragePercentage, int x)
     {
         Preconditions.checkArgument(wbpSourceMaxCoveragePercentage > 0 && wbpSourceMaxCoveragePercentage <= 1,
                 "wbpSourceMaxCoveragePercent=%f", wbpSourceMaxCoveragePercentage);
+        Preconditions.checkArgument(x > 0);
         this.wbpSourceMaxCoveragePercentage = wbpSourceMaxCoveragePercentage;
-        this.wbpSourcesToBeSkipped = new HashSet<>();
+        this.x = x;
+        this.mapSourceCountUsed = new HashMap<>();
         this.mapSourceCount = new HashMap<>();
     }
 
-    @Override
     public void tile(WbpTiling tiling, BestWbpsaStore store)
     {
         clearState();
@@ -75,15 +83,15 @@ public class TilerOneOutOfTwo implements Tiler
             int bar = itBar.next();
             var wbpsas = store.getWbpSourceAdaptations(bar);
 
-            // Take first WbpSourceAdaptation which is usable 
+            // Use the first WbpSourceAdaptation which is usable
             for (var wbpsa : wbpsas)
             {
                 var wbpSource = wbpsa.getWbpSource();
-                if (canUse(wbpSource))
+                if (canUse(wbpSource))      // Updates state
                 {
                     tiling.add(wbpsa);
-                    markAsUsed(wbpSource);
-                    // Move to next usable bar
+
+                    // Move to the next usable bar
                     for (int i = 0; i < store.getWbpSourceSize() - 1; i++)
                     {
                         itBar.next();       // Should never fail since BestWbpaStore stores a WbpSourceAdaptation only it has room to do so
@@ -105,19 +113,25 @@ public class TilerOneOutOfTwo implements Tiler
         return wbpSourceMaxCoveragePercentage;
     }
 
+    public int getX()
+    {
+        return x;
+    }
+
     // ====================================================================================================================
     // Private methods
     // ====================================================================================================================
     private void clearState()
     {
-        wbpSourcesToBeSkipped.clear();
+        wbpSourceCountMax = 0;
+        mapSourceCountUsed.clear();
         mapSourceCount.clear();
     }
 
     /**
-     * Returns OK if wbpSource is not marked as "to be skipped" and WbpSourceMaxCoveragePercentage is respected.
+     * Returns true if use of wbpSource is one out of X, and WbpSourceMaxCoveragePercentage is respected.
      * <p>
-     * If wbpSource was marked as "to be skipped" returns false and remove wbpSource from the "to be skipped" list.
+     * If true is returned, state is changed because we assume the wbpSource *will* be used after the call.
      *
      * @param wbpSource
      * @return
@@ -125,33 +139,20 @@ public class TilerOneOutOfTwo implements Tiler
     private boolean canUse(WbpSource wbpSource)
     {
         boolean b = false;
-        if (!wbpSourcesToBeSkipped.contains(wbpSource))
-        {
-            int count = mapSourceCount.getOrDefault(wbpSource, 0);
-            b = (count + 1) <= wbpSourceCountMax;
-        } else
-        {
-            // We skipped it once, don't skip for next time
-            wbpSourcesToBeSkipped.remove(wbpSource);
-        }
-        return b;
-    }
 
-    /**
-     * Update state after wbpSource was used for a tile.
-     *
-     * @param wbpSource
-     */
-    private void markAsUsed(WbpSource wbpSource)
-    {
-        if (!wbpSourcesToBeSkipped.add(wbpSource))
-        {
-            throw new IllegalStateException("wbpSource=" + wbpSource + " wbpSourcesToBeSkipped=" + wbpSourcesToBeSkipped);
-        }
+        // Is it one out of X
         int count = mapSourceCount.getOrDefault(wbpSource, 0);
+        if (count % x == 0)
+        {
+            // Now check that WbpSourceMaxCoveragePercentage is respected
+            int countUsed = mapSourceCountUsed.getOrDefault(wbpSource, 0);
+            b = (countUsed + 1) <= wbpSourceCountMax;
+            mapSourceCountUsed.put(wbpSource, countUsed + 1);
+        }
+
         mapSourceCount.put(wbpSource, count + 1);
 
+        return b;
     }
-
 
 }
