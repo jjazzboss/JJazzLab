@@ -24,11 +24,14 @@
  */
 package org.jjazz.test.walkingbass;
 
+import java.awt.Component;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumnModel;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.phrase.api.NoteEvent;
@@ -43,13 +46,14 @@ import org.openide.windows.WindowManager;
 /**
  * A dialog to query the WbpDatabase.
  */
-public class QueryWbpDatabaseDialog extends javax.swing.JDialog
+public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
 {
 
-    public QueryWbpDatabaseDialog()
+    public WbpDatabaseExplorerDialog(boolean modal)
     {
-        super(WindowManager.getDefault().getMainWindow(), false);
+        super(WindowManager.getDefault().getMainWindow(), modal);
         initComponents();
+        setAlwaysOnTop(modal);
         tbl_wbpSources.setAutoCreateRowSorter(true);
         setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
         UIUtilities.installEscapeKeyAction(this, () -> exit());
@@ -58,7 +62,7 @@ public class QueryWbpDatabaseDialog extends javax.swing.JDialog
         // System.setProperty(NoteEvent.SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT, "[%1$s p=%2$.1f d=%3$.1f]");
         System.setProperty(NoteEvent.SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT, "%1$s p=%2$.1f d=%3$.1f");
 
-                
+
         doUpdate();
     }
 
@@ -70,6 +74,7 @@ public class QueryWbpDatabaseDialog extends javax.swing.JDialog
     {
         var wbpSources = rb_rootProfile.isSelected() ? getRootProfileWbpSources() : getRpAndChordTypeWbpSources();
         tbl_wbpSources.setModel(new MyModel(wbpSources));
+        adjustWidths();
         lbl_info.setText(wbpSources.size() + " WbpSource(s)");
     }
 
@@ -81,7 +86,8 @@ public class QueryWbpDatabaseDialog extends javax.swing.JDialog
         try
         {
             scs = computeSimpleChordSequence();
-        } catch (ParseException ex)
+        }
+        catch (ParseException ex)
         {
             NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
@@ -101,7 +107,8 @@ public class QueryWbpDatabaseDialog extends javax.swing.JDialog
         try
         {
             scs = computeSimpleChordSequence();
-        } catch (ParseException ex)
+        }
+        catch (ParseException ex)
         {
             NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
@@ -158,13 +165,52 @@ public class QueryWbpDatabaseDialog extends javax.swing.JDialog
             default:
                 throw new IllegalStateException("nbBars=" + nbBars);
         }
-        res.removeRedundantChords();        
+        res.removeRedundantChords();
         if (res.isEmpty())
         {
             throw new ParseException("No chords", 0);
         }
-        
+
         return res;
+    }
+
+
+    /**
+     * Pre-adjust the columns size parameters to have a correct display.
+     */
+    private void adjustWidths()
+    {
+        final TableColumnModel colModel = tbl_wbpSources.getColumnModel();
+        final int EXTRA = 5;
+        for (int colIndex = 0; colIndex < tbl_wbpSources.getColumnCount(); colIndex++)
+        {
+            // Handle header
+            TableCellRenderer renderer = tbl_wbpSources.getTableHeader().getDefaultRenderer();
+            Component comp = renderer.getTableCellRendererComponent(tbl_wbpSources, tbl_wbpSources.getColumnName(colIndex), true, true, 0, colIndex);
+            int headerWidth = comp.getPreferredSize().width;
+
+            int width = 20; // Min width
+
+            // Handle data
+            for (int row = 0; row < tbl_wbpSources.getRowCount(); row++)
+            {
+                renderer = tbl_wbpSources.getCellRenderer(row, colIndex);
+                comp = tbl_wbpSources.prepareRenderer(renderer, row, colIndex);
+                width = Math.max(comp.getPreferredSize().width, width);
+            }
+            width = Math.max(width, headerWidth);
+            width = Math.min(width, 400);
+            width += EXTRA;
+
+            // We have our preferred width
+            colModel.getColumn(colIndex).setPreferredWidth(width);
+
+            // Also set max size
+            switch (colIndex)
+            {
+                case MyModel.COL_ID -> colModel.getColumn(colIndex).setMaxWidth(width);
+            }
+        }
     }
 
     private void exit()
@@ -173,7 +219,6 @@ public class QueryWbpDatabaseDialog extends javax.swing.JDialog
         dispose();
     }
 
- 
 
     // ========================================================================================================
     // Inner classes
@@ -271,8 +316,8 @@ public class QueryWbpDatabaseDialog extends javax.swing.JDialog
     // UI
     // ========================================================================================================
     /**
-     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of this method is always
-     * regenerated by the Form Editor.
+     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of this method is
+     * always regenerated by the Form Editor.
      */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -297,7 +342,7 @@ public class QueryWbpDatabaseDialog extends javax.swing.JDialog
         rb_rpChordTypes = new javax.swing.JRadioButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle(org.openide.util.NbBundle.getMessage(QueryWbpDatabaseDialog.class, "QueryWbpDatabaseDialog.title")); // NOI18N
+        setTitle(org.openide.util.NbBundle.getMessage(WbpDatabaseExplorerDialog.class, "WbpDatabaseExplorerDialog.title")); // NOI18N
 
         spn_barSize.setModel(new javax.swing.SpinnerNumberModel(4, 1, 4, 1));
         spn_barSize.addChangeListener(new javax.swing.event.ChangeListener()
@@ -308,9 +353,9 @@ public class QueryWbpDatabaseDialog extends javax.swing.JDialog
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(QueryWbpDatabaseDialog.class, "QueryWbpDatabaseDialog.jLabel1.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(WbpDatabaseExplorerDialog.class, "WbpDatabaseExplorerDialog.jLabel1.text")); // NOI18N
 
-        tf_bar0.setText(org.openide.util.NbBundle.getMessage(QueryWbpDatabaseDialog.class, "QueryWbpDatabaseDialog.tf_bar0.text")); // NOI18N
+        tf_bar0.setText(org.openide.util.NbBundle.getMessage(WbpDatabaseExplorerDialog.class, "WbpDatabaseExplorerDialog.tf_bar0.text")); // NOI18N
         tf_bar0.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -319,7 +364,7 @@ public class QueryWbpDatabaseDialog extends javax.swing.JDialog
             }
         });
 
-        tf_bar1.setText(org.openide.util.NbBundle.getMessage(QueryWbpDatabaseDialog.class, "QueryWbpDatabaseDialog.tf_bar1.text")); // NOI18N
+        tf_bar1.setText(org.openide.util.NbBundle.getMessage(WbpDatabaseExplorerDialog.class, "WbpDatabaseExplorerDialog.tf_bar1.text")); // NOI18N
         tf_bar1.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -328,7 +373,7 @@ public class QueryWbpDatabaseDialog extends javax.swing.JDialog
             }
         });
 
-        tf_bar2.setText(org.openide.util.NbBundle.getMessage(QueryWbpDatabaseDialog.class, "QueryWbpDatabaseDialog.tf_bar2.text")); // NOI18N
+        tf_bar2.setText(org.openide.util.NbBundle.getMessage(WbpDatabaseExplorerDialog.class, "WbpDatabaseExplorerDialog.tf_bar2.text")); // NOI18N
         tf_bar2.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -337,7 +382,7 @@ public class QueryWbpDatabaseDialog extends javax.swing.JDialog
             }
         });
 
-        tf_bar3.setText(org.openide.util.NbBundle.getMessage(QueryWbpDatabaseDialog.class, "QueryWbpDatabaseDialog.tf_bar3.text")); // NOI18N
+        tf_bar3.setText(org.openide.util.NbBundle.getMessage(WbpDatabaseExplorerDialog.class, "WbpDatabaseExplorerDialog.tf_bar3.text")); // NOI18N
         tf_bar3.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -346,7 +391,7 @@ public class QueryWbpDatabaseDialog extends javax.swing.JDialog
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_clear, org.openide.util.NbBundle.getMessage(QueryWbpDatabaseDialog.class, "QueryWbpDatabaseDialog.btn_clear.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_clear, org.openide.util.NbBundle.getMessage(WbpDatabaseExplorerDialog.class, "WbpDatabaseExplorerDialog.btn_clear.text")); // NOI18N
         btn_clear.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -356,7 +401,7 @@ public class QueryWbpDatabaseDialog extends javax.swing.JDialog
         });
 
         jLabel2.setFont(jLabel2.getFont().deriveFont(jLabel2.getFont().getSize()-2f));
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel2, org.openide.util.NbBundle.getMessage(QueryWbpDatabaseDialog.class, "QueryWbpDatabaseDialog.jLabel2.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel2, org.openide.util.NbBundle.getMessage(WbpDatabaseExplorerDialog.class, "WbpDatabaseExplorerDialog.jLabel2.text")); // NOI18N
 
         tbl_wbpSources.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][]
@@ -374,11 +419,11 @@ public class QueryWbpDatabaseDialog extends javax.swing.JDialog
         tbl_wbpSources.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_NEXT_COLUMN);
         jScrollPane1.setViewportView(tbl_wbpSources);
 
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel3, org.openide.util.NbBundle.getMessage(QueryWbpDatabaseDialog.class, "QueryWbpDatabaseDialog.jLabel3.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel3, org.openide.util.NbBundle.getMessage(WbpDatabaseExplorerDialog.class, "WbpDatabaseExplorerDialog.jLabel3.text")); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_info, org.openide.util.NbBundle.getMessage(QueryWbpDatabaseDialog.class, "QueryWbpDatabaseDialog.lbl_info.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_info, org.openide.util.NbBundle.getMessage(WbpDatabaseExplorerDialog.class, "WbpDatabaseExplorerDialog.lbl_info.text")); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_update, org.openide.util.NbBundle.getMessage(QueryWbpDatabaseDialog.class, "QueryWbpDatabaseDialog.btn_update.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_update, org.openide.util.NbBundle.getMessage(WbpDatabaseExplorerDialog.class, "WbpDatabaseExplorerDialog.btn_update.text")); // NOI18N
         btn_update.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -388,7 +433,7 @@ public class QueryWbpDatabaseDialog extends javax.swing.JDialog
         });
 
         buttonGroup1.add(rb_rootProfile);
-        org.openide.awt.Mnemonics.setLocalizedText(rb_rootProfile, org.openide.util.NbBundle.getMessage(QueryWbpDatabaseDialog.class, "QueryWbpDatabaseDialog.rb_rootProfile.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(rb_rootProfile, org.openide.util.NbBundle.getMessage(WbpDatabaseExplorerDialog.class, "WbpDatabaseExplorerDialog.rb_rootProfile.text")); // NOI18N
         rb_rootProfile.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -399,7 +444,7 @@ public class QueryWbpDatabaseDialog extends javax.swing.JDialog
 
         buttonGroup1.add(rb_rpChordTypes);
         rb_rpChordTypes.setSelected(true);
-        org.openide.awt.Mnemonics.setLocalizedText(rb_rpChordTypes, org.openide.util.NbBundle.getMessage(QueryWbpDatabaseDialog.class, "QueryWbpDatabaseDialog.rb_rpChordTypes.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(rb_rpChordTypes, org.openide.util.NbBundle.getMessage(WbpDatabaseExplorerDialog.class, "WbpDatabaseExplorerDialog.rb_rpChordTypes.text")); // NOI18N
         rb_rpChordTypes.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -506,7 +551,7 @@ public class QueryWbpDatabaseDialog extends javax.swing.JDialog
 
     private void tf_bar1ActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tf_bar1ActionPerformed
     {//GEN-HEADEREND:event_tf_bar1ActionPerformed
-         doUpdate();
+        doUpdate();
     }//GEN-LAST:event_tf_bar1ActionPerformed
 
     private void btn_updateActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_updateActionPerformed
@@ -516,17 +561,17 @@ public class QueryWbpDatabaseDialog extends javax.swing.JDialog
 
     private void tf_bar0ActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tf_bar0ActionPerformed
     {//GEN-HEADEREND:event_tf_bar0ActionPerformed
-         doUpdate();
+        doUpdate();
     }//GEN-LAST:event_tf_bar0ActionPerformed
 
     private void tf_bar2ActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tf_bar2ActionPerformed
     {//GEN-HEADEREND:event_tf_bar2ActionPerformed
-          doUpdate();
+        doUpdate();
     }//GEN-LAST:event_tf_bar2ActionPerformed
 
     private void tf_bar3ActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tf_bar3ActionPerformed
     {//GEN-HEADEREND:event_tf_bar3ActionPerformed
-          doUpdate();
+        doUpdate();
     }//GEN-LAST:event_tf_bar3ActionPerformed
 
     private void rb_rootProfileActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_rb_rootProfileActionPerformed

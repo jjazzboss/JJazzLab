@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -46,8 +45,8 @@ import org.openide.util.Exceptions;
 /**
  * The walking bass phrases database.
  * <p>
- * Contains WbpSource phrases of 1, 2 or 4 bars. Note that the 3 * 2-bar subphrases that compose each 4-bar phrase are also found in the database. Same for the
- * 4 or 2 * 1-bar subphrases of a 4 or 2-bar phrase.
+ * Contains WbpSource phrases of 1, 2 or 4 bars. Note that the 3 * 2-bar subphrases that compose each 4-bar phrase are also found in the database.
+ * Same for the 4 or 2 * 1-bar subphrases of a 4 or 2-bar phrase.
  * <p>
  * Example: If we have Cm7-F7-E7-Em7 in the database, then we also have Cm7-F7, F7-E7, E7-Em7, Cm7, F7, E7, Em7 phrases in the database.
  */
@@ -119,7 +118,7 @@ public class WbpDatabase
 
     /**
      * Perform various checks on the database.
-     *
+     * <p>
      */
     public void checkConsistency()
     {
@@ -156,6 +155,25 @@ public class WbpDatabase
     }
 
     /**
+     * Get the sub-WbpSources of a given WbpSource.
+     * <p>
+     * For example there are 5 sub-WbpSources in a 3-bar WbpSource: 2 x 2-bar + 3 x 1-bar WbpSources.
+     *
+     * @param wbps
+     * @param size Return sub-WbpSources of this size. If -1 return all possible sizes.
+     * @return Can be an empty list (e.g. if wbps size is 1)
+     */
+    public List<WbpSource> getSubWbpSources(WbpSource wbps, int size)
+    {
+        String sId = wbps.getSessionId();
+        IntRange br = wbps.getBarRangeInSession();
+        var res = getWbpSources(w -> w.getSessionId() == sId
+            && (size < 0 || w.getBarRange().size() == size)
+            && br.contains(w.getBarRangeInSession()));
+        return res;
+    }
+
+    /**
      * Get the 1-bar WbpSources which uses the specified basic ChordType.
      * <p>
      *
@@ -187,15 +205,16 @@ public class WbpDatabase
                 return res;
             }
             res = wbpSources.stream()
-                    .filter(tester)
-                    .toList();
+                .filter(tester)
+                .toList();
             mapFilterSources.put(dbTester, res);
             return res;
-        } else
+        }
+        else
         {
             return wbpSources.stream()
-                    .filter(tester)
-                    .toList();
+                .filter(tester)
+                .toList();
         }
     }
 
@@ -243,8 +262,8 @@ public class WbpDatabase
      * - Markers "C7", "Ebm7", etc. <br>
      * - Midi notes must use only 1 channel<br>
      * <p>
-     * The target note of a session is by default the root of the 1st chord symbol of the section (the closest root of the last session note), unless it is
-     * specified via a "tn" session tag with this form: #tn=pitch, e.g. "#tn=36" for Midi note C1.
+     * The target note of a session is by default the root of the 1st chord symbol of the section (the closest root of the last session note), unless
+     * it is specified via a "tn" session tag with this form: #tn=pitch, e.g. "#tn=36" for Midi note C1.
      *
      * @param midiFileResourcePath
      * @param ts
@@ -268,9 +287,9 @@ public class WbpDatabase
         for (Track track : sequence.getTracks())
         {
             var events = MidiUtilities.getMidiEvents(track,
-                    MetaMessage.class,
-                    me -> me.getType() == MidiConst.META_MARKER,
-                    null);
+                MetaMessage.class,
+                me -> me.getType() == MidiConst.META_MARKER,
+                null);
             events = MidiUtilities.getMidiEventsAtPPQ(events, seqResolution, MidiConst.PPQ_RESOLUTION);
             markerEvents.addAll(events);
         }
@@ -278,7 +297,7 @@ public class WbpDatabase
 
 
         // Sort markers: first session name "_xxx", then tags "#xxx", then chord symbols
-        markerEvents.sort((left, right) -> 
+        markerEvents.sort((left, right) ->
         {
             int c = Long.compare(left.getTick(), right.getTick());
             if (c == 0)
@@ -289,17 +308,21 @@ public class WbpDatabase
                 {
                     c = -1;
                     assert strRight.charAt(0) != '_' : "tick=" + left.getTick();
-                } else if (strRight.charAt(0) == '_')
+                }
+                else if (strRight.charAt(0) == '_')
                 {
                     c = 1;
                     assert strLeft.charAt(0) != '_' : "tick=" + left.getTick();
-                } else if (strLeft.charAt(0) == '#')
+                }
+                else if (strLeft.charAt(0) == '#')
                 {
                     c = -1;
-                } else if (strRight.charAt(0) == '#')
+                }
+                else if (strRight.charAt(0) == '#')
                 {
                     c = 1;
-                } else
+                }
+                else
                 {
                     // Nothing
                 }
@@ -334,9 +357,9 @@ public class WbpDatabase
 
             // Extract all tag strings, convert to lowercase
             var sessionTags = markerEvents.stream()
-                    .filter(me -> me.getTick() == startPosInTicks && MidiUtilities.getText(me).startsWith("#"))
-                    .map(me -> MidiUtilities.getText(me).substring(1).trim().toLowerCase())
-                    .toList();
+                .filter(me -> me.getTick() == startPosInTicks && MidiUtilities.getText(me).startsWith("#"))
+                .map(me -> MidiUtilities.getText(me).substring(1).trim().toLowerCase())
+                .toList();
 
 
             // Is there a target note defined ?
@@ -350,17 +373,17 @@ public class WbpDatabase
 
             // The chord symbols
             var sessionChords = markerEvents.stream()
-                    .filter(me -> 
+                .filter(me ->
+                {
+                    boolean b = false;
+                    if (sessionRange.contains(me.getTick()))
                     {
-                        boolean b = false;
-                        if (sessionRange.contains(me.getTick()))
-                        {
-                            char c = MidiUtilities.getText(me).charAt(0);
-                            b = c >= 'A' && c <= 'G';
-                        }
-                        return b;
-                    })
-                    .toList();
+                        char c = MidiUtilities.getText(me).charAt(0);
+                        b = c >= 'A' && c <= 'G';
+                    }
+                    return b;
+                })
+                .toList();
 
 
             // Get the size of the session
@@ -412,7 +435,8 @@ public class WbpDatabase
             {
                 throw new IOException("Midi stream does not use PPQ division");
             }
-        } catch (IOException | InvalidMidiDataException ex)
+        }
+        catch (IOException | InvalidMidiDataException ex)
         {
             Exceptions.printStackTrace(ex);
         }
@@ -431,7 +455,8 @@ public class WbpDatabase
             try
             {
                 ecs = ExtChordSymbol.get(txt);
-            } catch (ParseException ex)
+            }
+            catch (ParseException ex)
             {
                 Exceptions.printStackTrace(ex);
             }

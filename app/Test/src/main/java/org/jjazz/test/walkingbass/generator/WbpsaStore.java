@@ -43,29 +43,30 @@ import org.jjazz.utilities.api.IntRange;
 public class WbpsaStore
 {
 
-    public final int SIZE_MIN = 1, SIZE_MAX = 4;
-    private final SimpleChordSequence simpleChordSequence;
+    public final static int SIZE_MIN = 1, SIZE_MAX = 4;
+    private final SimpleChordSequenceExt simpleChordSequenceExt;
     /**
      * [0] not used, [1] for size=1 bar, ... [4] for size=4 bars.
      */
-    private final SortedSetMultimap<Integer, WbpSourceAdaptation>[] mmapWbpsAdaptations = new SortedSetMultimap[SIZE_MAX];
+    private final SortedSetMultimap<Integer, WbpSourceAdaptation>[] mmapWbpsAdaptations = new SortedSetMultimap[SIZE_MAX + 1];
     private final int nbBestMax;
     private static final Logger LOGGER = Logger.getLogger(WbpsaStore.class.getSimpleName());
 
     /**
      * Create a WbpsaStore for the specified chord sequence.
      *
-     * @param scs       scs
+     * @param scse
      * @param nbBestMax Max number of WbpSourceAdaptations kept for a bar
      */
-    public WbpsaStore(SimpleChordSequence scs, int nbBestMax)
+    public WbpsaStore(SimpleChordSequenceExt scse, int nbBestMax)
     {
-        this.simpleChordSequence = scs;
+        this.simpleChordSequenceExt = scse;
+
         for (int size = SIZE_MIN; size <= SIZE_MAX; size++)
         {
             mmapWbpsAdaptations[size] = MultimapBuilder.treeKeys()
-                    .treeSetValues() // No need a custom Comparator because WbpSourceAdatpation uses a natural order by DESCENDING score
-                    .build();
+                .treeSetValues() // Don't need a custom Comparator because WbpSourceAdatpation uses a natural order by DESCENDING score
+                .build();
         }
         this.nbBestMax = nbBestMax;
 
@@ -77,8 +78,9 @@ public class WbpsaStore
         return nbBestMax;
     }
 
+
     /**
-     * Get the best WbpSourceAdaptations for specified bar and size, ordered by descending compatibility.
+     * Get the WbpSourceAdaptations for specified bar and size, ordered by descending compatibility.
      *
      * @param bar  Must be a usable bar
      * @param size The size in bars of returned WbpSourceAdaptations
@@ -86,7 +88,7 @@ public class WbpsaStore
      */
     public List<WbpSourceAdaptation> getWbpSourceAdaptations(int bar, int size)
     {
-        Preconditions.checkArgument(simpleChordSequence.getBarRange().contains(bar), "bar=%s", bar);
+        Preconditions.checkArgument(simpleChordSequenceExt.getBarRange().contains(bar), "bar=%s", bar);
         Preconditions.checkArgument(size >= SIZE_MIN && size <= SIZE_MAX, "size=%s", size);
         SortedSet<WbpSourceAdaptation> res = mmapWbpsAdaptations[size].get(bar);
         return new ArrayList<>(res);
@@ -107,7 +109,7 @@ public class WbpsaStore
         Preconditions.checkArgument(rank >= 0);
         Preconditions.checkArgument(size >= SIZE_MIN && size <= SIZE_MAX, "size=%s", size);
         List<WbpSourceAdaptation> res = new ArrayList<>();
-        for (int bar : simpleChordSequence.getBarRange())
+        for (int bar : simpleChordSequenceExt.getBarRange())
         {
             List<WbpSourceAdaptation> wbpsas = getWbpSourceAdaptations(bar, size);
             if (!wbpsas.isEmpty())
@@ -122,7 +124,7 @@ public class WbpsaStore
 
     public void dump(int size)
     {
-        for (int bar : simpleChordSequence.getBarRange())
+        for (int bar : simpleChordSequenceExt.getBarRange())
         {
             var wbpsas = getWbpSourceAdaptations(bar, size);
             String firstStr = "";
@@ -135,8 +137,8 @@ public class WbpsaStore
                 String.format("%1$03d", bar), firstStr
             });
             wbpsas.stream()
-                    .skip(1)
-                    .forEach(wbpsa -> LOGGER.log(Level.INFO, "     {0}", wbpsa));
+                .skip(1)
+                .forEach(wbpsa -> LOGGER.log(Level.INFO, "     {0}", wbpsa));
         }
     }
 
@@ -149,20 +151,17 @@ public class WbpsaStore
      */
     private void initialize()
     {
-        var barRange = simpleChordSequence.getBarRange();
-
-        for (int bar : barRange)
+        for (int bar : simpleChordSequenceExt.getUsableBars())
         {
             for (int size = SIZE_MIN; size <= SIZE_MAX; size++)
             {
                 IntRange br = new IntRange(bar, bar + size - 1);
-
-                if (!barRange.contains(br))
+                if (!simpleChordSequenceExt.isUsable(br))
                 {
                     break;
                 }
 
-                SimpleChordSequence subSeq = simpleChordSequence.subSequence(br, true);
+                SimpleChordSequence subSeq = simpleChordSequenceExt.subSequence(br, true);
                 List<WbpSource> rpWbpSources = getRootProfileCompatibleWbpSources(subSeq);
                 for (WbpSource wbpSource : rpWbpSources)
                 {
@@ -172,7 +171,7 @@ public class WbpsaStore
 
                 if (rpWbpSources.isEmpty())
                 {
-                    LOGGER.log(Level.FINE, "initialize() No {0}-bar rpSources found for {1}", new Object[]
+                    LOGGER.log(Level.WARNING, "initialize() No {0}-bar rpSources found for {1}", new Object[]
                     {
                         size, subSeq
                     });

@@ -39,21 +39,26 @@ import org.jjazz.test.walkingbass.WbpSource;
 public class TilerMostCompatibleFirst implements Tiler
 {
 
+    public static final int MAX_NB_BEST_ADAPTATIONS = 5;
     /**
      * Count how many time a WbpSource is used.
      */
     private final Map<WbpSource, Integer> mapSourceCount;
+    private final int size;
+    
 
-    public TilerMostCompatibleFirst()
+    public TilerMostCompatibleFirst(int size)
     {
+        this.size= size;
         this.mapSourceCount = new HashMap<>();
     }
 
 
     @Override
-    public void tile(WbpTiling tiling, BestWbpsaStore store)
+    public void tile(WbpTiling tiling)
     {
-        clearState();
+        var scse = tiling.getSimpleChordSequenceExt();
+        BestWbpsaStoreOLD store = new BestWbpsaStoreOLD(scse, scse.getUsableBars(), size, MAX_NB_BEST_ADAPTATIONS);
 
         boolean tiled;
 
@@ -62,7 +67,7 @@ public class TilerMostCompatibleFirst implements Tiler
             tiled = false;
             resetWbpSourceCount();
 
-            for (int rank = 0; rank < WbpTiling.MAX_NB_BEST_ADAPTATIONS; rank++)
+            for (int rank = 0; rank < MAX_NB_BEST_ADAPTATIONS; rank++)
             {
                 List<WbpSourceAdaptation> wbpsasOrderedByScore = store.getWbpSourceAdaptationsRanked(rank);
                 Collections.sort(wbpsasOrderedByScore);         // Descending score
@@ -88,11 +93,6 @@ public class TilerMostCompatibleFirst implements Tiler
     // ===============================================================================================================
     // Private methods
     // ===============================================================================================================
-
-    private void clearState()
-    {
-        resetWbpSourceCount();
-    }
 
     private void resetWbpSourceCount()
     {

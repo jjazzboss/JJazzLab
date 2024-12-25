@@ -23,13 +23,11 @@
 package org.jjazz.test.walkingbass;
 
 import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.openide.awt.ActionID;
@@ -41,7 +39,7 @@ import org.openide.awt.ActionRegistration;
  * For debug purposes...
  */
 @ActionID(category = "JJazz", id = "org.jjazz.test.DumpWbpDatabaseAction")
-@ActionRegistration(displayName = "Dump WbpDatabase")
+@ActionRegistration(displayName = "WbpDatabase Explorer")
 @ActionReferences(
         {
             @ActionReference(path = "Menu/Edit", position = 60000)
@@ -56,19 +54,8 @@ public final class DumpWbpDatabaseAction implements ActionListener
     {
         LOGGER.log(Level.INFO, "DumpWbpDatabaseAction.actionPerformed() --");
         
-        var dlg = new QueryWbpDatabaseDialog();
+        var dlg = new WbpDatabaseExplorerDialog(false);
         dlg.setVisible(true);
-        
-        var wbpdb = WbpDatabase.getInstance();
-        // wbpdb.dump();
-
-        // dumpWbpSourcesPerRootProfile();
-        
-//        for (var wbps : wbpdb.getWbpSources(4))
-//        {
-//            LOGGER.info(wbps.toString());
-//        }
-
     }
 
     private void dumpWbpSourcesPerRootProfile()

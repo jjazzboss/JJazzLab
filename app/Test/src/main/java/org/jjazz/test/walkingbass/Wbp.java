@@ -22,11 +22,11 @@ public class Wbp
     private final Note targetNote;
     private WbpStats stats;
     private static final Logger LOGGER = Logger.getLogger(Wbp.class.getSimpleName());
-    
+
     /**
      *
-     * @param cSeq       Must have a chord at beginning and use only one time signature
-     * @param phrase     Can not be empty
+     * @param cSeq       Must start at bar 0, must have a chord at beginning and use only one time signature
+     * @param phrase     Can not be empty, must start at beat 0
      * @param targetNote
      */
     public Wbp(SimpleChordSequence cSeq, SizedPhrase phrase, Note targetNote)
@@ -35,11 +35,12 @@ public class Wbp
         checkNotNull(cSeq);
         checkNotNull(phrase);
         checkArgument(cSeq.getBarRange().size() == (int) Math.round(phrase.getBeatRange().size() / phrase.getTimeSignature().getNbNaturalBeats())
-                && phrase.getBeatRange().from == 0
-                && !phrase.isEmpty()
-                && cSeq.hasChordAtBeginning()
-                && cSeq.getTimeSignature().equals(phrase.getTimeSignature()),
-                "cSeq=%s phrase=%s", cSeq, phrase);
+            && phrase.getBeatRange().from == 0
+            && !phrase.isEmpty()
+            && cSeq.getBarRange().from == 0
+            && cSeq.hasChordAtBeginning()
+            && cSeq.getTimeSignature().equals(phrase.getTimeSignature()),
+            "cSeq=%s phrase=%s", cSeq, phrase);
 
         this.chordSequence = cSeq;
         this.sizedPhrase = phrase;
@@ -90,6 +91,11 @@ public class Wbp
         return targetNote;
     }
 
+    /**
+     * The bar range starting at bar 0.
+     *
+     * @return
+     */
     public IntRange getBarRange()
     {
         return chordSequence.getBarRange();
@@ -100,6 +106,11 @@ public class Wbp
         return sizedPhrase.getTimeSignature();
     }
 
+    /**
+     * The beat range starting at beat 0.
+     *
+     * @return
+     */
     public FloatRange getBeatRange()
     {
         return sizedPhrase.getBeatRange();
@@ -111,16 +122,16 @@ public class Wbp
     {
         final int NB_CHORDS_MAX = 4;
         return "rg=" + chordSequence.getBarRange() + " chords=" + chordSequence.stream().limit(NB_CHORDS_MAX).toList()
-                + (chordSequence.size() > NB_CHORDS_MAX ? "..." : "");
+            + (chordSequence.size() > NB_CHORDS_MAX ? "..." : "");
     }
 
     public String toLongString()
     {
         final int NB_NOTES_MAX = 5;
         return "cSeq=" + chordSequence
-                + " rp=" + chordSequence.getRootProfile()
-                + " rg=" + sizedPhrase.getBeatRange()
-                + " p=" + sizedPhrase.stream().limit(NB_NOTES_MAX).toList() + (sizedPhrase.size() > NB_NOTES_MAX ? "..." : "");
+            + " rp=" + chordSequence.getRootProfile()
+            + " rg=" + sizedPhrase.getBeatRange()
+            + " p=" + sizedPhrase.stream().limit(NB_NOTES_MAX).toList() + (sizedPhrase.size() > NB_NOTES_MAX ? "..." : "");
     }
 
 }

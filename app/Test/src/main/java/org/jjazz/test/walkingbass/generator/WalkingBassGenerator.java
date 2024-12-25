@@ -43,8 +43,8 @@ public class WalkingBassGenerator implements MusicGenerator
     public WalkingBassGenerator(Rhythm r)
     {
         Preconditions.checkArgument(RP_STD_Variation.getVariationRp(r) != null
-                && RP_STD_Intensity.getIntensityRp(r) != null,
-                "r=%s", r);
+            && RP_STD_Intensity.getIntensityRp(r) != null,
+            "r=%s", r);
         rhythm = r;
     }
 
@@ -135,26 +135,24 @@ public class WalkingBassGenerator implements MusicGenerator
 
         // Make one big SimpleChordSequence per rpValue: this will let us control "which pattern is used where" at the song level
         var usedRpValues = splitResults.stream()
-                .map(sr -> sr.rpValue())
-                .collect(Collectors.toSet());
+            .map(sr -> sr.rpValue())
+            .collect(Collectors.toSet());
         for (var rpValue : usedRpValues)
         {
             SimpleChordSequenceExt mergedScs = null;
-            List<Integer> usableBars = new ArrayList<>();
 
             for (var splitResult : splitResults.stream().filter(sr -> sr.rpValue().equals(rpValue)).toList())
             {
                 // Merge to current SimpleChordSequence
-                var scs = new SimpleChordSequenceExt(splitResult.simpleChordSequence());
-                mergedScs = mergedScs == null ? scs : mergedScs.merge(scs);
-                usableBars.addAll(scs.getBarRange().stream().boxed().toList());
+                var scs = new SimpleChordSequenceExt(splitResult.simpleChordSequence(), true);
+                mergedScs = mergedScs == null ? scs : mergedScs.getMerged(scs, true);
             }
 
             assert mergedScs != null : "splitResults=" + splitResults + " usedRpValues=" + usedRpValues;
-
             // We have our big SimpleChordSequenceExt, generate the walking bass for it
-            mergedScs.setUsableBars(usableBars);
             mergedScs.removeRedundantChords();
+
+
             var phrase = getBassPhrase(mergedScs, rpValue);
             res.add(phrase);
         }
@@ -164,7 +162,7 @@ public class WalkingBassGenerator implements MusicGenerator
     }
 
     /**
-     * Get the bass phrase from the specified SimpleChordSequenceExt.
+     * Get the bass phrase from a SimpleChordSequenceExt.
      *
      * @param scs
      * @param rpVariationValue
@@ -181,14 +179,19 @@ public class WalkingBassGenerator implements MusicGenerator
         Phrase res = new Phrase(0);             // channel useless here
 
 
-        // Tile scs with WbpSources
         WbpTiling tiling = new WbpTiling(scs);
-        tiling.tileAll(new TilerOneOutOfX2(0.20f, 1000));
+        var tiler = new TilerOneOutOfX(0.2f, 3);
+        tiler.tile(tiling);
         if (!tiling.isCompletlyTiled())
         {
-            LOGGER.log(Level.SEVERE, "getBassPhrase() =============== tiling is NOT complete, aborted: tiling={0}", tiling.toMultiLineString());
+            LOGGER.log(Level.SEVERE, "getBassPhrase() =============== tiling is NOT complete !!");
             // return res;
         }
+
+
+        LOGGER.log(Level.SEVERE, "getBassPhrase() ================  tiling=\n{0}", tiling.toMultiLineString());
+
+        LOGGER.log(Level.SEVERE, "getBassPhrase() ============   Tiling stats=\n{0}", tiling.toStatsString());
 
         // Transpose WbpSources to target phrases
         for (var wbpsa : tiling.getWbpSourceAdaptations())

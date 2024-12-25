@@ -212,7 +212,8 @@ public class IntRange implements Iterable<Integer>
         if (value < from)
         {
             res = from;
-        } else if (value > to)
+        }
+        else if (value > to)
         {
             res = to;
         }
@@ -233,7 +234,8 @@ public class IntRange implements Iterable<Integer>
         if (isEmpty())
         {
             return this;
-        } else
+        }
+        else
         {
             return new IntRange(from + fromOffset, to + toOffset);
         }
@@ -322,7 +324,7 @@ public class IntRange implements Iterable<Integer>
     private class MyIterator implements Iterator<Integer>
     {
 
-        private int index = from;
+        private int index = from - 1;
 
         @Override
         public boolean hasNext()
@@ -333,7 +335,8 @@ public class IntRange implements Iterable<Integer>
         @Override
         public Integer next()
         {
-            return index++;
+            index++;
+            return index;
         }
 
         @Override

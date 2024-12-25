@@ -40,14 +40,14 @@ import org.jjazz.utilities.api.IntRange;
 /**
  * Store the best WbpSourceAdaptations for some usable bars of a SimpleChordSequenceExt.
  */
-public class BestWbpsaStore
+public class BestWbpsaStoreOLD
 {
     private final SimpleChordSequenceExt simpleChordSequenceExt;
     private final List<Integer> usableBars;
     private final SortedSetMultimap<Integer, WbpSourceAdaptation> mmapWbpsAdaptations;
     private final int wbpSourceSize;
     private final int nbBestMax;
-    private static final Logger LOGGER = Logger.getLogger(BestWbpsaStore.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(BestWbpsaStoreOLD.class.getSimpleName());
 
     /**
      * Create a BestWbpsaStore.
@@ -57,7 +57,7 @@ public class BestWbpsaStore
      * @param size       Size of the WbpSources
      * @param nbBestMax  Max number of WbpSourceAdaptations kept for a bar
      */
-    public BestWbpsaStore(SimpleChordSequenceExt scs, List<Integer> usableBars, int size, int nbBestMax)
+    public BestWbpsaStoreOLD(SimpleChordSequenceExt scs, List<Integer> usableBars, int size, int nbBestMax)
     {
         Preconditions.checkArgument(usableBars.stream().allMatch(b -> scs.isUsable(b)), "scs=%s, usableBars=%s size=%s", scs, usableBars, size);
         this.simpleChordSequenceExt = scs;

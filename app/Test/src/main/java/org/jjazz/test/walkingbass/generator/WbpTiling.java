@@ -25,14 +25,16 @@
 package org.jjazz.test.walkingbass.generator;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.MultimapBuilder;
+import com.google.common.collect.SortedSetMultimap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.Predicate;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
+import org.jjazz.test.walkingbass.WbpSource;
 import org.jjazz.utilities.api.IntRange;
 
 /**
@@ -42,7 +44,6 @@ import org.jjazz.utilities.api.IntRange;
 public class WbpTiling
 {
 
-    public static final int MAX_NB_BEST_ADAPTATIONS = 5;
     private final SimpleChordSequenceExt simpleChordSequenceExt;
     private final TreeMap<Integer, WbpSourceAdaptation> mapBarWbpsa;
     private static final Logger LOGGER = Logger.getLogger(WbpTiling.class.getSimpleName());
@@ -60,70 +61,75 @@ public class WbpTiling
         return simpleChordSequenceExt;
     }
 
+    public List<Integer> getUsableBars()
+    {
+        return simpleChordSequenceExt.getUsableBars();
+    }
+
     public IntRange getBarRange()
     {
         return simpleChordSequenceExt.getBarRange();
     }
 
-    /**
-     * Do the tiling using the specified tiler.
-     *
-     * @param tiler
-     */
-    public void tileAll(Tiler tiler)
-    {
-        // Build the store
-        tiler.tile(this);
-        
-        // For each bar, get the most compatible 4-bar WbpSources
-        var store4 = new BestWbpsaStore(simpleChordSequenceExt, simpleChordSequenceExt.getUsableBars(), 4, MAX_NB_BEST_ADAPTATIONS);
-        LOGGER.severe("store4:");
-        store4.dump();
-        // Tile with this store
-        tiler.tile(this, store4);
-        LOGGER.log(Level.SEVERE, "tile() 4-bar:");
-        LOGGER.log(Level.SEVERE, toMultiLineString());
-
-
-        // For each remaining 3-bar zone, get the most compatible 3-bar WbpSource
-        var usableBars3 = getNonTiledBars();
-        if (!usableBars3.isEmpty())
-        {
-            var store3 = new BestWbpsaStore(simpleChordSequenceExt, usableBars3, 3, MAX_NB_BEST_ADAPTATIONS);
-            LOGGER.severe("store3:");
-            store3.dump();
-            tiler.tile(this, store3);
-            LOGGER.log(Level.SEVERE, "tile() 3-bar:");
-            LOGGER.log(Level.SEVERE, toMultiLineString());
-        }
-
-
-        // For each remaining 2-bar zone, get the most compatible 2-bar WbpSource
-        var usableBars2 = getNonTiledBars();
-        if (!usableBars2.isEmpty())
-        {
-            var store2 = new BestWbpsaStore(simpleChordSequenceExt, usableBars2, 2, MAX_NB_BEST_ADAPTATIONS);
-            LOGGER.severe("store2:");
-            store2.dump();
-            tiler.tile(this, store2);
-            LOGGER.log(Level.SEVERE, "tile() 2-bar:");
-            LOGGER.log(Level.SEVERE, toMultiLineString());
-
-        }
-
-
-        // For each remaining 1-bar zone, get the most compatible 1-bar WbpSource
-        var usableBars1 = getNonTiledBars();
-        if (!usableBars1.isEmpty())
-        {
-            var store1 = new BestWbpsaStore(simpleChordSequenceExt, usableBars1, 1, MAX_NB_BEST_ADAPTATIONS);
-            LOGGER.severe("store1:");
-            store1.dump();
-            tiler.tile(this, store1);
-            LOGGER.log(Level.SEVERE, "tile() 1-bar:");
-            LOGGER.log(Level.SEVERE, toMultiLineString());
-        }
-    }
+//    /**
+//     * Do the tiling using the specified tiler.
+//     *
+//     * @param tiler
+//     */
+//    public void tileAll(Tiler tiler)
+//    {
+//        // Build the store
+//        tiler.tile(this);
+//        
+//        // For each bar, get the most compatible 4-bar WbpSources
+//        var store4 = new BestWbpsaStoreOLD(simpleChordSequenceExt, simpleChordSequenceExt.getUsableBars(), 4, MAX_NB_BEST_ADAPTATIONS);
+//        LOGGER.severe("store4:");
+//        store4.dump();
+//        // Tile with this store
+//        tiler.tile(this, store4);
+//        LOGGER.log(Level.SEVERE, "tile() 4-bar:");
+//        LOGGER.log(Level.SEVERE, toMultiLineString());
+//
+//
+//        // For each remaining 3-bar zone, get the most compatible 3-bar WbpSource
+//        var usableBars3 = getNonTiledBars();
+//        if (!usableBars3.isEmpty())
+//        {
+//            var store3 = new BestWbpsaStoreOLD(simpleChordSequenceExt, usableBars3, 3, MAX_NB_BEST_ADAPTATIONS);
+//            LOGGER.severe("store3:");
+//            store3.dump();
+//            tiler.tile(this, store3);
+//            LOGGER.log(Level.SEVERE, "tile() 3-bar:");
+//            LOGGER.log(Level.SEVERE, toMultiLineString());
+//        }
+//
+//
+//        // For each remaining 2-bar zone, get the most compatible 2-bar WbpSource
+//        var usableBars2 = getNonTiledBars();
+//        if (!usableBars2.isEmpty())
+//        {
+//            var store2 = new BestWbpsaStoreOLD(simpleChordSequenceExt, usableBars2, 2, MAX_NB_BEST_ADAPTATIONS);
+//            LOGGER.severe("store2:");
+//            store2.dump();
+//            tiler.tile(this, store2);
+//            LOGGER.log(Level.SEVERE, "tile() 2-bar:");
+//            LOGGER.log(Level.SEVERE, toMultiLineString());
+//
+//        }
+//
+//
+//        // For each remaining 1-bar zone, get the most compatible 1-bar WbpSource
+//        var usableBars1 = getNonTiledBars();
+//        if (!usableBars1.isEmpty())
+//        {
+//            var store1 = new BestWbpsaStoreOLD(simpleChordSequenceExt, usableBars1, 1, MAX_NB_BEST_ADAPTATIONS);
+//            LOGGER.severe("store1:");
+//            store1.dump();
+//            tiler.tile(this, store1);
+//            LOGGER.log(Level.SEVERE, "tile() 1-bar:");
+//            LOGGER.log(Level.SEVERE, toMultiLineString());
+//        }
+//    }
 
     /**
      * Remove the specified WbpSourceAdaptation.
@@ -154,7 +160,7 @@ public class WbpTiling
      * Add a WbpSourceAdaptation.
      * <p>
      * @param wbpsa
-     * @throws IllegalArgumentException If wbpsa's bar zone is not empty or usable.
+     * @throws IllegalArgumentException If wbpsa's bar zone is not empty nor usable.
      */
     public void add(WbpSourceAdaptation wbpsa)
     {
@@ -186,8 +192,8 @@ public class WbpTiling
     public List<WbpSourceAdaptation> getWbpSourceAdaptations(Predicate<WbpSourceAdaptation> tester)
     {
         var res = mapBarWbpsa.values().stream()
-                .filter(wbpsa -> tester.test(wbpsa))
-                .toList();
+            .filter(wbpsa -> tester.test(wbpsa))
+            .toList();
         return res;
     }
 
@@ -269,14 +275,14 @@ public class WbpTiling
         {
             var br = wbpsa.getBarRange();
             IntStream.range(bar, br.from)
-                    .filter(b -> simpleChordSequenceExt.isUsable(b))
-                    .forEachOrdered(b -> res.add(b));
+                .filter(b -> simpleChordSequenceExt.isUsable(b))
+                .forEachOrdered(b -> res.add(b));
             bar = br.to + 1;
         }
         // Add the last range
         IntStream.rangeClosed(bar, barRange.to)
-                .filter(b -> simpleChordSequenceExt.isUsable(b))
-                .forEachOrdered(b -> res.add(b));
+            .filter(b -> simpleChordSequenceExt.isUsable(b))
+            .forEachOrdered(b -> res.add(b));
         return res;
     }
 
@@ -347,23 +353,59 @@ public class WbpTiling
         return mapBarWbpsa.toString();
     }
 
- public String toMultiLineString()
+    /**
+     * Display stats about used WbpSources in this tiling.
+     *
+     * @return
+     */
+    public String toStatsString()
+    {
+        // Show how often each WbpSource is used, starting by the most used
+        SortedSetMultimap<WbpSource, Integer> mapSourceBars = MultimapBuilder.hashKeys().treeSetValues().build();
+        for (var wbpsa : mapBarWbpsa.values())
+        {
+            var source = wbpsa.getWbpSource();
+            mapSourceBars.put(source, wbpsa.getBarRange().from);
+        }
+
+        
+        // Sort sources per descending number of uses
+        List<WbpSource> sortedSources = new ArrayList<>(mapSourceBars.keySet());
+        sortedSources.sort((s1, s2) -> Integer.compare(mapSourceBars.get(s2).size(), mapSourceBars.get(s1).size()));
+
+
+        StringBuilder sb = new StringBuilder();
+        for (var source : sortedSources)
+        {
+            sb.append(source.toString()).append(": ").append(mapSourceBars.get(source).toString()).append("\n");
+        }
+
+        return sb.toString();
+    }
+
+    /**
+     * Display which Wbpsa for which bar.
+     *
+     * @return
+     */
+    public String toMultiLineString()
     {
         StringBuilder sb = new StringBuilder();
-        for (int bar : simpleChordSequenceExt.getUsableBars())
+        for (int bar : getUsableBars())
         {
             String s = "";
             var wbpsaStart = getWbpSourceAdaptationStartingAt(bar);
             if (wbpsaStart != null)
             {
                 s = wbpsaStart.toString();
-            } else if (getWbpSourceAdaptation(bar) != null)
+            }
+            else if (getWbpSourceAdaptation(bar) != null)
             {
                 s = "  (repeat)";
             }
             sb.append(" ").append(String.format("%1$03d", bar)).append(": ").append(s).append("\n");
         }
-        
+
         return sb.toString();
     }
 

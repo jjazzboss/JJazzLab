@@ -192,7 +192,8 @@ public class SimpleChordSequence extends ChordSequence
             {
                 it.remove();
                 changed = true;
-            } else
+            }
+            else
             {
                 lastEcs = ecs;
             }
@@ -218,8 +219,8 @@ public class SimpleChordSequence extends ChordSequence
      * A String which combines the chord sequence size, the relative chord root ascending intervals+durations, to allow a quick comparison between 2
      * SimpleChordSequences.
      * <p>
-     * If 2 root profiles of 2 SimpleChordSequences are equal, it means that the 2 ChordSequences have the same size, same number of ChordSymbols at the same
-     * position, and that the root relative root ascending intervals are equals, like for e.g. |Dm|G7|C7M|%| and |E7|Am|Dm|%|.
+     * If 2 root profiles of 2 SimpleChordSequences are equal, it means that the 2 ChordSequences have the same size, same number of ChordSymbols at
+     * the same position, and that the root relative root ascending intervals are equals, like for e.g. |Dm|G7|C7M|%| and |E7|Am|Dm|%|.
      * <p>
      * Example: |Dm|G7|Ab7M|%| will produce "s4n3f0:a4i5:a4i1"  <br>
      * "s4" = size is 4 bars<br>
@@ -298,7 +299,8 @@ public class SimpleChordSequence extends ChordSequence
      * Uses the average of ChordType.getSimilarityIndex() run on each individual chord pair.
      *
      * @param cSeq                    Must have the same number (&gt;0) of chord symbols than this SimpleChordSequence.
-     * @param minChordSimilarityScore If compatibility score for an individual chord is &lt; this value, method will return 0 whatever the other chords.
+     * @param minChordSimilarityScore If compatibility score for an individual chord is &lt; this value, method will return 0 whatever the other
+     *                                chords.
      * @param acceptAbsentDegrees     See ChordType.getSimilarityScore()
      * @return
      * @see org.jjazz.harmony.api.ChordType#getSimilarityScore(org.jjazz.harmony.api.ChordType, boolean)
@@ -326,12 +328,15 @@ public class SimpleChordSequence extends ChordSequence
     }
 
     /**
-     * Merge scs with this SimpleChordSequence and return the result.
+     * Merge this SimpleChordSequence with scs into a new instance.
+     * <p>
+     * You might want to use removeRedundantChords() on the result.
      *
      * @param scs must have the same TimeSignature that this object.
-     * @return
+     * @return A new SimpleChordSequence instance
+     * @see #removeRedundantChords()
      */
-    public SimpleChordSequence merge(SimpleChordSequence scs)
+    public SimpleChordSequence getMerged(SimpleChordSequence scs)
     {
         Preconditions.checkArgument(scs.getTimeSignature() == timeSignature);
         IntRange newRange = scs.getBarRange().getUnion(getBarRange());

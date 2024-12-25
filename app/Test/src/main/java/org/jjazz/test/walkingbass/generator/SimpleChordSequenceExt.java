@@ -33,32 +33,68 @@ import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.utilities.api.IntRange;
 
 /**
- * A SimpleChordSequence extension which can define non-usable bars.
+ * A SimpleChordSequence extension which can define usable bars.
  */
 public class SimpleChordSequenceExt extends SimpleChordSequence
 {
 
     private final List<Integer> usableBars = new ArrayList<>();
 
-    public SimpleChordSequenceExt(SimpleChordSequence scs)
+    /**
+     * Build an object from a SimpleChordSequence.
+     *
+     * @param scs
+     * @param addUsableBars If true all bars from scs are considered usable
+     */
+    public SimpleChordSequenceExt(SimpleChordSequence scs, boolean addUsableBars)
     {
         super(scs.getBarRange(), scs.getTimeSignature());
         addAll(scs);
+        if (addUsableBars)
+        {
+            usableBars.addAll(scs.getBarRange().stream().boxed().toList());
+        }
     }
 
-    private SimpleChordSequenceExt(IntRange barRange, TimeSignature timeSignature)
+    /**
+     * Build an object.
+     *
+     * @param scs
+     * @param addUsableBars If true all bars from barRange are considered usable
+     */
+    private SimpleChordSequenceExt(IntRange barRange, TimeSignature timeSignature, boolean addUsableBars)
     {
         super(barRange, timeSignature);
+        if (addUsableBars)
+        {
+            usableBars.addAll(barRange.stream().boxed().toList());
+        }
     }
 
-    @Override
-    public SimpleChordSequenceExt merge(SimpleChordSequence scs)
+
+    /**
+     * Merge this SimpleChordSequenceExt with scs into a new instance.
+     * <p>
+     * You might want to use removeRedundantChords() on the result.
+     *
+     * @param scs           must have the same TimeSignature that this object.
+     * @param addUsableBars If true the added bars are considered new usable bars.
+     * @return A new SimpleChordSequenceExt instance
+     * @see #removeRedundantChords()
+     */
+    public SimpleChordSequenceExt getMerged(SimpleChordSequence scs, boolean addUsableBars)
     {
-        Preconditions.checkArgument(scs.getTimeSignature() == getTimeSignature());
+        Preconditions.checkArgument(scs.getTimeSignature() == getTimeSignature(), "scs.ts=%s this.ts=%s", scs.getTimeSignature(), getTimeSignature());
         IntRange newRange = scs.getBarRange().getUnion(getBarRange());
-        SimpleChordSequenceExt res = new SimpleChordSequenceExt(newRange, getTimeSignature());
+        SimpleChordSequenceExt res = new SimpleChordSequenceExt(newRange, getTimeSignature(), false);
         res.addAll(this);
         res.addAll(scs);
+        var newUsableBars = new ArrayList<>(usableBars);
+        if (addUsableBars)
+        {
+            newUsableBars.addAll(scs.getBarRange().stream().boxed().toList());
+        }
+        res.setUsableBars(newUsableBars);
         return res;
     }
 
