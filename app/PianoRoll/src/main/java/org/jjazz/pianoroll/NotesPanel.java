@@ -47,8 +47,8 @@ import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JComponent;
+import javax.swing.JLayer;
 import javax.swing.SwingUtilities;
-import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
@@ -66,6 +66,8 @@ import org.jjazz.utilities.api.Utilities;
  * The main editor panel, shows the grid and holds the NoteViews.
  * <p>
  * Y metrics are taken from the associated vertical keyboard. The XMapper and YMapper objects provide the methods to position notes.
+ * <p>
+ * NotesPanel has an associated JLayer to draw over it.
  */
 public class NotesPanel extends EditorPanel implements PropertyChangeListener
 {
@@ -86,6 +88,9 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
     private final PianoRollEditor editor;
     private float scaleFactorX = 1f;
     private boolean scrollToFirstNoteHack = true;
+    private final NotesPanelLayerUI layerUI;
+    private final JLayer layer;
+    private int playbackPointX = -1;
     private final TreeMap<NoteEvent, NoteView> mapNoteViews = new TreeMap<>();
     private Map<Integer, Phrase> mapChannelGhostPhrase;
     private final Map<Integer, Color> mapNameGhostNoteColor = new HashMap<>();
@@ -100,15 +105,28 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
         this.xMapper = new XMapper();
         this.yMapper = new YMapper();
 
+        layerUI = new NotesPanelLayerUI();
+        layer = new JLayer(this, layerUI);
+
         editor.getSettings().addPropertyChangeListener(this);
 
     }
 
     /**
+     * Get the JLayer over this NotesPanel.
+     *
+     * @return
+     */
+    public JLayer getJLayer()
+    {
+        return layer;
+    }
+
+    /**
      * Early detection of size changes in order to update xMapper as soon as possible.
      * <p>
-     * Ovverridden because this method is called (by parent's layoutManager) before component is painted and before the component resized/moved event is fired.
-     * This lets us update xMapper as soon as possible.
+     * Ovverridden because this method is called (by parent's layoutManager) before component is painted and before the component resized/moved event
+     * is fired. This lets us update xMapper as soon as possible.
      *
      * @param x
      * @param y
@@ -157,7 +175,8 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
                 int h = yMapper.getNoteViewHeight();
                 nv.setBounds(x, y, w, h);
             }
-        } else
+        }
+        else
         {
             // Drum notes
             int side = yMapper.getNoteViewHeight() + 2;
@@ -195,7 +214,8 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
             {
                 // Left position, middle pitch
                 r = new Rectangle(0, getHeight() / 2 - SIZE / 2, SIZE, SIZE);
-            } else
+            }
+            else
             {
                 // Center around the first note
                 r = nv0.getBounds();
@@ -224,8 +244,8 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
     /**
      * Set the X scale factor.
      * <p>
-     * This methods impacts the preferred size then calls revalidate() (and repaint()). Hence the notesPanel size is NOT directly updated right after exiting
-     * method. Size will be updated once the EDT has finished processing the revalidate.
+     * This methods impacts the preferred size then calls revalidate() (and repaint()). Hence the notesPanel size is NOT directly updated right after
+     * exiting method. Size will be updated once the EDT has finished processing the revalidate.
      * <p>
      *
      * @param factorX A value &gt; 0
@@ -300,6 +320,77 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
         paintVerticalGrid(g2, yMapper.getKeyboardYRange(0).to, yMapper.getKeyboardYRange(127).from);
         paintGhostPhrases(g2);
 
+    }
+
+    public void showSelectionRectangle(Rectangle r)
+    {
+        // Use our JLayer to draw the rectangle over all other components
+        var rOld = layerUI.getSelectionRectangle();
+        layerUI.setSelectionRectangle(r);
+
+        if (rOld == null && r == null)
+        {
+            return;
+        }
+
+        // Important optimization: use repaint(Rectangle) instead of repaint(): it repaints less but furthermore it avoids a surprising behavior, where 
+        // each call to mouseDragLayer.repaint() triggers (via RepaintManager) a complete editor repaint including subcomponents such as JSplitePane and the 
+        // Score panel, with a very bad impact on performance when many notes in the editor.        
+        Rectangle rRepaint;
+        rRepaint = getVisibleRect();
+
+        // More optimized but... does not work! It leaves some garbage when dragging down then up (or right then left).
+        // Take the union of the old and new rectangles
+//                if (rOld != null)
+//                {
+//                    rRepaint = new Rectangle(rOld);
+//                    if (r != null)
+//                    {
+//                        rRepaint.add(r);
+//                    }
+//                } else
+//                {
+//                    rRepaint = r;
+//                }
+
+        layer.repaint(rRepaint);       // This does work
+
+
+//        LOGGER.log(Level.INFO, "showSelectionRectangle() r={0} rRepaint={1}", new Object[]
+//        {
+//            r, rRepaint
+//        });
+    }
+
+
+    @Override
+    public void showPlaybackPoint(int xPos)
+    {
+        // Use the JLayer to draw the line over other components
+        layerUI.setPlaybackPoint(xPos);        // Represented by a single line
+
+        int oldX = playbackPointX;
+        playbackPointX = xPos;
+        if (playbackPointX != oldX)
+        {
+            int x0, x1;
+            if (oldX == -1)
+            {
+                x0 = xPos - 1;
+                x1 = xPos + 1;
+            }
+            else if (playbackPointX == -1)
+            {
+                x0 = oldX - 1;
+                x1 = oldX + 1;
+            }
+            else
+            {
+                x0 = Math.min(playbackPointX, oldX) - 1;
+                x1 = Math.max(playbackPointX, oldX) + 1;
+            }
+            layer.repaint(x0, 0, x1 - x0 + 1, getHeight());
+        }
     }
 
     /**
@@ -519,15 +610,16 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
             NoteEvent neMin = new NoteEvent(0, 1, 0, Math.max(0, brFrom - 48f)); // we manage up to a 48 beats-long note that would cross our rectangle
             NoteEvent neMax = new NoteEvent(0, 1, 0, brTo + 0.1f);
             nvs = mapNoteViews.subMap(neMin, neMax).values();       // ordered by note position
-        } else
+        }
+        else
         {
             // Check all NoteViews
             nvs = mapNoteViews.values();
         }
 
         var res = nvs.stream()
-                .filter(nv -> nv.getBounds().intersects(r))
-                .toList();
+            .filter(nv -> nv.getBounds().intersects(r))
+            .toList();
 
         return res;
     }
@@ -721,7 +813,8 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
                         g2.fillRect(xRange.from, y, xRange.size(), h);
                         g2.setColor(c2);
                         g2.drawRect(xRange.from, y, xRange.size(), h);
-                    } else
+                    }
+                    else
                     {
                         int x = xMapper.getX(ne.getPositionInBeats());
                         int half = h / 2 + 1;
@@ -797,7 +890,7 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
 
         private XMapper()
         {
-            editor.addPropertyChangeListener(PianoRollEditor.PROP_QUANTIZATION, e -> 
+            editor.addPropertyChangeListener(PianoRollEditor.PROP_QUANTIZATION, e ->
             {
                 refresh();
                 repaint();
@@ -994,7 +1087,7 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
             if (posInBeatsFrom >= 0 && posInBeatsTo >= 0)
             {
                 res = posInBeatsFrom == posInBeatsTo ? new FloatRange(posInBeatsFrom, posInBeatsFrom + getOnePixelBeatSize() - 0.01f)
-                        : new FloatRange(posInBeatsFrom, posInBeatsTo);
+                    : new FloatRange(posInBeatsFrom, posInBeatsTo);
             }
             return res;
         }
@@ -1167,7 +1260,7 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
                 tmapPixelPitch.put(yi, p);
                 int pp = p % 12;
                 float yUp = (pp == 0 || pp == 4 || pp == 5 || pp == 11 || p == kbdRange.getHighestPitch()) ? adjustedLargeHeight
-                        : adjustedSmallHeight;
+                    : adjustedSmallHeight;
                 IntRange channelNoteYRange = new IntRange(Math.round(y - yUp + 1), yi);
                 mapPitchChannelYRange.put(p, channelNoteYRange);
                 y -= yUp;
@@ -1227,7 +1320,7 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
             if (!isUptodate())
             {
                 throw new IllegalStateException(
-                        "lastKeyboardHeight=" + lastKeyboardHeight + " keyboard.height=" + keyboard.getHeight());
+                    "lastKeyboardHeight=" + lastKeyboardHeight + " keyboard.height=" + keyboard.getHeight());
             }
 
             var entry = tmapPixelPitch.ceilingEntry(yPos);

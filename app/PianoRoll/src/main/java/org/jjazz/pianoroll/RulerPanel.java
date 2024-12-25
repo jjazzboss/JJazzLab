@@ -63,8 +63,8 @@ import org.jjazz.utilities.api.ResUtil;
  * <p>
  * The ruler has its own startBar which might be different from the model phrase start bar.
  * <p>
- * If a song is associated, show also the chord symbols and song parts. The RulerPanel listens to chord symbols changes to refresh itself (song structure
- * changes are handled by the PianoRollEditor).
+ * If a song is associated, show also the chord symbols and song parts. The RulerPanel listens to chord symbols changes to refresh itself (song
+ * structure changes are handled by the PianoRollEditor).
  */
 public class RulerPanel extends JPanel implements PropertyChangeListener
 {
@@ -79,6 +79,7 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
     private static final Color COLOR_CHORD_SYMBOL_FONT = COLOR_BAR_FONT;
     private static final Color COLOR_SONG_PART_FONT = Color.BLACK;
     private static final Color COLOR_BEAT_TICK = COLOR_BEAT_FONT;
+    private static final int PLAYBACK_POINT_HALF_SIZE = 4;
     private static final Color COLOR_SIXTEENTH_TICK = HSLColor.changeLuminance(COLOR_BEAT_TICK, 3);
     private final float BASE_FONT_HEIGHT;
     private final Font SMALL_FONT;
@@ -190,8 +191,28 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
      */
     public void showPlaybackPoint(int xPos)
     {
+        int oldX = playbackPointX;
         playbackPointX = xPos;
-        repaint();
+        if (playbackPointX != oldX)
+        {
+            int x0, x1;
+            if (oldX == -1)
+            {
+                x0 = xPos - PLAYBACK_POINT_HALF_SIZE;
+                x1 = xPos + PLAYBACK_POINT_HALF_SIZE;
+            }
+            else if (playbackPointX == -1)
+            {
+                x0 = oldX - PLAYBACK_POINT_HALF_SIZE;
+                x1 = oldX + PLAYBACK_POINT_HALF_SIZE;
+            }
+            else
+            {
+                x0 = Math.min(playbackPointX, oldX) - PLAYBACK_POINT_HALF_SIZE;
+                x1 = Math.max(playbackPointX, oldX) + PLAYBACK_POINT_HALF_SIZE;
+            }
+            repaint(x0, 0, x1 - x0 + 1, getHeight());
+        }
     }
 
     @Override
@@ -265,7 +286,8 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
                         x += 1;
                     }
                     g2.drawString(aStr.getIterator(), x, y);
-                } else
+                }
+                else
                 {
                     // No room to draw several chord symbols per bar
                     continue;
@@ -349,7 +371,8 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
                 int tickLength = BAR_TICK_LENGTH;
                 g2.setColor(c);
                 g2.drawLine(x, yTopBarLane, x, yTopBarLane + tickLength - 1);
-            } else if (paintBeatTicks)
+            }
+            else if (paintBeatTicks)
             {
                 Color c = COLOR_BEAT_TICK;
                 int tickLength = BEAT_TICK_LENGTH;
@@ -396,7 +419,8 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
                     p.addPoint(x2 - SIDE_LENGTH + 1, y);
                     g2.draw(p);
                     g2.fill(p);
-                } else if (bar == loopZone.to && pos.isLastBarBeat(ts))
+                }
+                else if (bar == loopZone.to && pos.isLastBarBeat(ts))
                 {
                     // Loop zone end
 
@@ -432,7 +456,8 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
                 aStr = new AttributedString(strBar, baseFont.getAttributes());
                 aStr.addAttribute(TextAttribute.FOREGROUND, COLOR_BAR_FONT);
 
-            } else if (paintSixteenthTicks)
+            }
+            else if (paintSixteenthTicks)
             {
                 var strBeat = String.valueOf(offsettedBar) + "." + String.valueOf((int) pos.getBeat() + 1);
                 aStr = new AttributedString(strBeat, SMALL_FONT.getAttributes());
@@ -457,13 +482,12 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
         // Draw playback point
         if (playbackPointX >= 0)
         {
-            g2.setColor(MouseDragLayerUI.COLOR_PLAYBACK_LINE);
+            g2.setColor(NotesPanelLayerUI.COLOR_PLAYBACK_LINE);
             Polygon p = new Polygon();
-            final int HALF_SIZE = 4;
             int yMax = h - 1;
             p.addPoint(playbackPointX, yMax);
-            p.addPoint(playbackPointX + HALF_SIZE, yMax - HALF_SIZE);
-            p.addPoint(playbackPointX - HALF_SIZE, yMax - HALF_SIZE);
+            p.addPoint(playbackPointX + PLAYBACK_POINT_HALF_SIZE, yMax - PLAYBACK_POINT_HALF_SIZE);
+            p.addPoint(playbackPointX - PLAYBACK_POINT_HALF_SIZE, yMax - PLAYBACK_POINT_HALF_SIZE);
             g2.draw(p);
             g2.fill(p);
         }
@@ -484,7 +508,7 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        LOGGER.log(Level.FINE, "propertyChange() evt.source.class={0}prop={1} old={2} new={3}", new Object[]
+        LOGGER.log(Level.FINE, "propertyChange() evt.source.class={0} prop={1} old={2} new={3}", new Object[]
         {
             evt.getSource().getClass().getSimpleName(), evt.getPropertyName(), evt.getOldValue(), evt.getNewValue()
         });
@@ -492,9 +516,16 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
         if (evt.getSource() == editor.getSettings())
         {
             settingsChanged();
-        } else if (evt.getSource() == editor)
+        }
+        else if (evt.getSource() == editor)
         {
-            repaint();
+            switch (evt.getPropertyName())
+            {
+                case PianoRollEditor.PROP_CHORD_SEQUENCE, PianoRollEditor.PROP_LOOP_ZONE, PianoRollEditor.PROP_MODEL_PHRASE, PianoRollEditor.PROP_PLAYBACK_POINT_POSITION ->
+                {
+                    repaint();
+                }
+            }
         }
     }
 
@@ -535,12 +566,14 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
                     {
                         loopZoneBarOrigin = loopZone.to;
                         editor.setLoopZone(new IntRange(bar, loopZoneBarOrigin));
-                    } else
+                    }
+                    else
                     {
                         loopZoneBarOrigin = loopZone.from;
                         editor.setLoopZone(new IntRange(loopZoneBarOrigin, bar));
                     }
-                } else
+                }
+                else
                 {
                     // Start setting new loop zone
                     loopZoneBarOrigin = bar;
