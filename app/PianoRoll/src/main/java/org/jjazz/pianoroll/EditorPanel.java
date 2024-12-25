@@ -54,6 +54,13 @@ public abstract class EditorPanel extends JPanel
      * @return
      */
     abstract public float getScaleFactorX();
+    
+    /**
+     * Show the playback point.
+     * 
+     * @param xPos If &lt; 0 do not show anything
+     */
+    abstract public void showPlaybackPoint(int xPos);
 
     /**
      * Get the NoteView corresponding to ne.

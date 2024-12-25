@@ -81,6 +81,7 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
     private final PianoRollEditor editor;
     private final NotesPanel notesPanel;
     private float scaleFactorX = 1;
+    private int playbackPointX = -1;
     private int octaveTransposition;
     private final NotationGraphics ng;
     private Song song;
@@ -210,7 +211,6 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
 //        {
 //            getWidth(), getHeight(), g2.getClipBounds()
 //        });
-
         var xMapper = notesPanel.getXMapper();
         if (!xMapper.isUptodate())
         {
@@ -241,6 +241,13 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
 
         paintNotes(g2);
 
+
+        // Paint playback line
+        if (playbackPointX >= 0)
+        {
+            g2.setColor(NotesPanelLayerUI.COLOR_PLAYBACK_LINE);
+            g2.drawLine(playbackPointX, 0, playbackPointX, getHeight() - 1);
+        }
     }
 
     /**
@@ -277,7 +284,8 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
                     x += 1;
                 }
                 g2.drawString(aStr.getIterator(), x, y);
-            } else
+            }
+            else
             {
                 // No room to draw several chord symbols per bar
                 continue;
@@ -357,6 +365,32 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
 
     }
 
+    @Override
+    public void showPlaybackPoint(int xPos)
+    {
+        int oldX = playbackPointX;
+        playbackPointX = xPos;
+        if (playbackPointX != oldX)
+        {
+            int x0, x1;
+            if (oldX == -1)
+            {
+                x0 = xPos - 1;
+                x1 = xPos + 1;
+            }
+            else if (playbackPointX == -1)
+            {
+                x0 = oldX - 1;
+                x1 = oldX + 1;
+            }
+            else
+            {
+                x0 = Math.min(playbackPointX, oldX) - 1;
+                x1 = Math.max(playbackPointX, oldX) + 1;
+            }
+            repaint(x0, 0, x1 - x0 + 1, getHeight());
+        }
+    }
 
     /**
      * Set the X scale factor.
@@ -426,7 +460,8 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
         if (evt.getSource() == editor.getSettings())
         {
             settingsChanged();
-        } else if (evt.getSource() == editor)
+        }
+        else if (evt.getSource() == editor)
         {
             switch (evt.getPropertyName())
             {
@@ -437,7 +472,8 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
                     if (!xMapper.isUptodate())
                     {
                         repaint();
-                    } else
+                    }
+                    else
                     {
                         // We can probably do a much smaller repaint
                         final int EXTRA = 100;   // Need to cover for note width, tie, shift, accidentals, ...
@@ -513,7 +549,8 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
         if (chordNotes.size() == 1)
         {
             scoreNotes = List.of(mContext.buildScoreNote(chordNotes.get(0), cs));
-        } else
+        }
+        else
         {
             scoreNotes = mContext.buildChordScoreNotes(chordNotes, cs);
         }
@@ -568,14 +605,15 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
         int res = 0;
 
         var stats = p.stream()
-                .mapToInt(ne -> ne.getPitch())
-                .summaryStatistics();
+            .mapToInt(ne -> ne.getPitch())
+            .summaryStatistics();
         var avg = stats.getAverage();
 
         if (avg < 43f)
         {
             res = (int) Math.floor((55 - avg) / 12);
-        } else if (avg > 79f)
+        }
+        else if (avg > 79f)
         {
             res = (int) Math.floor((avg - 67) / 12);
         }
@@ -588,8 +626,8 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
      * Compute which notes must be painted depending on clip.
      * <p>
      * We need to paint ALL the notes from the bar corresponding to clip.x, so that MeasureContext works consistently across repaints (otherwise staff
-     * line/accidentals may vary). Also add some extra room on the left and right of the clip to possibly render accidentals of first-beat notes and of notes
-     * which start right after the clip.
+     * line/accidentals may vary). Also add some extra room on the left and right of the clip to possibly render accidentals of first-beat notes and
+     * of notes which start right after the clip.
      *
      * @param g2
      * @return
@@ -615,14 +653,15 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
             toPosInBeats = editor.getPhraseBeatRange().clamp(toPosInBeats + 4f, 0.001f);
 
             var br = new FloatRange(fromPosInBeats, toPosInBeats);
-            Predicate<NoteEvent> tester = ne -> 
+            Predicate<NoteEvent> tester = ne ->
             {
                 var brNe = ne.getBeatRange();
                 return brNe.to <= br.to && br.intersects(brNe);
             };
             res = editor.getModel().getNotes(tester, FloatRange.MAX_FLOAT_RANGE, true);
 
-        } else
+        }
+        else
         {
             res = new ArrayList<>();
         }
@@ -692,7 +731,8 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
                     // Special case, we should not normally have this (same pos and same pitch), just ignore the note
                     added = true;
                     break;
-                } else if (n.getPitch() < next.getPitch())
+                }
+                else if (n.getPitch() < next.getPitch())
                 {
                     it.add(n);
                     added = true;
