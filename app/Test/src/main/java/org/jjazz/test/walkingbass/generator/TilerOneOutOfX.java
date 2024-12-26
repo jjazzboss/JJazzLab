@@ -33,6 +33,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.test.walkingbass.WbpDatabase;
 import org.jjazz.test.walkingbass.WbpSource;
+import org.jjazz.utilities.api.IntRange;
 
 /**
  * Tile in bar order, using the longest and more compatible WbpSource one out of X times.
@@ -81,11 +82,12 @@ public class TilerOneOutOfX implements Tiler
         reset();
 
         WbpsaStore store = new WbpsaStore(tiling.getSimpleChordSequenceExt(), MAX_NB_BEST_ADAPTATIONS);
+        LOGGER.log(Level.SEVERE, "tile() store=\n{0}", store.toDebugString());
 
 
         var usableBars = tiling.getUsableBars();
         var itBar = usableBars.iterator();
-
+        var cSeq = tiling.getSimpleChordSequenceExt();
 
         while (itBar.hasNext())
         {
@@ -93,14 +95,20 @@ public class TilerOneOutOfX implements Tiler
             var wbpsas = getAllWbpsas(store, bar);
             if (wbpsas.isEmpty())
             {
-                LOGGER.log(Level.WARNING, "tile() No wbpsa found for bar {0}", bar);
+
+                IntRange br = new IntRange(bar, bar + 3).getIntersection(cSeq.getBarRange());
+                var subSeq = tiling.getSimpleChordSequenceExt().subSequence(br, true);
+                LOGGER.log(Level.WARNING, "tile() No wbpsa found for bar {0}: {1}", new Object[]
+                {
+                    bar, subSeq.toString()
+                });
                 continue;
             }
 
             for (var wbpsa : wbpsas)
             {
                 var wbpSource = wbpsa.getWbpSource();
-                if (canUse(tiling, wbpSource))          // Updates state
+                if (canUse(tiling, wbpSource, bar))          // Updates state
                 {
                     tiling.add(wbpsa);
 
@@ -148,38 +156,61 @@ public class TilerOneOutOfX implements Tiler
      *
      * @param tiling
      * @param wbpSource
+     * @param bar
      * @return
      */
-    private boolean canUse(WbpTiling tiling, WbpSource wbpSource)
+    private boolean canUse(WbpTiling tiling, WbpSource wbpSource, int bar)
     {
         boolean b = false;
         int count = mapSourceCount.getOrDefault(wbpSource, 0);
+        count++;
         int countUsed = mapSourceCountUsed.getOrDefault(wbpSource, 0);
 
-        if (isCoveragePercentageOk(tiling, wbpSource, countUsed + 1))
+        if (countUsed == 0 || isCoveragePercentageOk(tiling, wbpSource, countUsed + 1))
         {
+            List<WbpSource> relSources = getRelatedWbpSources(wbpSource);
 
-            var subs = WbpDatabase.getInstance().getSubWbpSources(wbpSource, -1);
-
-            if (count % x == 0)
+            if ((count - 1) % x == 0)
             {
                 // It is one use out of X
                 b = true;
-                mapSourceCountUsed.put(wbpSource, countUsed + 1);
-                // Update the subs as well
-                subs.forEach(w ->
+                countUsed++;
+                mapSourceCountUsed.put(wbpSource, countUsed);
+
+                LOGGER.log(Level.SEVERE, "canUse() bar={0} wbpSource USED count={1} countUsed={2} source={3}", new Object[]
+                {
+                    bar, count, countUsed, wbpSource
+                });
+
+                // Update the related sources as well
+                relSources.forEach(w ->
                 {
                     int c = mapSourceCountUsed.getOrDefault(w, 0);
                     mapSourceCountUsed.put(w, c + 1);
                 });
             }
+            else
+            {
+                LOGGER.log(Level.SEVERE, "canUse() bar={0} wbpSource SKIPPED count={1} countUsed={2} source={3}", new Object[]
+                {
+                    bar, count, countUsed, wbpSource
+                });
+            }
 
-            // Count the fact we could have used it
-            mapSourceCount.put(wbpSource, count + 1);
-            subs.forEach(w ->
+
+            // Count the fact that we used it or we could have used it
+            mapSourceCount.put(wbpSource, count);
+            relSources.forEach(w ->
             {
                 int c = mapSourceCount.getOrDefault(w, 0);
                 mapSourceCount.put(w, c + 1);
+            });
+        }
+        else
+        {
+            LOGGER.log(Level.SEVERE, "canUse() bar={0} WbpSource COVERAGE limit exceeded countUsed={1} source={2}", new Object[]
+            {
+                bar, countUsed, wbpSource
             });
         }
 
@@ -216,5 +247,21 @@ public class TilerOneOutOfX implements Tiler
     {
         var p = (float) nbOccurences * wbpSource.getBarRange().size() / tiling.getUsableBars().size();
         return p <= wbpSourceMaxCoveragePercentage;
+    }
+
+    /**
+     * Get all the WbpSources which share at least one bar with wbpSource.
+     *
+     * @param wbpSource
+     * @return List does not contain wbpSource
+     */
+    private List<WbpSource> getRelatedWbpSources(WbpSource wbpSource)
+    {
+        IntRange br = wbpSource.getBarRangeInSession();
+        String sId = wbpSource.getSessionId();
+        var res = WbpDatabase.getInstance().getWbpSources(wbp -> wbp != wbpSource
+            && wbp.getSessionId().equals(sId)
+            && br.isIntersecting(wbp.getBarRangeInSession()));
+        return res;
     }
 }

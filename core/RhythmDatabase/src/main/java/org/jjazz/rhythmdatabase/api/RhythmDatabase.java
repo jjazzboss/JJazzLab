@@ -22,7 +22,6 @@
  */
 package org.jjazz.rhythmdatabase.api;
 
-import java.util.Comparator;
 import org.jjazz.rhythmdatabase.spi.RhythmDatabaseFactory;
 import java.util.List;
 import java.util.Objects;

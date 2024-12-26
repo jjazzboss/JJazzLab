@@ -178,20 +178,20 @@ public class WalkingBassGenerator implements MusicGenerator
 
         Phrase res = new Phrase(0);             // channel useless here
 
-
+        var settings = WalkingBassGeneratorSettings.getInstance();
         WbpTiling tiling = new WbpTiling(scs);
-        var tiler = new TilerOneOutOfX(0.2f, 3);
+        var tiler = new TilerOneOutOfX(settings.getSingleWbpSourceMaxSongCoveragePercentage(), settings.getOneOutofX());
         tiler.tile(tiling);
         if (!tiling.isCompletlyTiled())
         {
-            LOGGER.log(Level.SEVERE, "getBassPhrase() =============== tiling is NOT complete !!");
+            LOGGER.log(Level.SEVERE, "\ngetBassPhrase() =============== tiling is NOT complete !!\n");
             // return res;
         }
 
 
-        LOGGER.log(Level.SEVERE, "getBassPhrase() ================  tiling=\n{0}", tiling.toMultiLineString());
+        LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling=\n{0}", tiling.toMultiLineString());
 
-        LOGGER.log(Level.SEVERE, "getBassPhrase() ============   Tiling stats=\n{0}", tiling.toStatsString());
+        LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ============   Tiling stats=\n{0}", tiling.toStatsString());
 
         // Transpose WbpSources to target phrases
         for (var wbpsa : tiling.getWbpSourceAdaptations())

@@ -38,16 +38,16 @@ import org.openide.awt.ActionRegistration;
 /**
  * For debug purposes...
  */
-@ActionID(category = "JJazz", id = "org.jjazz.test.DumpWbpDatabaseAction")
+@ActionID(category = "JJazz", id = "org.jjazz.test.wbpdatabaseexploreraction")
 @ActionRegistration(displayName = "WbpDatabase Explorer")
 @ActionReferences(
         {
             @ActionReference(path = "Menu/Edit", position = 60000)
         })
-public final class DumpWbpDatabaseAction implements ActionListener
+public final class WbpDatabaseExplorerAction implements ActionListener
 {
 
-    private static final Logger LOGGER = Logger.getLogger(DumpWbpDatabaseAction.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(WbpDatabaseExplorerAction.class.getSimpleName());
 
     @Override
     public void actionPerformed(ActionEvent ae)

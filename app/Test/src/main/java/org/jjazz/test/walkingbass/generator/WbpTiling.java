@@ -368,16 +368,24 @@ public class WbpTiling
             mapSourceBars.put(source, wbpsa.getBarRange().from);
         }
 
-        
+
         // Sort sources per descending number of uses
         List<WbpSource> sortedSources = new ArrayList<>(mapSourceBars.keySet());
         sortedSources.sort((s1, s2) -> Integer.compare(mapSourceBars.get(s2).size(), mapSourceBars.get(s1).size()));
 
 
         StringBuilder sb = new StringBuilder();
-        for (var source : sortedSources)
+        for (int i = WbpsaStore.SIZE_MAX; i >= WbpsaStore.SIZE_MIN; i--)
         {
-            sb.append(source.toString()).append(": ").append(mapSourceBars.get(source).toString()).append("\n");
+            sb.append("--- ").append(i).append(" bar ---\n");
+            final int fi = i;
+            var sizeList = sortedSources.stream()
+                .filter(s -> s.getBarRange().size() == fi)
+                .toList();
+            for (var source : sizeList)
+            {
+                sb.append(source.toString()).append(": ").append(mapSourceBars.get(source).toString()).append("\n");
+            }
         }
 
         return sb.toString();

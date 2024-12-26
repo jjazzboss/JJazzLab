@@ -138,7 +138,7 @@ public class WbpDatabase
             }
         }
     }
-
+    
     /**
      * Get the WbpSources which are nbBars long.
      * <p>
@@ -151,27 +151,9 @@ public class WbpDatabase
     {
         Predicate<WbpSource> tester = wbps -> wbps.getBarRange().size() == nbBars;
         var dbTester = new KeyablePredicate(String.valueOf(nbBars), tester);
-        return getWbpSources(dbTester);
+        return WbpDatabase.this.getWbpSources(dbTester);
     }
 
-    /**
-     * Get the sub-WbpSources of a given WbpSource.
-     * <p>
-     * For example there are 5 sub-WbpSources in a 3-bar WbpSource: 2 x 2-bar + 3 x 1-bar WbpSources.
-     *
-     * @param wbps
-     * @param size Return sub-WbpSources of this size. If -1 return all possible sizes.
-     * @return Can be an empty list (e.g. if wbps size is 1)
-     */
-    public List<WbpSource> getSubWbpSources(WbpSource wbps, int size)
-    {
-        String sId = wbps.getSessionId();
-        IntRange br = wbps.getBarRangeInSession();
-        var res = getWbpSources(w -> w.getSessionId() == sId
-            && (size < 0 || w.getBarRange().size() == size)
-            && br.contains(w.getBarRangeInSession()));
-        return res;
-    }
 
     /**
      * Get the 1-bar WbpSources which uses the specified basic ChordType.
@@ -231,7 +213,7 @@ public class WbpDatabase
     {
         Predicate<WbpSource> tester = wbps -> wbps.getRootProfile().equals(rootProfile);
         var dbTester = new KeyablePredicate(rootProfile, tester);
-        return getWbpSources(dbTester);
+        return WbpDatabase.this.getWbpSources(dbTester);
     }
 
     public void dump()
@@ -241,7 +223,7 @@ public class WbpDatabase
         {
             LOGGER.log(Level.INFO, " {0}", session.toString());
         }
-        for (var wbps : getWbpSources())
+        for (var wbps : WbpDatabase.this.getWbpSources())
         {
             LOGGER.log(Level.INFO, " {0}", wbps.toLongString());
         }

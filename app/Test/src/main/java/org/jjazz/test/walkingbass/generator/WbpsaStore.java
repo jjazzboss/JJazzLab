@@ -122,24 +122,32 @@ public class WbpsaStore
         return res;
     }
 
-    public void dump(int size)
+    public String toDebugString()
     {
+        StringBuilder sb = new StringBuilder();
+        for (int i = SIZE_MAX; i >= SIZE_MIN; i--)
+        {
+            sb.append("### ").append(i).append(" bars ###\n");
+            sb.append(toDebugString(i));
+        }
+        return sb.toString();
+    }
+
+    public String toDebugString(int size)
+    {
+        StringBuilder sb = new StringBuilder();
         for (int bar : simpleChordSequenceExt.getBarRange())
         {
             var wbpsas = getWbpSourceAdaptations(bar, size);
-            String firstStr = "";
             if (!wbpsas.isEmpty())
             {
-                firstStr = wbpsas.get(0).toString();
+                sb.append(String.format("%1$03d: %2$s\n", bar, wbpsas.get(0)));
+                wbpsas.stream()
+                    .skip(1)
+                    .forEach(wbpsa -> sb.append("     ").append(wbpsa).append("\n"));
             }
-            LOGGER.log(Level.INFO, "{0}: {1}", new Object[]
-            {
-                String.format("%1$03d", bar), firstStr
-            });
-            wbpsas.stream()
-                .skip(1)
-                .forEach(wbpsa -> LOGGER.log(Level.INFO, "     {0}", wbpsa));
         }
+        return sb.toString();
     }
 
     // =================================================================================================================
@@ -171,7 +179,7 @@ public class WbpsaStore
 
                 if (rpWbpSources.isEmpty())
                 {
-                    LOGGER.log(Level.WARNING, "initialize() No {0}-bar rpSources found for {1}", new Object[]
+                    LOGGER.log(Level.FINE, "initialize() No {0}-bar rpSources found for {1}", new Object[]
                     {
                         size, subSeq
                     });
