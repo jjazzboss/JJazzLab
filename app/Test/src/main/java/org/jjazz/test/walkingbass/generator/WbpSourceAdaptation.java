@@ -96,7 +96,7 @@ public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
     private void computeCompatibilityScore()
     {
         // ChordType
-        // max value=63 if both chordtypes are equal
+        // max value=63 if both chordtypes are equal or have the same basis (e.g. Cm and Cm7).
         // Same 3rd=32, +fifth=48, +seventh/sixth=56, +ext1=60; +ext2=62        
         float ctScore = simpleChordSequence.getChordTypeSimilarityScore(wbpSource.getSimpleChordSequence(), MIN_INDIVIDUAL_CHORDTYPE_COMPATIBILITY_SCORE, true);
 

@@ -36,6 +36,7 @@ import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
+import org.jjazz.test.walkingbass.generator.WbpSourceAdaptation;
 import org.jjazz.uiutilities.api.UIUtilities;
 import org.jjazz.utilities.api.IntRange;
 import org.jjazz.utilities.api.Utilities;
@@ -126,8 +127,8 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
             WbpSource wbps = it.next();
 
             var wbpScs = wbps.getSimpleChordSequence();
-            float score = scs.getChordTypeSimilarityScore(wbpScs, 56, true);
-            if (score < 56) // 56 = 3rd + 5th + 6th/7th
+            float score = scs.getChordTypeSimilarityScore(wbpScs, WbpSourceAdaptation.MIN_INDIVIDUAL_CHORDTYPE_COMPATIBILITY_SCORE, true);
+            if (score == 0) 
             {
                 it.remove();
             }
