@@ -754,23 +754,24 @@ final public class ChordType
      * DegreeIndex.EXTENSION2: -2 (a score &gt;=62 means third+fifth+six_seventh match+ext1+ext2 match)<br>
      * DegreeIndex.EXTENSION3: -1 (a score ==63 means equal ChordTypes)<br>
      * <p>
-     * If acceptAbsentDegrees is true, we do not reduce the score if one of the ChordType uses a specific Degree but not the other (e.g C and C7 are considered
-     * equal).
+     * If acceptAbsentDegrees is true and chord types do not have the same number of Degrees (e.g. C and C69), score is reduced by 1 for each "extra" Degree.
+     * This way C and F6 (1 extra degree) are a bit less similar than C and F, and a bit more similar than C and F7b9 (2 extra degrees).
+     * <p>
      * <p>
      * Special handling: 6 and 7M are considered similar.
      * <p>
      * Examples:<br>
      * - C and E, Fm69 and Ebm69 = 63. This is the max value for identical ChordTypes.<br>
      * - C7 and Cm6 = 63-32-8 = 23 <br>
-     * - C7 and Cm69 = 63-32-8 = 23 if acceptAbsentDegrees==true , or 63-32-8-4 = 19 if acceptAbsentDegrees==false<br>
-     * - C7 and C9 = 63 if acceptAbsentDegrees==true , or 63-4 = 59 if acceptAbsentDegrees==false<br>
-     * - C and F13b9 = 63 if acceptAbsentDegrees==true, or 63-8-4-2 = 49 if acceptAbsentDegrees==false <br>
+     * - C7 and Cm69 = 63-32-8-1 = 22 if acceptAbsentDegrees==true , or 63-32-8-4 = 19 if acceptAbsentDegrees==false<br>
+     * - C7 and C9 = 63-1=62 if acceptAbsentDegrees==true , or 63-4 = 59 if acceptAbsentDegrees==false<br>
+     * - C and F13b9 = 63-3=60 if acceptAbsentDegrees==true, or 63-8-4-2 = 49 if acceptAbsentDegrees==false <br>
      * - Cm6 and Cm7m = 63<br>
      * - Cm6 and Cm7 = 55<br>
      *
      *
      * @param ct
-     * @param acceptAbsentDegrees If true C and C9 will have same similarity score than C9 and C9 = 63. If false C and C9 will have a score of 48 (32+16).
+     * @param acceptAbsentDegrees If true absent degrees in one of the ChordType only have a minor impact on the similarity score
      * @return
      */
     public int getSimilarityScore(ChordType ct, boolean acceptAbsentDegrees)
@@ -784,8 +785,10 @@ final public class ChordType
             Degree dct = i < ct.degrees.size() ? ct.degrees.get(i) : null;
             if (!Objects.equals(d, dct))
             {
-                if (((d == null || dct == null) && acceptAbsentDegrees)
-                        || (d == Degree.SIXTH_OR_THIRTEENTH && dct == Degree.SEVENTH)
+                if ((d == null || dct == null) && acceptAbsentDegrees)
+                {
+                    res -= 1;   // This way C and F6 will be 62, C and F69 will be 61
+                } else if ((d == Degree.SIXTH_OR_THIRTEENTH && dct == Degree.SEVENTH)
                         || (dct == Degree.SIXTH_OR_THIRTEENTH && d == Degree.SEVENTH))
                 {
                     // Do nothing

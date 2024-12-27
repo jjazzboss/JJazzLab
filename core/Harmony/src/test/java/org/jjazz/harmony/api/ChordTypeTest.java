@@ -84,15 +84,15 @@ public class ChordTypeTest
         result = getSimilarityScore("7", "m6", false);
         assertEquals(23, result);
         result = getSimilarityScore("7", "m69", true);
-        assertEquals(23, result);
+        assertEquals(22, result);
         result = getSimilarityScore("7", "m69", false);
         assertEquals(19, result);
         result = getSimilarityScore("7", "9", true);
-        assertEquals(63, result);
+        assertEquals(62, result);
         result = getSimilarityScore("7", "9", false);
         assertEquals(59, result);
         result = getSimilarityScore("", "13b9", true);
-        assertEquals(63, result);
+        assertEquals(60, result);
         result = getSimilarityScore("", "13b9", false);
         assertEquals(49, result);
         result = getSimilarityScore("m6", "m7M", false);
@@ -100,13 +100,11 @@ public class ChordTypeTest
         result = getSimilarityScore("m6", "m7", false);
         assertEquals(55, result);
         result = getSimilarityScore("m", "m7", true);
-        assertEquals(63, result);
+        assertEquals(62, result);
         result = getSimilarityScore("m7", "m", true);
-        assertEquals(63, result);        
+        assertEquals(62, result);        
         result = getSimilarityScore("m", "m69", true);
-        assertEquals(63, result);
-        result = getSimilarityScore("m69", "m", true);
-        assertEquals(63, result);        
+        assertEquals(61, result);
     }
 
 
