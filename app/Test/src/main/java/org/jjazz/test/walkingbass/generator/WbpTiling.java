@@ -354,7 +354,7 @@ public class WbpTiling
     }
 
     /**
-     * Display stats about used WbpSources in this tiling.
+     * Display various stats about used WbpSources in this tiling.
      *
      * @return
      */
@@ -377,11 +377,11 @@ public class WbpTiling
         StringBuilder sb = new StringBuilder();
         for (int i = WbpsaStore.SIZE_MAX; i >= WbpsaStore.SIZE_MIN; i--)
         {
-            sb.append("--- ").append(i).append(" bar ---\n");
             final int fi = i;
             var sizeList = sortedSources.stream()
                 .filter(s -> s.getBarRange().size() == fi)
                 .toList();
+            sb.append(">>> ").append(sizeList.size()).append(" * ").append(i).append("-bar:\n");            
             for (var source : sizeList)
             {
                 sb.append(source.toString()).append(": ").append(mapSourceBars.get(source).toString()).append("\n");

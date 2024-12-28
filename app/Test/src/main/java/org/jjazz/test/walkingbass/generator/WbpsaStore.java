@@ -65,8 +65,8 @@ public class WbpsaStore
         for (int size = SIZE_MIN; size <= SIZE_MAX; size++)
         {
             mmapWbpsAdaptations[size] = MultimapBuilder.treeKeys()
-                .treeSetValues() // Don't need a custom Comparator because WbpSourceAdatpation uses a natural order by DESCENDING score
-                .build();
+                    .treeSetValues() // Don't need a custom Comparator because WbpSourceAdatpation uses a natural order by DESCENDING score
+                    .build();
         }
         this.nbBestMax = nbBestMax;
 
@@ -84,7 +84,7 @@ public class WbpsaStore
      *
      * @param bar  Must be a usable bar
      * @param size The size in bars of returned WbpSourceAdaptations
-     * @return Can be empty. List contains maximum getNbBestMax() elements.
+     * @return Can be empty. Mutable list. List contains maximum getNbBestMax() elements.
      */
     public List<WbpSourceAdaptation> getWbpSourceAdaptations(int bar, int size)
     {
@@ -127,7 +127,7 @@ public class WbpsaStore
         StringBuilder sb = new StringBuilder();
         for (int i = SIZE_MAX; i >= SIZE_MIN; i--)
         {
-            sb.append("### ").append(i).append(" bars ###\n");
+            sb.append("############ ").append(i).append(" bars ############\n");
             sb.append(toDebugString(i));
         }
         return sb.toString();
@@ -136,16 +136,15 @@ public class WbpsaStore
     public String toDebugString(int size)
     {
         StringBuilder sb = new StringBuilder();
+        var scsBr = simpleChordSequenceExt.getBarRange();
         for (int bar : simpleChordSequenceExt.getBarRange())
         {
+            var br = new IntRange(bar, bar + size - 1).getIntersection(scsBr);
+            var barChords = simpleChordSequenceExt.subSequence(br, true);
+            sb.append(String.format("%1$03d: %2$s\n", bar, barChords.toString()));
+
             var wbpsas = getWbpSourceAdaptations(bar, size);
-            if (!wbpsas.isEmpty())
-            {
-                sb.append(String.format("%1$03d: %2$s\n", bar, wbpsas.get(0)));
-                wbpsas.stream()
-                    .skip(1)
-                    .forEach(wbpsa -> sb.append("     ").append(wbpsa).append("\n"));
-            }
+            wbpsas.stream().forEach(wbpsa -> sb.append("     ").append(wbpsa).append("\n"));
         }
         return sb.toString();
     }

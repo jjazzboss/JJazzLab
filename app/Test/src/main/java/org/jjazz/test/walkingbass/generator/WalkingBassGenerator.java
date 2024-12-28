@@ -43,8 +43,8 @@ public class WalkingBassGenerator implements MusicGenerator
     public WalkingBassGenerator(Rhythm r)
     {
         Preconditions.checkArgument(RP_STD_Variation.getVariationRp(r) != null
-            && RP_STD_Intensity.getIntensityRp(r) != null,
-            "r=%s", r);
+                && RP_STD_Intensity.getIntensityRp(r) != null,
+                "r=%s", r);
         rhythm = r;
     }
 
@@ -135,8 +135,8 @@ public class WalkingBassGenerator implements MusicGenerator
 
         // Make one big SimpleChordSequence per rpValue: this will let us control "which pattern is used where" at the song level
         var usedRpValues = splitResults.stream()
-            .map(sr -> sr.rpValue())
-            .collect(Collectors.toSet());
+                .map(sr -> sr.rpValue())
+                .collect(Collectors.toSet());
         for (var rpValue : usedRpValues)
         {
             SimpleChordSequenceExt mergedScs = null;
@@ -180,18 +180,22 @@ public class WalkingBassGenerator implements MusicGenerator
 
         var settings = WalkingBassGeneratorSettings.getInstance();
         WbpTiling tiling = new WbpTiling(scs);
-        var tiler = new TilerOneOutOfX(settings.getSingleWbpSourceMaxSongCoveragePercentage(), settings.getOneOutofX());
+        var tiler = new TilerOneOutOfX(settings.getSingleWbpSourceMaxSongCoveragePercentage(), settings.getOneOutofX(), settings.getWbpsaStoreBarSize());
         tiler.tile(tiling);
-        if (!tiling.isCompletlyTiled())
+        var nonTiledBars = tiling.getNonTiledBars();
+        if (!nonTiledBars.isEmpty())
         {
-            LOGGER.log(Level.SEVERE, "\ngetBassPhrase() =============== tiling is NOT complete !!\n");
+            LOGGER.log(Level.SEVERE, "\ngetBassPhrase() =============== tiling NOT complete for bars: {0}", nonTiledBars);
             // return res;
         }
 
-
         LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling=\n{0}", tiling.toMultiLineString());
 
-        LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ============   Tiling stats=\n{0}", tiling.toStatsString());
+        LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ===============   Tiling stats  scs.usableBars={0} \n{1}", new Object[]
+        {
+            scs.getUsableBars().size(),
+            tiling.toStatsString()
+        });
 
         // Transpose WbpSources to target phrases
         for (var wbpsa : tiling.getWbpSourceAdaptations())

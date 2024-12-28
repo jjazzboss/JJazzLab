@@ -1,0 +1,15 @@
+* Variations: 2 feel (2 variations LACoolSwing-B1, JazzClub.S120-B1) ? check out Shuffle rhythm examples), walking, walking double notes (C C Bb Bb etc.)
+* Programmatically add embellishments like p15 (for 2 feel), p28 of Constructig-walking-pdf...
+* Handle slow / medium / fast tempo
+* Handle pedal notes in walking or 1 out of 2
+* For WbpSources selection, take into account:
+    - chord symbol scales (eg avoid selecting 9th using pattern for a Gm7 in Eb key)
+    - target note
+* Generate alternate phrases from DB: especially for simple chords that can cover complex chords, alter notes to match a chord symbol, try symetric patterns, reuse groove
+* Evaluate database pattern notes to provide finer chord symbol compatibility: C7 marked in DB but might be used for C or C6 or C7M if pattern only uses 1 3 5. Inversely C7 marked in DB but uses a non-transition 9th in pattern, so OK for C7b9 but not C9.
+* Try to automatically assign a chord scale to chords (DB and song)
+* Handle case where tiling not complete after 1 pass
+* Handle case where non-standard nb of chords in a bar
+* Stats: show chord types with only 1 WbpSource
+* Database: detect identical patterns for same chord suite (_Downes-P114-giantsteps#fr=13#sz=2 and fr=7)
+

@@ -177,11 +177,11 @@ public class MusicGenerationQueue implements Runnable
         if (running)
         {
             LOGGER.fine("stop()");
-            running = false;    
+            running = false;
             new Thread(() -> 
             {
                 // This will block so better in a thread, not a problem since generationExecutorService and executorService will no longer be used
-                Utilities.shutdownAndAwaitTermination(generationExecutorService, 3000, 1000);        
+                Utilities.shutdownAndAwaitTermination(generationExecutorService, 3000, 1000);
                 Utilities.shutdownAndAwaitTermination(executorService, 100, 100);
             }).start();
 
@@ -429,7 +429,7 @@ public class MusicGenerationQueue implements Runnable
 
             } catch (Throwable t)     // To make sure we catch other programming exceptions or errors (eg AssertionError), otherwise not seen because task run via ExecutorService
             {
-                LOGGER.severe(t.getMessage());
+                LOGGER.log(Level.SEVERE, "Unexpected exception in SongSequenceBuilder.buildMapRvPhrase() : {0}", t.getMessage());
                 throwable = t;
                 t.printStackTrace();
                 // Don't rethrow the exception, we need to update lastResult below
