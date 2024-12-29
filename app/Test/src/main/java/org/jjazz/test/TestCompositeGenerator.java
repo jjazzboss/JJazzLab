@@ -47,12 +47,12 @@ import org.openide.util.Exceptions;
 /**
  * For debug purposes...
  */
-@ActionID(category = "JJazz", id = "org.jjazz.test.TestAction")
-@ActionRegistration(displayName = "Test CompositeGenerator Action")
-@ActionReferences(
-        {
-            @ActionReference(path = "Menu/Edit", position = 50000)
-        })
+//@ActionID(category = "JJazz", id = "org.jjazz.test.TestAction")
+//@ActionRegistration(displayName = "Test CompositeGenerator Action")
+//@ActionReferences(
+//        {
+//            @ActionReference(path = "Menu/Edit", position = 50000)
+//        })
 public final class TestCompositeGenerator implements ActionListener
 {
 

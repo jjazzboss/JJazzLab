@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.jjazzlab</groupId>
     <artifactId>jjazzlab-parent</artifactId>
-    <version>4.1.2-SNAPSHOT</version>
+    <version>4.1.2</version>
     <packaging>pom</packaging>
     <name>JJazzLab Parent</name>
     
@@ -50,7 +50,7 @@
         <jjazzlab.javac.showWarnings>true</jjazzlab.javac.showWarnings>
         <!-- <jjazzlab.javac.xlint>-Xlint:all,-serial</jjazzlab.javac.xlint>  -->
         <jjazzlab.javac.xlint></jjazzlab.javac.xlint>   <!-- temporary trick to avoid https://github.com/apache/netbeans/issues/6826  -->
-        <jjazzlab.surefire.skipTests>true</jjazzlab.surefire.skipTests>
+        <jjazzlab.surefire.skipTests>false</jjazzlab.surefire.skipTests>
         <jjazzlab.forceEnglish>false</jjazzlab.forceEnglish>
     </properties>
     
