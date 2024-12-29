@@ -24,11 +24,14 @@
  */
 package org.jjazz.pianoroll;
 
+import javax.swing.JToggleButton;
+
 /**
  * The control panel to select which EditorPanel is shown in the bottom part of the editor.
  */
 public class BottomControlPanel extends javax.swing.JPanel
 {
+
     public static final String VELOCITY_EDITOR_PANEL_STRING = "Velocity";
     public static final String SCORE_EDITOR_PANEL_STRING = "Score";
     /**
@@ -37,6 +40,7 @@ public class BottomControlPanel extends javax.swing.JPanel
      * oldValue=null, newValue=e.g. VELOCITY_EDITOR_PANEL_STRING
      */
     public static final String PROP_EDITOR_PANEL_STRING = "PropEditorPanelString";
+    private static String lastEditorPanelShown = VELOCITY_EDITOR_PANEL_STRING;
     private final VelocityPanel velocityPanel;
     private final ScorePanel scorePanel;
 
@@ -51,12 +55,37 @@ public class BottomControlPanel extends javax.swing.JPanel
         this.velocityPanel = vPanel;
         this.scorePanel = sPanel;
         initComponents();
-        
+
         // Keep spinner updated
         this.sp_displayTransposition.setValue(scorePanel.getOctaveTransposition());
-        this.scorePanel.addPropertyChangeListener(ScorePanel.PROP_OCTAVE_TRANSPOSITION, e -> sp_displayTransposition.setValue(scorePanel.getOctaveTransposition()));          
-        
-        selectionChanged();
+        this.scorePanel.addPropertyChangeListener(ScorePanel.PROP_OCTAVE_TRANSPOSITION,
+                e -> sp_displayTransposition.setValue(scorePanel.getOctaveTransposition()));
+
+        setSelectedPanel(lastEditorPanelShown);
+    }
+
+    /**
+     * Select an editor panel.
+     * <p>
+     * Might fire a PROP_EDITOR_PANEL_STRING change event.
+     *
+     * @param s SCORE_EDITOR_PANEL_STRING or VELOCITY_EDITOR_PANEL_STRING
+     */
+    public void setSelectedPanel(String s)
+    {
+        JToggleButton btn = switch (s)
+        {
+            case VELOCITY_EDITOR_PANEL_STRING ->
+                rb_velocity;
+            case SCORE_EDITOR_PANEL_STRING ->
+                rb_score;
+            default -> throw new IllegalArgumentException("s=" + s);
+        };
+        if (btn.isSelected() == false)
+        {
+            btn.setSelected(true);
+            selectionChanged();
+        }
     }
 
     public String getSelectedPanelString()
@@ -66,7 +95,8 @@ public class BottomControlPanel extends javax.swing.JPanel
 
     private void selectionChanged()
     {
-        firePropertyChange(PROP_EDITOR_PANEL_STRING, null, getSelectedPanelString());
+        lastEditorPanelShown = getSelectedPanelString();
+        firePropertyChange(PROP_EDITOR_PANEL_STRING, null, lastEditorPanelShown);
         boolean b = rb_score.isSelected();
         lbl_displayTransposition.setEnabled(b);
         sp_displayTransposition.setEnabled(b);
@@ -167,7 +197,7 @@ public class BottomControlPanel extends javax.swing.JPanel
 
     private void sp_displayTranspositionStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_sp_displayTranspositionStateChanged
     {//GEN-HEADEREND:event_sp_displayTranspositionStateChanged
-        scorePanel.setOctaveTransposition((Integer)sp_displayTransposition.getValue());
+        scorePanel.setOctaveTransposition((Integer) sp_displayTransposition.getValue());
     }//GEN-LAST:event_sp_displayTranspositionStateChanged
 
 

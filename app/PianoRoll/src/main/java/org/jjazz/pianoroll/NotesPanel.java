@@ -125,8 +125,8 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
     /**
      * Early detection of size changes in order to update xMapper as soon as possible.
      * <p>
-     * Ovverridden because this method is called (by parent's layoutManager) before component is painted and before the component resized/moved event
-     * is fired. This lets us update xMapper as soon as possible.
+     * Ovverridden because this method is called (by parent's layoutManager) before component is painted and before the component resized/moved event is fired.
+     * This lets us update xMapper as soon as possible.
      *
      * @param x
      * @param y
@@ -175,8 +175,7 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
                 int h = yMapper.getNoteViewHeight();
                 nv.setBounds(x, y, w, h);
             }
-        }
-        else
+        } else
         {
             // Drum notes
             int side = yMapper.getNoteViewHeight() + 2;
@@ -214,8 +213,7 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
             {
                 // Left position, middle pitch
                 r = new Rectangle(0, getHeight() / 2 - SIZE / 2, SIZE, SIZE);
-            }
-            else
+            } else
             {
                 // Center around the first note
                 r = nv0.getBounds();
@@ -244,8 +242,8 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
     /**
      * Set the X scale factor.
      * <p>
-     * This methods impacts the preferred size then calls revalidate() (and repaint()). Hence the notesPanel size is NOT directly updated right after
-     * exiting method. Size will be updated once the EDT has finished processing the revalidate.
+     * This methods impacts the preferred size then calls revalidate() (and repaint()). Hence the notesPanel size is NOT directly updated right after exiting
+     * method. Size will be updated once the EDT has finished processing the revalidate.
      * <p>
      *
      * @param factorX A value &gt; 0
@@ -309,7 +307,11 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
 //            g2.getClipBounds()
 //        });
 
-        if (!yMapper.isUptodate() || !xMapper.isUptodate())
+        // Make sure clip is restricted to a valid area
+        g2.clipRect(0, 0, getWidth(), getHeight());
+        var clip = g2.getClipBounds();
+
+        if (!yMapper.isUptodate() || !xMapper.isUptodate() || clip.isEmpty())
         {
             //  Don't draw anything
             // LOGGER.severe("paintComponent() xMapper or yMapper is not uptodate, abort painting");
@@ -378,13 +380,11 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
             {
                 x0 = xPos - 1;
                 x1 = xPos + 1;
-            }
-            else if (playbackPointX == -1)
+            } else if (playbackPointX == -1)
             {
                 x0 = oldX - 1;
                 x1 = oldX + 1;
-            }
-            else
+            } else
             {
                 x0 = Math.min(playbackPointX, oldX) - 1;
                 x1 = Math.max(playbackPointX, oldX) + 1;
@@ -531,64 +531,6 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
 
 
     /**
-     * Get the bar range corresponding to the graphics clip.
-     *
-     * @param g
-     * @return Can be an empty FloatRange if clip is empty
-     */
-    public IntRange getClipBarRange(Graphics g)
-    {
-        var res = IntRange.EMPTY_RANGE;
-        var clip = g.getClipBounds();
-        // Needed in case notesPanel is smaller than the clip (e.g. when max zoomed out, notesPanel smaller than enclosing ViewPort)             
-        SwingUtilities.computeIntersection(0, 0, getWidth(), getHeight(), clip);
-        if (!clip.isEmpty())    // Not sure it can really happen
-        {
-            int barFrom = xMapper.getPosition(clip.x).getBar();
-            int barTo = xMapper.getPosition(clip.x + clip.width - 1).getBar();
-            res = new IntRange(barFrom, barTo);
-        }
-        return res;
-    }
-
-    /**
-     * Get the beat range corresponding to the graphics clip.
-     *
-     * @param g
-     * @return Can be an empty FloatRange if clip is empty
-     */
-    public FloatRange getClipBeatRange(Graphics g)
-    {
-        var res = FloatRange.EMPTY_FLOAT_RANGE;
-        var clip = g.getClipBounds();
-        var r = clip.intersection(getBounds());     // Needed in case notesPanel is smaller than the clip (e.g. when max zoomed out, notesPanel smaller than enclosing ViewPort)        
-        if (!r.isEmpty())    // Not sure it can really happen
-        {
-            res = xMapper.getPositionInBeatsRange(new IntRange(r.x, r.x + r.width - 1));
-        }
-        return res;
-    }
-
-
-    /**
-     * Get the x positions corresponding to the loop zone.
-     *
-     * @return Can be null if no loop zone set.
-     */
-    public IntRange getLoopZoneXRange()
-    {
-        IntRange res = null;
-        var loopZone = editor.getLoopZone();
-        if (loopZone != null)
-        {
-            int xFrom = xMapper.getX(new Position(loopZone.from));
-            int xTo = editor.getPhraseBarRange().contains(loopZone.to + 1) ? xMapper.getX(new Position(loopZone.to + 1)) - 1 : xMapper.getLastWidth() - 1;
-            res = new IntRange(xFrom, xTo);
-        }
-        return res;
-    }
-
-    /**
      * Get the NoteViews which intersect with the specified Rectangle, sorted by NoteEvent natural order.
      *
      * @param r
@@ -605,21 +547,20 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
         {
             // We can limit the search to some NoteViews, useful when many many notes
             SwingUtilities.computeIntersection(0, 0, getWidth(), getHeight(), r);
-            float brFrom = xMapper.toPositionInBeats(xMapper.getPosition(r.x));
-            float brTo = xMapper.toPositionInBeats(xMapper.getPosition(r.x + r.width - 1));
+            float brFrom = xMapper.getBeatPosition(xMapper.getPositionFromX(r.x));
+            float brTo = xMapper.getBeatPosition(xMapper.getPositionFromX(r.x + r.width - 1));
             NoteEvent neMin = new NoteEvent(0, 1, 0, Math.max(0, brFrom - 48f)); // we manage up to a 48 beats-long note that would cross our rectangle
             NoteEvent neMax = new NoteEvent(0, 1, 0, brTo + 0.1f);
             nvs = mapNoteViews.subMap(neMin, neMax).values();       // ordered by note position
-        }
-        else
+        } else
         {
             // Check all NoteViews
             nvs = mapNoteViews.values();
         }
 
         var res = nvs.stream()
-            .filter(nv -> nv.getBounds().intersects(r))
-            .toList();
+                .filter(nv -> nv.getBounds().intersects(r))
+                .toList();
 
         return res;
     }
@@ -627,7 +568,7 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
     /**
      * Draw the vertical lines for each bar/beat.
      *
-     * @param g2
+     * @param g2 The clip horizontal range must be within the NotesPanel horizontal bounds.
      * @param y0 start of the vertical lines
      * @param y1 end of the vertical lines
      */
@@ -645,7 +586,7 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
         Color cl3 = HSLColor.changeLuminance(cl2, 3);      // even lighter
         Color cl3_lz = HSLColor.changeLuminance(cl2_lz, 3);
 
-        var clipBarRange = getClipBarRange(g2);
+        var clipBarRange = xMapper.getBarRange(IntRange.ofX(g2.getClipBounds()));       // Clip must NOT be within the NotesPanel horizontal bounds
         if (clipBarRange.isEmpty())
         {
             return;
@@ -709,9 +650,10 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
      */
     protected void paintLoopZone(JComponent jc, Graphics g)
     {
-        var loopZoneXRange = getLoopZoneXRange();
-        if (loopZoneXRange != null)
+        IntRange loopZone = editor.getLoopZone();
+        if (loopZone != null)
         {
+            var loopZoneXRange = xMapper.getXRange(loopZone);
             var lZone = new Rectangle(loopZoneXRange.from, 0, loopZoneXRange.size(), jc.getHeight() - 1);
             lZone = lZone.intersection(g.getClipBounds());
             Color c = editor.getSettings().getBackgroundColor2();
@@ -739,9 +681,10 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
 
 
         // prepare LoopZone data
-        IntRange loopZoneXRange = getLoopZoneXRange();
-        Color cb1_loopZone = loopZoneXRange != null ? HSLColor.changeLuminance(cb1, -6) : null;
-        Color cb2_loopZone = loopZoneXRange != null ? HSLColor.changeLuminance(cb2, -6) : null;
+        IntRange loopZone = editor.getLoopZone();
+        IntRange loopZoneXRange = loopZone == null ? null : xMapper.getXRange(loopZone);
+        Color cb1_loopZone = loopZone != null ? HSLColor.changeLuminance(cb1, -6) : null;
+        Color cb2_loopZone = loopZone != null ? HSLColor.changeLuminance(cb2, -6) : null;
 
 
         // only draw what's visible
@@ -789,7 +732,7 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
             return;
         }
 
-        var clipBr = getClipBeatRange(g2);
+        var clipBr = xMapper.getBeatPositionRange(IntRange.ofX(g2.getClipBounds()));
 
         for (var channel : mapChannelGhostPhrase.keySet())
         {
@@ -813,8 +756,7 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
                         g2.fillRect(xRange.from, y, xRange.size(), h);
                         g2.setColor(c2);
                         g2.drawRect(xRange.from, y, xRange.size(), h);
-                    }
-                    else
+                    } else
                     {
                         int x = xMapper.getX(ne.getPositionInBeats());
                         int half = h / 2 + 1;
@@ -890,7 +832,7 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
 
         private XMapper()
         {
-            editor.addPropertyChangeListener(PianoRollEditor.PROP_QUANTIZATION, e ->
+            editor.addPropertyChangeListener(PianoRollEditor.PROP_QUANTIZATION, e -> 
             {
                 refresh();
                 repaint();
@@ -1015,7 +957,7 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
          * @return
          * @throws IllegalStateException If this yMapper is not up-to-date.
          */
-        public synchronized NavigableMap<Position, Integer> getBeatsXPositions(IntRange barRange)
+        public synchronized NavigableMap<Position, Integer> getAllBeatsX(IntRange barRange)
         {
 //            LOGGER.log(Level.SEVERE, "getAllBeatsXPositions() -- w={0} barRange={1} tmap_allBeatsXPositions={2}", new Object[]
 //            {
@@ -1061,7 +1003,7 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
          * @param xPos
          * @return A beat position within getPhraseBeatRange(). -1 if xPos is out of the bounds of this panel.
          */
-        public float getPositionInBeats(int xPos)
+        public float getBeatPosition(int xPos)
         {
             if (xPos < 0 && xPos >= getWidth())
             {
@@ -1073,21 +1015,64 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
         }
 
         /**
+         * Get the x positions of the first and last pixel of a bar range.
+         *
+         * @param barRange
+         * @return Can be empty if barRange is empty
+         */
+        public IntRange getXRange(IntRange barRange)
+        {
+            Objects.requireNonNull(barRange);
+            var res = IntRange.EMPTY_RANGE;
+            if (!barRange.isEmpty())
+            {
+                int xFrom = getX(new Position(barRange.from));
+                int xTo = editor.getPhraseBarRange().contains(barRange.to + 1) ? getX(new Position(barRange.to + 1)) - 1 : getLastWidth() - 1;
+                res = new IntRange(xFrom, xTo);
+            }
+            return res;
+        }
+
+        /**
+         * Get the bar range corresponding to the x position range.
+         *
+         * @param xRange
+         * @return Can be empty if xRange is empty
+         */
+        public IntRange getBarRange(IntRange xRange)
+        {
+            Objects.requireNonNull(xRange);
+            Preconditions.checkArgument(xRange.isEmpty() || xRange.to < getWidth(), "xRange=%s width=", xRange, getWidth());
+
+            var res = IntRange.EMPTY_RANGE;
+            if (!xRange.isEmpty())
+            {
+                int barFrom = getPositionFromX(xRange.from).getBar();
+                int barTo = getPositionFromX(xRange.to).getBar();
+                res = new IntRange(barFrom, barTo);
+            }
+            return res;
+        }
+
+        /**
          * Get the beat position range corresponding to the specified xPosRange in this panel's coordinates.
          *
          * @param xPosRange
-         * @return A beat position range within getPhraseBeatRange(). Can be an empty range if xPosRange is not contained in this panel.
+         * @return A beat position range within getPhraseBeatRange(). Can be an empty range if xPosRange is empty or not contained in this panel.
          */
-        public FloatRange getPositionInBeatsRange(IntRange xPosRange)
+        public FloatRange getBeatPositionRange(IntRange xPosRange)
         {
             Objects.requireNonNull(xPosRange);
             var res = FloatRange.EMPTY_FLOAT_RANGE;
-            float posInBeatsFrom = getPositionInBeats(xPosRange.from);
-            float posInBeatsTo = getPositionInBeats(xPosRange.to);
-            if (posInBeatsFrom >= 0 && posInBeatsTo >= 0)
+            if (!xPosRange.isEmpty())
             {
-                res = posInBeatsFrom == posInBeatsTo ? new FloatRange(posInBeatsFrom, posInBeatsFrom + getOnePixelBeatSize() - 0.01f)
-                    : new FloatRange(posInBeatsFrom, posInBeatsTo);
+                float posInBeatsFrom = getBeatPosition(xPosRange.from);
+                float posInBeatsTo = getBeatPosition(xPosRange.to);
+                if (posInBeatsFrom >= 0 && posInBeatsTo >= 0)
+                {
+                    res = posInBeatsFrom == posInBeatsTo ? new FloatRange(posInBeatsFrom, posInBeatsFrom + getOnePixelBeatSize() - 0.01f)
+                            : new FloatRange(posInBeatsFrom, posInBeatsTo);
+                }
             }
             return res;
         }
@@ -1098,10 +1083,10 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
          * @param xPos
          * @return Null if xPos is out of range
          */
-        public Position getPosition(int xPos)
+        public Position getPositionFromX(int xPos)
         {
-            var posInBeats = getPositionInBeats(xPos);
-            return posInBeats < 0 ? null : toPosition(posInBeats);
+            var posInBeats = XMapper.this.getBeatPosition(xPos);
+            return posInBeats < 0 ? null : getPosition(posInBeats);
         }
 
         /**
@@ -1142,7 +1127,7 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
         public int getX(Position pos)
         {
             Objects.requireNonNull(pos);
-            var xPos = getX(toPositionInBeats(pos));
+            var xPos = getX(XMapper.this.getBeatPosition(pos));
             return xPos;
         }
 
@@ -1152,7 +1137,7 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
          * @param posInBeats
          * @return
          */
-        public Position toPosition(float posInBeats)
+        public Position getPosition(float posInBeats)
         {
             var br = editor.getPhraseBeatRange();
             Preconditions.checkArgument(br.contains(posInBeats, true), "br=%s posInBeats=%s", br, posInBeats);
@@ -1168,7 +1153,7 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
          * @param pos Must belong to the editor bar range
          * @return
          */
-        public float toPositionInBeats(Position pos)
+        public float getBeatPosition(Position pos)
         {
             Objects.requireNonNull(pos);
             Preconditions.checkArgument(editor.getPhraseBarRange().contains(pos.getBar()), "pos=%s getBarRange()=%s", pos, editor.getPhraseBarRange());
@@ -1214,7 +1199,7 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
         /**
          * To be called when associated keyboard height has changed.
          * <p>
-         * Recompute internal data to make this yMapper up-to-date. Call revalidate() and repaint() when done.
+         * Recomputes internal data to make this yMapper up-to-date. Calls revalidate() and repaint() when done.
          *
          * @param newKbdHeight
          */
@@ -1259,8 +1244,9 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
                 int yi = Math.round(y);
                 tmapPixelPitch.put(yi, p);
                 int pp = p % 12;
-                float yUp = (pp == 0 || pp == 4 || pp == 5 || pp == 11 || p == kbdRange.getHighestPitch()) ? adjustedLargeHeight
-                    : adjustedSmallHeight;
+                float yUp = (pp == 0 || pp == 4 || pp == 5 || pp == 11 || p == kbdRange.getHighestPitch())
+                        ? adjustedLargeHeight
+                        : adjustedSmallHeight;
                 IntRange channelNoteYRange = new IntRange(Math.round(y - yUp + 1), yi);
                 mapPitchChannelYRange.put(p, channelNoteYRange);
                 y -= yUp;
@@ -1319,13 +1305,26 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
         {
             if (!isUptodate())
             {
-                throw new IllegalStateException(
-                    "lastKeyboardHeight=" + lastKeyboardHeight + " keyboard.height=" + keyboard.getHeight());
+                throw new IllegalStateException("lastKeyboardHeight=" + lastKeyboardHeight + " keyboard.height=" + keyboard.getHeight());
             }
 
             var entry = tmapPixelPitch.ceilingEntry(yPos);
             // We might be below the (bottom key), can happen if keyboard is unzoomed/small and there is extra space below the keys.        
             int res = entry != null ? entry.getValue() : tmapPixelPitch.lastEntry().getValue();
+            return res;
+        }
+
+        /**
+         * Get the pitch range corresponding to the y-position range.
+         *
+         * @param yRange
+         * @return
+         */
+        public IntRange getPitchRange(IntRange yRange)
+        {
+            int pTo = getPitch(yRange.from);
+            int pFrom = getPitch(yRange.to);
+            var res = new IntRange(pFrom, pTo);
             return res;
         }
 

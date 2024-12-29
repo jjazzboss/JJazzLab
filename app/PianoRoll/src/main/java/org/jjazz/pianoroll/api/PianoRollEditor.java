@@ -61,7 +61,6 @@ import java.util.logging.Logger;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
-import javax.swing.JLayer;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -83,7 +82,6 @@ import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.Phrases;
 import org.jjazz.pianoroll.EditToolBar;
-import org.jjazz.pianoroll.NotesPanelLayerUI;
 import org.jjazz.pianoroll.NotesPanel;
 import org.jjazz.pianoroll.RulerPanel;
 import org.jjazz.pianoroll.actions.CopyNotes;
@@ -185,6 +183,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
      */
     public static final String PROP_CHORD_SEQUENCE = "ChordSequence";
     private static final float MAX_WIDTH_FACTOR = 1.5f;
+    private static SessionUISettings lastSessionUISettings = new SessionUISettings();
+    private JSplitPane splitPane_TopBottom;
     private NotesPanel notesPanel;
     private VelocityPanel velocityPanel;
     private ScorePanel scorePanel;
@@ -271,7 +271,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
 
         // The lookup for other stuff, before createUI()
         generalLookupContent = new InstanceContent();
-        generalLookupContent.add(new PianoRollZoomable());
+        var zoomable = new PianoRollZoomable();
+        generalLookupContent.add(zoomable);
         generalLookupContent.add(getActionMap());
         lookup = new AbstractLookup(generalLookupContent);
 
@@ -326,6 +327,19 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
 
 
         updateGhostPhrases();
+
+
+        SwingUtilities.invokeLater(() -> 
+        {
+            if (lastSessionUISettings.zoomH >= 0)
+            {
+                zoomable.setZoomXFactor(lastSessionUISettings.zoomH, false);
+            }
+            if (lastSessionUISettings.zoomV >= 0)
+            {
+                zoomable.setZoomYFactor(lastSessionUISettings.zoomV, false);
+            }
+        });
 
     }
 
@@ -416,8 +430,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
      * Can fire PROP_MODEL_PHRASE and PROP_MODEL_CHANNEL change events.
      *
      * @param p             The phrase model. Must start at bar/beat 0.
-     * @param beatRange     The beat range of the phrase model to edit. It must start at beat 0. It might be only a part of the phrase model or be
-     *                      longer.
+     * @param beatRange     The beat range of the phrase model to edit. It must start at beat 0. It might be only a part of the phrase model or be longer.
      * @param rulerStartBar The start bar displayed on the ruler. Might be &gt; 0, e.g. for a custom phrase of a song part in the middle of the song.
      * @param channel       The Midi channel of the phrase model (p.getChannel() is ignored).
      * @param mapPosTs      The position of each time signature. Must have at least 1 entry at beatRange.from position or before.
@@ -429,7 +442,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
         Preconditions.checkArgument(beatRange != null && beatRange.from == 0, "beatRange=%s", beatRange);
         Preconditions.checkArgument(rulerStartBar >= 0);
         Preconditions.checkArgument(mapPosTs != null && !mapPosTs.isEmpty() && mapPosTs.firstKey() <= beatRange.from, "mapPosTs=%s  beatRange=%s", mapPosTs,
-            beatRange);
+                beatRange);
 
         LOGGER.log(Level.FINE, "setModel() -- p.size()={0} beatRange={1} rulerStartBar={2} channel={3} mapPosTs={4} kMap={5}", new Object[]
         {
@@ -438,11 +451,11 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
 
 
         if (p == model
-            && this.channel == channel
-            && rulerStartBar == this.rulerStartBar
-            && beatRange.equals(this.beatRange)
-            && this.mapPosTimeSignature.equals(mapPosTs)
-            && Objects.equals(kMap, this.keyMap))
+                && this.channel == channel
+                && rulerStartBar == this.rulerStartBar
+                && beatRange.equals(this.beatRange)
+                && this.mapPosTimeSignature.equals(mapPosTs)
+                && Objects.equals(kMap, this.keyMap))
         {
             return;
         }
@@ -648,6 +661,13 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
     public void cleanup()
     {
         LOGGER.fine("cleanup() --");
+
+        // Save some UI settings for the session
+        int h = splitPane_TopBottom.getHeight();
+        double dividerWeight = h > 0 ? (double) splitPane_TopBottom.getDividerLocation() / h : 0.8d;
+        lastSessionUISettings = new SessionUISettings(dividerWeight, getZoom().hValue(), getZoom().vValue());
+
+
         rulerPanel.cleanup();
         editorPanels.forEach(ep -> ep.cleanup());
         ghostPhrasesModel.removePropertyChangeListener(this);
@@ -661,72 +681,6 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
         firePropertyChange(PROP_EDITOR_ALIVE, true, false);
     }
 
-    /**
-     * Set the editor zoom value.
-     *
-     * @param zoom
-     */
-    public void setZoom(ZoomValue zoom)
-    {
-        Preconditions.checkNotNull(zoom);
-        LOGGER.log(Level.FINE, "setZoom() -- this.zoomvalue={0} zoom={1}", new Object[]
-        {
-            this.zoomValue, zoom
-        });
-
-
-        if (zoomValue == null || zoomValue.hValue() != zoom.hValue())
-        {
-            // Save position center
-            var vbr = getVisibleBeatRange();
-            if (vbr.isEmpty())
-            {
-                LOGGER.log(Level.WARNING, "setZoom() zoom={0} Unexpected getVisibleBeatRange() empty", zoom);
-                return;
-            }
-            float saveCenterPosInBeats = vbr.getCenter();
-
-            // This updates notesPanel preferred size and calls revalidate(), which will update the size on the EDT
-            float f = toScaleFactorX(zoom.hValue());
-            editorPanels.forEach(ep -> ep.setScaleFactorX(f));
-
-            // Restore position at center
-            // Must be done later on the EDT to get the notesPanel effectively resized after previous command, so that
-            // XMapper() will be refreshed before calling scrollToCenter
-            SwingUtilities.invokeLater(() -> scrollToCenter(saveCenterPosInBeats));
-
-        }
-
-        if (zoomValue == null || zoomValue.vValue() != zoom.vValue())
-        {
-            // Save pitch at center
-            int saveCenterPitch = (int) getVisiblePitchRange().getCenter();
-
-
-            // Scale the keyboard
-            float factor = toScaleFactorY(zoom.vValue());
-
-
-            // Because keyboard is in RIGHT orientation factorX impacts the keyboard height.
-            // We limit factorY because we don't want the keyboard to get wide
-            // This updates keyboard preferred size and calls revalidate(), which will update the size         
-            keyboard.setScaleFactor(factor, Math.min(MAX_WIDTH_FACTOR, factor));
-
-
-            // This is to avoid a difficult bug when zooming in/out vertically fast with mouse-wheel: sometimes 2 successive zoom events
-            // occur BEFORE the keyboard component resized event (triggered by setScaleFactor() just above) is fired. In this case 
-            // the refresh of YMapper() is done too late (see component size listener in YMapper), and scrollToCenter() below fails because YMapper is not up to date.
-            // So we force the refresh now.
-            notesPanel.getYMapper().refresh(keyboard.getPreferredSize().height);
-
-
-            // restore pitch at center
-            // Note that surprisingly using SwingUtilities.invokeLater() on scrollToCenter() did not solve the bug explained above
-            scrollToCenter(saveCenterPitch);
-        }
-
-        zoomValue = zoom;
-    }
 
     /**
      * Get the editor zoom value.
@@ -749,10 +703,10 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
     public void setQuantization(Quantization q)
     {
         Preconditions.checkArgument(EnumSet.of(Quantization.BEAT,
-            Quantization.HALF_BEAT,
-            Quantization.ONE_THIRD_BEAT,
-            Quantization.ONE_QUARTER_BEAT,
-            Quantization.ONE_SIXTH_BEAT).contains(q));
+                Quantization.HALF_BEAT,
+                Quantization.ONE_THIRD_BEAT,
+                Quantization.ONE_QUARTER_BEAT,
+                Quantization.ONE_SIXTH_BEAT).contains(q));
         if (quantization.equals(q))
         {
             return;
@@ -962,9 +916,9 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
             xPos = notesPanel.getXMapper().getX(pos);
         }
 
-        
+
         rulerPanel.showPlaybackPoint(xPos);
-        for (var ep: editorPanels)
+        for (var ep : editorPanels)
         {
             ep.showPlaybackPoint(xPos);
         }
@@ -1001,7 +955,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
      */
     public float getPositionFromPoint(Point editorPoint)
     {
-        return notesPanel.getXMapper().getPositionInBeats(editorPoint.x);
+        return notesPanel.getXMapper().getBeatPosition(editorPoint.x);
     }
 
 
@@ -1024,7 +978,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
      */
     public float toPositionInBeats(Position pos)
     {
-        return notesPanel.getXMapper().toPositionInBeats(pos);
+        return notesPanel.getXMapper().getBeatPosition(pos);
     }
 
     /**
@@ -1036,7 +990,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
      */
     public Position toPosition(float posInBeats)
     {
-        return notesPanel.getXMapper().toPosition(posInBeats);
+        return notesPanel.getXMapper().getPosition(posInBeats);
     }
 
     /**
@@ -1099,20 +1053,20 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
     /**
      * Get the min/max phrase notes which are currently visible.
      *
-     * @return
+     * @return Might be empty
      */
     public IntRange getVisiblePitchRange()
     {
-        assert notesPanel.getYMapper().isUptodate() :
-            "YMapper.getLastKeyboardHeight()=" + notesPanel.getYMapper().getLastKeyboardHeight()
-            + " kbd.getHeight()=" + keyboard.getHeight()
-            + " kbd.getPreferredHeight()=" + keyboard.getPreferredSize().getHeight();
-        IntRange vpYRange = getYRange(scrollPaneEditor.getViewport().getViewRect());
-        IntRange keysYRange = getYRange(keyboard.getKeysBounds());
-        IntRange ir = keysYRange.getIntersection(vpYRange);
-        var pitchBottom = notesPanel.getYMapper().getPitch(ir.to);
-        var pitchTop = notesPanel.getYMapper().getPitch(ir.from);
-        return new IntRange(pitchBottom, pitchTop);
+        var res = IntRange.EMPTY_RANGE;
+        var yMapper = notesPanel.getYMapper();
+        if (yMapper.isUptodate())
+        {
+            IntRange vpYRange = IntRange.ofY(scrollPaneEditor.getViewport().getViewRect());
+            IntRange keysYRange = IntRange.ofY(keyboard.getKeysBounds());
+            IntRange ir = keysYRange.getIntersection(vpYRange);
+            res = yMapper.getPitchRange(ir);
+        }
+        return res;
     }
 
     /**
@@ -1122,14 +1076,14 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
      */
     public FloatRange getVisibleBeatRange()
     {
+        var res = FloatRange.EMPTY_FLOAT_RANGE;
         var xMapper = notesPanel.getXMapper();
-        assert xMapper.isUptodate() : "notesPanel.getWidth()=" + notesPanel.getWidth()
-            + "xMapper.getLastWidth()=" + xMapper.getLastWidth()
-            + "notesPanel.getPreferredWidth()=" + notesPanel.getPreferredSize().getWidth();
-        var r = scrollPaneEditor.getViewport().getViewRect();
-        var bounds = notesPanel.getBounds();
-        SwingUtilities.computeIntersection(bounds.x, bounds.y, bounds.width, bounds.height, r);    // Avoids a new rectangle allocation
-        var res = r.isEmpty() ? FloatRange.EMPTY_FLOAT_RANGE : xMapper.getPositionInBeatsRange(new IntRange(r.x, r.x + r.width - 1));
+        if (xMapper.isUptodate())
+        {
+            var rgViewPort = IntRange.ofX(scrollPaneEditor.getViewport().getViewRect());
+            var rg = IntRange.ofX(notesPanel.getBounds()).getIntersection(rgViewPort);
+            res = rg.isEmpty() ? FloatRange.EMPTY_FLOAT_RANGE : xMapper.getBeatPositionRange(rg);
+        }
         return res;
     }
 
@@ -1154,8 +1108,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
         var visibleBr = getVisibleBeatRange();
         if (!visibleBr.isEmpty())
         {
-            Position posFrom = notesPanel.getXMapper().toPosition(visibleBr.from);
-            Position posTo = notesPanel.getXMapper().toPosition(visibleBr.to);
+            Position posFrom = notesPanel.getXMapper().getPosition(visibleBr.from);
+            Position posTo = notesPanel.getXMapper().getPosition(visibleBr.to);
             res = new IntRange(posFrom.getBar(), posTo.getBar());
         }
         return res;
@@ -1235,7 +1189,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
                 {
                     List<NoteEvent> nes = (List<NoteEvent>) evt.getNewValue();
                     removeNotes(nes);
-                    editorPanels.forEach(ep ->
+                    editorPanels.forEach(ep -> 
                     {
                         ep.revalidate();
                         ep.repaint();
@@ -1249,7 +1203,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
                         var newNe = mapOldNew.get(oldNe);
                         editorPanels.forEach(ep -> ep.setNoteViewModel(oldNe, newNe));
                     }
-                    editorPanels.forEach(ep ->
+                    editorPanels.forEach(ep -> 
                     {
                         ep.revalidate();
                         ep.repaint();
@@ -1260,8 +1214,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
                 }
             }
 
-        }
-        else if (evt.getSource() == ghostPhrasesModel)
+        } else if (evt.getSource() == ghostPhrasesModel)
         {
             switch (evt.getPropertyName())
             {
@@ -1285,8 +1238,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
     private List<EditorPanel> getSubPanels()
     {
         return editorPanels.stream()
-            .filter(ep -> ep != notesPanel)
-            .toList();
+                .filter(ep -> ep != notesPanel)
+                .toList();
     }
 
     /**
@@ -1299,8 +1252,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
     private void addNotes(List<NoteEvent> notes)
     {
         var rangeNotes = notes.stream()
-            .filter(ne -> beatRange.contains(ne.getBeatRange(), false))
-            .toList();
+                .filter(ne -> beatRange.contains(ne.getBeatRange(), false))
+                .toList();
         if (!rangeNotes.isEmpty())
         {
             for (var ne : rangeNotes)
@@ -1330,8 +1283,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
     private void removeNotes(List<NoteEvent> notes)
     {
         var rangeNotes = notes.stream()
-            .filter(ne -> beatRange.contains(ne.getBeatRange(), false))
-            .toList();
+                .filter(ne -> beatRange.contains(ne.getBeatRange(), false))
+                .toList();
         if (!rangeNotes.isEmpty())
         {
             selectNotes(rangeNotes, false);
@@ -1386,6 +1339,74 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
         return yFactor;
     }
 
+    /**
+     * Set the editor zoom value.
+     *
+     * @param zoom
+     */
+    private void setZoom(ZoomValue zoom)
+    {
+        Preconditions.checkNotNull(zoom);
+        LOGGER.log(Level.FINE, "setZoom() -- this.zoomvalue={0} zoom={1}", new Object[]
+        {
+            this.zoomValue, zoom
+        });
+
+
+        if (zoomValue == null || zoomValue.hValue() != zoom.hValue())
+        {
+            // Save position center
+            var vbr = getVisibleBeatRange();
+            if (vbr.isEmpty())
+            {
+                LOGGER.log(Level.WARNING, "setZoom() zoom={0} Unexpected getVisibleBeatRange() empty", zoom);
+                return;
+            }
+            float saveCenterPosInBeats = vbr.getCenter();
+
+            // This updates notesPanel preferred size and calls revalidate(), which will update the size on the EDT
+            float f = toScaleFactorX(zoom.hValue());
+            editorPanels.forEach(ep -> ep.setScaleFactorX(f));
+
+            // Restore position at center
+            // Must be done later on the EDT to get the notesPanel effectively resized after previous command, so that
+            // XMapper() will be refreshed before calling scrollToCenter
+            SwingUtilities.invokeLater(() -> scrollToCenter(saveCenterPosInBeats));
+
+        }
+
+        if (zoomValue == null || zoomValue.vValue() != zoom.vValue())
+        {
+            // Save pitch at center
+            var vpr = getVisiblePitchRange();
+            int saveCenterPitch = vpr.isEmpty() ? 60 : (int) vpr.getCenter();
+
+
+            // Scale the keyboard
+            float factor = toScaleFactorY(zoom.vValue());
+
+
+            // Because keyboard is in RIGHT orientation factorX impacts the keyboard height.
+            // We limit factorY because we don't want the keyboard to get wide
+            // This updates keyboard preferred size and calls revalidate(), which will update the size         
+            keyboard.setScaleFactor(factor, Math.min(MAX_WIDTH_FACTOR, factor));
+
+
+            // This is to avoid a difficult bug when zooming in/out vertically fast with mouse-wheel: sometimes 2 successive zoom events
+            // occur BEFORE the keyboard component resized event (triggered by setScaleFactor() just above) is fired. In this case 
+            // the refresh of YMapper() is done too late (see component size listener in YMapper), and scrollToCenter() below fails because YMapper is not up to date.
+            // So we force the refresh now.
+            notesPanel.getYMapper().refresh(keyboard.getPreferredSize().height);
+
+
+            // restore pitch at center
+            // Note that surprisingly using SwingUtilities.invokeLater() on scrollToCenter() did not solve the bug explained above
+            scrollToCenter(saveCenterPitch);
+        }
+
+        zoomValue = zoom;
+    }
+
     private void createUI()
     {
         // The keyboard 
@@ -1424,7 +1445,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
         bottomEditorPanelsContainer.add(velocityPanel, BottomControlPanel.VELOCITY_EDITOR_PANEL_STRING);
         bottomEditorPanelsContainer.add(scorePanel, BottomControlPanel.SCORE_EDITOR_PANEL_STRING);
         bottomControlPanel.addPropertyChangeListener(BottomControlPanel.PROP_EDITOR_PANEL_STRING,
-            evt -> cardLayout.show(bottomEditorPanelsContainer, bottomControlPanel.getSelectedPanelString()));
+                evt -> cardLayout.show(bottomEditorPanelsContainer, bottomControlPanel.getSelectedPanelString()));
         cardLayout.show(bottomEditorPanelsContainer, bottomControlPanel.getSelectedPanelString());
 
 
@@ -1434,13 +1455,13 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
 
 
         // Split pane
-        JSplitPane splitPane = new JSplitPane();
-        splitPane.setDividerSize(10);
-        splitPane.setOneTouchExpandable(true);
-        splitPane.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
-        splitPane.setResizeWeight(0.8);     // 20% to bottom height
-        splitPane.setTopComponent(scrollPaneEditor);
-        splitPane.setBottomComponent(bottomScrollPane);
+        splitPane_TopBottom = new JSplitPane();
+        splitPane_TopBottom.setDividerSize(10);
+        splitPane_TopBottom.setOneTouchExpandable(true);
+        splitPane_TopBottom.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+        splitPane_TopBottom.setResizeWeight(lastSessionUISettings.splitpaneDividerWeight);
+        splitPane_TopBottom.setTopComponent(scrollPaneEditor);
+        splitPane_TopBottom.setBottomComponent(bottomScrollPane);
 
 
         // We need to keep the bottom control panel vertically aligned with notesPanel        
@@ -1461,7 +1482,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
 
         // Final layout
         setLayout(new BorderLayout());
-        add(splitPane, BorderLayout.CENTER);
+        add(splitPane_TopBottom, BorderLayout.CENTER);
 
 
         // Create the popupmenu
@@ -1476,20 +1497,6 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
         notesPanel.setComponentPopupMenu(popupMenu);
     }
 
-    private IntRange getYRange(Rectangle r)
-    {
-        assert r.height > 0;
-        IntRange res = new IntRange(r.y, r.y + r.height - 1);
-        return res;
-    }
-
-    private IntRange getXRange(Rectangle r)
-    {
-        assert r.width > 0;
-        IntRange res = new IntRange(r.x, r.x + r.width - 1);
-        return res;
-    }
-
 
     private void labelNotes(KeyboardComponent keyboard, DrumKit.KeyMap keymap)
     {
@@ -1499,8 +1506,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
             if (keymap == null)
             {
                 s = key.getPitch() % 12 == 0 ? "C" + (key.getPitch() / 12 - 1) : null;
-            }
-            else
+            } else
             {
                 s = keymap.getKeyName(key.getPitch());
                 if (s != null)
@@ -1812,14 +1818,12 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
                 if (e.getWheelRotation() < 0)
                 {
                     hFactor = Math.min(100, hFactor + STEP);
-                }
-                else
+                } else
                 {
                     hFactor = Math.max(0, hFactor - STEP);
                 }
                 zoomable.setZoomXFactor(hFactor, false);
-            }
-            else
+            } else
             {
                 // Vertical Zoom
                 final int STEP = 5;
@@ -1827,8 +1831,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
                 if (e.getWheelRotation() < 0)
                 {
                     vFactor = Math.min(100, vFactor + STEP);
-                }
-                else
+                } else
                 {
                     vFactor = Math.max(0, vFactor - STEP);
                 }
@@ -1894,8 +1897,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
                 {
                     startDraggingPoint = e.getPoint();
                     e.getComponent().setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
-                }
-                else
+                } else
                 {
                     JViewport viewPort = (JViewport) SwingUtilities.getAncestorOfClass(JViewport.class, notesPanel);
                     if (viewPort != null)
@@ -1976,17 +1978,15 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
             }
 
             Point p = e.getSource() instanceof NoteView nv ? SwingUtilities.convertPoint(nv, e.getPoint(), notesPanel)
-                : e.getPoint();
+                    : e.getPoint();
             int pitch = notesPanel.getYMapper().getPitch(p.y);
             if (pitch == lastHighlightedPitch)
             {
                 // Nothing
-            }
-            else if (pitch == -1)
+            } else if (pitch == -1)
             {
                 keyboard.getKey(lastHighlightedPitch).release();
-            }
-            else
+            } else
             {
                 if (lastHighlightedPitch != -1)
                 {
@@ -2033,8 +2033,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
                 {
                     startDraggingPoint = e.getPoint();
                     unselectAll();
-                }
-                else
+                } else
                 {
                     ((JPanel) e.getSource()).scrollRectToVisible(new Rectangle(e.getX(), e.getY(), 1, 1));
 
@@ -2092,8 +2091,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
             if (e.getSource() == notesPanel)
             {
                 activeTool.editorClicked(e);
-            }
-            else if (e.getSource() instanceof NoteView nv)
+            } else if (e.getSource() instanceof NoteView nv)
             {
                 activeTool.noteClicked(e, nv);
             }
@@ -2113,8 +2111,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
             if (e.getSource() == notesPanel)
             {
                 activeTool.editorReleased(e);
-            }
-            else if (e.getSource() instanceof NoteView nv)
+            } else if (e.getSource() instanceof NoteView nv)
             {
                 activeTool.noteReleased(e, nv);
             }
@@ -2152,8 +2149,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
             if (e.getSource() == notesPanel)
             {
                 activeTool.editorDragged(e);
-            }
-            else if (e.getSource() instanceof NoteView nv)
+            } else if (e.getSource() instanceof NoteView nv)
             {
                 ((JPanel) e.getSource()).scrollRectToVisible(new Rectangle(e.getX(), e.getY(), 1, 1));
                 activeTool.noteDragged(e, nv);
@@ -2177,8 +2173,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
             if (e.getSource() == notesPanel)
             {
                 activeTool.editorWheelMoved(e);
-            }
-            else if (e.getSource() instanceof NoteView nv)
+            } else if (e.getSource() instanceof NoteView nv)
             {
                 activeTool.noteWheelMoved(e, nv);
             }
@@ -2219,15 +2214,14 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
             try
             {
                 p = Phrases.importPhrase(midiFile, channel, isDrums(), false, true);
-            }
-            catch (IOException | InvalidMidiDataException ex)
+            } catch (IOException | InvalidMidiDataException ex)
             {
                 LOGGER.log(Level.WARNING, "MidiFileDragInTransferHandlerImpl.importMidiFile() exception while importing midiFile={0} ex={1}",
-                    new Object[]
-                    {
-                        midiFile.getAbsolutePath(),
-                        ex.getMessage()
-                    });
+                        new Object[]
+                        {
+                            midiFile.getAbsolutePath(),
+                            ex.getMessage()
+                        });
                 String exMsg = ex.getMessage();
                 if (exMsg == null)
                 {
@@ -2304,8 +2298,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
                     selectedNoteViews.add(nv);
                     nvs.add(nv);
                     nv.addPropertyChangeListener(this);     // Listen to model changes
-                }
-                else if (!b && selectedNoteViews.contains(nv))
+                } else if (!b && selectedNoteViews.contains(nv))
                 {
                     selectedNoteViews.remove(nv);
                     nvs.add(nv);
@@ -2349,8 +2342,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
             if (isNoteEventListDirty)
             {
                 cacheNoteEventOrderedList = cacheNoteViewOrderedList.stream()
-                    .map(nv -> nv.getModel())
-                    .toList();
+                        .map(nv -> nv.getModel())
+                        .toList();
                 isNoteEventListDirty = false;
             }
             return cacheNoteEventOrderedList;
@@ -2363,6 +2356,16 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
             {
                 isNoteEventListDirty = true;
             }
+        }
+    }
+
+
+    private record SessionUISettings(double splitpaneDividerWeight, int zoomH, int zoomV)
+            {
+
+        public SessionUISettings()
+        {
+            this(0.8d, -1, -1); // 0.8d => bottom height=20%
         }
     }
 }

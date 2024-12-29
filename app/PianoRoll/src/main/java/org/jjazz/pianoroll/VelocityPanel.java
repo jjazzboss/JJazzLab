@@ -212,7 +212,10 @@ public class VelocityPanel extends EditorPanel implements PropertyChangeListener
 //            getWidth(), getHeight()
 //        });
 
-        var clip = g.getClipBounds();
+        // Make sure clip is restricted to a valid area
+        g2.clipRect(0, 0, notesPanel.getWidth(), getHeight());
+        var clip = g2.getClipBounds();
+        
         var xMapper = notesPanel.getXMapper();
         if (!xMapper.isUptodate())
         {
@@ -482,7 +485,7 @@ public class VelocityPanel extends EditorPanel implements PropertyChangeListener
         private void updateImpactedNotes(MouseEvent e)
         {
             var xMapper = notesPanel.getXMapper();
-            float posInBeats = xMapper.getPositionInBeats(e.getX());
+            float posInBeats = xMapper.getBeatPosition(e.getX());
             if (posInBeats < 0)
             {
                 return;

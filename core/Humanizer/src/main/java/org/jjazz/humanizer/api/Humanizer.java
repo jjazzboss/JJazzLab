@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
@@ -33,6 +34,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.event.SwingPropertyChangeSupport;
@@ -271,9 +273,13 @@ public class Humanizer
         computeRandomFactors(newNotes);
     }
 
-    public Collection<NoteEvent> getRegisteredNotes()
+    /**
+     *
+     * @return An unmodifiable set
+     */
+    public Set<NoteEvent> getRegisteredNotes()
     {
-        return registeredNotes;
+        return Collections.unmodifiableSet(registeredNotes);
     }
 
     /**
@@ -396,8 +402,31 @@ public class Humanizer
             });
             return newNe;
         });
-        
-        Phrases.fixOverlappedNotes(sourcePhrase);
+
+
+        var map = Phrases.fixOverlappedNotes(sourcePhrase);
+        // fixOverlappedNotes() possibly changed sourcePhrase, need to update state
+        for (var ne : map.keySet())
+        {
+            var newNe = map.get(ne);
+            if (newNe != null)
+            {
+                // Note was replaced
+                var neOrig = mapNoteOrig.remove(ne);
+                var factors = mapNoteRandomFactors.remove(ne);
+                registeredNotes.remove(ne);
+
+                mapNoteOrig.put(newNe, neOrig);
+                mapNoteRandomFactors.put(newNe, factors);
+                registeredNotes.add(newNe);
+            } else
+            {
+                // Note was removed
+                mapNoteOrig.remove(ne);
+                mapNoteRandomFactors.remove(ne);
+                registeredNotes.remove(ne);
+            }
+        }
 
         changeState(State.HUMANIZING);
     }

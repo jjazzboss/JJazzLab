@@ -576,9 +576,12 @@ public class Phrases
      * - Shorten a note partially overlapped by another one.
      *
      * @param p
+     * @return The notes removed (value=null) or replaced (value=new note)
      */
-    static public void fixOverlappedNotes(Phrase p)
+    static public Map<NoteEvent, NoteEvent> fixOverlappedNotes(Phrase p)
     {
+        Map<NoteEvent, NoteEvent> res = new HashMap<>();
+
         // Get all the notes grouped per pitch
         var mapPitchNotes = getNotesByPitch(p, ne -> true);
 
@@ -611,8 +614,9 @@ public class Phrases
                         itOn.remove();
                     } else if (brOn.to >= br.to)
                     {
-                        // Note is fully overlapped
+                        // Note is fully overlapped, remove
                         p.remove(ne);
+                        res.put(ne, null);
                         removed = true;
                         break;
                     } else if (br.from == brOn.from)
@@ -621,19 +625,22 @@ public class Phrases
                         if (br.size() <= brOn.size())
                         {
                             p.remove(ne);
+                            res.put(ne, null);
                             removed = true;
                             break;
                         } else
                         {
                             p.remove(prevNoteOn);
+                            res.put(prevNoteOn, null);
                             itOn.remove();
                         }
                     } else
                     {
-                        // Note is partially overlapped, shorten noteOn
+                        // Note is partially overlapped, replace by a shorter one
                         float newDur = br.from - brOn.from;
                         var newNoteOn = prevNoteOn.setDuration(newDur);
                         p.replace(prevNoteOn, newNoteOn);
+                        res.put(prevNoteOn, newNoteOn);
                         itOn.remove();
                     }
                 }
@@ -644,6 +651,7 @@ public class Phrases
             }
         }
 
+        return res;
     }
 
     /**
