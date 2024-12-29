@@ -277,7 +277,11 @@ public class Utilities
      */
     public static final boolean isLatin(Locale locale)
     {
-        return !(locale.getLanguage().equals("zh") || locale.getLanguage().equals("ja"));
+        return !(locale.getLanguage().equals("zh") 
+                || locale.getLanguage().equals("ja")
+                || locale.getLanguage().equals("ru")
+                || locale.getLanguage().equals("uk")
+                );
     }
 
     /**

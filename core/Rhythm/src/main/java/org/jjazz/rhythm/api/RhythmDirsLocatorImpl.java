@@ -78,7 +78,7 @@ public class RhythmDirsLocatorImpl implements RhythmDirsLocator
             if (!res.isDirectory() && !res.mkdir())
             {
                 prefs.remove(PREF_RHYTHM_USER_DIRECTORY);
-                LOGGER.log(Level.WARNING, "getUserRhythmsDirectory() Can't create user rhythms directory '{0}'. Using '{1}'' instead.", new Object[]
+                LOGGER.log(Level.WARNING, "getUserRhythmsDirectory() Can''t create user rhythms directory ''{0}''. Using ''{1}'' instead.", new Object[]
                 {
                     s, defaultUserRhythmDir
                 });
