@@ -258,7 +258,7 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
         {
             return;
         }
-        var tmapPosX = xMapper.getBeatsXPositions(vbr);
+        var tmapPosX = xMapper.getAllBeatsX(vbr);
         var allBeatPositions = tmapPosX.navigableKeySet();
         float oneBeatPixelSize = xMapper.getOneBeatPixelSize();
 
@@ -304,7 +304,7 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
         TimeSignature lastTs = null;
         for (Position pos : allBeatPositions)
         {
-            float posInBeats = xMapper.toPositionInBeats(pos);
+            float posInBeats = xMapper.getBeatPosition(pos);
             int x = tmapPosX.get(pos);
 
 
@@ -559,7 +559,7 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
             if (!e.isControlDown())
             {
                 var loopZone = editor.getLoopZone();
-                int bar = xMapper.getPosition(xOrigin).getBar();
+                int bar = xMapper.getPositionFromX(xOrigin).getBar();
                 if (e.isShiftDown() && loopZone != null)
                 {
                     if (bar < loopZone.from)
@@ -653,7 +653,7 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
             }
 
             // Set loop zone
-            int bar = xMapper.getPosition(e.getX()).getBar();
+            int bar = xMapper.getPositionFromX(e.getX()).getBar();
             int min = Math.min(bar, loopZoneBarOrigin);
             int max = Math.max(bar, loopZoneBarOrigin);
             editor.setLoopZone(new IntRange(min, max));

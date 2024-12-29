@@ -24,6 +24,7 @@
 package org.jjazz.utilities.api;
 
 import com.google.common.base.Preconditions;
+import java.awt.Rectangle;
 import java.util.Iterator;
 import java.util.stream.IntStream;
 
@@ -55,6 +56,38 @@ public class IntRange implements Iterable<Integer>
         }
         this.from = from;
         this.to = to;
+    }
+
+    /**
+     * Create an IntRange from the first and last x position of the rectangle.
+     *
+     * @param r
+     * @return An empty range if r.x is &lt; 0 or r.width &lt;= 0
+     */
+    static public IntRange ofX(Rectangle r)
+    {
+        var res = EMPTY_RANGE;
+        if (r.x >= 0 && r.width > 0)
+        {
+            res = new IntRange(r.x, r.x + r.width - 1);
+        }
+        return res;
+    }
+
+    /**
+     * Create an IntRange from the first and last x position of the rectangle.
+     *
+     * @param r
+     * @return An empty range if r.y is &lt; 0 or r.height &lt;= 0
+     */
+    static public IntRange ofY(Rectangle r)
+    {
+        var res = EMPTY_RANGE;
+        if (r.y >= 0 && r.height > 0)
+        {
+            res = new IntRange(r.y, r.y + r.height - 1);
+        }
+        return res;
     }
 
     public boolean isEmpty()
