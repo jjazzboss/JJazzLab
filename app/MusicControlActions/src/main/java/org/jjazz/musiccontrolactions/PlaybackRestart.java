@@ -27,14 +27,11 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import org.jjazz.activesong.spi.ActiveSongManager;
-import org.jjazz.harmony.api.Position;
 import org.jjazz.musiccontrol.api.MusicController;
-import org.jjazz.musiccontrol.api.playbacksession.SongContextProvider;
 import org.jjazz.song.api.Song;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -43,8 +40,6 @@ import org.openide.awt.ActionRegistration;
 import org.jjazz.musiccontrolactions.api.RemoteAction;
 import org.jjazz.musiccontrolactions.api.RemoteActionProvider;
 import org.jjazz.rhythm.api.MusicGenerationException;
-import org.jjazz.songcontext.api.SongContext;
-import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -60,21 +55,21 @@ import org.openide.util.lookup.ServiceProvider;
  * Action is enabled when playback is on.<p>
  */
 @ActionID(category = "MusicControls", id = "org.jjazz.musiccontrolactions.playbacktohead")
-@ActionRegistration(displayName = "#CTL_PlaybackToHead", lazy = false)
+@ActionRegistration(displayName = "#CTL_RestartPlayback", lazy = false)
 @ActionReferences(
         {
             @ActionReference(path = "Shortcuts", name = "F3")
         })
-public class PlaybackToHead extends AbstractAction implements PropertyChangeListener, LookupListener
+public class PlaybackRestart extends AbstractAction implements PropertyChangeListener, LookupListener
 {
 
     private Lookup.Result<Song> lookupResult;
     private Song currentSong;
-    private static final Logger LOGGER = Logger.getLogger(PlaybackToHead.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(PlaybackRestart.class.getSimpleName());
 
-    public PlaybackToHead()
+    public PlaybackRestart()
     {
-        putValue(Action.NAME, ResUtil.getString(getClass(), "CTL_PlaybackToHead"));         // For our RemovoteActionProvider
+        putValue(Action.NAME, ResUtil.getString(getClass(), "CTL_RestartPlayback"));         // For our RemovoteActionProvider
 //        putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/musiccontrolactions/resources/PreviousSongpart-24x24.png")));
 //        putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_PlaybackToPreviousSongPartTooltip"));
 //        putValue("hideActionText", true);
