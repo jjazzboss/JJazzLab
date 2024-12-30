@@ -277,7 +277,11 @@ public class Utilities
      */
     public static final boolean isLatin(Locale locale)
     {
-        return !(locale.getLanguage().equals("zh") || locale.getLanguage().equals("ja"));
+        return !(locale.getLanguage().equals("zh") 
+                || locale.getLanguage().equals("ja")
+                || locale.getLanguage().equals("ru")
+                || locale.getLanguage().equals("uk")
+                );
     }
 
     /**
@@ -1198,8 +1202,7 @@ public class Utilities
             }
         } else
         {
-            errMsg = ResUtil.getString(Utilities.class,
-                    "ErrNoExternalCommand");
+            errMsg = ResUtil.getString(Utilities.class, "ErrNoExternalCommand");
         }
 
         if (errMsg != null)
@@ -1245,8 +1248,7 @@ public class Utilities
             }
         } else
         {
-            errMsg = ResUtil.getString(Utilities.class,
-                    "ErrNoExternalCommand");
+            errMsg = ResUtil.getString(Utilities.class, "ErrNoExternalCommand");
         }
 
         if (errMsg != null)
@@ -1303,8 +1305,7 @@ public class Utilities
             }
         } else
         {
-            errMsg = ResUtil.getString(Utilities.class,
-                    "ErrNoExternalCommand");
+            errMsg = ResUtil.getString(Utilities.class, "ErrNoExternalCommand");
         }
 
         if (errMsg != null)
@@ -1345,11 +1346,12 @@ public class Utilities
                 // Wait a while for tasks to respond to being cancelled
                 if (!pool.awaitTermination(waitCancelTimeMs, TimeUnit.MILLISECONDS))
                 {
-                    LOGGER.log(Level.WARNING, "shutdownAndAwaitTermination() Pool did not terminate with waitTerminationTimeMs={0} and waitCancelTimeMs={1}", new Object[]
-                    {
-                        waitTerminationTimeMs,
-                        waitCancelTimeMs
-                    });
+                    LOGGER.log(Level.WARNING, "shutdownAndAwaitTermination() Pool did not terminate with waitTerminationTimeMs={0} and waitCancelTimeMs={1}",
+                            new Object[]
+                            {
+                                waitTerminationTimeMs,
+                                waitCancelTimeMs
+                            });
                 }
             }
         } catch (InterruptedException ie)

@@ -79,7 +79,8 @@ public class GeneralUISettings
         new Locale("zh", "CN"),
         new Locale("es", "ES"),
         new Locale("pt", "BR"),
-        new Locale("ja", "JP")
+        new Locale("ja", "JP"),
+        new Locale("uk", "UA")
     };
 
     protected enum LookAndFeelId

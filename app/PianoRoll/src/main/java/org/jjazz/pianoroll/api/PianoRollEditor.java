@@ -1359,7 +1359,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
             var vbr = getVisibleBeatRange();
             if (vbr.isEmpty())
             {
-                LOGGER.log(Level.WARNING, "setZoom() zoom={0} Unexpected getVisibleBeatRange() empty", zoom);
+                LOGGER.log(Level.FINE, "setZoom() zoom={0} Unexpected getVisibleBeatRange() empty", zoom);
                 return;
             }
             float saveCenterPosInBeats = vbr.getCenter();

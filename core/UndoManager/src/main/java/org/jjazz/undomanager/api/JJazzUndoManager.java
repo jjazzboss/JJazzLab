@@ -154,6 +154,17 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
     }
 
     /**
+     * The name of the current compound edit.
+     *
+     * @return Can be null if not current edit
+     * @see #startCEdit(java.lang.Object, java.lang.String)
+     */
+    public String getCurrentCEditName()
+    {
+        return currentCEdit == null ? null : currentCEdit.name;
+    }
+
+    /**
      *
      * End a JJazzLab high-level compound edit.
      * <p>
@@ -477,7 +488,7 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
     /**
      * A CompoundEdit with convenience operations to work with the JazzUndoManager.
      */
-    class CEdit extends CompoundEdit
+    private class CEdit extends CompoundEdit
     {
 
         private Object source;

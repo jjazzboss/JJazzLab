@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.jjazzlab</groupId>
     <artifactId>jjazzlab-parent</artifactId>
-    <version>4.1.2-SNAPSHOT</version>
+    <version>4.1.3-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>JJazzLab Parent</name>
     
@@ -41,7 +41,7 @@
     
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>         
-        <netbeans.version>RELEASE230</netbeans.version>
+        <netbeans.version>RELEASE240</netbeans.version>
         <brandingToken>jjazzlab</brandingToken> <!-- used for nbm:cluster-app configuration -->        
         <jjazzlab.maven.compiler.plugin.version>3.11.0</jjazzlab.maven.compiler.plugin.version>
         <jjazzlab.compiler.release>17</jjazzlab.compiler.release>

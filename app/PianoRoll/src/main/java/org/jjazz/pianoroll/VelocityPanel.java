@@ -449,7 +449,6 @@ public class VelocityPanel extends EditorPanel implements PropertyChangeListener
                     }
                 }
             }
-
         }
 
 
@@ -457,14 +456,13 @@ public class VelocityPanel extends EditorPanel implements PropertyChangeListener
         public void mouseReleased(MouseEvent e)
         {
             // LOGGER.severe("mouseReleased()");
-            if (startDraggingPoint != null && SwingUtilities.isLeftMouseButton(e) && !e.isControlDown())
+            if (startDraggingPoint != null && SwingUtilities.isLeftMouseButton(e))
             {
                 startDraggingPoint = null;
                 setCursor(Cursor.getDefaultCursor());
-
-                // End undoable action
                 editor.getUndoManager().endCEdit(UNDO_TEXT);
             }
+            
         }
 
         // ============================================================================================
