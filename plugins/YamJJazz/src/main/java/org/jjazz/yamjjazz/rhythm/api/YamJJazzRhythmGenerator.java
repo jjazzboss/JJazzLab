@@ -74,7 +74,6 @@ import org.jjazz.rhythmmusicgeneration.api.SongChordSequence.SplitResult;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.song.api.SongFactory;
 import org.openide.util.Exceptions;
-import org.jjazz.yamjjazz.YamChord;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.utilities.api.FloatRange;

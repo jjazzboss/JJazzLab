@@ -66,7 +66,7 @@
                 <plugin>
                     <groupId>org.apache.netbeans.utilities</groupId>
                     <artifactId>nbm-maven-plugin</artifactId>
-                    <version>4.8</version>
+                    <version>14.2</version>
                     <extensions>true</extensions>
                     <configuration>
                         <brandingToken>${brandingToken}</brandingToken>         <!-- for nbm:cluster-app, nbm:branding, nbm:run-platform, nbm:standalone-zip -->

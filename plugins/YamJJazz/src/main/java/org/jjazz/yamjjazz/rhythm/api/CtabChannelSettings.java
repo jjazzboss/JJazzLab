@@ -29,7 +29,6 @@ import org.jjazz.harmony.api.ChordType;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.midi.api.MidiConst;
-import org.jjazz.yamjjazz.YamChord;
 
 /**
  * Corresponds to data in the Ctab structure or ctb2 structure (first part only, 2nd ctb2 part is in the ct2Low/Main/High fields) in the style file, associated
