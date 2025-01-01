@@ -66,8 +66,8 @@
                             </includes>
                         </nbmResource>     
                     </nbmResources>                                
-                    <extensions>true</extensions>
                 </configuration>
+                <extensions>true</extensions>
             </plugin>
             
             <!-- Make sure we don't embedd JJazzLab application dependencies -->
