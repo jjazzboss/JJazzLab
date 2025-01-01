@@ -134,7 +134,7 @@
         <dependency> 
             <groupId>org.jjazzlab</groupId> 
             <artifactId>fluidsynthjava</artifactId> 
-            <version>0.3.1</version>  
+            <version>0.3.2</version>    <!-- 0.3.2 first version to use JDK23 -->
         </dependency>                 
         <dependency> 
             <groupId>org.jjazzlab.core</groupId> 
