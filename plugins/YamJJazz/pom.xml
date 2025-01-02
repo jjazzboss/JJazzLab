@@ -45,31 +45,20 @@
         <developerConnection>scm:git:git@github.com:jjazzboss/JJazzLab.git</developerConnection>
         <url>https://github.com/jjazzboss/JJazzLab</url>
     </scm>        
-        
-    
-    
+                
     <build>
-        <plugins>
+        <plugins>    
+                            
             <plugin>
                 <groupId>org.apache.netbeans.utilities</groupId>
                 <artifactId>nbm-maven-plugin</artifactId>
                 <configuration>
-                    <publicPackages>                      
-                        <publicPackage>org.jjazz.yamjjazz.rhythm.api</publicPackage>
-                    </publicPackages>
-                    <nbmResources>
-                        <nbmResource>
-                            <directory>src/main/styles</directory>
-                            <targetPath>modules</targetPath>
-                            <includes>
-                                <include>**/*</include>
-                            </includes>
-                        </nbmResource>     
-                    </nbmResources>                                   
+                    <publicPackages>                
+                        <publicPackage>org.jjazz.yamjjazz.rhythm.api</publicPackage>      
+                    </publicPackages>                               
                 </configuration>
                 <extensions>true</extensions>
             </plugin>
-            
             
             <!-- Make sure we don't embedd JJazzLab application dependencies -->
             <plugin>

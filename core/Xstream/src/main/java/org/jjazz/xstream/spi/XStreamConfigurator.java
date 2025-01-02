@@ -27,7 +27,7 @@ package org.jjazz.xstream.spi;
 import com.thoughtworks.xstream.XStream;
 
 /**
- * Configure an Xstream instance.
+ * Configure the Xstream instances managed by JJazzLab to load/save Song and load/save MidiMix.
  * <p>
  *
  * @see org.jjazz.xstream.api.XStreamInstancesManager
@@ -43,7 +43,7 @@ public interface XStreamConfigurator
     /**
      * Configure the specified XStream instance.
      *
-     * @param instanceId
+     * @param instanceId 
      * @param xstream
      */
     void configure(InstanceId instanceId, XStream xstream);
