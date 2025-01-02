@@ -2245,6 +2245,11 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
                     xstream.alias("MidiMix", MidiMix.class);
                     xstream.alias("MidiMixSP", MidiMix.SerializationProxy.class);
                     xstream.alias("RvStorage", MidiMix.SerializationProxy.RvStorage.class);
+                    
+                    // From 4.1.3 XStream with Java23 can not read anymore the 2 private fields from the RvStorage class. 
+                    // Making RvStorage class static + its 2 fields public solves the issue for the future, but this does not let us read old .mix files
+                    // which contain the "outer-class reference=..." tag. So we just ignore this element.
+                    xstream.ignoreUnknownElements("outer-class");
 
                 }
                 default ->
@@ -2274,16 +2279,18 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * A RhythmVoice depends on system dependent rhythm, therefore it must be stored in a special way: just save rhythm serial id + RhythmVoice name, and it
      * will be reconstructed at deserialization.
      * <p>
-     * MidiMix is saved with Drums rerouting disabled and all solo status OFF, but all Mute status are saved.<p>
+     * MidiMix is saved with Drums rerouting disabled and all solo status OFF, but all Mute status are saved.
+     * <p>
      * spVERSION 2 changes saved fields see below<br>
-     * spVERSION 3 (JJazzLab 4.1.0) introduces aliases to get rid of hard-coded qualified class names (XStreamConfig class introduction)
+     * spVERSION 3 (JJazzLab 4.1.0) introduces aliases to get rid of hard-coded qualified class names (XStreamConfig class introduction) <br>
+     * spVERSION 4 (JJazzLab 4.1.3 with Java23) makes RvStorage class static + its 2 fields public + xStream.ignoreElement("outer-cast").<br>
      */
     private static class SerializationProxy implements Serializable
     {
 
         private static final long serialVersionUID = -344448971122L;
         private static final String SP_USER_CHANNEL_RHYTHM_ID = "SpUserChannelRhythmID";
-        private int spVERSION = 3;      // Do not make final!
+        private int spVERSION = 4;      // Do not make final!
         private InstrumentMix[] spInsMixes;
         private RvStorage[] spKeys;
         // spDelegates introduced with JJazzLab 2.1 => not used anymore with spVERSION=2        
@@ -2389,11 +2396,15 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
             return mm;
         }
 
-        private class RvStorage
+        /**
+         * Stores the 2 strings used to identifiy a RhythmVoice.
+         */
+        static private class RvStorage
         {
 
-            private String rhythmId;
-            private String rvName;
+            public String rhythmId;         // Had to switch to public for XStream with Java23
+            public String rvName;           // Had to switch to public for XStream with Java23
+            
 
             public RvStorage(RhythmVoice rv)
             {
@@ -2435,6 +2446,9 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
                 return rv;
             }
         }
+
+
+
     }
 
 }
