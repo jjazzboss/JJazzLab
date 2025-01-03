@@ -31,7 +31,7 @@ public class WbpSource extends Wbp
     private final String rootProfile;
 
     private record TransposibilityResult(int score, int transpose)
-        {
+            {
 
     }
     ;
@@ -107,6 +107,7 @@ public class WbpSource extends Wbp
         return rootProfile;
     }
 
+
     /**
      * Get a score which indicates how much the original phrase will preserve an acceptable bass pitch range when transposed to destChordRoot.
      *
@@ -130,7 +131,6 @@ public class WbpSource extends Wbp
             return tr.score();
         }
 
-
         int nbNotes = getSizedPhrase().size();
 
         // Count transposing up
@@ -146,12 +146,10 @@ public class WbpSource extends Wbp
             if (BASS_MAIN_PITCH_RANGE.contains(pitch))
             {
                 countMainUp++;
-            }
-            else if (BASS_PITCH_RANGE.contains(pitch))
+            } else if (BASS_PITCH_RANGE.contains(pitch))
             {
                 countBassRangeUp++;
-            }
-            else
+            } else
             {
                 countOutsideUp++;
             }
@@ -170,12 +168,10 @@ public class WbpSource extends Wbp
             if (BASS_MAIN_PITCH_RANGE.contains(pitch))
             {
                 countMainDown++;
-            }
-            else if (BASS_PITCH_RANGE.contains(pitch))
+            } else if (BASS_PITCH_RANGE.contains(pitch))
             {
                 countBassRangeDown++;
-            }
-            else
+            } else
             {
                 countOutsideDown++;
             }
@@ -190,13 +186,11 @@ public class WbpSource extends Wbp
             if (countBassRangeDown == countBassRangeUp)
             {
                 tDown = Math.abs(pitchAvg - transposeDown - IDEAL_CENTRAL_PITCH) < Math.abs(pitchAvg + transposeUp - IDEAL_CENTRAL_PITCH);
-            }
-            else
+            } else
             {
                 tDown = countBassRangeDown < countBassRangeUp;
             }
-        }
-        else
+        } else
         {
             tDown = countOutsideDown < countOutsideUp;
         }
@@ -217,20 +211,38 @@ public class WbpSource extends Wbp
         // Save cache
         mapDestChordRootTransposibility.put(destChordRoot.getRelativePitch(), new TransposibilityResult(res, transpose));
         LOGGER.log(Level.FINE, "getTransposibilityScore() countOutsideDown={0} countOutsideUp={1} countBassRangeDown={2} countBassRangeUp={3} pitchAvg={4}",
-            new Object[]
-            {
-                countOutsideDown, countOutsideUp, countBassRangeDown, countBassRangeUp, pitchAvg
-            });
+                new Object[]
+                {
+                    countOutsideDown, countOutsideUp, countBassRangeDown, countBassRangeUp, pitchAvg
+                });
         LOGGER.log(Level.FINE,
-            "                          srcChordRoot={0} destChordRoot={1} distToCentralPitch={2} transpose={3} score={4} phrase={5} ",
-            new Object[]
-            {
-                srcChordRoot, destChordRoot, distanceToIdealCentralPitch, transpose, res, getSizedPhrase()
-            });
+                "                          srcChordRoot={0} destChordRoot={1} distToCentralPitch={2} transpose={3} score={4} phrase={5} ",
+                new Object[]
+                {
+                    srcChordRoot, destChordRoot, distanceToIdealCentralPitch, transpose, res, getSizedPhrase()
+                });
 
         return res;
     }
 
+    /**
+     * Get the optimal transposition to apply to the source phrase so that first chord root becomes destChordRoot.
+     *
+     * @param destChordRoot
+     * @return
+     */
+    public int getRequiredTransposition(Note destChordRoot)
+    {
+        var tr = mapDestChordRootTransposibility.get(destChordRoot.getRelativePitch());
+        if (tr == null)
+        {
+            getTransposibilityScore(destChordRoot);     // This will update mapDestChordRootTransposibility to get transposition direction
+            tr = mapDestChordRootTransposibility.get(destChordRoot.getRelativePitch());
+            assert tr != null;
+        }
+
+        return tr.transpose();
+    }
 
     /**
      * Get the source phrase transposed so that first chord symbol root becomes destChordRoot.
@@ -240,14 +252,7 @@ public class WbpSource extends Wbp
      */
     public SizedPhrase getTransposedPhrase(Note destChordRoot)
     {
-        var tr = mapDestChordRootTransposibility.get(destChordRoot.getRelativePitch());
-        if (tr == null)
-        {
-            getTransposibilityScore(destChordRoot);     // This will update mapDestChordRootTransposibility to get transposition direction
-            tr = mapDestChordRootTransposibility.get(destChordRoot.getRelativePitch());
-            assert tr != null;
-        }
-        int transpose = tr.transpose();
+        int transpose = getRequiredTransposition(destChordRoot);
         var sp = getSizedPhrase();
         SizedPhrase res = new SizedPhrase(sp.getChannel(), sp.getBeatRange(), sp.getTimeSignature(), sp.isDrums());
         Phrase p = sp.getProcessedPhrasePitch(pitch -> pitch + transpose);

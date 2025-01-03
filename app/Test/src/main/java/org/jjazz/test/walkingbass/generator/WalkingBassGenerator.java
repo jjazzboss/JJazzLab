@@ -20,6 +20,7 @@ import org.jjazz.rhythm.api.RhythmVoiceDelegate;
 import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Intensity;
 import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Variation;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
+import org.jjazz.test.walkingbass.BasicAdapter;
 import org.jjazz.test.walkingbass.WbpDatabase;
 
 /**
@@ -201,12 +202,9 @@ public class WalkingBassGenerator implements MusicGenerator
         for (var wbpsa : tiling.getWbpSourceAdaptations())
         {
             var wbpSource = wbpsa.getWbpSource();
-            var br = wbpsa.getBarRange();
-            var subSeq = scs.subSequence(br, true);
-            var firstRootNote = subSeq.first().getData().getRootNote();
-            var p = wbpSource.getTransposedPhrase(firstRootNote);
-            LOGGER.log(Level.FINE, "getBassPhrase() transposedPhrase={0}", p);
-            p.shiftAllEvents(br.from * scs.getTimeSignature().getNbNaturalBeats());
+            var subSeq = wbpsa.getSimpleChordSequence();
+            var p = new BasicAdapter().adaptPhrase(wbpSource, subSeq, true);
+            LOGGER.log(Level.FINE, "getBassPhrase() transposedPhrase={0}", p);            
             res.add(p, false);
         }
         return res;

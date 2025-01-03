@@ -52,6 +52,11 @@
         </dependency>  
         <dependency> 
             <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>quantizer</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
             <artifactId>midi</artifactId> 
             <version>${project.version}</version>  
         </dependency>  

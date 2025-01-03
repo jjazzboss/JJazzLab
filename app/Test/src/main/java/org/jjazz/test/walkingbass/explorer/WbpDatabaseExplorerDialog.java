@@ -154,7 +154,7 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
             WbpSource wbps = it.next();
 
             var wbpScs = wbps.getSimpleChordSequence();
-            float score = scs.getChordTypeSimilarityScore(wbpScs, WbpSourceAdaptation.MIN_INDIVIDUAL_CHORDTYPE_COMPATIBILITY_SCORE, true);
+            float score = scs.getChordTypeSimilarityScore(wbpScs, WbpSourceAdaptation.DEFAULT_MIN_INDIVIDUAL_CHORDTYPE_COMPATIBILITY_SCORE, true);
             if (score == 0)
             {
                 it.remove();

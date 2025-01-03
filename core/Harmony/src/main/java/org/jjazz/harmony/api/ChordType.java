@@ -745,7 +745,7 @@ final public class ChordType
     /**
      * Compute how much "similar" is the specified ChordType with this object.
      * <p>
-     * Equal ChordTypes have a score of 63. Score is reduced when a ChordType Degree differs, according to the table below:
+     * Equal ChordTypes have a score of 63. Score is reduced when ChordType Degrees differ, according to the table below:
      * <p>
      * DegreeIndex.THIRD: -32 (a score &gt;=32 means third matches)<br>
      * DegreeIndex.FIFTH: -16 (a score &gt;=48 means third+fifth match) <br>
@@ -772,7 +772,7 @@ final public class ChordType
      *
      * @param ct
      * @param acceptAbsentDegrees If true absent degrees in one of the ChordType only have a minor impact on the similarity score
-     * @return
+     * @return [0-63]
      */
     public int getSimilarityScore(ChordType ct, boolean acceptAbsentDegrees)
     {

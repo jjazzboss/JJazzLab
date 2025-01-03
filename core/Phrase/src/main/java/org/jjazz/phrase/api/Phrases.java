@@ -28,6 +28,7 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
 import java.io.File;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -38,6 +39,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Level;
@@ -51,6 +53,8 @@ import javax.sound.midi.Track;
 import org.jjazz.harmony.api.Chord;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
+import org.jjazz.quantizer.api.Quantization;
+import org.jjazz.quantizer.api.Quantizer;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.LongRange;
 import org.jjazz.utilities.api.ResUtil;
@@ -652,6 +656,30 @@ public class Phrases
         }
 
         return res;
+    }
+
+    /**
+     * Produce a String which represents a phrase for note comparison purposes.
+     * <p>
+     * Notes position and duration use max 3 digits after the radix point.
+     *
+     * @param p
+     * @param qPos The quantization to apply on the position for the comparison
+     * @param qDur The quantization to apply on the duration for the comparison. If null duration is ignored (all notes will be 1-beat)
+     * @return A suite of notes [pitch;beatPosition;beatDuration], e.g. "[60;1.25;1] [62;2;1.236] [70;4;0.37]"
+     */
+    static public String getNoteComparisonString(Phrase p, Quantization qPos, Quantization qDur)
+    {
+        StringJoiner sj = new StringJoiner(" ");
+        for (var ne : p)
+        {
+            float dur = qDur == null ? 1 : Quantizer.getQuantized(qDur, ne.getDurationInBeats());
+            float pos = Quantizer.getQuantized(qPos, ne.getPositionInBeats());
+            DecimalFormat df = new DecimalFormat("#.###");
+            var s = String.format("[%d;%s;%s]", ne.getPitch(), df.format(pos), df.format(dur));
+            sj.add(s);
+        }
+        return sj.toString();
     }
 
     /**

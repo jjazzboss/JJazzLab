@@ -194,7 +194,7 @@ public class BestWbpsaStoreOLD
      */
     private boolean addIfCompatibleEnough(int bar, WbpSourceAdaptation wbpsa)
     {
-        if (wbpsa.getCompatibilityScore().overall() < WbpSourceAdaptation.MIN_INDIVIDUAL_CHORDTYPE_COMPATIBILITY_SCORE)
+        if (wbpsa.getCompatibilityScore().overall() < WbpSourceAdaptation.DEFAULT_MIN_INDIVIDUAL_CHORDTYPE_COMPATIBILITY_SCORE)
         {
             return false;
         }

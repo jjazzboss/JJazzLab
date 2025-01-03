@@ -53,6 +53,7 @@ import org.openide.util.Exceptions;
 public class WbpDatabase
 {
 
+    
     private static WbpDatabase INSTANCE;
     @StaticResource(relative = true)
     private static final String MIDI_FILE_RESOURCE_PATH = "WalkingBassMidiDB.mid";
@@ -129,8 +130,8 @@ public class WbpDatabase
         {
             simplifiedCts.add(simplifyChordType(ct));
         }
-        
-        
+
+
         for (var ct : simplifiedCts)
         {
             var wbps = getWbpSourcesOneBar(ct);
@@ -139,7 +140,7 @@ public class WbpDatabase
                 LOGGER.log(Level.SEVERE, "checkConsistency() No one-bar WbpSource found for ct={0}", ct);
             }
         }
-        
+
         for (var ct : simplifiedCts)
         {
             var wbps = getWbpSourcesOneBar(ct);
@@ -148,8 +149,8 @@ public class WbpDatabase
                 LOGGER.log(Level.WARNING, "checkConsistency() Only 1 WbpSource found for ct={0}", ct);
             }
         }
-        
-        
+
+
     }
 
     /**
@@ -212,7 +213,6 @@ public class WbpDatabase
         }
     }
 
-
     /**
      * Get the WbpSources which match the specified profile.
      * <p>
@@ -226,6 +226,41 @@ public class WbpDatabase
         Predicate<WbpSource> tester = wbps -> wbps.getRootProfile().equals(rootProfile);
         var dbTester = new KeyablePredicate(rootProfile, tester);
         return WbpDatabase.this.getWbpSources(dbTester);
+    }
+
+    /**
+     * Get the WbpSources which match the specified chord sequence.
+     * <p>
+     *
+     * @param scs
+     * @param minScsSimilarityScore
+     * @param minIndividualChordTypeSimilarityScore
+     * @return
+     * @see SimpleChordSequence#getChordTypeSimilarityScore(org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence, float, boolean)
+     * @see ChordType#getSimilarityScore(org.jjazz.harmony.api.ChordType, boolean) 
+     */
+    public List<WbpSource> getWbpSources(SimpleChordSequence scs, float minScsSimilarityScore, int minIndividualChordTypeSimilarityScore)
+    {
+        List<WbpSource> res = new ArrayList<>();
+        
+        
+        var rpSources = getWbpSources(scs.getRootProfile());
+        for (var rpSource:rpSources)
+        {
+            
+        }
+
+        
+        {
+            WbpSource wbps = it.next();
+
+            var wbpScs = wbps.getSimpleChordSequence();
+            float score = scs.getChordTypeSimilarityScore(wbpScs, WbpSourceAdaptation.DEFAULT_MIN_INDIVIDUAL_CHORDTYPE_COMPATIBILITY_SCORE, true);
+            if (score == 0)
+            {
+                it.remove();
+            }
+        }
     }
 
     public void dump()

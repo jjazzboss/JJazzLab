@@ -23,14 +23,17 @@
 package org.jjazz.rhythmmusicgeneration.api;
 
 import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.TreeSet;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.CLI_Factory;
@@ -170,6 +173,65 @@ public class ChordSequence extends TreeSet<CLI_ChordSymbol> implements Comparabl
         }
 
         return cSeq;
+    }
+
+    /**
+     * Compute the average of the similarity scores of ChordTypes from ChordSequence and cSeq.
+     * <p>
+     *
+     * @param cSeq                                  Should have the same number of chord symbols than this SimpleChordSequence.
+     * @param minIndividualChordTypeSimilarityScore If compatibility score for an individual chord is &lt; this value, method will return 0 whatever the other
+     *                                              chords.
+     * @param acceptAbsentDegrees                   See ChordType.getSimilarityScore()
+     * @return [0;63] 0 if ChordSequences don't have the same size, or if minIndividualChordTypeSimilarityScore threshold was not reached
+     * @see org.jjazz.harmony.api.ChordType#getSimilarityScore(org.jjazz.harmony.api.ChordType, boolean)
+     */
+    public float getAverageChordTypeSimilarityScore(ChordSequence cSeq, int minIndividualChordTypeSimilarityScore, boolean acceptAbsentDegrees)
+    {
+        float res = 0;
+        var scores = getChordTypeSimilarityScores(cSeq, acceptAbsentDegrees);
+        if (!scores.isEmpty())
+        {
+            for (var score : scores)
+            {
+                if (score < minIndividualChordTypeSimilarityScore)
+                {
+                    res = 0;
+                    break;
+                }
+                res += score;
+            }
+            res /= scores.size();
+        }
+        return res;
+    }
+
+    /**
+     * Get the ChordType similarity score of each chord from this ChordSequence and cSeq.
+     * <p>
+     * @param cSeq                Should have the same number (&gt;0) of chord symbols than this SimpleChordSequence.
+     * @param acceptAbsentDegrees See ChordType.getSimilarityScore()
+     * @return A list if Integer [0;63]. Can be empty if ChordSequences are empty or do not have the same size
+     * @see org.jjazz.harmony.api.ChordType#getSimilarityScore(org.jjazz.harmony.api.ChordType, boolean)
+     */
+    public List<Integer> getChordTypeSimilarityScores(ChordSequence cSeq, boolean acceptAbsentDegrees)
+    {
+        Objects.requireNonNull(cSeq);
+        List<Integer> res = Collections.emptyList();
+        if (size() == cSeq.size())
+        {
+            res = new ArrayList<>();
+            var it1 = this.iterator();
+            var it2 = cSeq.iterator();
+            while (it1.hasNext())
+            {
+                var cliCs1 = it1.next();
+                var cliCs2 = it2.next();
+                int score = cliCs1.getData().getChordType().getSimilarityScore(cliCs2.getData().getChordType(), acceptAbsentDegrees);
+                res.add(score);
+            }
+        }
+        return res;
     }
 
 
