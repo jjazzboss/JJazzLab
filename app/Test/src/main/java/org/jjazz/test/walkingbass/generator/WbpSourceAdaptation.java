@@ -48,7 +48,7 @@ public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
     }
     private final WbpSource wbpSource;
     private final SimpleChordSequence simpleChordSequence;
-    private CompatibilityScore compatibilityScore;
+    private CompatibilityScore compatibilityScore;    
     private static final Logger LOGGER = Logger.getLogger(WbpSourceAdaptation.class.getSimpleName());
 
     public WbpSourceAdaptation(WbpSource wbpSource, SimpleChordSequence scs)

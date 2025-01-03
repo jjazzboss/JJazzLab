@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.test;
+package org.jjazz.test.walkingbass;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
@@ -47,22 +47,22 @@ import org.openide.util.Exceptions;
 /**
  * For debug purposes...
  */
-//@ActionID(category = "JJazz", id = "org.jjazz.test.TestAction")
-//@ActionRegistration(displayName = "Test CompositeGenerator Action")
-//@ActionReferences(
-//        {
-//            @ActionReference(path = "Menu/Edit", position = 50000)
-//        })
-public final class TestCompositeGenerator implements ActionListener
+@ActionID(category = "JJazz", id = "org.jjazz.test.TestWalkingBassGenerator")
+@ActionRegistration(displayName = "Test WalkingBassGenerator")
+@ActionReferences(
+        {
+            @ActionReference(path = "Menu/Edit", position = 50000)
+        })
+public final class TestWalkingBassGenerator implements ActionListener
 {
 
-    private static final Logger LOGGER = Logger.getLogger(TestCompositeGenerator.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(TestWalkingBassGenerator.class.getSimpleName());
  
     
     @Override
     public void actionPerformed(ActionEvent ae)
     {
-        LOGGER.log(Level.INFO, "TestCompositeGenerator.actionPerformed() called");
+        LOGGER.log(Level.INFO, "TestWalkingBassGenerator.actionPerformed() called");
 
         testCompositeRhythm();
     }

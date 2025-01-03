@@ -129,6 +129,8 @@ public class WbpDatabase
         {
             simplifiedCts.add(simplifyChordType(ct));
         }
+        
+        
         for (var ct : simplifiedCts)
         {
             var wbps = getWbpSourcesOneBar(ct);
@@ -137,6 +139,7 @@ public class WbpDatabase
                 LOGGER.log(Level.SEVERE, "checkConsistency() No one-bar WbpSource found for ct={0}", ct);
             }
         }
+        
         for (var ct : simplifiedCts)
         {
             var wbps = getWbpSourcesOneBar(ct);
@@ -145,6 +148,8 @@ public class WbpDatabase
                 LOGGER.log(Level.WARNING, "checkConsistency() Only 1 WbpSource found for ct={0}", ct);
             }
         }
+        
+        
     }
 
     /**

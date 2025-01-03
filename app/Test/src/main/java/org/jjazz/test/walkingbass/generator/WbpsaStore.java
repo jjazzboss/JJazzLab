@@ -169,7 +169,8 @@ public class WbpsaStore
                 }
 
                 SimpleChordSequence subSeq = simpleChordSequenceExt.subSequence(br, true);
-                List<WbpSource> rpWbpSources = getRootProfileCompatibleWbpSources(subSeq);
+                var rp = subSeq.getRootProfile();
+                List<WbpSource> rpWbpSources = WbpDatabase.getInstance().getWbpSources(rp);
                 for (WbpSource wbpSource : rpWbpSources)
                 {
                     WbpSourceAdaptation wbpsa = new WbpSourceAdaptation(wbpSource, subSeq);
@@ -217,24 +218,5 @@ public class WbpsaStore
         }
         return b;
     }
-
-    /**
-     * Get the WbpSources which match the root profile of scs.
-     * <p>
-     *
-     * @param scs
-     * @return
-     */
-    private List<WbpSource> getRootProfileCompatibleWbpSources(SimpleChordSequence scs)
-    {
-        String rp = scs.getRootProfile();
-        LOGGER.log(Level.FINE, "getRootProfileCompatibleWbpSources() -- scs={0} rp={1}", new Object[]
-        {
-            scs, rp
-        });
-        List<WbpSource> res = WbpDatabase.getInstance().getWbpSources(rp);
-        return res;
-    }
-
 
 }

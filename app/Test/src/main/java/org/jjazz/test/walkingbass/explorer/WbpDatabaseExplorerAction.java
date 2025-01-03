@@ -20,8 +20,9 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.test.walkingbass;
+package org.jjazz.test.walkingbass.explorer;
 
+import org.jjazz.test.walkingbass.explorer.WbpDatabaseExplorerDialog;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
 import java.awt.event.ActionEvent;
@@ -30,6 +31,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jjazz.test.walkingbass.WbpDatabase;
+import org.jjazz.test.walkingbass.WbpSource;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
