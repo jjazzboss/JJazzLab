@@ -22,13 +22,13 @@
  *   Contributor(s): 
  * 
  */
-package org.jjazz.test.walkingbass.generator;
+package org.jjazz.test.walkingbass.tiler;
 
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import org.jjazz.test.walkingbass.WbpSource;
+import org.jjazz.test.walkingbass.generator.Tiler;
+import org.jjazz.test.walkingbass.generator.WbpTiling;
 
 /**
  * Tile the most compatible WbpSourceAdaptations first while avoiding using a same WbpSource twice.
@@ -57,36 +57,36 @@ public class TilerMostCompatibleFirst implements Tiler
     @Override
     public void tile(WbpTiling tiling)
     {
-        var scse = tiling.getSimpleChordSequenceExt();
-        BestWbpsaStoreOLD store = new BestWbpsaStoreOLD(scse, scse.getUsableBars(), size, MAX_NB_BEST_ADAPTATIONS);
-
-        boolean tiled;
-
-        do
-        {
-            tiled = false;
-            resetWbpSourceCount();
-
-            for (int rank = 0; rank < MAX_NB_BEST_ADAPTATIONS; rank++)
-            {
-                List<WbpSourceAdaptation> wbpsasOrderedByScore = store.getWbpSourceAdaptationsRanked(rank);
-                Collections.sort(wbpsasOrderedByScore);         // Descending score
-                for (WbpSourceAdaptation wbpsa : wbpsasOrderedByScore)
-                {
-                    if (wbpsa == null)
-                    {
-                        continue;
-                    }
-                    WbpSource wbpSource = wbpsa.getWbpSource();
-                    if (tiling.isUsableAndFree(wbpsa.getBarRange()) && mapSourceCount.getOrDefault(wbpSource, 0) == 0)
-                    {
-                        tiling.add(wbpsa);
-                        increaseWbpSourceCount(wbpSource);
-                        tiled = true;
-                    }
-                }
-            }
-        } while (tiled);
+//        var scse = tiling.getSimpleChordSequenceExt();
+//        BestWbpsaStoreOLD store = new BestWbpsaStoreOLD(scse, scse.getUsableBars(), size, MAX_NB_BEST_ADAPTATIONS);
+//
+//        boolean tiled;
+//
+//        do
+//        {
+//            tiled = false;
+//            resetWbpSourceCount();
+//
+//            for (int rank = 0; rank < MAX_NB_BEST_ADAPTATIONS; rank++)
+//            {
+//                List<WbpSourceAdaptation> wbpsasOrderedByScore = store.getWbpSourceAdaptationsRanked(rank);
+//                Collections.sort(wbpsasOrderedByScore);         // Descending score
+//                for (WbpSourceAdaptation wbpsa : wbpsasOrderedByScore)
+//                {
+//                    if (wbpsa == null)
+//                    {
+//                        continue;
+//                    }
+//                    WbpSource wbpSource = wbpsa.getWbpSource();
+//                    if (tiling.isUsableAndFree(wbpsa.getBarRange()) && mapSourceCount.getOrDefault(wbpSource, 0) == 0)
+//                    {
+//                        tiling.add(wbpsa);
+//                        increaseWbpSourceCount(wbpSource);
+//                        tiled = true;
+//                    }
+//                }
+//            }
+//        } while (tiled);
 
     }
 

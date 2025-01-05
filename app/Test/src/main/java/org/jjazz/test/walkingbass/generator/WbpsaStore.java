@@ -25,96 +25,128 @@
 package org.jjazz.test.walkingbass.generator;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
-import com.google.common.collect.SortedSetMultimap;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.test.walkingbass.WbpDatabase;
-import org.jjazz.test.walkingbass.WbpSource;
 import org.jjazz.utilities.api.IntRange;
+import org.jjazz.test.walkingbass.generator.WbpsaScorer.Score;
 
 /**
- * Store the best WbpSourceAdaptations for each bar and for each WbpSource size.
+ * Store the best WbpSourceAdaptations of all sizes for each non-tiled bar of a tiling.
  */
 public class WbpsaStore
 {
 
-    public final static int SIZE_MIN = 1, SIZE_MAX = 4;
-    private final SimpleChordSequenceExt simpleChordSequenceExt;
+    public static final float DEFAULT_RANDOMIZE_WITHIN_OVERALL_SCORE_WINDOW = 3f;
+    private final WbpTiling tiling;
     /**
      * [0] not used, [1] for size=1 bar, ... [4] for size=4 bars.
      */
-    private final SortedSetMultimap<Integer, WbpSourceAdaptation>[] mmapWbpsAdaptations = new SortedSetMultimap[SIZE_MAX + 1];
-    private final int nbBestMax;
+    private final ListMultimap<Integer, WbpSourceAdaptation>[] mmapWbpsAdaptations = new ListMultimap[WbpDatabase.SIZE_MAX + 1];
+    private final int width;
     private static final Logger LOGGER = Logger.getLogger(WbpsaStore.class.getSimpleName());
+    private final Score minCompatibilityScore;
+    private final WbpsaScorer wbpsaScorer;
+    private final float randomizeWithinOverallScoreWindow;
 
     /**
-     * Create a WbpsaStore for the specified chord sequence.
+     * Create a WbpsaStore for the untiled bars of tiling.
+     * <p>
+     * If randomizeWithinOverallScoreWindow is &gt; 0; some randomization is added between WbpSourceAdaptations whose compatibility scores are similar (i.e.
+     * within randomizeWithinOverallScoreWindow).
      *
-     * @param scse
-     * @param nbBestMax Max number of WbpSourceAdaptations kept for a bar
+     * @param tiling                            The store will ignore already tiled bars
+     * @param width                             Max number of WbpSourceAdaptations kept per bar
+     * @param scorer
+     * @param minCompatibilityScore             The WbpsStore only stores Wbpsas which have a compatibility score equal or greater
+     * @param randomizeWithinOverallScoreWindow If &lt;= 0 there is no randomization
      */
-    public WbpsaStore(SimpleChordSequenceExt scse, int nbBestMax)
+    public WbpsaStore(WbpTiling tiling, int width, WbpsaScorer scorer, Score minCompatibilityScore, float randomizeWithinOverallScoreWindow)
     {
-        this.simpleChordSequenceExt = scse;
+        this.tiling = tiling;
+        this.wbpsaScorer = scorer;
+        this.minCompatibilityScore = minCompatibilityScore;
+        this.width = width;
+        this.randomizeWithinOverallScoreWindow = randomizeWithinOverallScoreWindow;
 
-        for (int size = SIZE_MIN; size <= SIZE_MAX; size++)
+        for (int size = WbpDatabase.SIZE_MIN; size <= WbpDatabase.SIZE_MAX; size++)
         {
-            mmapWbpsAdaptations[size] = MultimapBuilder.treeKeys()
-                    .treeSetValues() // Don't need a custom Comparator because WbpSourceAdatpation uses a natural order by DESCENDING score
+            mmapWbpsAdaptations[size] = MultimapBuilder.treeKeys() // Sort by bar
+                    .arrayListValues() // Wbpsas NOT sorted to enable possible randomization
                     .build();
         }
-        this.nbBestMax = nbBestMax;
 
         initialize();
+
     }
 
-    public int getNbBestMax()
+    public int getWidth()
     {
-        return nbBestMax;
+        return width;
     }
 
 
     /**
-     * Get the WbpSourceAdaptations for specified bar and size, ordered by descending compatibility.
+     * Get the list of WbpSourceAdaptations for specified bar and size.
      *
      * @param bar  Must be a usable bar
      * @param size The size in bars of returned WbpSourceAdaptations
-     * @return Can be empty. Mutable list. List contains maximum getNbBestMax() elements.
+     * @return Unmodifiable list which can be empty. The list contains maximum getWidth() elements. List is ordered only if store does not use randomization.
      */
     public List<WbpSourceAdaptation> getWbpSourceAdaptations(int bar, int size)
     {
-        Preconditions.checkArgument(simpleChordSequenceExt.getBarRange().contains(bar), "bar=%s", bar);
-        Preconditions.checkArgument(size >= SIZE_MIN && size <= SIZE_MAX, "size=%s", size);
-        SortedSet<WbpSourceAdaptation> res = mmapWbpsAdaptations[size].get(bar);
-        return new ArrayList<>(res);
+        Preconditions.checkArgument(tiling.getBarRange().contains(bar), "bar=%s", bar);
+        Preconditions.checkArgument(size >= WbpDatabase.SIZE_MIN && size <= WbpDatabase.SIZE_MAX, "size=%s", size);
+        var res = Collections.unmodifiableList(mmapWbpsAdaptations[size].get(bar));
+        return res;
     }
 
     /**
-     * Get all the WbpSourceAdaptations of specified rank.
+     * Get all-size WbpSourceAdaptations list for specified bar.
+     * <p>
+     * Returned list is ordered by descending size then, if the store does not use randomization, by descending compatibility order.
+     *
+     * @param bar Must be a usable bar
+     * @return Can be empty.
+     */
+    public List<WbpSourceAdaptation> getWbpSourceAdaptations(int bar)
+    {
+        List<WbpSourceAdaptation> res = new ArrayList<>();
+        for (int i = WbpDatabase.SIZE_MAX; i >= WbpDatabase.SIZE_MIN; i--)
+        {
+            res.addAll(getWbpSourceAdaptations(bar, i));
+        }
+        return res;
+    }
+
+    /**
+     * Get the ordered list of WbpSourceAdaptations of a specified rank.
      * <p>
      * For a given bar, if there is no more WbpSourceAdaptation at specified rank, use the last WbpSourceAdaptation for this bar. If there is no
      * WbpSourceAdaptation at all, bar is skipped.
      *
      * @param rank 0 means takes the best for each bar, 1 means the 2nd best etc.
      * @param size The size in bars of returned WbpSourceAdaptations
-     * @return Can be empty
+     * @return Can be empty.
      */
-    public List<WbpSourceAdaptation> getWbpSourceAdaptationsRanked(int rank, int size)
+    public TreeSet<WbpSourceAdaptation> getWbpSourceAdaptationsRanked(int rank, int size)
     {
         Preconditions.checkArgument(rank >= 0);
-        Preconditions.checkArgument(size >= SIZE_MIN && size <= SIZE_MAX, "size=%s", size);
-        List<WbpSourceAdaptation> res = new ArrayList<>();
-        for (int bar : simpleChordSequenceExt.getBarRange())
+        Preconditions.checkArgument(size >= WbpDatabase.SIZE_MIN && size <= WbpDatabase.SIZE_MAX, "size=%s", size);
+        TreeSet<WbpSourceAdaptation> res = new TreeSet<>();
+
+        for (int bar : mmapWbpsAdaptations[size].keySet())
         {
             List<WbpSourceAdaptation> wbpsas = getWbpSourceAdaptations(bar, size);
             if (!wbpsas.isEmpty())
             {
-                WbpSourceAdaptation wbpsa = wbpsas.size() >= rank + 1 ? wbpsas.get(rank) : wbpsas.get(wbpsas.size() - 1);
+                WbpSourceAdaptation wbpsa = rank + 1 <= wbpsas.size() ? wbpsas.get(rank) : wbpsas.get(wbpsas.size() - 1);
                 res.add(wbpsa);
             }
 
@@ -122,28 +154,33 @@ public class WbpsaStore
         return res;
     }
 
-    public String toDebugString()
+
+    public String toDebugString(boolean hideEmptyBars)
     {
         StringBuilder sb = new StringBuilder();
-        for (int i = SIZE_MAX; i >= SIZE_MIN; i--)
+        for (int i = WbpDatabase.SIZE_MAX; i >= WbpDatabase.SIZE_MIN; i--)
         {
             sb.append("############ ").append(i).append(" bars ############\n");
-            sb.append(toDebugString(i));
+            sb.append(toDebugString(i, hideEmptyBars));
         }
         return sb.toString();
     }
 
-    public String toDebugString(int size)
+    public String toDebugString(int size, boolean hideEmptyBars)
     {
         StringBuilder sb = new StringBuilder();
-        var scsBr = simpleChordSequenceExt.getBarRange();
-        for (int bar : simpleChordSequenceExt.getBarRange())
+        var scsBr = tiling.getBarRange();
+        for (int bar : tiling.getUsableBars())
         {
-            var br = new IntRange(bar, bar + size - 1).getIntersection(scsBr);
-            var barChords = simpleChordSequenceExt.subSequence(br, true);
-            sb.append(String.format("%1$03d: %2$s\n", bar, barChords.toString()));
-
             var wbpsas = getWbpSourceAdaptations(bar, size);
+
+            if (!hideEmptyBars || !wbpsas.isEmpty())
+            {
+                var br = new IntRange(bar, bar + size - 1).getIntersection(scsBr);
+                var barChords = tiling.getSimpleChordSequenceExt().subSequence(br, true);
+                sb.append(String.format("%1$03d: %2$s\n", bar, barChords.toString()));
+            }
+
             wbpsas.stream().forEach(wbpsa -> sb.append("     ").append(wbpsa).append("\n"));
         }
         return sb.toString();
@@ -155,31 +192,42 @@ public class WbpsaStore
     /**
      * For each bar add the most compatible WbpSourceAdptations of specified size.
      * <p>
+     * A bar can contain no more than width WbpSourceAdaptations.
+     * <p>
      */
     private void initialize()
     {
-        for (int bar : simpleChordSequenceExt.getUsableBars())
+        var scsExt = tiling.getSimpleChordSequenceExt();
+        var nonTiledBars = tiling.getNonTiledBars();
+        LOGGER.log(Level.SEVERE, "initialize() nonTiledBars={0}", nonTiledBars);
+
+        for (int bar : nonTiledBars)
         {
-            for (int size = SIZE_MIN; size <= SIZE_MAX; size++)
+            for (int size = WbpDatabase.SIZE_MAX; size >= WbpDatabase.SIZE_MIN; size--)
             {
                 IntRange br = new IntRange(bar, bar + size - 1);
-                if (!simpleChordSequenceExt.isUsable(br))
+                if (!tiling.isUsableAndFree(br))
                 {
-                    break;
+                    continue;
                 }
 
-                SimpleChordSequence subSeq = simpleChordSequenceExt.subSequence(br, true);
-                var rp = subSeq.getRootProfile();
-                List<WbpSource> rpWbpSources = WbpDatabase.getInstance().getWbpSources(rp);
-                for (WbpSource wbpSource : rpWbpSources)
-                {
-                    WbpSourceAdaptation wbpsa = new WbpSourceAdaptation(wbpSource, subSeq);
-                    addIfCompatibleEnough(bar, size, wbpsa);
-                }
+                // Get all possible wbpsas for the sub sequence
+                var subSeq = scsExt.subSequence(br, true);
+                var bestWbpsas = wbpsaScorer.getWbpSourceAdaptations(subSeq, tiling, minCompatibilityScore);
 
-                if (rpWbpSources.isEmpty())
+                // Trim
+                while (bestWbpsas.size() > width)
                 {
-                    LOGGER.log(Level.FINE, "initialize() No {0}-bar rpSources found for {1}", new Object[]
+                    bestWbpsas.removeLast();
+                }
+                var randWbpsas = randomizeSimilarScoreSets(bestWbpsas, randomizeWithinOverallScoreWindow);
+
+                // Save data
+                mmapWbpsAdaptations[size].putAll(bar, randWbpsas);
+
+                if (bestWbpsas.isEmpty())
+                {
+                    LOGGER.log(Level.FINE, "initialize() No {0}-bar compatible WbpSources  found for {1}", new Object[]
                     {
                         size, subSeq
                     });
@@ -188,35 +236,43 @@ public class WbpsaStore
         }
     }
 
+
     /**
-     * Add a WbpSourceAdaptation for the specified bar.
-     * <p>
-     * If absolute wbpsa compatibility score is not good enough, or is good enough but not in the getNbBestMax() best ones, wbpsa is not added.
+     * Add some order randomization within sets of WbpSourceAdaptations which are in the same similar score window.
      *
-     * @param bar
-     * @param size
-     * @param wbpsa Can't be null
-     * @return True if wbpsa was actually added.
-     * @throws IllegalArgumentException If bar is not a usable bar
+     * @param wbpsas             Ordered by descending compatibility
+     * @param similarScoreWindow If 0 no randomization applied
+     * @return A new list with some randomness applied
      */
-    private boolean addIfCompatibleEnough(int bar, int size, WbpSourceAdaptation wbpsa)
+    private List<WbpSourceAdaptation> randomizeSimilarScoreSets(TreeSet<WbpSourceAdaptation> wbpsas, float similarScoreWindow)
     {
-        if (wbpsa.getCompatibilityScore().overall() < WbpSourceAdaptation.DEFAULT_MIN_INDIVIDUAL_CHORDTYPE_COMPATIBILITY_SCORE)
+        List<WbpSourceAdaptation> res = new ArrayList<>();
+
+        if (similarScoreWindow > 0 && !wbpsas.isEmpty())
         {
-            return false;
+            // Group wbpsas per similar score
+            float scoreFirst = wbpsas.getFirst().getCompatibilityScore().overall();
+            float scoreLast = wbpsas.getLast().getCompatibilityScore().overall();
+
+            for (float score = scoreFirst; score >= scoreLast; score -= similarScoreWindow)
+            {
+                var fromWbpsa = dummyWbpsa(score);  // inclusive
+                var toWbpsa = dummyWbpsa(score - similarScoreWindow); // exclusive
+                var wbpsaSubset = new ArrayList<>(wbpsas.subSet(fromWbpsa, toWbpsa));
+                Collections.shuffle(wbpsaSubset);
+                res.addAll(wbpsaSubset);
+            }
+        } else
+        {
+            res.addAll(wbpsas);
         }
 
-        mmapWbpsAdaptations[size].put(bar, wbpsa);
-        boolean b = true;
+        return res;
+    }
 
-        // Make sure we do not exceed nbBestMax values
-        SortedSet<WbpSourceAdaptation> wbpsas = mmapWbpsAdaptations[size].get(bar);
-        if (wbpsas.size() > nbBestMax)
-        {
-            wbpsas.remove(wbpsa);
-            b = false;
-        }
-        return b;
+    private WbpSourceAdaptation dummyWbpsa(float overallScore)
+    {
+        return new WbpSourceAdaptation(null, null, new Score(Math.clamp(overallScore, 0, 100)));
     }
 
 }

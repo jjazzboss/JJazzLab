@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import org.jjazz.test.walkingbass.WbpSource;
 import org.jjazz.test.walkingbass.WbpSources;
+import org.jjazz.test.walkingbass.generator.WbpSourceAdaptation;
 import org.jjazz.utilities.api.Utilities;
 
 /**
@@ -53,7 +54,9 @@ class FindDuplicatesAction extends AbstractAction
     public void actionPerformed(ActionEvent ae)
     {
         LOGGER.info("\n### Find duplicates:");
-        List<WbpSource> wbpSources = dialog.getSelectedWbpSources();
+        List<WbpSource> wbpSources = dialog.getSelectedWbpSourceAdaptations().stream()
+                .map(wbpsa -> wbpsa.getWbpSource())
+                .toList();
         List<List<WbpSource>> res = WbpSources.findDuplicates(wbpSources, Quantization.ONE_THIRD_BEAT);
         res.forEach(wbpsList -> LOGGER.info(Utilities.toMultilineString(wbpsList)));
     }

@@ -26,15 +26,60 @@ package org.jjazz.test.walkingbass.generator;
 
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.test.walkingbass.WbpSource;
+import org.jjazz.utilities.api.IntRange;
 
 /**
- * Associates a WbpSource to a chord sequence and stores their compatibility score.
+ * Associates a WbpSource to a chord sequence, with a compatibility score.
  * <p>
  * NOTE: Comparable implementation is implemented so that natural order is by descending compatibility score.
  */
-public record WbpSourceAdaptation(WbpSource wbpSource, SimpleChordSequence scs, float compatibilityScore) implements Comparable<WbpSourceAdaptation>
+public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
 {
-   /**
+
+    private WbpsaScorer.Score compatibilityScore;
+    private final WbpSource wbpSource;
+    private final SimpleChordSequence scs;
+
+    /**
+     * Create an object with a score=0.
+     *
+     * @param wbpSource
+     * @param scs
+     */
+    public WbpSourceAdaptation(WbpSource wbpSource, SimpleChordSequence scs)
+    {
+        this(wbpSource, scs, WbpsaScorer.SCORE_ZERO);
+    }
+
+    public WbpSourceAdaptation(WbpSource wbpSource, SimpleChordSequence scs, WbpsaScorer.Score compatibilityScore)
+    {
+        this.wbpSource = wbpSource;
+        this.scs = scs;
+        this.compatibilityScore = compatibilityScore;
+    }
+
+    public WbpSource getWbpSource()
+    {
+        return wbpSource;
+    }
+
+    public SimpleChordSequence getSimpleChordSequence()
+    {
+        return scs;
+    }
+
+    public WbpsaScorer.Score getCompatibilityScore()
+    {
+        return compatibilityScore;
+    }
+
+    public void setCompatibilityScore(WbpsaScorer.Score compatibilityScore)
+    {
+        this.compatibilityScore = compatibilityScore;
+    }
+
+
+    /**
      * Note that natural order is by DESCENDING overall compatibility score.
      *
      * @param other
@@ -43,114 +88,28 @@ public record WbpSourceAdaptation(WbpSource wbpSource, SimpleChordSequence scs, 
     @Override
     public int compareTo(WbpSourceAdaptation other)
     {
-        return -Float.compare(compatibilityScore(), other.compatibilityScore());
+        return -Float.compare(compatibilityScore.overall(), other.compatibilityScore.overall());
     }
+
+    /**
+     * Same as scs.getBarRange().
+     *
+     * @return
+     */
+    public IntRange getBarRange()
+    {
+        return scs.getBarRange();
+    }
+
+    @Override
+    public String toString()
+    {
+        return "wbpsa{" + compatibilityScore + " " + getBarRange() + " " + wbpSource.getId() + " " + wbpSource.getSimpleChordSequence() + "}";
+    }
+
+    public String toString2()
+    {
+        return "wbpsa{" + getBarRange() + " " + wbpSource + "}";
+    }
+
 }
-//{
-//
-//    /**
-//     * A score representing how much a WbpSource is compatible with a chord sequence.
-//     *
-//     * @param ctScore Chord type compatibility 0-63
-//     * @param trScore Transposition compatibility 0-5
-//     * @param bonus   A bonus (or malus) added to the overall score
-//     */
-//    public record CompatibilityScore(float ctScore, float trScore, float bonus)
-//            {
-//
-//        public float overall()
-//        {
-//            return ctScore + trScore + bonus;
-//        }
-//    }
-//    private final WbpSource wbpSource;
-//    private final SimpleChordSequence simpleChordSequence;
-//    private final int minIndividualChordTypeCompatibilityScore;
-//    private CompatibilityScore compatibilityScore;
-//    private static final Logger LOGGER = Logger.getLogger(WbpSourceAdaptation.class.getSimpleName());
-//
-//    /**
-//     * Create an object with minIndividualChordTypeCompatibilityScore=DEFAULT_MIN_INDIVIDUAL_CHORDTYPE_COMPATIBILITY_SCORE
-//     *
-//     * @param wbpSource
-//     * @param scs
-//     */
-//    public WbpSourceAdaptation(WbpSource wbpSource, SimpleChordSequence scs)
-//    {
-//        this(wbpSource, scs, DEFAULT_MIN_INDIVIDUAL_CHORDTYPE_COMPATIBILITY_SCORE);
-//    }
-//
-//    /**
-//     *
-//     * @param wbpSource
-//     * @param scs
-//     * @param minIndividualChordTypeCompatibilityScore If one chordType has a compatibility less than this, global score will be 0.
-//     */
-//    public WbpSourceAdaptation(WbpSource wbpSource, SimpleChordSequence scs, int minIndividualChordTypeCompatibilityScore)
-//    {
-//        this.wbpSource = wbpSource;
-//        this.simpleChordSequence = scs;
-//        this.minIndividualChordTypeCompatibilityScore = minIndividualChordTypeCompatibilityScore;
-//        computeCompatibilityScore();
-//    }
-//
-//    public IntRange getBarRange()
-//    {
-//        return simpleChordSequence.getBarRange();
-//    }
-//
-//    public WbpSource getWbpSource()
-//    {
-//        return wbpSource;
-//    }
-//
-//    public SimpleChordSequence getSimpleChordSequence()
-//    {
-//        return simpleChordSequence;
-//    }
-//
-//    public CompatibilityScore getCompatibilityScore()
-//    {
-//        return compatibilityScore;
-//    }
-//
-//    public void setCompatibilityBonus(int bonus)
-//    {
-//        compatibilityScore = new CompatibilityScore(compatibilityScore.ctScore, compatibilityScore.trScore, bonus);
-//    }
-//
-//    /**
-//     * Note that natural order is by DESCENDING overall compatibility score.
-//     *
-//     * @param other
-//     * @return
-//     */
-//    @Override
-//    public int compareTo(WbpSourceAdaptation other)
-//    {
-//        return -Float.compare(getCompatibilityScore().overall(), other.getCompatibilityScore().overall());
-//    }
-//
-//    // ===================================================================================================
-//    // Private methods
-//    // ===================================================================================================
-//    private void computeCompatibilityScore()
-//    {
-//        float ctScore = wbpSource.getChordTypeCompatibilityScore(simpleChordSequence, minIndividualChordTypeCompatibilityScore);   // 0-63
-//        float trScore = wbpSource.getTransposibilityScore(simpleChordSequence.first().getData().getRootNote()) * 0.05f;  // 0-5
-//        compatibilityScore = new CompatibilityScore(ctScore, trScore, 0);
-//    }
-//
-//
-//    public String toString2()
-//    {
-//        return "wbpsa{" + getBarRange() + " " + getWbpSource() + "}";
-//    }
-//
-//    @Override
-//    public String toString()
-//    {
-//        var wbps = getWbpSource();
-//        return "wbpsa{" + compatibilityScore + " " + getBarRange() + " " + wbps.getId() + " " + wbps.getSimpleChordSequence() + "}";
-//    }
-//}

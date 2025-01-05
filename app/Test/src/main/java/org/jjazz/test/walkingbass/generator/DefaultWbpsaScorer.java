@@ -22,35 +22,43 @@
  *   Contributor(s): 
  * 
  */
-package org.jjazz.test.walkingbass;
+package org.jjazz.test.walkingbass.generator;
 
+import org.jjazz.test.walkingbass.generator.WbpsaScorer;
 import org.jjazz.test.walkingbass.generator.WbpSourceAdaptation;
 import org.jjazz.test.walkingbass.generator.WbpTiling;
 
 /**
  * Use ChordSequence.getAverageChordTypeSimilarityScore() + WbpSource.getTransposibilityScore() + bonus if target notes match before/after.
  */
-public class BasicWbpsaScorer implements WbpsaScorer
+public class DefaultWbpsaScorer implements WbpsaScorer
 {
-    private static final boolean ACCEPT_ABSENT_DEGREES = true;
-    private static final int DEFAULT_MIN_INDIVIDUAL_CHORDTYPE_COMPATIBILITY_SCORE = 56; // at least 3rd & 5th & 6/7 match
-    private final int minIndividualChordTypeCompatibilityScore;
-    private final WbpSourceAdapter wbpSourceAdapter;
 
-    public BasicWbpsaScorer(WbpSourceAdapter sourceAdapter)
+    public static final int DEFAULT_MIN_INDIVIDUAL_CHORDTYPE_COMPATIBILITY_SCORE = 56; // at least 3rd & 5th & 6/7 match
+    public static final Score DEFAULT_MIN_WBPSOURCE_COMPATIBILITY_SCORE = new Score(DEFAULT_MIN_INDIVIDUAL_CHORDTYPE_COMPATIBILITY_SCORE);
+    private static final boolean ACCEPT_ABSENT_DEGREES = true;
+
+    private final int minIndividualChordTypeCompatibilityScore;
+    private final PhraseAdapter wbpSourceAdapter;
+
+    /**
+     *
+     * @param sourceAdapter If null target notes match can not be taken into account
+     */
+    public DefaultWbpsaScorer(PhraseAdapter sourceAdapter)
     {
         this(sourceAdapter, DEFAULT_MIN_INDIVIDUAL_CHORDTYPE_COMPATIBILITY_SCORE);
     }
 
 
-    public BasicWbpsaScorer(WbpSourceAdapter sourceAdapter, int minIndividualChordTypeCompatibilityScore)
+    public DefaultWbpsaScorer(PhraseAdapter sourceAdapter, int minIndividualChordTypeCompatibilityScore)
     {
         this.minIndividualChordTypeCompatibilityScore = minIndividualChordTypeCompatibilityScore;
         this.wbpSourceAdapter = sourceAdapter;
     }
 
     @Override
-    public float scoreCompatibility(WbpSourceAdaptation wbpsa, WbpTiling tiling)
+    public Score computeCompatibilityScore(WbpSourceAdaptation wbpsa, WbpTiling tiling)
     {
         var wbpSource = wbpsa.getWbpSource();
         var scsSource = wbpSource.getSimpleChordSequence();
@@ -66,7 +74,10 @@ public class BasicWbpsaScorer implements WbpsaScorer
         float postTargetNoteScore = getPostTargetNoteScore(wbpsa, tiling);        // 0-5
 
 
-        var res = (ctScore + trScore + preTargetNoteScore + postTargetNoteScore) * (100f / 78);
+        var overall = (ctScore + trScore + preTargetNoteScore + postTargetNoteScore) * (100f / 78);
+        var res = new Score(overall);
+
+        wbpsa.setCompatibilityScore(res);
         return res;
 
     }
@@ -88,7 +99,8 @@ public class BasicWbpsaScorer implements WbpsaScorer
         int prevBar = wbpsa.getBarRange().from - 1;
         WbpSourceAdaptation prevWbpsa;
 
-        if (tiling.getBarRange().contains(prevBar) && (prevWbpsa = tiling.getWbpSourceAdaptation(prevBar)) != null)
+        if (tiling != null && wbpSourceAdapter != null
+                && tiling.getBarRange().contains(prevBar) && (prevWbpsa = tiling.getWbpSourceAdaptation(prevBar)) != null)
         {
             int firstNotePitch = wbpSourceAdapter.getPhrase(wbpsa, false).first().getPitch();
             int targetNotePitch = wbpSourceAdapter.getTargetNote(prevWbpsa).getPitch();
@@ -110,7 +122,8 @@ public class BasicWbpsaScorer implements WbpsaScorer
         int nextBar = wbpsa.getBarRange().to + 1;
         WbpSourceAdaptation nextWbpsa;
 
-        if (tiling.getBarRange().contains(nextBar) && (nextWbpsa = tiling.getWbpSourceAdaptation(nextBar)) != null)
+        if (tiling != null && wbpSourceAdapter != null
+                && tiling.getBarRange().contains(nextBar) && (nextWbpsa = tiling.getWbpSourceAdaptation(nextBar)) != null)
         {
             int firstNotePitch = wbpSourceAdapter.getPhrase(nextWbpsa, false).first().getPitch();
             int targetNotePitch = wbpSourceAdapter.getTargetNote(wbpsa).getPitch();

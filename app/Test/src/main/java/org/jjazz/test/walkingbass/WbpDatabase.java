@@ -45,15 +45,19 @@ import org.openide.util.Exceptions;
 /**
  * The walking bass phrases database.
  * <p>
- * Contains WbpSource phrases of 1, 2 or 4 bars. Note that the 3 * 2-bar subphrases that compose each 4-bar phrase are also found in the database. Same for the
- * 4 or 2 * 1-bar subphrases of a 4 or 2-bar phrase.
+ * Contains WbpSource phrases of 1, 2 3, or 4 bars. Note that the 3 * 2-bar subphrases that compose each 4-bar phrase are also found in the database. Same for
+ * the 4 or 2 * 1-bar subphrases of a 4 or 2-bar phrase.
  * <p>
  * Example: If we have Cm7-F7-E7-Em7 in the database, then we also have Cm7-F7, F7-E7, E7-Em7, Cm7, F7, E7, Em7 phrases in the database.
  */
 public class WbpDatabase
 {
 
-    
+    /**
+     * Min and max size of a WbpSource phrase.
+     */
+    public final static int SIZE_MIN = 1, SIZE_MAX = 4;
+
     private static WbpDatabase INSTANCE;
     @StaticResource(relative = true)
     private static final String MIDI_FILE_RESOURCE_PATH = "WalkingBassMidiDB.mid";
@@ -179,7 +183,7 @@ public class WbpDatabase
     public List<WbpSource> getWbpSourcesOneBar(ChordType basicChordType)
     {
         Preconditions.checkArgument(basicChordType.getNbDegrees() <= 4, "basicChordType=%s", basicChordType);
-        return (List) mmapSimplifiedChordTypeOneBarWbpSource.get(basicChordType);
+        return (List<WbpSource>) mmapSimplifiedChordTypeOneBarWbpSource.get(basicChordType);
     }
 
     /**
@@ -192,9 +196,8 @@ public class WbpDatabase
      */
     public List<WbpSource> getWbpSources(Predicate<WbpSource> tester)
     {
-        if (tester instanceof KeyablePredicate)
+        if (tester instanceof KeyablePredicate dbTester)
         {
-            var dbTester = (KeyablePredicate) tester;
             var res = mapFilterSources.get(dbTester);
             if (res != null)
             {
@@ -229,38 +232,19 @@ public class WbpDatabase
     }
 
     /**
-     * Get the WbpSources which match the specified chord sequence.
-     * <p>
+     * Get all the WbpSources which share at least one bar with wbpSource.
      *
-     * @param scs
-     * @param minScsSimilarityScore
-     * @param minIndividualChordTypeSimilarityScore
-     * @return
-     * @see SimpleChordSequence#getChordTypeSimilarityScore(org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence, float, boolean)
-     * @see ChordType#getSimilarityScore(org.jjazz.harmony.api.ChordType, boolean) 
+     * @param wbpSource
+     * @return The returned list does not contain wbpSource
      */
-    public List<WbpSource> getWbpSources(SimpleChordSequence scs, float minScsSimilarityScore, int minIndividualChordTypeSimilarityScore)
+    public List<WbpSource> getRelatedWbpSources(WbpSource wbpSource)
     {
-        List<WbpSource> res = new ArrayList<>();
-        
-        
-        var rpSources = getWbpSources(scs.getRootProfile());
-        for (var rpSource:rpSources)
-        {
-            
-        }
-
-        
-        {
-            WbpSource wbps = it.next();
-
-            var wbpScs = wbps.getSimpleChordSequence();
-            float score = scs.getChordTypeSimilarityScore(wbpScs, WbpSourceAdaptation.DEFAULT_MIN_INDIVIDUAL_CHORDTYPE_COMPATIBILITY_SCORE, true);
-            if (score == 0)
-            {
-                it.remove();
-            }
-        }
+        IntRange br = wbpSource.getBarRangeInSession();
+        String sId = wbpSource.getSessionId();
+        var res = WbpDatabase.getInstance().getWbpSources(wbp -> wbp != wbpSource
+                && wbp.getSessionId().equals(sId)
+                && br.isIntersecting(wbp.getBarRangeInSession()));
+        return res;
     }
 
     public void dump()

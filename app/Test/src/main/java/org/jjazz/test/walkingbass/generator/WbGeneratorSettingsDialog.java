@@ -25,7 +25,7 @@ public class WbGeneratorSettingsDialog extends javax.swing.JDialog
         initComponents();
         sp_singleWbpSourceMaxCoverage.setValue((Integer) Math.round(settings.getSingleWbpSourceMaxSongCoveragePercentage() * 100f));
         sp_oneOutOfX.setValue((Integer) settings.getOneOutofX());
-        sp_wbpsaStoreBarSize.setValue((Integer) settings.getWbpsaStoreBarSize());
+        sp_wbpsaStoreBarSize.setValue((Integer) settings.getWbpsaStoreWidth());
 
         setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
         UIUtilities.installEscapeKeyAction(this, () -> exit());
@@ -172,7 +172,7 @@ public class WbGeneratorSettingsDialog extends javax.swing.JDialog
 
     private void sp_wbpsaStoreBarSizeStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_sp_wbpsaStoreBarSizeStateChanged
     {//GEN-HEADEREND:event_sp_wbpsaStoreBarSizeStateChanged
-        settings.setWbpsaStoreBarSize((Integer) sp_wbpsaStoreBarSize.getValue());
+        settings.setWbpsaStoreWidth((Integer) sp_wbpsaStoreBarSize.getValue());
     }//GEN-LAST:event_sp_wbpsaStoreBarSizeStateChanged
 
 

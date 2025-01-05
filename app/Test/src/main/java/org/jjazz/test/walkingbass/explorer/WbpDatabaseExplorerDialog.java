@@ -39,9 +39,13 @@ import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
+import org.jjazz.test.walkingbass.generator.TransposerPhraseAdapter;
+import org.jjazz.test.walkingbass.generator.DefaultWbpsaScorer;
 import org.jjazz.test.walkingbass.WbpDatabase;
 import org.jjazz.test.walkingbass.WbpSource;
+import org.jjazz.test.walkingbass.generator.WbpsaScorer;
 import org.jjazz.test.walkingbass.generator.WbpSourceAdaptation;
+import org.jjazz.test.walkingbass.generator.WbpsaScorer.Score;
 import org.jjazz.uiutilities.api.UIUtilities;
 import org.jjazz.utilities.api.IntRange;
 import org.openide.DialogDisplayer;
@@ -62,8 +66,8 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
         setAlwaysOnTop(modal);
         initComponents();
         tbl_wbpSources.setAutoCreateRowSorter(true);
-        
-                JPopupMenu pMenu = new JPopupMenu();
+
+        JPopupMenu pMenu = new JPopupMenu();
         pMenu.add(new JMenuItem(new FindDuplicatesAction(this)));
         pMenu.add(new JMenuItem(new PrintPhrasesAction(this)));
         tbl_wbpSources.setComponentPopupMenu(pMenu);
@@ -82,11 +86,18 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
 
     public List<WbpSource> getSelectedWbpSources()
     {
-        List<WbpSource> res = new ArrayList<>();
+        return getSelectedWbpSourceAdaptations().stream()
+                .map(wbpsa -> wbpsa.getWbpSource())
+                .toList();
+    }
+
+    public List<WbpSourceAdaptation> getSelectedWbpSourceAdaptations()
+    {
+        List<WbpSourceAdaptation> res = new ArrayList<>();
         for (int row : tbl_wbpSources.getSelectedRows())
         {
             int modelIndex = tbl_wbpSources.convertRowIndexToModel(row);
-            res.add(getTableModel().getWbpSource(modelIndex));
+            res.add(getTableModel().getWbpSourceAdaptation(modelIndex));
         }
         return res;
     }
@@ -102,34 +113,14 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
 
     private void doUpdate()
     {
-        var wbpSources = rb_rootProfile.isSelected() ? getRootProfileWbpSources() : getRpAndChordTypeWbpSources();
-        tbl_wbpSources.setModel(new MyModel(wbpSources));
+        float minScore = rb_rootProfile.isSelected() ? 0 : DefaultWbpsaScorer.DEFAULT_MIN_WBPSOURCE_COMPATIBILITY_SCORE.overall();
+        var wbpsas = getWbpSourceAdaptations(minScore);
+        tbl_wbpSources.setModel(new MyModel(wbpsas));
         adjustWidths();
-        lbl_info.setText(wbpSources.size() + " WbpSource(s)");
+        lbl_info.setText(wbpsas.size() + " WbpSource(s)");
     }
 
-    private List<WbpSource> getRootProfileWbpSources()
-    {
-
-        // Compute the root profile
-        SimpleChordSequence scs;
-        try
-        {
-            scs = computeSimpleChordSequence();
-        } catch (ParseException ex)
-        {
-            NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
-            DialogDisplayer.getDefault().notify(d);
-            return Collections.EMPTY_LIST;
-        }
-
-        String rootProfile = scs.getRootProfile();
-        var wbpSources = WbpDatabase.getInstance().getWbpSources(rootProfile);
-
-        return wbpSources;
-    }
-
-    private List<WbpSource> getRpAndChordTypeWbpSources()
+    private List<WbpSourceAdaptation> getWbpSourceAdaptations(float minCompatibilityScore)
     {
         // Compute the root profile
         SimpleChordSequence scs;
@@ -143,25 +134,11 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
             return Collections.EMPTY_LIST;
         }
 
-        String rootProfile = scs.getRootProfile();
-        var wbpSources = new ArrayList<>(WbpDatabase.getInstance().getWbpSources(rootProfile));  // getWbpSources returns an immutable collection
+        WbpsaScorer wbpsaScorer = new DefaultWbpsaScorer(null);
+        var wbpsas = wbpsaScorer.getWbpSourceAdaptations(scs, null, new Score(minCompatibilityScore));
+        var res = new ArrayList<>(wbpsas);
 
-
-        // Remove WbpSources for which chord types do not match enough
-        var it = wbpSources.iterator();
-        while (it.hasNext())
-        {
-            WbpSource wbps = it.next();
-
-            var wbpScs = wbps.getSimpleChordSequence();
-            float score = scs.getChordTypeSimilarityScore(wbpScs, WbpSourceAdaptation.DEFAULT_MIN_INDIVIDUAL_CHORDTYPE_COMPATIBILITY_SCORE, true);
-            if (score == 0)
-            {
-                it.remove();
-            }
-        }
-
-        return wbpSources;
+        return res;
 
     }
 
@@ -255,33 +232,34 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
     {
 
         public static final int COL_ID = 0;
+        public static final int COL_SCORE = 1;
         public static final int COL_SESSION_ID = 100;
         public static final int COL_SESSION_FROM_BAR = 200;
-        public static final int COL_CHORDS = 1;
-        public static final int COL_PHRASE = 2;
+        public static final int COL_CHORDS = 2;
+        public static final int COL_PHRASE = 3;
 
-        private final List<WbpSource> wbpSources;
+        private final List<WbpSourceAdaptation> wbpsas;
 
-        public MyModel(List<WbpSource> wbpss)
+        public MyModel(List<WbpSourceAdaptation> wbpsas)
         {
-            wbpSources = wbpss;
+            this.wbpsas = wbpsas;
         }
 
-        WbpSource getWbpSource(int modelRow)
+        WbpSourceAdaptation getWbpSourceAdaptation(int modelRow)
         {
-            return wbpSources.get(modelRow);
+            return wbpsas.get(modelRow);
         }
 
         @Override
         public int getRowCount()
         {
-            return wbpSources.size();
+            return wbpsas.size();
         }
 
         @Override
         public int getColumnCount()
         {
-            return 3;
+            return 4;
         }
 
         @Override
@@ -293,6 +271,8 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
                     String.class;
                 case COL_SESSION_FROM_BAR ->
                     Integer.class;
+                case COL_SCORE ->
+                    Float.class;
                 default -> throw new IllegalStateException("col=" + col);
             };
             return res;
@@ -305,6 +285,8 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
             {
                 case COL_ID ->
                     "Id";
+                case COL_SCORE ->
+                    "Score";
                 case COL_SESSION_ID ->
                     "Session";
                 case COL_SESSION_FROM_BAR ->
@@ -321,7 +303,8 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
         @Override
         public Object getValueAt(int row, int col)
         {
-            WbpSource wbps = getWbpSource(row);
+            var wbpsa = getWbpSourceAdaptation(row);
+            var wbps = wbpsa.getWbpSource();
             Object res = switch (col)
             {
                 case COL_ID ->
@@ -330,6 +313,8 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
                     wbps.getSessionId();
                 case COL_SESSION_FROM_BAR ->
                     wbps.getSessionBarOffset();
+                case COL_SCORE ->
+                    wbpsa.getCompatibilityScore().overall();
                 case COL_CHORDS ->
                     new ArrayList<>(wbps.getSimpleChordSequence()).toString();
                 case COL_PHRASE ->

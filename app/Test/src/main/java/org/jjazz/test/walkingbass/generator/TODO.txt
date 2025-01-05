@@ -11,4 +11,4 @@
 * Handle case where tiling not complete after 1 pass
 * Handle case where non-standard nb of chords in a bar
 * Database: detect identical patterns for same chord suite (_Downes-P114-giantsteps#fr=13#sz=2 and fr=7)
-
+* Database: harmonize phrases velocity

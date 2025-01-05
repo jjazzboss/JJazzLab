@@ -25,13 +25,13 @@
 package org.jjazz.test.walkingbass.generator;
 
 /**
- * Tile a WbpTiling with selected WbpSourceAdaptations.
+ * Tile a WbpTiling with WbpSourceAdaptations.
  */
 public interface Tiler
 {
 
     /**
-     * Perform the tiling.
+     * Try to tile the non-tiled bars of the specified tiling.
      *
      * @param tiling
      */

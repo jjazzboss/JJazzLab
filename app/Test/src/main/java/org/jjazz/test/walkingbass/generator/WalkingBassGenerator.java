@@ -1,5 +1,7 @@
 package org.jjazz.test.walkingbass.generator;
 
+import org.jjazz.test.walkingbass.tiler.TilerMaxDistance;
+import org.jjazz.test.walkingbass.tiler.TilerOneOutOfX;
 import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,8 +22,8 @@ import org.jjazz.rhythm.api.RhythmVoiceDelegate;
 import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Intensity;
 import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Variation;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
-import org.jjazz.test.walkingbass.BasicAdapter;
 import org.jjazz.test.walkingbass.WbpDatabase;
+import org.jjazz.test.walkingbass.tiler.TilerBestFirstNoRepeat;
 
 /**
  * Walking bass generator based on pre-recorded patterns from WbpDatabase.
@@ -181,16 +183,22 @@ public class WalkingBassGenerator implements MusicGenerator
 
         var settings = WalkingBassGeneratorSettings.getInstance();
         WbpTiling tiling = new WbpTiling(scs);
-        var tiler = new TilerOneOutOfX(settings.getSingleWbpSourceMaxSongCoveragePercentage(), settings.getOneOutofX(), settings.getWbpsaStoreBarSize());
-        tiler.tile(tiling);
+        // var tiler = new TilerOneOutOfX(settings.getSingleWbpSourceMaxSongCoveragePercentage(), settings.getOneOutofX(), settings.getWbpsaStoreWidth());
+        var tiler0 = new TilerBestFirstNoRepeat(settings.getWbpsaStoreWidth());
+        tiler0.tile(tiling);
+        LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling pass 0 =\n{0}", tiling.toMultiLineString());        
+        
+        var tiler1 = new TilerMaxDistance(settings.getWbpsaStoreWidth());
+        tiler1.tile(tiling);
+        LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling pass 1 =\n{0}", tiling.toMultiLineString());        
+        
+        
         var nonTiledBars = tiling.getNonTiledBars();
         if (!nonTiledBars.isEmpty())
         {
             LOGGER.log(Level.SEVERE, "\ngetBassPhrase() =============== tiling NOT complete for bars: {0}", nonTiledBars);
             // return res;
         }
-
-        LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling=\n{0}", tiling.toMultiLineString());
 
         LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ===============   Tiling stats  scs.usableBars={0} \n{1}", new Object[]
         {
@@ -201,10 +209,8 @@ public class WalkingBassGenerator implements MusicGenerator
         // Transpose WbpSources to target phrases
         for (var wbpsa : tiling.getWbpSourceAdaptations())
         {
-            var wbpSource = wbpsa.getWbpSource();
-            var subSeq = wbpsa.getSimpleChordSequence();
-            var p = new BasicAdapter().adaptPhrase(wbpSource, subSeq, true);
-            LOGGER.log(Level.FINE, "getBassPhrase() transposedPhrase={0}", p);            
+            var p = new TransposerPhraseAdapter().getPhrase(wbpsa, true);
+            LOGGER.log(Level.FINE, "getBassPhrase() transposedPhrase={0}", p);
             res.add(p, false);
         }
         return res;

@@ -13,7 +13,7 @@ public class WalkingBassGeneratorSettings
 
     private static final String PREF_ONE_OUT_OF_X = "PrefOneOutOfX";
     private static final String PREF_SINGLE_WBP_SOURCE_MAX_SONG_COVERAGE = "PrefSingleSourceMaxSongCoverage";
-    private static final String PREF_WBPSA_STORE_BAR_SIZE = "PrefWbpsaStoreBarSize";
+    private static final String PREF_WBPSA_STORE_WIDTH = "PrefWbpsaStoreWidth";
     private static WalkingBassGeneratorSettings INSTANCE;
     private final Preferences prefs = NbPreferences.forModule(WalkingBassGeneratorSettings.class);
     ;
@@ -57,24 +57,24 @@ public class WalkingBassGeneratorSettings
     }
 
     /**
-     * Number of WbpSourceAdaptations kept for each bar in WbpsaStore.
+     * Maximum number of WbpSourceAdaptations kept for each bar in WbpsaStore.
      * <p>
      * @return
      */
-    public int getWbpsaStoreBarSize()
+    public int getWbpsaStoreWidth()
     {
-        return prefs.getInt(PREF_WBPSA_STORE_BAR_SIZE, 8);
+        return prefs.getInt(PREF_WBPSA_STORE_WIDTH, 8);
     }
 
     /**
-     * Number of WbpSourceAdaptations kept for each bar in WbpsaStore.
+     * Maximum number of WbpSourceAdaptations kept for each bar in WbpsaStore.
      *
      * @param size
      */
-    public void setWbpsaStoreBarSize(int size)
+    public void setWbpsaStoreWidth(int size)
     {
         Preconditions.checkArgument(size > 0, "size=%s", size);
-        prefs.putInt(PREF_WBPSA_STORE_BAR_SIZE, size);
+        prefs.putInt(PREF_WBPSA_STORE_WIDTH, size);
     }
 
 

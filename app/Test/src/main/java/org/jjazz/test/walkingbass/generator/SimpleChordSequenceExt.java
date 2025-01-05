@@ -57,9 +57,10 @@ public class SimpleChordSequenceExt extends SimpleChordSequence
     }
 
     /**
-     * Build an object.
+     * Build an empty object.
      *
-     * @param scs
+     * @param barRange
+     * @param timeSignature
      * @param addUsableBars If true all bars from barRange are considered usable
      */
     private SimpleChordSequenceExt(IntRange barRange, TimeSignature timeSignature, boolean addUsableBars)
@@ -134,7 +135,7 @@ public class SimpleChordSequenceExt extends SimpleChordSequence
      */
     public List<Integer> getUsableBars()
     {
-        return usableBars;
+        return Collections.unmodifiableList(usableBars);
     }
 
     @Override

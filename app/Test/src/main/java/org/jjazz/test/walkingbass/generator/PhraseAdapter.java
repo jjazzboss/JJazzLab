@@ -22,41 +22,32 @@
  *   Contributor(s): 
  * 
  */
-package org.jjazz.test.walkingbass;
+package org.jjazz.test.walkingbass.generator;
 
 import org.jjazz.harmony.api.Note;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.test.walkingbass.generator.WbpSourceAdaptation;
 
 /**
- * Transpose the WbpSource phrase so that 1st chord roots match.
+ * Get the resulting phrase from a WbpSourceAdaptation.
  */
-public class BasicAdapter implements WbpSourceAdapter
+public interface PhraseAdapter
 {
 
-    @Override
-    public Phrase getPhrase(WbpSourceAdaptation wbpsa, boolean offsetStart)
-    {
-        var wbpSource = wbpsa.getWbpSource();
-        var scs = wbpsa.getSimpleChordSequence();
+    /**
+     * Get the resulting phrase from wbpsa.
+     *
+     * @param wbpsa       The source phrase to adapt
+     * @param offsetStart If false returned phrase starts at bar 0, otherwise at bar scs.getBarRange().from
+     * @return
+     */
+    Phrase getPhrase(WbpSourceAdaptation wbpsa, boolean offsetStart);
 
-        var firstRootNote = scs.first().getData().getRootNote();
-        var p = wbpSource.getTransposedPhrase(firstRootNote);
-        if (offsetStart)
-        {
-            p.shiftAllEvents(scs.getBarRange().from * scs.getTimeSignature().getNbNaturalBeats());
-        }
-        return p;
-    }
-
-    @Override
-    public Note getTargetNote(WbpSourceAdaptation wbpsa)
-    {
-        var wbpSource = wbpsa.getWbpSource();
-        var firstRootNote = wbpsa.getSimpleChordSequence().first().getData().getRootNote();
-        var t = wbpSource.getRequiredTransposition(firstRootNote);
-        var res = wbpSource.getTargetNote().getTransposed(t);
-        return res;
-    }
-
+    /**
+     * Get the resulting target note from wbpsa.
+     *
+     * @param wbpsa
+     * @return
+     */
+    Note getTargetNote(WbpSourceAdaptation wbpsa);
 }

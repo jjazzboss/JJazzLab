@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import org.jjazz.test.walkingbass.WbpSource;
+import org.jjazz.test.walkingbass.generator.WbpSourceAdaptation;
 import org.jjazz.utilities.api.Utilities;
 
 /**
@@ -51,9 +52,10 @@ class PrintPhrasesAction extends AbstractAction
     public void actionPerformed(ActionEvent ae)
     {
         LOGGER.info("\n### Print phrases:");
-        List<WbpSource> wbpSources = dialog.getSelectedWbpSources();
-        for (var wbps : wbpSources)
+        List<WbpSourceAdaptation> wbpsas = dialog.getSelectedWbpSourceAdaptations();
+        for (var wbpsa : wbpsas)
         {
+            var wbps = wbpsa.getWbpSource();
             var sp = wbps.getSizedPhrase();
             LOGGER.info(wbps.getId() + ": " + sp);
             LOGGER.info(Utilities.toMultilineString(sp, "  "));

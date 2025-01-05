@@ -34,6 +34,7 @@ import java.util.TreeMap;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
+import org.jjazz.test.walkingbass.WbpDatabase;
 import org.jjazz.test.walkingbass.WbpSource;
 import org.jjazz.utilities.api.IntRange;
 
@@ -61,75 +62,25 @@ public class WbpTiling
         return simpleChordSequenceExt;
     }
 
+    /**
+     * Redirect to simpleChordSequenceExt.getUsableBars().
+     *
+     * @return
+     */
     public List<Integer> getUsableBars()
     {
         return simpleChordSequenceExt.getUsableBars();
     }
 
+    /**
+     * Redirect to simpleChordSequenceExt.getBarRange().
+     *
+     * @return
+     */
     public IntRange getBarRange()
     {
         return simpleChordSequenceExt.getBarRange();
     }
-
-//    /**
-//     * Do the tiling using the specified tiler.
-//     *
-//     * @param tiler
-//     */
-//    public void tileAll(Tiler tiler)
-//    {
-//        // Build the store
-//        tiler.tile(this);
-//        
-//        // For each bar, get the most compatible 4-bar WbpSources
-//        var store4 = new BestWbpsaStoreOLD(simpleChordSequenceExt, simpleChordSequenceExt.getUsableBars(), 4, MAX_NB_BEST_ADAPTATIONS);
-//        LOGGER.severe("store4:");
-//        store4.dump();
-//        // Tile with this store
-//        tiler.tile(this, store4);
-//        LOGGER.log(Level.SEVERE, "tile() 4-bar:");
-//        LOGGER.log(Level.SEVERE, toMultiLineString());
-//
-//
-//        // For each remaining 3-bar zone, get the most compatible 3-bar WbpSource
-//        var usableBars3 = getNonTiledBars();
-//        if (!usableBars3.isEmpty())
-//        {
-//            var store3 = new BestWbpsaStoreOLD(simpleChordSequenceExt, usableBars3, 3, MAX_NB_BEST_ADAPTATIONS);
-//            LOGGER.severe("store3:");
-//            store3.dump();
-//            tiler.tile(this, store3);
-//            LOGGER.log(Level.SEVERE, "tile() 3-bar:");
-//            LOGGER.log(Level.SEVERE, toMultiLineString());
-//        }
-//
-//
-//        // For each remaining 2-bar zone, get the most compatible 2-bar WbpSource
-//        var usableBars2 = getNonTiledBars();
-//        if (!usableBars2.isEmpty())
-//        {
-//            var store2 = new BestWbpsaStoreOLD(simpleChordSequenceExt, usableBars2, 2, MAX_NB_BEST_ADAPTATIONS);
-//            LOGGER.severe("store2:");
-//            store2.dump();
-//            tiler.tile(this, store2);
-//            LOGGER.log(Level.SEVERE, "tile() 2-bar:");
-//            LOGGER.log(Level.SEVERE, toMultiLineString());
-//
-//        }
-//
-//
-//        // For each remaining 1-bar zone, get the most compatible 1-bar WbpSource
-//        var usableBars1 = getNonTiledBars();
-//        if (!usableBars1.isEmpty())
-//        {
-//            var store1 = new BestWbpsaStoreOLD(simpleChordSequenceExt, usableBars1, 1, MAX_NB_BEST_ADAPTATIONS);
-//            LOGGER.severe("store1:");
-//            store1.dump();
-//            tiler.tile(this, store1);
-//            LOGGER.log(Level.SEVERE, "tile() 1-bar:");
-//            LOGGER.log(Level.SEVERE, toMultiLineString());
-//        }
-//    }
 
     /**
      * Remove the specified WbpSourceAdaptation.
@@ -139,7 +90,7 @@ public class WbpTiling
      */
     public WbpSourceAdaptation remove(WbpSourceAdaptation wbpsa)
     {
-        var res = mapBarWbpsa.remove(wbpsa.getBarRange().from);
+        var res = remove(wbpsa.getBarRange().from);
         return res;
     }
 
@@ -192,9 +143,20 @@ public class WbpTiling
     public List<WbpSourceAdaptation> getWbpSourceAdaptations(Predicate<WbpSourceAdaptation> tester)
     {
         var res = mapBarWbpsa.values().stream()
-            .filter(wbpsa -> tester.test(wbpsa))
-            .toList();
+                .filter(wbpsa -> tester.test(wbpsa))
+                .toList();
         return res;
+    }
+
+    /**
+     * Get all the WbpSourceAdaptations ordered by start bar which use the specified WbpSource.
+     *
+     * @param wbpSource
+     * @return
+     */
+    public List<WbpSourceAdaptation> getWbpSourceAdaptations(WbpSource wbpSource)
+    {
+        return getWbpSourceAdaptations(wbpsa -> wbpsa.getWbpSource() == wbpSource);
     }
 
     /**
@@ -236,7 +198,7 @@ public class WbpTiling
      *
      * @return
      */
-    public boolean isCompletlyTiled()
+    public boolean isFullyTiled()
     {
         boolean res = true;
         var barRange = getBarRange();
@@ -262,29 +224,49 @@ public class WbpTiling
     }
 
     /**
-     * Get all usable bars which are not tiled by a WbpSourceAdaptation.
+     * Get the bars tiled.
      *
      * @return
+     */
+    public List<Integer> getTiledBars()
+    {
+        var res = new ArrayList<>(simpleChordSequenceExt.getUsableBars());
+        res.removeAll(getNonTiledBars());
+        return res;
+    }
+
+    /**
+     * Get the usable bars which are not tiled by a WbpSourceAdaptation.
+     *
+     * @return An ordered list (ascending)
      */
     public List<Integer> getNonTiledBars()
     {
         List<Integer> res = new ArrayList<>();
         var barRange = getBarRange();
         int bar = barRange.from;
+
         for (var wbpsa : mapBarWbpsa.values())
         {
             var br = wbpsa.getBarRange();
-            IntStream.range(bar, br.from)
-                .filter(b -> simpleChordSequenceExt.isUsable(b))
-                .forEachOrdered(b -> res.add(b));
+            var nonTiledBars = IntStream.range(bar, br.from)
+                    .boxed()
+                    .filter(b -> simpleChordSequenceExt.isUsable(b))
+                    .toList();
+            res.addAll(nonTiledBars);
             bar = br.to + 1;
         }
-        // Add the last range
-        IntStream.rangeClosed(bar, barRange.to)
-            .filter(b -> simpleChordSequenceExt.isUsable(b))
-            .forEachOrdered(b -> res.add(b));
+
+        var nonTiledBars = IntStream.rangeClosed(bar, barRange.to)
+                .boxed()
+                .filter(b -> simpleChordSequenceExt.isUsable(b))
+                .toList();
+        res.addAll(nonTiledBars);
+
+
         return res;
     }
+
 
     /**
      * Get the start bar indexes of zones not covered by a WbpSourceAdaptation.
@@ -375,13 +357,13 @@ public class WbpTiling
 
 
         StringBuilder sb = new StringBuilder();
-        for (int i = WbpsaStore.SIZE_MAX; i >= WbpsaStore.SIZE_MIN; i--)
+        for (int i = WbpDatabase.SIZE_MAX; i >= WbpDatabase.SIZE_MIN; i--)
         {
             final int fi = i;
             var sizeList = sortedSources.stream()
-                .filter(s -> s.getBarRange().size() == fi)
-                .toList();
-            sb.append(">>> ").append(sizeList.size()).append(" * ").append(i).append("-bar:\n");            
+                    .filter(s -> s.getBarRange().size() == fi)
+                    .toList();
+            sb.append(">>> ").append(sizeList.size()).append(" * ").append(i).append("-bar:\n");
             for (var source : sizeList)
             {
                 sb.append(source.toString()).append(": ").append(mapSourceBars.get(source).toString()).append("\n");
@@ -406,8 +388,7 @@ public class WbpTiling
             if (wbpsaStart != null)
             {
                 s = wbpsaStart.toString();
-            }
-            else if (getWbpSourceAdaptation(bar) != null)
+            } else if (getWbpSourceAdaptation(bar) != null)
             {
                 s = "  (repeat)";
             }

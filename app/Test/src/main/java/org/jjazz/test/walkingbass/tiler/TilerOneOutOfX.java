@@ -22,7 +22,7 @@
  *   Contributor(s): 
  * 
  */
-package org.jjazz.test.walkingbass.generator;
+package org.jjazz.test.walkingbass.tiler;
 
 import com.google.common.base.Preconditions;
 import java.util.ArrayList;
@@ -34,6 +34,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.test.walkingbass.WbpDatabase;
 import org.jjazz.test.walkingbass.WbpSource;
+import org.jjazz.test.walkingbass.generator.DefaultWbpsaScorer;
+import org.jjazz.test.walkingbass.generator.Tiler;
+import org.jjazz.test.walkingbass.generator.TransposerPhraseAdapter;
+import org.jjazz.test.walkingbass.generator.WbpSourceAdaptation;
+import org.jjazz.test.walkingbass.generator.WbpTiling;
+import org.jjazz.test.walkingbass.generator.WbpsaScorer;
+import org.jjazz.test.walkingbass.generator.WbpsaStore;
 import org.jjazz.utilities.api.IntRange;
 
 /**
@@ -42,10 +49,11 @@ import org.jjazz.utilities.api.IntRange;
  * When a 2/3/4-bar WbpSource is used, its "sub-WbpSources" (1/2/3 bars) are also considered used. Also, a WbpSource can't be used to cover more than
  * wbpSourceMaxCoveragePercentage of the tiling.
  */
+
 public class TilerOneOutOfX implements Tiler
 {
-    
-    public final int storeSizePerBar;
+
+    public final int wbpsaStoreWidth;
     private final float wbpSourceMaxCoveragePercentage;
     /**
      * How many times a WbpSource was used
@@ -63,68 +71,61 @@ public class TilerOneOutOfX implements Tiler
      *
      * @param wbpSourceMaxCoveragePercentage A value in the ]0;1] range. A given WbpSource can't be used to cover more than this percentage of the tiling.
      * @param x                              Tile a given WbpSource one out of x times
-     * @param storeSizePerBar
+     * @param wbpaStoreWidth
      * @see #getWbpSourceMaxCoveragePercentage()
      */
-    public TilerOneOutOfX(float wbpSourceMaxCoveragePercentage, int x, int storeSizePerBar)
+    public TilerOneOutOfX(float wbpSourceMaxCoveragePercentage, int x, int wbpaStoreWidth)
     {
         Preconditions.checkArgument(wbpSourceMaxCoveragePercentage > 0 && wbpSourceMaxCoveragePercentage <= 1,
                 "wbpSourceMaxCoveragePercent=%f", wbpSourceMaxCoveragePercentage);
         Preconditions.checkArgument(x > 0);
-        this.storeSizePerBar = storeSizePerBar;
+        this.wbpsaStoreWidth = wbpaStoreWidth;
         this.wbpSourceMaxCoveragePercentage = wbpSourceMaxCoveragePercentage;
         this.x = x;
         this.mapSourceCountUsed = new HashMap<>();
         this.mapSourceCount = new HashMap<>();
     }
-    
+
     @Override
     public void tile(WbpTiling tiling)
     {
         reset();
-        
-        WbpsaStore store = new WbpsaStore(tiling.getSimpleChordSequenceExt(), storeSizePerBar);
-        LOGGER.log(Level.SEVERE, "tile() store=\n{0}", store.toDebugString());
-        
-        
-        var usableBars = tiling.getUsableBars();
-        var itBar = usableBars.iterator();
-        var cSeq = tiling.getSimpleChordSequenceExt();
-        
+
+        WbpsaScorer scorer = new DefaultWbpsaScorer(new TransposerPhraseAdapter());
+        WbpsaStore store = new WbpsaStore(tiling, wbpsaStoreWidth, scorer,
+                DefaultWbpsaScorer.DEFAULT_MIN_WBPSOURCE_COMPATIBILITY_SCORE,
+                WbpsaStore.DEFAULT_RANDOMIZE_WITHIN_OVERALL_SCORE_WINDOW);
+        LOGGER.log(Level.SEVERE, "tile() store=\n{0}", store.toDebugString(true));
+
+
+        var nonTiledBars = tiling.getNonTiledBars();
+        var itBar = nonTiledBars.iterator();
+
         while (itBar.hasNext())
         {
             int bar = itBar.next();
-            var wbpsas = getAllWbpsas(store, bar, true);        // Shuffle to avoid repeted suite of phrases
+            var wbpsas = store.getWbpSourceAdaptations(bar);        // Might be partly shuffled
             if (wbpsas.isEmpty())
             {
-                
-                IntRange br = new IntRange(bar, bar + 3).getIntersection(cSeq.getBarRange());
-                var subSeq = tiling.getSimpleChordSequenceExt().subSequence(br, true);
-                LOGGER.log(Level.WARNING, "tile() No wbpsa found for bar {0}: {1}", new Object[]
-                {
-                    bar, subSeq.toString()
-                });
                 continue;
             }
-            
-            
-            for (var wbpsa : wbpsas)
-            {
-                var wbpSource = wbpsa.getWbpSource();
-                if (canUse(tiling, wbpSource, bar))          // Updates state
-                {
-                    tiling.add(wbpsa);
 
-                    // Move to the next usable bar
-                    for (int i = 0; i < wbpsa.getBarRange().size() - 1; i++)
+            wbpsas.stream()
+                    .filter(wbpsa -> canUse(tiling, wbpsa.getWbpSource(), bar))
+                    .findFirst()
+                    .ifPresent(wbpsa -> 
                     {
-                        itBar.next();           // Should never fail since WbpaStore stores a WbpSourceAdaptation only it has room to do so
-                    }
-                    break;
-                }
-            }
+                        tiling.add(wbpsa);
+
+                        // Move to the next usable bar
+                        int wbpsaSize = wbpsa.getBarRange().size();
+                        while (wbpsaSize-- > 1)
+                        {
+                            itBar.next();
+                        }
+                    });
         }
-        
+
     }
 
     /**
@@ -136,7 +137,7 @@ public class TilerOneOutOfX implements Tiler
     {
         return wbpSourceMaxCoveragePercentage;
     }
-    
+
     public int getX()
     {
         return x;
@@ -167,18 +168,18 @@ public class TilerOneOutOfX implements Tiler
         int count = mapSourceCount.getOrDefault(wbpSource, 0);
         count++;
         int countUsed = mapSourceCountUsed.getOrDefault(wbpSource, 0);
-        
+
         if (countUsed == 0 || isCoveragePercentageOk(tiling, wbpSource, countUsed + 1))
         {
-            List<WbpSource> relSources = getRelatedWbpSources(wbpSource);
-            
+            List<WbpSource> relSources = WbpDatabase.getInstance().getRelatedWbpSources(wbpSource);
+
             if ((count - 1) % x == 0)
             {
                 // It is one use out of X
                 b = true;
                 countUsed++;
                 mapSourceCountUsed.put(wbpSource, countUsed);
-                
+
                 LOGGER.log(Level.SEVERE, "canUse() bar={0} wbpSource USED count={1} countUsed={2} source={3}", new Object[]
                 {
                     bar, count, countUsed, wbpSource
@@ -213,38 +214,14 @@ public class TilerOneOutOfX implements Tiler
                 bar, countUsed, wbpSource
             });
         }
-        
-        return b;
-    }
 
-    /**
-     * Get all the possible WbpSourceAdaptations list for specified bar.
-     * <p>
-     * Returned list is ordered by descending size (from 4 bars to 1 bar), then by descending compatibility order or random if shuffle is true.
-     *
-     * @param store
-     * @param bar     Must be a usable bar
-     * @param shuffle If true shuffle the Wbpsas of same size.
-     * @return Can be empty.
-     */
-    private List<WbpSourceAdaptation> getAllWbpsas(WbpsaStore store, int bar, boolean shuffle)
-    {
-        List<WbpSourceAdaptation> res = new ArrayList<>();
-        for (int i = WbpsaStore.SIZE_MAX; i >= WbpsaStore.SIZE_MIN; i--)
-        {
-            var l = store.getWbpSourceAdaptations(bar, i);
-            if (shuffle)
-            {
-                Collections.shuffle(l);
-            }
-            res.addAll(l);
-        }
-        return res;
+        return b;
     }
 
     /**
      * Check if coverage percentage is OK with nbOccurences x wbpSource.
      *
+     * @param tiling
      * @param wbpSource
      * @param nbOccurences
      * @return
@@ -255,19 +232,4 @@ public class TilerOneOutOfX implements Tiler
         return p <= wbpSourceMaxCoveragePercentage;
     }
 
-    /**
-     * Get all the WbpSources which share at least one bar with wbpSource.
-     *
-     * @param wbpSource
-     * @return List does not contain wbpSource
-     */
-    private List<WbpSource> getRelatedWbpSources(WbpSource wbpSource)
-    {
-        IntRange br = wbpSource.getBarRangeInSession();
-        String sId = wbpSource.getSessionId();
-        var res = WbpDatabase.getInstance().getWbpSources(wbp -> wbp != wbpSource
-                && wbp.getSessionId().equals(sId)
-                && br.isIntersecting(wbp.getBarRangeInSession()));
-        return res;
-    }
 }
