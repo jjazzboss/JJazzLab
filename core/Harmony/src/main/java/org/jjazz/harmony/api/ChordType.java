@@ -373,6 +373,29 @@ final public class ChordType
     }
 
     /**
+     * Count how many initial degrees are identical between 2 chord types.
+     * <p>
+     * Examples:<br>
+     * C and Cm: 1, Cm and Cm7: 3, Cm7#9 and Cm9: 4
+     *
+     * @param ct
+     * @return Minimum value is 1 (root always matches).
+     */
+    public int getNbCommonDegrees(ChordType ct)
+    {
+        int res;
+        for (res = 0; res < Math.min(degrees.size(), ct.degrees.size()); res++)
+        {
+            if (degrees.get(res) != ct.degrees.get(res))
+            {
+                assert res > 0;    // root must alwasy match
+                break;
+            }
+        }
+        return res;
+    }
+
+    /**
      * Find the most probable degree corresponding to relative pitch for this chordtype.
      * <p>
      * First try to use getDegree(relPitch). If it returns null, make some assumptions based on the chord type to find the most probable degree.<br>
@@ -747,7 +770,7 @@ final public class ChordType
      * <p>
      * Equal ChordTypes have a score of 63. Score is reduced when ChordType Degrees differ, according to the table below:
      * <p>
-     * DegreeIndex.THIRD: -32 (a score &gt;=32 means third matches)<br>
+     * DegreeIndex.THIRD_OR_FOURTH: -32 (a score &gt;=32 means third or fourth matches)<br>
      * DegreeIndex.FIFTH: -16 (a score &gt;=48 means third+fifth match) <br>
      * DegreeIndex.SIXTH_SEVENTH: -8 (a score &gt;=56 means third+fifth+six_seventh match)<br>
      * DegreeIndex.EXTENSION1: -4 (a score &gt;=60 means third+fifth+six_seventh match+ext1 match)<br>
@@ -755,10 +778,11 @@ final public class ChordType
      * DegreeIndex.EXTENSION3: -1 (a score ==63 means equal ChordTypes)<br>
      * <p>
      * If acceptAbsentDegrees is true and chord types do not have the same number of Degrees (e.g. C and C69), score is reduced by 1 for each "extra" Degree.
-     * This way C and F6 (1 extra degree) are a bit less similar than C and F, and a bit more similar than C and F7b9 (2 extra degrees).
+     * This way C and F6 (1 extra degree) are a bit less similar than C and F, and a bit more similar than C and F69 (2 extra degrees).
      * <p>
      * <p>
      * Special handling: 6 and 7M are considered similar.
+     * <p>
      * <p>
      * Examples:<br>
      * - C and E, Fm69 and Ebm69 = 63. This is the max value for identical ChordTypes.<br>
@@ -774,34 +798,34 @@ final public class ChordType
      * @param acceptAbsentDegrees If true absent degrees in one of the ChordType only have a minor impact on the similarity score
      * @return [0-63]
      */
-    public int getSimilarityScore(ChordType ct, boolean acceptAbsentDegrees)
-    {
-        int res = 63;
-        int weight = 32;
-
-        for (int i = 1; i <= 6; i++)
-        {
-            Degree d = i < degrees.size() ? degrees.get(i) : null;
-            Degree dct = i < ct.degrees.size() ? ct.degrees.get(i) : null;
-            if (!Objects.equals(d, dct))
-            {
-                if ((d == null || dct == null) && acceptAbsentDegrees)
-                {
-                    res -= 1;   // This way C and F6 will be 62, C and F69 will be 61
-                } else if ((d == Degree.SIXTH_OR_THIRTEENTH && dct == Degree.SEVENTH)
-                        || (dct == Degree.SIXTH_OR_THIRTEENTH && d == Degree.SEVENTH))
-                {
-                    // Do nothing
-                } else
-                {
-                    res -= weight;
-                }
-            }
-            weight /= 2;
-        }
-
-        return res;
-    }
+//    public int getSimilarityScore(ChordType ct, boolean acceptAbsentDegrees)
+//    {
+//        int res = 63;
+//        int weight = 32;
+//
+//        for (int i = 1; i <= 6; i++)
+//        {
+//            Degree d = i < degrees.size() ? degrees.get(i) : null;
+//            Degree dct = i < ct.degrees.size() ? ct.degrees.get(i) : null;
+//            if (!Objects.equals(d, dct))
+//            {
+//                if ((d == null || dct == null) && acceptAbsentDegrees)
+//                {
+//                    res -= 1;   // This way C and F6 will be 62, C and F69 will be 61
+//                } else if ((d == Degree.SIXTH_OR_THIRTEENTH && dct == Degree.SEVENTH)
+//                        || (dct == Degree.SIXTH_OR_THIRTEENTH && d == Degree.SEVENTH))
+//                {
+//                    // Do nothing
+//                } else
+//                {
+//                    res -= weight;
+//                }
+//            }
+//            weight /= 2;
+//        }
+//
+//        return res;
+//    }
 
     /**
      * Calculate the pitch of degree nd if chord's root=rootPitch and chord's type=this.

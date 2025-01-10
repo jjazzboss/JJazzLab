@@ -151,8 +151,6 @@ public class YjzFileBuilder
      * Useless for the rhythm itself, but convenient for editing in a DAW
      *
      * @param sequence
-     * @param baseRhythm
-     * @param spMainA
      */
     private void createTrack0(Sequence sequence)
     {

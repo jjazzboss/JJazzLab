@@ -38,6 +38,7 @@ import java.util.IntSummaryStatistics;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableSet;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.Function;
@@ -51,6 +52,8 @@ import javax.sound.midi.Sequence;
 import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Track;
 import org.jjazz.harmony.api.Chord;
+import org.jjazz.harmony.api.ChordSymbol;
+import org.jjazz.harmony.api.Degree;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.quantizer.api.Quantization;
@@ -827,4 +830,5 @@ public class Phrases
         }
         return res;
     }
+
 }

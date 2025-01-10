@@ -71,6 +71,7 @@
                     <configuration>
                         <brandingToken>${brandingToken}</brandingToken>         <!-- for nbm:cluster-app, nbm:branding, nbm:run-platform, nbm:standalone-zip -->
                         <cluster>${brandingToken}</cluster>                     <!-- for nbm:branding, nbm:nbm -->
+                        <verifyRuntime>fail</verifyRuntime>-->                  <!-- behavior if nbm:manifest detects an inconsistency between module API usage and maven dependencies. -->
                     </configuration>
                     <executions>
                         <!-- Disable default-branding by default (branding module re-enables it) -->

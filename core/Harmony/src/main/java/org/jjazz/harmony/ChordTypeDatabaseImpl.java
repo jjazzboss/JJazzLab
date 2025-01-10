@@ -131,7 +131,7 @@ public class ChordTypeDatabaseImpl implements ChordTypeDatabase
         addBuiltin("m11", "", MIN, ":m711:mi711:min711:-11:-711:min7(11):m7add11:m7add4:madd4:", NP, -1, 0, 0, NP, -1);
         addBuiltin("m13", "", MIN, ":mi13:min13:-13:m913:m9add13:", 0, -1, NP, 0, 0, -1);
         addBuiltin("m", "7M", MIN, ":-maj7:min7M:minMaj7:-7M:mM7:mMaj7:", NP, -1, NP, 0, NP, 0);
-        addBuiltin("m9", "7M", MIN, ":mi9M:min9M:minMaj7(9):-9M:mM9:", 0, -1, NP, 0, NP, 0);
+        addBuiltin("m9", "7M", MIN, ":mi9M:min9M:minMaj7(9):-9M:mM9:m7M9", 0, -1, NP, 0, NP, 0);
 
 
         // DIMINISHED

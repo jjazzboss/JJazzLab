@@ -23,6 +23,7 @@
 package org.jjazz.harmony.api;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -113,10 +114,16 @@ public enum Degree
     private final Natural natural;
     private final int accidental;
 
-    private Degree(Natural n, int alt)
+    /**
+     *
+     * @param n
+     * @param defaultAccidental
+     * @param incompatibleDegrees Degrees usually "musically incompatible" with this Degree.
+     */
+    private Degree(Natural n, int defaultAccidental, Degree... incompatibleDegrees)
     {
         this.natural = n;
-        this.accidental = alt;
+        this.accidental = defaultAccidental;
     }
 
     /**
@@ -140,6 +147,63 @@ public enum Degree
     public int getAccidental()
     {
         return accidental;
+    }
+
+    /**
+     * Get the "usually" musically-incompatible degrees when playing chords.
+     * <p>
+     * E.g. On a Cm, you usually don't use an E note in the chord voicing.
+     *
+     * @return
+     */
+    public List<Degree> getChordIncompatibleDegrees()
+    {
+        List<Degree> res = switch (this)
+        {
+            case ROOT ->
+                Collections.emptyList();
+
+            case NINTH_FLAT, NINTH_SHARP ->
+                List.of(Degree.NINTH);
+
+            case NINTH ->
+                List.of(Degree.NINTH_FLAT, Degree.NINTH_SHARP);
+
+            case THIRD_FLAT ->
+                List.of(Degree.THIRD);
+
+            case THIRD ->
+                List.of(Degree.THIRD_FLAT, Degree.FOURTH_OR_ELEVENTH);
+
+            case FOURTH_OR_ELEVENTH ->
+                List.of(Degree.THIRD, Degree.ELEVENTH_SHARP);
+
+            case ELEVENTH_SHARP ->
+                List.of(Degree.FOURTH_OR_ELEVENTH);
+
+            case FIFTH_FLAT ->
+                List.of(Degree.FIFTH);
+
+            case FIFTH ->
+                List.of(Degree.FIFTH_FLAT, Degree.FIFTH_SHARP);
+
+            case FIFTH_SHARP, THIRTEENTH_FLAT ->
+                List.of(Degree.FIFTH, Degree.SIXTH_OR_THIRTEENTH);
+
+            case SIXTH_OR_THIRTEENTH ->
+                List.of(Degree.FIFTH_SHARP);
+
+            case SEVENTH_FLAT ->
+                List.of(Degree.SEVENTH);
+
+            case SEVENTH ->
+                List.of(Degree.SEVENTH_FLAT);
+
+            default ->
+                throw new IllegalStateException("this=" + this);
+        };
+
+        return res;
     }
 
     /**
@@ -168,7 +232,7 @@ public enum Degree
     {
         if (alt < -1 || alt > 1)
         {
-            throw new IllegalArgumentException("n=" + n + " alt=" + alt);   
+            throw new IllegalArgumentException("n=" + n + " alt=" + alt);
         }
         for (Degree d : Degree.values())
         {
@@ -190,7 +254,7 @@ public enum Degree
     {
         if (relPitch < 0 || relPitch > 11)
         {
-            throw new IllegalArgumentException("relPitch=" + relPitch);   
+            throw new IllegalArgumentException("relPitch=" + relPitch);
         }
         ArrayList<Degree> res = new ArrayList<>();
         for (Degree d : Degree.values())
@@ -215,7 +279,7 @@ public enum Degree
     {
         if (relPitch < 0 || relPitch > 11)
         {
-            throw new IllegalArgumentException("relPitch=" + relPitch);   
+            throw new IllegalArgumentException("relPitch=" + relPitch);
         }
         Degree d = ROOT;
         switch (relPitch)
@@ -254,7 +318,7 @@ public enum Degree
                 d = SEVENTH;
                 break;
             default:
-                throw new IllegalArgumentException("d=" + d);   
+                throw new IllegalArgumentException("d=" + d);
         }
         return d;
     }
