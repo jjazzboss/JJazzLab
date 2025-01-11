@@ -113,7 +113,7 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
 
     private void doUpdate()
     {
-        float minScore = rb_rootProfile.isSelected() ? 0 : DefaultWbpsaScorer.DEFAULT_MIN_WBPSOURCE_COMPATIBILITY_SCORE.overall();
+        float minScore = rb_rootProfile.isSelected() ? 0 : 1;
         var wbpsas = getWbpSourceAdaptations(minScore);
         tbl_wbpSources.setModel(new MyModel(wbpsas));
         adjustWidths();
@@ -135,7 +135,7 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
         }
 
         WbpsaScorer wbpsaScorer = new DefaultWbpsaScorer(null);
-        var wbpsas = wbpsaScorer.getWbpSourceAdaptations(scs, null, new Score(minCompatibilityScore));
+        var wbpsas = wbpsaScorer.getWbpSourceAdaptations(scs, null);
         var res = new ArrayList<>(wbpsas);
 
         return res;

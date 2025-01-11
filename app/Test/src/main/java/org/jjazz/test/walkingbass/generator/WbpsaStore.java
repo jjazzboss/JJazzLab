@@ -43,7 +43,7 @@ import org.jjazz.test.walkingbass.generator.WbpsaScorer.Score;
 public class WbpsaStore
 {
 
-    public static final float DEFAULT_RANDOMIZE_WITHIN_OVERALL_SCORE_WINDOW = 3f;
+    public static final float DEFAULT_RANDOMIZE_WITHIN_OVERALL_SCORE_WINDOW = 1f;
     private final WbpTiling tiling;
     /**
      * [0] not used, [1] for size=1 bar, ... [4] for size=4 bars.
@@ -51,7 +51,6 @@ public class WbpsaStore
     private final ListMultimap<Integer, WbpSourceAdaptation>[] mmapWbpsAdaptations = new ListMultimap[WbpDatabase.SIZE_MAX + 1];
     private final int width;
     private static final Logger LOGGER = Logger.getLogger(WbpsaStore.class.getSimpleName());
-    private final Score minCompatibilityScore;
     private final WbpsaScorer wbpsaScorer;
     private final float randomizeWithinOverallScoreWindow;
 
@@ -64,14 +63,12 @@ public class WbpsaStore
      * @param tiling                            The store will ignore already tiled bars
      * @param width                             Max number of WbpSourceAdaptations kept per bar
      * @param scorer
-     * @param minCompatibilityScore             The WbpsStore only stores Wbpsas which have a compatibility score equal or greater
      * @param randomizeWithinOverallScoreWindow If &lt;= 0 there is no randomization
      */
-    public WbpsaStore(WbpTiling tiling, int width, WbpsaScorer scorer, Score minCompatibilityScore, float randomizeWithinOverallScoreWindow)
+    public WbpsaStore(WbpTiling tiling, int width, WbpsaScorer scorer, float randomizeWithinOverallScoreWindow)
     {
         this.tiling = tiling;
         this.wbpsaScorer = scorer;
-        this.minCompatibilityScore = minCompatibilityScore;
         this.width = width;
         this.randomizeWithinOverallScoreWindow = randomizeWithinOverallScoreWindow;
 
@@ -213,7 +210,7 @@ public class WbpsaStore
 
                 // Get all possible wbpsas for the sub sequence
                 var subSeq = scsExt.subSequence(br, true);
-                var bestWbpsas = wbpsaScorer.getWbpSourceAdaptations(subSeq, tiling, minCompatibilityScore);
+                var bestWbpsas = wbpsaScorer.getWbpSourceAdaptations(subSeq, tiling);
 
                 // Trim
                 while (bestWbpsas.size() > width)

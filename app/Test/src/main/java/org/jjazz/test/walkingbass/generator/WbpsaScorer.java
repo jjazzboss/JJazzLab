@@ -40,9 +40,8 @@ public interface WbpsaScorer
     /**
      * Compatibility score.
      * <p>
-     * Just one parameter for now but will probably be extended for other needs.
-     *
-     * @param overall [0;100]
+     * compareTo(SCORE_ZERO) == 0 means incompatibility. compareTo(SCORE_ZERO) &gt; 0 means some compatibility. This is just one parameter for now but will
+     * probably be extended for other needs.
      */
     public record Score(float overall) implements Comparable<Score>
             {
@@ -67,27 +66,27 @@ public interface WbpsaScorer
      *
      * @param wbpsa
      * @param tiling Might be null
-     * @return [0-100] 100 being the maximum compatibility
+     * @return
      */
     Score computeCompatibilityScore(WbpSourceAdaptation wbpsa, WbpTiling tiling);
 
     /**
-     * Find the WbpSources from the WbpDatabase which match the specified chord sequence.
+     * Find the WbpSources from the WbpDatabase which are compatible with the specified chord sequence.
      * <p>
      * @param scs
-     * @param tiling   If null this might impact the resulting score
-     * @param minScore Return only adaptations whose score is equal or greater
-     * @return An ordered list by descending compatibility
+     * @param tiling If null this might impact the resulting score
+     * @return An ordered list of WbpSourceAdaptations by descending compatibility
      */
-    default TreeSet<WbpSourceAdaptation> getWbpSourceAdaptations(SimpleChordSequence scs, WbpTiling tiling, Score minScore)
+    default TreeSet<WbpSourceAdaptation> getWbpSourceAdaptations(SimpleChordSequence scs, WbpTiling tiling)
     {
         TreeSet<WbpSourceAdaptation> res = new TreeSet<>();
 
+        // Check rootProfile first
         var rpWbpSources = WbpDatabase.getInstance().getWbpSources(scs.getRootProfile());
         for (var wbpSource : rpWbpSources)
         {
             var wbpsa = new WbpSourceAdaptation(wbpSource, scs);
-            if (computeCompatibilityScore(wbpsa, tiling).compareTo(minScore) >= 0)
+            if (computeCompatibilityScore(wbpsa, tiling).compareTo(WbpsaScorer.SCORE_ZERO) > 0)
             {
                 res.add(wbpsa);
             }

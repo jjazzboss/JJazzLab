@@ -388,7 +388,7 @@ final public class ChordType
         {
             if (degrees.get(res) != ct.degrees.get(res))
             {
-                assert res > 0;    // root must alwasy match
+                assert res > 0;    // root must always match
                 break;
             }
         }
@@ -1008,6 +1008,28 @@ final public class ChordType
     public boolean isNinthFlat()
     {
         return Degree.NINTH_FLAT.equals(getDegree(Natural.NINTH));
+    }
+
+
+    /**
+     * Check if we have the special 6/7M compatibility with ct.
+     *
+     * @param ct
+     * @return
+     */
+    public boolean isSixthSpecialCompatible(ChordType ct)
+    {
+        String n6 = getName(), n7 = ct.getName();
+        if (!n6.contains("6"))
+        {
+            n6 = ct.getName();
+            n7 = getName();
+        }
+        boolean b = ((n6.equals("6") && (n7.equals("M7") || n7.equals("M13")))
+                || (n6.equals("69") && (n7.equals("M9") || n7.equals("M13")))
+                || (n6.equals("m6") && n7.equals("m7M"))
+                || (n6.equals("m69") && n7.equals("m97M")));
+        return b;
     }
 
 

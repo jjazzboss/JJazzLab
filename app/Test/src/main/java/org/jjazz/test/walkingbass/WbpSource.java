@@ -1,16 +1,23 @@
 package org.jjazz.test.walkingbass;
 
+import com.google.common.base.Preconditions;
 import static com.google.common.base.Preconditions.checkArgument;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.harmony.api.Chord;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
+import org.jjazz.test.walkingbass.generator.DegreeCompatibility;
+import static org.jjazz.test.walkingbass.generator.DegreeCompatibility.COMPATIBLE_NO_USE;
+import static org.jjazz.test.walkingbass.generator.DegreeCompatibility.COMPATIBLE_USE;
+import static org.jjazz.test.walkingbass.generator.DegreeCompatibility.INCOMPATIBLE;
 import org.jjazz.utilities.api.IntRange;
 
 /**
@@ -266,6 +273,91 @@ public class WbpSource extends Wbp
         return res;
     }
 
+
+    /**
+     * Check if a chord type from this WbpSource is compatible with another chord type, and if yes score this compatibility.
+     * <p>
+     * If the chord types are considered incompatible, score is 0. If the 2 chord types are equal, score is 100 (max). Note that 6 and 7M degrees are considered
+     * equal in this method (e.g. C6=C7M, Cm69=Cm7M9).
+     * <p>
+     * If chord types do not have the same nb of Degrees:<br>
+     * - Score is 0 if at least 1 common degree does not match, or if csSrc has more degrees than cliCs<br>
+     * - If cliCs has more degrees than cliCsSrc (e.g. C7b9 and C): use wbpSource phrase & DegreeCompatibility method to compare the extra degrees. Score is 0
+     * if one degree is INCOMPATIBLE, otherwise score is 100 - (10 * each COMPATIBLE_NO_USE degree).<br>
+     * <p>
+     * Examples cliCsSrc - cliCs:<br>
+     * C - Cm: 0<br>
+     * C6 - Cm7M: 0<br>
+     * C6 - C7: 0<br>
+     * C7b9 - C9: 0<br>
+     * C - C9: 90 if WbpSource phrase is DegreeCompatibility.COMPATIBLE_NO_USE with 7th (-10), and DegreeCompatibility.COMPATIBLE_USE with 9th<br>
+     * C7 - C: 0<br>
+     * C - C or C6 - C7M or C13b9-C13b9: 100 (max value)
+     *
+     * @param cliCsSrc Must belong to WbpSource' SimpleChordSequence
+     * @param cliCs
+     * @return [0; 100] 0 means incompatibility
+     * @see DegreeCompatibility#get(org.jjazz.harmony.api.ChordSymbol, java.util.List, org.jjazz.harmony.api.Degree)
+     */
+    public float computeChordTypeCompatibilityScore(CLI_ChordSymbol cliCsSrc, CLI_ChordSymbol cliCs)
+    {
+        Objects.requireNonNull(cliCsSrc);
+        Objects.requireNonNull(cliCs);
+        var scs = getSimpleChordSequence();        
+        Preconditions.checkArgument(scs.contains(cliCsSrc), "cliCsSrc=%s, scs=", cliCsSrc, scs);
+
+        float res;
+        var ctSrc = cliCsSrc.getData().getChordType();
+        var ct = cliCs.getData().getChordType();
+        int nbDegreesSrc = ctSrc.getNbDegrees();
+        int nbDegrees = ct.getNbDegrees();
+
+        if (ctSrc.equals(ct) || ctSrc.isSixthSpecialCompatible(ct))
+        {
+            res = 100;
+
+        } else if (nbDegreesSrc < nbDegrees && ctSrc.getNbCommonDegrees(ct) == nbDegreesSrc)
+        {
+            // Need to compare extra degrees with implicit degrees found in the WbpSource phrase
+            var csBeatRange = scs.getBeatRange(cliCsSrc, 0);
+            var pCliCsSrc = getSizedPhrase().subSet(csBeatRange, true);
+
+            res = 100;
+
+            for (int i = nbDegreesSrc; i < nbDegrees; i++)
+            {
+                var dTarget = ct.getDegrees().get(i);
+                var dc = DegreeCompatibility.get(pCliCsSrc, cliCsSrc.getData(), dTarget);
+                switch (dc)
+                {
+                    case INCOMPATIBLE ->
+                    {
+                        res = 0;
+                        break;
+                    }
+                    case COMPATIBLE_NO_USE ->
+                    {
+                        res -= 10;
+                    }
+                    case COMPATIBLE_USE ->
+                    {
+                        // Nothing
+                    }
+                    default -> throw new AssertionError(dc.name());
+
+                }
+                if (dc != DegreeCompatibility.INCOMPATIBLE)
+                {
+                }
+            }
+        } else
+        {
+            res = 0;
+        }
+
+        return res;
+    }
+
     /**
      * Check if the first note of the phrase corresponds to the root of the first chord.
      *
@@ -277,6 +369,7 @@ public class WbpSource extends Wbp
         boolean b = getSizedPhrase().first().equalsRelativePitch(rootNote);
         return b;
     }
+
 
     /**
      * Check if the last note of the phrase is a chord tone.

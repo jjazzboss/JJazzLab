@@ -27,7 +27,6 @@ package org.jjazz.test.walkingbass.tiler;
 import com.google.common.base.Preconditions;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -72,9 +71,7 @@ public class TilerMaxDistance implements Tiler
         reset();
 
         WbpsaScorer scorer = new DefaultWbpsaScorer(new TransposerPhraseAdapter());
-        WbpsaStore store = new WbpsaStore(tiling, wbpsaStoreWidth, scorer,
-                DefaultWbpsaScorer.DEFAULT_MIN_WBPSOURCE_COMPATIBILITY_SCORE,
-                randomizeWithinOverallScoreWindow);
+        WbpsaStore store = new WbpsaStore(tiling, wbpsaStoreWidth, scorer, randomizeWithinOverallScoreWindow);
 
 
         LOGGER.log(Level.SEVERE, "tile() store=\n{0}", store.toDebugString(true));
@@ -126,7 +123,7 @@ public class TilerMaxDistance implements Tiler
     private WbpSourceAdaptation select(WbpTiling tiling, List<WbpSourceAdaptation> wbpsas)
     {
         Preconditions.checkArgument(!wbpsas.isEmpty());
-        
+
         WbpSourceAdaptation res = null;
         int maxMinDistance = -1;
         int bar = wbpsas.get(0).getBarRange().from;

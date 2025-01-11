@@ -22,9 +22,12 @@
  *   Contributor(s): 
  * 
  */
-package org.jjazz.harmony.api;
+package org.jjazz.test.walkingbass.generator;
 
-import java.util.List;
+import java.util.Collection;
+import org.jjazz.harmony.api.ChordSymbol;
+import org.jjazz.harmony.api.Degree;
+import org.jjazz.phrase.api.NoteEvent;
 
 /**
  * Indicates if a list of notes is "musically compatible" with a given degree of a chord symbol.
@@ -61,19 +64,21 @@ public enum DegreeCompatibility
      * <p>
      * Example: if d=minor 3rd degree of Cm, check that the total duration of E notes is less than Eb notes.
      *
-     * @param notes Notes corresponding to a C-based chord context like Cm or C7. Non "significant" notes (ghost notes, chromatic approach notes, ...) must have been
-     *              removed by caller.
-     * @param d     By convention if d is root, returns one of the 2 COMPATIBLE values.
+     * @param notes Notes corresponding to cs context. Non "significant" notes (ghost notes, chromatic approach notes, ...) must have been removed by caller.
+     * @param cs
+     * @param d     Degree of cs. By convention if d is root, returns COMPATIBLE_USE..
      * @return
      */
-    static public DegreeCompatibility get(List<Note> cBasedNotes, Degree d)
+    static public DegreeCompatibility get(Collection<NoteEvent> notes, ChordSymbol cs, Degree d)
     {
         DegreeCompatibility res = INCOMPATIBLE;
 
-        boolean compatible = d == Degree.ROOT || avoidsDegrees(notes, d);
-        if (compatible)
+        if (d == Degree.ROOT)
         {
-            res = isUsed(notes, d) ? COMPATIBLE_USE : COMPATIBLE_NO_USE;
+            res = COMPATIBLE_USE;
+        } else if (avoidsDegrees(cs, notes, d))
+        {
+            res = isUsed(notes, cs.getRelativePitch(d)) ? COMPATIBLE_USE : COMPATIBLE_NO_USE;
         }
 
         return res;
@@ -83,7 +88,7 @@ public enum DegreeCompatibility
     // ===========================================================================================================
     // Private methods
     // ===========================================================================================================
-    private static boolean avoidsDegrees(List<Note> notes, Degree degree)
+    private static boolean avoidsDegrees(ChordSymbol cs, Collection<NoteEvent> notes, Degree degree)
     {
         var degreesToAvoid = degree.getChordIncompatibleDegrees();
 
@@ -91,7 +96,7 @@ public enum DegreeCompatibility
         boolean b = true;
         for (Degree d : degreesToAvoid)
         {
-            b = isUsed(notes, d);
+            b = isUsed(notes, cs.getRelativePitch(d));
             if (!b)
             {
                 break;
@@ -100,30 +105,30 @@ public enum DegreeCompatibility
 
         if (!b)
         {
-            // There is at least 1 degree to avoid, check we don't use much than our degree
+            // There is at least 1 degree to avoid, check we don't use it more than our degree
             float totalAvoidDuration = 0;
-            for (Degree d : degreesToAvoid)
+            for (Degree dAvoid : degreesToAvoid)
             {
-                totalAvoidDuration += getTotalDuration(notes, d);
+                totalAvoidDuration += getTotalDuration(notes, cs.getRelativePitch(dAvoid));
             }
-            b = getTotalDuration(notes, degree) > totalAvoidDuration;
+            b = getTotalDuration(notes, cs.getRelativePitch(degree)) > totalAvoidDuration;
         }
 
         return b;
     }
 
-    private static float getTotalDuration(List<Note> notes, Degree d)
+    private static float getTotalDuration(Collection<NoteEvent> notes, int relPitch)
     {
         var dur = notes.stream()
-                .filter(n -> n.getRelativePitch() == d.getPitch())
+                .filter(n -> n.getRelativePitch() == relPitch)
                 .mapToDouble(n -> n.getDurationInBeats())
                 .sum();
         return (float) dur;
     }
 
-    private static boolean isUsed(List<Note> notes, Degree d)
+    private static boolean isUsed(Collection<NoteEvent> notes, int relPitch)
     {
-        return notes.stream().anyMatch(n -> n.getRelativePitch() == d.getPitch());
+        return notes.stream().anyMatch(n -> n.getRelativePitch() == relPitch);
     }
 
 }

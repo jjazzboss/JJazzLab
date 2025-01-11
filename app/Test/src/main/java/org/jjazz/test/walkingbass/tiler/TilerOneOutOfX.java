@@ -25,8 +25,6 @@
 package org.jjazz.test.walkingbass.tiler;
 
 import com.google.common.base.Preconditions;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,11 +35,9 @@ import org.jjazz.test.walkingbass.WbpSource;
 import org.jjazz.test.walkingbass.generator.DefaultWbpsaScorer;
 import org.jjazz.test.walkingbass.generator.Tiler;
 import org.jjazz.test.walkingbass.generator.TransposerPhraseAdapter;
-import org.jjazz.test.walkingbass.generator.WbpSourceAdaptation;
 import org.jjazz.test.walkingbass.generator.WbpTiling;
 import org.jjazz.test.walkingbass.generator.WbpsaScorer;
 import org.jjazz.test.walkingbass.generator.WbpsaStore;
-import org.jjazz.utilities.api.IntRange;
 
 /**
  * Tile in bar order, using the longest and more compatible WbpSource one out of X times.
@@ -92,9 +88,7 @@ public class TilerOneOutOfX implements Tiler
         reset();
 
         WbpsaScorer scorer = new DefaultWbpsaScorer(new TransposerPhraseAdapter());
-        WbpsaStore store = new WbpsaStore(tiling, wbpsaStoreWidth, scorer,
-                DefaultWbpsaScorer.DEFAULT_MIN_WBPSOURCE_COMPATIBILITY_SCORE,
-                WbpsaStore.DEFAULT_RANDOMIZE_WITHIN_OVERALL_SCORE_WINDOW);
+        WbpsaStore store = new WbpsaStore(tiling, wbpsaStoreWidth, scorer, WbpsaStore.DEFAULT_RANDOMIZE_WITHIN_OVERALL_SCORE_WINDOW);
         LOGGER.log(Level.SEVERE, "tile() store=\n{0}", store.toDebugString(true));
 
 

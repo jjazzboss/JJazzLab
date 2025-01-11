@@ -46,7 +46,7 @@ import org.jjazz.test.walkingbass.generator.WbpsaStore;
 public class TilerBestFirstNoRepeat implements Tiler
 {
 
-    
+
     private final Set<WbpSource> usedWbpSources;
     private final int wbpsaStoreWidth;
     private final float randomizeWithinOverallScoreWindow;
@@ -72,11 +72,9 @@ public class TilerBestFirstNoRepeat implements Tiler
         reset();
 
         WbpsaScorer scorer = new DefaultWbpsaScorer(new TransposerPhraseAdapter());
-        WbpsaStore store = new WbpsaStore(tiling, wbpsaStoreWidth, scorer,
-                DefaultWbpsaScorer.DEFAULT_MIN_WBPSOURCE_COMPATIBILITY_SCORE,
-                randomizeWithinOverallScoreWindow);
-        
-        
+        WbpsaStore store = new WbpsaStore(tiling, wbpsaStoreWidth, scorer, randomizeWithinOverallScoreWindow);
+
+
         LOGGER.log(Level.SEVERE, "tile() store=\n{0}", store.toDebugString(true));
 
 

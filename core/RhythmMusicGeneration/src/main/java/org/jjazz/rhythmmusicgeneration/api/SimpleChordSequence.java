@@ -123,6 +123,24 @@ public class SimpleChordSequence extends ChordSequence
     }
 
     /**
+     * The beat range of a ChordSymbol, provided ChordSequence starts at startBarPosInBeats.
+     *
+     * @param cliCs
+     * @param startBarPosInBeats
+     * @return
+     */
+    public FloatRange getBeatRange(CLI_ChordSymbol cliCs, float startBarPosInBeats)
+    {
+        Preconditions.checkArgument(startBarPosInBeats >= 0, "%s", startBarPosInBeats);
+        Preconditions.checkArgument(contains(cliCs), "cliCs=%s  this=%s", cliCs, this);
+
+        var beatPos = toPositionInBeats(cliCs.getPosition(), startBarPosInBeats);
+        FloatRange br = new FloatRange(beatPos, beatPos + getChordDuration(cliCs));
+        
+        return br;
+    }
+
+    /**
      * Return the specified chord duration in natural beats.
      * <p>
      * This is the duration until next chord or the end of the chordsequence.
@@ -292,7 +310,7 @@ public class SimpleChordSequence extends ChordSequence
         return sb.toString();
     }
 
-   
+
     /**
      * Merge this SimpleChordSequence with scs into a new instance.
      * <p>
