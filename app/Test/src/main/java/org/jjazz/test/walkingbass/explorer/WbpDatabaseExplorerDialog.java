@@ -113,14 +113,13 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
 
     private void doUpdate()
     {
-        float minScore = rb_rootProfile.isSelected() ? 0 : 1;
-        var wbpsas = getWbpSourceAdaptations(minScore);
+        var wbpsas = getWbpSourceAdaptations();
         tbl_wbpSources.setModel(new MyModel(wbpsas));
         adjustWidths();
         lbl_info.setText(wbpsas.size() + " WbpSource(s)");
     }
 
-    private List<WbpSourceAdaptation> getWbpSourceAdaptations(float minCompatibilityScore)
+    private List<WbpSourceAdaptation> getWbpSourceAdaptations()
     {
         // Compute the root profile
         SimpleChordSequence scs;
@@ -134,18 +133,39 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
             return Collections.EMPTY_LIST;
         }
 
-        WbpsaScorer wbpsaScorer = new DefaultWbpsaScorer(null);
-        var wbpsas = wbpsaScorer.getWbpSourceAdaptations(scs, null);
-        var res = new ArrayList<>(wbpsas);
+        List<WbpSourceAdaptation> res;
+        if (scs.isEmpty())
+        {
+            // Special show all
+            var wbpSources = WbpDatabase.getInstance().getWbpSources(getNbBars());
+            res = wbpSources.stream()
+                    .map(wbps -> new WbpSourceAdaptation(wbps, scs))
+                    .toList();
+        } else if (rb_rootProfile.isSelected())
+        {
+            var wbpSources = WbpDatabase.getInstance().getWbpSources(scs.getRootProfile());
+            res = wbpSources.stream()
+                    .map(wbps -> new WbpSourceAdaptation(wbps, scs))
+                    .toList();
+        } else
+        {
+            WbpsaScorer wbpsaScorer = new DefaultWbpsaScorer(null);
+            res = new ArrayList<>(wbpsaScorer.getWbpSourceAdaptations(scs, null).values());
+        }
+
 
         return res;
 
     }
 
+    private int getNbBars()
+    {
+        return (Integer) spn_barSize.getValue();
+    }
 
     private SimpleChordSequence computeSimpleChordSequence() throws ParseException
     {
-        int nbBars = (Integer) spn_barSize.getValue();
+        int nbBars = getNbBars();
 
         SimpleChordSequence res = new SimpleChordSequence(new IntRange(0, nbBars - 1), TimeSignature.FOUR_FOUR);
         switch (nbBars)
@@ -171,10 +191,6 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
                 throw new IllegalStateException("nbBars=" + nbBars);
         }
         res.removeRedundantChords();
-        if (res.isEmpty())
-        {
-            throw new ParseException("No chords", 0);
-        }
 
         return res;
     }

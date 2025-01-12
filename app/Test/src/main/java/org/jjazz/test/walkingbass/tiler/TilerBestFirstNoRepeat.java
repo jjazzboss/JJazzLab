@@ -82,7 +82,7 @@ public class TilerBestFirstNoRepeat implements Tiler
         {
             for (int rank = 0; rank < wbpsaStoreWidth; rank++)
             {
-                var wbpsas = store.getWbpSourceAdaptationsRanked(rank, size);  // Partly ordered (randomization might has been applied)
+                var wbpsas = store.getWbpSourceAdaptationsRanked(rank, size).values();
                 for (var wbpsa : wbpsas)
                 {
                     WbpSource wbpSource = wbpsa.getWbpSource();

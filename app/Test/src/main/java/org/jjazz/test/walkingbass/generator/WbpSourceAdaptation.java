@@ -31,7 +31,8 @@ import org.jjazz.utilities.api.IntRange;
 /**
  * Associates a WbpSource to a chord sequence, with a compatibility score.
  * <p>
- * NOTE: Comparable implementation is implemented so that natural order is by descending compatibility score.
+ * NOTE: Comparable implementation is implemented so that natural order is by descending compatibility score. Comparable implementation is NOT consistent with
+ * equal(), so WbpSourceAdaptation should NOT be used in a SortedSet or SortedMap.
  */
 public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
 {
@@ -80,7 +81,7 @@ public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
 
 
     /**
-     * Note that natural order is by DESCENDING overall compatibility score.
+     * Rely on Score.compareTo() whose natural ordering is by DESCENDING overall compatibility score.
      *
      * @param other
      * @return
@@ -88,7 +89,7 @@ public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
     @Override
     public int compareTo(WbpSourceAdaptation other)
     {
-        return -Float.compare(compatibilityScore.overall(), other.compatibilityScore.overall());
+        return compatibilityScore.compareTo(other.compatibilityScore);
     }
 
     /**

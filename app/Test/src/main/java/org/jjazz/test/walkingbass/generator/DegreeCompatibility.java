@@ -88,22 +88,24 @@ public enum DegreeCompatibility
     // ===========================================================================================================
     // Private methods
     // ===========================================================================================================
+    /**
+     * Check that cs degree is compatible with the specified notes, i.e. check that notes do not contain incompatible (significant) notes.
+     *
+     * @param cs
+     * @param notes
+     * @param degree
+     * @return
+     */
     private static boolean avoidsDegrees(ChordSymbol cs, Collection<NoteEvent> notes, Degree degree)
     {
+        boolean b = true;
+
         var degreesToAvoid = degree.getChordIncompatibleDegrees();
 
-        // If no degreesToAvoid, it's OK
-        boolean b = true;
-        for (Degree d : degreesToAvoid)
-        {
-            b = isUsed(notes, cs.getRelativePitch(d));
-            if (!b)
-            {
-                break;
-            }
-        }
+        boolean avoidNotesPresent = degreesToAvoid.stream()
+                .anyMatch(d -> isUsed(notes, cs.getRelativePitch(d)));
 
-        if (!b)
+        if (avoidNotesPresent)
         {
             // There is at least 1 degree to avoid, check we don't use it more than our degree
             float totalAvoidDuration = 0;

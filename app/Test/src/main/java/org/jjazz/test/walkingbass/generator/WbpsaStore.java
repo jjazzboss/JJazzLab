@@ -30,6 +30,7 @@ import com.google.common.collect.MultimapBuilder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -43,7 +44,7 @@ import org.jjazz.test.walkingbass.generator.WbpsaScorer.Score;
 public class WbpsaStore
 {
 
-    public static final float DEFAULT_RANDOMIZE_WITHIN_OVERALL_SCORE_WINDOW = 1f;
+    public static final float DEFAULT_RANDOMIZE_WITHIN_OVERALL_SCORE_WINDOW = 5f;
     private final WbpTiling tiling;
     /**
      * [0] not used, [1] for size=1 bar, ... [4] for size=4 bars.
@@ -123,7 +124,7 @@ public class WbpsaStore
     }
 
     /**
-     * Get the ordered list of WbpSourceAdaptations of a specified rank.
+     * Get the ordered list (descending Score) of WbpSourceAdaptations of a specified rank.
      * <p>
      * For a given bar, if there is no more WbpSourceAdaptation at specified rank, use the last WbpSourceAdaptation for this bar. If there is no
      * WbpSourceAdaptation at all, bar is skipped.
@@ -132,11 +133,11 @@ public class WbpsaStore
      * @param size The size in bars of returned WbpSourceAdaptations
      * @return Can be empty.
      */
-    public TreeSet<WbpSourceAdaptation> getWbpSourceAdaptationsRanked(int rank, int size)
+    public ListMultimap<Score, WbpSourceAdaptation> getWbpSourceAdaptationsRanked(int rank, int size)
     {
         Preconditions.checkArgument(rank >= 0);
         Preconditions.checkArgument(size >= WbpDatabase.SIZE_MIN && size <= WbpDatabase.SIZE_MAX, "size=%s", size);
-        TreeSet<WbpSourceAdaptation> res = new TreeSet<>();
+        ListMultimap<Score, WbpSourceAdaptation> mmap = MultimapBuilder.treeKeys().arrayListValues().build();
 
         for (int bar : mmapWbpsAdaptations[size].keySet())
         {
@@ -144,11 +145,11 @@ public class WbpsaStore
             if (!wbpsas.isEmpty())
             {
                 WbpSourceAdaptation wbpsa = rank + 1 <= wbpsas.size() ? wbpsas.get(rank) : wbpsas.get(wbpsas.size() - 1);
-                res.add(wbpsa);
+                mmap.put(wbpsa.getCompatibilityScore(), wbpsa);
             }
 
         }
-        return res;
+        return mmap;
     }
 
 
@@ -210,14 +211,18 @@ public class WbpsaStore
 
                 // Get all possible wbpsas for the sub sequence
                 var subSeq = scsExt.subSequence(br, true);
-                var bestWbpsas = wbpsaScorer.getWbpSourceAdaptations(subSeq, tiling);
+                ListMultimap<Score, WbpSourceAdaptation> bestWbpsas = wbpsaScorer.getWbpSourceAdaptations(subSeq, tiling);
+
+
+                var randWbpsas = randomizeSimilarScoreSets(bestWbpsas, randomizeWithinOverallScoreWindow);
+
 
                 // Trim
-                while (bestWbpsas.size() > width)
+                while (randWbpsas.size() > width)
                 {
-                    bestWbpsas.removeLast();
+                    randWbpsas.removeLast();
                 }
-                var randWbpsas = randomizeSimilarScoreSets(bestWbpsas, randomizeWithinOverallScoreWindow);
+
 
                 // Save data
                 mmapWbpsAdaptations[size].putAll(bar, randWbpsas);
@@ -237,39 +242,41 @@ public class WbpsaStore
     /**
      * Add some order randomization within sets of WbpSourceAdaptations which are in the same similar score window.
      *
-     * @param wbpsas             Ordered by descending compatibility
+     * @param mmap
      * @param similarScoreWindow If 0 no randomization applied
      * @return A new list with some randomness applied
      */
-    private List<WbpSourceAdaptation> randomizeSimilarScoreSets(TreeSet<WbpSourceAdaptation> wbpsas, float similarScoreWindow)
+    private List<WbpSourceAdaptation> randomizeSimilarScoreSets(ListMultimap<Score, WbpSourceAdaptation> mmap, float similarScoreWindow)
     {
         List<WbpSourceAdaptation> res = new ArrayList<>();
+        SortedSet<Score> scores = (SortedSet<Score>) mmap.keySet();
 
-        if (similarScoreWindow > 0 && !wbpsas.isEmpty())
+        if (similarScoreWindow > 0 && !mmap.isEmpty())
         {
             // Group wbpsas per similar score
-            float scoreFirst = wbpsas.getFirst().getCompatibilityScore().overall();
-            float scoreLast = wbpsas.getLast().getCompatibilityScore().overall();
+            float scoreFirst = mmap.get(scores.getFirst()).getFirst().getCompatibilityScore().overall();
+            float scoreLast = mmap.get(scores.getLast()).getLast().getCompatibilityScore().overall();
 
-            for (float score = scoreFirst; score >= scoreLast; score -= similarScoreWindow)
+            for (float overallScore = scoreFirst; overallScore >= scoreLast; overallScore -= similarScoreWindow)
             {
-                var fromWbpsa = dummyWbpsa(score);  // inclusive
-                var toWbpsa = dummyWbpsa(score - similarScoreWindow); // exclusive
-                var wbpsaSubset = new ArrayList<>(wbpsas.subSet(fromWbpsa, toWbpsa));
+                var fromScore = Score.buildFromOverallValue(overallScore);
+                var toScore = Score.buildFromOverallValue(Math.max(overallScore - similarScoreWindow, 0));
+                var scoresSubset = scores.subSet(fromScore, toScore);   // inclusive, exclusive
+                List<WbpSourceAdaptation> wbpsaSubset = new ArrayList<>();
+                for (var score : scoresSubset)
+                {
+                    wbpsaSubset.addAll(mmap.get(score));
+                }
+
                 Collections.shuffle(wbpsaSubset);
                 res.addAll(wbpsaSubset);
             }
         } else
         {
-            res.addAll(wbpsas);
+            res.addAll(mmap.values());
         }
 
         return res;
-    }
-
-    private WbpSourceAdaptation dummyWbpsa(float overallScore)
-    {
-        return new WbpSourceAdaptation(null, null, new Score(Math.clamp(overallScore, 0, 100)));
     }
 
 }

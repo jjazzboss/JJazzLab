@@ -228,7 +228,7 @@ public class WbpDatabase
     {
         Predicate<WbpSource> tester = wbps -> wbps.getRootProfile().equals(rootProfile);
         var dbTester = new KeyablePredicate(rootProfile, tester);
-        return WbpDatabase.this.getWbpSources(dbTester);
+        return getWbpSources(dbTester);
     }
 
     /**

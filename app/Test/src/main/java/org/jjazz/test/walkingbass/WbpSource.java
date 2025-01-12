@@ -213,7 +213,7 @@ public class WbpSource extends Wbp
         float ratio = (10 * outsideRatio + 5 * idealShiftRatio + bassRangeRatio) / 16f;
 
 
-        int res = Math.round(90 * (1 - ratio));
+        int res = Math.round(95 * (1 - ratio));
 
         // Save cache
         mapDestChordRootTransposibility.put(destChordRoot.getRelativePitch(), new TransposibilityResult(res, transpose));
@@ -303,7 +303,7 @@ public class WbpSource extends Wbp
     {
         Objects.requireNonNull(cliCsSrc);
         Objects.requireNonNull(cliCs);
-        var scs = getSimpleChordSequence();        
+        var scs = getSimpleChordSequence();
         Preconditions.checkArgument(scs.contains(cliCsSrc), "cliCsSrc=%s, scs=", cliCsSrc, scs);
 
         float res;
@@ -320,6 +320,10 @@ public class WbpSource extends Wbp
         {
             // Need to compare extra degrees with implicit degrees found in the WbpSource phrase
             var csBeatRange = scs.getBeatRange(cliCsSrc, 0);
+            if (csBeatRange.from >= 0.15f)
+            {
+                csBeatRange = csBeatRange.getTransformed(-0.15f, 0);     // phrase can be non-quantized
+            }
             var pCliCsSrc = getSizedPhrase().subSet(csBeatRange, true);
 
             res = 100;

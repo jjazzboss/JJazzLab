@@ -57,6 +57,7 @@ public class WbpSession extends Wbp
      * @param disallowNonChordToneLastNote If true a WbpSource is not extracted if its last note is note a chord note (ie no transition note).
      * @return
      */
+    
     public List<WbpSource> extractWbpSources(boolean disallowNonRootStartNote, boolean disallowNonChordToneLastNote)
     {
         List<WbpSource> res = new ArrayList<>();

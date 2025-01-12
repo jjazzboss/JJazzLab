@@ -36,7 +36,6 @@ import org.jjazz.test.walkingbass.WbpSource;
 public class DefaultWbpsaScorer implements WbpsaScorer
 {
 
-    private final static float TARGET_NOTE_BONUS = 10f;
     private final PhraseAdapter wbpSourceAdapter;
 
     public DefaultWbpsaScorer(PhraseAdapter sourceAdapter)
@@ -47,30 +46,19 @@ public class DefaultWbpsaScorer implements WbpsaScorer
     @Override
     public Score computeCompatibilityScore(WbpSourceAdaptation wbpsa, WbpTiling tiling)
     {
-        float trScore = 0;
-        float preTargetNoteScore = 0;
-        float postTargetNoteScore = 0;
-
-
         var ctScores = getChordTypeCompatibilityScores(wbpsa);
         float ctScore = (float) ctScores.stream().mapToDouble(f -> Double.valueOf(f)).average().orElse(0);      // 0-100
 
+        var scs = wbpsa.getSimpleChordSequence();
+        var scsFirstChordRoot = scs.first().getData().getRootNote();
+        var trScore = wbpsa.getWbpSource().getTransposibilityScore(scsFirstChordRoot);     // 0 - 100
 
-        if (ctScore > 0)
-        {
-            var wbpSource = wbpsa.getWbpSource();
-            var scs = wbpsa.getSimpleChordSequence();
-            var scsFirstChordRoot = scs.first().getData().getRootNote();
-            trScore = wbpSource.getTransposibilityScore(scsFirstChordRoot) * 0.1f; // 0-10
+        var preTargetNoteScore = getPreTargetNoteScore(wbpsa, tiling);  //  0 - 100
+        var postTargetNoteScore = getPostTargetNoteScore(wbpsa, tiling);  //  0 - 100
 
-            preTargetNoteScore = getPreTargetNoteScore(wbpsa, tiling);        // 0-10
-            postTargetNoteScore = getPostTargetNoteScore(wbpsa, tiling);        // 0-10
-        }
-
-        var overall = (ctScore + trScore + preTargetNoteScore + postTargetNoteScore) * (100f / 130f);
-        var res = new Score(overall);
-
+        var res = new Score(ctScore, trScore, preTargetNoteScore, postTargetNoteScore);
         wbpsa.setCompatibilityScore(res);
+        
         return res;
 
     }
@@ -80,7 +68,7 @@ public class DefaultWbpsaScorer implements WbpsaScorer
     // =====================================================================================================================
 
     /**
-     * +TARGET_NOTE_BONUS if previous WbpSourceAdaptation's target note matches the 1st note of our phrase.
+     * +100 if previous WbpSourceAdaptation's target note matches the 1st note of our phrase.
      *
      * @param wbpsa
      * @param tiling
@@ -97,13 +85,13 @@ public class DefaultWbpsaScorer implements WbpsaScorer
         {
             int firstNotePitch = wbpSourceAdapter.getPhrase(wbpsa, false).first().getPitch();
             int targetNotePitch = wbpSourceAdapter.getTargetNote(prevWbpsa).getPitch();
-            res = targetNotePitch == firstNotePitch ? TARGET_NOTE_BONUS : 0;
+            res = targetNotePitch == firstNotePitch ? 100f : 0;
         }
         return res;
     }
 
     /**
-     * +TARGET_NOTE_BONUS if next WbpSourceAdaptation's first note matches our target note.
+     * +100 if next WbpSourceAdaptation's first note matches our target note.
      *
      * @param wbpsa
      * @param tiling
@@ -120,7 +108,7 @@ public class DefaultWbpsaScorer implements WbpsaScorer
         {
             int firstNotePitch = wbpSourceAdapter.getPhrase(nextWbpsa, false).first().getPitch();
             int targetNotePitch = wbpSourceAdapter.getTargetNote(wbpsa).getPitch();
-            res = targetNotePitch == firstNotePitch ? TARGET_NOTE_BONUS : 0;
+            res = targetNotePitch == firstNotePitch ? 100f : 0;
         }
         return res;
     }

@@ -25,6 +25,13 @@
 package org.jjazz.test.walkingbass.generator;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.MultimapBuilder;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.SortedSet;
 import java.util.TreeSet;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.test.walkingbass.WbpDatabase;
@@ -35,26 +42,132 @@ import org.jjazz.test.walkingbass.WbpDatabase;
 public interface WbpsaScorer
 {
 
-    static public Score SCORE_ZERO = new Score(0);
+    static public Score SCORE_ZERO = new Score(0, 0, 0, 0);
 
     /**
      * Compatibility score.
      * <p>
-     * compareTo(SCORE_ZERO) == 0 means incompatibility. compareTo(SCORE_ZERO) &gt; 0 means some compatibility. This is just one parameter for now but will
-     * probably be extended for other needs.
+     * compareTo(SCORE_ZERO) == 0 means incompatibility. compareTo(SCORE_ZERO) &gt; 0 means some compatibility.
      */
-    public record Score(float overall) implements Comparable<Score>
+    public record Score(float chordTypeCompatibility, float transposibility, float preTargetNoteMatch, float postTargetNoteMatch) implements Comparable<Score>
             {
 
-        public Score
+        public Score   
         {
-            Preconditions.checkArgument(overall >= 0 && overall <= 100, "overall=%s", overall);
+            Preconditions.checkArgument(chordTypeCompatibility >= 0 && chordTypeCompatibility <= 100, "chordTypeCompatibility=%s", chordTypeCompatibility);
+            Preconditions.checkArgument(transposibility >= 0 && transposibility <= 100, "transposibility=%s", transposibility);
+            Preconditions.checkArgument(preTargetNoteMatch >= 0 && preTargetNoteMatch <= 100, "preTargetNoteMatch=%s", preTargetNoteMatch);
+            Preconditions.checkArgument(postTargetNoteMatch >= 0 && postTargetNoteMatch <= 100, "postTargetNoteMatch=%s", postTargetNoteMatch);
         }
 
+        /**
+         * Combine the individual score to produce an overall compatibility score.
+         *
+         * @return
+         */
+        public float overall()
+        {
+            float res = 0;
+            if (chordTypeCompatibility > 0)
+            {
+                res = (6 * chordTypeCompatibility + 2 * transposibility + 1 * preTargetNoteMatch + 1 * postTargetNoteMatch) / 10;
+            }
+            return res;
+        }
+
+        /**
+         * Create a Score instance which will the specified overall value.
+         *
+         * @param overallValue
+         */
+        static public Score buildFromOverallValue(float overallValue)
+        {
+            Preconditions.checkArgument(overallValue >= 0 && overallValue <= 100, "overallValue=%s", overallValue);
+
+            float ct, tr = 0, pretn = 0, posttn = 0;
+            if (overallValue <= 60)
+            {
+                ct = 10 * overallValue / 6;
+            } else if (overallValue <= 80)
+            {
+                ct = 100;
+                tr = 10 * (overallValue - 60) / 2;
+            } else if (overallValue <= 90)
+            {
+                ct = tr = 100;
+                pretn = 10 * (overallValue - 80) / 1;
+            } else
+            {
+                ct = tr = pretn = 100;
+                posttn = 10 * (overallValue - 90) / 1;
+            }
+
+            return new Score(ct, tr, pretn, posttn);
+        }
+
+        /**
+         * Implementation is consistent with equals().
+         *
+         * @param o
+         * @return
+         */
         @Override
         public int compareTo(Score o)
         {
-            return Float.compare(overall, o.overall());
+            return Float.compare(overall(), o.overall());
+        }
+
+        /**
+         * Only overall() is takin into account, in order to be consistent with compareTo().
+         *
+         * @return
+         */
+        @Override
+        public int hashCode()
+        {
+            int hash = 5;
+            hash = 67 * hash + Float.floatToIntBits(overall());
+            return hash;
+        }
+
+        /**
+         * Only overall() is takin into account, in order to be consistent with compareTo().
+         *
+         * @return
+         */
+
+        @Override
+        public boolean equals(Object obj)
+        {
+            if (this == obj)
+            {
+                return true;
+            }
+            if (obj == null)
+            {
+                return false;
+            }
+            if (getClass() != obj.getClass())
+            {
+                return false;
+            }
+            final Score other = (Score) obj;
+            return Float.floatToIntBits(this.overall()) == Float.floatToIntBits(other.overall());
+        }
+
+
+        @Override
+        public String toString()
+        {
+            DecimalFormat df = new DecimalFormat("#.##");
+
+            String res = String.format("[all=%s, ct=%s tr=%s pre-tn=%s post-tn=%s]",
+                    df.format(overall()),
+                    df.format(chordTypeCompatibility),
+                    df.format(transposibility),
+                    df.format(preTargetNoteMatch),
+                    df.format(postTargetNoteMatch));
+            return res;
         }
     }
 
@@ -75,24 +188,25 @@ public interface WbpsaScorer
      * <p>
      * @param scs
      * @param tiling If null this might impact the resulting score
-     * @return An ordered list of WbpSourceAdaptations by descending compatibility
+     * @return A multimap with Score keys in descending order
      */
-    default TreeSet<WbpSourceAdaptation> getWbpSourceAdaptations(SimpleChordSequence scs, WbpTiling tiling)
+    default ListMultimap<Score, WbpSourceAdaptation> getWbpSourceAdaptations(SimpleChordSequence scs, WbpTiling tiling)
     {
-        TreeSet<WbpSourceAdaptation> res = new TreeSet<>();
+        ListMultimap<Score, WbpSourceAdaptation> mmap = MultimapBuilder.treeKeys().arrayListValues().build();
 
         // Check rootProfile first
         var rpWbpSources = WbpDatabase.getInstance().getWbpSources(scs.getRootProfile());
         for (var wbpSource : rpWbpSources)
         {
             var wbpsa = new WbpSourceAdaptation(wbpSource, scs);
-            if (computeCompatibilityScore(wbpsa, tiling).compareTo(WbpsaScorer.SCORE_ZERO) > 0)
+            var score = computeCompatibilityScore(wbpsa, tiling);
+            if (score.compareTo(WbpsaScorer.SCORE_ZERO) > 0)
             {
-                res.add(wbpsa);
+                mmap.put(score, wbpsa);
             }
         }
 
-        return res;
+        return mmap;
     }
 
 }
