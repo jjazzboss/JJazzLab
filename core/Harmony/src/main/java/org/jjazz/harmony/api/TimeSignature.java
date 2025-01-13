@@ -22,8 +22,11 @@
  */
 package org.jjazz.harmony.api;
 
+import com.google.common.base.Preconditions;
 import java.text.ParseException;
+import java.util.List;
 import java.util.logging.Logger;
+import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.ResUtil;
 
 /**
@@ -209,6 +212,37 @@ public enum TimeSignature
 
         // normal case
         return !((beat < 0) || (beat >= getNbNaturalBeats()));
+    }
+
+    /**
+     * Check if the specified beat is a "downbeat" for the time signature.
+     * <p>
+     * Downbeats for 4/4 are 0 and 2. If TimeSignature is not handled, return true. 
+     *
+     * @param beat Must be a valid beat value for this TimeSignature. Accept a 0.1f error with the theorical downbeat position.
+     * @return
+     */
+    public boolean isDownBeat(float beat)
+    {
+        Preconditions.checkArgument(checkBeat(beat), "this=%s beat=%s", this, beat);
+        final float BEAT_WINDOW = 0.1f;
+        final List<FloatRange> T44_DOWN_RANGES = List.of(new FloatRange(0, BEAT_WINDOW), new FloatRange(2 - BEAT_WINDOW, 2 + BEAT_WINDOW));
+        final List<FloatRange> T34_DOWN_RANGES = List.of(new FloatRange(0, BEAT_WINDOW), new FloatRange(1 - BEAT_WINDOW, 1 + BEAT_WINDOW));
+        final List<FloatRange> DEF_DOWN_RANGES = List.of(new FloatRange(0, 1000f));
+        
+        List<FloatRange> downRanges = switch (this)
+        {
+            case FOUR_FOUR ->
+                T44_DOWN_RANGES;
+            case THREE_FOUR ->
+                T34_DOWN_RANGES;
+            default ->
+                DEF_DOWN_RANGES;
+        };
+
+        boolean b = downRanges.stream().anyMatch(fr -> fr.contains(beat, false));
+
+        return b;
     }
 
     /**

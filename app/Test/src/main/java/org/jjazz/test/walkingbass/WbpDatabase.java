@@ -49,6 +49,9 @@ import org.openide.util.Exceptions;
  * the 4 or 2 * 1-bar subphrases of a 4 or 2-bar phrase.
  * <p>
  * Example: If we have Cm7-F7-E7-Em7 in the database, then we also have Cm7-F7, F7-E7, E7-Em7, Cm7, F7, E7, Em7 phrases in the database.
+ * <p>
+ * Is is recommended to use only 3-degrees or 4-degrees chord symbols (C, Cm, C+, Cdim, Cm6, C6, C7M, C7, ...) in the database' WbpSources. When matching
+ * against a more complex chord symbol (e.g. C7b9) WbpsaScorer will analyse the walking bass phrase notes to see if it's compatible.
  */
 public class WbpDatabase
 {

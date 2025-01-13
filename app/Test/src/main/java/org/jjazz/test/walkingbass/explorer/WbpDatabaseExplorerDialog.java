@@ -24,30 +24,28 @@
  */
 package org.jjazz.test.walkingbass.explorer;
 
-import java.awt.Component;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
+import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableColumnModel;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
-import org.jjazz.test.walkingbass.generator.TransposerPhraseAdapter;
 import org.jjazz.test.walkingbass.generator.DefaultWbpsaScorer;
 import org.jjazz.test.walkingbass.WbpDatabase;
 import org.jjazz.test.walkingbass.WbpSource;
 import org.jjazz.test.walkingbass.generator.WbpsaScorer;
 import org.jjazz.test.walkingbass.generator.WbpSourceAdaptation;
-import org.jjazz.test.walkingbass.generator.WbpsaScorer.Score;
 import org.jjazz.uiutilities.api.UIUtilities;
 import org.jjazz.utilities.api.IntRange;
+import org.jjazz.utilities.api.Utilities;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.windows.WindowManager;
@@ -65,12 +63,9 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
         super(WindowManager.getDefault().getMainWindow(), modal);
         setAlwaysOnTop(modal);
         initComponents();
-        tbl_wbpSources.setAutoCreateRowSorter(true);
 
-        JPopupMenu pMenu = new JPopupMenu();
-        pMenu.add(new JMenuItem(new FindDuplicatesAction(this)));
-        pMenu.add(new JMenuItem(new PrintPhrasesAction(this)));
-        tbl_wbpSources.setComponentPopupMenu(pMenu);
+
+        prepareTable();
 
 
         setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
@@ -82,6 +77,8 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
 
 
         doUpdate();
+
+        pack();
     }
 
     public List<WbpSource> getSelectedWbpSources()
@@ -114,9 +111,10 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
     private void doUpdate()
     {
         var wbpsas = getWbpSourceAdaptations();
-        tbl_wbpSources.setModel(new MyModel(wbpsas));
-        adjustWidths();
+        getTableModel().setWbpSourceAdaptations(wbpsas);
+        // adjustWidths();
         lbl_info.setText(wbpsas.size() + " WbpSource(s)");
+
     }
 
     private List<WbpSourceAdaptation> getWbpSourceAdaptations()
@@ -172,20 +170,33 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
         {
             case 4:
                 var str = tf_bar3.getText();
-                var cliList = CLI_ChordSymbol.toCLI_ChordSymbolsNoPosition(str, TimeSignature.FOUR_FOUR, null, 3, false);
-                res.addAll(cliList);
+                List<CLI_ChordSymbol> cliList;
+                if (!str.isBlank())
+                {
+                    cliList = CLI_ChordSymbol.toCLI_ChordSymbolsNoPosition(str, TimeSignature.FOUR_FOUR, null, 3, false);
+                    res.addAll(cliList);
+                }
             case 3:
                 str = tf_bar2.getText();
-                cliList = CLI_ChordSymbol.toCLI_ChordSymbolsNoPosition(str, TimeSignature.FOUR_FOUR, null, 2, false);
-                res.addAll(cliList);
+                if (!str.isBlank())
+                {
+                    cliList = CLI_ChordSymbol.toCLI_ChordSymbolsNoPosition(str, TimeSignature.FOUR_FOUR, null, 2, false);
+                    res.addAll(cliList);
+                }
             case 2:
                 str = tf_bar1.getText();
-                cliList = CLI_ChordSymbol.toCLI_ChordSymbolsNoPosition(str, TimeSignature.FOUR_FOUR, null, 1, false);
-                res.addAll(cliList);
+                if (!str.isBlank())
+                {
+                    cliList = CLI_ChordSymbol.toCLI_ChordSymbolsNoPosition(str, TimeSignature.FOUR_FOUR, null, 1, false);
+                    res.addAll(cliList);
+                }
             case 1:
                 str = tf_bar0.getText();
-                cliList = CLI_ChordSymbol.toCLI_ChordSymbolsNoPosition(str, TimeSignature.FOUR_FOUR, null, 0, false);
-                res.addAll(cliList);
+                if (!str.isBlank())
+                {
+                    cliList = CLI_ChordSymbol.toCLI_ChordSymbolsNoPosition(str, TimeSignature.FOUR_FOUR, null, 0, false);
+                    res.addAll(cliList);
+                }
                 break;
             default:
                 throw new IllegalStateException("nbBars=" + nbBars);
@@ -195,49 +206,43 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
         return res;
     }
 
-
-    /**
-     * Pre-adjust the columns size parameters to have a correct display.
-     */
-    private void adjustWidths()
+    private void prepareTable()
     {
-        final TableColumnModel colModel = tbl_wbpSources.getColumnModel();
-        final int EXTRA = 5;
-        for (int colIndex = 0; colIndex < tbl_wbpSources.getColumnCount(); colIndex++)
-        {
-            // Handle header
-            TableCellRenderer renderer = tbl_wbpSources.getTableHeader().getDefaultRenderer();
-            Component comp = renderer.getTableCellRendererComponent(tbl_wbpSources, tbl_wbpSources.getColumnName(colIndex), true, true, 0, colIndex);
-            int headerWidth = comp.getPreferredSize().width;
+        tbl_wbpSources.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
+        tbl_wbpSources.getColumnModel().getColumn(MyModel.COL_ID).setPreferredWidth(170);
+        tbl_wbpSources.getColumnModel().getColumn(MyModel.COL_ID).setMinWidth(170);
+        tbl_wbpSources.getColumnModel().getColumn(MyModel.COL_SCORE).setPreferredWidth(60);
+        tbl_wbpSources.getColumnModel().getColumn(MyModel.COL_SCORE).setMinWidth(60);
+        tbl_wbpSources.getColumnModel().getColumn(MyModel.COL_SCORE).setMaxWidth(60);
+        tbl_wbpSources.getColumnModel().getColumn(MyModel.COL_CHORDS).setPreferredWidth(170);
+        tbl_wbpSources.getColumnModel().getColumn(MyModel.COL_CHORDS).setMinWidth(170);
+        tbl_wbpSources.getColumnModel().getColumn(MyModel.COL_PHRASE).setPreferredWidth(500);
+        tbl_wbpSources.getColumnModel().getColumn(MyModel.COL_PHRASE).setMinWidth(300);
 
-            int width = 20; // Min width
 
-            // Handle data
-            for (int row = 0; row < tbl_wbpSources.getRowCount(); row++)
-            {
-                renderer = tbl_wbpSources.getCellRenderer(row, colIndex);
-                comp = tbl_wbpSources.prepareRenderer(renderer, row, colIndex);
-                width = Math.max(comp.getPreferredSize().width, width);
-            }
-            width = Math.max(width, headerWidth);
-            width = Math.min(width, 400);
-            width += EXTRA;
+        tbl_wbpSources.setAutoCreateRowSorter(true);
 
-            // We have our preferred width
-            colModel.getColumn(colIndex).setPreferredWidth(width);
 
-            // Also set max size
-            switch (colIndex)
-            {
-                case MyModel.COL_ID -> colModel.getColumn(colIndex).setMaxWidth(width);
-            }
-        }
+        JPopupMenu pMenu = new JPopupMenu();
+        pMenu.add(new JMenuItem(new FindDuplicatesAction(this)));
+        pMenu.add(new JMenuItem(new PrintPhrasesAction(this)));
+        tbl_wbpSources.setComponentPopupMenu(pMenu);
+
     }
 
     private void exit()
     {
         setVisible(false);
         dispose();
+    }
+
+    /**
+     * Note, NotePos, NotePosDur
+     * @return 
+     */
+    private String getNoteRepresentationDetail()
+    {
+        return cmb_noteDetail.getSelectedItem().toString();             
     }
 
 
@@ -249,17 +254,56 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
 
         public static final int COL_ID = 0;
         public static final int COL_SCORE = 1;
-        public static final int COL_SESSION_ID = 100;
-        public static final int COL_SESSION_FROM_BAR = 200;
         public static final int COL_CHORDS = 2;
         public static final int COL_PHRASE = 3;
 
-        private final List<WbpSourceAdaptation> wbpsas;
 
-        public MyModel(List<WbpSourceAdaptation> wbpsas)
+        private final List<WbpSourceAdaptation> wbpsas = new ArrayList<>();
+        private final List<WbpSourceAdaptation> oldWbpsas = new ArrayList<>();
+
+        public MyModel()
         {
-            this.wbpsas = wbpsas;
         }
+
+        public void setWbpSourceAdaptations(List<WbpSourceAdaptation> wbpsas)
+        {
+            Objects.requireNonNull(wbpsas);
+            oldWbpsas.clear();
+            this.oldWbpsas.addAll(this.wbpsas);
+            this.wbpsas.clear();
+            this.wbpsas.addAll(wbpsas);
+            fireTableDataChanged();
+        }
+
+        /**
+         * A string provinding added/removed WbpSourceAdaptations from the last call to setWbpSourceAdaptations().
+         *
+         * @return
+         */
+        public String getWhatChangedString()
+        {
+            var added = new ArrayList<>(wbpsas);
+            added.removeIf(wbpsa -> oldWbpsas.stream()
+                    .anyMatch(wbpsaOld -> wbpsa.getWbpSource().getId().equals(wbpsaOld.getWbpSource().getId())));
+            var removed = new ArrayList<>(oldWbpsas);
+            removed.removeIf(wbpsaOld -> wbpsas.stream()
+                    .anyMatch(wbpsa -> wbpsa.getWbpSource().getId().equals(wbpsaOld.getWbpSource().getId())));
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("== What changed ADDED:\n");
+            for (var wbpsa : added)
+            {
+                sb.append(String.format(" %s  p=%s\n", wbpsa, wbpsa.getWbpSource().getSizedPhrase().toStringSimple(true)));
+            }
+            sb.append("\n== What changed REMOVED:\n");
+            for (var wbpsa : removed)
+            {
+                sb.append(String.format(" %s  p=%s\n", wbpsa, wbpsa.getWbpSource().getSizedPhrase().toStringSimple(true)));
+            }
+
+            return sb.toString();
+        }
+
 
         WbpSourceAdaptation getWbpSourceAdaptation(int modelRow)
         {
@@ -283,10 +327,8 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
         {
             var res = switch (col)
             {
-                case COL_ID, COL_SESSION_ID, COL_CHORDS, COL_PHRASE ->
+                case COL_ID, COL_CHORDS, COL_PHRASE ->
                     String.class;
-                case COL_SESSION_FROM_BAR ->
-                    Integer.class;
                 case COL_SCORE ->
                     Float.class;
                 default -> throw new IllegalStateException("col=" + col);
@@ -303,10 +345,6 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
                     "Id";
                 case COL_SCORE ->
                     "Score";
-                case COL_SESSION_ID ->
-                    "Session";
-                case COL_SESSION_FROM_BAR ->
-                    "FromBar";
                 case COL_CHORDS ->
                     "Chords";
                 case COL_PHRASE ->
@@ -325,16 +363,20 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
             {
                 case COL_ID ->
                     wbps.getId();
-                case COL_SESSION_ID ->
-                    wbps.getSessionId();
-                case COL_SESSION_FROM_BAR ->
-                    wbps.getSessionBarOffset();
                 case COL_SCORE ->
                     wbpsa.getCompatibilityScore().overall();
                 case COL_CHORDS ->
                     new ArrayList<>(wbps.getSimpleChordSequence()).toString();
                 case COL_PHRASE ->
-                    new ArrayList<>(wbps.getSizedPhrase()).toString();
+                {
+                    yield switch (getNoteRepresentationDetail())
+                    {
+                        case "Note" ->  wbps.getSizedPhrase().toStringSimple(false);
+                        case "NotePos" -> wbps.getSizedPhrase().toStringSimple(true);
+                        case "NotePosDur" -> new ArrayList<>(wbps.getSizedPhrase()).toString();
+                        default -> throw new IllegalStateException(getNoteRepresentationDetail());
+                    };
+                }
                 default -> throw new IllegalStateException("columnIndex=" + col);
             };
             return res;
@@ -370,6 +412,8 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
         btn_update = new javax.swing.JButton();
         rb_rootProfile = new javax.swing.JRadioButton();
         rb_rpChordTypes = new javax.swing.JRadioButton();
+        btn_whatChanged = new javax.swing.JButton();
+        cmb_noteDetail = new javax.swing.JComboBox<>();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle(org.openide.util.NbBundle.getMessage(WbpDatabaseExplorerDialog.class, "WbpDatabaseExplorerDialog.title")); // NOI18N
@@ -433,20 +477,7 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
         jLabel2.setFont(jLabel2.getFont().deriveFont(jLabel2.getFont().getSize()-2f));
         org.openide.awt.Mnemonics.setLocalizedText(jLabel2, org.openide.util.NbBundle.getMessage(WbpDatabaseExplorerDialog.class, "WbpDatabaseExplorerDialog.jLabel2.text")); // NOI18N
 
-        tbl_wbpSources.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][]
-            {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
-            },
-            new String []
-            {
-                "Title 1", "Title 2", "Title 3", "Title 4"
-            }
-        ));
-        tbl_wbpSources.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_NEXT_COLUMN);
+        tbl_wbpSources.setModel(new MyModel());
         jScrollPane1.setViewportView(tbl_wbpSources);
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel3, org.openide.util.NbBundle.getMessage(WbpDatabaseExplorerDialog.class, "WbpDatabaseExplorerDialog.jLabel3.text")); // NOI18N
@@ -483,6 +514,25 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
             }
         });
 
+        org.openide.awt.Mnemonics.setLocalizedText(btn_whatChanged, org.openide.util.NbBundle.getMessage(WbpDatabaseExplorerDialog.class, "WbpDatabaseExplorerDialog.btn_whatChanged.text")); // NOI18N
+        btn_whatChanged.setToolTipText("Log  added/removed WbpSources since last update"); // NOI18N
+        btn_whatChanged.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                btn_whatChangedActionPerformed(evt);
+            }
+        });
+
+        cmb_noteDetail.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Note", "NotePos", "NotePosDur", " " }));
+        cmb_noteDetail.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                cmb_noteDetailActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -490,7 +540,6 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
@@ -513,17 +562,22 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
                                 .addComponent(tf_bar2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(tf_bar3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 130, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 217, Short.MAX_VALUE)
                                 .addComponent(btn_clear))))
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(spn_barSize, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabel1))
-                            .addComponent(jLabel2))
+                        .addComponent(lbl_info, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btn_whatChanged))
+                    .addComponent(jScrollPane1)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel2)
                         .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(lbl_info, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(spn_barSize, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(cmb_noteDetail, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
 
@@ -535,27 +589,33 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(spn_barSize, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel1))
+                    .addComponent(jLabel1)
+                    .addComponent(cmb_noteDetail, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addComponent(jLabel2)
                 .addGap(10, 10, 10)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(tf_bar0, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(tf_bar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(tf_bar2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(tf_bar3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btn_clear))
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel3)
-                    .addComponent(btn_update)
-                    .addComponent(rb_rootProfile)
-                    .addComponent(rb_rpChordTypes))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(lbl_info)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(tf_bar0, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(tf_bar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(tf_bar2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(tf_bar3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(btn_clear))
+                        .addGap(18, 18, 18)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel3)
+                            .addComponent(rb_rootProfile)
+                            .addComponent(rb_rpChordTypes))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(lbl_info))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(btn_update)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(btn_whatChanged)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 365, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 281, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         pack();
@@ -567,6 +627,7 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
         tf_bar1.setEnabled(value >= 2);
         tf_bar2.setEnabled(value >= 3);
         tf_bar3.setEnabled(value >= 4);
+        doUpdate();
     }//GEN-LAST:event_spn_barSizeStateChanged
 
     private void btn_clearActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_clearActionPerformed
@@ -575,8 +636,7 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
         tf_bar1.setText("");
         tf_bar2.setText("");
         tf_bar3.setText("");
-        lbl_info.setText("-");
-        tbl_wbpSources.setModel(new MyModel(Collections.EMPTY_LIST));
+        doUpdate();
     }//GEN-LAST:event_btn_clearActionPerformed
 
     private void tf_bar1ActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tf_bar1ActionPerformed
@@ -614,11 +674,23 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
         doUpdate();
     }//GEN-LAST:event_rb_rpChordTypesActionPerformed
 
+    private void btn_whatChangedActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_whatChangedActionPerformed
+    {//GEN-HEADEREND:event_btn_whatChangedActionPerformed
+        LOGGER.info(getTableModel().getWhatChangedString());
+    }//GEN-LAST:event_btn_whatChangedActionPerformed
+
+    private void cmb_noteDetailActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cmb_noteDetailActionPerformed
+    {//GEN-HEADEREND:event_cmb_noteDetailActionPerformed
+        doUpdate();
+    }//GEN-LAST:event_cmb_noteDetailActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_clear;
     private javax.swing.JButton btn_update;
+    private javax.swing.JButton btn_whatChanged;
     private javax.swing.ButtonGroup buttonGroup1;
+    private javax.swing.JComboBox<String> cmb_noteDetail;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;

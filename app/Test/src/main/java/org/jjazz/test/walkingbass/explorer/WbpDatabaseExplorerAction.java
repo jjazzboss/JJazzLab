@@ -22,7 +22,6 @@
  */
 package org.jjazz.test.walkingbass.explorer;
 
-import org.jjazz.test.walkingbass.explorer.WbpDatabaseExplorerDialog;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
 import java.awt.event.ActionEvent;

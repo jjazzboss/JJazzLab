@@ -150,63 +150,6 @@ public enum Degree
     }
 
     /**
-     * Get the "usually" musically-incompatible degrees when playing chords.
-     * <p>
-     * E.g. On a Cm, you usually don't use an E note in the chord voicing.
-     *
-     * @return
-     */
-    public List<Degree> getChordIncompatibleDegrees()
-    {
-        List<Degree> res = switch (this)
-        {
-            case ROOT ->
-                Collections.emptyList();
-
-            case NINTH_FLAT, NINTH_SHARP ->
-                List.of(Degree.NINTH);
-
-            case NINTH ->
-                List.of(Degree.NINTH_FLAT, Degree.NINTH_SHARP);
-
-            case THIRD_FLAT ->
-                List.of(Degree.THIRD);
-
-            case THIRD ->
-                List.of(Degree.THIRD_FLAT, Degree.FOURTH_OR_ELEVENTH);
-
-            case FOURTH_OR_ELEVENTH ->
-                List.of(Degree.THIRD, Degree.ELEVENTH_SHARP);
-
-            case ELEVENTH_SHARP ->
-                List.of(Degree.FOURTH_OR_ELEVENTH);
-
-            case FIFTH_FLAT ->
-                List.of(Degree.FIFTH);
-
-            case FIFTH ->
-                List.of(Degree.FIFTH_FLAT, Degree.FIFTH_SHARP);
-
-            case FIFTH_SHARP, THIRTEENTH_FLAT ->
-                List.of(Degree.FIFTH, Degree.SIXTH_OR_THIRTEENTH);
-
-            case SIXTH_OR_THIRTEENTH ->
-                List.of(Degree.FIFTH_SHARP);
-
-            case SEVENTH_FLAT ->
-                List.of(Degree.SEVENTH);
-
-            case SEVENTH ->
-                List.of(Degree.SEVENTH_FLAT);
-
-            default ->
-                throw new IllegalStateException("this=" + this);
-        };
-
-        return res;
-    }
-
-    /**
      * @return "0", "3", "b9", "#11", etc
      */
     public String toStringShort()
@@ -321,5 +264,18 @@ public enum Degree
                 throw new IllegalArgumentException("d=" + d);
         }
         return d;
+    }
+
+
+    /**
+     * A special equals() which considers SIXTH_OR_THIRTEENTH and SEVENTH equal.
+     *
+     * @param d
+     * @return
+     */
+    public boolean equalsSixthMajorSeventh(Degree d)
+    {
+        boolean b = this == d || (this == SIXTH_OR_THIRTEENTH && d == SEVENTH) || (d == SIXTH_OR_THIRTEENTH && this == SEVENTH);
+        return b;
     }
 }

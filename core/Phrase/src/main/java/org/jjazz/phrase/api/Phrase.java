@@ -30,6 +30,7 @@ import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
+import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -561,6 +562,24 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
         StringBuilder sb = new StringBuilder();
         sb.append("Phrase[ch=").append(channel).append("] size=").append(size()).append(" notes=").append(getNotes().toString());
         return sb.toString();
+    }
+
+    /**
+     * A String like "A3 Bb3 C4".
+     *
+     * @param showPos Show notes with beat position, e.g. "A3[2.3]"
+     * @return
+     */
+    public String toStringSimple(boolean showPos)
+    {
+        StringJoiner joiner = new StringJoiner("  ");
+        DecimalFormat df = new DecimalFormat("#.##");
+        for (var n : this)
+        {
+            String s = n.toPianoOctaveString() + (showPos ? "[" + df.format(n.getPositionInBeats()) + "]" : "");
+            joiner.add(s);
+        }
+        return joiner.toString();
     }
 
     public void dump()

@@ -2,6 +2,7 @@ package org.jjazz.test.walkingbass;
 
 import com.google.common.base.Preconditions;
 import static com.google.common.base.Preconditions.checkArgument;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,13 +12,14 @@ import java.util.logging.Logger;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.harmony.api.Chord;
 import org.jjazz.harmony.api.Note;
+import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
-import org.jjazz.test.walkingbass.generator.DegreeCompatibility;
-import static org.jjazz.test.walkingbass.generator.DegreeCompatibility.COMPATIBLE_NO_USE;
-import static org.jjazz.test.walkingbass.generator.DegreeCompatibility.COMPATIBLE_USE;
-import static org.jjazz.test.walkingbass.generator.DegreeCompatibility.INCOMPATIBLE;
+import org.jjazz.test.walkingbass.generator.ExtraDegreeCompatibility;
+import static org.jjazz.test.walkingbass.generator.ExtraDegreeCompatibility.COMPATIBLE_NO_USE;
+import static org.jjazz.test.walkingbass.generator.ExtraDegreeCompatibility.COMPATIBLE_USE;
+import static org.jjazz.test.walkingbass.generator.ExtraDegreeCompatibility.INCOMPATIBLE;
 import org.jjazz.utilities.api.IntRange;
 
 /**
@@ -282,22 +284,23 @@ public class WbpSource extends Wbp
      * <p>
      * If chord types do not have the same nb of Degrees:<br>
      * - Score is 0 if at least 1 common degree does not match, or if csSrc has more degrees than cliCs<br>
-     * - If cliCs has more degrees than cliCsSrc (e.g. C7b9 and C): use wbpSource phrase & DegreeCompatibility method to compare the extra degrees. Score is 0
-     * if one degree is INCOMPATIBLE, otherwise score is 100 - (10 * each COMPATIBLE_NO_USE degree).<br>
+     * - If cliCs has more degrees than cliCsSrc (e.g. C7b9 and C): use wbpSource phrase & ExtraDegreeCompatibility method to compare the extra degrees. Score
+     * is 0 if one extra degree is INCOMPATIBLE, otherwise score is 100 - (10 * each COMPATIBLE_NO_USE extra degree).<br>
      * <p>
      * Examples cliCsSrc - cliCs:<br>
      * C - Cm: 0<br>
      * C6 - Cm7M: 0<br>
      * C6 - C7: 0<br>
      * C7b9 - C9: 0<br>
-     * C - C9: 90 if WbpSource phrase is DegreeCompatibility.COMPATIBLE_NO_USE with 7th (-10), and DegreeCompatibility.COMPATIBLE_USE with 9th<br>
+     * C - C9: 90 if WbpSource phrase is ExtraDegreeCompatibility.COMPATIBLE_NO_USE with 7th (-10), and ExtraDegreeCompatibility.COMPATIBLE_USE with 9th<br>
+     * C6 - C9M: 90 if WbpSource phrase is ExtraDegreeCompatibility.COMPATIBLE_NO_USE with 9th (-10)<br>
      * C7 - C: 0<br>
      * C - C or C6 - C7M or C13b9-C13b9: 100 (max value)
      *
      * @param cliCsSrc Must belong to WbpSource' SimpleChordSequence
      * @param cliCs
      * @return [0; 100] 0 means incompatibility
-     * @see DegreeCompatibility#get(org.jjazz.harmony.api.ChordSymbol, java.util.List, org.jjazz.harmony.api.Degree)
+     * @see ExtraDegreeCompatibility#get(org.jjazz.harmony.api.ChordSymbol, java.util.List, org.jjazz.harmony.api.Degree)
      */
     public float computeChordTypeCompatibilityScore(CLI_ChordSymbol cliCsSrc, CLI_ChordSymbol cliCs)
     {
@@ -312,11 +315,11 @@ public class WbpSource extends Wbp
         int nbDegreesSrc = ctSrc.getNbDegrees();
         int nbDegrees = ct.getNbDegrees();
 
-        if (ctSrc.equals(ct) || ctSrc.isSixthSpecialCompatible(ct))
+        if (ctSrc.equalsSixthMajorSeventh(ct))
         {
             res = 100;
 
-        } else if (nbDegreesSrc < nbDegrees && ctSrc.getNbCommonDegrees(ct) == nbDegreesSrc)
+        } else if (nbDegreesSrc < nbDegrees && ctSrc.getNbCommonDegrees(ct, true) == nbDegreesSrc)
         {
             // Need to compare extra degrees with implicit degrees found in the WbpSource phrase
             var csBeatRange = scs.getBeatRange(cliCsSrc, 0);
@@ -324,14 +327,15 @@ public class WbpSource extends Wbp
             {
                 csBeatRange = csBeatRange.getTransformed(-0.15f, 0);     // phrase can be non-quantized
             }
-            var pCliCsSrc = getSizedPhrase().subSet(csBeatRange, true);
+            var chordNotes = new ArrayList<>(getSizedPhrase().subSet(csBeatRange, true));
+            removeVeryShortNotes(chordNotes);
 
             res = 100;
 
             for (int i = nbDegreesSrc; i < nbDegrees; i++)
             {
                 var dTarget = ct.getDegrees().get(i);
-                var dc = DegreeCompatibility.get(pCliCsSrc, cliCsSrc.getData(), dTarget);
+                var dc = ExtraDegreeCompatibility.test(getTimeSignature(), chordNotes, cliCsSrc.getData(), dTarget);
                 switch (dc)
                 {
                     case INCOMPATIBLE ->
@@ -349,9 +353,6 @@ public class WbpSource extends Wbp
                     }
                     default -> throw new AssertionError(dc.name());
 
-                }
-                if (dc != DegreeCompatibility.INCOMPATIBLE)
-                {
                 }
             }
         } else
@@ -405,5 +406,14 @@ public class WbpSource extends Wbp
     {
         var res = String.format("WbpSource id=%s beat0Shift=%.2f tags=%s %s", id, firstNoteBeatShift, tags, super.toLongString());
         return res;
+    }
+
+    // =================================================================================================================
+    // Private methods
+    // =================================================================================================================    
+
+    private void removeVeryShortNotes(List<NoteEvent> notes)
+    {
+        notes.removeIf(ne -> ne.getDurationInBeats() < 0.2f);
     }
 }

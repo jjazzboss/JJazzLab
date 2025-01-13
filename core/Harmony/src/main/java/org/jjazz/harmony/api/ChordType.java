@@ -269,6 +269,7 @@ final public class ChordType
         return d;
     }
 
+
     public Family getFamily()
     {
         return family;
@@ -379,14 +380,17 @@ final public class ChordType
      * C and Cm: 1, Cm and Cm7: 3, Cm7#9 and Cm9: 4
      *
      * @param ct
+     * @param sixthMajorSeventhEqual if true we consider 6 and 7M degrees identical.
      * @return Minimum value is 1 (root always matches).
      */
-    public int getNbCommonDegrees(ChordType ct)
+    public int getNbCommonDegrees(ChordType ct, boolean sixthMajorSeventhEqual)
     {
         int res;
         for (res = 0; res < Math.min(degrees.size(), ct.degrees.size()); res++)
         {
-            if (degrees.get(res) != ct.degrees.get(res))
+            var d = degrees.get(res);
+            var dCt = ct.degrees.get(res);
+            if (sixthMajorSeventhEqual ? !d.equalsSixthMajorSeventh(dCt) : d != dCt)
             {
                 assert res > 0;    // root must always match
                 break;
@@ -1011,28 +1015,6 @@ final public class ChordType
     }
 
 
-    /**
-     * Check if we have the special 6/7M compatibility with ct.
-     *
-     * @param ct
-     * @return
-     */
-    public boolean isSixthSpecialCompatible(ChordType ct)
-    {
-        String n6 = getName(), n7 = ct.getName();
-        if (!n6.contains("6"))
-        {
-            n6 = ct.getName();
-            n7 = getName();
-        }
-        boolean b = ((n6.equals("6") && (n7.equals("M7") || n7.equals("M13")))
-                || (n6.equals("69") && (n7.equals("M9") || n7.equals("M13")))
-                || (n6.equals("m6") && n7.equals("m7M"))
-                || (n6.equals("m69") && n7.equals("m97M")));
-        return b;
-    }
-
-
     @Override
     public String toString()
     {
@@ -1053,6 +1035,34 @@ final public class ChordType
     public Chord getChord()
     {
         return chord.clone();
+    }
+
+    /**
+     * Same than equals() except that we consider 6th and 7M identical degrees.
+     *
+     * @param o
+     * @return
+     */
+    public boolean equalsSixthMajorSeventh(Object o)
+    {
+        boolean b = false;
+        if (o instanceof ChordType ct)
+        {
+            var ctDegrees = ct.getDegrees();
+            if (ctDegrees.size() == degrees.size())
+            {
+                b = true;
+                for (int i = 0; i < degrees.size(); i++)
+                {
+                    if (!ctDegrees.get(i).equalsSixthMajorSeventh(degrees.get(i)))
+                    {
+                        b = false;
+                        break;
+                    }
+                }
+            }
+        }
+        return b;
     }
 
     @Override

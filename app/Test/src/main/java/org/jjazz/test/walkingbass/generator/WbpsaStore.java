@@ -249,7 +249,7 @@ public class WbpsaStore
     private List<WbpSourceAdaptation> randomizeSimilarScoreSets(ListMultimap<Score, WbpSourceAdaptation> mmap, float similarScoreWindow)
     {
         List<WbpSourceAdaptation> res = new ArrayList<>();
-        SortedSet<Score> scores = (SortedSet<Score>) mmap.keySet();
+        SortedSet<Score> scores = ((SortedSet<Score>) mmap.keySet()).reversed();        // Start by highest score
 
         if (similarScoreWindow > 0 && !mmap.isEmpty())
         {
