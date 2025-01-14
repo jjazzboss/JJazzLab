@@ -30,6 +30,7 @@ import org.jjazz.utilities.api.IntRange;
 public class WbpSource extends Wbp
 {
 
+    private static final float BEAT_WINDOW = 0.15f;     // Take into account non quantized notes
     public final IntRange BASS_MAIN_PITCH_RANGE = new IntRange(28, 55);  // E1 - G3
     public final IntRange BASS_PITCH_RANGE = new IntRange(23, 64);  // B0 - E4
     private final String sessionId;
@@ -38,6 +39,7 @@ public class WbpSource extends Wbp
     private final float firstNoteBeatShift;
     private final List<String> tags;
     private final String rootProfile;
+    private SimpleChordSequence originalChordSequence;
 
     private record TransposibilityResult(int score, int transpose)
             {
@@ -53,10 +55,12 @@ public class WbpSource extends Wbp
      *
      * @param session            The session from which this source phrase comes.
      * @param sessionBarFrom     The bar index in the session phrase from which this source phrase comes
-     * @param cSeq               Must start at bar 0
+     * @param cSeq               Must start at bar 0. If cSeq was simplified so that chord symbols fit the phrase notes, use setOriginalChordSequence() to store
+     *                           the original one.
      * @param phrase             Size must be between 1 and 4 bars, must start at beat 0
      * @param firstNoteBeatShift A 0 or negative beat value. A phrase note starting at 0 should be shifted with this value.
      * @param targetNote
+     * @see #setOriginalChordSequence(org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence)
      */
     public WbpSource(WbpSession session, int sessionBarFrom, SimpleChordSequence cSeq, SizedPhrase phrase, float firstNoteBeatShift, Note targetNote)
     {
@@ -71,6 +75,28 @@ public class WbpSource extends Wbp
         this.rootProfile = cSeq.getRootProfile();
         mapDestChordRootTransposibility = new HashMap<>();
     }
+
+    /**
+     * The original chord sequence before it was possibly simplified to fit the phrase notes.
+     *
+     * @return Might be null if not set
+     * @see #setOriginalChordSequence(org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence)
+     */
+    public SimpleChordSequence getOriginalChordSequence()
+    {
+        return originalChordSequence;
+    }
+
+    /**
+     * @param originalChordSequence Can't be null
+     * @see #getOriginalChordSequence()
+     */
+    public void setOriginalChordSequence(SimpleChordSequence originalChordSequence)
+    {
+        Objects.requireNonNull(originalChordSequence);
+        this.originalChordSequence = originalChordSequence;
+    }
+
 
     /**
      * If &lt; 0 the phrase notes starting on bar/beat 0 should be shifted with this value.
@@ -322,20 +348,15 @@ public class WbpSource extends Wbp
         } else if (nbDegreesSrc < nbDegrees && ctSrc.getNbCommonDegrees(ct, true) == nbDegreesSrc)
         {
             // Need to compare extra degrees with implicit degrees found in the WbpSource phrase
-            var csBeatRange = scs.getBeatRange(cliCsSrc, 0);
-            if (csBeatRange.from >= 0.15f)
-            {
-                csBeatRange = csBeatRange.getTransformed(-0.15f, 0);     // phrase can be non-quantized
-            }
-            var chordNotes = new ArrayList<>(getSizedPhrase().subSet(csBeatRange, true));
-            removeVeryShortNotes(chordNotes);
+
+            var cliCsSrcPhraseNotes = getChordSymbolPhraseNotes(cliCsSrc, true); // The phrase slice corresponding to cliCsSrc
 
             res = 100;
 
             for (int i = nbDegreesSrc; i < nbDegrees; i++)
             {
                 var dTarget = ct.getDegrees().get(i);
-                var dc = ExtraDegreeCompatibility.test(getTimeSignature(), chordNotes, cliCsSrc.getData(), dTarget);
+                var dc = ExtraDegreeCompatibility.test(getTimeSignature(), cliCsSrcPhraseNotes, cliCsSrc.getData(), dTarget);
                 switch (dc)
                 {
                     case INCOMPATIBLE ->
@@ -375,6 +396,30 @@ public class WbpSource extends Wbp
         return b;
     }
 
+    /**
+     * Get the WbpSource phrase slice which corresponds to cliCs.
+     * <p>
+     * Use a "non-quantized window" to make sure we take only the relevant notes.
+     *
+     * @param cliCs                     Must be a chord of the WbpSource SimpleChordSequence
+     * @param removeNonSignificantNotes
+     * @return
+     */
+    public List<NoteEvent> getChordSymbolPhraseNotes(CLI_ChordSymbol cliCs, boolean removeNonSignificantNotes)
+    {
+        var csBeatRange = getSimpleChordSequence().getBeatRange(cliCs, 0);
+        float fromOffset = Math.min(BEAT_WINDOW, csBeatRange.from);
+        float toOffset = Math.min(BEAT_WINDOW, csBeatRange.size());
+        csBeatRange = csBeatRange.getTransformed(-fromOffset, -toOffset);     // phrase can be non-quantized
+
+        var chordNotes = new ArrayList<>(getSizedPhrase().subSet(csBeatRange, true));
+        if (removeNonSignificantNotes)
+        {
+            removeNonSignificantNotes(chordNotes);
+        }
+
+        return chordNotes;
+    }
 
     /**
      * Check if the last note of the phrase is a chord tone.
@@ -412,8 +457,8 @@ public class WbpSource extends Wbp
     // Private methods
     // =================================================================================================================    
 
-    private void removeVeryShortNotes(List<NoteEvent> notes)
+    private void removeNonSignificantNotes(List<NoteEvent> notes)
     {
-        notes.removeIf(ne -> ne.getDurationInBeats() < 0.2f);
+        notes.removeIf(ne -> ne.getDurationInBeats() <= BEAT_WINDOW);    // Remove very short notes
     }
 }

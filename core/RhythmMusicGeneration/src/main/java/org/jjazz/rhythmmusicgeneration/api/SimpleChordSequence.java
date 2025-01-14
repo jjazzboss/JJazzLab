@@ -68,7 +68,16 @@ public class SimpleChordSequence extends ChordSequence
             add(cliCs);
         }
     }
-
+    /**
+     * @return A shallow copy (CLI_ChordSymbols are not cloned).
+     */
+    @Override
+    public SimpleChordSequence clone()
+    {
+        SimpleChordSequence scs = new SimpleChordSequence(this, getTimeSignature());
+        return scs;
+    }
+    
     @Override
     public int hashCode()
     {
@@ -125,7 +134,7 @@ public class SimpleChordSequence extends ChordSequence
     /**
      * The beat range of a ChordSymbol, provided ChordSequence starts at startBarPosInBeats.
      *
-     * @param cliCs
+     * @param cliCs              Must belong to this SimpleChordSequence
      * @param startBarPosInBeats
      * @return
      */
@@ -136,7 +145,7 @@ public class SimpleChordSequence extends ChordSequence
 
         var beatPos = toPositionInBeats(cliCs.getPosition(), startBarPosInBeats);
         FloatRange br = new FloatRange(beatPos, beatPos + getChordDuration(cliCs));
-        
+
         return br;
     }
 

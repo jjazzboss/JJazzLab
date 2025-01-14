@@ -2,11 +2,16 @@ package org.jjazz.test.walkingbass;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.chordleadsheet.api.item.CLI_Factory;
+import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
+import org.jjazz.harmony.api.ChordSymbol;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.harmony.api.TimeSignature;
+import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.Phrases;
 import org.jjazz.phrase.api.SizedPhrase;
@@ -15,7 +20,12 @@ import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
 
 /**
- * A session is one consistent recording of a a possibly long WalkingBassPhrase, which can be sliced in smaller WbpSource units.
+ * A session is one consistent recording of a possibly long WalkingBassPhrase, which will be sliced in smaller WbpSource units.
+ * <p>
+ * It is recommended to use the shortest chord symbol corresponding to the phrase notes, typically 3-degrees or 4-degrees chord symbols (C, Cm, C+, Cdim, Cm6,
+ * C6, C7M, C7, Csus, C7sus, ...), though more complex chord symbols are allowed. If a chord symbol is too complex for the actual phrase notes (eg C7b9 but
+ * phrase only uses C E G), chord symbol will be simplified in the WbpSource (C7b9 &gt; C).
+ * <p>
  */
 public class WbpSession extends Wbp
 {
@@ -57,7 +67,7 @@ public class WbpSession extends Wbp
      * @param disallowNonChordToneLastNote If true a WbpSource is not extracted if its last note is note a chord note (ie no transition note).
      * @return
      */
-    
+
     public List<WbpSource> extractWbpSources(boolean disallowNonRootStartNote, boolean disallowNonChordToneLastNote)
     {
         List<WbpSource> res = new ArrayList<>();
@@ -146,7 +156,68 @@ public class WbpSession extends Wbp
         }
 
 
-        return new WbpSource(this, barOffset, cSeq, sp, firstNoteBeatShift, targetNote);
+        var wbpSource = new WbpSource(this, barOffset, cSeq, sp, firstNoteBeatShift, targetNote);
+        var origCSeq = cSeq.clone();
+        wbpSource.setOriginalChordSequence(origCSeq);        
+
+
+        // Simplify ChordSymbols when possible
+        for (var cliCs : origCSeq)
+        {
+            var cliCsNotes = wbpSource.getChordSymbolPhraseNotes(cliCs, true);
+            var newCliCs = getSimplifiedChordSymbolIfPossible(cliCs, cliCsNotes);
+            if (newCliCs != cliCs)
+            {
+                LOGGER.log(Level.SEVERE, "getWbpSource() wbpSourceId={0}, simplified cliCs={1} to {2}. p={3}", new Object[]
+                {
+                    wbpSource.getId(), cliCs, newCliCs, sp
+                });
+                cSeq.remove(cliCs);
+                cSeq.add(newCliCs);
+            }
+        }
+
+
+        return wbpSource;
+    }
+
+    /**
+     * If cs uses 6/7 or extensions, check that the phrase really uses the corresponding degrees, and if not, return a simplified chord symbol.
+     * <p>
+     * We need to simplify the chord symbol as much as possible so that its source phrase can be reused for more chord symbols.
+     *
+     * @param cliCs
+     * @param notes The notes played during cs
+     * @return cliCs or a new CLI_ChordSymbol with simplified ChordSymbol
+     */
+    private CLI_ChordSymbol getSimplifiedChordSymbolIfPossible(CLI_ChordSymbol cliCs, List<NoteEvent> notes)
+    {
+        CLI_ChordSymbol res = cliCs;
+
+        // Check each extension note is indeed used in the notes
+        var ecs = cliCs.getData();
+        var degrees = ecs.getChordType().getDegrees();
+        int degreeIndex = degrees.size() - 1;     // Start from last
+
+        while (degreeIndex > 2)
+        {
+            var d = degrees.get(degreeIndex);
+            int relPitch = ecs.getRelativePitch(d);
+            boolean notePresent = notes.stream()
+                    .anyMatch(n -> n.getRelativePitch() == relPitch);
+            if (!notePresent)
+            {
+                var newCs = ecs.getSimplified(degreeIndex);
+                var newEcs = ecs.getCopy(newCs, null, null, null);
+                res = CLI_Factory.getDefault().createChordSymbol(newEcs, cliCs.getPosition());
+                degreeIndex--;
+            } else
+            {
+                break;
+            }
+        }
+
+        return res;
     }
 
 }
