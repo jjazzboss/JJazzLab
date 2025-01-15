@@ -184,6 +184,54 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
         return b;
     }
 
+
+    /**
+     * Check if p represents the same musical phrase than this phrase, indenpendantly of the key.
+     * <p>
+     * Compare the intervals and the note positions.
+     *
+     * @param p
+     * @param nearWindow Accept note-to-note position difference of +- nearWindow. Use 0 for a strict position comparison, Float.MAX_VALUE to ignore position
+     *                   differences.
+     * @return
+     * @see NoteEvent#equalsAsNoteNearPosition(org.jjazz.phrase.api.NoteEvent, float)
+     */
+    public boolean equalsAsIntervals(Phrase p, float nearWindow)
+    {
+        boolean b = false;
+        if (p.size() == size())
+        {
+            if (p.size() <= 1)
+            {
+                b = true;
+            } else
+            {
+                b = true;
+                NoteEvent lastNe = null, lastPNe = null;
+                var pIt = p.iterator();
+                for (var ne : this)
+                {
+                    var pNe = pIt.next();
+                    if (!ne.equalsAsNoteNearPosition(pNe, nearWindow))
+                    {
+                        b = false;
+                        break;
+                    }
+                    if (lastNe != null && (ne.getPitch() - lastNe.getPitch()) != (pNe.getPitch() - lastPNe.getPitch()))
+                    {
+                        b = false;
+                        break;
+                    }
+                    lastNe = ne;
+                    lastPNe = pNe;
+                }
+            }
+        }
+
+        return b;
+    }
+
+
     /**
      * Check if the phrase is for non-melodic instruments.
      *

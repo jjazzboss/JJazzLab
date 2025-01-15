@@ -158,14 +158,13 @@ public class WbpSession extends Wbp
 
         var wbpSource = new WbpSource(this, barOffset, cSeq, sp, firstNoteBeatShift, targetNote);
         var origCSeq = cSeq.clone();
-        wbpSource.setOriginalChordSequence(origCSeq);        
+        wbpSource.setOriginalChordSequence(origCSeq);
 
 
-        // Simplify ChordSymbols when possible
+        //  We need to simplify the chord symbols as much as possible so that the source phrase can be reused for more chord symbols.
         for (var cliCs : origCSeq)
         {
-            var cliCsNotes = wbpSource.getChordSymbolPhraseNotes(cliCs, true);
-            var newCliCs = getSimplifiedChordSymbolIfPossible(cliCs, cliCsNotes);
+            var newCliCs = new WbpSourceChordPhrase(wbpSource, cliCs).getSimplifiedSourceChordSymbol();
             if (newCliCs != cliCs)
             {
                 LOGGER.log(Level.SEVERE, "getWbpSource() wbpSourceId={0}, simplified cliCs={1} to {2}. p={3}", new Object[]
@@ -181,43 +180,5 @@ public class WbpSession extends Wbp
         return wbpSource;
     }
 
-    /**
-     * If cs uses 6/7 or extensions, check that the phrase really uses the corresponding degrees, and if not, return a simplified chord symbol.
-     * <p>
-     * We need to simplify the chord symbol as much as possible so that its source phrase can be reused for more chord symbols.
-     *
-     * @param cliCs
-     * @param notes The notes played during cs
-     * @return cliCs or a new CLI_ChordSymbol with simplified ChordSymbol
-     */
-    private CLI_ChordSymbol getSimplifiedChordSymbolIfPossible(CLI_ChordSymbol cliCs, List<NoteEvent> notes)
-    {
-        CLI_ChordSymbol res = cliCs;
-
-        // Check each extension note is indeed used in the notes
-        var ecs = cliCs.getData();
-        var degrees = ecs.getChordType().getDegrees();
-        int degreeIndex = degrees.size() - 1;     // Start from last
-
-        while (degreeIndex > 2)
-        {
-            var d = degrees.get(degreeIndex);
-            int relPitch = ecs.getRelativePitch(d);
-            boolean notePresent = notes.stream()
-                    .anyMatch(n -> n.getRelativePitch() == relPitch);
-            if (!notePresent)
-            {
-                var newCs = ecs.getSimplified(degreeIndex);
-                var newEcs = ecs.getCopy(newCs, null, null, null);
-                res = CLI_Factory.getDefault().createChordSymbol(newEcs, cliCs.getPosition());
-                degreeIndex--;
-            } else
-            {
-                break;
-            }
-        }
-
-        return res;
-    }
 
 }

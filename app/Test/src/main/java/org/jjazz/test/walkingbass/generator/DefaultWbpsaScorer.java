@@ -29,6 +29,7 @@ import java.util.Collections;
 import java.util.List;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.test.walkingbass.WbpSource;
+import org.jjazz.test.walkingbass.WbpSourceChordPhrase;
 
 /**
  * Relies on WbpSource.computeChordTypeCompatibilityScore() + WbpSource.getTransposibilityScore() + bonus if target notes match before/after.
@@ -138,9 +139,10 @@ public class DefaultWbpsaScorer implements WbpsaScorer
             var it = scs.iterator();
             while (itSrc.hasNext())
             {
-                var cliCs1 = itSrc.next();
-                var cliCs2 = it.next();
-                var score = wbpSource.computeChordTypeCompatibilityScore(cliCs1, cliCs2);
+                var csSrc = itSrc.next();
+                var csTarget = it.next();
+                var wbpscp = new WbpSourceChordPhrase(wbpSource, csSrc);
+                var score = wbpscp.getChordTypeCompatibilityScore(csTarget.getData());
                 if (score > 0)
                 {
                     res.add(score);

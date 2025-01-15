@@ -1,25 +1,17 @@
 package org.jjazz.test.walkingbass;
 
-import com.google.common.base.Preconditions;
 import static com.google.common.base.Preconditions.checkArgument;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.harmony.api.Chord;
 import org.jjazz.harmony.api.Note;
-import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
-import org.jjazz.test.walkingbass.generator.ExtraDegreeCompatibility;
-import static org.jjazz.test.walkingbass.generator.ExtraDegreeCompatibility.COMPATIBLE_NO_USE;
-import static org.jjazz.test.walkingbass.generator.ExtraDegreeCompatibility.COMPATIBLE_USE;
-import static org.jjazz.test.walkingbass.generator.ExtraDegreeCompatibility.INCOMPATIBLE;
 import org.jjazz.utilities.api.IntRange;
 
 /**
@@ -30,7 +22,6 @@ import org.jjazz.utilities.api.IntRange;
 public class WbpSource extends Wbp
 {
 
-    private static final float BEAT_WINDOW = 0.15f;     // Take into account non quantized notes
     public final IntRange BASS_MAIN_PITCH_RANGE = new IntRange(28, 55);  // E1 - G3
     public final IntRange BASS_PITCH_RANGE = new IntRange(23, 64);  // B0 - E4
     private final String sessionId;
@@ -303,88 +294,6 @@ public class WbpSource extends Wbp
 
 
     /**
-     * Check if a chord type from this WbpSource is compatible with another chord type, and if yes score this compatibility.
-     * <p>
-     * If the chord types are considered incompatible, score is 0. If the 2 chord types are equal, score is 100 (max). Note that 6 and 7M degrees are considered
-     * equal in this method (e.g. C6=C7M, Cm69=Cm7M9).
-     * <p>
-     * If chord types do not have the same nb of Degrees:<br>
-     * - Score is 0 if at least 1 common degree does not match, or if csSrc has more degrees than cliCs<br>
-     * - If cliCs has more degrees than cliCsSrc (e.g. C7b9 and C): use wbpSource phrase & ExtraDegreeCompatibility method to compare the extra degrees. Score
-     * is 0 if one extra degree is INCOMPATIBLE, otherwise score is 100 - (10 * each COMPATIBLE_NO_USE extra degree).<br>
-     * <p>
-     * Examples cliCsSrc - cliCs:<br>
-     * C - Cm: 0<br>
-     * C6 - Cm7M: 0<br>
-     * C6 - C7: 0<br>
-     * C7b9 - C9: 0<br>
-     * C - C9: 90 if WbpSource phrase is ExtraDegreeCompatibility.COMPATIBLE_NO_USE with 7th (-10), and ExtraDegreeCompatibility.COMPATIBLE_USE with 9th<br>
-     * C6 - C9M: 90 if WbpSource phrase is ExtraDegreeCompatibility.COMPATIBLE_NO_USE with 9th (-10)<br>
-     * C7 - C: 0<br>
-     * C - C or C6 - C7M or C13b9-C13b9: 100 (max value)
-     *
-     * @param cliCsSrc Must belong to WbpSource' SimpleChordSequence
-     * @param cliCs
-     * @return [0; 100] 0 means incompatibility
-     * @see ExtraDegreeCompatibility#get(org.jjazz.harmony.api.ChordSymbol, java.util.List, org.jjazz.harmony.api.Degree)
-     */
-    public float computeChordTypeCompatibilityScore(CLI_ChordSymbol cliCsSrc, CLI_ChordSymbol cliCs)
-    {
-        Objects.requireNonNull(cliCsSrc);
-        Objects.requireNonNull(cliCs);
-        var scs = getSimpleChordSequence();
-        Preconditions.checkArgument(scs.contains(cliCsSrc), "cliCsSrc=%s, scs=", cliCsSrc, scs);
-
-        float res;
-        var ctSrc = cliCsSrc.getData().getChordType();
-        var ct = cliCs.getData().getChordType();
-        int nbDegreesSrc = ctSrc.getNbDegrees();
-        int nbDegrees = ct.getNbDegrees();
-
-        if (ctSrc.equalsSixthMajorSeventh(ct))
-        {
-            res = 100;
-
-        } else if (nbDegreesSrc < nbDegrees && ctSrc.getNbCommonDegrees(ct, true) == nbDegreesSrc)
-        {
-            // Need to compare extra degrees with implicit degrees found in the WbpSource phrase
-
-            var cliCsSrcPhraseNotes = getChordSymbolPhraseNotes(cliCsSrc, true); // The phrase slice corresponding to cliCsSrc
-
-            res = 100;
-
-            for (int i = nbDegreesSrc; i < nbDegrees; i++)
-            {
-                var dTarget = ct.getDegrees().get(i);
-                var dc = ExtraDegreeCompatibility.test(getTimeSignature(), cliCsSrcPhraseNotes, cliCsSrc.getData(), dTarget);
-                switch (dc)
-                {
-                    case INCOMPATIBLE ->
-                    {
-                        res = 0;
-                        break;
-                    }
-                    case COMPATIBLE_NO_USE ->
-                    {
-                        res -= 10;
-                    }
-                    case COMPATIBLE_USE ->
-                    {
-                        // Nothing
-                    }
-                    default -> throw new AssertionError(dc.name());
-
-                }
-            }
-        } else
-        {
-            res = 0;
-        }
-
-        return res;
-    }
-
-    /**
      * Check if the first note of the phrase corresponds to the root of the first chord.
      *
      * @return
@@ -396,30 +305,6 @@ public class WbpSource extends Wbp
         return b;
     }
 
-    /**
-     * Get the WbpSource phrase slice which corresponds to cliCs.
-     * <p>
-     * Use a "non-quantized window" to make sure we take only the relevant notes.
-     *
-     * @param cliCs                     Must be a chord of the WbpSource SimpleChordSequence
-     * @param removeNonSignificantNotes
-     * @return
-     */
-    public List<NoteEvent> getChordSymbolPhraseNotes(CLI_ChordSymbol cliCs, boolean removeNonSignificantNotes)
-    {
-        var csBeatRange = getSimpleChordSequence().getBeatRange(cliCs, 0);
-        float fromOffset = Math.min(BEAT_WINDOW, csBeatRange.from);
-        float toOffset = Math.min(BEAT_WINDOW, csBeatRange.size());
-        csBeatRange = csBeatRange.getTransformed(-fromOffset, -toOffset);     // phrase can be non-quantized
-
-        var chordNotes = new ArrayList<>(getSizedPhrase().subSet(csBeatRange, true));
-        if (removeNonSignificantNotes)
-        {
-            removeNonSignificantNotes(chordNotes);
-        }
-
-        return chordNotes;
-    }
 
     /**
      * Check if the last note of the phrase is a chord tone.
@@ -457,8 +342,5 @@ public class WbpSource extends Wbp
     // Private methods
     // =================================================================================================================    
 
-    private void removeNonSignificantNotes(List<NoteEvent> notes)
-    {
-        notes.removeIf(ne -> ne.getDurationInBeats() <= BEAT_WINDOW);    // Remove very short notes
-    }
+ 
 }
