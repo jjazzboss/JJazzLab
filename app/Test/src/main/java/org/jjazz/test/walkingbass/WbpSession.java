@@ -169,7 +169,7 @@ public class WbpSession extends Wbp
             {
                 LOGGER.log(Level.SEVERE, "getWbpSource() wbpSourceId={0}, simplified cliCs={1} to {2}. p={3}", new Object[]
                 {
-                    wbpSource.getId(), cliCs, newCliCs, sp
+                    wbpSource.getId(), cliCs, newCliCs, sp.toStringSimple(true)
                 });
                 cSeq.remove(cliCs);
                 cSeq.add(newCliCs);

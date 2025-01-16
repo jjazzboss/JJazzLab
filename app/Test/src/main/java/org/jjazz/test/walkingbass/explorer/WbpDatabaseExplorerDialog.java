@@ -45,7 +45,6 @@ import org.jjazz.test.walkingbass.generator.WbpsaScorer;
 import org.jjazz.test.walkingbass.generator.WbpSourceAdaptation;
 import org.jjazz.uiutilities.api.UIUtilities;
 import org.jjazz.utilities.api.IntRange;
-import org.jjazz.utilities.api.Utilities;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.windows.WindowManager;
@@ -226,6 +225,7 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
         JPopupMenu pMenu = new JPopupMenu();
         pMenu.add(new JMenuItem(new FindDuplicatesAction(this)));
         pMenu.add(new JMenuItem(new PrintPhrasesAction(this)));
+        pMenu.add(new JMenuItem(new EvaluateScoreAction(this)));
         tbl_wbpSources.setComponentPopupMenu(pMenu);
 
     }

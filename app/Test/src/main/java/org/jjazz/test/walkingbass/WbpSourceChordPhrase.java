@@ -43,6 +43,7 @@ import static org.jjazz.harmony.api.Degree.SEVENTH;
 import static org.jjazz.harmony.api.Degree.SEVENTH_FLAT;
 import static org.jjazz.harmony.api.Degree.SIXTH_OR_THIRTEENTH;
 import static org.jjazz.harmony.api.Degree.THIRTEENTH_FLAT;
+import org.jjazz.harmony.api.StandardScaleInstance;
 import org.jjazz.phrase.api.NoteEvent;
 
 /**
@@ -86,10 +87,11 @@ public class WbpSourceChordPhrase
      * If targetExtChordSymbol is considered incompatible, score is 0. If the chord types are equal, score is 100 (max). Note that 6 and 7M degrees are
      * considered equal in this method (e.g. C6=C7M, Cm69=Cm7M9).
      * <p>
+     * Score is 0 if chord types have the same nb of Degrees but are not equal, or if targetExtChordSymbol has a scale incompatible with the phrase.<p>
      * If chord types do not have the same nb of Degrees:<br>
-     * - Score is 0 if at least 1 common degree does not match, or if srcChordType has more degrees than targetChordType<br>
-     * - If targetChordType has more degrees than srcChordType (e.g. C7b9 and C): check if the phrase notes are compatible with the extra degrees. Score is 0 if
-     * one extra degree is INCOMPATIBLE, otherwise score equals 100 - (10 * each COMPATIBLE_NO_USE extra degree).<br>
+     * - Score is 0 if at least 1 common degree does not match, or if srcChordType has more degrees than targetChordType - If targetChordType has more degrees
+     * than srcChordType (e.g. C7b9 and C): check if the phrase notes are compatible with the extra degrees. Score is 0 if one extra degree is INCOMPATIBLE,
+     * otherwise score equals 100 - (10 * each COMPATIBLE_NO_USE extra degree).<br>
      * <p>
      * Examples srcExtChordSymbol - targetExtChordSymbol:<br>
      * C - Cm: 0<br>
@@ -104,7 +106,7 @@ public class WbpSourceChordPhrase
      * @param targetExtChordSymbol
      * @return [0; 100] 0 means incompatibility
      */
-    public float getChordTypeCompatibilityScore(ExtChordSymbol targetExtChordSymbol)
+    public float getHarmonyCompatibilityScore(ExtChordSymbol targetExtChordSymbol)
     {
         Objects.requireNonNull(targetExtChordSymbol);
         float res;
@@ -120,7 +122,7 @@ public class WbpSourceChordPhrase
 
         } else if (nbDegreesSrc < nbDegreesTarget && srcChordType.getNbCommonDegrees(targetChordType, true) == nbDegreesSrc)
         {
-            // Need to check each extra degree from targetChordType against the phrase notes
+            // Need to check that each extra degree from targetChordType against the phrase notes
 
             res = 100;
 
@@ -147,17 +149,26 @@ public class WbpSourceChordPhrase
 
                 }
             }
+
         } else
         {
             res = 0;
         }
+
+
+        // If we're compatible check it's also compatible with the optional scale
+        if (res > 0 && !isPhraseScaleCompatible(targetExtChordSymbol))
+        {
+            res = 0;
+        }
+
 
         return res;
     }
 
     /**
      * Try to get a simplified source chord symbol of srcCliChordSymbol based on the used phrase notes.
-     * 
+     * <p>
      * If srcCliChordSymbol uses 6/7 or extension degrees (eg C69), check that the phrase really uses the corresponding degrees, and if not, return a simplified
      * chord symbol.
      * <p>
@@ -388,6 +399,38 @@ public class WbpSourceChordPhrase
         };
 
         return res;
+    }
+
+    /**
+     * Check that source phrase is also compatible with targetExtChordSymbol optional scale.
+     * <p>
+     * Example: srcCliChordSymbol=Cm, targetExtChordSymbol=Cm7 with phrygian scale (Ab key) => phrase should not use 9th significant notes to be compatible.<p>
+     * Returns true if all phrase notes belong to the scale: it's a bit radical condition, there are probably smarter ways to do this...
+     *
+     * @param targetExtChordSymbol
+     * @return
+     */
+    private boolean isPhraseScaleCompatible(ExtChordSymbol targetExtChordSymbol)
+    {
+        boolean b = true;
+
+        var stdScaleInstance = targetExtChordSymbol.getRenderingInfo().getScaleInstance();
+        if (stdScaleInstance != null)
+        {
+            List<NoteEvent> notesClean = new ArrayList<>(notes);
+            removeNonSignificantNotes(notesClean);
+
+            // We need to transpose notes to targetExtChordSymbol root
+            int t = srcExtChordSymbol.getRootNote().getRelativeAscInterval(targetExtChordSymbol.getRootNote());
+            var tNotes = notesClean.stream()
+                    .map(ne -> ne.getTransposed(t))
+                    .toList();
+
+            b = tNotes.stream()
+                    .allMatch(n -> stdScaleInstance.getRelativePitches().contains(n.getRelativePitch()));
+        }
+
+        return b;
     }
 
 

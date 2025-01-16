@@ -47,7 +47,7 @@ public class DefaultWbpsaScorer implements WbpsaScorer
     @Override
     public Score computeCompatibilityScore(WbpSourceAdaptation wbpsa, WbpTiling tiling)
     {
-        var ctScores = getChordTypeCompatibilityScores(wbpsa);
+        var ctScores = getHarmonyCompatibilityScores(wbpsa);
         float ctScore = (float) ctScores.stream().mapToDouble(f -> Double.valueOf(f)).average().orElse(0);      // 0-100
 
         var scs = wbpsa.getSimpleChordSequence();
@@ -116,7 +116,7 @@ public class DefaultWbpsaScorer implements WbpsaScorer
 
 
     /**
-     * Compute the ChordType compatibility score for each chord-pair.
+     * Compute the harmony compatibility score for each chord-pair.
      * <p>
      * <p>
      * Return an empty list as soon as 2 incompatible chord types are found.
@@ -124,7 +124,7 @@ public class DefaultWbpsaScorer implements WbpsaScorer
      * @param wbpsa
      * @return
      */
-    private List<Float> getChordTypeCompatibilityScores(WbpSourceAdaptation wbpsa)
+    private List<Float> getHarmonyCompatibilityScores(WbpSourceAdaptation wbpsa)
     {
         List<Float> res = Collections.emptyList();
 
@@ -142,7 +142,7 @@ public class DefaultWbpsaScorer implements WbpsaScorer
                 var csSrc = itSrc.next();
                 var csTarget = it.next();
                 var wbpscp = new WbpSourceChordPhrase(wbpSource, csSrc);
-                var score = wbpscp.getChordTypeCompatibilityScore(csTarget.getData());
+                var score = wbpscp.getHarmonyCompatibilityScore(csTarget.getData());
                 if (score > 0)
                 {
                     res.add(score);

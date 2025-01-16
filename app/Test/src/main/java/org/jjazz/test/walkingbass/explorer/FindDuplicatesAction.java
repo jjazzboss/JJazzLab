@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.logging.Logger;
 import org.jjazz.test.walkingbass.WbpSource;
 import org.jjazz.test.walkingbass.WbpSources;
-import org.jjazz.test.walkingbass.generator.WbpSourceAdaptation;
 import org.jjazz.utilities.api.Utilities;
 
 /**
@@ -46,7 +45,7 @@ class FindDuplicatesAction extends AbstractAction
 
     public FindDuplicatesAction(WbpDatabaseExplorerDialog dlg)
     {
-        super("Find duplicate phrases");
+        super("Find Duplicate Phrases");
         this.dialog = dlg;
     }
 

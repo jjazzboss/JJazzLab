@@ -25,39 +25,48 @@
 package org.jjazz.test.walkingbass.explorer;
 
 import java.awt.event.ActionEvent;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
+import org.jjazz.test.walkingbass.generator.DefaultWbpsaScorer;
 import org.jjazz.test.walkingbass.generator.WbpSourceAdaptation;
+import org.jjazz.test.walkingbass.generator.WbpsaScorer;
 import org.jjazz.utilities.api.Utilities;
 
 /**
  *
  * @author Jerome
  */
-class PrintPhrasesAction extends AbstractAction
+class EvaluateScoreAction extends AbstractAction
 {
 
     WbpDatabaseExplorerDialog dialog;
-    private static final Logger LOGGER = Logger.getLogger(PrintPhrasesAction.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(EvaluateScoreAction.class.getSimpleName());
 
-    public PrintPhrasesAction(WbpDatabaseExplorerDialog dlg)
+    public EvaluateScoreAction(WbpDatabaseExplorerDialog dlg)
     {
-        super("Print Phrases");
+        super("Evaluate Score");
         this.dialog = dlg;
     }
 
     @Override
     public void actionPerformed(ActionEvent ae)
     {
-        LOGGER.info("\n### Print phrases:");
+        LOGGER.info("\n### EvaluateScore");
+
+        WbpsaScorer wbpsaScorer = new DefaultWbpsaScorer(null);
         List<WbpSourceAdaptation> wbpsas = dialog.getSelectedWbpSourceAdaptations();
+
         for (var wbpsa : wbpsas)
         {
-            var wbps = wbpsa.getWbpSource();
-            var sp = wbps.getSizedPhrase();
-            LOGGER.info(wbps.getId() + ": " + sp);
-            LOGGER.info(Utilities.toMultilineString(sp, "  "));
+            var score = wbpsaScorer.computeCompatibilityScore(wbpsa, null);
+            LOGGER.log(Level.INFO, "{0}: {1}", new Object[]
+            {
+                wbpsa.getWbpSource().getId(), score
+            });
+
         }
     }
 
