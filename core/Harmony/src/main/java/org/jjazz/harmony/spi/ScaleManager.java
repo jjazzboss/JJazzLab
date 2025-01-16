@@ -112,11 +112,25 @@ public interface ScaleManager
     /**
      * A list of standard scales.
      * <p>
-     * The first items must be in this order: MAJOR DORIAN PHRYGIAN LYDIAN MIXOLYDIAN AEOLIAN LOCRIAN MINOR_HARMONIC MINOR_MELODIC ALTERED LYDIAN_b7 DIMINISHED_WHOLE_HALF
-     * DIMINISHED_HALF_WHOLE WHOLE_TONE PENTATONIC_MAJOR PENTATONIC_MINOR BLUES
+     * The first items must be in this order: MAJOR DORIAN PHRYGIAN LYDIAN MIXOLYDIAN AEOLIAN LOCRIAN MINOR_HARMONIC MINOR_MELODIC ALTERED LYDIAN_b7
+     * DIMINISHED_WHOLE_HALF DIMINISHED_HALF_WHOLE WHOLE_TONE PENTATONIC_MAJOR PENTATONIC_MINOR BLUES
      *
      * @return
      */
     List<StandardScale> getStandardScales();
+
+    /**
+     * Get a standard scale by the name.
+     *
+     * @param name Ignore case. Can be only the first letters of the name.
+     * @return Can be null
+     */
+    default StandardScale getStandardScale(String name)
+    {
+        return getStandardScales().stream()
+                .filter(sc -> sc.getName().toLowerCase().startsWith(name))
+                .findAny()
+                .orElse(null);
+    }
 
 }

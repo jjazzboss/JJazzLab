@@ -518,50 +518,52 @@ public final class Position implements Comparable<Position>, Serializable
      * Ex: "[2:3.5]" will set bar=2 and beat=3.5<br>
      * Ex: "[3.5]" set bar=defaultBar and beat=3.5
      *
-     * @param userString The string as returned by toString()
+     * @param posString  The string as returned by toString() or toUserString()
      * @param defaultBar If bar is not specified, defaultBar is used.
+     * @param oneBased   If true bar/beat in userString are considered 1-based instead of 0-based
      * @return This instance
      *
      * @throws ParseException If syntax error in string.
      */
-    public Position setFromString(String userString, int defaultBar) throws ParseException
+    public Position setFromString(String posString, int defaultBar, boolean oneBased) throws ParseException
     {
-        int newBar = bar;
-        float newBeat = beat;
-        if ((userString == null) || (defaultBar < 0))
+
+        if ((posString == null) || (defaultBar < 0))
         {
-            throw new IllegalArgumentException("str=" + userString + " defaultBar=" + defaultBar);
+            throw new IllegalArgumentException("str=" + posString + " defaultBar=" + defaultBar);
         }
 
         // Remove brackets
-        String s1 = userString.trim();
+        String s1 = posString.trim();
         if (s1.indexOf(START_CHAR) != 0 || s1.indexOf(END_CHAR) != s1.length() - 1)
         {
-            throw new ParseException(userString + " : " + ResUtil.getString(getClass(), "CTL_MissingEnclosingChars", START_CHAR + END_CHAR), 0);
+            throw new ParseException(posString + " : " + ResUtil.getString(getClass(), "CTL_MissingEnclosingChars", START_CHAR + END_CHAR), 0);
         }
         String errInvalidValue = ResUtil.getString(getClass(), "CTL_InvalidValue");
         String errNegativeValue = ResUtil.getString(getClass(), "CTL_NegativeValue");
 
 
+        int newBar = bar;
+        float newBeat = beat;
         String s = s1.substring(1, s1.length() - 1);
         int indSep = s.indexOf(SEPARATOR_CHAR);
         if (indSep == -1)
         {
             // No newBar specified so use default newBar
-            newBar = defaultBar + 1;
+            newBar = defaultBar;
 
             String strBeat = s.replace(',', '.');
             try
             {
                 newBeat = Float.parseFloat(strBeat);
+                newBeat -= oneBased ? 1 : 0;
             } catch (NumberFormatException e)
             {
-                throw new ParseException(userString + " : " + errInvalidValue + " " + e.getLocalizedMessage(), 0);
+                throw new ParseException(posString + " : " + errInvalidValue + " " + e.getLocalizedMessage(), 0);
             }
-
             if (newBeat < 0)
             {
-                throw new ParseException(userString + " : " + errNegativeValue, 0);
+                throw new ParseException(posString + " : " + errNegativeValue, 0);
             }
         } else
         {
@@ -569,33 +571,33 @@ public final class Position implements Comparable<Position>, Serializable
             try
             {
                 newBar = Integer.parseInt(s.substring(0, indSep));
+                newBar -= oneBased ? 1 : 0;
             } catch (NumberFormatException e)
             {
-                throw new ParseException(userString + " : " + errInvalidValue + " " + e.getLocalizedMessage(), 0);
+                throw new ParseException(posString + " : " + errInvalidValue + " " + e.getLocalizedMessage(), 0);
             }
-
             if (newBar < 0)
             {
-                throw new ParseException(userString + " : " + errNegativeValue, 0);
+                throw new ParseException(posString + " : " + errNegativeValue, 0);
             }
             String strBeat = s.substring(indSep + 1).replace(',', '.');
             try
             {
                 newBeat = Float.parseFloat(strBeat);
+                newBeat -= oneBased ? 1 : 0;
             } catch (NumberFormatException e)
             {
-                throw new ParseException(userString + " : " + errInvalidValue + " " + e.getLocalizedMessage(), indSep + 1);
+                throw new ParseException(posString + " : " + errInvalidValue + " " + e.getLocalizedMessage(), indSep + 1);
             }
-
             if (newBeat < 0)
             {
-                throw new ParseException(userString + " : " + errNegativeValue, indSep + 1);
+                throw new ParseException(posString + " : " + errNegativeValue, indSep + 1);
             }
         }
 
         setBar(newBar);
         setBeat(newBeat);
-        
+
         return this;
     }
 
@@ -701,7 +703,7 @@ public final class Position implements Comparable<Position>, Serializable
             Position pos = new Position();
             try
             {
-                pos.setFromString(spPos, 0);
+                pos.setFromString(spPos, 0, false);
             } catch (ParseException ex)
             {
                 LOGGER.log(Level.WARNING, "Can''t read position " + spPos + ", using position(0,0) instead", ex);
