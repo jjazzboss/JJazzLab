@@ -98,11 +98,11 @@ public interface CLI_ChordSymbol extends ChordLeadSheetItem<ExtChordSymbol>
 
         // Check scale         
         final char SCALE_CHAR = '$';
-        String stdScaleName = null;
+        String scaleName = null;
         int scaleIndex = s.indexOf(SCALE_CHAR);
         if (scaleIndex != -1)
         {
-            stdScaleName = s.substring(scaleIndex + 1).toLowerCase();
+            scaleName = s.substring(scaleIndex + 1).toLowerCase();
             s = s.substring(0, scaleIndex);
         }
 
@@ -136,31 +136,32 @@ public interface CLI_ChordSymbol extends ChordLeadSheetItem<ExtChordSymbol>
 
         // Check scale         
         StandardScaleInstance stdScaleInstance = null;
-        if (stdScaleName != null && !stdScaleName.isBlank())
+        if (scaleName != null && !scaleName.isBlank())
         {
             var sm = ScaleManager.getDefault();
-            var scales = sm.getMatchingScales(cs);
-            var stdScaleNameLc = stdScaleName.toLowerCase();
-            stdScaleInstance = scales.stream()
-                    .filter(sc -> sc.getScale().getName().toLowerCase().startsWith(stdScaleNameLc))
+            var stdScaleInstances = sm.getMatchingScales(cs);
+            var scaleNameLc = scaleName.toLowerCase();
+            stdScaleInstance = stdScaleInstances.stream()
+                    .filter(sc -> sc.getScale().getName().toLowerCase().startsWith(scaleNameLc))
                     .findAny()
                     .orElse(null);
 
             if (stdScaleInstance == null)
             {
-                var stdScale = sm.getStandardScale(stdScaleNameLc);
-                if (stdScale==null)
+                var stdScale = sm.getStandardScale(scaleNameLc);
+                if (stdScale == null)
                 {
                     // It 's a wrong scale name
                     String validScaleNames = sm.getStandardScales().stream()
                             .map(sc -> sc.getName())
                             .collect(Collectors.joining(", "))
                             .toLowerCase();
-                    throw new ParseException(str + " : " + ResUtil.getString(CLI_ChordSymbol.class, "InvalidModeOrScale", stdScaleNameLc, validScaleNames), 0);
+                    throw new ParseException(str + " : " + ResUtil.getString(CLI_ChordSymbol.class, "InvalidModeOrScale", scaleNameLc, validScaleNames), 0);
                 } else
                 {
                     // Scale is incompatible with chord symbol
-                    throw new ParseException(str + " : " + ResUtil.getString(CLI_ChordSymbol.class, "IncompatibleModeOrScale", stdScaleNameLc, csStr), 0);
+                    throw new ParseException(str + " : " + ResUtil.getString(CLI_ChordSymbol.class, "IncompatibleModeOrScale", stdScale.getName().toLowerCase(),
+                            csStr), 0);
                 }
             }
         }

@@ -27,7 +27,9 @@ import java.util.List;
 import java.util.logging.Logger;
 
 /**
- * A list of notes. Example: name=MajorPentatonic and startNote=Eb represent the scale Eb, F, G, Bb, C
+ * A list of notes.
+ * <p>
+ * Example: name=MajorPentatonic and startNote=Eb represent the scale Eb, F, G, Bb, C
  */
 public class Scale
 {
@@ -36,7 +38,7 @@ public class Scale
     /**
      * The notes starting on C0
      */
-    private final ArrayList<Note> notesInC = new ArrayList<>();
+    private final ArrayList<Note> notes0 = new ArrayList<>();
     private final ArrayList<Degree> degrees = new ArrayList<>();
     private final transient ArrayList<Integer> intervals = new ArrayList<>();
     private static final Logger LOGGER = Logger.getLogger(Scale.class.getSimpleName());
@@ -55,7 +57,7 @@ public class Scale
         }
         this.name = name;
         this.degrees.add(Degree.ROOT);
-        this.notesInC.add(new Note(0));
+        this.notes0.add(new Note(0));
         // Save degrees, notes and intervals
         int lastPitch = 0;
         for (int i = 1; i < degs.length; i++)
@@ -66,7 +68,7 @@ public class Scale
                 throw new IllegalArgumentException("Degrees must unique and ascending. name=" + name + " degs=" + degs);
             }
             this.degrees.add(degs[i]);
-            this.notesInC.add(new Note(degs[i].getPitch()));
+            this.notes0.add(new Note(degs[i].getPitch()));
             this.intervals.add(newPitch - lastPitch);
             lastPitch = newPitch;
         }
@@ -78,20 +80,20 @@ public class Scale
     }
 
     /**
-     * The list of notes starting on middle C (60).
+     * The list of notes starting at pitch 0.
      *
      * @return
      */
     public List<Note> getNotes()
     {
-        return new ArrayList<>(notesInC);
+        return new ArrayList<>(notes0);
     }
 
     /**
      * The list of ascending notes starting on the specified note.
      *
      * @param startNote
-     * @return Returned notes reuse startNote's duration, velocity and Accidental.
+     * @return Returned notes reuse startNote's duration, velocity and accidental.
      */
     public List<Note> getNotes(Note startNote)
     {
@@ -101,7 +103,7 @@ public class Scale
         }
         List<Note> scale = new ArrayList<>();
         int pitch = startNote.getPitch();
-        for (Note n : notesInC)
+        for (Note n : notes0)
         {
             scale.add(new Note(pitch + n.getPitch(), startNote.getDurationInBeats(), startNote.getVelocity(),
                     startNote.getAccidental()));

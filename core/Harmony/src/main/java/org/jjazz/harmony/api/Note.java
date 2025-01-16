@@ -353,13 +353,16 @@ public class Note implements Comparable<Note>, Cloneable
     }
 
     /**
-     * @param n A Note.
+     * Get the relative ascending interval in semitons towards relNote.
+     * <p>
+     * Examples: this=D relNote=E returns 2. this=E relNote=D returns 10.
      *
-     * @return The relative ascendant interval in semitons towards n.
+     * @param relNote A Note.
+     * @return &gt;= 0
      */
-    public int getRelativeAscInterval(Note n)
+    public int getRelativeAscInterval(Note relNote)
     {
-        int delta = n.getRelativePitch() - getRelativePitch();
+        int delta = relNote.getRelativePitch() - getRelativePitch();
 
         if (delta < 0)
         {
@@ -370,13 +373,16 @@ public class Note implements Comparable<Note>, Cloneable
     }
 
     /**
-     * @param n A Note.
+     * Get the relative descending interval in semitons towards relNote.
+     * <p>
+     * Examples: this=E relNote=D returns 2. this=D relNote=E returns 10.
      *
-     * @return The relative descendant interval in semitons towards n.
+     * @param relNote A Note.
+     * @return &gt;= 0
      */
-    public int getRelativeDescInterval(Note n)
+    public int getRelativeDescInterval(Note relNote)
     {
-        int delta = getRelativePitch() - n.getRelativePitch();
+        int delta = getRelativePitch() - relNote.getRelativePitch();
 
         if (delta < 0)
         {
