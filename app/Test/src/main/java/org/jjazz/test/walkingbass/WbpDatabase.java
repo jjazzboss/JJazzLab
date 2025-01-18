@@ -2,12 +2,13 @@ package org.jjazz.test.walkingbass;
 
 import com.google.common.base.Preconditions;
 import static com.google.common.base.Preconditions.checkNotNull;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -17,6 +18,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MetaMessage;
 import javax.sound.midi.MidiEvent;
@@ -36,6 +38,9 @@ import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.Phrases;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
+import org.jjazz.test.walkingbass.generator.DefaultWbpsaScorer;
+import org.jjazz.test.walkingbass.generator.WbpSourceAdaptation;
+import org.jjazz.test.walkingbass.generator.WbpsaScorer;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
 import org.jjazz.utilities.api.LongRange;
@@ -64,11 +69,11 @@ public class WbpDatabase
     private static final String MIDI_FILE_RESOURCE_PATH = "WalkingBassMidiDB.mid";
 
     private final List<WbpSession> wbpSessions;
-    private final List<WbpSource> wbpSources;
+    private final ListMultimap<Integer, WbpSource> mmapSizeWbpSources;
+    private final ListMultimap<WbpSource, WbpSource> mmapDuplicates;
     private final Map<String, WbpSource> mapIdWbpSource;
-    private final Multimap<ChordType, WbpSource> mmapSimplifiedChordTypeOneBarWbpSource;
+    private final ListMultimap<ChordType, WbpSource> mmapSimplifiedChordTypeOneBarWbpSource;
     private final Map<KeyablePredicate<?>, List<WbpSource>> mapFilterSources = new HashMap<>();
-
     private static final Logger LOGGER = Logger.getLogger(WbpDatabase.class.getSimpleName());
 
     public static WbpDatabase getInstance()
@@ -86,8 +91,9 @@ public class WbpDatabase
     private WbpDatabase()
     {
         wbpSessions = loadWbpSessionsFromMidiFile(MIDI_FILE_RESOURCE_PATH, TimeSignature.FOUR_FOUR);
-        wbpSources = new ArrayList<>();
+        mmapSizeWbpSources = MultimapBuilder.hashKeys().arrayListValues().build();
         mapIdWbpSource = new HashMap<>();
+        mmapDuplicates = MultimapBuilder.hashKeys().arrayListValues().build();
         mmapSimplifiedChordTypeOneBarWbpSource = MultimapBuilder.hashKeys().arrayListValues().build();
 
 
@@ -96,30 +102,44 @@ public class WbpDatabase
             var wbps = wbpSession.extractWbpSources(true, true);
             for (var wbpSource : wbps)
             {
-                var old = mapIdWbpSource.put(wbpSource.getId(), wbpSource);
-                if (old != null)
-                {
-                    throw new IllegalStateException("Duplicate WbpSource.id found: wbpSource=" + wbpSource + " old=" + old);
-                }
-                wbpSources.add(wbpSource);
-                if (wbpSource.getBarRange().size() == 1)
-                {
-                    var ct = simplifyChordType(wbpSource.getSimpleChordSequence().first().getData().getChordType());
-                    mmapSimplifiedChordTypeOneBarWbpSource.put(ct, wbpSource);
-                }
+                wbpSource.simplifyChordSymbols();
+                addWbpSourceImpl(wbpSource);
             }
         }
+
+        discardDuplicates();
+
+        LOGGER.log(Level.SEVERE, "WbpDatabase() 1-bar:{0}  2-bar:{1}  3-bar:{2}  4-bar:{3}", new Object[]
+        {
+            mmapSizeWbpSources.get(1).size(), mmapSizeWbpSources.get(2).size(), mmapSizeWbpSources.get(3).size(), mmapSizeWbpSources.get(4).size()
+        });
     }
+
 
     public List<WbpSession> getWbpSessions()
     {
-        return wbpSessions;
+        return Collections.unmodifiableList(wbpSessions);
     }
 
-
+    /**
+     * Get all the WbpSources from the database (in no particular order).
+     *
+     * @return
+     */
     public List<WbpSource> getWbpSources()
     {
-        return wbpSources;
+        return new ArrayList<>(mmapSizeWbpSources.values());
+    }
+
+    /**
+     * Get the discarded duplicate WbpSources for a valid WbpSource.
+     *
+     * @param wbpSource
+     * @return Can be empty. Unmodifiable list.
+     */
+    public List<WbpSource> getDuplicates(WbpSource wbpSource)
+    {
+        return Collections.unmodifiableList(mmapDuplicates.get(wbpSource));
     }
 
     /**
@@ -128,16 +148,15 @@ public class WbpDatabase
      */
     public void checkConsistency()
     {
-        // All main ChordTypes should have at least a 1-bar WbpSource
+        LOGGER.severe("checkConsistency() starting");
+
+        // All the base ChordTypes should have at least a 1-bar WbpSource
         ChordTypeDatabase ctdb = ChordTypeDatabase.getDefault();
-        Set<ChordType> simplifiedCts = new HashSet<>();
-        for (var ct : ctdb.getChordTypes())
-        {
-            simplifiedCts.add(simplifyChordType(ct));
-        }
+        Set<ChordType> baseChordTypes = new HashSet<>();
+        Stream.of(ctdb.getChordTypes()).forEach(ct -> baseChordTypes.add(getSimplified(ct)));
 
 
-        for (var ct : simplifiedCts)
+        for (var ct : baseChordTypes)
         {
             var wbps = getWbpSourcesOneBar(ct);
             if (wbps.isEmpty())
@@ -146,7 +165,7 @@ public class WbpDatabase
             }
         }
 
-        for (var ct : simplifiedCts)
+        for (var ct : baseChordTypes)
         {
             var wbps = getWbpSourcesOneBar(ct);
             if (wbps.size() == 1)
@@ -155,28 +174,24 @@ public class WbpDatabase
             }
         }
 
-
     }
+
 
     /**
      * Get the WbpSources which are nbBars long.
      * <p>
-     * Results are cached.
      *
      * @param nbBars
-     * @return
+     * @return An unmodifiable list
      */
     public List<WbpSource> getWbpSources(int nbBars)
     {
-        Predicate<WbpSource> tester = wbps -> wbps.getBarRange().size() == nbBars;
-        var dbTester = new KeyablePredicate(String.valueOf(nbBars), tester);
-        return WbpDatabase.this.getWbpSources(dbTester);
+        return Collections.unmodifiableList(mmapSizeWbpSources.get(nbBars));
     }
 
 
     /**
      * Get the 1-bar WbpSources which uses the specified basic ChordType.
-     * <p>
      *
      * @param basicChordType Can not have more than 4 degrees
      * @return
@@ -184,7 +199,7 @@ public class WbpDatabase
     public List<WbpSource> getWbpSourcesOneBar(ChordType basicChordType)
     {
         Preconditions.checkArgument(basicChordType.getNbDegrees() <= 4, "basicChordType=%s", basicChordType);
-        return (List<WbpSource>) mmapSimplifiedChordTypeOneBarWbpSource.get(basicChordType);
+        return mmapSimplifiedChordTypeOneBarWbpSource.get(basicChordType);
     }
 
     /**
@@ -204,14 +219,14 @@ public class WbpDatabase
             {
                 return res;
             }
-            res = wbpSources.stream()
+            res = mmapSizeWbpSources.values().stream()
                     .filter(tester)
                     .toList();
             mapFilterSources.put(dbTester, res);
             return res;
         } else
         {
-            return wbpSources.stream()
+            return mmapSizeWbpSources.values().stream()
                     .filter(tester)
                     .toList();
         }
@@ -242,11 +257,12 @@ public class WbpDatabase
     {
         IntRange br = wbpSource.getBarRangeInSession();
         String sId = wbpSource.getSessionId();
-        var res = WbpDatabase.getInstance().getWbpSources(wbp -> wbp != wbpSource
+        var res = getWbpSources(wbp -> wbp != wbpSource
                 && wbp.getSessionId().equals(sId)
                 && br.isIntersecting(wbp.getBarRangeInSession()));
         return res;
     }
+
 
     public void dump()
     {
@@ -255,7 +271,7 @@ public class WbpDatabase
         {
             LOGGER.log(Level.INFO, " {0}", session.toString());
         }
-        for (var wbps : WbpDatabase.this.getWbpSources())
+        for (var wbps : getWbpSources())
         {
             LOGGER.log(Level.INFO, " {0}", wbps.toLongString());
         }
@@ -265,6 +281,59 @@ public class WbpDatabase
     // =========================================================================================
     // Private methods
     // =========================================================================================
+
+    /**
+     * Discard WbpSources with identical phrases (key-wise, near-position) and identical chord sequences.
+     */
+    private void discardDuplicates()
+    {
+        WbpsaScorer scorer = new DefaultWbpsaScorer(null);
+        int nbDuplicates = 0;
+
+
+        for (int size = SIZE_MAX; size >= SIZE_MIN; size--)
+        {
+            Set<WbpSource> skipWbpSources = new HashSet<>();       // Avoid checking twice a given WbpSource pair      
+
+            for (var wbpSource : getWbpSources(size).toArray(WbpSource[]::new))
+            {
+                var sp = wbpSource.getSizedPhrase();
+                var scs = wbpSource.getSimpleChordSequence();
+                if (skipWbpSources.contains(wbpSource))
+                {
+                    continue;
+                }
+                skipWbpSources.add(wbpSource);
+
+
+                for (var rpWbpSource : getWbpSources(scs.getRootProfile()))
+                {
+                    if (skipWbpSources.contains(rpWbpSource))
+                    {
+                        continue;
+                    }
+                    var wbpsa = new WbpSourceAdaptation(rpWbpSource, scs);
+                    var score = scorer.computeCompatibilityScore(wbpsa, null);
+                    var spRp = rpWbpSource.getSizedPhrase();
+                    if (score.compareTo(WbpsaScorer.SCORE_ZERO) > 0 && sp.equalsAsIntervals(spRp, 0.15f))
+                    {
+                        // It's a duplicate, save it aside and remove it
+                        nbDuplicates++;
+                        mmapDuplicates.put(wbpSource, rpWbpSource);
+                        removeWbpSourceImpl(rpWbpSource);
+                        skipWbpSources.add(rpWbpSource);
+//                        LOGGER.log(Level.WARNING, "discardDuplicates() {0} ## {1}   p1={2}   p2={3}", new Object[]
+//                        {
+//                            wbpSource.getId(), rpWbpSource.getId(), sp.toStringSimple(false), spRp.toStringSimple(false)
+//                        });
+                    }
+                }
+            }
+        }
+
+        LOGGER.log(Level.INFO, "discardDuplicates() removed {0} duplicates", nbDuplicates);
+    }
+
     /**
      * Retrieve WbpSession objects from a Midi resource file for the specified TimeSignature.
      * <p>
@@ -481,11 +550,36 @@ public class WbpDatabase
         return cSeq;
     }
 
-    private ChordType simplifyChordType(ChordType ct)
+    private ChordType getSimplified(ChordType ct)
     {
         return ct.getSimplified(4);
     }
 
+    private void addWbpSourceImpl(WbpSource wbpSource)
+    {
+        var old = mapIdWbpSource.put(wbpSource.getId(), wbpSource);
+        if (old != null)
+        {
+            throw new IllegalStateException("Duplicate WbpSource.id found: wbpSource=" + wbpSource + " old=" + old);
+        }
+        mmapSizeWbpSources.put(wbpSource.getBarRange().size(), wbpSource);
+        if (wbpSource.getBarRange().size() == 1)
+        {
+            var ct = getSimplified(wbpSource.getSimpleChordSequence().first().getData().getChordType());
+            mmapSimplifiedChordTypeOneBarWbpSource.put(ct, wbpSource);
+        }
+    }
+
+    private void removeWbpSourceImpl(WbpSource wbpSource)
+    {
+        mapIdWbpSource.remove(wbpSource.getId());
+        mmapSizeWbpSources.remove(wbpSource.getBarRange().size(), wbpSource);
+        if (wbpSource.getBarRange().size() == 1)
+        {
+            var ct = getSimplified(wbpSource.getSimpleChordSequence().first().getData().getChordType());
+            mmapSimplifiedChordTypeOneBarWbpSource.remove(ct, wbpSource);
+        }
+    }
 
     // ==========================================================================================================
     // Inner classes

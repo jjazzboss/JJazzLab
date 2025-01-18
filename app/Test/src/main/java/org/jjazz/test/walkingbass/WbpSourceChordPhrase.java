@@ -43,7 +43,6 @@ import static org.jjazz.harmony.api.Degree.SEVENTH;
 import static org.jjazz.harmony.api.Degree.SEVENTH_FLAT;
 import static org.jjazz.harmony.api.Degree.SIXTH_OR_THIRTEENTH;
 import static org.jjazz.harmony.api.Degree.THIRTEENTH_FLAT;
-import org.jjazz.harmony.api.StandardScaleInstance;
 import org.jjazz.phrase.api.NoteEvent;
 
 /**
@@ -58,6 +57,7 @@ public class WbpSourceChordPhrase
      * +/- beat position tolerance when comparing notes (accomodate for unquantized notes)
      */
     public static final float NEAR_WINDOW = 0.15f;
+    public static final float GHOST_NOTE_MAX_DURATION = 0.35f;
     private final WbpSource wbpSource;
     private final CLI_ChordSymbol srcCliChordSymbol;
     private final ExtChordSymbol srcExtChordSymbol;
@@ -216,9 +216,9 @@ public class WbpSourceChordPhrase
     // =================================================================================================================
     // Private methods
     // =================================================================================================================    
-    private void removeNonSignificantNotes(List<NoteEvent> notes)
+    private void removeGhostNotes(List<NoteEvent> notes)
     {
-        notes.removeIf(ne -> ne.getDurationInBeats() <= NEAR_WINDOW);    // Remove very short notes
+        notes.removeIf(ne -> ne.getDurationInBeats() <= GHOST_NOTE_MAX_DURATION);    
     }
 
     /**
@@ -234,7 +234,7 @@ public class WbpSourceChordPhrase
         csBeatRange = csBeatRange.getTransformed(-fromOffset, -toOffset);     // phrase can be non-quantized
 
         var res = new ArrayList<>(wbpSource.getSizedPhrase().subSet(csBeatRange, true));
-        removeNonSignificantNotes(res);
+        removeGhostNotes(res);
 
         return res;
     }
@@ -418,7 +418,7 @@ public class WbpSourceChordPhrase
         if (stdScaleInstance != null)
         {
             List<NoteEvent> notesClean = new ArrayList<>(notes);
-            removeNonSignificantNotes(notesClean);
+            removeGhostNotes(notesClean);
 
             // We need to transpose notes to targetExtChordSymbol root
             int t = srcExtChordSymbol.getRootNote().getRelativeAscInterval(targetExtChordSymbol.getRootNote());

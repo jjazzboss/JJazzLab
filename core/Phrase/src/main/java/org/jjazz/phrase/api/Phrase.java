@@ -201,30 +201,27 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
         boolean b = false;
         if (p.size() == size())
         {
-            if (p.size() <= 1)
+            b = true;
+            NoteEvent lastNe = null, lastPNe = null;
+            var pIt = p.iterator();
+            for (var ne : this)
             {
-                b = true;
-            } else
-            {
-                b = true;
-                NoteEvent lastNe = null, lastPNe = null;
-                var pIt = p.iterator();
-                for (var ne : this)
+                var pNe = pIt.next();
+                if (lastNe != null)
                 {
-                    var pNe = pIt.next();
-                    if (!ne.equalsAsNoteNearPosition(pNe, nearWindow))
+                    if (!ne.isNear(pNe.getPositionInBeats(), nearWindow))
                     {
                         b = false;
                         break;
                     }
-                    if (lastNe != null && (ne.getPitch() - lastNe.getPitch()) != (pNe.getPitch() - lastPNe.getPitch()))
+                    if ((ne.getPitch() - lastNe.getPitch()) != (pNe.getPitch() - lastPNe.getPitch()))
                     {
                         b = false;
                         break;
                     }
-                    lastNe = ne;
-                    lastPNe = pNe;
                 }
+                lastNe = ne;
+                lastPNe = pNe;
             }
         }
 

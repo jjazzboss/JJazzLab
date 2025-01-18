@@ -2,12 +2,9 @@
 * Programmatically add embellishments like p15 (for 2 feel), p28 of Constructig-walking-pdf...
 * Handle slow / medium / fast tempo
 * Handle pedal notes in walking or 1 out of 2
-* For WbpSources selection, take into account:
-    - chord symbol scales (eg avoid selecting 9th using pattern for a Gm7 in Eb key)
 * Generate alternate phrases from DB: especially for simple chords that can cover complex chords, alter notes to match a chord symbol, try symetric patterns, reuse groove
 * Try to automatically assign a chord scale to chords (DB and song)
 * Handle case of no WbpSource for 2 chords per bar.
 * Handle case where tiling not complete after 1 pass: 
-* Handle case where non-standard nb of chords in a bar,
-* Database: detect identical patterns for same chord suite (_Downes-P114-giantsteps#fr=13#sz=2 and fr=7)
+* Handle case where non-standard nb of chords in a bar
 * Database: harmonize phrases velocity

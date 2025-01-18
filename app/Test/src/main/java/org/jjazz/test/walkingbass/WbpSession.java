@@ -2,16 +2,11 @@ package org.jjazz.test.walkingbass;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.chordleadsheet.api.item.CLI_Factory;
-import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
-import org.jjazz.harmony.api.ChordSymbol;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.Phrases;
 import org.jjazz.phrase.api.SizedPhrase;
@@ -32,7 +27,7 @@ public class WbpSession extends Wbp
 
     private final String id;
     private final List<String> tags;
-    private static final Logger LOGGER = Logger.getLogger(WbpDatabase.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(WbpSession.class.getSimpleName());
 
     public WbpSession(String id, List<String> tags, SimpleChordSequence cSeq, SizedPhrase phrase, Note targetNote)
     {
@@ -155,27 +150,7 @@ public class WbpSession extends Wbp
             targetNote = nextBarNotes.get(0);
         }
 
-
         var wbpSource = new WbpSource(this, barOffset, cSeq, sp, firstNoteBeatShift, targetNote);
-        var origCSeq = cSeq.clone();
-        wbpSource.setOriginalChordSequence(origCSeq);
-
-
-        //  We need to simplify the chord symbols as much as possible so that the source phrase can be reused for more chord symbols.
-        for (var cliCs : origCSeq)
-        {
-            var newCliCs = new WbpSourceChordPhrase(wbpSource, cliCs).getSimplifiedSourceChordSymbol();
-            if (newCliCs != cliCs)
-            {
-                LOGGER.log(Level.SEVERE, "getWbpSource() wbpSourceId={0}, simplified cliCs={1} to {2}. p={3}", new Object[]
-                {
-                    wbpSource.getId(), cliCs, newCliCs, sp.toStringSimple(true)
-                });
-                cSeq.remove(cliCs);
-                cSeq.add(newCliCs);
-            }
-        }
-
 
         return wbpSource;
     }

@@ -39,6 +39,10 @@ public class DefaultWbpsaScorer implements WbpsaScorer
 
     private final PhraseAdapter wbpSourceAdapter;
 
+    /**
+     *
+     * @param sourceAdapter If null target notes match score can not be computed
+     */
     public DefaultWbpsaScorer(PhraseAdapter sourceAdapter)
     {
         this.wbpSourceAdapter = sourceAdapter;
@@ -59,7 +63,7 @@ public class DefaultWbpsaScorer implements WbpsaScorer
 
         var res = new Score(ctScore, trScore, preTargetNoteScore, postTargetNoteScore);
         wbpsa.setCompatibilityScore(res);
-        
+
         return res;
 
     }

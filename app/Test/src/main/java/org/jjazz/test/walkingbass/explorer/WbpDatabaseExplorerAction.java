@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.SwingUtilities;
 import org.jjazz.test.walkingbass.WbpDatabase;
 import org.jjazz.test.walkingbass.WbpSource;
 import org.openide.awt.ActionID;
@@ -55,9 +56,13 @@ public final class WbpDatabaseExplorerAction implements ActionListener
     public void actionPerformed(ActionEvent ae)
     {
         LOGGER.log(Level.INFO, "DumpWbpDatabaseAction.actionPerformed() --");
-        
-        var dlg = new WbpDatabaseExplorerDialog(false);
-        dlg.setVisible(true);
+
+        SwingUtilities.invokeLater(() -> 
+        {
+            var dlg = new WbpDatabaseExplorerDialog(false);
+            dlg.setVisible(true);
+        });
+
     }
 
     private void dumpWbpSourcesPerRootProfile()

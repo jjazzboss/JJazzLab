@@ -4,9 +4,9 @@ import static com.google.common.base.Preconditions.checkArgument;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.harmony.api.Chord;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.phrase.api.Phrase;
@@ -17,7 +17,8 @@ import org.jjazz.utilities.api.IntRange;
 /**
  * A 1, 2 or 4-bar source bass phrase, extracted from a WbpSession.
  * <p>
- * Manage the fact that some live-played phrases can actually start a bit before the theorical start of the SizedPhrase.
+ * Manage the fact that some live-played phrases can actually start a bit before the theorical start of the SizedPhrase. When possible chord symbols are
+ * simplified depending on the phrase notes.
  */
 public class WbpSource extends Wbp
 {
@@ -30,7 +31,8 @@ public class WbpSource extends Wbp
     private final float firstNoteBeatShift;
     private final List<String> tags;
     private final String rootProfile;
-    private SimpleChordSequence originalChordSequence;
+    private final SimpleChordSequence originalChordSequence;
+
 
     private record TransposibilityResult(int score, int transpose)
             {
@@ -46,8 +48,7 @@ public class WbpSource extends Wbp
      *
      * @param session            The session from which this source phrase comes.
      * @param sessionBarFrom     The bar index in the session phrase from which this source phrase comes
-     * @param cSeq               Must start at bar 0. If cSeq was simplified so that chord symbols fit the phrase notes, use setOriginalChordSequence() to store
-     *                           the original one.
+     * @param cSeq               Must start at bar 0. Chord simplification will be applied on the passed SimpleChordSequence?
      * @param phrase             Size must be between 1 and 4 bars, must start at beat 0
      * @param firstNoteBeatShift A 0 or negative beat value. A phrase note starting at 0 should be shifted with this value.
      * @param targetNote
@@ -58,36 +59,30 @@ public class WbpSource extends Wbp
         super(cSeq, phrase, targetNote);
         checkArgument(phrase.getSizeInBars() >= 1 && phrase.getSizeInBars() <= 4, "phrase=%s", phrase);
         checkArgument(firstNoteBeatShift <= 0, "firstNoteBeatShift=%s", firstNoteBeatShift);
+
+        this.originalChordSequence = cSeq.clone();
         this.sessionId = session.getId();
         this.id = sessionId + "#fr=" + sessionBarFrom + "#sz=" + phrase.getSizeInBars();
         this.sessionBarOffset = sessionBarFrom;
         this.tags = session.getTags();
         this.firstNoteBeatShift = firstNoteBeatShift;
         this.rootProfile = cSeq.getRootProfile();
-        mapDestChordRootTransposibility = new HashMap<>();
+        this.mapDestChordRootTransposibility = new HashMap<>();
+
     }
 
+   
     /**
-     * The original chord sequence before it was possibly simplified to fit the phrase notes.
+     * A chord sequence copy of the SimpleChordSequence submitted in the constructor.
+     * <p>
      *
-     * @return Might be null if not set
-     * @see #setOriginalChordSequence(org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence)
+     * @return @see #getSimpleChordSequence()
+     * @see #simplifyChordSymbols()
      */
     public SimpleChordSequence getOriginalChordSequence()
     {
         return originalChordSequence;
     }
-
-    /**
-     * @param originalChordSequence Can't be null
-     * @see #getOriginalChordSequence()
-     */
-    public void setOriginalChordSequence(SimpleChordSequence originalChordSequence)
-    {
-        Objects.requireNonNull(originalChordSequence);
-        this.originalChordSequence = originalChordSequence;
-    }
-
 
     /**
      * If &lt; 0 the phrase notes starting on bar/beat 0 should be shifted with this value.
@@ -131,6 +126,40 @@ public class WbpSource extends Wbp
     public String getRootProfile()
     {
         return rootProfile;
+    }
+
+    /**
+     * Simplify the chord symbols of the chord sequence so that this source phrase can be reused for a maximum of derivative chord symbols.
+     *
+     * @return True if the SimpleChordSequence was modified as a result
+     * @see WbpSourceChordPhrase#getSimplifiedSourceChordSymbol()
+     */
+    public boolean simplifyChordSymbols()
+    {
+        boolean b = false;
+
+        var scs = getSimpleChordSequence();
+//        LOGGER.log(Level.SEVERE, "simplifyChordSequence() {0}  {1}  p={2}:", new Object[]
+//        {
+//            getId(), scs.toString(), getSizedPhrase().toStringSimple(true)
+//        });
+
+        for (var cliCs : scs.toArray(CLI_ChordSymbol[]::new))
+        {
+            var newCliCs = new WbpSourceChordPhrase(this, cliCs).getSimplifiedSourceChordSymbol();
+            if (newCliCs != cliCs)
+            {
+                scs.remove(cliCs);
+                scs.add(newCliCs);
+                b = true;
+//                LOGGER.log(Level.SEVERE, "  cliCs={0} => {1}", new Object[]
+//                {
+//                    cliCs.toString(), newCliCs.getData().toString()
+//                });                
+            }
+        }
+
+        return b;
     }
 
 
@@ -342,5 +371,4 @@ public class WbpSource extends Wbp
     // Private methods
     // =================================================================================================================    
 
- 
 }

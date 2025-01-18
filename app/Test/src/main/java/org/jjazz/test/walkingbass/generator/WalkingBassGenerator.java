@@ -1,7 +1,6 @@
 package org.jjazz.test.walkingbass.generator;
 
 import org.jjazz.test.walkingbass.tiler.TilerMaxDistance;
-import org.jjazz.test.walkingbass.tiler.TilerOneOutOfX;
 import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.Collections;
