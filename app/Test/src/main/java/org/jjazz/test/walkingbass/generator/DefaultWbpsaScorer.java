@@ -88,7 +88,8 @@ public class DefaultWbpsaScorer implements WbpsaScorer
         if (tiling != null && wbpSourceAdapter != null
                 && tiling.getBarRange().contains(prevBar) && (prevWbpsa = tiling.getWbpSourceAdaptation(prevBar)) != null)
         {
-            int firstNotePitch = wbpSourceAdapter.getPhrase(wbpsa, false).first().getPitch();
+
+            int firstNotePitch = wbpSourceAdapter.getPhrase(wbpsa).first().getPitch();
             int targetNotePitch = wbpSourceAdapter.getTargetNote(prevWbpsa).getPitch();
             res = targetNotePitch == firstNotePitch ? 100f : 0;
         }
@@ -111,7 +112,7 @@ public class DefaultWbpsaScorer implements WbpsaScorer
         if (tiling != null && wbpSourceAdapter != null
                 && tiling.getBarRange().contains(nextBar) && (nextWbpsa = tiling.getWbpSourceAdaptation(nextBar)) != null)
         {
-            int firstNotePitch = wbpSourceAdapter.getPhrase(nextWbpsa, false).first().getPitch();
+            int firstNotePitch = wbpSourceAdapter.getPhrase(nextWbpsa).first().getPitch();
             int targetNotePitch = wbpSourceAdapter.getTargetNote(wbpsa).getPitch();
             res = targetNotePitch == firstNotePitch ? 100f : 0;
         }

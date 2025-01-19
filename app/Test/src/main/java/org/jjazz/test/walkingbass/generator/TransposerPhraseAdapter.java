@@ -24,30 +24,53 @@
  */
 package org.jjazz.test.walkingbass.generator;
 
-import org.jjazz.test.walkingbass.generator.PhraseAdapter;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.phrase.api.Phrase;
-import org.jjazz.test.walkingbass.generator.WbpSourceAdaptation;
+import org.jjazz.test.walkingbass.WbpSession;
 
 /**
  * Just transpose the WbpSource phrase so that the 2 first chord roots match.
+ * <p>
+ * Manage possible WbpSource first note beat shift.
  */
 public class TransposerPhraseAdapter implements PhraseAdapter
 {
 
     @Override
-    public Phrase getPhrase(WbpSourceAdaptation wbpsa, boolean offsetStart)
+    public Phrase getPhrase(WbpSourceAdaptation wbpsa)
     {
+        Phrase res;
+
         var wbpSource = wbpsa.getWbpSource();
         var scs = wbpsa.getSimpleChordSequence();
-
         var firstRootNote = scs.first().getData().getRootNote();
-        var p = wbpSource.getTransposedPhrase(firstRootNote);
-        if (offsetStart)
+        float startPos = scs.getBarRange().from * scs.getTimeSignature().getNbNaturalBeats();
+
+
+        // Adapt to target chord symbol
+        var sp = wbpSource.getTransposedPhrase(firstRootNote);      // Starts at beat 0        
+        sp.shiftAllEvents(startPos);
+
+
+        if (startPos >= WbpSession.FIRST_NOTE_BEAT_WINDOW && wbpSource.getFirstNoteBeatShift() < 0)
         {
-            p.shiftAllEvents(scs.getBarRange().from * scs.getTimeSignature().getNbNaturalBeats());
+            // Restore first note position whose start was anticipated (because non-quantized playing)
+            var firstNe = sp.first();
+            var firstBeatPos = firstNe.getPositionInBeats();
+            assert firstBeatPos == startPos : "firstNe=" + firstNe + " startPos=" + startPos + " sp=" + sp;
+            var fixedFirstNe = firstNe.setPosition(firstBeatPos + wbpSource.getFirstNoteBeatShift(), true);
+            res = new Phrase(0);        // We need a new phrase because sp is SizedPhrase with fixed beat range
+            res.add(fixedFirstNe);
+            sp.stream()
+                    .filter(ne -> ne != firstNe)
+                    .forEach(ne -> res.add(ne));
+
+        } else
+        {
+            res = sp;
         }
-        return p;
+        
+        return res;
     }
 
     @Override

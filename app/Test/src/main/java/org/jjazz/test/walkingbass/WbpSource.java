@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.harmony.api.Chord;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SizedPhrase;
@@ -95,8 +94,7 @@ public class WbpSource extends Wbp
     {
         return firstNoteBeatShift;
     }
-
-
+    
     public String getSessionId()
     {
         return sessionId;
@@ -321,32 +319,6 @@ public class WbpSource extends Wbp
         return res;
     }
 
-
-    /**
-     * Check if the first note of the phrase corresponds to the root of the first chord.
-     *
-     * @return
-     */
-    public boolean isFirstNoteChordRoot()
-    {
-        var rootNote = getSimpleChordSequence().first().getData().getRootNote();
-        boolean b = getSizedPhrase().first().equalsRelativePitch(rootNote);
-        return b;
-    }
-
-
-    /**
-     * Check if the last note of the phrase is a chord tone.
-     *
-     * @return
-     */
-    public boolean isLastNoteChordTone()
-    {
-        Chord lastChord = getSimpleChordSequence().last().getData().getChord();
-        int lastRelPitch = getSizedPhrase().last().getRelativePitch();
-        boolean b = lastChord.indexOfRelativePitch(lastRelPitch) != -1;
-        return b;
-    }
 
     public boolean hasTag(String tag)
     {

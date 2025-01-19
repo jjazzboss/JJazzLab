@@ -199,10 +199,10 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
         // Paint background and line border ourselves with our own variables (avoids useless calls to repaint() by setBackground() and setBorder())
         g2.setColor(noteColor);
         g2.fillRect(0, 0, getWidth(), getHeight());
-        
+
         // g2.setStroke(new BasicStroke(0.7f));                
         // g2.setColor(noteBorderColor);
-        noteBorder.paintBorder(this, g, 0, 0, getWidth(), getHeight());        
+        noteBorder.paintBorder(this, g, 0, 0, getWidth(), getHeight());
         // g2.drawRect(0, 0, getWidth() - 1, getHeight() - 1);
 
 
@@ -286,7 +286,7 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
     // ==============================================================================================================
     // Private methods
     // ==============================================================================================================
-        
+
     /**
      * Update graphics state.
      *
@@ -296,9 +296,10 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
     {
         noteColor = selected ? noteColorManager.getSelectedNoteColor(noteEvent.getVelocity()) : noteColorManager.getNoteColor(noteEvent.getVelocity());
         var borderColor = !selected ? HSLColor.changeLuminance(noteColor, -12) : Color.BLACK;
-        noteBorder = (LineBorder)BorderFactory.createLineBorder(borderColor, 1);
+        noteBorder = (LineBorder) BorderFactory.createLineBorder(borderColor, 1);
         noteAsString = new Note(noteEvent.getPitch()).toPianoOctaveString();
-        String tt = noteAsString + " (" + noteEvent.getPitch() + ") v=" + noteEvent.getVelocity();
+        String tt = String.format("%s (%d) vel=%d pos=%.3f dur=%.3f",
+                noteAsString, noteEvent.getPitch(), noteEvent.getVelocity(), noteEvent.getPositionInBeats(), noteEvent.getDurationInBeats());
         if (!extraTooltip.isBlank())
         {
             tt += ". " + extraTooltip;

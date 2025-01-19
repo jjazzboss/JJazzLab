@@ -662,30 +662,6 @@ public class Phrases
     }
 
     /**
-     * Produce a String which represents a phrase for note comparison purposes.
-     * <p>
-     * Notes position and duration use max 3 digits after the radix point.
-     *
-     * @param p
-     * @param qPos The quantization to apply on the position for the comparison
-     * @param qDur The quantization to apply on the duration for the comparison. If null duration is ignored (all notes will be 1-beat)
-     * @return A suite of notes [pitch;beatPosition;beatDuration], e.g. "[60;1.25;1] [62;2;1.236] [70;4;0.37]"
-     */
-    static public String getNoteComparisonString(Phrase p, Quantization qPos, Quantization qDur)
-    {
-        StringJoiner sj = new StringJoiner(" ");
-        for (var ne : p)
-        {
-            float dur = qDur == null ? 1 : Quantizer.getQuantized(qDur, ne.getDurationInBeats());
-            float pos = Quantizer.getQuantized(qPos, ne.getPositionInBeats());
-            DecimalFormat df = new DecimalFormat("#.###");
-            var s = String.format("[%d;%s;%s]", ne.getPitch(), df.format(pos), df.format(dur));
-            sj.add(s);
-        }
-        return sj.toString();
-    }
-
-    /**
      * Change the octave of phrase notes whose pitch is above highLimit or below lowLimit.
      * <p>
      *

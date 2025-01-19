@@ -25,39 +25,43 @@
 package org.jjazz.test.walkingbass.explorer;
 
 import java.awt.event.ActionEvent;
-import javax.swing.AbstractAction;
-import org.jjazz.quantizer.api.Quantization;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jjazz.test.walkingbass.WbpSource;
-import org.jjazz.test.walkingbass.WbpSources;
-import org.jjazz.utilities.api.Utilities;
+import javax.swing.AbstractAction;
+import org.jjazz.test.walkingbass.generator.WbpSourceAdaptation;
 
 /**
  *
  * @author Jerome
  */
-class FindDuplicatesAction extends AbstractAction
+class DumpWbpSourceAction extends AbstractAction
 {
 
     WbpDatabaseExplorerDialog dialog;
-    private static final Logger LOGGER = Logger.getLogger(FindDuplicatesAction.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(DumpWbpSourceAction.class.getSimpleName());
 
-    public FindDuplicatesAction(WbpDatabaseExplorerDialog dlg)
+    public DumpWbpSourceAction(WbpDatabaseExplorerDialog dlg)
     {
-        super("Find Duplicate Phrases");
+        super("Dump WbpSources");
         this.dialog = dlg;
     }
 
     @Override
     public void actionPerformed(ActionEvent ae)
     {
-        LOGGER.info("\n### Find duplicates:");
-        List<WbpSource> wbpSources = dialog.getSelectedWbpSourceAdaptations().stream()
-                .map(wbpsa -> wbpsa.getWbpSource())
-                .toList();
-        List<List<WbpSource>> res = WbpSources.findDuplicates(wbpSources, Quantization.ONE_THIRD_BEAT);
-        res.forEach(wbpsList -> LOGGER.info(Utilities.toMultilineString(wbpsList)));
+        LOGGER.info("\n### DumpWbpSources");
+
+        List<WbpSourceAdaptation> wbpsas = dialog.getSelectedWbpSourceAdaptations();
+
+        for (var wbpsa : wbpsas)
+        {
+            var ws = wbpsa.getWbpSource();
+            LOGGER.log(Level.INFO, "{0}", new Object[]
+            {
+                ws.toLongString()
+            });
+        }
     }
 
 }

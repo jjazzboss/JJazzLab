@@ -25,6 +25,7 @@ import org.jjazz.utilities.api.IntRange;
 public class WbpSession extends Wbp
 {
 
+    public static float FIRST_NOTE_BEAT_WINDOW = 0.15f;
     private final String id;
     private final List<String> tags;
     private static final Logger LOGGER = Logger.getLogger(WbpSession.class.getSimpleName());
@@ -75,8 +76,8 @@ public class WbpSession extends Wbp
             for (int bar = 0; bar < sessionSizeInBars - srcSize + 1; bar++)
             {
                 WbpSource wbpSource = getWbpSource(bar, srcSize);
-                boolean bFirst = !disallowNonRootStartNote || wbpSource.isFirstNoteChordRoot();
-                boolean bLast = !disallowNonChordToneLastNote || wbpSource.isLastNoteChordTone();
+                boolean bFirst = !disallowNonRootStartNote || wbpSource.startsOnChordRoot();
+                boolean bLast = !disallowNonChordToneLastNote || wbpSource.endsOnChordTone();
                 if (bFirst && bLast)
                 {
                     res.add(wbpSource);
@@ -104,9 +105,8 @@ public class WbpSession extends Wbp
 
 
         // Get the notes
-        float beatWindow = 0.1f;
         FloatRange beatRange = new FloatRange(barOffset * ts.getNbNaturalBeats(), (barOffset + nbBars) * ts.getNbNaturalBeats());
-        Phrase p = Phrases.getSlice(sessionPhrase, beatRange, true, 1, beatWindow);
+        Phrase p = Phrases.getSlice(sessionPhrase, beatRange, true, 1, FIRST_NOTE_BEAT_WINDOW);
         p.shiftAllEvents(-beatRange.from);
         SizedPhrase sp = new SizedPhrase(sessionPhrase.getChannel(), beatRange.getTransformed(-beatRange.from), sessionPhrase.getTimeSignature(), false);
         sp.addAll(p);
@@ -114,9 +114,9 @@ public class WbpSession extends Wbp
 
         // Get possible firstNoteBeatShift
         float firstNoteBeatShift = 0;       // By default
-        if (beatRange.from - beatWindow >= 0)
+        if (beatRange.from - FIRST_NOTE_BEAT_WINDOW >= 0)
         {
-            p = Phrases.getSlice(sessionPhrase, new FloatRange(beatRange.from - beatWindow, beatRange.from), false, 1, 0);
+            p = Phrases.getSlice(sessionPhrase, new FloatRange(beatRange.from - FIRST_NOTE_BEAT_WINDOW, beatRange.from), false, 1, 0);
             if (!p.isEmpty())
             {
                 var neLast = p.last();

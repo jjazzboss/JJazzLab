@@ -223,9 +223,9 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
 
 
         JPopupMenu pMenu = new JPopupMenu();
-        pMenu.add(new JMenuItem(new FindDuplicatesAction(this)));
         pMenu.add(new JMenuItem(new PrintPhrasesAction(this)));
         pMenu.add(new JMenuItem(new EvaluateScoreAction(this)));
+        pMenu.add(new JMenuItem(new DumpWbpSourceAction(this)));
         tbl_wbpSources.setComponentPopupMenu(pMenu);
 
     }

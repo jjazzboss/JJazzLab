@@ -25,7 +25,6 @@
 package org.jjazz.test.walkingbass.explorer;
 
 import java.awt.event.ActionEvent;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -33,7 +32,6 @@ import javax.swing.AbstractAction;
 import org.jjazz.test.walkingbass.generator.DefaultWbpsaScorer;
 import org.jjazz.test.walkingbass.generator.WbpSourceAdaptation;
 import org.jjazz.test.walkingbass.generator.WbpsaScorer;
-import org.jjazz.utilities.api.Utilities;
 
 /**
  *

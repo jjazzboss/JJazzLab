@@ -6,7 +6,7 @@ import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.utilities.api.FloatRange;
 
 /**
- * Statisticss of a WalkingBassPhrase.
+ * Statistics of a WalkingBassPhrase.
  */
 public class WbpStats
 {

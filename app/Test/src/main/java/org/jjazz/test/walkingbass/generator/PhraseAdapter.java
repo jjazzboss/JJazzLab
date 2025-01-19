@@ -26,7 +26,6 @@ package org.jjazz.test.walkingbass.generator;
 
 import org.jjazz.harmony.api.Note;
 import org.jjazz.phrase.api.Phrase;
-import org.jjazz.test.walkingbass.generator.WbpSourceAdaptation;
 
 /**
  * Get the resulting phrase from a WbpSourceAdaptation.
@@ -36,12 +35,13 @@ public interface PhraseAdapter
 
     /**
      * Get the resulting phrase from wbpsa.
+     * <p>
+     * NOTE: first note position might be slightly before wbpsa start bar if WbpSource.getFirstNoteBeatShift() is &lt; 0.
      *
-     * @param wbpsa       The source phrase to adapt
-     * @param offsetStart If false returned phrase starts at bar 0, otherwise at bar scs.getBarRange().from
+     * @param wbpsa The source phrase context
      * @return
      */
-    Phrase getPhrase(WbpSourceAdaptation wbpsa, boolean offsetStart);
+    Phrase getPhrase(WbpSourceAdaptation wbpsa);
 
     /**
      * Get the resulting target note from wbpsa.

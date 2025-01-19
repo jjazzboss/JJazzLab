@@ -180,15 +180,17 @@ public class WalkingBassGenerator implements MusicGenerator
 
         Phrase res = new Phrase(0);             // channel useless here
 
+        
         var settings = WalkingBassGeneratorSettings.getInstance();
         WbpTiling tiling = new WbpTiling(scs);
         // var tiler = new TilerOneOutOfX(settings.getSingleWbpSourceMaxSongCoveragePercentage(), settings.getOneOutofX(), settings.getWbpsaStoreWidth());
         var tiler0 = new TilerBestFirstNoRepeat(settings.getWbpsaStoreWidth());
-        tiler0.tile(tiling);
+        tiler0.tile(tiling);        
         LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling pass 0 =\n{0}", tiling.toMultiLineString());        
         
+        
         var tiler1 = new TilerMaxDistance(settings.getWbpsaStoreWidth());
-        tiler1.tile(tiling);
+        tiler1.tile(tiling);        
         LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling pass 1 =\n{0}", tiling.toMultiLineString());        
         
         
@@ -199,16 +201,18 @@ public class WalkingBassGenerator implements MusicGenerator
             // return res;
         }
 
+        
         LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ===============   Tiling stats  scs.usableBars={0} \n{1}", new Object[]
         {
             scs.getUsableBars().size(),
             tiling.toStatsString()
         });
 
+        
         // Transpose WbpSources to target phrases
         for (var wbpsa : tiling.getWbpSourceAdaptations())
         {
-            var p = new TransposerPhraseAdapter().getPhrase(wbpsa, true);
+            var p = new TransposerPhraseAdapter().getPhrase(wbpsa);
             LOGGER.log(Level.FINE, "getBassPhrase() transposedPhrase={0}", p);
             res.add(p, false);
         }

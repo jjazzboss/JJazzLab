@@ -7,4 +7,5 @@
 * Handle case of no WbpSource for 2 chords per bar.
 * Handle case where tiling not complete after 1 pass: 
 * Handle case where non-standard nb of chords in a bar
+* Scorer: take into account start/end slopes matching
 * Database: harmonize phrases velocity

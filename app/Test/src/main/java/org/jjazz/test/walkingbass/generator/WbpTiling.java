@@ -387,7 +387,7 @@ public class WbpTiling
             var wbpsaStart = getWbpSourceAdaptationStartingAt(bar);
             if (wbpsaStart != null)
             {
-                s = wbpsaStart.toString();
+                s = wbpsaStart.toString() + " " + "note0BeatShift=" + wbpsaStart.getWbpSource().getFirstNoteBeatShift();
             } else if (getWbpSourceAdaptation(bar) != null)
             {
                 s = "  (repeat)";

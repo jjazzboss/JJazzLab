@@ -3,8 +3,11 @@ package org.jjazz.test.walkingbass;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.logging.Logger;
+import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.harmony.api.Chord;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.TimeSignature;
+import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.utilities.api.FloatRange;
@@ -35,12 +38,12 @@ public class Wbp
         checkNotNull(cSeq);
         checkNotNull(phrase);
         checkArgument(cSeq.getBarRange().size() == (int) Math.round(phrase.getBeatRange().size() / phrase.getTimeSignature().getNbNaturalBeats())
-            && phrase.getBeatRange().from == 0
-            && !phrase.isEmpty()
-            && cSeq.getBarRange().from == 0
-            && cSeq.hasChordAtBeginning()
-            && cSeq.getTimeSignature().equals(phrase.getTimeSignature()),
-            "cSeq=%s phrase=%s", cSeq, phrase);
+                && phrase.getBeatRange().from == 0
+                && !phrase.isEmpty()
+                && cSeq.getBarRange().from == 0
+                && cSeq.hasChordAtBeginning()
+                && cSeq.getTimeSignature().equals(phrase.getTimeSignature()),
+                "cSeq=%s phrase=%s", cSeq, phrase);
 
         this.chordSequence = cSeq;
         this.sizedPhrase = phrase;
@@ -66,20 +69,51 @@ public class Wbp
         return sizedPhrase;
     }
 
-    public Note getFirstNote()
+    public NoteEvent getFirstNote()
     {
         return sizedPhrase.first();
     }
 
-//    public boolean startsOnRoot()
-//    {
-//
-//    }
-//
-//    public boolean startOnFifth()
-//    {
-//
-//    }
+    public NoteEvent getLastNote()
+    {
+        return sizedPhrase.last();
+    }
+
+    public CLI_ChordSymbol getFirstChordSymbol()
+    {
+        return chordSequence.first();
+    }
+
+    public CLI_ChordSymbol getLastChordSymbol()
+    {
+        return chordSequence.last();
+    }
+
+    /**
+     * Check if the first note of the phrase corresponds to the root of the first chord.
+     *
+     * @return
+     */
+    public boolean startsOnChordRoot()
+    {
+        var rootNote = getFirstChordSymbol().getData().getRootNote();
+        boolean b = getFirstNote().equalsRelativePitch(rootNote);
+        return b;
+    }
+
+
+    /**
+     * Check if the last note of the phrase is a chord tone.
+     *
+     * @return
+     */
+    public boolean endsOnChordTone()
+    {
+        Chord lastChord = getLastChordSymbol().getData().getChord();
+        int lastRelPitch = getLastNote().getRelativePitch();
+        boolean b = lastChord.indexOfRelativePitch(lastRelPitch) != -1;
+        return b;
+    }
 
     /**
      * The most expected note to start the next phrase right after this phrase.
@@ -122,16 +156,16 @@ public class Wbp
     {
         final int NB_CHORDS_MAX = 4;
         return "rg=" + chordSequence.getBarRange() + " chords=" + chordSequence.stream().limit(NB_CHORDS_MAX).toList()
-            + (chordSequence.size() > NB_CHORDS_MAX ? "..." : "");
+                + (chordSequence.size() > NB_CHORDS_MAX ? "..." : "");
     }
 
     public String toLongString()
     {
         final int NB_NOTES_MAX = 5;
         return "cSeq=" + chordSequence
-            + " rp=" + chordSequence.getRootProfile()
-            + " rg=" + sizedPhrase.getBeatRange()
-            + " p=" + sizedPhrase.stream().limit(NB_NOTES_MAX).toList() + (sizedPhrase.size() > NB_NOTES_MAX ? "..." : "");
+                + " rp=" + chordSequence.getRootProfile()
+                + " rg=" + sizedPhrase.getBeatRange()
+                + " p=" + sizedPhrase.stream().limit(NB_NOTES_MAX).toList() + (sizedPhrase.size() > NB_NOTES_MAX ? "..." : "");
     }
 
 }
