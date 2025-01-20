@@ -298,7 +298,7 @@ public class NoteView extends JPanel implements PropertyChangeListener, Comparab
         var borderColor = !selected ? HSLColor.changeLuminance(noteColor, -12) : Color.BLACK;
         noteBorder = (LineBorder) BorderFactory.createLineBorder(borderColor, 1);
         noteAsString = new Note(noteEvent.getPitch()).toPianoOctaveString();
-        String tt = String.format("%s (%d) vel=%d pos=%.3f dur=%.3f",
+        String tt = String.format("%s (%d) vel=%d pos=%.2f dur=%.2f",
                 noteAsString, noteEvent.getPitch(), noteEvent.getVelocity(), noteEvent.getPositionInBeats(), noteEvent.getDurationInBeats());
         if (!extraTooltip.isBlank())
         {
