@@ -73,7 +73,6 @@ public class WbpDatabase
     private final ListMultimap<WbpSource, WbpSource> mmapDuplicates;
     private final Map<String, WbpSource> mapIdWbpSource;
     private final ListMultimap<ChordType, WbpSource> mmapSimplifiedChordTypeOneBarWbpSource;
-    private final Map<KeyablePredicate<?>, List<WbpSource>> mapFilterSources = new HashMap<>();
     private static final Logger LOGGER = Logger.getLogger(WbpDatabase.class.getSimpleName());
 
     public static WbpDatabase getInstance()
@@ -205,31 +204,15 @@ public class WbpDatabase
     /**
      * Get WbpSources which match the predicate.
      * <p>
-     * If tester is an instance of KeyablePredicate, then results are cached.
      *
      * @param tester
      * @return
      */
     public List<WbpSource> getWbpSources(Predicate<WbpSource> tester)
     {
-        if (tester instanceof KeyablePredicate dbTester)
-        {
-            var res = mapFilterSources.get(dbTester);
-            if (res != null)
-            {
-                return res;
-            }
-            res = mmapSizeWbpSources.values().stream()
-                    .filter(tester)
-                    .toList();
-            mapFilterSources.put(dbTester, res);
-            return res;
-        } else
-        {
-            return mmapSizeWbpSources.values().stream()
-                    .filter(tester)
-                    .toList();
-        }
+        return mmapSizeWbpSources.values().stream()
+                .filter(tester)
+                .toList();
     }
 
     /**
@@ -243,8 +226,7 @@ public class WbpDatabase
     public List<WbpSource> getWbpSources(String rootProfile)
     {
         Predicate<WbpSource> tester = wbps -> wbps.getRootProfile().equals(rootProfile);
-        var dbTester = new KeyablePredicate(rootProfile, tester);
-        return getWbpSources(dbTester);
+        return getWbpSources(tester);
     }
 
     /**
@@ -322,10 +304,10 @@ public class WbpDatabase
                         mmapDuplicates.put(wbpSource, rpWbpSource);
                         removeWbpSourceImpl(rpWbpSource);
                         skipWbpSources.add(rpWbpSource);
-//                        LOGGER.log(Level.WARNING, "discardDuplicates() {0} ## {1}   p1={2}   p2={3}", new Object[]
-//                        {
-//                            wbpSource.getId(), rpWbpSource.getId(), sp.toStringSimple(false), spRp.toStringSimple(false)
-//                        });
+                        LOGGER.log(Level.WARNING, "discardDuplicates() {0} ## {1}   p1={2}   p2={3}", new Object[]
+                        {
+                            wbpSource.getId(), rpWbpSource.getId(), sp.toStringSimple(false), spRp.toStringSimple(false)
+                        });
                     }
                 }
             }
@@ -562,8 +544,12 @@ public class WbpDatabase
         {
             throw new IllegalStateException("Duplicate WbpSource.id found: wbpSource=" + wbpSource + " old=" + old);
         }
-        mmapSizeWbpSources.put(wbpSource.getBarRange().size(), wbpSource);
-        if (wbpSource.getBarRange().size() == 1)
+        int nbBars = wbpSource.getBarRange().size();
+        if (!mmapSizeWbpSources.put(nbBars, wbpSource))
+        {
+            throw new IllegalStateException("Adding failed for " + wbpSource);
+        }
+        if (nbBars == 1)
         {
             var ct = getSimplified(wbpSource.getSimpleChordSequence().first().getData().getChordType());
             mmapSimplifiedChordTypeOneBarWbpSource.put(ct, wbpSource);
@@ -572,9 +558,17 @@ public class WbpDatabase
 
     private void removeWbpSourceImpl(WbpSource wbpSource)
     {
-        mapIdWbpSource.remove(wbpSource.getId());
-        mmapSizeWbpSources.remove(wbpSource.getBarRange().size(), wbpSource);
-        if (wbpSource.getBarRange().size() == 1)
+        var old = mapIdWbpSource.remove(wbpSource.getId());
+        if (old == null)
+        {
+            throw new IllegalStateException("Removing non-existing WbpSourceId=" + wbpSource.getId());
+        }
+        int nbBars = wbpSource.getBarRange().size();
+        if (!mmapSizeWbpSources.remove(nbBars, wbpSource))
+        {
+            throw new IllegalStateException("Removing non-existing WbpSource=" + wbpSource);
+        }
+        if (nbBars == 1)
         {
             var ct = getSimplified(wbpSource.getSimpleChordSequence().first().getData().getChordType());
             mmapSimplifiedChordTypeOneBarWbpSource.remove(ct, wbpSource);
@@ -584,60 +578,5 @@ public class WbpDatabase
     // ==========================================================================================================
     // Inner classes
     // ==========================================================================================================    
-    /**
-     * A special Predicate which can be used as key of a map, enabling results caching.
-     *
-     * @param <T>
-     * @see #getWbpSources(java.util.function.Predicate)
-     */
-    public static class KeyablePredicate<T> implements Predicate<T>
-    {
-
-        private final Predicate<T> tester;
-        private final String hashCode;
-
-        public KeyablePredicate(String hashCode, Predicate<T> tester)
-        {
-            checkNotNull(hashCode);
-            checkNotNull(tester);
-            this.tester = tester;
-            this.hashCode = hashCode;
-        }
-
-        @Override
-        public boolean test(T t)
-        {
-            return tester.test(t);
-        }
-
-        @Override
-        public int hashCode()
-        {
-            int hash = 7;
-            hash = 71 * hash + Objects.hashCode(this.hashCode);
-            return hash;
-        }
-
-        @Override
-        public boolean equals(Object obj)
-        {
-            if (this == obj)
-            {
-                return true;
-            }
-            if (obj == null)
-            {
-                return false;
-            }
-            if (getClass() != obj.getClass())
-            {
-                return false;
-            }
-            final KeyablePredicate<?> other = (KeyablePredicate<?>) obj;
-            return Objects.equals(this.hashCode, other.hashCode);
-        }
-
-
-    }
 
 }

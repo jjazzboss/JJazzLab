@@ -75,7 +75,7 @@ public class TilerBestFirstNoRepeat implements Tiler
         WbpsaStore store = new WbpsaStore(tiling, wbpsaStoreWidth, scorer, randomizeWithinOverallScoreWindow);
 
 
-        LOGGER.log(Level.SEVERE, "tile() store=\n{0}", store.toDebugString(true));
+        // LOGGER.log(Level.SEVERE, "tile() store=\n{0}", store.toDebugString(true));
 
 
         for (int size = WbpDatabase.SIZE_MAX; size >= WbpDatabase.SIZE_MIN; size--)

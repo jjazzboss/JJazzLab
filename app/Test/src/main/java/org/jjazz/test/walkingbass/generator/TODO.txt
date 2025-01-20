@@ -5,7 +5,9 @@
 * Generate alternate phrases from DB: especially for simple chords that can cover complex chords, alter notes to match a chord symbol, try symetric patterns, reuse groove
 * Try to automatically assign a chord scale to chords (DB and song)
 * Handle case of no WbpSource for 2 chords per bar.
+* Handle case where non-standard nb of chords/positions in a bar
 * Handle case where tiling not complete after 1 pass: 
-* Handle case where non-standard nb of chords in a bar
-* Scorer: take into account start/end slopes matching
-* Database: harmonize phrases velocity
+
+* Handle anticipated chords
+* Scorer: take into account start/end slopes matching ?
+* Database: harmonize phrases velocity ?
