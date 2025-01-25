@@ -69,7 +69,6 @@ import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhrase;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhraseValue;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Mute;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_TempoFactor;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.songcontext.api.SongPartContext;
@@ -81,7 +80,7 @@ import org.jjazz.utilities.api.IntRange;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.util.Exceptions;
 import org.jjazz.outputsynth.spi.OutputSynthManager;
-import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Fill;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Fill;
 
 /**
  * Methods to convert a Song into Phrases and Midi sequence.
@@ -562,14 +561,47 @@ public class SongSequenceBuilder
         // Handle the RP_SYS_DrumsTransform changes
         processDrumsTransforms(songContext, res);
 
-        // Handle muted instruments via the SongPart's RP_SYS_Mute parameter
-        processMutedInstruments(songContext, res);
-
         // Handle the NC chord symbols 
         processNoChords(songContext, res);
 
+        // Add the user track phrases
+        addUserTrackPhrases(res);
 
-        // Merge the phrases from delegate RhythmVoices to the source phrase, then remove the delegate phrases        
+        // Handle the RP_SYS_Mute parameter (user track phrases must be in res)
+        processMutedInstruments(songContext, res);
+
+        // Handle the AdaptedRhythm's RhythmVoiceDelegates
+        // IMPORTANT: after that res will NOT contain RhythmVoiceDelegates anymore
+        processAdaptedRhythms(res);
+
+        // Handle the RP_SYS_Fill with value fade_out
+        processFadeOut(songContext, res);
+
+        // Handle instrument settings which impact the phrases: transposition, velocity shift, ...
+        processInstrumentsSettings(songContext, res);
+
+        // Process drums rerouting
+        processDrumsRerouting(songContext, res);
+
+
+        // Shift phrases to start at position 0
+        for (Phrase p : res.values())
+        {
+            p.shiftAllEvents(-songContext.getBeatRange().from);
+        }
+
+
+        return res;
+    }
+
+    /**
+     * For each RhythmVoiceDelegate, merge its phrase into the source phrase, then remove RhythmVoiceDelegate.
+     *
+     * @param res
+     */
+    private void processAdaptedRhythms(Map<RhythmVoice, Phrase> res)
+    {
+
         for (var rv : res.keySet().toArray(RhythmVoice[]::new))
         {
             if (rv instanceof RhythmVoiceDelegate rvd)
@@ -584,20 +616,23 @@ public class SongSequenceBuilder
                     res.put(rvds, pDest);
                 }
 
-                // There should be no overlap of phrases since the delegate is from a different rhythm, so for different song parts 
+                // There should be no overlap of phrases since the delegate is from a different rhythm, so for different song parts
                 pDest.add(p);
 
                 // Remove the delegate phrase
                 res.remove(rvd);
             }
         }
+    }
 
-        // 
-        // From here no more SongPart-based processing allowed, since the phrases for SongParts using an AdaptedRhythm have 
-        // been merged into the tracks of its source rhythm.
-        // 
+    /**
+     * Add a phrase for each user track.
+     *
+     * @param res
+     */
+    private void addUserTrackPhrases(Map<RhythmVoice, Phrase> res)
+    {
 
-        // Add the user phrases
         var br = songContext.getBeatRange();
         for (String userPhraseName : songContext.getSong().getUserPhraseNames())
         {
@@ -605,42 +640,22 @@ public class SongSequenceBuilder
             assert urv != null : "userPhraseName=" + userPhraseName + " songContext.getMidiMix()=" + songContext.getMidiMix();
 
 
-            // Create the phrase on the right Midi channel
+            // Create the phrase 
             int channel = songContext.getMidiMix().getChannel(urv);
             Phrase p = new Phrase(channel, urv.isDrums());
             p.add(songContext.getSong().getUserPhrase(userPhraseName));
 
 
-            // Adapt the phrase to the current context
+            // Adapt to the current context
             p = Phrases.getSlice(p, br, false, 1, 0.1f);
 
-            LOGGER.log(Level.FINE, "buildMapRvPhrase() Adding user phrase for name={0} p={1}", new Object[]
+            LOGGER.log(Level.FINE, "addUserTrackPhrases() Adding user phrase for name={0} p={1}", new Object[]
             {
                 userPhraseName, p
             });
 
             res.put(urv, p);
         }
-
-
-        // Handle instrument settings which impact the phrases: transposition, velocity shift, ...
-        processInstrumentsSettings(songContext, res);
-
-        // Handle the RP_SYS_Fill with value fade_out
-        processFadeOut(songContext, res);
-
-
-        // Process the drums rerouting
-        processDrumsRerouting(songContext, res);
-
-
-        // Shift phrases to start at position 0
-        for (Phrase p : res.values())
-        {
-            p.shiftAllEvents(-songContext.getBeatRange().from);
-        }
-
-        return res;
     }
 
 
@@ -760,20 +775,20 @@ public class SongSequenceBuilder
             Set<String> muteValues = spt.getRPValue(rpMute);
             if (muteValues.isEmpty())
             {
-                // There is a MuteRp but nothing is muted, 
+                // There is a MuteRp but nothing is muted 
                 continue;
             }
 
 
             // At least one RhythmVoice/Track is muted
             FloatRange sptRange = context.getSptBeatRange(spt);
-            List<RhythmVoice> mutedRvs = RP_SYS_Mute.getMutedRhythmVoices(r, muteValues);
+            List<RhythmVoice> mutedRvs = RP_SYS_Mute.getMutedRhythmVoices(r, context.getMidiMix(), muteValues);
             for (RhythmVoice rv : mutedRvs)
             {
-                Phrase p = rvPhrases.get(rv);
+                var p = rvPhrases.get(rv);
                 if (p == null)
                 {
-                    LOGGER.log(Level.WARNING, "muteNotes() Unexpected null phase. rv={0} rvPhrases={1}", new Object[]
+                    LOGGER.log(Level.WARNING, "processMutedInstruments() Unexpected null phase. rv={0} rvPhrases={1}", new Object[]
                     {
                         rv, rvPhrases
                     });
@@ -972,8 +987,8 @@ public class SongSequenceBuilder
         {
             // Check Fill RhythmParameter + fade_out value
             Rhythm r = spt.getRhythm();
-            RP_STD_Fill rpFill = RP_STD_Fill.getFillRp(r);
-            if (rpFill == null || !spt.getRPValue(rpFill).equals(RP_STD_Fill.VALUE_FADE_OUT))
+            RP_SYS_Fill rpFill = RP_SYS_Fill.getFillRp(r);
+            if (rpFill == null || !spt.getRPValue(rpFill).equals(RP_SYS_Fill.VALUE_FADE_OUT))
             {
                 continue;
             }

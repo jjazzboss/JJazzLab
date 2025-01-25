@@ -98,6 +98,11 @@
             <artifactId>utilities</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.jjazzlab.core</groupId>
+            <artifactId>rhythmmusicgeneration</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <dependency> 
             <groupId>org.jjazzlab.core</groupId> 
             <artifactId>flatcomponents</artifactId> 

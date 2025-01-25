@@ -22,7 +22,7 @@ import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
-import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Variation;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhrase;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhraseValue;
 import org.jjazz.song.api.Song;
@@ -124,7 +124,7 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditor<RP_SYS_CustomPhras
         list_rhythmVoices.setSelectedIndex(index);
 
 
-        var rpVariation = RP_STD_Variation.getVariationRp(r);
+        var rpVariation = RP_SYS_Variation.getVariationRp(r);
         String strVariation = rpVariation == null ? "" : "/" + spt.getRPValue(rpVariation);
         lbl_phraseInfo.setText(r.getName() + strVariation);
 

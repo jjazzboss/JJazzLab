@@ -35,11 +35,11 @@ import org.jjazz.importers.api.ImprovisorFileReader;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmFeatures;
-import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Fill;
-import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Intensity;
-import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Variation;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Fill;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Intensity;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Marker;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Mute;
+import org.jjazz.rhythmmusicgeneration.api.RP_SYS_Mute;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.RhythmInfo;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
@@ -124,9 +124,9 @@ public class ImprovisorImporter implements SongImporter
             Exceptions.printStackTrace(ex);
         }
 
-        RP_STD_Variation rpVariation = RP_STD_Variation.getVariationRp(r);
-        RP_STD_Intensity rpIntensity = RP_STD_Intensity.getIntensityRp(r);
-        RP_STD_Fill rpFill = RP_STD_Fill.getFillRp(r);
+        RP_SYS_Variation rpVariation = RP_SYS_Variation.getVariationRp(r);
+        RP_SYS_Intensity rpIntensity = RP_SYS_Intensity.getIntensityRp(r);
+        RP_SYS_Fill rpFill = RP_SYS_Fill.getFillRp(r);
         RP_SYS_Mute rpMute = RP_SYS_Mute.getMuteRp(r);
         RP_SYS_Marker rpMarker = RP_SYS_Marker.getMarkerRp(r);
 

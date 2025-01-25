@@ -29,30 +29,30 @@ import org.jjazz.utilities.api.ResUtil;
 /**
  * Standard RhythmParameter: Intensity=[-10;+10]
  */
-public final class RP_STD_Intensity extends RP_Integer
+public final class RP_SYS_Intensity extends RP_Integer
 {
 
     public static String ID = "rpIntensityID";
 
-    public RP_STD_Intensity(boolean isPrimary)
+    public RP_SYS_Intensity(boolean isPrimary)
     {
-        super(ID, ResUtil.getString(RP_STD_Intensity.class, "CTL_RpIntensityName"), ResUtil.getString(RP_STD_Intensity.class, "CTL_RpIntensityDesc"),isPrimary,  0, -10, 10, 1);
+        super(ID, ResUtil.getString(RP_SYS_Intensity.class, "CTL_RpIntensityName"), ResUtil.getString(RP_SYS_Intensity.class, "CTL_RpIntensityDesc"),isPrimary,  0, -10, 10, 1);
     }
 
-    public RP_STD_Intensity(boolean isPrimary, int defaultVal, int minVal, int maxVal, int step)
+    public RP_SYS_Intensity(boolean isPrimary, int defaultVal, int minVal, int maxVal, int step)
     {
-        super(ID, ResUtil.getString(RP_STD_Intensity.class, "CTL_RpIntensityName"), ResUtil.getString(RP_STD_Intensity.class, "CTL_RpIntensityDesc"), isPrimary, defaultVal, minVal, maxVal, step);
+        super(ID, ResUtil.getString(RP_SYS_Intensity.class, "CTL_RpIntensityName"), ResUtil.getString(RP_SYS_Intensity.class, "CTL_RpIntensityDesc"), isPrimary, defaultVal, minVal, maxVal, step);
     }
 
-    static public RP_STD_Intensity getIntensityRp(Rhythm rhythm)
+    static public RP_SYS_Intensity getIntensityRp(Rhythm rhythm)
     {
         if (rhythm == null)
         {
             throw new NullPointerException("r");   
         }
-        return (RP_STD_Intensity) rhythm.getRhythmParameters()
+        return (RP_SYS_Intensity) rhythm.getRhythmParameters()
                 .stream()
-                .filter(r -> (r instanceof RP_STD_Intensity))
+                .filter(r -> (r instanceof RP_SYS_Intensity))
                 .findAny()
                 .orElse(null);
     }

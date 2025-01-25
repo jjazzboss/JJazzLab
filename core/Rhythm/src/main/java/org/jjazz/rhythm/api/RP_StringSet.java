@@ -40,7 +40,7 @@ import java.util.logging.Logger;
 public class RP_StringSet implements RhythmParameter<Set<String>>, RpEnumerable<Set<String>>, Cloneable
 {
     
-    public static final int MAX_SET_SIZE = 10;
+    public static final int MAX_SET_SIZE = 12;
     private final String id;
     private final String displayName;
     private final String description;

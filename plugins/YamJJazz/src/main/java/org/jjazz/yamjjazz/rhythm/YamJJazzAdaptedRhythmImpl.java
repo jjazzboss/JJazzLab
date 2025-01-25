@@ -44,13 +44,13 @@ import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.SourcePhrase;
 import org.jjazz.phrase.api.SourcePhraseSet;
 import org.jjazz.phrasetransform.api.rps.RP_SYS_DrumsTransform;
-import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Feel;
-import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Fill;
-import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Intensity;
-import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Variation;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Feel;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Fill;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Intensity;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhrase;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Marker;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Mute;
+import org.jjazz.rhythmmusicgeneration.api.RP_SYS_Mute;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_TempoFactor;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.utilities.api.ResUtil;
@@ -496,11 +496,11 @@ public class YamJJazzAdaptedRhythmImpl implements YamJJazzRhythm, AdaptedRhythm
         // Some RhythmParameters take a Rhythm as argument, can't directly reuse
         for (RhythmParameter<?> rp : yjr.getRhythmParameters())
         {
-            if (rp instanceof RP_STD_Variation
-                    || rp instanceof RP_STD_Variation
-                    || rp instanceof RP_STD_Feel
-                    || rp instanceof RP_STD_Intensity
-                    || rp instanceof RP_STD_Fill
+            if (rp instanceof RP_SYS_Variation
+                    || rp instanceof RP_SYS_Variation
+                    || rp instanceof RP_SYS_Feel
+                    || rp instanceof RP_SYS_Intensity
+                    || rp instanceof RP_SYS_Fill
                     || rp instanceof RP_SYS_Mute
                     || rp instanceof RP_SYS_Marker
                     || rp instanceof RP_SYS_TempoFactor)

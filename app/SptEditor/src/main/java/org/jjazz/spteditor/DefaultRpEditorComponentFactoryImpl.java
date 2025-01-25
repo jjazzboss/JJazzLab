@@ -29,7 +29,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.RP_Integer;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Mute;
+import org.jjazz.rhythmmusicgeneration.api.RP_SYS_Mute;
 import org.jjazz.rhythm.api.RP_State;
 import org.jjazz.rhythm.api.RP_StringSet;
 import org.jjazz.rhythm.api.RhythmParameter;

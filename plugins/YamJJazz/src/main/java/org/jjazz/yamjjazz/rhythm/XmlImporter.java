@@ -41,8 +41,8 @@ import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmFeatures;
 import org.jjazz.rhythm.api.TempoRange;
-import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Fill;
-import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Variation;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Fill;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.RhythmInfo;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
@@ -251,7 +251,7 @@ public class XmlImporter implements SongImporter
 
 
             // Update rhythm parameters
-            RP_STD_Variation rpVariation = RP_STD_Variation.getVariationRp(yjr0);
+            RP_SYS_Variation rpVariation = RP_SYS_Variation.getVariationRp(yjr0);
             if (rpVariation != null)
             {
                 if (i % 4 == 0)
@@ -269,7 +269,7 @@ public class XmlImporter implements SongImporter
                 }
             }
 
-            RP_STD_Fill rpFill = RP_STD_Fill.getFillRp(yjr0);
+            RP_SYS_Fill rpFill = RP_SYS_Fill.getFillRp(yjr0);
             if (rpFill != null && newSpt.getNbBars() > 3)
             {
                 sgs.setRhythmParameterValue(newSpt, rpFill, "always");
