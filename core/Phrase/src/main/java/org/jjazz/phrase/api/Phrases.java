@@ -28,19 +28,15 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
 import java.io.File;
 import java.io.IOException;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.IntSummaryStatistics;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.NavigableSet;
 import java.util.Set;
-import java.util.StringJoiner;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Level;
@@ -52,12 +48,8 @@ import javax.sound.midi.Sequence;
 import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Track;
 import org.jjazz.harmony.api.Chord;
-import org.jjazz.harmony.api.ChordSymbol;
-import org.jjazz.harmony.api.Degree;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
-import org.jjazz.quantizer.api.Quantization;
-import org.jjazz.quantizer.api.Quantizer;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.LongRange;
 import org.jjazz.utilities.api.ResUtil;
@@ -184,6 +176,79 @@ public class Phrases
         return p.stream().max(Comparator.comparing(NoteEvent::getVelocity)).orElse(null);
     }
 
+    /**
+     * Update spDest notes so that they match the position/duration/velocity of spSrc notes.
+     * <p>
+     * This is typically used to "unquantize" spDest using a spSrc phrase which corresponds to a real-time playing.
+     * <p>
+     *
+     * @param spSrc
+     * @param spDest         Start bar might be different than spSrc, but nb of bars must be the same
+     * @param nearBeatWindow Notes start position must not differ more thatn nearBeatWindow
+     * @return True if spDest was changed
+     * @throws IllegalArgumentException If nb of bars/notes/time signature is different, or if notes do not start approximately at the same position.
+     */
+    static public boolean applyGroove(SizedPhrase spSrc, SizedPhrase spDest, float nearBeatWindow)
+    {
+        Preconditions.checkArgument(
+                spSrc.size() == spDest.size() && spSrc.getSizeInBars() == spDest.getSizeInBars() && spSrc.getTimeSignature() == spDest.getTimeSignature(),
+                "spSrc=%s spDest=%s", spSrc, spDest);
+
+
+        boolean b = false;
+        float srcBeat0 = spSrc.getBeatRange().from;
+        float destBeat0 = spDest.getBeatRange().from;
+
+
+        var destNotes = new ArrayList<>(spDest);
+        int i = 0;
+        for (var neSrc : spSrc)
+        {
+            var neDest = destNotes.get(i);
+            var newDestPos = neSrc.getPositionInBeats() - srcBeat0 + destBeat0;
+            if (Math.abs(newDestPos - neDest.getPositionInBeats()) > nearBeatWindow)
+            {
+                throw new IllegalArgumentException("Notes position differ too much: neSrc=" + neSrc + " neDest=" + neDest + " newDestPos=" + newDestPos);
+            }
+            b = b || (newDestPos != neDest.getPositionInBeats() || neSrc.getDurationInBeats() != neDest.getDurationInBeats() || neSrc.getVelocity() != neDest.getVelocity());
+            var newNeDest = neDest.setAll(neDest.getPitch(), neSrc.getDurationInBeats(), neSrc.getVelocity(), newDestPos, false);
+            spDest.replace(neDest, newNeDest);
+
+            i++;
+        }
+
+        return b;
+    }
+
+    /**
+     * Check if both phrases have the same number of notes with approximatly the same note start positions.
+     *
+     * @param sp1
+     * @param sp2            Start beat range might be different from sp1, but size in bars and time signature must be equal.
+     * @param nearBeatWindow
+     * @return
+     */
+    static public boolean isSamePositions(SizedPhrase sp1, SizedPhrase sp2, float nearBeatWindow)
+    {
+        boolean b = false;
+
+        if (sp1.size() == sp2.size() && sp1.getSizeInBars() == sp2.getSizeInBars() && sp1.getTimeSignature() == sp2.getTimeSignature())
+        {
+            var it2 = sp2.iterator();
+            b = true;
+            for (var ne1 : sp1)
+            {
+                var ne2 = it2.next();
+                var n2NewPos = ne1.getPositionInBeats() - sp1.getBeatRange().from + sp2.getBeatRange().from;
+                if (Math.abs(n2NewPos - ne2.getPositionInBeats()) > nearBeatWindow)
+                {
+                    b = false;
+                    break;
+                }
+            }
+        }
+        return b;
+    }
 
     /**
      * Get the phrase notes as MidiEvents.

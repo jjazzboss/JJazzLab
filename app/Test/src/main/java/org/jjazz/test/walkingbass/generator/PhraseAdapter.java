@@ -47,7 +47,7 @@ public interface PhraseAdapter
      * Get the resulting target note from wbpsa.
      *
      * @param wbpsa
-     * @return
+     * @return Can be null if WbpSource has no target note 
      */
     Note getTargetNote(WbpSourceAdaptation wbpsa);
 }

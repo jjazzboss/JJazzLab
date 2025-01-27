@@ -1,11 +1,14 @@
 package org.jjazz.test.walkingbass;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.phrase.api.Phrase;
@@ -14,10 +17,8 @@ import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.utilities.api.IntRange;
 
 /**
- * A 1, 2 or 4-bar source bass phrase, extracted from a WbpSession.
+ * A 1, 2 or 4-bar bass phrase with meta-data meant to be managed of a WbpDatabase.
  * <p>
- * Manage the fact that some live-played phrases can actually start a bit before the theorical start of the SizedPhrase. When possible chord symbols are
- * simplified depending on the phrase notes.
  */
 public class WbpSource extends Wbp
 {
@@ -27,11 +28,8 @@ public class WbpSource extends Wbp
     private final String sessionId;
     private final String id;
     private final int sessionBarOffset;
-    private final float firstNoteBeatShift;
     private final List<String> tags;
-    private final String rootProfile;
     private final SimpleChordSequence originalChordSequence;
-
 
     private record TransposibilityResult(int score, int transpose)
             {
@@ -45,32 +43,33 @@ public class WbpSource extends Wbp
     /**
      * Create a source bass phrase.
      *
-     * @param session            The session from which this source phrase comes.
+     * @param sessionId          The session id from which this source phrase comes.
      * @param sessionBarFrom     The bar index in the session phrase from which this source phrase comes
      * @param cSeq               Must start at bar 0. Chord simplification will be applied on the passed SimpleChordSequence?
      * @param phrase             Size must be between 1 and 4 bars, must start at beat 0
      * @param firstNoteBeatShift A 0 or negative beat value. A phrase note starting at 0 should be shifted with this value.
-     * @param targetNote
+     * @param targetNote         Can be null
+     * @param tags
      * @see #setOriginalChordSequence(org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence)
      */
-    public WbpSource(WbpSession session, int sessionBarFrom, SimpleChordSequence cSeq, SizedPhrase phrase, float firstNoteBeatShift, Note targetNote)
+    public WbpSource(String sessionId, int sessionBarFrom, SimpleChordSequence cSeq, SizedPhrase phrase, float firstNoteBeatShift, Note targetNote,
+            String... tags)
     {
-        super(cSeq, phrase, targetNote);
+        super(cSeq, phrase, firstNoteBeatShift, targetNote);
+        checkArgument(sessionId != null && !sessionId.isBlank());
+        checkArgument(sessionBarFrom >= 0, "sessionBarFrom=%s", sessionBarFrom);
         checkArgument(phrase.getSizeInBars() >= 1 && phrase.getSizeInBars() <= 4, "phrase=%s", phrase);
-        checkArgument(firstNoteBeatShift <= 0, "firstNoteBeatShift=%s", firstNoteBeatShift);
 
+        this.mapDestChordRootTransposibility = new HashMap<>();
         this.originalChordSequence = cSeq.clone();
-        this.sessionId = session.getId();
+        this.sessionId = sessionId;
         this.id = sessionId + "#fr=" + sessionBarFrom + "#sz=" + phrase.getSizeInBars();
         this.sessionBarOffset = sessionBarFrom;
-        this.tags = session.getTags();
-        this.firstNoteBeatShift = firstNoteBeatShift;
-        this.rootProfile = cSeq.getRootProfile();
-        this.mapDestChordRootTransposibility = new HashMap<>();
-
+        this.tags = new ArrayList<>();
+        Stream.of(tags).forEach(t -> this.tags.add(t.toLowerCase()));
     }
 
-   
+
     /**
      * A chord sequence copy of the SimpleChordSequence submitted in the constructor.
      * <p>
@@ -83,18 +82,7 @@ public class WbpSource extends Wbp
         return originalChordSequence;
     }
 
-    /**
-     * If &lt; 0 the phrase notes starting on bar/beat 0 should be shifted with this value.
-     * <p>
-     * This is used to store the exact timing of "live-played notes" which can start a bit ahead of this phrase theorical start.
-     *
-     * @return
-     */
-    public float getFirstNoteBeatShift()
-    {
-        return firstNoteBeatShift;
-    }
-    
+
     public String getSessionId()
     {
         return sessionId;
@@ -118,13 +106,9 @@ public class WbpSource extends Wbp
 
     public List<String> getTags()
     {
-        return tags;
+        return Collections.unmodifiableList(tags);
     }
 
-    public String getRootProfile()
-    {
-        return rootProfile;
-    }
 
     /**
      * Simplify the chord symbols of the chord sequence so that this source phrase can be reused for a maximum of derivative chord symbols.
@@ -322,7 +306,7 @@ public class WbpSource extends Wbp
 
     public boolean hasTag(String tag)
     {
-        return tags == null ? false : tags.contains(tag.toLowerCase());
+        return tags.contains(tag.toLowerCase());
     }
 
 
@@ -335,7 +319,7 @@ public class WbpSource extends Wbp
     @Override
     public String toLongString()
     {
-        var res = String.format("WbpSource id=%s beat0Shift=%.2f tags=%s %s", id, firstNoteBeatShift, tags, super.toLongString());
+        var res = String.format("WbpSource id=%s tags=%s %s", id, tags, super.toLongString());
         return res;
     }
 

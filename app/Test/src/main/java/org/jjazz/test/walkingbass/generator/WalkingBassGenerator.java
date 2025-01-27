@@ -10,29 +10,37 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.jjazz.harmony.api.ChordType;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.api.SongChordSequence;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.phrase.api.Phrase;
+import org.jjazz.phrase.api.Phrases;
+import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
 import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Intensity;
 import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Variation;
+import org.jjazz.rhythmmusicgeneration.api.DummyGenerator;
+import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
-import org.jjazz.test.walkingbass.WbpDatabase;
+import org.jjazz.test.walkingbass.WbpSource;
+import org.jjazz.test.walkingbass.WbpSourceDatabase;
+import org.jjazz.test.walkingbass.WbpSources;
 import org.jjazz.test.walkingbass.tiler.TilerBestFirstNoRepeat;
 import org.jjazz.utilities.api.IntRange;
 
 /**
  * Walking bass generator based on pre-recorded patterns from WbpDatabase.
  *
- * @see WbpDatabase
+ * @see WbpSourceDatabase
  */
 public class WalkingBassGenerator implements MusicGenerator
 {
 
+    private static int SESSION_COUNT = 0;
     private final Rhythm rhythm;
     private SongContext context;
 
@@ -86,7 +94,7 @@ public class WalkingBassGenerator implements MusicGenerator
         // System.setProperty(NoteEvent.SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT, "[%1$s p=%2$.1f d=%3$.1f]");
         System.setProperty(NoteEvent.SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT, "%1$s");
         // WbpDatabase.getInstance().dump();
-        WbpDatabase.getInstance().checkConsistency();
+        WbpSourceDatabase.getInstance().checkConsistency();
 
         LOGGER.log(Level.SEVERE, "generateMusic() -- rhythm={0} contextChordSequence={1}", new Object[]
         {
@@ -240,7 +248,7 @@ public class WalkingBassGenerator implements MusicGenerator
      * Eg blues, bluesminor, slow, medium, fast, modal, ..., to influence the bass pattern selection.
      *
      * @param context
-     * @return Can be an empty list.
+     * @return Can be an empty list. TODO implement !
      */
     private List<String> guessTags(SongContext context)
     {
@@ -248,32 +256,128 @@ public class WalkingBassGenerator implements MusicGenerator
     }
 
     /**
-     * 
+     * Compute WbpSources for untiled bars and add them to the database.
+     *
      * @param tiling
      */
     private void handleMultiChordNonTiledBars(WbpTiling tiling)
     {
-        var nonTiledBars = tiling.getNonTiledBars();
-        for (int bar : nonTiledBars)
+
+        for (int size = WbpSourceDatabase.SIZE_MAX; size >= WbpSourceDatabase.SIZE_MIN; size--)
         {
-            var barChords = tiling.getSimpleChordSequenceExt().subSequence(new IntRange(bar, bar), true);
-            switch (barChords.size())
+            var startBars = tiling.getUntiledZonesStartBarIndexes(size);
+            for (int startBar : startBars)
             {
-                case 1 ->
+                var br = new IntRange(startBar, startBar + size - 1);
+                var subSeq = tiling.getSimpleChordSequenceExt().subSequence(br, true).getShifted(-startBar);
+                if (size == 1 && subSeq.size() == 1)
                 {
-                    LOGGER.log(Level.WARNING, "handleMultiChordNonTiledBars() 1-chord bar not previously tiled: {0}", barChords);
+                    LOGGER.log(Level.WARNING, "handleMultiChordNonTiledBars() 1-chord bar not previously tiled: {0}", subSeq);
                     continue;
                 }
-                case 2 ->
+
+                List<WbpSource> wbpSources = generateMultiChordPerBarWbpSources(subSeq);
+                var wbpDb = WbpSourceDatabase.getInstance();
+                for (var wbps : wbpSources)
                 {
-                }
-                default ->
-                {
+                    if (!wbpDb.addWbpSource(wbps))
+                    {
+                        LOGGER.log(Level.WARNING, "handleMultiChordNonTiledBars() subSeq={0} ADD FAIL: {1} ", new Object[]
+                        {
+                            subSeq, wbps
+                        });
+                    }
                 }
             }
-            
-            
         }
+
+    }
+
+
+    /**
+     *
+     * @param subSeq Must start at bar 0
+     * @return
+     */
+    private List<WbpSource> generateMultiChordPerBarWbpSources(SimpleChordSequence subSeq)
+    {
+        Preconditions.checkArgument(subSeq.getBarRange().from == 0, "subSeq=%s", subSeq);
+
+        List<WbpSource> res = new ArrayList<>();
+        if (subSeq.isTwoChordsPerBar(0.25f, false))
+        {
+            SizedPhrase sp = create2ChordsPerBarPhrase(subSeq);
+            String id = "Gen2Chords-" + (SESSION_COUNT++);
+            WbpSource wbpSource = new WbpSource(id, 0, subSeq, sp, 0, null);
+            WbpSource wbpGrooveRef = findGrooveReference(sp);
+            if (wbpGrooveRef != null)
+            {
+                LOGGER.log(Level.SEVERE, "generateMultiChordPerBarWbpSources() applying groove from {0}", wbpGrooveRef);
+                Phrases.applyGroove(wbpGrooveRef.getSizedPhrase(), sp, 0.15f);
+            }
+
+            res.add(wbpSource);
+
+        } else
+        {
+            var p = DummyGenerator.getBasicBassPhrase(0, subSeq, 0);
+            SizedPhrase sp = new SizedPhrase(0, subSeq.getBeatRange(0), subSeq.getTimeSignature(), false);
+            sp.add(p);
+            String id = "GenDefault-" + (SESSION_COUNT++);
+            WbpSource wbpSource = new WbpSource(id, 0, subSeq, sp, 0, null);
+            res.add(wbpSource);
+        }
+
+        return res;
+    }
+
+    private SizedPhrase create2ChordsPerBarPhrase(SimpleChordSequence subSeq)
+    {
+        SizedPhrase sp = new SizedPhrase(0, subSeq.getBeatRange(0), subSeq.getTimeSignature(), false);
+        for (var cliCs : subSeq)
+        {
+            var ecs = cliCs.getData();
+            int cBase = 3 * 12;
+            int bassPitch0 = cBase + ecs.getRootNote().getRelativePitch();
+            int bassPitch1 = cBase + ecs.getRelativePitch(ChordType.DegreeIndex.THIRD_OR_FOURTH);
+            float pos0 = subSeq.toPositionInBeats(cliCs.getPosition(), 0);
+            float pos1 = pos0 + 1f;
+            NoteEvent ne0 = new NoteEvent(bassPitch0, 1f, 80, pos0);
+            NoteEvent ne1 = new NoteEvent(bassPitch1, 1f, 80, pos1);
+            sp.add(ne0);
+            sp.add(ne1);
+        }
+        return sp;
+    }
+
+    private boolean isGeneratedWbpSource(WbpSource wbpSource)
+    {
+        return wbpSource.getId().startsWith("Gen");
+    }
+
+    /**
+     * Find a random WbpSource which can serve as groove reference for sp.
+     *
+     * @param sp
+     * @return
+     */
+    private WbpSource findGrooveReference(SizedPhrase sp)
+    {
+        WbpSource res = null;
+        
+        var wbpSources = WbpSourceDatabase.getInstance().getWbpSources(sp.getSizeInBars(), 
+                w ->  !isGeneratedWbpSource(w) && Phrases.isSamePositions(w.getSizedPhrase(), sp, 0.15f));
+        
+        if (wbpSources.size() == 1)
+        {
+            res = wbpSources.get(0);
+        } else if (wbpSources.size() > 1)
+        {
+            int index = (int) (Math.random() * wbpSources.size());
+            res = wbpSources.get(index);
+        }
+
+        return res;
     }
 
     // =====================================================================================================================

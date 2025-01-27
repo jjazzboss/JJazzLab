@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jjazz.test.walkingbass.WbpDatabase;
+import org.jjazz.test.walkingbass.WbpSourceDatabase;
 import org.jjazz.test.walkingbass.WbpSource;
 import org.jjazz.test.walkingbass.generator.DefaultWbpsaScorer;
 import org.jjazz.test.walkingbass.generator.Tiler;
@@ -165,7 +165,7 @@ public class TilerOneOutOfX implements Tiler
 
         if (countUsed == 0 || isCoveragePercentageOk(tiling, wbpSource, countUsed + 1))
         {
-            List<WbpSource> relSources = WbpDatabase.getInstance().getRelatedWbpSources(wbpSource);
+            List<WbpSource> relSources = WbpSourceDatabase.getInstance().getRelatedWbpSources(wbpSource);
 
             if ((count - 1) % x == 0)
             {

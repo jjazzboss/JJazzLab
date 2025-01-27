@@ -85,8 +85,11 @@ public class DefaultWbpsaScorer implements WbpsaScorer
         int prevBar = wbpsa.getBarRange().from - 1;
         WbpSourceAdaptation prevWbpsa;
 
-        if (tiling != null && wbpSourceAdapter != null
-                && tiling.getBarRange().contains(prevBar) && (prevWbpsa = tiling.getWbpSourceAdaptation(prevBar)) != null)
+        if (tiling != null
+                && wbpSourceAdapter != null
+                && tiling.getBarRange().contains(prevBar)
+                && (prevWbpsa = tiling.getWbpSourceAdaptation(prevBar)) != null
+                && prevWbpsa.getWbpSource().getTargetNote() != null)
         {
 
             int firstNotePitch = wbpSourceAdapter.getPhrase(wbpsa).first().getPitch();
@@ -109,8 +112,11 @@ public class DefaultWbpsaScorer implements WbpsaScorer
         int nextBar = wbpsa.getBarRange().to + 1;
         WbpSourceAdaptation nextWbpsa;
 
-        if (tiling != null && wbpSourceAdapter != null
-                && tiling.getBarRange().contains(nextBar) && (nextWbpsa = tiling.getWbpSourceAdaptation(nextBar)) != null)
+        if (tiling != null
+                && wbpSourceAdapter != null
+                && tiling.getBarRange().contains(nextBar)
+                && (nextWbpsa = tiling.getWbpSourceAdaptation(nextBar)) != null
+                && wbpsa.getWbpSource().getTargetNote() != null)
         {
             int firstNotePitch = wbpSourceAdapter.getPhrase(nextWbpsa).first().getPitch();
             int targetNotePitch = wbpSourceAdapter.getTargetNote(wbpsa).getPitch();
@@ -122,7 +128,6 @@ public class DefaultWbpsaScorer implements WbpsaScorer
 
     /**
      * Compute the harmony compatibility score for each chord-pair.
-     * <p>
      * <p>
      * Return an empty list as soon as 2 incompatible chord types are found.
      *

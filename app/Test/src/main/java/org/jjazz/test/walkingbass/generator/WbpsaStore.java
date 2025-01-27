@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jjazz.test.walkingbass.WbpDatabase;
+import org.jjazz.test.walkingbass.WbpSourceDatabase;
 import org.jjazz.utilities.api.IntRange;
 import org.jjazz.test.walkingbass.generator.WbpsaScorer.Score;
 
@@ -48,7 +48,7 @@ public class WbpsaStore
     /**
      * [0] not used, [1] for size=1 bar, ... [4] for size=4 bars.
      */
-    private final ListMultimap<Integer, WbpSourceAdaptation>[] mmapWbpsAdaptations = new ListMultimap[WbpDatabase.SIZE_MAX + 1];
+    private final ListMultimap<Integer, WbpSourceAdaptation>[] mmapWbpsAdaptations = new ListMultimap[WbpSourceDatabase.SIZE_MAX + 1];
     private final int width;
     private static final Logger LOGGER = Logger.getLogger(WbpsaStore.class.getSimpleName());
     private final WbpsaScorer wbpsaScorer;
@@ -72,7 +72,7 @@ public class WbpsaStore
         this.width = width;
         this.randomizeWithinOverallScoreWindow = randomizeWithinOverallScoreWindow;
 
-        for (int size = WbpDatabase.SIZE_MIN; size <= WbpDatabase.SIZE_MAX; size++)
+        for (int size = WbpSourceDatabase.SIZE_MIN; size <= WbpSourceDatabase.SIZE_MAX; size++)
         {
             mmapWbpsAdaptations[size] = MultimapBuilder.treeKeys() // Sort by bar
                     .arrayListValues() // Wbpsas NOT sorted to enable possible randomization
@@ -99,7 +99,7 @@ public class WbpsaStore
     public List<WbpSourceAdaptation> getWbpSourceAdaptations(int bar, int size)
     {
         Preconditions.checkArgument(tiling.getBarRange().contains(bar), "bar=%s", bar);
-        Preconditions.checkArgument(size >= WbpDatabase.SIZE_MIN && size <= WbpDatabase.SIZE_MAX, "size=%s", size);
+        Preconditions.checkArgument(size >= WbpSourceDatabase.SIZE_MIN && size <= WbpSourceDatabase.SIZE_MAX, "size=%s", size);
         var res = Collections.unmodifiableList(mmapWbpsAdaptations[size].get(bar));
         return res;
     }
@@ -115,7 +115,7 @@ public class WbpsaStore
     public List<WbpSourceAdaptation> getWbpSourceAdaptations(int bar)
     {
         List<WbpSourceAdaptation> res = new ArrayList<>();
-        for (int i = WbpDatabase.SIZE_MAX; i >= WbpDatabase.SIZE_MIN; i--)
+        for (int i = WbpSourceDatabase.SIZE_MAX; i >= WbpSourceDatabase.SIZE_MIN; i--)
         {
             res.addAll(getWbpSourceAdaptations(bar, i));
         }
@@ -135,7 +135,7 @@ public class WbpsaStore
     public ListMultimap<Score, WbpSourceAdaptation> getWbpSourceAdaptationsRanked(int rank, int size)
     {
         Preconditions.checkArgument(rank >= 0);
-        Preconditions.checkArgument(size >= WbpDatabase.SIZE_MIN && size <= WbpDatabase.SIZE_MAX, "size=%s", size);
+        Preconditions.checkArgument(size >= WbpSourceDatabase.SIZE_MIN && size <= WbpSourceDatabase.SIZE_MAX, "size=%s", size);
         ListMultimap<Score, WbpSourceAdaptation> mmap = MultimapBuilder.treeKeys().arrayListValues().build();
 
         for (int bar : mmapWbpsAdaptations[size].keySet())
@@ -155,7 +155,7 @@ public class WbpsaStore
     public String toDebugString(boolean hideEmptyBars)
     {
         StringBuilder sb = new StringBuilder();
-        for (int i = WbpDatabase.SIZE_MAX; i >= WbpDatabase.SIZE_MIN; i--)
+        for (int i = WbpSourceDatabase.SIZE_MAX; i >= WbpSourceDatabase.SIZE_MIN; i--)
         {
             sb.append("############ ").append(i).append(" bars ############\n");
             sb.append(toDebugString(i, hideEmptyBars));
@@ -200,7 +200,7 @@ public class WbpsaStore
 
         for (int bar : nonTiledBars)
         {
-            for (int size = WbpDatabase.SIZE_MAX; size >= WbpDatabase.SIZE_MIN; size--)
+            for (int size = WbpSourceDatabase.SIZE_MAX; size >= WbpSourceDatabase.SIZE_MIN; size--)
             {
                 IntRange br = new IntRange(bar, bar + size - 1);
                 if (!tiling.isUsableAndFree(br))

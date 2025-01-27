@@ -68,6 +68,7 @@ public class SimpleChordSequence extends ChordSequence
             add(cliCs);
         }
     }
+
     /**
      * @return A shallow copy (CLI_ChordSymbols are not cloned).
      */
@@ -77,7 +78,7 @@ public class SimpleChordSequence extends ChordSequence
         SimpleChordSequence scs = new SimpleChordSequence(this, getTimeSignature());
         return scs;
     }
-    
+
     @Override
     public int hashCode()
     {
@@ -109,6 +110,27 @@ public class SimpleChordSequence extends ChordSequence
         return super.equals(other);
     }
 
+    /**
+     * Get a copy of this SimpleChordSequence shifted by barOffset.
+     *
+     * @param barOffset Must be &gt;= -getBarRange().from
+     * @return
+     */
+    public SimpleChordSequence getShifted(int barOffset)
+    {
+        Preconditions.checkArgument(barOffset >= -getBarRange().from, "barOffset=%s this=%s", barOffset, this);
+        
+        IntRange barRange = getBarRange().getTransformed(barOffset);
+        SimpleChordSequence res = new SimpleChordSequence(barRange, getTimeSignature());
+
+        for (var cliCs : this)
+        {
+            Position pos = cliCs.getPosition();
+            var newCliCs = (CLI_ChordSymbol) cliCs.getCopy(new Position(pos.getBar() + barOffset, pos.getBeat()));
+            res.add(newCliCs);
+        }
+        return res;
+    }
 
     public TimeSignature getTimeSignature()
     {
@@ -200,6 +222,73 @@ public class SimpleChordSequence extends ChordSequence
         float beat = relPosInBeats - relBars * getTimeSignature().getNbNaturalBeats();
         Position pos = new Position(getBarRange().from + relBars, beat);
         return pos;
+    }
+
+    /**
+     * Check if all chords start on a bar start (an empty bar is ok).
+     * <p>
+     *
+     * @param nearBeatWindow Tolerance for chord beat position
+     * @return
+     */
+    public boolean isOneChordPerBar(float nearBeatWindow)
+    {
+        boolean b = true;
+        for (var cliCs : this)
+        {
+            Position pos = cliCs.getPosition();
+            if (pos.getBeat() > nearBeatWindow)
+            {
+                b = false;
+                break;
+            }
+        }
+        return b;
+    }
+
+    /**
+     * Check if all bars have 2 chords, one at the bar start, one at half-bar.
+     * <p>
+     * An empty bar is not ok.
+     *
+     * @param nearBeatWindow Tolerance for chord beat position
+     * @param swing          To compute the half-bar position
+     * @return
+     * @see TimeSignature#getHalfBarBeat(boolean)
+     */
+    public boolean isTwoChordsPerBar(float nearBeatWindow, boolean swing)
+    {
+        boolean b = true;
+        FloatRange halfRange = new FloatRange(timeSignature.getHalfBarBeat(swing) - nearBeatWindow, timeSignature.getHalfBarBeat(swing) + nearBeatWindow);
+        int lastBar1 = getBarRange().from - 1;
+        int lastBar2 = lastBar1;
+
+        if (size() == getBarRange().size() * 2)
+        {
+            for (var cliCs : this)
+            {
+                Position pos = cliCs.getPosition();
+                int bar = pos.getBar();
+                float beat = pos.getBeat();
+
+                if (beat <= nearBeatWindow && bar == lastBar1 + 1)
+                {
+                    lastBar1 = bar;
+                } else if (halfRange.contains(beat, false) && bar == lastBar2 + 1)
+                {
+                    lastBar2 = bar;
+                } else
+                {
+                    b = false;
+                    break;
+                }
+            }
+        } else
+        {
+            b = false;
+        }
+
+        return b;
     }
 
     /**

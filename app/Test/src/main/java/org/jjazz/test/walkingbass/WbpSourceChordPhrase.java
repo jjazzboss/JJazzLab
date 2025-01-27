@@ -35,6 +35,8 @@ import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.harmony.api.ChordType;
 import org.jjazz.harmony.api.Degree;
 import static org.jjazz.harmony.api.Degree.ELEVENTH_SHARP;
+import static org.jjazz.harmony.api.Degree.FIFTH;
+import static org.jjazz.harmony.api.Degree.FIFTH_FLAT;
 import static org.jjazz.harmony.api.Degree.FOURTH_OR_ELEVENTH;
 import static org.jjazz.harmony.api.Degree.NINTH;
 import static org.jjazz.harmony.api.Degree.NINTH_FLAT;
@@ -42,6 +44,8 @@ import static org.jjazz.harmony.api.Degree.NINTH_SHARP;
 import static org.jjazz.harmony.api.Degree.SEVENTH;
 import static org.jjazz.harmony.api.Degree.SEVENTH_FLAT;
 import static org.jjazz.harmony.api.Degree.SIXTH_OR_THIRTEENTH;
+import static org.jjazz.harmony.api.Degree.THIRD;
+import static org.jjazz.harmony.api.Degree.THIRD_FLAT;
 import static org.jjazz.harmony.api.Degree.THIRTEENTH_FLAT;
 import org.jjazz.phrase.api.NoteEvent;
 
@@ -57,7 +61,7 @@ public class WbpSourceChordPhrase
      * +/- beat position tolerance when comparing notes (accomodate for unquantized notes)
      */
     public static final float NEAR_WINDOW = 0.15f;
-    public static final float GHOST_NOTE_MAX_DURATION = 0.35f;
+    public static final float GHOST_NOTE_MAX_DURATION = 0.15f;
     private final WbpSource wbpSource;
     private final CLI_ChordSymbol srcCliChordSymbol;
     private final ExtChordSymbol srcExtChordSymbol;
@@ -81,26 +85,27 @@ public class WbpSourceChordPhrase
         this.notes = extractNotes();
     }
 
+
     /**
      * Check if our chord phrase can be used for targetExtChordSymbol, and if yes score this compatibility.
      * <p>
-     * If targetExtChordSymbol is considered incompatible, score is 0. If the chord types are equal, score is 100 (max). Note that 6 and 7M degrees are
-     * considered equal in this method (e.g. C6=C7M, Cm69=Cm7M9).
+     * If targetExtChordSymbol is considered incompatible, score is 0. If chord types are equal, score is 100 (max). Note that 6 and 7M degrees are considered
+     * equal in this method (e.g. C6=C7M, Cm69=Cm7M9).
      * <p>
-     * Score is 0 if chord types have the same nb of Degrees but are not equal, or if targetExtChordSymbol has a scale incompatible with the phrase.<p>
-     * If chord types do not have the same nb of Degrees:<br>
-     * - Score is 0 if at least 1 common degree does not match, or if srcChordType has more degrees than targetChordType - If targetChordType has more degrees
-     * than srcChordType (e.g. C7b9 and C): check if the phrase notes are compatible with the extra degrees. Score is 0 if one extra degree is INCOMPATIBLE,
-     * otherwise score equals 100 - (10 * each COMPATIBLE_NO_USE extra degree).<br>
+     * Score is 0 if :<br>
+     * - srcChordType has more degrees than targetChordType<br>
+     * - targetExtChordSymbol has at least one degree which is DegreeCompatibility.INCOMPATIBLE with the phrase<br>
+     * - targetExtChordSymbol has a scale incompatible with the phrase<p>
+     * If all degrees are compatible, score is 100 - (10 * each DegreeCompatibility.COMPATIBLE_NO_USE).
      * <p>
-     * Examples srcExtChordSymbol - targetExtChordSymbol:<br>
-     * C - Cm: 0<br>
-     * C6 - Cm7M: 0<br>
-     * C6 - C7: 0<br>
-     * C7b9 - C9: 0<br>
-     * C - C9: 90 if phrase is ExtraDegreeCompatibility.COMPATIBLE_NO_USE with 7th (-10), and ExtraDegreeCompatibility.COMPATIBLE_USE with 9th<br>
-     * C6 - C9M: 90 if phrase is ExtraDegreeCompatibility.COMPATIBLE_NO_USE with 9th (-10)<br>
-     * C7 - C: 0<br>
+     * Examples (srcExtChordSymbol - targetExtChordSymbol):<br>
+     * C - Cm: 0 if phrase is C D E G<br>
+     * C - Cm: 90 if phrase is C D C G<br>
+     * C7 - C: 0 <br>
+     * C6 - Cm7M: 0 if phrase is C D E G<br>
+     * C - C9: 80 if phrase is C E G C (no 9th, no b7)<br>
+     * C - C9: 90 if phrase is C D E G (9th , no b7)<br>
+     * C7b9 - C9: 0 if phrase is C E Db E (incompatible with 9th)<br>
      * C - C or C6 - C7M or C13b9-C13b9: 100 (max value)
      *
      * @param targetExtChordSymbol
@@ -120,16 +125,15 @@ public class WbpSourceChordPhrase
         {
             res = 100;
 
-        } else if (nbDegreesSrc < nbDegreesTarget && srcChordType.getNbCommonDegrees(targetChordType, true) == nbDegreesSrc)
+        } else if (nbDegreesSrc <= nbDegreesTarget)
         {
-            // Need to check that each extra degree from targetChordType against the phrase notes
-
+            // Search for possible incompatibility for each targetExtChordSymbol degree
             res = 100;
 
-            for (int i = nbDegreesSrc; i < nbDegreesTarget; i++)
+            for (int i = 1; i < nbDegreesTarget; i++)
             {
                 var targetDegree = targetChordType.getDegrees().get(i);
-                var dc = getExtraDegreeCompatibility(targetExtChordSymbol, targetDegree);
+                var dc = getDegreeCompatibility(targetExtChordSymbol, targetDegree);
                 switch (dc)
                 {
                     case INCOMPATIBLE ->
@@ -171,7 +175,6 @@ public class WbpSourceChordPhrase
      * <p>
      * If srcCliChordSymbol uses 6/7 or extension degrees (eg C69), check that the phrase really uses the corresponding degrees, and if not, return a simplified
      * chord symbol.
-     * <p>
      *
      * @return srcCliChordSymbol or a simplified version (less degrees)
      */
@@ -202,7 +205,7 @@ public class WbpSourceChordPhrase
     }
 
     /**
-     * The WbpSource phrase notes corresponding to the srcCliCs slice of time.
+     * The WbpSource phrase notes corresponding to the srcCliCs slice of time (ghost notes are removed).
      * <p>
      *
      * @return Can be empty. Unmodifiable list. Because of non-quantization, some notes might start a little bit earlier than srcCliCs.
@@ -218,7 +221,7 @@ public class WbpSourceChordPhrase
     // =================================================================================================================    
     private void removeGhostNotes(List<NoteEvent> notes)
     {
-        notes.removeIf(ne -> ne.getDurationInBeats() <= GHOST_NOTE_MAX_DURATION);    
+        notes.removeIf(ne -> ne.getDurationInBeats() <= GHOST_NOTE_MAX_DURATION);
     }
 
     /**
@@ -240,61 +243,59 @@ public class WbpSourceChordPhrase
     }
 
     /**
-     * Check that our phrase does not contain notes usually considered "musically incompatible" with the extra degree.
+     * Check that our phrase does not contain notes usually considered "musically incompatible" with d.
      * <p>
      * Examples:<br>
-     * - If extraDegree=9th of targetEcs=C9, check that notes do not contain "significant" Db or D# notes.<br>
-     * - If extraDegree=9th of targetEcs=Cm9, check that notes do not contain "significant" Db notes.<br>
+     * - If d=9th of targetEcs=C9, check that notes do not contain "significant" Db or D# notes.<br>
+     * - If d=9th of targetEcs=Cm9, check that notes do not contain "significant" Db notes.<br>
      *
      * @param targetEcs
-     * @param extraDegree extraDegree for srcChordType (but degree used by targetChordType). Valid extra degrees are any degree except root/3rd/5th.
+     * @param d         targetEcs degree to be tested against this WbpSourceChordPhrase. Valid degrees are any degree except the root.
      * @return
      */
-    private ExtraDegreeCompatibility getExtraDegreeCompatibility(ExtChordSymbol targetEcs, Degree extraDegree)
+    private DegreeCompatibility getDegreeCompatibility(ExtChordSymbol targetEcs, Degree d)
     {
-        assert targetEcs.getChordType().getDegrees().contains(extraDegree) : "targetEcs=" + targetEcs + " extraDegree=" + extraDegree;
-        assert !srcChordType.getDegrees().contains(extraDegree) : "srcChordType=" + srcChordType + " extraDegree=" + extraDegree;
+        Preconditions.checkArgument(d != Degree.ROOT);
+        Preconditions.checkArgument(targetEcs.getChordType().getDegrees().contains(d), "targetEcs=%s degree=%s", targetEcs, d);
 
-
-        ExtraDegreeCompatibility res = ExtraDegreeCompatibility.INCOMPATIBLE;
-        if (checkNoIncompatibleDegrees(targetEcs, extraDegree))
+        DegreeCompatibility res = DegreeCompatibility.INCOMPATIBLE;
+        if (containsNoIncompatibleDegrees(targetEcs, d))
         {
-            res = isUsed(extraDegree) ? ExtraDegreeCompatibility.COMPATIBLE_USE : ExtraDegreeCompatibility.COMPATIBLE_NO_USE;
+            res = isUsed(d) ? DegreeCompatibility.COMPATIBLE_USE : DegreeCompatibility.COMPATIBLE_NO_USE;
         }
 
         return res;
     }
 
 
-    private boolean checkNoIncompatibleDegrees(ExtChordSymbol targetEcs, Degree extraDegree)
+    private boolean containsNoIncompatibleDegrees(ExtChordSymbol targetEcs, Degree d)
     {
         boolean b = true;
 
-        var degreesToAvoid = getIncompatibleDegrees(targetEcs, extraDegree);
-
-        boolean avoidNotesPresent = degreesToAvoid.stream()
-                .anyMatch(d -> isUsed(d));
+        var degreesToAvoid = getIncompatibleDegrees(targetEcs, d);
+        boolean avoidNotesPresent = degreesToAvoid.stream().anyMatch(dg -> isUsed(dg));
 
         if (avoidNotesPresent)
         {
-            // There is at least 1 degree to avoid, check that it's not more "significant" than extraDegree
+            // There is at least 1 degree to avoid, check that it's not more "significant" than d
             float totalAvoidDuration = (float) degreesToAvoid.stream()
-                    .mapToDouble(d -> getTotalWeightedDuration(d)) // Promotes downbeat over upbeat 
+                    .mapToDouble(dg -> getTotalDuration(dg)) // Promotes downbeat over upbeat 
                     .sum();
 
-            b = getTotalWeightedDuration(extraDegree) > totalAvoidDuration;
+            b = getTotalDuration(d) > 1.2f * totalAvoidDuration;
         }
 
         return b;
     }
 
     /**
-     * Compute total duration used by relPitch, but upbeat notes are counted for half of their duration.
+     * Compute total duration used by relPitch.
+     * <p>
      *
      * @param d
      * @return
      */
-    private float getTotalWeightedDuration(Degree d)
+    private float getTotalDuration(Degree d)
     {
         float res = 0;
         var ts = wbpSource.getTimeSignature();
@@ -307,7 +308,7 @@ public class WbpSourceChordPhrase
                 float pos = n.getPositionInBeats();
                 int nbBars = (int) (pos / ts.getNbNaturalBeats());
                 float beat = pos - (nbBars * ts.getNbNaturalBeats());
-                float dur = ts.isDownBeat(beat) ? n.getDurationInBeats() : n.getDurationInBeats() / 2;
+                float dur = n.getDurationInBeats();
                 res += dur;
             }
         }
@@ -333,50 +334,77 @@ public class WbpSourceChordPhrase
      * <p>
      *
      * @param targetEcs
-     * @param extraDegree
+     * @param d
      * @return
      */
-    private List<Degree> getIncompatibleDegrees(ExtChordSymbol targetEcs, Degree extraDegree)
+    private List<Degree> getIncompatibleDegrees(ExtChordSymbol targetEcs, Degree d)
     {
         var targetCt = targetEcs.getChordType();
+        assert d != Degree.ROOT;
 
-        // targetCt is guaranteed to have the same root/3rd/5th degrees than srcExtChordType
-        // srcExtChordType can be any "shorter" chord type than the targetCt listed below
-        // Example If targetCt=Cm69, srcExtChordType can be Cm or Cm6
-
-        List<Degree> res = switch (extraDegree)
+        List<Degree> res = switch (d)
         {
+            case ROOT ->
+                throw new IllegalArgumentException("d=" + d);
+
             case NINTH_FLAT ->
                 // targetCt can be C7b9(b5,#5,#11), C13b9(b5,#11), Cm7b9, C7susb9, C13susb9
                 List.of(Degree.NINTH);
 
             case NINTH ->
-                // targetCt can be C69, CM9(#11), C13M(#11), C9(b5,#5,#11), m69, m9(11,M7), m13
-                targetCt.isMajor() ? List.of(Degree.NINTH_FLAT, Degree.NINTH_SHARP) : List.of(Degree.NINTH_FLAT);
+            {
+                // targetCt can be C69, CM9(#11), C13M(#11), C9(b5,#5,#11), Cm2, Cm69, Cm9(b5,11,M7), Cm13, C9sus, C13sus
+                List<Degree> y;
+                if (targetCt.isMajor())
+                {
+                    y = List.of(Degree.NINTH_FLAT, Degree.NINTH_SHARP);
+                } else if (targetCt.isMinor())
+                {
+                    y = List.of(Degree.NINTH_FLAT);
+                } else
+                {
+                    assert targetCt.isSus();
+                    y = List.of(Degree.NINTH_FLAT, Degree.THIRD_FLAT);
+                }
+                yield y;
+            }
 
             case NINTH_SHARP ->
             {
                 // targetCt can be C7#9(b5,#5,#11), C13#9(b5)
-                assert targetCt.isSeventhMinor() : "targetEcs=" + targetEcs + " extraDegree=" + extraDegree;
+                assert targetCt.isSeventhMinor() : "targetEcs=" + targetEcs + " extraDegree=" + d;
                 yield List.of(Degree.NINTH);
             }
 
+            case THIRD_FLAT ->
+                // targetCt can be any minor or diminished chord (Cm, Cm69, Cm11, Cdim7M, ...)
+                List.of(Degree.THIRD);
+
+            case THIRD ->
+                // targetCt can be any major chord (C, C69, C7, C13#11, ...)
+                List.of(Degree.THIRD_FLAT, Degree.FOURTH_OR_ELEVENTH);   // Fourth could be ok but only as a transition note, safer to exclude it
+
             case FOURTH_OR_ELEVENTH ->
-            {
-                // It's an extra degree beyond the 3 first degrees, so it's an eleventh
-                // targetCt can be Cm11(b5)
-                assert targetCt.isMinor() : "targetEcs=" + targetEcs + " extraDegree=" + extraDegree;
-                yield Collections.emptyList();    // 3rd note is incompatible, but if it's there it's a transition note since we're in minor. b5 also possible with eleventh
-            }
+                // targetCt can be Csus, C7sus(b9), C9sus, C13sus(b9), Cm11(b5), Cm911
+                targetCt.isSus() ? List.of(Degree.THIRD, Degree.ELEVENTH_SHARP) : Collections.emptyList();
 
             case ELEVENTH_SHARP ->
             {
                 // targetCt can be CM7#11, CM9#11, CM13#11, C7(b9,#9)#11, C9#11, C13(b9)#11
-                assert targetCt.isMajor() : "targetEcs=" + targetEcs + " extraDegree=" + extraDegree;
-                yield Collections.emptyList();    // 11th note is incompatible, but if it's there it's a transition note since we're in major. 5th is ok.
+                assert targetCt.isMajor() : "targetEcs=" + targetEcs + " extraDegree=" + d;
+                yield List.of(Degree.FOURTH_OR_ELEVENTH);
             }
 
-            case THIRTEENTH_FLAT ->         // never used ?
+            case FIFTH_FLAT ->
+                // targetCt can be CM7b5, C7b5, C9b5, C7b9b5, C7#9b5, C13b5, C13b9b5, C13#9b5, Cdim(7,7M), Cm7b5, Cm9b5, Cm11b5
+                List.of(Degree.FIFTH);
+
+            case FIFTH ->
+                // targetCt can be C(6,69,7M,9M,7,13,9,b9,#9,#11,...), Cm(6,7,9,b9,11,13), Csus(7,b9,9,13)
+                List.of(Degree.FIFTH_FLAT, Degree.FIFTH_SHARP);
+
+            case FIFTH_SHARP, THIRTEENTH_FLAT ->
+                // targetCt can be C7M#5, C7#5(b9,#9), Cm7#5
                 List.of(Degree.FIFTH, Degree.SIXTH_OR_THIRTEENTH);
 
             case SIXTH_OR_THIRTEENTH ->
@@ -386,7 +414,7 @@ public class WbpSourceChordPhrase
                 targetCt.isSixth() || targetCt.isSeventhMajor() ? List.of(Degree.FIFTH_SHARP, Degree.SEVENTH_FLAT) : List.of(Degree.FIFTH_SHARP);
 
             case SEVENTH_FLAT ->
-                // targetCt can be C7(xxx), C9(xxx), C13(xxx)
+                // targetCt can be C7(xxx), C9(xxx), C13(xxx), C7sus, C9sus, C13sus
                 List.of(Degree.SEVENTH);
 
             case SEVENTH ->
@@ -394,12 +422,11 @@ public class WbpSourceChordPhrase
                 // targetCt can be Cm7M, Cm9M7, Cdim7M
                 List.of(Degree.SEVENTH_FLAT);
 
-            default ->
-                throw new IllegalStateException("extraDegree=" + extraDegree);
         };
 
         return res;
     }
+
 
     /**
      * Check that source phrase is also compatible with targetExtChordSymbol optional scale.
@@ -437,7 +464,7 @@ public class WbpSourceChordPhrase
 // =================================================================================================================
 // Inner classes
 // =================================================================================================================    
-    private enum ExtraDegreeCompatibility
+    private enum DegreeCompatibility
     {
         /**
          * Phrase seems not compatible with the specified degree.

@@ -73,8 +73,7 @@ public class Grid implements Cloneable
     /**
      * Obtain a grid for the specified Phrase p.
      * <p>
-     * The first cell starts at range.from (range bounds must be integer values). <>
-     * The filter parameter can be used to accept only specific Phrase notes.<p>
+     * The first cell starts at range.from (range bounds must be integer values). The filter parameter can be used to accept only specific Phrase notes.<p>
      * If the caller modifies p outside of this grid it must then call Grid.refresh() to keep it up to date.
      *
      * @param p              Time signature must not change in the phrase.
@@ -665,7 +664,7 @@ public class Grid implements Cloneable
                 // Extend the duration
                 durationInBeats = ne.getPositionInBeats() + ne.getDurationInBeats() - newPosInBeats;
             }
-            NoteEvent movedNe = ne.setAll(-1, durationInBeats, -1, newPosInBeats, true);            
+            NoteEvent movedNe = ne.setAll(-1, durationInBeats, -1, newPosInBeats, true);
             phrase.remove(ne);
             phrase.add(movedNe);
             refresh();

@@ -23,20 +23,25 @@ public class Wbp
     private final SimpleChordSequence chordSequence;
     private final SizedPhrase sizedPhrase;
     private final Note targetNote;
+    private final String rootProfile;
     private WbpStats stats;
+    private final float firstNoteBeatShift;
     private static final Logger LOGGER = Logger.getLogger(Wbp.class.getSimpleName());
 
+
     /**
+     * Create an instance.
      *
-     * @param cSeq       Must start at bar 0, must have a chord at beginning and use only one time signature
-     * @param phrase     Can not be empty, must start at beat 0
-     * @param targetNote
+     * @param cSeq               Must start at bar 0, must have a chord at beginning and use only one time signature
+     * @param phrase             Can not be empty, must start at beat 0
+     * @param firstNoteBeatShift A 0 or negative beat value. Any note starting at the start position should be shifted with this value.
+     * @param targetNote         Can be null
      */
-    public Wbp(SimpleChordSequence cSeq, SizedPhrase phrase, Note targetNote)
+    public Wbp(SimpleChordSequence cSeq, SizedPhrase phrase, float firstNoteBeatShift, Note targetNote)
     {
-        checkNotNull(targetNote);
         checkNotNull(cSeq);
         checkNotNull(phrase);
+        checkArgument(firstNoteBeatShift <= 0, "firstNoteBeatShift=%s", firstNoteBeatShift);
         checkArgument(cSeq.getBarRange().size() == (int) Math.round(phrase.getBeatRange().size() / phrase.getTimeSignature().getNbNaturalBeats())
                 && phrase.getBeatRange().from == 0
                 && !phrase.isEmpty()
@@ -45,9 +50,12 @@ public class Wbp
                 && cSeq.getTimeSignature().equals(phrase.getTimeSignature()),
                 "cSeq=%s phrase=%s", cSeq, phrase);
 
+
         this.chordSequence = cSeq;
         this.sizedPhrase = phrase;
         this.targetNote = targetNote;
+        this.firstNoteBeatShift = firstNoteBeatShift;
+        this.rootProfile = cSeq.getRootProfile();
     }
 
     public SimpleChordSequence getSimpleChordSequence()
@@ -62,6 +70,23 @@ public class Wbp
             stats = new WbpStats(this);
         }
         return stats;
+    }
+
+    public String getRootProfile()
+    {
+        return rootProfile;
+    }
+
+    /**
+     * If &lt; 0 the phrase notes starting on bar/beat 0 should be shifted with this value.
+     * <p>
+     * This is used to store the exact timing of "live-played notes" which can start a bit ahead of this phrase theorical start.
+     *
+     * @return
+     */
+    public float getFirstNoteBeatShift()
+    {
+        return firstNoteBeatShift;
     }
 
     public SizedPhrase getSizedPhrase()
@@ -118,7 +143,7 @@ public class Wbp
     /**
      * The most expected note to start the next phrase right after this phrase.
      *
-     * @return
+     * @return Can be null
      */
     public Note getTargetNote()
     {
@@ -163,7 +188,7 @@ public class Wbp
     {
         final int NB_NOTES_MAX = 5;
         return "cSeq=" + chordSequence
-                + " rp=" + chordSequence.getRootProfile()
+                + " n0shift=" + firstNoteBeatShift
                 + " rg=" + sizedPhrase.getBeatRange()
                 + " p=" + sizedPhrase.stream().limit(NB_NOTES_MAX).toList() + (sizedPhrase.size() > NB_NOTES_MAX ? "..." : "");
     }

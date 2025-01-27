@@ -35,7 +35,6 @@ import org.jjazz.midi.api.DrumKit;
 import org.jjazz.phrase.api.Grid;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
-import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
 
@@ -56,7 +55,7 @@ public class AnticipatedChordProcessor
     protected static final Logger LOGGER = Logger.getLogger(AnticipatedChordProcessor.class.getSimpleName());
 
     /**
-     * Construct an object to anticipated phrases corresponding to the specified parameters.
+     * Construct the processor of a chord sequence.
      *
      * @param cSeq                Can't be empty
      * @param cSeqStartPosInBeats The start position in beats of cSeq. Must be an integer.

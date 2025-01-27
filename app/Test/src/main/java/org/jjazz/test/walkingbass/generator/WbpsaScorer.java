@@ -29,7 +29,7 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
 import java.text.DecimalFormat;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
-import org.jjazz.test.walkingbass.WbpDatabase;
+import org.jjazz.test.walkingbass.WbpSourceDatabase;
 
 /**
  * Scores the compatibility of a WbpSource with a chord sequence.
@@ -190,7 +190,7 @@ public interface WbpsaScorer
         ListMultimap<Score, WbpSourceAdaptation> mmap = MultimapBuilder.treeKeys().arrayListValues().build();
 
         // Check rootProfile first
-        var rpWbpSources = WbpDatabase.getInstance().getWbpSources(scs.getRootProfile());
+        var rpWbpSources = WbpSourceDatabase.getInstance().getWbpSources(scs.getRootProfile());
         for (var wbpSource : rpWbpSources)
         {
             var wbpsa = new WbpSourceAdaptation(wbpSource, scs);

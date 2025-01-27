@@ -28,7 +28,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jjazz.test.walkingbass.WbpDatabase;
+import org.jjazz.test.walkingbass.WbpSourceDatabase;
 import org.jjazz.test.walkingbass.WbpSource;
 import org.jjazz.test.walkingbass.generator.DefaultWbpsaScorer;
 import org.jjazz.test.walkingbass.generator.Tiler;
@@ -78,7 +78,7 @@ public class TilerBestFirstNoRepeat implements Tiler
         // LOGGER.log(Level.SEVERE, "tile() store=\n{0}", store.toDebugString(true));
 
 
-        for (int size = WbpDatabase.SIZE_MAX; size >= WbpDatabase.SIZE_MIN; size--)
+        for (int size = WbpSourceDatabase.SIZE_MAX; size >= WbpSourceDatabase.SIZE_MIN; size--)
         {
             for (int rank = 0; rank < wbpsaStoreWidth; rank++)
             {
@@ -113,7 +113,7 @@ public class TilerBestFirstNoRepeat implements Tiler
     private void markUsed(WbpSource wbpSource)
     {
         usedWbpSources.add(wbpSource);
-        var relatedWbpSources = WbpDatabase.getInstance().getRelatedWbpSources(wbpSource);
+        var relatedWbpSources = WbpSourceDatabase.getInstance().getRelatedWbpSources(wbpSource);
         usedWbpSources.addAll(relatedWbpSources);
     }
 

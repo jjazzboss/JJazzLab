@@ -51,6 +51,7 @@ public enum TimeSignature
      * The half bar position for a ternary 3/4 bar, 5/3=1.6666...
      */
     public static final float SWING_WALTZ_HALF_BAR = 5f / 3f;
+    public static final float BEAT_WINDOW = 0.15f;
     /**
      * The number of lower units that make a bar.
      */
@@ -217,19 +218,18 @@ public enum TimeSignature
     /**
      * Check if the specified beat is a "downbeat" for the time signature.
      * <p>
-     * Downbeats for 4/4 are 0 and 2. If TimeSignature is not handled, return true. 
+     * Downbeats for 4/4 are 0 and 2. If TimeSignature is not handled, return false.
      *
-     * @param beat Must be a valid beat value for this TimeSignature. Accept a 0.1f error with the theorical downbeat position.
+     * @param beat Must be a valid beat value for this TimeSignature. Accept a BEAT_WINDOW error on the downbeat position.
      * @return
      */
     public boolean isDownBeat(float beat)
     {
         Preconditions.checkArgument(checkBeat(beat), "this=%s beat=%s", this, beat);
-        final float BEAT_WINDOW = 0.1f;
         final List<FloatRange> T44_DOWN_RANGES = List.of(new FloatRange(0, BEAT_WINDOW), new FloatRange(2 - BEAT_WINDOW, 2 + BEAT_WINDOW));
         final List<FloatRange> T34_DOWN_RANGES = List.of(new FloatRange(0, BEAT_WINDOW), new FloatRange(1 - BEAT_WINDOW, 1 + BEAT_WINDOW));
-        final List<FloatRange> DEF_DOWN_RANGES = List.of(new FloatRange(0, 1000f));
-        
+        final List<FloatRange> DEF_DOWN_RANGES = List.of(FloatRange.EMPTY_FLOAT_RANGE);
+
         List<FloatRange> downRanges = switch (this)
         {
             case FOUR_FOUR ->
@@ -238,6 +238,37 @@ public enum TimeSignature
                 T34_DOWN_RANGES;
             default ->
                 DEF_DOWN_RANGES;
+        };
+
+        boolean b = downRanges.stream().anyMatch(fr -> fr.contains(beat, false));
+
+        return b;
+    }
+
+    /**
+     * Check if the specified beat is an "upbeat" for the time signature.
+     * <p>
+     * Upbeats for 4/4 are 1 and 3. If TimeSignature is not handled, return false.
+     *
+     * @param beat Must be a valid beat value for this TimeSignature. Accept a BEAT_WINDOW error on the downbeat position.
+     * @return
+     */
+    public boolean isUpBeat(float beat)
+    {
+        Preconditions.checkArgument(checkBeat(beat), "this=%s beat=%s", this, beat);
+
+        final List<FloatRange> T44_UP_RANGES = List.of(new FloatRange(1 - BEAT_WINDOW, 1 + BEAT_WINDOW), new FloatRange(3 - BEAT_WINDOW, 3 + BEAT_WINDOW));
+        final List<FloatRange> T34_UP_RANGES = List.of(new FloatRange(2 - BEAT_WINDOW, 2 + BEAT_WINDOW));
+        final List<FloatRange> DEF_UP_RANGES = List.of(FloatRange.EMPTY_FLOAT_RANGE);
+
+        List<FloatRange> downRanges = switch (this)
+        {
+            case FOUR_FOUR ->
+                T44_UP_RANGES;
+            case THREE_FOUR ->
+                T34_UP_RANGES;
+            default ->
+                DEF_UP_RANGES;
         };
 
         boolean b = downRanges.stream().anyMatch(fr -> fr.contains(beat, false));

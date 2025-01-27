@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
-import org.jjazz.test.walkingbass.WbpDatabase;
+import org.jjazz.test.walkingbass.WbpSourceDatabase;
 import org.jjazz.test.walkingbass.WbpSource;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -67,7 +67,7 @@ public final class WbpDatabaseExplorerAction implements ActionListener
 
     private void dumpWbpSourcesPerRootProfile()
     {
-        var wbpdb = WbpDatabase.getInstance();
+        var wbpdb = WbpSourceDatabase.getInstance();
         ListMultimap<String, WbpSource> mmapRpWbps = MultimapBuilder.hashKeys().arrayListValues().build();
         for (var wbps : wbpdb.getWbpSources())
         {

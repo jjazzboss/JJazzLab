@@ -26,12 +26,11 @@ package org.jjazz.test.walkingbass;
 
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.logging.Logger;
 import org.jjazz.phrase.api.Phrases;
-import org.jjazz.quantizer.api.Quantization;
+import org.jjazz.phrase.api.SizedPhrase;
+import org.jjazz.utilities.api.FloatRange;
 
 /**
  * Algorithms to process WbpSources.
@@ -39,11 +38,44 @@ import org.jjazz.quantizer.api.Quantization;
 public class WbpSources
 {
 
+    private static final ListMultimap<Integer, WbpSource> mmapSizeWbpSources = MultimapBuilder.hashKeys().arrayListValues().build();
     private static final Logger LOGGER = Logger.getLogger(WbpSources.class.getSimpleName());
 
-    
+
+  
+
     /**
-     * 
+     * Check if sp has one note per beat.
+     *
+     * @param sp
+     * @param nearBeatWindow Tolerate slight difference in beat position
+     * @return
+     */
+    static public boolean isOneNotePerBeat(SizedPhrase sp, float nearBeatWindow)
+    {
+        boolean b = true;
+        if (sp.size() == sp.getTimeSignature().getNbNaturalBeats())
+        {
+            int beat = 0;
+            for (var ne : sp)
+            {
+                FloatRange fr = new FloatRange(Math.max(0, beat - nearBeatWindow), beat + nearBeatWindow);
+                if (!fr.contains(ne.getPositionInBeats(), false))
+                {
+                    b = false;
+                    break;
+                }
+                beat++;
+            }
+        } else
+        {
+            b = false;
+        }
+        return b;
+    }
+
+    /**
+     *
      * @param wbpSources
      * @return A list of list of WbpSources which share the same chord progression
      */
@@ -51,4 +83,8 @@ public class WbpSources
     {
         return null;
     }
+    
+    // ================================================================================================================
+    // Private methods
+    // ================================================================================================================    
 }

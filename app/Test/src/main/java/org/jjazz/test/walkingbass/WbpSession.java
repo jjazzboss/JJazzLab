@@ -32,10 +32,11 @@ public class WbpSession extends Wbp
 
     public WbpSession(String id, List<String> tags, SimpleChordSequence cSeq, SizedPhrase phrase, Note targetNote)
     {
-        super(cSeq, phrase, targetNote);
+        super(cSeq, phrase, 0, targetNote);
         this.id = id;
         this.tags = tags;
     }
+
 
     public String getId()
     {
@@ -75,7 +76,7 @@ public class WbpSession extends Wbp
         {
             for (int bar = 0; bar < sessionSizeInBars - srcSize + 1; bar++)
             {
-                WbpSource wbpSource = getWbpSource(bar, srcSize);
+                WbpSource wbpSource = extractWbpSource(bar, srcSize);
                 boolean bFirst = !disallowNonRootStartNote || wbpSource.startsOnChordRoot();
                 boolean bLast = !disallowNonChordToneLastNote || wbpSource.endsOnChordTone();
                 if (bFirst && bLast)
@@ -98,7 +99,7 @@ public class WbpSession extends Wbp
     // Private methods
     // ==============================================================================================
 
-    private WbpSource getWbpSource(int barOffset, int nbBars)
+    private WbpSource extractWbpSource(int barOffset, int nbBars)
     {
         SizedPhrase sessionPhrase = getSizedPhrase();
         TimeSignature ts = sessionPhrase.getTimeSignature();
@@ -128,14 +129,9 @@ public class WbpSession extends Wbp
         }
 
 
-        // Get the progression
-        SimpleChordSequence cSeq = new SimpleChordSequence(new IntRange(0, nbBars - 1), ts);
-        for (CLI_ChordSymbol cliCs : getSimpleChordSequence().subSequence(new IntRange(barOffset, barOffset + nbBars - 1), true))
-        {
-            Position pos = cliCs.getPosition();
-            var newCliCs = (CLI_ChordSymbol) cliCs.getCopy(new Position(pos.getBar() - barOffset, pos.getBeat()));
-            cSeq.add(newCliCs);
-        }
+        // Get the progression starting at bar 0
+        var br = new IntRange(barOffset, barOffset + nbBars - 1);
+        var cSeq = getSimpleChordSequence().subSequence(br, true).getShifted(-barOffset);
 
 
         // Target note
@@ -150,7 +146,7 @@ public class WbpSession extends Wbp
             targetNote = nextBarNotes.get(0);
         }
 
-        var wbpSource = new WbpSource(this, barOffset, cSeq, sp, firstNoteBeatShift, targetNote);
+        var wbpSource = new WbpSource(getId(), barOffset, cSeq, sp, firstNoteBeatShift, targetNote);
 
         return wbpSource;
     }

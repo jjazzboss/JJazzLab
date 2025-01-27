@@ -93,6 +93,7 @@ public class ChordSequence extends TreeSet<CLI_ChordSymbol> implements Comparabl
         return res;
     }
 
+
     public final IntRange getBarRange()
     {
         return barRange;

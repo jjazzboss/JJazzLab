@@ -34,7 +34,7 @@ import java.util.TreeMap;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
-import org.jjazz.test.walkingbass.WbpDatabase;
+import org.jjazz.test.walkingbass.WbpSourceDatabase;
 import org.jjazz.test.walkingbass.WbpSource;
 import org.jjazz.utilities.api.IntRange;
 
@@ -357,7 +357,7 @@ public class WbpTiling
 
 
         StringBuilder sb = new StringBuilder();
-        for (int i = WbpDatabase.SIZE_MAX; i >= WbpDatabase.SIZE_MIN; i--)
+        for (int i = WbpSourceDatabase.SIZE_MAX; i >= WbpSourceDatabase.SIZE_MIN; i--)
         {
             final int fi = i;
             var sizeList = sortedSources.stream()
