@@ -58,15 +58,14 @@ public interface OutputSynthManager
     public static String STD_JJAZZLAB_SOUNDFONT_GM2 = "JJazzLabSoundFontGM2";
 
     /**
-     * Property change event fired each time a new OutputSynth is associated to the default JJazzLab MidiDevice OUT: oldValue=old
-     * OutputSynth, newValue=new OutputSynth.
+     * Property change event fired each time a new OutputSynth is associated to the default JJazzLab MidiDevice OUT: oldValue=old OutputSynth, newValue=new
+     * OutputSynth.
      * <p>
      * The change event is also fired when default JJazzLab MidiDevice OUT changes.
      */
     String PROP_DEFAULT_OUTPUTSYNTH = "PropDefaultOutputSynth";
     /**
-     * Property change event fired each time a new OutputSynth is associated to a MidiDevice OUT: oldValue=Midi device OUT name,
-     * newValue=OutputSynth.
+     * Property change event fired each time a new OutputSynth is associated to a MidiDevice OUT: oldValue=Midi device OUT name, newValue=OutputSynth.
      */
     String PROP_MDOUT_OUTPUTSYNTH = "MdOut-OutputSynth";
 
@@ -145,6 +144,9 @@ public interface OutputSynthManager
 
     /**
      * Get the OutputSynth associated to the specified output MidiDevice.
+     * <p>
+     * If no OutputSynth found for this session, try to restore it from a previous session (saved as preferences). If nothing found return the shared GM output
+     * synth instance.
      *
      * @param mdOutName A Midi device OUT name, can't be null or empty
      * @return Can't be null.
@@ -155,14 +157,14 @@ public interface OutputSynthManager
      * Associate outSynth to the specified midi OUT device name.
      *
      * @param mdOutName Can't be null
-     * @param outSynth Can't be null
+     * @param outSynth  Can't be null
      */
     void setMidiDeviceOutputSynth(String mdOutName, OutputSynth outSynth);
 
     /**
-     * Scan all the OUT MidiDevices and make sure each MidiDevice is associated to an OutputSynth.
+     * Scan all the system OUT MidiDevices and make sure each MidiDevice is associated to an OutputSynth.
      * <p>
-     * Should be called if the list of available OUT MidiDevices has changed.
+     * Should be called if the list of available OUT system MidiDevices has changed.
      */
     default void refresh()
     {
@@ -211,8 +213,7 @@ public interface OutputSynthManager
             if ((rv instanceof UserRhythmVoice) && !rv.isDrums())
             {
                 ins = outSynth.getUserSettings().getUserMelodicInstrument();
-            }
-            else
+            } else
             {
                 ins = outSynth.findInstrument(rv);
 

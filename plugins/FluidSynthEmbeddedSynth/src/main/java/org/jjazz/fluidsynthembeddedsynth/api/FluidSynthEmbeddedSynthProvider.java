@@ -38,6 +38,7 @@ import org.openide.util.Exceptions;
 import org.openide.util.lookup.ServiceProvider;
 import org.jjazz.outputsynth.spi.OutputSynthManager;
 import org.jjazz.midi.spi.MidiSynthManager;
+import org.jjazz.outputsynth.api.OutputSynth;
 
 @ServiceProvider(service = EmbeddedSynthProvider.class)
 public class FluidSynthEmbeddedSynthProvider implements EmbeddedSynthProvider
@@ -112,12 +113,30 @@ public class FluidSynthEmbeddedSynthProvider implements EmbeddedSynthProvider
 
         if (b)
         {
-            openSynthAndDevice();       // throws EmbeddedSynthException
+            // Open midiDevice and embeddedSynth
+            openSynthAndDevice();       // throws EmbeddedSynthException. 
 
-
+            //
             // Connect to the JJazzLab application
+            //
+            var osm = OutputSynthManager.getDefault();
+            String mdName = midiDevice.getDeviceInfo().getName();
+            // MidiSynth needs to be added manually as it is read from the jar file
             MidiSynthManager.getDefault().addMidiSynth(embeddedSynth.getOutputSynth().getMidiSynth());
-            OutputSynthManager.getDefault().setMidiDeviceOutputSynth(midiDevice.getDeviceInfo().getName(), embeddedSynth.getOutputSynth());
+
+            
+            // Try to restore a previous saved FluidSynth output synth with its configuration (e.g. audio latency, remap table)
+            OutputSynth os = osm.getMidiDeviceOutputSynth(mdName);
+            if (os.getMidiSynth().getName().equals("FluidSynth"))
+            {
+                // Restore OK, update embeddedSynth
+                embeddedSynth.setOutputSynth(os);
+            }else
+            {
+                // Restore failed, set a new OutputSynth ourselves
+                os = embeddedSynth.getOutputSynth();
+                osm.setMidiDeviceOutputSynth(midiDevice.getDeviceInfo().getName(), os);
+            }
 
 
             // Use our special MidiDevice
@@ -126,7 +145,7 @@ public class FluidSynthEmbeddedSynthProvider implements EmbeddedSynthProvider
             saveMidiDeviceName = md == null ? null : md.getDeviceInfo().getName();
             try
             {
-                jms.setDefaultOutDevice(midiDevice);
+                jms.setDefaultOutDevice(midiDevice);    // This will notify OutputSynthManager to set fsOutputSynth as the default OutputSynth
             } catch (MidiUnavailableException ex)
             {
                 // Should never be there, our midiDevice does nothing upon open...
