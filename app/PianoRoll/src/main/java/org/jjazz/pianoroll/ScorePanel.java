@@ -202,7 +202,7 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
     public void paintComponent(Graphics g)
     {
         Graphics2D g2 = (Graphics2D) g;
-                
+
 //        LOGGER.log(Level.INFO, "paintComponent() -- width={0} height={1} clip={2}", new Object[]
 //        {
 //            getWidth(), getHeight(), g2.getClipBounds()
@@ -212,7 +212,7 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
         g2.clipRect(0, 0, notesPanel.getWidth(), getHeight());
         var clip = g2.getClipBounds();
 
-        
+
         var xMapper = notesPanel.getXMapper();
         var yMapper = notesPanel.getYMapper();
         if (!yMapper.isUptodate() || !xMapper.isUptodate() || clip.isEmpty())
@@ -221,6 +221,7 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
             // LOGGER.severe("paintComponent() xMapper or yMapper is not uptodate, abort painting");
             return;
         }
+
         // Fill background
         Color c = editor.getSettings().getBackgroundColor2();
         g2.setColor(c);
@@ -238,7 +239,7 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
         {
             // Important: we need all chord symbols from the start for paintNotes()
             IntRange brClip = xMapper.getBarRange(IntRange.ofX(clip));
-            chordSequence = chordSequence.subSequence(brClip, true);
+            chordSequence = chordSequence.subSequence(brClip, false);
             paintChordSymbols(g2, chordSequence);
         }
 
@@ -371,6 +372,8 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
     @Override
     public void showPlaybackPoint(int xPos)
     {
+        Preconditions.checkArgument(xPos >= -1, "xPos=%s", xPos);
+
         int oldX = playbackPointX;
         playbackPointX = xPos;
         if (playbackPointX != oldX)
@@ -378,8 +381,8 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
             int x0, x1;
             if (oldX == -1)
             {
-                x0 = xPos - 1;
-                x1 = xPos + 1;
+                x0 = playbackPointX - 1;
+                x1 = playbackPointX + 1;
             } else if (playbackPointX == -1)
             {
                 x0 = oldX - 1;
@@ -389,6 +392,7 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
                 x0 = Math.min(playbackPointX, oldX) - 1;
                 x1 = Math.max(playbackPointX, oldX) + 1;
             }
+            x0 = Math.max(0, x0);
             repaint(x0, 0, x1 - x0 + 1, getHeight());
         }
     }
