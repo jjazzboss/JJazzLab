@@ -23,6 +23,8 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Intensity;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
+import org.jjazz.rhythmmusicgeneration.api.DummyGenerator;
+import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.test.walkingbass.WbpSource;
 import org.jjazz.test.walkingbass.WbpSourceDatabase;
