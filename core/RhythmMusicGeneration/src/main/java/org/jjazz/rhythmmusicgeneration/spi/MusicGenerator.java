@@ -43,7 +43,7 @@ public interface MusicGenerator
      * If the context song contains several rhythms, the method must add notes ONLY for bars which use this MidiMusicGenerator's rhythm. For example, if context
      * range is bars 3-4 with rhythm1 on bar3 and rhythm2 on bar4, then the rhythm1 generator must add notes for bar 3 only.
      * <p>
-     * Note that the following features are directly managed by the JJazzLab framework by postprocessing the output of generateMusic():<br>
+     * IMPORTANT: the following features are directly managed by the JJazzLab framework by postprocessing the output of generateMusic():<br>
      * - Midi Instrument selection and settings (Program changes, Midi controller messages such as bank select, volume, reverb, panoramic) <br>
      * - RP_SYS_Mute rhythm parameter handling (muting a specific track for a specific SongPart)<br>
      * - RP_SYS_DrumsMix rhythm parameter handling (adjusting some drums track instruments velocity)<br>

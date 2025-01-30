@@ -30,7 +30,7 @@ import org.jjazz.utilities.api.ResUtil;
  * Standard RhythmParameter: is there a fill at the end of a SongPart.
  * <p>
  */
-public class RP_STD_Fill extends RP_State
+public class RP_SYS_Fill extends RP_State
 {
 
     public static String ID = "RpFillID";
@@ -45,27 +45,27 @@ public class RP_STD_Fill extends RP_State
      *
      * @param isPrimary
      */
-    public RP_STD_Fill(boolean isPrimary)
+    public RP_SYS_Fill(boolean isPrimary)
     {
-        super(ID, ResUtil.getString(RP_STD_Fill.class, "CTL_RpFillName"), ResUtil.getString(RP_STD_Fill.class, "CTL_RpFillDesc"), isPrimary, "", "",
+        super(ID, ResUtil.getString(RP_SYS_Fill.class, "CTL_RpFillName"), ResUtil.getString(RP_SYS_Fill.class, "CTL_RpFillDesc"), isPrimary, "", "",
                  VALUE_ALWAYS, VALUE_RANDOM, VALUE_RANDOM_RARE, VALUE_BREAK, VALUE_FADE_OUT);
     }
 
-    public RP_STD_Fill(boolean isPrimary, String defaultVal, String... possibleValues)
+    public RP_SYS_Fill(boolean isPrimary, String defaultVal, String... possibleValues)
     {
-        super(ID, ResUtil.getString(RP_STD_Fill.class, "CTL_RpFillName"), ResUtil.getString(RP_STD_Fill.class, "CTL_RpFillDesc"), isPrimary, defaultVal,
+        super(ID, ResUtil.getString(RP_SYS_Fill.class, "CTL_RpFillName"), ResUtil.getString(RP_SYS_Fill.class, "CTL_RpFillDesc"), isPrimary, defaultVal,
                 possibleValues);
     }
 
-    static public RP_STD_Fill getFillRp(Rhythm rhythm)
+    static public RP_SYS_Fill getFillRp(Rhythm rhythm)
     {
         if (rhythm == null)
         {
             throw new NullPointerException("r");
         }
-        return (RP_STD_Fill) rhythm.getRhythmParameters()
+        return (RP_SYS_Fill) rhythm.getRhythmParameters()
                 .stream()
-                .filter(r -> (r instanceof RP_STD_Fill))
+                .filter(r -> (r instanceof RP_SYS_Fill))
                 .findAny()
                 .orElse(null);
     }

@@ -53,12 +53,12 @@ import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.TempoRange;
 import org.jjazz.songcontext.api.SongContext;
-import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Fill;
-import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Intensity;
-import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Variation;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Fill;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Intensity;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhrase;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Marker;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Mute;
+import org.jjazz.rhythmmusicgeneration.api.RP_SYS_Mute;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_TempoFactor;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.yamjjazz.rhythm.api.AccType;
@@ -643,7 +643,7 @@ public class YamJJazzRhythmImpl implements YamJJazzRhythm
         }
 
         // Special rp variation based on the variation contained in the style
-        RP_STD_Variation rpVariation = new RP_STD_Variation(true, defaultStr, strs.toArray(String[]::new))
+        RP_SYS_Variation rpVariation = new RP_SYS_Variation(true, defaultStr, strs.toArray(String[]::new))
         {
             /**
              * Return the the variation length in bars.
@@ -667,9 +667,9 @@ public class YamJJazzRhythmImpl implements YamJJazzRhythm
 
 
         // Intensity : use default
-        RP_STD_Intensity rpIntensity = new RP_STD_Intensity(true);
+        RP_SYS_Intensity rpIntensity = new RP_SYS_Intensity(true);
         // Fill : use default
-        RP_STD_Fill rpFill = new RP_STD_Fill(true);
+        RP_SYS_Fill rpFill = new RP_SYS_Fill(true);
         // Mute : use available tracks      
         RP_SYS_Mute rpMute = RP_SYS_Mute.createMuteRp(this, false);
         RP_SYS_CustomPhrase rpCustomPhrase = new RP_SYS_CustomPhrase(this, false);

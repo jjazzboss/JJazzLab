@@ -42,8 +42,8 @@ import org.jjazz.rhythm.api.RhythmFeatures;
 import org.jjazz.rhythm.api.TempoRange;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
-import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Fill;
-import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Variation;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Fill;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Marker;
 import org.jjazz.song.api.SongCreationException;
 import org.jjazz.song.api.Song;
@@ -183,8 +183,8 @@ public class BiabImporter implements SongImporter
         maxMiddleChorusIndex = lastChorusPresent ? maxMiddleChorusIndex : maxMiddleChorusIndex - 1;
 
         // Change RPs: variation fill marker
-        RP_STD_Variation rpVariation = RP_STD_Variation.getVariationRp(r);
-        RP_STD_Fill rpFill = RP_STD_Fill.getFillRp(r);
+        RP_SYS_Variation rpVariation = RP_SYS_Variation.getVariationRp(r);
+        RP_SYS_Fill rpFill = RP_SYS_Fill.getFillRp(r);
         RP_SYS_Marker rpMarker = RP_SYS_Marker.getMarkerRp(r);
 
         // Change the SongParts
@@ -200,7 +200,7 @@ public class BiabImporter implements SongImporter
             // Systematic fill
             if (rpFill != null)
             {
-                ss.setRhythmParameterValue(spt, rpFill, RP_STD_Fill.VALUE_ALWAYS);
+                ss.setRhythmParameterValue(spt, rpFill, RP_SYS_Fill.VALUE_ALWAYS);
             }
 
             // Middle chorus marker
@@ -215,7 +215,7 @@ public class BiabImporter implements SongImporter
         }
     }
     
-    private String getVariationString(RP_STD_Variation rp, int barMarker)
+    private String getVariationString(RP_SYS_Variation rp, int barMarker)
     {
         if (barMarker < 1)
         {

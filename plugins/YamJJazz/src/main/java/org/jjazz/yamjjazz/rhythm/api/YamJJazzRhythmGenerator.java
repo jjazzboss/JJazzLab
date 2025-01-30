@@ -66,9 +66,9 @@ import org.jjazz.phrase.api.Phrases;
 import org.jjazz.phrase.api.SourcePhrase;
 import org.jjazz.phrase.api.SourcePhraseSet;
 import org.jjazz.rhythmmusicgeneration.api.Utilities;
-import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Fill;
-import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Intensity;
-import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Variation;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Fill;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Intensity;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.rhythmmusicgeneration.api.SongChordSequence.SplitResult;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
@@ -217,7 +217,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
         List<ChordSeqPhrases> res = new ArrayList<>();
 
         // Split the song structure in chord sequences of consecutive sections having the same rhythm and same RhythmParameter value
-        var splitResults = songChordSequence.split(rhythm, RP_STD_Variation.getVariationRp(rhythm));
+        var splitResults = songChordSequence.split(rhythm, RP_SYS_Variation.getVariationRp(rhythm));
 
 
         for (SplitResult<String> splitResult : splitResults)
@@ -1030,9 +1030,9 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
             if (r.equals(rhythm) && spt.getParentSection().getData().getName().endsWith("*FILL*"))
             {
                 YamJJazzRhythm yjr = (YamJJazzRhythm) r;
-                String rpComplexityValue = spt.getRPValue(RP_STD_Variation.getVariationRp(yjr));
+                String rpComplexityValue = spt.getRPValue(RP_SYS_Variation.getVariationRp(yjr));
                 StylePart sp = yjr.getStylePart(rpComplexityValue);
-                String rpFillValue = spt.getRPValue(RP_STD_Fill.getFillRp(yjr));
+                String rpFillValue = spt.getRPValue(RP_SYS_Fill.getFillRp(yjr));
                 if (sp.getType().isMain() && needFill(rpFillValue))
                 {
                     // Change the RP Complexity value to use the appropriate Fill or Break
@@ -1052,7 +1052,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
                     {
                         newComplexityValue = breakType.toString() + "-1";
                     }
-                    ss.setRhythmParameterValue(spt, RP_STD_Variation.getVariationRp(yjr), newComplexityValue);
+                    ss.setRhythmParameterValue(spt, RP_SYS_Variation.getVariationRp(yjr), newComplexityValue);
                 }
             }
         }
@@ -1069,13 +1069,13 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
         boolean r = false;
         rpFillValue = rpFillValue.toLowerCase();
         double x = Math.random();
-        if (rpFillValue.contains(RP_STD_Fill.VALUE_ALWAYS) || rpFillValue.contains(RP_STD_Fill.VALUE_BREAK))
+        if (rpFillValue.contains(RP_SYS_Fill.VALUE_ALWAYS) || rpFillValue.contains(RP_SYS_Fill.VALUE_BREAK))
         {
             r = true;
-        } else if (rpFillValue.contains(RP_STD_Fill.VALUE_RANDOM_RARE) && x <= 0.25)
+        } else if (rpFillValue.contains(RP_SYS_Fill.VALUE_RANDOM_RARE) && x <= 0.25)
         {
             r = true;
-        } else if (rpFillValue.contains(RP_STD_Fill.VALUE_RANDOM) && x <= 0.5)
+        } else if (rpFillValue.contains(RP_SYS_Fill.VALUE_RANDOM) && x <= 0.5)
         {
             r = true;
         }
@@ -1101,7 +1101,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
                     continue;
                 }
 
-                int rpIntensityValue = spt.getRPValue(RP_STD_Intensity.getIntensityRp(rhythm));
+                int rpIntensityValue = spt.getRPValue(RP_SYS_Intensity.getIntensityRp(rhythm));
                 int velShift = getVelocityShiftFromRpIntensity(rpIntensityValue);
 
                 for (Phrase p : mapAccTypePhrase.values())

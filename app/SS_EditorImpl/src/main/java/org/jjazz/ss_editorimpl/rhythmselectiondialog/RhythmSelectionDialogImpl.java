@@ -57,7 +57,7 @@ import org.jjazz.rhythmdatabaseimpl.api.FavoriteRhythms;
 import org.jjazz.rhythm.spi.RhythmProvider;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
-import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Variation;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
 import org.jjazz.rhythm.spi.RhythmDirsLocator;
 import org.jjazz.rhythmdatabaseimpl.api.FavoriteRhythmProvider;
 import org.jjazz.rhythmselectiondialog.spi.RhythmPreviewer;
@@ -565,7 +565,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         Map<RhythmParameter<?>, Object> mapRpValues = new HashMap<>();      // No specific value by default
         if (rpStdVariationValue != null)
         {
-            mapRpValues.put(RP_STD_Variation.getVariationRp(r), rpStdVariationValue);
+            mapRpValues.put(RP_SYS_Variation.getVariationRp(r), rpStdVariationValue);
         }
 
 
@@ -601,7 +601,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
     private String updateCmbVariation(Rhythm r)
     {
         String newSelectedValue = null;
-        RP_STD_Variation rpVariation = RP_STD_Variation.getVariationRp(r);
+        RP_SYS_Variation rpVariation = RP_SYS_Variation.getVariationRp(r);
 
         if (rhythmPreviewProvider.getPreviewedRhythm() == r)
         {

@@ -106,12 +106,7 @@ public class DefaultOutputSynthManager implements OutputSynthManager, PropertyCh
         return res;
     }
 
-    /**
-     * Get the OutputSynth associated to the specified output MidiDevice.
-     *
-     * @param mdOutName A Midi device OUT name, can't be null or empty
-     * @return Can't be null.
-     */
+
     @Override
     public OutputSynth getMidiDeviceOutputSynth(String mdOutName)
     {
@@ -154,12 +149,6 @@ public class DefaultOutputSynthManager implements OutputSynthManager, PropertyCh
         return outSynth;
     }
 
-    /**
-     * Associate outSynth to the specified midi OUT device name.
-     *
-     * @param mdOutName Can't be null
-     * @param outSynth  Can't be null
-     */
     @Override
     public void setMidiDeviceOutputSynth(String mdOutName, OutputSynth outSynth)
     {

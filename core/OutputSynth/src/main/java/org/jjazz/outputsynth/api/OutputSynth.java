@@ -36,8 +36,6 @@ import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.InstrumentBank;
 import org.jjazz.midi.api.InstrumentMix;
-import org.jjazz.midi.api.InstrumentSettings;
-import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.midi.api.MidiSynth;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.midi.api.synths.GM1Instrument;

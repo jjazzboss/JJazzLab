@@ -28,6 +28,7 @@ import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
@@ -65,6 +66,7 @@ public class FluidSynthEmbeddedSynth implements EmbeddedSynth, PropertyChangeLis
 
     private FluidSynthJava fluidSynth;
     private File soundFontFile;
+    private OutputSynth outputSynth;
     private static final Preferences prefs = NbPreferences.forModule(FluidSynthEmbeddedSynth.class);
     private static final Logger LOGGER = Logger.getLogger(FluidSynthEmbeddedSynth.class.getSimpleName());
 
@@ -79,7 +81,7 @@ public class FluidSynthEmbeddedSynth implements EmbeddedSynth, PropertyChangeLis
      * Redirect to setSoundFontFile().
      *
      * @param config Must be a soundfont file.
-     * @see #setSoundFontFile(java.io.File) 
+     * @see #setSoundFontFile(java.io.File)
      */
     @Override
     public void configure(Object config)
@@ -181,6 +183,8 @@ public class FluidSynthEmbeddedSynth implements EmbeddedSynth, PropertyChangeLis
             close();
             throw new EmbeddedSynthException(ex.getMessage());
         }
+
+        outputSynth = OS_FluidSynthEmbedded.getInstance();
     }
 
     @Override
@@ -194,10 +198,15 @@ public class FluidSynthEmbeddedSynth implements EmbeddedSynth, PropertyChangeLis
         return fluidSynth;
     }
 
+    /**
+     * Get the associated OutputSynth.
+     *
+     * @return Null if synth is not opened
+     */
     @Override
     public final OutputSynth getOutputSynth()
     {
-        return OS_FluidSynthEmbedded.getInstance();
+        return outputSynth;
     }
 
     @Override
@@ -241,6 +250,17 @@ public class FluidSynthEmbeddedSynth implements EmbeddedSynth, PropertyChangeLis
         {
             throw new EmbeddedSynthException(ex.getMessage());
         }
+    }
+
+    /**
+     * Set the associated OutputSynth.
+     *
+     * @param os
+     */
+    public void setOutputSynth(OutputSynth os)
+    {
+        Objects.requireNonNull(os);
+        outputSynth = os;
     }
 
     /**
@@ -309,6 +329,5 @@ public class FluidSynthEmbeddedSynth implements EmbeddedSynth, PropertyChangeLis
                 .findAny()
                 .orElse(null);
     }
-
 
 }

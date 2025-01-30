@@ -21,10 +21,8 @@ import org.jjazz.phrase.api.Phrases;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
-import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Intensity;
-import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Variation;
-import org.jjazz.rhythmmusicgeneration.api.DummyGenerator;
-import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Intensity;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.test.walkingbass.WbpSource;
 import org.jjazz.test.walkingbass.WbpSourceDatabase;
@@ -53,8 +51,8 @@ public class WalkingBassGenerator implements MusicGenerator
 
     public WalkingBassGenerator(Rhythm r)
     {
-        Preconditions.checkArgument(RP_STD_Variation.getVariationRp(r) != null
-                && RP_STD_Intensity.getIntensityRp(r) != null,
+        Preconditions.checkArgument(RP_SYS_Variation.getVariationRp(r) != null
+                && RP_SYS_Intensity.getIntensityRp(r) != null,
                 "r=%s", r);
         rhythm = r;
     }
@@ -141,7 +139,7 @@ public class WalkingBassGenerator implements MusicGenerator
         List<Phrase> res = new ArrayList<>();
 
         // Split the song structure in chord sequences of consecutive sections having the same rhythm and same RhythmParameter value
-        var splitResults = songChordSequence.split(rhythm, RP_STD_Variation.getVariationRp(rhythm));
+        var splitResults = songChordSequence.split(rhythm, RP_SYS_Variation.getVariationRp(rhythm));
 
 
         // Make one big SimpleChordSequence per rpValue: this will let us control "which pattern is used where" at the song level

@@ -22,33 +22,44 @@
  */
 package org.jjazz.rhythm.api.rhythmparameters;
 
+import java.util.Objects;
 import org.jjazz.rhythm.api.RP_State;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.utilities.api.ResUtil;
 
 /**
- * Standard RhythmParameter: double feel
+ * Standard RhythmParameter : a variation of a rhythm.
+ * 
  */
-public final class RP_STD_Feel extends RP_State
+public class RP_SYS_Variation extends RP_State
 {
 
-    public static String ID = "rpFeelID";
+    public static String ID = "rpVariationID";
 
-    public RP_STD_Feel(boolean isPrimary)
+    public RP_SYS_Variation(boolean isPrimary)
     {
-        super(ID, ResUtil.getString(RP_STD_Feel.class, "CTL_StdFeelName"), ResUtil.getString(RP_STD_Feel.class, "CTL_StdFeelDesc"), isPrimary, "", "", "half-time");
+        super(ID, ResUtil.getString(RP_SYS_Variation.class, "CTL_StdVariationName"), ResUtil.getString(RP_SYS_Variation.class, "CTL_StdVariationDesc"), isPrimary, "V1", "V1", "V2", "V3");
     }
 
-    static public RP_STD_Feel getFeelRp(Rhythm rhythm)
+    public RP_SYS_Variation(boolean isPrimary, String defaultVal, String... possibleValues)
     {
-        if (rhythm == null)
-        {
-            throw new NullPointerException("r");   
-        }
-        return (RP_STD_Feel) rhythm.getRhythmParameters()
+        super(ID, ResUtil.getString(RP_SYS_Variation.class, "CTL_StdVariationName"), ResUtil.getString(RP_SYS_Variation.class, "CTL_StdVariationDesc"), isPrimary, defaultVal, possibleValues);
+    }
+
+    /**
+     * Find the first RP_STD_Variation instance in the rhythm parameters of r.
+     *
+     * @param rhythm
+     * @return Can be null if not found
+     */
+    static public RP_SYS_Variation getVariationRp(Rhythm rhythm)
+    {
+        Objects.requireNonNull(rhythm);
+        return (RP_SYS_Variation) rhythm.getRhythmParameters()
                 .stream()
-                .filter(r -> (r instanceof RP_STD_Feel))
+                .filter(rp -> (rp instanceof RP_SYS_Variation))
                 .findAny()
                 .orElse(null);
     }
+
 }

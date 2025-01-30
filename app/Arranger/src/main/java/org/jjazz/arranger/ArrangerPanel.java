@@ -52,7 +52,7 @@ import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.Rhythm;
-import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Variation;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
 import org.jjazz.song.api.Song;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.songstructure.api.SgsChangeListener;
@@ -448,7 +448,7 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
             // Playing
             sSpt = ResUtil.getString(getClass(), "SongPartRef", songPart.getName(), songPart.getStartBarIndex() + 1);
             Rhythm r = songPart.getRhythm();
-            var rpVariation = RP_STD_Variation.getVariationRp(r);
+            var rpVariation = RP_SYS_Variation.getVariationRp(r);
             String strVariation = rpVariation == null ? "" : "/" + songPart.getRPValue(rpVariation);
             sRhythm = r.getName() + strVariation;
         }

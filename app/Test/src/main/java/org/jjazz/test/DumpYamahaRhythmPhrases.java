@@ -28,7 +28,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jjazz.rhythm.api.rhythmparameters.RP_STD_Variation;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -66,7 +66,7 @@ public class DumpYamahaRhythmPhrases implements ActionListener
         if (context.getRhythm() instanceof YamJJazzRhythm)
         {
             YamJJazzRhythm yr = (YamJJazzRhythm) context.getRhythm();
-            String spStr = context.getRPValue(RP_STD_Variation.getVariationRp(yr));
+            String spStr = context.getRPValue(RP_SYS_Variation.getVariationRp(yr));
             StylePart sp = yr.getStylePart(spStr);
             LOGGER.log(Level.INFO, "r={0} sp={1}", new Object[]
             {
