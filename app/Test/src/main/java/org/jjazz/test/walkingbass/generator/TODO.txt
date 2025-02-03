@@ -11,3 +11,7 @@
 * Scorer: take into account start/end slopes matching ?
 * Database: harmonize phrases velocity ?
 * Generate alternate phrases from DB: try symetric patterns ?
+* Do not use WBpSources with crossing notes at boundaries
+* reject wbpsources with out of scale long notes at slow tempos
+* weighted duration calculation: don't count last note if half-tone up/sub next chord => it's a transition note
+* Make quarter notes duratino shorter with high tempo

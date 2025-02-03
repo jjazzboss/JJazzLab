@@ -523,8 +523,15 @@ public class WbpSourceDatabase
                         boolean b = false;
                         if (sessionRange.contains(me.getTick()))
                         {
-                            char c = MidiUtilities.getText(me).charAt(0);
-                            b = c >= 'A' && c <= 'G';
+                            String s = MidiUtilities.getText(me);
+                            if (s.isBlank())
+                            {
+                                LOGGER.log(Level.SEVERE, "Empty marker found at tick={0}", me.getTick());
+                            } else
+                            {
+                                char c = MidiUtilities.getText(me).charAt(0);
+                                b = c >= 'A' && c <= 'G';
+                            }
                         }
                         return b;
                     })
