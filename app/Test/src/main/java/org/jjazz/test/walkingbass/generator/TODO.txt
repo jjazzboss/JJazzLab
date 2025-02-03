@@ -7,7 +7,7 @@
 * Try to automatically assign a chord scale to chords (DB and song)
 * Handle non recognized multi-chord bars
 * Handle RP intensity
-* Handle non standard chords positioning & anticipated chords
+* Handle non standard chords positioning & anticipated chords: handle 3 chords/bar case. For complex case play one beat per chord (reuse groove pos/vel)
 * Scorer: take into account start/end slopes matching ?
 * Database: harmonize phrases velocity ?
 * Generate alternate phrases from DB: try symetric patterns ?
@@ -15,3 +15,4 @@
 * reject wbpsources with out of scale long notes at slow tempos
 * weighted duration calculation: don't count last note if half-tone up/sub next chord => it's a transition note
 * Make quarter notes duratino shorter with high tempo
+* Check consistency: search for 2-chord bars root profiles with 0 or just 1 WbpSource
