@@ -188,7 +188,7 @@ public class WbpSourceChordPhrase
 
         while (degreeIndex > 2)     // Leave root/3rd/5th alone
         {
-            var d = degrees.get(degreeIndex);
+            var d = degrees.get(degreeIndex);       // 2, 6, 7/7M, b9/9/#9, 11/#11, 13
             if (!isUsed(d))
             {
                 var newCs = srcExtChordSymbol.getSimplified(degreeIndex);
@@ -353,7 +353,7 @@ public class WbpSourceChordPhrase
 
             case NINTH ->
             {
-                // targetCt can be C69, CM9(#11), C13M(#11), C9(b5,#5,#11), Cm2, Cm69, Cm9(b5,11,M7), Cm13, C9sus, C13sus
+                // targetCt can be C69, CM9(#11), C13M(#11), C9(b5,#5,#11), Cm2, Cm69, Cm9(b5,11,M7), Cm13, C9sus, C13sus, C2
                 List<Degree> y;
                 if (targetCt.isMajor())
                 {
@@ -364,7 +364,7 @@ public class WbpSourceChordPhrase
                 } else
                 {
                     assert targetCt.isSus();
-                    y = List.of(Degree.NINTH_FLAT, Degree.THIRD_FLAT);
+                    y = "2".equals(targetCt.getName()) ? List.of(Degree.NINTH_FLAT, Degree.THIRD_FLAT, Degree.THIRD) : List.of(Degree.NINTH_FLAT, Degree.THIRD_FLAT);
                 }
                 yield y;
             }
@@ -386,7 +386,7 @@ public class WbpSourceChordPhrase
 
             case FOURTH_OR_ELEVENTH ->
                 // targetCt can be Csus, C7sus(b9), C9sus, C13sus(b9), Cm11(b5), Cm911
-                targetCt.isSus() ? List.of(Degree.THIRD, Degree.ELEVENTH_SHARP) : Collections.emptyList();
+                targetCt.isSus() ? List.of(Degree.THIRD_FLAT, Degree.THIRD, Degree.ELEVENTH_SHARP) : Collections.emptyList();
 
             case ELEVENTH_SHARP ->
             {

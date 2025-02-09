@@ -41,7 +41,7 @@ public class Note implements Comparable<Note>, Cloneable
     public static final int VELOCITY_STD = 100;
     public static final int VELOCITY_MAX = 127;
     public static final int PITCH_MIN = 0;
-    public static final int PITCH_STD = 60;
+    public static final int PITCH_STD = 60;     // C4
     public static final int PITCH_MAX = 127;
     public static final int OCTAVE_MIN = 0;
     public static final int OCTAVE_STD = 4;

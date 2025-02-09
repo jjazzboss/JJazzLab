@@ -57,6 +57,7 @@ class PrintPhrasesAction extends AbstractAction
             var wbps = wbpsa.getWbpSource();
             var sp = wbps.getSizedPhrase();
             LOGGER.info(wbps.getId() + ": " + sp);
+            LOGGER.info(wbps.getId() + ": tags=" + wbps.getTags());
             LOGGER.info(Utilities.toMultilineString(sp, "  "));
         }
     }

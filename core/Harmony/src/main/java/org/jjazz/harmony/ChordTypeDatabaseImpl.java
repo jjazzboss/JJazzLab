@@ -76,7 +76,6 @@ public class ChordTypeDatabaseImpl implements ChordTypeDatabase
 
         // MAJOR
         addBuiltin("", "", MAJ, ":M:maj:MAJ:Maj:bass:Bass:BASS:1+8:1+5:5:", NP, 0, NP, 0, NP, NP);
-        addBuiltin("2", "", MAJ, ":add9:1+2+5:sus2:add2:", 0, NP, NP, 0, NP, NP);
         addBuiltin("+", "", MAJ, ":maj#5:maj+5:M#5:ma#5:ma+5:aug:", NP, 0, NP, 1, NP, NP);
         addBuiltin("6", "", MAJ, ":maj6:MAJ6:Maj6:M6:", NP, 0, NP, 0, 0, NP);
         addBuiltin("6", "9", MAJ, ":M69:ma69:maj69:MAJ69:Maj6(9):", 0, 0, NP, 0, 0, NP);
@@ -142,7 +141,9 @@ public class ChordTypeDatabaseImpl implements ChordTypeDatabase
         addBuiltin("m9", "b5", DIM, ":m9-5:mi9b5:mi9-5:min9b5:min9-5:-9b5:", 0, -1, NP, -1, NP, -1);
         addBuiltin("m11", "b5", DIM, ":m11(b5):min11(b5):-11b5:-11(b5):", NP, -1, 0, -1, NP, -1);
 
-        // SUS4
+        
+        // SUS
+        addBuiltin("2", "", SUS, ":add9:1+2+5:sus2:add2:", 0, NP, NP, 0, NP, NP);           
         addBuiltin("", "sus", SUS, ":sus4:4:", NP, NP, 0, 0, NP, NP);
         addBuiltin("7", "sus", SUS, ":sus7:7sus4:74:11:", NP, NP, 0, 0, NP, -1);
         addBuiltin("9", "sus", SUS, ":79sus:sus79:sus9:9sus4:94:", 0, NP, 0, 0, NP, -1);

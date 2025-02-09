@@ -1,6 +1,7 @@
 * Variations: 2 feel (2 variations LACoolSwing-B1, JazzClub.S120-B1) ? check out Shuffle rhythm examples), walking, walking double notes (C C Bb Bb etc.)
 * Programmatically add embellishments like p15 (for 2 feel), p28 of Constructig-walking-pdf...
 * Handle slow / medium / fast tempo
+* Handle slash chords
 * Handle pedal notes in walking or 1 out of 2
 * Generate alternate phrases from DB: some simple phrases are compatible C and Cm, duplicate the WBpSource with the other chord so phrase becomes available for both chord types
 * Generator: if a WbpSource is used twice, alter its "groove" (positions+velocity) by copying a similar phrase groove
@@ -8,11 +9,13 @@
 * Handle non recognized multi-chord bars
 * Handle RP intensity
 * Handle non standard chords positioning & anticipated chords: handle 3 chords/bar case. For complex case play one beat per chord (reuse groove pos/vel)
+* Handle the tags to select WbpSources
+* Bug: when merging WbpSources handle case where same pitch for last note and first note + first beat shift makes first note starts before end of last note! 
 * Scorer: take into account start/end slopes matching ?
 * Database: harmonize phrases velocity ?
 * Generate alternate phrases from DB: try symetric patterns ?
 * Do not use WBpSources with crossing notes at boundaries
 * reject wbpsources with out of scale long notes at slow tempos
 * weighted duration calculation: don't count last note if half-tone up/sub next chord => it's a transition note
-* Make quarter notes duratino shorter with high tempo
 * Check consistency: search for 2-chord bars root profiles with 0 or just 1 WbpSource
+* Adjust notes length depending on tempo and 2-feel or 4-feel
