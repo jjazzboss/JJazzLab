@@ -15,7 +15,8 @@
 * Database: harmonize phrases velocity ?
 * Generate alternate phrases from DB: try symetric patterns ?
 * Do not use WBpSources with crossing notes at boundaries
-* reject wbpsources with out of scale long notes at slow tempos
+* Scorer, reject wbpsources with out of scale long notes at slow tempos
 * weighted duration calculation: don't count last note if half-tone up/sub next chord => it's a transition note
-* Check consistency: search for 2-chord bars root profiles with 0 or just 1 WbpSource
 * Adjust notes length depending on tempo and 2-feel or 4-feel
+* Authorize WbpSources in the DB with non-root/chord-tone start/end notes => managed by Scorer
+
