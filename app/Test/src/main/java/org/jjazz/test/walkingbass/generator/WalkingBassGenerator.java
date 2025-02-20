@@ -28,7 +28,6 @@ import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.test.walkingbass.WbpSource;
 import org.jjazz.test.walkingbass.WbpSourceDatabase;
-import org.jjazz.test.walkingbass.WbpSources;
 import org.jjazz.test.walkingbass.tiler.TilerBestFirstNoRepeat;
 import org.jjazz.utilities.api.IntRange;
 
@@ -40,6 +39,15 @@ import org.jjazz.utilities.api.IntRange;
 public class WalkingBassGenerator implements MusicGenerator
 {
 
+    public enum BassStyle
+    {
+        BASIC, TWO_FEEL1, TWO_FEEL2, WALKING;
+
+        public boolean is2Feel()
+        {
+            return this == TWO_FEEL1 || this == TWO_FEEL2;
+        }
+    }
     private static int SESSION_COUNT = 0;
     private final Rhythm rhythm;
     private SongContext context;
@@ -54,8 +62,8 @@ public class WalkingBassGenerator implements MusicGenerator
     public WalkingBassGenerator(Rhythm r)
     {
         Preconditions.checkArgument(RP_SYS_Variation.getVariationRp(r) != null
-                && RP_SYS_Intensity.getIntensityRp(r) != null,
-                "r=%s", r);
+            && RP_SYS_Intensity.getIntensityRp(r) != null,
+            "r=%s", r);
         rhythm = r;
     }
 
@@ -72,7 +80,6 @@ public class WalkingBassGenerator implements MusicGenerator
     {
         this.context = context;
 
-
         var rhythmRvs = rhythm.getRhythmVoices();
         var rvsList = List.of(rvs);
         Preconditions.checkArgument(Stream.of(rvs).allMatch(rv -> rhythmRvs.contains(rv)), "rvs=", rvsList);
@@ -83,13 +90,11 @@ public class WalkingBassGenerator implements MusicGenerator
             throw new IllegalArgumentException("No bass track found. rhythm=" + rhythm + " rvs=" + rvsList);
         }
 
-
         // The main chord sequence
         songChordSequence = new SongChordSequence(context.getSong(), context.getBarRange());   // Will have a chord at beginning. Handle alternate chord symbols.       
 
         // Try to guess some tags (eg blues, slow, medium, fast, modal, ...) to influence the bass pattern selection
         tags = guessTags(context);
-
 
         // System.setProperty(NoteEvent.SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT, "[%1$s p=%2$.1f d=%3$.1f]");
         System.setProperty(NoteEvent.SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT, "%1$s");
@@ -101,10 +106,8 @@ public class WalkingBassGenerator implements MusicGenerator
             rhythm.getName(), songChordSequence
         });
 
-
         // Get the bass phrase for each used variation value
         var bassPhrases = getVariationBassPhrases();
-
 
         // Merge the bass phrases for each rv
         HashMap<RhythmVoice, Phrase> res = new HashMap<>();
@@ -119,14 +122,12 @@ public class WalkingBassGenerator implements MusicGenerator
             res.put(rv, pRes);
         }
 
-
         return res;
     }
 
     // ===============================================================================
     // Private methods
     // ===============================================================================
-
     /**
      * Get the bass phrase for each variation value.
      * <p>
@@ -143,11 +144,10 @@ public class WalkingBassGenerator implements MusicGenerator
         // Split the song structure in chord sequences of consecutive sections having the same rhythm and same RhythmParameter value
         var splitResults = songChordSequence.split(rhythm, RP_SYS_Variation.getVariationRp(rhythm));
 
-
         // Make one big SimpleChordSequence per rpValue: this will let us control "which pattern is used where" at the song level
         var usedRpValues = splitResults.stream()
-                .map(sr -> sr.rpValue())
-                .collect(Collectors.toSet());
+            .map(sr -> sr.rpValue())
+            .collect(Collectors.toSet());
         for (var rpValue : usedRpValues)
         {
             SimpleChordSequenceExt mergedScs = null;
@@ -163,11 +163,9 @@ public class WalkingBassGenerator implements MusicGenerator
             // We have our big SimpleChordSequenceExt, generate the walking bass for it
             mergedScs.removeRedundantChords();
 
-
-            var phrase = getBassPhrase(mergedScs, rpValue);
+            var phrase = getBassPhrase(mergedScs, BassStyle.WALKING, context.getSong().getTempo());
             res.add(phrase);
         }
-
 
         return res;
     }
@@ -176,48 +174,45 @@ public class WalkingBassGenerator implements MusicGenerator
      * Get the bass phrase from a SimpleChordSequenceExt.
      *
      * @param scs
-     * @param rpVariationValue
+     * @param style
      * @return
      * @throws MusicGenerationException
      */
-    private Phrase getBassPhrase(SimpleChordSequenceExt scs, String rpVariationValue) throws MusicGenerationException
+    private Phrase getBassPhrase(SimpleChordSequenceExt scs, BassStyle style, int tempo) throws MusicGenerationException
     {
-        LOGGER.log(Level.SEVERE, "getBassPhrase() -- scs={0} rpVariationValue={1}", new Object[]
+        LOGGER.log(Level.SEVERE, "getBassPhrase() -- scs={0} style={1} tempo={2}", new Object[]
         {
-            scs, rpVariationValue
+            scs, style, tempo
         });
 
         Phrase res = new Phrase(0);             // channel useless here
-
 
         var settings = WalkingBassGeneratorSettings.getInstance();
         WbpTiling tiling = new WbpTiling(scs);
         int robustness = 20;
 
+        WbpsaScorer scorer = new DefaultWbpsaScorer(new TransposerPhraseAdapter());
+
         while (!tiling.isFullyTiled() && --robustness > 0)
         {
 
             // var tiler = new TilerOneOutOfX(settings.getSingleWbpSourceMaxSongCoveragePercentage(), settings.getOneOutofX(), settings.getWbpsaStoreWidth());
-            var tiler0 = new TilerBestFirstNoRepeat(settings.getWbpsaStoreWidth());
+            var tiler0 = new TilerBestFirstNoRepeat(scorer, settings.getWbpsaStoreWidth());
             tiler0.tile(tiling);
             LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling BestFirstNoRepeat =\n{0}", tiling.toMultiLineString());
 
-
-            var tiler1 = new TilerMaxDistance(settings.getWbpsaStoreWidth());
+            var tiler1 = new TilerMaxDistance(scorer, settings.getWbpsaStoreWidth());
             tiler1.tile(tiling);
             LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling MaxDistance =\n{0}", tiling.toMultiLineString());
 
-
             handleMultiChordNonTiledBars(tiling);
         }
-
 
         LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ===============   Tiling stats  scs.usableBars={0} \n{1}", new Object[]
         {
             scs.getUsableBars().size(),
             tiling.toStatsString()
         });
-
 
         // Transpose WbpSources to target phrases
         for (var wbpsa : tiling.getWbpSourceAdaptations())
@@ -293,7 +288,6 @@ public class WalkingBassGenerator implements MusicGenerator
 
     }
 
-
     /**
      *
      * @param subSeq Must start at bar 0
@@ -364,10 +358,10 @@ public class WalkingBassGenerator implements MusicGenerator
     private WbpSource findGrooveReference(SizedPhrase sp)
     {
         WbpSource res = null;
-        
-        var wbpSources = WbpSourceDatabase.getInstance().getWbpSources(sp.getSizeInBars(), 
-                w ->  !isGeneratedWbpSource(w) && Phrases.isSamePositions(w.getSizedPhrase(), sp, 0.15f));
-        
+
+        var wbpSources = WbpSourceDatabase.getInstance().getWbpSources(sp.getSizeInBars(),
+            w -> !isGeneratedWbpSource(w) && Phrases.isSamePositions(w.getSizedPhrase(), sp, 0.15f));
+
         if (wbpSources.size() == 1)
         {
             res = wbpSources.get(0);
@@ -383,5 +377,4 @@ public class WalkingBassGenerator implements MusicGenerator
     // =====================================================================================================================
     // Inner classes
     // =====================================================================================================================
-
 }

@@ -30,6 +30,7 @@ import java.util.List;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.test.walkingbass.WbpSource;
 import org.jjazz.test.walkingbass.WbpSourceChordPhrase;
+import org.jjazz.test.walkingbass.generator.WalkingBassGenerator.BassStyle;
 
 /**
  * Relies on WbpSource.computeChordTypeCompatibilityScore() + WbpSource.getTransposibilityScore() + bonus if target notes match before/after.
@@ -38,14 +39,18 @@ public class DefaultWbpsaScorer implements WbpsaScorer
 {
 
     private final PhraseAdapter wbpSourceAdapter;
+    private final int tempo;
+    private final BassStyle bassStyle;
 
     /**
      *
      * @param sourceAdapter If null target notes match score can not be computed
      */
-    public DefaultWbpsaScorer(PhraseAdapter sourceAdapter)
+    public DefaultWbpsaScorer(PhraseAdapter sourceAdapter, BassStyle bStyle, int tempo)
     {
         this.wbpSourceAdapter = sourceAdapter;
+        this.tempo = tempo;
+        this.bassStyle = bStyle;
     }
 
     @Override

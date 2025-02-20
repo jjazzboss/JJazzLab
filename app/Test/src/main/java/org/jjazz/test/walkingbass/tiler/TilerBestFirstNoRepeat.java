@@ -30,9 +30,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.test.walkingbass.WbpSourceDatabase;
 import org.jjazz.test.walkingbass.WbpSource;
-import org.jjazz.test.walkingbass.generator.DefaultWbpsaScorer;
 import org.jjazz.test.walkingbass.generator.Tiler;
-import org.jjazz.test.walkingbass.generator.TransposerPhraseAdapter;
 import org.jjazz.test.walkingbass.generator.WbpTiling;
 import org.jjazz.test.walkingbass.generator.WbpsaScorer;
 import org.jjazz.test.walkingbass.generator.WbpsaStore;
@@ -50,18 +48,20 @@ public class TilerBestFirstNoRepeat implements Tiler
     private final Set<WbpSource> usedWbpSources;
     private final int wbpsaStoreWidth;
     private final float randomizeWithinOverallScoreWindow;
+    private final WbpsaScorer scorer;
     private static final Logger LOGGER = Logger.getLogger(TilerBestFirstNoRepeat.class.getSimpleName());
 
-    public TilerBestFirstNoRepeat(int wbpsaStoreWidth)
+    public TilerBestFirstNoRepeat(WbpsaScorer scorer, int wbpsaStoreWidth)
     {
-        this(wbpsaStoreWidth, WbpsaStore.DEFAULT_RANDOMIZE_WITHIN_OVERALL_SCORE_WINDOW);
+        this(scorer, wbpsaStoreWidth, WbpsaStore.DEFAULT_RANDOMIZE_WITHIN_OVERALL_SCORE_WINDOW);
     }
 
-    public TilerBestFirstNoRepeat(int wbpsaStoreWidth, float randomizeWithinOverallScoreWindow)
+    public TilerBestFirstNoRepeat(WbpsaScorer scorer, int wbpsaStoreWidth, float randomizeWithinOverallScoreWindow)
     {
         this.usedWbpSources = new HashSet<>();
         this.wbpsaStoreWidth = wbpsaStoreWidth;
         this.randomizeWithinOverallScoreWindow = randomizeWithinOverallScoreWindow;
+        this.scorer = scorer;
     }
 
 
@@ -71,9 +71,7 @@ public class TilerBestFirstNoRepeat implements Tiler
         LOGGER.log(Level.SEVERE, "tile() --");
         reset();
 
-        WbpsaScorer scorer = new DefaultWbpsaScorer(new TransposerPhraseAdapter());
         WbpsaStore store = new WbpsaStore(tiling, wbpsaStoreWidth, scorer, randomizeWithinOverallScoreWindow);
-
 
         // LOGGER.log(Level.SEVERE, "tile() store=\n{0}", store.toDebugString(true));
 
