@@ -45,6 +45,8 @@ public class DefaultWbpsaScorer implements WbpsaScorer
     /**
      *
      * @param sourceAdapter If null target notes match score can not be computed
+     * @param bStyle
+     * @param tempo
      */
     public DefaultWbpsaScorer(PhraseAdapter sourceAdapter, BassStyle bStyle, int tempo)
     {
