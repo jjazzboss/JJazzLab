@@ -109,6 +109,21 @@ public class WbpSource extends Wbp
         return Collections.unmodifiableList(tags);
     }
 
+    public boolean addTag(String tag)
+    {
+        boolean b = false;
+        if (!tags.contains(tag))
+        {
+            tags.add(tag);
+            b = true;
+        }
+        return b;
+    }
+
+    public boolean removeTag(String tag)
+    {
+        return tags.remove(tag);
+    }
 
     /**
      * Simplify the chord symbols of the chord sequence so that this source phrase can be reused for a maximum of derivative chord symbols.

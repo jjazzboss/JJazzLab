@@ -27,6 +27,7 @@ package org.jjazz.test.walkingbass.generator;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.test.walkingbass.WbpSource;
 import org.jjazz.test.walkingbass.WbpSourceChordPhrase;
@@ -44,15 +45,16 @@ public class DefaultWbpsaScorer implements WbpsaScorer
 
     /**
      *
-     * @param sourceAdapter If null target notes match score can not be computed
-     * @param bStyle
-     * @param tempo
+     * @param sourceAdapter If null this prevent the use of target notes in score computing
+     * @param bassStyle
+     * @param tempo If &lt;= 0 tempo is ignored in score computing
      */
-    public DefaultWbpsaScorer(PhraseAdapter sourceAdapter, BassStyle bStyle, int tempo)
+    public DefaultWbpsaScorer(PhraseAdapter sourceAdapter, BassStyle bassStyle, int tempo)
     {
+        Objects.requireNonNull(bassStyle);
         this.wbpSourceAdapter = sourceAdapter;
         this.tempo = tempo;
-        this.bassStyle = bStyle;
+        this.bassStyle = bassStyle;
     }
 
     @Override

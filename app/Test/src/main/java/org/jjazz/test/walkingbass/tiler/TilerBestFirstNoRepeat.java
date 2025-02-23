@@ -44,7 +44,6 @@ import org.jjazz.test.walkingbass.generator.WbpsaStore;
 public class TilerBestFirstNoRepeat implements Tiler
 {
 
-
     private final Set<WbpSource> usedWbpSources;
     private final int wbpsaStoreWidth;
     private final float randomizeWithinOverallScoreWindow;

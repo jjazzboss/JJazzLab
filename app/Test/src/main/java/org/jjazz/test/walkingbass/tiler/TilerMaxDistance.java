@@ -72,7 +72,6 @@ public class TilerMaxDistance implements Tiler
         LOGGER.log(Level.SEVERE, "tile() --");
         reset();
 
-        WbpsaScorer scorer = new DefaultWbpsaScorer(new TransposerPhraseAdapter());
         WbpsaStore store = new WbpsaStore(tiling, wbpsaStoreWidth, scorer, randomizeWithinOverallScoreWindow);
 
 

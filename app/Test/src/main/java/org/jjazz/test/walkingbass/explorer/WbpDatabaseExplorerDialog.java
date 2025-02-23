@@ -41,6 +41,7 @@ import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.test.walkingbass.generator.DefaultWbpsaScorer;
 import org.jjazz.test.walkingbass.WbpSourceDatabase;
 import org.jjazz.test.walkingbass.WbpSource;
+import org.jjazz.test.walkingbass.generator.WalkingBassGenerator.BassStyle;
 import org.jjazz.test.walkingbass.generator.WbpsaScorer;
 import org.jjazz.test.walkingbass.generator.WbpSourceAdaptation;
 import org.jjazz.uiutilities.api.UIUtilities;
@@ -146,7 +147,7 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
                     .toList();
         } else
         {
-            WbpsaScorer wbpsaScorer = new DefaultWbpsaScorer(null);
+            WbpsaScorer wbpsaScorer = new DefaultWbpsaScorer(null, BassStyle.ALL, -1);
             res = new ArrayList<>(wbpsaScorer.getWbpSourceAdaptations(scs, null).values());
         }
 

@@ -41,13 +41,19 @@ public class WalkingBassGenerator implements MusicGenerator
 
     public enum BassStyle
     {
-        BASIC, TWO_FEEL1, TWO_FEEL2, WALKING;
+        BASIC, TWO_FEEL, WALKING, ALL;
 
         public boolean is2Feel()
         {
-            return this == TWO_FEEL1 || this == TWO_FEEL2;
+            return this == TWO_FEEL || this == ALL;
+        }
+
+        public boolean isWalking()
+        {
+            return this == WALKING || this == ALL;
         }
     }
+    
     private static int SESSION_COUNT = 0;
     private final Rhythm rhythm;
     private SongContext context;
@@ -62,8 +68,8 @@ public class WalkingBassGenerator implements MusicGenerator
     public WalkingBassGenerator(Rhythm r)
     {
         Preconditions.checkArgument(RP_SYS_Variation.getVariationRp(r) != null
-            && RP_SYS_Intensity.getIntensityRp(r) != null,
-            "r=%s", r);
+                && RP_SYS_Intensity.getIntensityRp(r) != null,
+                "r=%s", r);
         rhythm = r;
     }
 
@@ -146,8 +152,8 @@ public class WalkingBassGenerator implements MusicGenerator
 
         // Make one big SimpleChordSequence per rpValue: this will let us control "which pattern is used where" at the song level
         var usedRpValues = splitResults.stream()
-            .map(sr -> sr.rpValue())
-            .collect(Collectors.toSet());
+                .map(sr -> sr.rpValue())
+                .collect(Collectors.toSet());
         for (var rpValue : usedRpValues)
         {
             SimpleChordSequenceExt mergedScs = null;
@@ -175,6 +181,7 @@ public class WalkingBassGenerator implements MusicGenerator
      *
      * @param scs
      * @param style
+     * @param tempo
      * @return
      * @throws MusicGenerationException
      */
@@ -191,7 +198,7 @@ public class WalkingBassGenerator implements MusicGenerator
         WbpTiling tiling = new WbpTiling(scs);
         int robustness = 20;
 
-        WbpsaScorer scorer = new DefaultWbpsaScorer(new TransposerPhraseAdapter());
+        WbpsaScorer scorer = new DefaultWbpsaScorer(new TransposerPhraseAdapter(), style, tempo);
 
         while (!tiling.isFullyTiled() && --robustness > 0)
         {
@@ -360,7 +367,7 @@ public class WalkingBassGenerator implements MusicGenerator
         WbpSource res = null;
 
         var wbpSources = WbpSourceDatabase.getInstance().getWbpSources(sp.getSizeInBars(),
-            w -> !isGeneratedWbpSource(w) && Phrases.isSamePositions(w.getSizedPhrase(), sp, 0.15f));
+                w -> !isGeneratedWbpSource(w) && Phrases.isSamePositions(w.getSizedPhrase(), sp, 0.15f));
 
         if (wbpSources.size() == 1)
         {

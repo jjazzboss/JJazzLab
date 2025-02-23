@@ -26,7 +26,6 @@ import javax.sound.midi.Track;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
-import org.jjazz.harmony.api.ChordSymbol;
 import org.jjazz.harmony.api.ChordType;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.Position;
@@ -39,6 +38,7 @@ import org.jjazz.phrase.api.Phrases;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.test.walkingbass.generator.DefaultWbpsaScorer;
+import org.jjazz.test.walkingbass.generator.WalkingBassGenerator.BassStyle;
 import org.jjazz.test.walkingbass.generator.WbpSourceAdaptation;
 import org.jjazz.test.walkingbass.generator.WbpsaScorer;
 import org.jjazz.utilities.api.FloatRange;
@@ -66,7 +66,11 @@ public class WbpSourceDatabase
 
     private static WbpSourceDatabase INSTANCE;
     @StaticResource(relative = true)
-    private static final String MIDI_FILE_RESOURCE_PATH = "WalkingBassMidiDB.mid";
+    private static final String MIDI_FILE_WALKING_RESOURCE_PATH = "WalkingBassMidiDB.mid";
+    @StaticResource(relative = true)
+    private static final String MIDI_FILE_2FEEL_A_RESOURCE_PATH = "WalkingBass2feelAMidiDB.mid";
+    @StaticResource(relative = true)
+    private static final String MIDI_FILE_2FEEL_B_RESOURCE_PATH = "WalkingBass2feelBMidiDB.mid";
 
     private final Map<String, WbpSession> mapIdSessions;
     private final ListMultimap<Integer, WbpSource> mmapSizeWbpSources;
@@ -93,24 +97,18 @@ public class WbpSourceDatabase
         mapIdSessions = new HashMap<>();
 
 
-        // Load the sessions
-        var wbpSessions = loadWbpSessionsFromMidiFile(MIDI_FILE_RESOURCE_PATH, TimeSignature.FOUR_FOUR);
+        // Extract the WbpSources from the WbpSessions
+        var wbpSessions = loadWbpSessionsFromMidiFile(MIDI_FILE_WALKING_RESOURCE_PATH, "", TimeSignature.FOUR_FOUR);
         wbpSessions.forEach(s -> mapIdSessions.put(s.getId(), s));
+        wbpSessions.forEach(s -> processWbpSession(s, null));
 
+        wbpSessions = loadWbpSessionsFromMidiFile(MIDI_FILE_2FEEL_A_RESOURCE_PATH, "2FA", TimeSignature.FOUR_FOUR);
+        wbpSessions.forEach(s -> mapIdSessions.put(s.getId(), s));
+        wbpSessions.forEach(s -> processWbpSession(s, "2feelA"));
 
-        // Extrat WbpSource from the sessions
-        for (var wbpSession : wbpSessions)
-        {
-            var wbps = wbpSession.extractWbpSources(true, true);
-            for (var wbpSource : wbps)
-            {
-                wbpSource.simplifyChordSymbols();
-                if (getWbpSources(wbpSource.getSimpleChordSequence(), wbpSource.getSizedPhrase()).isEmpty())
-                {
-                    addWbpSourceImpl(wbpSource);
-                }
-            }
-        }
+        wbpSessions = loadWbpSessionsFromMidiFile(MIDI_FILE_2FEEL_B_RESOURCE_PATH, "2FB", TimeSignature.FOUR_FOUR);
+        wbpSessions.forEach(s -> mapIdSessions.put(s.getId(), s));
+        wbpSessions.forEach(s -> processWbpSession(s, "2feelB"));
 
 
         LOGGER.log(Level.SEVERE, "WbpDatabase() 1-bar:{0}  2-bar:{1}  3-bar:{2}  4-bar:{3}", new Object[]
@@ -118,6 +116,7 @@ public class WbpSourceDatabase
             mmapSizeWbpSources.get(1).size(), mmapSizeWbpSources.get(2).size(), mmapSizeWbpSources.get(3).size(), mmapSizeWbpSources.get(4).size()
         });
     }
+
 
     public WbpSession getWbpSession(String id)
     {
@@ -198,7 +197,7 @@ public class WbpSourceDatabase
         final var scs = new SimpleChordSequence(new IntRange(0, NB_BARS - 1), TimeSignature.FOUR_FOUR);
 
         // Check for chord types with 0 or only 1 one-bar WbpSource
-        WbpsaScorer scorer = new DefaultWbpsaScorer(null);
+        WbpsaScorer scorer = new DefaultWbpsaScorer(null, BassStyle.ALL, -1);
         for (var ct : allChordTypes)
         {
             scs.clear();
@@ -377,6 +376,29 @@ public class WbpSourceDatabase
     // =========================================================================================
 
     /**
+     * Extract the WbpSources from a WbpSession and add them to the database.
+     *
+     * @param wbpSession
+     * @param extraTag   If not null, add this tag to WbpSources (in addition to the WbpSession tags).
+     */
+    private void processWbpSession(WbpSession wbpSession, String extraTag)
+    {
+        var wbps = wbpSession.extractWbpSources(true, true);
+        for (var wbpSource : wbps)
+        {
+            wbpSource.simplifyChordSymbols();
+            if (extraTag != null)
+            {
+                wbpSource.addTag(extraTag);
+            }
+            if (getWbpSources(wbpSource.getSimpleChordSequence(), wbpSource.getSizedPhrase()).isEmpty())
+            {
+                addWbpSourceImpl(wbpSource);
+            }
+        }
+    }
+
+    /**
      * Retrieve WbpSession objects from a Midi resource file for the specified TimeSignature.
      * <p>
      * Midi file requirements:
@@ -391,11 +413,17 @@ public class WbpSourceDatabase
      * specified via a "tn" session tag with this form: #tn=pitch, e.g. "#tn=36" for Midi note C1.
      *
      * @param midiFileResourcePath
+     * @param sessionIdPrefix      A prefix added to each sessionId
      * @param ts
      * @return
      */
-    private List<WbpSession> loadWbpSessionsFromMidiFile(String midiFileResourcePath, TimeSignature ts)
+    private List<WbpSession> loadWbpSessionsFromMidiFile(String midiFileResourcePath, String sessionIdPrefix, TimeSignature ts)
     {
+        LOGGER.log(Level.INFO, "loadWbpSessionsFromMidiFile() -- prefix={0} file={1}", new Object[]
+        {
+            sessionIdPrefix, midiFileResourcePath
+        });
+
         List<WbpSession> res = new ArrayList<>();
 
 
@@ -470,7 +498,7 @@ public class WbpSourceDatabase
 
             // Session data
             var sessionMarker = sessionMarkers.get(i);
-            String sessionId = MidiUtilities.getText(sessionMarker);
+            String sessionId = sessionIdPrefix + MidiUtilities.getText(sessionMarker);
             long startPosInTicks = sessionMarker.getTick();
             long endPosInTicks = sessionMarkers.get(i + 1).getTick() - 1;
             LongRange sessionRange = new LongRange(startPosInTicks, endPosInTicks);
@@ -488,7 +516,7 @@ public class WbpSourceDatabase
             String strPitch = sessionTags.stream().filter(str -> str.startsWith("tn=")).findFirst().orElse(null);
             if (strPitch != null)
             {
-                targetNote = new Note(Integer.valueOf(strPitch.substring(3)));
+                targetNote = new Note(Integer.parseInt(strPitch.substring(3)));
             }
 
 
@@ -517,14 +545,19 @@ public class WbpSourceDatabase
             // Get the size of the session
             FloatRange beatRange = new FloatRange(startPosInTicks / (float) MidiConst.PPQ_RESOLUTION, (endPosInTicks + 1) / (float) MidiConst.PPQ_RESOLUTION);
             int sizeInBars = (int) Math.round(beatRange.size() / ts.getNbNaturalBeats());
+            int barFrom = (int) (beatRange.from / ts.getNbNaturalBeats());
+            IntRange barRange = new IntRange(barFrom, barFrom + sizeInBars - 1);
 
 
             // Get the notes
             Phrase p = Phrases.getSlice(bigPhrase, beatRange, false, 2, 0);
-            assert !p.isEmpty() : "p=" + p + " beatRange=" + beatRange + " bigPhrase=" + bigPhrase;
+            if (p.isEmpty())
+            {
+                LOGGER.log(Level.WARNING, "Empty session found for barRange={0}", barRange);
+                continue;
+            }
             p.shiftAllEvents(-beatRange.from);
             beatRange = beatRange.getTransformed(-beatRange.from);
-            // SizedPhrase sp = new SizedPhrase(0, beatRange, ts);
             SizedPhrase sp = new SizedPhrase(0, beatRange, ts, false);
             sp.add(p);
 
@@ -618,7 +651,7 @@ public class WbpSourceDatabase
     private List<WbpSource> getWbpSources(SimpleChordSequence scs, SizedPhrase sp)
     {
         List<WbpSource> res = new ArrayList<>();
-        WbpsaScorer scorer = new DefaultWbpsaScorer(null);
+        WbpsaScorer scorer = new DefaultWbpsaScorer(null, BassStyle.ALL, -1);
 
         for (var rpWbpSource : getWbpSources(scs.getRootProfile()))
         {

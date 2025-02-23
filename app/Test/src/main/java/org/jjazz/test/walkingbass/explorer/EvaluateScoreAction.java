@@ -30,6 +30,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import org.jjazz.test.walkingbass.generator.DefaultWbpsaScorer;
+import org.jjazz.test.walkingbass.generator.WalkingBassGenerator.BassStyle;
 import org.jjazz.test.walkingbass.generator.WbpSourceAdaptation;
 import org.jjazz.test.walkingbass.generator.WbpsaScorer;
 
@@ -54,7 +55,7 @@ class EvaluateScoreAction extends AbstractAction
     {
         LOGGER.info("\n### EvaluateScore");
 
-        WbpsaScorer wbpsaScorer = new DefaultWbpsaScorer(null);
+        WbpsaScorer wbpsaScorer = new DefaultWbpsaScorer(null, BassStyle.ALL, -1);
         List<WbpSourceAdaptation> wbpsas = dialog.getSelectedWbpSourceAdaptations();
 
         for (var wbpsa : wbpsas)
