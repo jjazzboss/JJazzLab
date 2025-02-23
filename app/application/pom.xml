@@ -18,7 +18,8 @@
         <netbeans.run.params.local/>  <!-- Additional params set locally (settings.xml). If running JJazzLab outside Netbeans IDE, add "<dash><dash>jdkhome <path_to_jre>" -->
         <netbeans.run.params.ide/>  <!-- Additional params set by Netbeans IDE, see customizable Build actions -->
         <!-- -J-Dsun.java2d.d3d.onscreen=false to fix Issue #529 with 4.1.2 --> 
-        <netbeans.run.params>${netbeans.run.params.ide} ${netbeans.run.params.local} -J-Dnetbeans.modules.quiet=true -J--enable-native-access=ALL-UNNAMED -J--add-opens=java.base/java.net=ALL-UNNAMED -J--add-opens=java.base/java.lang=ALL-UNNAMED -J--add-opens=java.desktop/javax.swing=ALL-UNNAMED -J--add-opens=java.desktop/java.awt.event=ALL-UNNAMED -J--add-exports=java.desktop/sun.awt=ALL-UNNAMED -J--add-opens=java.base/java.util=ALL-UNNAMED</netbeans.run.params>
+        <!-- -J-DTopSecurityManager.disable=true needed from RELEASE250 -->
+        <netbeans.run.params>${netbeans.run.params.ide} ${netbeans.run.params.local} -J-DTopSecurityManager.disable=true -J-Dnetbeans.modules.quiet=true -J--enable-native-access=ALL-UNNAMED -J--add-opens=java.base/java.net=ALL-UNNAMED -J--add-opens=java.base/java.lang=ALL-UNNAMED -J--add-opens=java.desktop/javax.swing=ALL-UNNAMED -J--add-opens=java.desktop/java.awt.event=ALL-UNNAMED -J--add-exports=java.desktop/sun.awt=ALL-UNNAMED -J--add-opens=java.base/java.util=ALL-UNNAMED</netbeans.run.params>
         <all.clusters>${project.build.directory}/${brandingToken}</all.clusters>
         <jjazzlab.surefire.skipTests>true</jjazzlab.surefire.skipTests>
     </properties>
