@@ -26,8 +26,8 @@ import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
 import org.jjazz.rhythmmusicgeneration.api.DummyGenerator;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
-import org.jjazz.test.walkingbass.WbpSource;
-import org.jjazz.test.walkingbass.WbpSourceDatabase;
+import org.jjazz.test.walkingbass.api.WbpSource;
+import org.jjazz.test.walkingbass.api.WbpSourceDatabase;
 import org.jjazz.test.walkingbass.tiler.TilerBestFirstNoRepeat;
 import org.jjazz.utilities.api.IntRange;
 
@@ -48,12 +48,29 @@ public class WalkingBassGenerator implements MusicGenerator
             return this == TWO_FEEL || this == ALL;
         }
 
+        public boolean matches(WbpSource wbps)
+        {
+            boolean b = switch (this)
+            {
+                case BASIC ->
+                    false;
+                case TWO_FEEL ->
+                    wbps.getTags().stream().anyMatch(t -> t.startsWith("2feel"));
+                case WALKING ->
+                    wbps.getTags().stream().noneMatch(t -> t.startsWith("2feel"));
+                case ALL ->
+                    true;
+                default -> throw new AssertionError(this.name());
+            };
+            return b;
+        }
+
         public boolean isWalking()
         {
             return this == WALKING || this == ALL;
         }
     }
-    
+
     private static int SESSION_COUNT = 0;
     private final Rhythm rhythm;
     private SongContext context;
@@ -169,7 +186,7 @@ public class WalkingBassGenerator implements MusicGenerator
             // We have our big SimpleChordSequenceExt, generate the walking bass for it
             mergedScs.removeRedundantChords();
 
-            var phrase = getBassPhrase(mergedScs, BassStyle.WALKING, context.getSong().getTempo());
+            var phrase = getBassPhrase(mergedScs, BassStyle.TWO_FEEL, context.getSong().getTempo());
             res.add(phrase);
         }
 
@@ -197,13 +214,13 @@ public class WalkingBassGenerator implements MusicGenerator
         var settings = WalkingBassGeneratorSettings.getInstance();
         WbpTiling tiling = new WbpTiling(scs);
         int robustness = 20;
+        var phraseAdapter = new TransposerPhraseAdapter();
 
-        WbpsaScorer scorer = new DefaultWbpsaScorer(new TransposerPhraseAdapter(), style, tempo);
+        WbpsaScorer scorer = new DefaultWbpsaScorer(phraseAdapter, style, tempo);
 
         while (!tiling.isFullyTiled() && --robustness > 0)
         {
 
-            // var tiler = new TilerOneOutOfX(settings.getSingleWbpSourceMaxSongCoveragePercentage(), settings.getOneOutofX(), settings.getWbpsaStoreWidth());
             var tiler0 = new TilerBestFirstNoRepeat(scorer, settings.getWbpsaStoreWidth());
             tiler0.tile(tiling);
             LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling BestFirstNoRepeat =\n{0}", tiling.toMultiLineString());
@@ -224,7 +241,7 @@ public class WalkingBassGenerator implements MusicGenerator
         // Transpose WbpSources to target phrases
         for (var wbpsa : tiling.getWbpSourceAdaptations())
         {
-            var p = new TransposerPhraseAdapter().getPhrase(wbpsa);
+            var p = phraseAdapter.getPhrase(wbpsa);
             LOGGER.log(Level.FINE, "getBassPhrase() transposedPhrase={0}", p);
             res.add(p, false);
         }

@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jjazz.test.walkingbass.WbpSourceDatabase;
+import org.jjazz.test.walkingbass.api.WbpSourceDatabase;
 import org.jjazz.utilities.api.IntRange;
 import org.jjazz.test.walkingbass.generator.WbpsaScorer.Score;
 

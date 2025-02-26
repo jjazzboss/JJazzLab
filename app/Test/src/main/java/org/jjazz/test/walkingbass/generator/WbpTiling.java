@@ -34,8 +34,8 @@ import java.util.TreeMap;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
-import org.jjazz.test.walkingbass.WbpSourceDatabase;
-import org.jjazz.test.walkingbass.WbpSource;
+import org.jjazz.test.walkingbass.api.WbpSourceDatabase;
+import org.jjazz.test.walkingbass.api.WbpSource;
 import org.jjazz.utilities.api.IntRange;
 
 /**
@@ -149,14 +149,29 @@ public class WbpTiling
     }
 
     /**
-     * Get all the WbpSourceAdaptations ordered by start bar which use the specified WbpSource.
+     * Get the tiling's WbpSourceAdaptations whose WbpSource is wbpSource.
      *
      * @param wbpSource
-     * @return
+     * @return A list ordered by ascending start bar
      */
     public List<WbpSourceAdaptation> getWbpSourceAdaptations(WbpSource wbpSource)
     {
         return getWbpSourceAdaptations(wbpsa -> wbpsa.getWbpSource() == wbpSource);
+    }
+
+    /**
+     * Get the start bar indexes which directly or indirectly refer to wbpSource.
+     * <p>
+     * Direct reference: wbpSource is the WbpSource of a tiling's WbpSourceAdaptation.<br>
+     * Inirect reference: wbpSource (1/2/3-bar) is a related WbpSource of a tiling's WbpSourceAdaptation (2/3/4-bar)<br>
+     *
+     * @param wbpSource
+     * @return A list ordered by ascending start bar
+     * @see WbpSourceDatabase#getRelatedWbpSources(org.jjazz.test.walkingbass.WbpSource)
+     */
+    public List<Integer> getStartBarIndexes(WbpSource wbpSource)
+    {
+        
     }
 
     /**

@@ -1,5 +1,7 @@
 package org.jjazz.test.walkingbass;
 
+import org.jjazz.test.walkingbass.api.WbpSource;
+import org.jjazz.test.walkingbass.api.Wbp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -57,12 +59,12 @@ public class WbpSession extends Wbp
      * We extract all the possible 1/2/3/4-bar WbpSources. So for one 4-bar session phrase, the method can generate 10 WbpSource objects: 1 * 4-bar + 2 * 3-bar
      * + 3 * 2-bar + 4 * 1-bar.
      * <p>
+     * Returned WbpSources get the tags of the session.
      *
      * @param disallowNonRootStartNote     If true a WbpSource is not extracted if its first note is different from the chord root note.
      * @param disallowNonChordToneLastNote If true a WbpSource is not extracted if its last note is note a chord note (ie no transition note).
      * @return
      */
-
     public List<WbpSource> extractWbpSources(boolean disallowNonRootStartNote, boolean disallowNonChordToneLastNote)
     {
         List<WbpSource> res = new ArrayList<>();
@@ -145,6 +147,8 @@ public class WbpSession extends Wbp
         }
 
         var wbpSource = new WbpSource(getId(), barOffset, cSeq, sp, firstNoteBeatShift, targetNote);
+        tags.forEach(t -> wbpSource.addTag(t));
+        
 
         return wbpSource;
     }

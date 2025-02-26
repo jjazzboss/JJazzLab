@@ -1,5 +1,6 @@
-package org.jjazz.test.walkingbass;
+package org.jjazz.test.walkingbass.api;
 
+import org.jjazz.test.walkingbass.api.Wbp;
 import static com.google.common.base.Preconditions.checkArgument;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -14,6 +15,7 @@ import org.jjazz.harmony.api.Note;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
+import org.jjazz.test.walkingbass.WbpSourceChordPhrase;
 import org.jjazz.utilities.api.IntRange;
 
 /**

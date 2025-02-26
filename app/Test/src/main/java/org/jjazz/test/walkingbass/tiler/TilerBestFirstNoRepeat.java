@@ -28,8 +28,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jjazz.test.walkingbass.WbpSourceDatabase;
-import org.jjazz.test.walkingbass.WbpSource;
+import org.jjazz.test.walkingbass.api.WbpSourceDatabase;
+import org.jjazz.test.walkingbass.api.WbpSource;
 import org.jjazz.test.walkingbass.generator.Tiler;
 import org.jjazz.test.walkingbass.generator.WbpTiling;
 import org.jjazz.test.walkingbass.generator.WbpsaScorer;
@@ -38,8 +38,7 @@ import org.jjazz.test.walkingbass.generator.WbpsaStore;
 /**
  * Tile the longest and most compatible WbpSourceAdaptations first, using a given WbpSource maximum once.
  * <p>
- * When a 2/3/4-bar WbpSource is used, its "sub-WbpSources" (1/2/3 bars) are also considered used. Also, a WbpSource can't be used to cover more than
- * wbpSourceMaxCoveragePercentage of the tiling.
+ * When a 2/3/4-bar WbpSource is used, its "sub-WbpSources" (1/2/3 bars) are also considered used.
  */
 public class TilerBestFirstNoRepeat implements Tiler
 {
@@ -74,7 +73,6 @@ public class TilerBestFirstNoRepeat implements Tiler
 
         // LOGGER.log(Level.SEVERE, "tile() store=\n{0}", store.toDebugString(true));
 
-
         for (int size = WbpSourceDatabase.SIZE_MAX; size >= WbpSourceDatabase.SIZE_MIN; size--)
         {
             for (int rank = 0; rank < wbpsaStoreWidth; rank++)
@@ -86,7 +84,7 @@ public class TilerBestFirstNoRepeat implements Tiler
                     if (canUse(wbpSource) && tiling.isUsableAndFree(wbpsa.getBarRange()))
                     {
                         tiling.add(wbpsa);
-                        markUsed(wbpSource);
+                        markAsUsed(wbpSource, false);     // testing with false, switch back to true if it generates annoying redundancies 
                     }
                 }
             }
@@ -103,15 +101,27 @@ public class TilerBestFirstNoRepeat implements Tiler
     }
 
     /**
-     * Mark wbpSource and its related sources as used.
+     * Mark wbpSource and some of its related sources as used.
+     * <p>
+     * All related WbpSources are marked as used except, if strict is false, for some large WbpSources comparison (2-3, 2-4, 3-3, 3-4, 4-4) which have only 1
+     * bar in common.
      *
      * @param wbpSource
+     * @param strict    If true all related WbpSources are marked as used
      */
-    private void markUsed(WbpSource wbpSource)
+    private void markAsUsed(WbpSource wbpSource, boolean strict)
     {
         usedWbpSources.add(wbpSource);
+        int size = wbpSource.getBarRange().size();
         var relatedWbpSources = WbpSourceDatabase.getInstance().getRelatedWbpSources(wbpSource);
-        usedWbpSources.addAll(relatedWbpSources);
+        relatedWbpSources.stream()
+                .filter(wbps -> strict
+                || size == 1
+                || wbps.getBarRange().size() == 1
+                || (size == 2 && wbps.getBarRange().size() == 2)
+                || wbpSource.getBarRange().getIntersection(wbps.getBarRange()).size() > 1)
+                .forEach(wbps -> usedWbpSources.add(wbps));
+
     }
 
     public boolean canUse(WbpSource wbpSource)

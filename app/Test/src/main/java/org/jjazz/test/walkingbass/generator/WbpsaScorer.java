@@ -29,7 +29,7 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
 import java.text.DecimalFormat;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
-import org.jjazz.test.walkingbass.WbpSourceDatabase;
+import org.jjazz.test.walkingbass.api.WbpSourceDatabase;
 
 /**
  * Scores the compatibility of a WbpSource with a chord sequence.

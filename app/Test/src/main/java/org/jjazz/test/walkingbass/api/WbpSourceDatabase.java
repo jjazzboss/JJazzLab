@@ -1,4 +1,4 @@
-package org.jjazz.test.walkingbass;
+package org.jjazz.test.walkingbass.api;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ListMultimap;
@@ -37,6 +37,7 @@ import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.Phrases;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
+import org.jjazz.test.walkingbass.WbpSession;
 import org.jjazz.test.walkingbass.generator.DefaultWbpsaScorer;
 import org.jjazz.test.walkingbass.generator.WalkingBassGenerator.BassStyle;
 import org.jjazz.test.walkingbass.generator.WbpSourceAdaptation;
@@ -72,7 +73,7 @@ public class WbpSourceDatabase
     @StaticResource(relative = true)
     private static final String MIDI_FILE_2FEEL_B_RESOURCE_PATH = "WalkingBass2feelBMidiDB.mid";
 
-    private final Map<String, WbpSession> mapIdSessions;
+    private final ListMultimap<String, WbpSource> mmapSessionIdWbpSources;
     private final ListMultimap<Integer, WbpSource> mmapSizeWbpSources;
     private final Map<String, WbpSource> mapIdWbpSource;
     private static final Logger LOGGER = Logger.getLogger(WbpSourceDatabase.class.getSimpleName());
@@ -93,21 +94,18 @@ public class WbpSourceDatabase
     {
 
         mmapSizeWbpSources = MultimapBuilder.hashKeys().arrayListValues().build();
+        mmapSessionIdWbpSources = MultimapBuilder.hashKeys().arrayListValues().build();
         mapIdWbpSource = new HashMap<>();
-        mapIdSessions = new HashMap<>();
 
 
         // Extract the WbpSources from the WbpSessions
         var wbpSessions = loadWbpSessionsFromMidiFile(MIDI_FILE_WALKING_RESOURCE_PATH, "", TimeSignature.FOUR_FOUR);
-        wbpSessions.forEach(s -> mapIdSessions.put(s.getId(), s));
         wbpSessions.forEach(s -> processWbpSession(s, null));
 
         wbpSessions = loadWbpSessionsFromMidiFile(MIDI_FILE_2FEEL_A_RESOURCE_PATH, "2FA", TimeSignature.FOUR_FOUR);
-        wbpSessions.forEach(s -> mapIdSessions.put(s.getId(), s));
         wbpSessions.forEach(s -> processWbpSession(s, "2feelA"));
 
         wbpSessions = loadWbpSessionsFromMidiFile(MIDI_FILE_2FEEL_B_RESOURCE_PATH, "2FB", TimeSignature.FOUR_FOUR);
-        wbpSessions.forEach(s -> mapIdSessions.put(s.getId(), s));
         wbpSessions.forEach(s -> processWbpSession(s, "2feelB"));
 
 
@@ -115,17 +113,6 @@ public class WbpSourceDatabase
         {
             mmapSizeWbpSources.get(1).size(), mmapSizeWbpSources.get(2).size(), mmapSizeWbpSources.get(3).size(), mmapSizeWbpSources.get(4).size()
         });
-    }
-
-
-    public WbpSession getWbpSession(String id)
-    {
-        return mapIdSessions.get(id);
-    }
-
-    public List<WbpSession> getWbpSessions()
-    {
-        return new ArrayList<>(mapIdSessions.values());
     }
 
 
@@ -341,10 +328,24 @@ public class WbpSourceDatabase
     }
 
     /**
-     * Get all the WbpSources from same session than wbpSource and which share at least one bar with wbpSource.
+     * Get the WbpSources from a specific session.
+     *
+     * @param sessionId
+     * @return
+     */
+    public List<WbpSource> getSessionWbpSources(String sessionId)
+    {
+        return mmapSessionIdWbpSources.get(sessionId);
+    }
+
+    /**
+     * Get all the WbpSources which have one or more bars in common with wbpSource.
+     * <p>
+     * For example a 2-bar WbpSource can have maximum 11 related WbpSources : 5 x 4-bar + 4 x 3-bar + 2 x 1-bar. Note that it might be less than 11 if for some
+     * reason some related WbpSources were discarded by the database.<p>
      *
      * @param wbpSource
-     * @return The returned list does not contain wbpSource
+     * @return The returned list does not contain wbpSource. All elements belong to the same WbpSession.
      */
     public List<WbpSource> getRelatedWbpSources(WbpSource wbpSource)
     {
@@ -360,10 +361,6 @@ public class WbpSourceDatabase
     public void dump()
     {
         LOGGER.info("WbpDatabase dump =========================================");
-        for (var session : getWbpSessions())
-        {
-            LOGGER.log(Level.INFO, " {0}", session.toString());
-        }
         for (var wbps : getWbpSources())
         {
             LOGGER.log(Level.INFO, " {0}", wbps.toLongString());
@@ -393,6 +390,7 @@ public class WbpSourceDatabase
             }
             if (getWbpSources(wbpSource.getSimpleChordSequence(), wbpSource.getSizedPhrase()).isEmpty())
             {
+                // Add only non redundant phrases                
                 addWbpSourceImpl(wbpSource);
             }
         }
@@ -676,7 +674,11 @@ public class WbpSourceDatabase
         int nbBars = wbpSource.getBarRange().size();
         if (!mmapSizeWbpSources.put(nbBars, wbpSource))
         {
-            throw new IllegalStateException("Adding failed for " + wbpSource);
+            throw new IllegalStateException("Adding to mmapSizeWbpSources failed for " + wbpSource + " mmapSizeWbpSources=" + mmapSizeWbpSources);
+        }
+        if (!mmapSessionIdWbpSources.put(wbpSource.getSessionId(), wbpSource))
+        {
+            throw new IllegalStateException("Adding to mmapSessionIdWbpSources failed for " + wbpSource + " mmapSessionIdWbpSources=" + mmapSessionIdWbpSources);
         }
     }
 

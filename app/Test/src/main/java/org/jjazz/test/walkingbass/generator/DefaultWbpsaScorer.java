@@ -29,7 +29,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
-import org.jjazz.test.walkingbass.WbpSource;
+import org.jjazz.test.walkingbass.api.WbpSource;
 import org.jjazz.test.walkingbass.WbpSourceChordPhrase;
 import org.jjazz.test.walkingbass.generator.WalkingBassGenerator.BassStyle;
 
@@ -45,9 +45,9 @@ public class DefaultWbpsaScorer implements WbpsaScorer
 
     /**
      *
-     * @param sourceAdapter If null this prevent the use of target notes in score computing
+     * @param sourceAdapter If null this prevents the use of target notes in score computing
      * @param bassStyle
-     * @param tempo If &lt;= 0 tempo is ignored in score computing
+     * @param tempo         If &lt;= 0 tempo is ignored in score computing
      */
     public DefaultWbpsaScorer(PhraseAdapter sourceAdapter, BassStyle bassStyle, int tempo)
     {
@@ -60,17 +60,23 @@ public class DefaultWbpsaScorer implements WbpsaScorer
     @Override
     public Score computeCompatibilityScore(WbpSourceAdaptation wbpsa, WbpTiling tiling)
     {
-        var ctScores = getHarmonyCompatibilityScores(wbpsa);
-        float ctScore = (float) ctScores.stream().mapToDouble(f -> Double.valueOf(f)).average().orElse(0);      // 0-100
+        Score res = WbpsaScorer.SCORE_ZERO;
+        
+        if (bassStyle.matches(wbpsa.getWbpSource()))
+        {
+            var ctScores = getHarmonyCompatibilityScores(wbpsa);
+            float ctScore = (float) ctScores.stream().mapToDouble(f -> Double.valueOf(f)).average().orElse(0);      // 0-100
 
-        var scs = wbpsa.getSimpleChordSequence();
-        var scsFirstChordRoot = scs.first().getData().getRootNote();
-        var trScore = wbpsa.getWbpSource().getTransposibilityScore(scsFirstChordRoot);     // 0 - 100
+            var scs = wbpsa.getSimpleChordSequence();
+            var scsFirstChordRoot = scs.first().getData().getRootNote();
+            int trScore = wbpsa.getWbpSource().getTransposibilityScore(scsFirstChordRoot);     // 0 - 100
 
-        var preTargetNoteScore = getPreTargetNoteScore(wbpsa, tiling);  //  0 - 100
-        var postTargetNoteScore = getPostTargetNoteScore(wbpsa, tiling);  //  0 - 100
+            float preTargetNoteScore = getPreTargetNoteScore(wbpsa, tiling);  //  0 - 100
+            float postTargetNoteScore = getPostTargetNoteScore(wbpsa, tiling);  //  0 - 100
+            
+            res = new Score(ctScore, trScore, preTargetNoteScore, postTargetNoteScore);
+        }
 
-        var res = new Score(ctScore, trScore, preTargetNoteScore, postTargetNoteScore);
         wbpsa.setCompatibilityScore(res);
 
         return res;

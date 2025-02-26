@@ -25,7 +25,7 @@
 package org.jjazz.test.walkingbass.generator;
 
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
-import org.jjazz.test.walkingbass.WbpSource;
+import org.jjazz.test.walkingbass.api.WbpSource;
 import org.jjazz.utilities.api.IntRange;
 
 /**

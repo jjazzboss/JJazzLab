@@ -1,5 +1,6 @@
 package org.jjazz.test.walkingbass;
 
+import org.jjazz.test.walkingbass.api.Wbp;
 import java.util.List;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.phrase.api.NoteEvent;

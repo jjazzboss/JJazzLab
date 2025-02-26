@@ -30,10 +30,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jjazz.test.walkingbass.WbpSource;
-import org.jjazz.test.walkingbass.generator.DefaultWbpsaScorer;
+import org.jjazz.test.walkingbass.api.WbpSource;
 import org.jjazz.test.walkingbass.generator.Tiler;
-import org.jjazz.test.walkingbass.generator.TransposerPhraseAdapter;
 import org.jjazz.test.walkingbass.generator.WbpSourceAdaptation;
 import org.jjazz.test.walkingbass.generator.WbpTiling;
 import org.jjazz.test.walkingbass.generator.WbpsaScorer;
@@ -131,7 +129,8 @@ public class TilerMaxDistance implements Tiler
 
         for (var wbpsa : wbpsas)
         {
-            var usageWbpsas = tiling.getWbpSourceAdaptations(wbpsa.getWbpSource());
+            var usageWbpsas = tiling.ss(wbpsa.getWbpSource()); 
+            
             if (usageWbpsas.isEmpty())
             {
                 res = wbpsa;    // not used before, use it now

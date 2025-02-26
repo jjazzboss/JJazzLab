@@ -22,7 +22,7 @@
  *   Contributor(s): 
  * 
  */
-package org.jjazz.test.walkingbass;
+package org.jjazz.test.walkingbass.api;
 
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
