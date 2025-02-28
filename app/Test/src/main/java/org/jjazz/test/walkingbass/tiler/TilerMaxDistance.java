@@ -113,7 +113,7 @@ public class TilerMaxDistance implements Tiler
     }
 
     /**
-     * Select the most compatible WbpSourceAdaptation in wbpsas whose WbpSource was never used, or was used at the furthest bar.
+     * Select the WbpSourceAdaptation in wbpsas whose WbpSource was never used, or was used at the furthest bar.
      *
      * @param tiling
      * @param wbpsas Can not be empty. All WbpSourceAdaptation must start at the same bar.
@@ -125,21 +125,22 @@ public class TilerMaxDistance implements Tiler
 
         WbpSourceAdaptation res = null;
         int maxMinDistance = -1;
-        int bar = wbpsas.get(0).getBarRange().from;
+        int wbpsaBar = wbpsas.get(0).getBarRange().from; 
 
         for (var wbpsa : wbpsas)
         {
-            var usageWbpsas = tiling.ss(wbpsa.getWbpSource()); 
+            // var usageWbpsas = tiling.ss(wbpsa.getWbpSource()); 
+            var usageBars = tiling.getStartBarIndexes(wbpsa.getWbpSource()); 
             
-            if (usageWbpsas.isEmpty())
+            if (usageBars.isEmpty())
             {
                 res = wbpsa;    // not used before, use it now
                 break;
             }
 
             // Used, find the largest min distance
-            int minDistance = usageWbpsas.stream()
-                    .mapToInt(wsa -> Math.abs(wsa.getBarRange().from - bar))
+            int minDistance = usageBars.stream()
+                    .mapToInt(bar -> Math.abs(bar - wbpsaBar))
                     .min()
                     .orElseThrow();
             if (minDistance > maxMinDistance)

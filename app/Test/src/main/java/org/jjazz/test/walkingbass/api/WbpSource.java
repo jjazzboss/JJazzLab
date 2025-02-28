@@ -1,6 +1,5 @@
 package org.jjazz.test.walkingbass.api;
 
-import org.jjazz.test.walkingbass.api.Wbp;
 import static com.google.common.base.Preconditions.checkArgument;
 import java.util.ArrayList;
 import java.util.Collections;

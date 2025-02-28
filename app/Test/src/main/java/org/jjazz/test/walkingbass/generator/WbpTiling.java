@@ -49,7 +49,6 @@ public class WbpTiling
     private final TreeMap<Integer, WbpSourceAdaptation> mapBarWbpsa;
     private static final Logger LOGGER = Logger.getLogger(WbpTiling.class.getSimpleName());
 
-
     public WbpTiling(SimpleChordSequenceExt scs)
     {
         this.simpleChordSequenceExt = scs;
@@ -106,7 +105,6 @@ public class WbpTiling
         return res;
     }
 
-
     /**
      * Add a WbpSourceAdaptation.
      * <p>
@@ -143,8 +141,8 @@ public class WbpTiling
     public List<WbpSourceAdaptation> getWbpSourceAdaptations(Predicate<WbpSourceAdaptation> tester)
     {
         var res = mapBarWbpsa.values().stream()
-                .filter(wbpsa -> tester.test(wbpsa))
-                .toList();
+            .filter(wbpsa -> tester.test(wbpsa))
+            .toList();
         return res;
     }
 
@@ -163,7 +161,7 @@ public class WbpTiling
      * Get the start bar indexes which directly or indirectly refer to wbpSource.
      * <p>
      * Direct reference: wbpSource is the WbpSource of a tiling's WbpSourceAdaptation.<br>
-     * Inirect reference: wbpSource (1/2/3-bar) is a related WbpSource of a tiling's WbpSourceAdaptation (2/3/4-bar)<br>
+     * Indirect reference: wbpSource (1/2/3-bar) is a related WbpSource of a tiling's WbpSourceAdaptation (2/3/4-bar)<br>
      *
      * @param wbpSource
      * @return A list ordered by ascending start bar
@@ -171,7 +169,32 @@ public class WbpTiling
      */
     public List<Integer> getStartBarIndexes(WbpSource wbpSource)
     {
-        
+        List<Integer> res = new ArrayList<>();
+        var wdb = WbpSourceDatabase.getInstance();
+        var wbpsas = getWbpSourceAdaptations(wbpsa -> wbpsa.getWbpSource().getSessionId().equals(wbpSource.getSessionId()));
+        for (var wbpsa : wbpsas)
+        {
+            var ws = wbpsa.getWbpSource();
+            var br = wbpsa.getBarRange();
+            int bar = -1;
+
+            if (ws == wbpSource)
+            {
+                // Easy
+                bar = br.from;
+            } else if (br.size() > wbpSource.getBarRange().size() && wdb.getRelatedWbpSources(ws).contains(wbpSource))
+            {
+                // wbpSource is a related WbpSource of wbpsa
+                bar = br.from + wbpSource.getBarRangeInSession().from - ws.getBarRangeInSession().from;
+            }
+
+            if (bar > -1)
+            {
+                res.add(bar);
+            }
+        }
+
+        return res;
     }
 
     /**
@@ -206,7 +229,6 @@ public class WbpTiling
         }
         return res;
     }
-
 
     /**
      * Check if all usable bars are covered by a WbpSourceAdaptation.
@@ -265,23 +287,21 @@ public class WbpTiling
         {
             var br = wbpsa.getBarRange();
             var nonTiledBars = IntStream.range(bar, br.from)
-                    .boxed()
-                    .filter(b -> simpleChordSequenceExt.isUsable(b))
-                    .toList();
+                .boxed()
+                .filter(b -> simpleChordSequenceExt.isUsable(b))
+                .toList();
             res.addAll(nonTiledBars);
             bar = br.to + 1;
         }
 
         var nonTiledBars = IntStream.rangeClosed(bar, barRange.to)
-                .boxed()
-                .filter(b -> simpleChordSequenceExt.isUsable(b))
-                .toList();
+            .boxed()
+            .filter(b -> simpleChordSequenceExt.isUsable(b))
+            .toList();
         res.addAll(nonTiledBars);
-
 
         return res;
     }
-
 
     /**
      * Get the start bar indexes of zones not covered by a WbpSourceAdaptation.
@@ -365,19 +385,17 @@ public class WbpTiling
             mapSourceBars.put(source, wbpsa.getBarRange().from);
         }
 
-
         // Sort sources per descending number of uses
         List<WbpSource> sortedSources = new ArrayList<>(mapSourceBars.keySet());
         sortedSources.sort((s1, s2) -> Integer.compare(mapSourceBars.get(s2).size(), mapSourceBars.get(s1).size()));
-
 
         StringBuilder sb = new StringBuilder();
         for (int i = WbpSourceDatabase.SIZE_MAX; i >= WbpSourceDatabase.SIZE_MIN; i--)
         {
             final int fi = i;
             var sizeList = sortedSources.stream()
-                    .filter(s -> s.getBarRange().size() == fi)
-                    .toList();
+                .filter(s -> s.getBarRange().size() == fi)
+                .toList();
             sb.append(">>> ").append(sizeList.size()).append(" * ").append(i).append("-bar:\n");
             for (var source : sizeList)
             {
@@ -416,5 +434,4 @@ public class WbpTiling
     // =================================================================================================================
     // Private methods
     // =================================================================================================================
-
 }

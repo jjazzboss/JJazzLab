@@ -186,7 +186,7 @@ public class WalkingBassGenerator implements MusicGenerator
             // We have our big SimpleChordSequenceExt, generate the walking bass for it
             mergedScs.removeRedundantChords();
 
-            var phrase = getBassPhrase(mergedScs, BassStyle.TWO_FEEL, context.getSong().getTempo());
+            var phrase = getBassPhrase(mergedScs, BassStyle.WALKING, context.getSong().getTempo());
             res.add(phrase);
         }
 

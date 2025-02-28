@@ -26,7 +26,7 @@ package org.jjazz.test.walkingbass.generator;
 
 import org.jjazz.harmony.api.Note;
 import org.jjazz.phrase.api.Phrase;
-import org.jjazz.test.walkingbass.WbpSession;
+import org.jjazz.test.walkingbass.api.WbpSourceDatabase;
 
 /**
  * Just transpose the WbpSource phrase so that the 2 first chord roots match.
@@ -52,7 +52,7 @@ public class TransposerPhraseAdapter implements PhraseAdapter
         sp.shiftAllEvents(startPos);
 
 
-        if (startPos >= WbpSession.FIRST_NOTE_BEAT_WINDOW && wbpSource.getFirstNoteBeatShift() < 0)
+        if (startPos >= WbpSourceDatabase.FIRST_NOTE_BEAT_WINDOW && wbpSource.getFirstNoteBeatShift() < 0)
         {
             // Restore first note position whose start was anticipated (because non-quantized playing)
             var firstNe = sp.first();
