@@ -122,7 +122,8 @@ public class WalkingBassGenerator implements MusicGenerator
         // System.setProperty(NoteEvent.SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT, "[%1$s p=%2$.1f d=%3$.1f]");
         System.setProperty(NoteEvent.SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT, "%1$s");
         // WbpDatabase.getInstance().dump();
-        WbpSourceDatabase.getInstance().checkConsistency();
+        WbpSourceDatabase.getInstance().checkConsistency(BassStyle.TWO_FEEL);
+        WbpSourceDatabase.getInstance().checkConsistency(BassStyle.WALKING);
 
         LOGGER.log(Level.SEVERE, "generateMusic() -- rhythm={0} contextChordSequence={1}", new Object[]
         {

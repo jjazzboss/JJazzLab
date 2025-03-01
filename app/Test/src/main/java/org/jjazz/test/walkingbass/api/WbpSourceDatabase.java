@@ -50,11 +50,10 @@ import org.openide.util.Exceptions;
 /**
  * The walking bass source phrase database.
  * <p>
- * Contains WbpSource phrases of 1, 2 3, or 4 bars. Note that the 3 * 2-bar subphrases that compose each 4-bar phrase are also
- * found in the database. Same for the 4 or 2 * 1-bar subphrases of a 4 or 2-bar phrase.
+ * Contains WbpSource phrases of 1, 2 3, or 4 bars. Note that the 3 * 2-bar subphrases that compose each 4-bar phrase are also found in the database. Same for
+ * the 4 or 2 * 1-bar subphrases of a 4 or 2-bar phrase.
  * <p>
- * Example: If we have Cm7-F7-E7-Em7 in the database, then we also have Cm7-F7, F7-E7, E7-Em7, Cm7, F7, E7, Em7 phrases in the
- * database.
+ * Example: If we have Cm7-F7-E7-Em7 in the database, then we also have Cm7-F7, F7-E7, E7-Em7, Cm7, F7, E7, Em7 phrases in the database.
  * <p>
  */
 public class WbpSourceDatabase
@@ -126,8 +125,8 @@ public class WbpSourceDatabase
     {
         boolean b = false;
         if (mapIdWbpSource.get(wbps.getId()) == null
-            && !mmapSizeWbpSources.get(wbps.getBarRange().size()).contains(wbps)
-            && getWbpSources(wbps.getSimpleChordSequence(), wbps.getSizedPhrase()).isEmpty())
+                && !mmapSizeWbpSources.get(wbps.getBarRange().size()).contains(wbps)
+                && getWbpSources(wbps.getSimpleChordSequence(), wbps.getSizedPhrase()).isEmpty())
         {
             addWbpSourceImpl(wbps);
             b = true;
@@ -165,10 +164,12 @@ public class WbpSourceDatabase
     /**
      * Perform various checks on the database.
      * <p>
+     * @param bStyle
      */
-    public void checkConsistency()
+    public void checkConsistency(BassStyle bStyle)
     {
-        LOGGER.severe("checkConsistency() starting");
+        LOGGER.log(Level.INFO, "checkConsistency() -- bStyle={0}", bStyle);
+        
 
         // All the base ChordTypes should have at least a 1-bar WbpSource
         ChordTypeDatabase ctdb = ChordTypeDatabase.getDefault();
@@ -181,9 +182,10 @@ public class WbpSourceDatabase
         final var POS2 = new Position(0, 2);
         final int NB_BARS = 1;
         final var scs = new SimpleChordSequence(new IntRange(0, NB_BARS - 1), TimeSignature.FOUR_FOUR);
+        final WbpsaScorer scorer = new DefaultWbpsaScorer(null, bStyle, -1);
+
 
         // Check for chord types with 0 or only 1 one-bar WbpSource
-        WbpsaScorer scorer = new DefaultWbpsaScorer(null, BassStyle.ALL, -1);
         for (var ct : allChordTypes)
         {
             scs.clear();
@@ -192,21 +194,22 @@ public class WbpSourceDatabase
             var wbpsas = scorer.getWbpSourceAdaptations(scs, null);
             if (wbpsas.size() <= 1)
             {
-                LOGGER.log(Level.SEVERE, "checkConsistency() {0} x {1}-bar WbpSource for {2}", new Object[]
+                LOGGER.log(Level.SEVERE, "checkConsistency() 2-feel {0} x {1}-bar WbpSource for {2}", new Object[]
                 {
                     wbpsas.size(), NB_BARS, ecs
                 });
             }
         }
 
+
         // Check for 2-chord bars with 0 or only 1 one-bar WbpSource
         List<CLI_ChordSymbol> baseChords;
         try
         {
             baseChords = List.of(clif.createChordSymbol("C", POS0),
-                clif.createChordSymbol("C+", POS0),
-                clif.createChordSymbol("Cm", POS0),
-                clif.createChordSymbol("Csus", POS0));
+                    clif.createChordSymbol("C+", POS0),
+                    clif.createChordSymbol("Cm", POS0),
+                    clif.createChordSymbol("Csus", POS0));
         } catch (ParseException ex)
         {
             Exceptions.printStackTrace(ex);
@@ -292,8 +295,8 @@ public class WbpSourceDatabase
     {
         Preconditions.checkArgument(nbBars >= SIZE_MIN && nbBars <= SIZE_MAX, "nbBars=%s", nbBars);
         return mmapSizeWbpSources.get(nbBars).stream()
-            .filter(tester)
-            .toList();
+                .filter(tester)
+                .toList();
     }
 
     /**
@@ -306,8 +309,8 @@ public class WbpSourceDatabase
     public List<WbpSource> getWbpSources(Predicate<WbpSource> tester)
     {
         return mmapSizeWbpSources.values().stream()
-            .filter(tester)
-            .toList();
+                .filter(tester)
+                .toList();
     }
 
     /**
@@ -338,8 +341,8 @@ public class WbpSourceDatabase
     /**
      * Get all the WbpSources which have one or more bars in common with wbpSource.
      * <p>
-     * For example a 2-bar WbpSource can have maximum 11 related WbpSources : 5 x 4-bar + 4 x 3-bar + 2 x 1-bar. Note that it
-     * might be less than 11 if for some reason some related WbpSources were discarded by the database.<p>
+     * For example a 2-bar WbpSource can have maximum 11 related WbpSources : 5 x 4-bar + 4 x 3-bar + 2 x 1-bar. Note that it might be less than 11 if for some
+     * reason some related WbpSources were discarded by the database.<p>
      *
      * @param wbpSource
      * @return The returned list does not contain wbpSource. All elements belong to the same WbpSession.
@@ -349,9 +352,9 @@ public class WbpSourceDatabase
         var sessionSources = getSessionWbpSources(wbpSource.getSessionId());
         IntRange br = wbpSource.getBarRangeInSession();
         var res = sessionSources.stream()
-            .filter(wbps -> wbps != wbpSource
-            && br.isIntersecting(wbps.getBarRangeInSession()))
-            .toList();
+                .filter(wbps -> wbps != wbpSource
+                && br.isIntersecting(wbps.getBarRangeInSession()))
+                .toList();
         return res;
     }
 
@@ -372,7 +375,7 @@ public class WbpSourceDatabase
      * Extract the WbpSources from a WbpSession and add them to the database.
      *
      * @param wbpSession
-     * @param extraTag If not null, add this tag to WbpSources (in addition to the WbpSession tags).
+     * @param extraTag   If not null, add this tag to WbpSources (in addition to the WbpSession tags).
      */
     private void processWbpSession(WbpSession wbpSession, String extraTag)
     {
@@ -403,11 +406,11 @@ public class WbpSourceDatabase
      * - Markers "C7", "Ebm7", etc. <br>
      * - Midi notes must use only 1 channel<br>
      * <p>
-     * The target note of a session is by default the root of the 1st chord symbol of the section (the closest root of the last
-     * session note), unless it is specified via a "tn" session tag with this form: #tn=pitch, e.g. "#tn=36" for Midi note C1.
+     * The target note of a session is by default the root of the 1st chord symbol of the section (the closest root of the last session note), unless it is
+     * specified via a "tn" session tag with this form: #tn=pitch, e.g. "#tn=36" for Midi note C1.
      *
      * @param midiFileResourcePath
-     * @param sessionIdPrefix A prefix added to each sessionId
+     * @param sessionIdPrefix      A prefix added to each sessionId
      * @param ts
      * @return
      */
@@ -432,16 +435,16 @@ public class WbpSourceDatabase
         for (Track track : sequence.getTracks())
         {
             var events = MidiUtilities.getMidiEvents(track,
-                MetaMessage.class,
-                me -> me.getType() == MidiConst.META_MARKER,
-                null);
+                    MetaMessage.class,
+                    me -> me.getType() == MidiConst.META_MARKER,
+                    null);
             events = MidiUtilities.getMidiEventsAtPPQ(events, seqResolution, MidiConst.PPQ_RESOLUTION);
             markerEvents.addAll(events);
         }
         assert !markerEvents.isEmpty() : "midiFileResourcePath=" + midiFileResourcePath;
 
         // Sort markers: first session name "_xxx", then tags "#xxx", then chord symbols
-        markerEvents.sort((left, right) ->
+        markerEvents.sort((left, right) -> 
         {
             int c = Long.compare(left.getTick(), right.getTick());
             if (c == 0)
@@ -493,9 +496,9 @@ public class WbpSourceDatabase
 
             // Extract all tag strings, convert to lowercase
             var sessionTags = markerEvents.stream()
-                .filter(me -> me.getTick() == startPosInTicks && MidiUtilities.getText(me).startsWith("#"))
-                .map(me -> MidiUtilities.getText(me).substring(1).trim().toLowerCase())
-                .toList();
+                    .filter(me -> me.getTick() == startPosInTicks && MidiUtilities.getText(me).startsWith("#"))
+                    .map(me -> MidiUtilities.getText(me).substring(1).trim().toLowerCase())
+                    .toList();
 
             // Is there a target note defined ?
             Note targetNote = null;
@@ -507,24 +510,24 @@ public class WbpSourceDatabase
 
             // The chord symbols
             var sessionChords = markerEvents.stream()
-                .filter(me ->
-                {
-                    boolean b = false;
-                    if (sessionRange.contains(me.getTick()))
+                    .filter(me -> 
                     {
-                        String s = MidiUtilities.getText(me);
-                        if (s.isBlank())
+                        boolean b = false;
+                        if (sessionRange.contains(me.getTick()))
                         {
-                            LOGGER.log(Level.SEVERE, "Empty marker found at tick={0}", me.getTick());
-                        } else
-                        {
-                            char c = MidiUtilities.getText(me).charAt(0);
-                            b = c >= 'A' && c <= 'G';
+                            String s = MidiUtilities.getText(me);
+                            if (s.isBlank())
+                            {
+                                LOGGER.log(Level.SEVERE, "Empty marker found at tick={0}", me.getTick());
+                            } else
+                            {
+                                char c = MidiUtilities.getText(me).charAt(0);
+                                b = c >= 'A' && c <= 'G';
+                            }
                         }
-                    }
-                    return b;
-                })
-                .toList();
+                        return b;
+                    })
+                    .toList();
 
             // Get the size of the session
             FloatRange beatRange = new FloatRange(startPosInTicks / (float) MidiConst.PPQ_RESOLUTION, (endPosInTicks + 1) / (float) MidiConst.PPQ_RESOLUTION);
@@ -620,8 +623,7 @@ public class WbpSourceDatabase
      * Find the WbpSources in the database which are compatible with the specified SimpleChordSequence and SizedPhrase.
      * <p>
      * <p>
-     * Compatible means chord sequences share the same root profile and phrases have the same note intervals and approximately the
-     * same note positions.
+     * Compatible means chord sequences share the same root profile and phrases have the same note intervals and approximately the same note positions.
      *
      * @param scs
      * @param sp
@@ -682,13 +684,11 @@ public class WbpSourceDatabase
     // Inner classes
     // ==========================================================================================================    
     /**
-     * A session is one consistent recording of a possibly long WalkingBassPhrase, which will be sliced in smaller WbpSource
-     * units.
+     * A session is one consistent recording of a possibly long WalkingBassPhrase, which will be sliced in smaller WbpSource units.
      * <p>
-     * It is recommended to use the shortest chord symbol corresponding to the phrase notes, typically 3-degrees or 4-degrees
-     * chord symbols (C, Cm, C+, Cdim, Cm6, C6, C7M, C7, Csus, C7sus, ...), though more complex chord symbols are allowed. If a
-     * chord symbol is too complex for the actual phrase notes (eg C7b9 but phrase only uses C E G), chord symbol will be
-     * simplified in the WbpSource (C7b9 &gt; C).
+     * It is recommended to use the shortest chord symbol corresponding to the phrase notes, typically 3-degrees or 4-degrees chord symbols (C, Cm, C+, Cdim,
+     * Cm6, C6, C7M, C7, Csus, C7sus, ...), though more complex chord symbols are allowed. If a chord symbol is too complex for the actual phrase notes (eg C7b9
+     * but phrase only uses C E G), chord symbol will be simplified in the WbpSource (C7b9 &gt; C).
      * <p>
      */
     static private class WbpSession extends Wbp
@@ -723,15 +723,13 @@ public class WbpSourceDatabase
         /**
          * Extract all the possible WbpSources from this session.
          * <p>
-         * We extract all the possible 1/2/3/4-bar WbpSources. So for one 4-bar session phrase, the method can generate 10
-         * WbpSource objects: 1 * 4-bar + 2 * 3-bar + 3 * 2-bar + 4 * 1-bar.
+         * We extract all the possible 1/2/3/4-bar WbpSources. So for one 4-bar session phrase, the method can generate 10 WbpSource objects: 1 * 4-bar + 2 *
+         * 3-bar + 3 * 2-bar + 4 * 1-bar.
          * <p>
          * Returned WbpSources get the tags of the session.
          *
-         * @param disallowNonRootStartNote If true a WbpSource is not extracted if its first note is different from the chord root
-         * note.
-         * @param disallowNonChordToneLastNote If true a WbpSource is not extracted if its last note is note a chord note (ie no
-         * transition note).
+         * @param disallowNonRootStartNote     If true a WbpSource is not extracted if its first note is different from the chord root note.
+         * @param disallowNonChordToneLastNote If true a WbpSource is not extracted if its last note is note a chord note (ie no transition note).
          * @return
          */
         public List<WbpSource> extractWbpSources(boolean disallowNonRootStartNote, boolean disallowNonChordToneLastNote)

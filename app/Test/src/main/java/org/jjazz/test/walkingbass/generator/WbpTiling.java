@@ -141,8 +141,8 @@ public class WbpTiling
     public List<WbpSourceAdaptation> getWbpSourceAdaptations(Predicate<WbpSourceAdaptation> tester)
     {
         var res = mapBarWbpsa.values().stream()
-            .filter(wbpsa -> tester.test(wbpsa))
-            .toList();
+                .filter(wbpsa -> tester.test(wbpsa))
+                .toList();
         return res;
     }
 
@@ -161,31 +161,37 @@ public class WbpTiling
      * Get the start bar indexes which directly or indirectly refer to wbpSource.
      * <p>
      * Direct reference: wbpSource is the WbpSource of a tiling's WbpSourceAdaptation.<br>
-     * Indirect reference: wbpSource (1/2/3-bar) is a related WbpSource of a tiling's WbpSourceAdaptation (2/3/4-bar)<br>
+     * Indirect reference: wbpSource (1/2/3-bar) is a (enclosed or not) related WbpSource of a tiling's WbpSourceAdaptation (2/3/4-bar)<br>
      *
      * @param wbpSource
+     * @param enclosedRelatedOnly If true, an indirect reference requires that wbpSource is an enclosed related WbpSource of a tiling's WbpSourceAdaptation
      * @return A list ordered by ascending start bar
      * @see WbpSourceDatabase#getRelatedWbpSources(org.jjazz.test.walkingbass.WbpSource)
      */
-    public List<Integer> getStartBarIndexes(WbpSource wbpSource)
+    public List<Integer> getStartBarIndexes(WbpSource wbpSource, boolean enclosedRelatedOnly)
     {
         List<Integer> res = new ArrayList<>();
         var wdb = WbpSourceDatabase.getInstance();
         var wbpsas = getWbpSourceAdaptations(wbpsa -> wbpsa.getWbpSource().getSessionId().equals(wbpSource.getSessionId()));
+        var br = wbpSource.getBarRange();
+
         for (var wbpsa : wbpsas)
         {
             var ws = wbpsa.getWbpSource();
-            var br = wbpsa.getBarRange();
+            var wsBr = wbpsa.getBarRange();
             int bar = -1;
 
             if (ws == wbpSource)
             {
                 // Easy
-                bar = br.from;
-            } else if (br.size() > wbpSource.getBarRange().size() && wdb.getRelatedWbpSources(ws).contains(wbpSource))
+                bar = wsBr.from;
+            } else if (wsBr.size() > br.size() && wdb.getRelatedWbpSources(ws).contains(wbpSource))
             {
-                // wbpSource is a related WbpSource of wbpsa
-                bar = br.from + wbpSource.getBarRangeInSession().from - ws.getBarRangeInSession().from;
+                // wbpSource is a related WbpSource of wbpsa, but might not be enclosed
+                if (!enclosedRelatedOnly || wsBr.contains(br))
+                {
+                    bar = wsBr.from + wbpSource.getBarRangeInSession().from - ws.getBarRangeInSession().from;
+                }
             }
 
             if (bar > -1)
@@ -287,17 +293,17 @@ public class WbpTiling
         {
             var br = wbpsa.getBarRange();
             var nonTiledBars = IntStream.range(bar, br.from)
-                .boxed()
-                .filter(b -> simpleChordSequenceExt.isUsable(b))
-                .toList();
+                    .boxed()
+                    .filter(b -> simpleChordSequenceExt.isUsable(b))
+                    .toList();
             res.addAll(nonTiledBars);
             bar = br.to + 1;
         }
 
         var nonTiledBars = IntStream.rangeClosed(bar, barRange.to)
-            .boxed()
-            .filter(b -> simpleChordSequenceExt.isUsable(b))
-            .toList();
+                .boxed()
+                .filter(b -> simpleChordSequenceExt.isUsable(b))
+                .toList();
         res.addAll(nonTiledBars);
 
         return res;
@@ -394,8 +400,8 @@ public class WbpTiling
         {
             final int fi = i;
             var sizeList = sortedSources.stream()
-                .filter(s -> s.getBarRange().size() == fi)
-                .toList();
+                    .filter(s -> s.getBarRange().size() == fi)
+                    .toList();
             sb.append(">>> ").append(sizeList.size()).append(" * ").append(i).append("-bar:\n");
             for (var source : sizeList)
             {

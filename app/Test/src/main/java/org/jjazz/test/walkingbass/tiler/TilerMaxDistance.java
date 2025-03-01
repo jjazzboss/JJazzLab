@@ -113,7 +113,7 @@ public class TilerMaxDistance implements Tiler
     }
 
     /**
-     * Select the WbpSourceAdaptation in wbpsas whose WbpSource was never used, or was used at the furthest bar.
+     * Select the first WbpSourceAdaptation in wbpsas whose WbpSource was never used, or was used at the furthest bar.
      *
      * @param tiling
      * @param wbpsas Can not be empty. All WbpSourceAdaptation must start at the same bar.
@@ -129,8 +129,7 @@ public class TilerMaxDistance implements Tiler
 
         for (var wbpsa : wbpsas)
         {
-            // var usageWbpsas = tiling.ss(wbpsa.getWbpSource()); 
-            var usageBars = tiling.getStartBarIndexes(wbpsa.getWbpSource()); 
+            var usageBars = tiling.getStartBarIndexes(wbpsa.getWbpSource(), true);  // Use false for less possible redundancies
             
             if (usageBars.isEmpty())
             {

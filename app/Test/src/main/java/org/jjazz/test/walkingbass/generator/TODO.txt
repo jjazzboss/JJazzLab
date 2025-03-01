@@ -1,4 +1,5 @@
 * Variations: 2 feel (2 variations LACoolSwing-B1, JazzClub.S120-B1) ? check out Shuffle rhythm examples), walking, walking double notes (C C Bb Bb etc.)
+* Variation: fast double-notes walking (youtube fast walking bass for examples)
 * Programmatically add embellishments like p15 (for 2 feel), p28 of Constructig-walking-pdf...
 * Handle slow / medium / fast tempo
 * Handle slash chords
@@ -18,6 +19,7 @@
 * Do not use WBpSources with crossing notes at boundaries
 * Scorer, reject wbpsources with out of scale long notes at slow tempos
 * weighted duration calculation: don't count last note if half-tone up/sub next chord => it's a transition note
-* Adjust notes length depending on tempo and 2-feel or 4-feel
+* Adjust notes length and shift depending on tempo and 2-feel or 4-feel
 * Authorize WbpSources in the DB with non-root/chord-tone start/end notes => managed by Scorer
+* Missing 1 more WbpSource walking for Gm D7, same for Bb F7
 
