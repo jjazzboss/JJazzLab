@@ -25,13 +25,12 @@ package org.jjazz.rhythm.api;
 /**
  * A special RhythmVoice which is a delegate for another source RhythmVoice.
  * <p>
- * Delegates are used in AdaptedRhythms to enable rhythm music generation while sparing "Midi channel space" in
- * the MidiMix.
+ * Delegates are used for example by AdaptedRhythms to enable rhythm music generation while sparing "Midi channel space" in the MidiMix.
  */
 public class RhythmVoiceDelegate extends RhythmVoice
 {
 
-    private RhythmVoice rvSource;
+    private final RhythmVoice rvSource;
 
     /**
      * Create a delegate for rvSource.
@@ -47,7 +46,7 @@ public class RhythmVoiceDelegate extends RhythmVoice
     {
         if (container == null || rvSource == null || rvSource.getContainer() == container)
         {
-            throw new IllegalArgumentException("container=" + container + " rvSource=" + rvSource);   
+            throw new IllegalArgumentException("container=" + container + " rvSource=" + rvSource);
         }
         if (!rvSource.isDrums())
         {

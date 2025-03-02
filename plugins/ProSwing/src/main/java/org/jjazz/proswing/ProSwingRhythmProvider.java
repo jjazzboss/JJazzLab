@@ -1,0 +1,139 @@
+/*
+ *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+ * 
+ *  Copyright @2019 Jerome Lelasseux. All rights reserved.
+ *
+ *  This file is part of the JJazzLab software.
+ *   
+ *  JJazzLab is free software: you can redistribute it and/or modify
+ *  it under the terms of the Lesser GNU General Public License (LGPLv3) 
+ *  as published by the Free Software Foundation, either version 3 of the License, 
+ *  or (at your option) any later version.
+ *
+ *  JJazzLab is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Lesser General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU Lesser General Public License
+ *  along with JJazzLab.  If not, see <https://www.gnu.org/licenses/>
+ * 
+ *  Contributor(s): 
+ */
+package org.jjazz.proswing;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.jjazz.harmony.api.TimeSignature;
+import org.jjazz.rhythm.api.AdaptedRhythm;
+import org.jjazz.rhythm.api.Rhythm;
+import org.jjazz.rhythmdatabase.api.RhythmDatabase;
+import org.jjazz.rhythm.spi.RhythmProvider;
+import org.jjazz.utilities.api.MultipleErrorsReport;
+import org.openide.util.lookup.ServiceProvider;
+import org.jjazz.rhythmdatabase.api.RhythmInfo;
+import org.openide.util.Exceptions;
+import org.openide.util.Lookup;
+
+
+/**
+ * The provider of jlSwing rhythms.
+ */
+@ServiceProvider(service = RhythmProvider.class)
+public class ProSwingRhythmProvider implements RhythmProvider
+{
+
+    public static final String RP_ID = "ProSwingRhythmProviderID";
+    private final Info info;
+    private final List<Rhythm> rhythms = new ArrayList<>();
+    private static final Logger LOGGER = Logger.getLogger(ProSwingRhythmProvider.class.getSimpleName());
+
+
+    public ProSwingRhythmProvider()
+    {
+        info = new Info(RP_ID, "ProSwing JJazzLab styles", "ProSwing rhythm provider", "JL", "1");
+        try
+        {
+            rhythms.add(new ProSwingRhythmImpl());
+        } catch (IOException ex)
+        {
+            LOGGER.log(Level.SEVERE, "ProSwingRhythmProvider() Can not create ProSwingRhythm instance. ex={0}", ex.getMessage());
+        }
+    }
+
+    static public ProSwingRhythmProvider getInstance()
+    {
+        return Lookup.getDefault().lookup(ProSwingRhythmProvider.class);
+    }
+
+    @Override
+    public final String[] getSupportedFileExtensions()
+    {
+        return new String[0];
+    }
+
+    @Override
+    public Info getInfo()
+    {
+        return info;
+    }
+
+    @Override
+    public void showUserSettingsDialog()
+    {
+        // Nothing
+    }
+
+    @Override
+    public boolean hasUserSettings()
+    {
+        return false;
+    }
+
+    @Override
+    public List<Rhythm> getBuiltinRhythms(MultipleErrorsReport errRpt)
+    {
+        return rhythms;
+    }
+
+    @Override
+    public List<Rhythm> getFileRhythms(boolean forceRescan, MultipleErrorsReport errRpt)
+    {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public Rhythm readFast(File extFile) throws IOException
+    {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public AdaptedRhythm getAdaptedRhythm(Rhythm r, TimeSignature ts)
+    {
+        if (r == null || ts == null || r.getTimeSignature().equals(ts))
+        {
+            throw new IllegalArgumentException("r=" + r + " ts=" + ts);   //NOI18N
+        }
+        if (RhythmDatabase.getDefault().getRhythmProvider(r) == this)
+        {
+            throw new UnsupportedOperationException();
+        }
+        return null;
+    }
+
+    static public boolean isMine(RhythmInfo ri)
+    {
+        return ri.rhythmProviderId().equals(RP_ID);
+    }
+
+    // -------------------------------------------------------------------------------------------------
+    // Private methods
+    // -------------------------------------------------------------------------------------------------
+
+}

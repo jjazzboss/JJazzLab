@@ -897,9 +897,10 @@ public class SongSequenceBuilder
 
             // Get the RhythmParameter
             Rhythm r = spt.getRhythm();
-            RP_SYS_DrumsTransform rpDrumsTransform = RP_SYS_DrumsTransform.getDrumsTransformRp(r);
+            RP_SYS_DrumsTransform rpDrumsTransform = RP_SYS_DrumsTransform.getDrumsTransformRp(r); 
             if (rpDrumsTransform == null)
             {
+                // Happens if no drums RhythmVoice in the rhythm, or if rhythm does not propose this RhythmParameter
                 continue;
             }
 

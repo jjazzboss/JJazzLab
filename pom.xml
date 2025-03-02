@@ -306,7 +306,7 @@
         
         <module>plugins/FluidSynthEmbeddedSynth</module>        
         <module>plugins/YamJJazz</module>
-
+        <module>plugins/ProSwing</module>
     </modules>
     
     

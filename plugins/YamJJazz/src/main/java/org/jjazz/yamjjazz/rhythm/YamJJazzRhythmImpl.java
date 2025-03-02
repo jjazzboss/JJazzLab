@@ -31,7 +31,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -44,7 +43,6 @@ import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.InstrumentSettings;
 import org.jjazz.midi.api.synths.GMSynth;
-import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrasetransform.api.rps.RP_SYS_DrumsTransform;
 import org.jjazz.rhythm.api.Genre;
 import org.jjazz.rhythm.api.MusicGenerationException;
@@ -52,7 +50,6 @@ import org.jjazz.rhythm.api.RhythmFeatures;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.TempoRange;
-import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Fill;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Intensity;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
@@ -251,13 +248,14 @@ public class YamJJazzRhythmImpl implements YamJJazzRhythm
     /**
      * The base style stdFile (a standard Yamaha style stdFile) for this rhythm.
      * <p>
-     * getFile() will return the style extension stdFile.
+     * getFile() will return the style extension extFile.
      *
      * @return
+     * @see #getFile() 
      */
     public File getBaseStyleFile()
     {
-        return this.extFile;
+        return this.stdFile;
     }
 
     /**
@@ -524,7 +522,7 @@ public class YamJJazzRhythmImpl implements YamJJazzRhythm
     /**
      * There is one rhythmVoice per AccPart.
      *
-     * @param style
+     * @throws org.jjazz.yamjjazz.FormatNotSupportedException
      */
     private void buildRhythmVoices() throws FormatNotSupportedException
     {

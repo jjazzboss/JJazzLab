@@ -652,6 +652,11 @@
             <artifactId>fluidsynthembeddedsynth</artifactId> 
             <version>${project.version}</version> 
         </dependency>           
+        <dependency> 
+            <groupId>org.jjazzlab.plugins</groupId> 
+            <artifactId>proswing</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>           
     </dependencies>
    
 </project>

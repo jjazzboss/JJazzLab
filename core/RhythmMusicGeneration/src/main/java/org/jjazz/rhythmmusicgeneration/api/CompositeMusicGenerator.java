@@ -44,6 +44,8 @@ import org.jjazz.songcontext.api.SongContext;
 
 /**
  * A MusicGenerator which combines several MusicGenerators.
+ * <p>
+ * Can be used to have different MusicGenerators for a rhythm.
  */
 public class CompositeMusicGenerator implements MusicGenerator
 {
@@ -53,6 +55,7 @@ public class CompositeMusicGenerator implements MusicGenerator
     private static final Logger LOGGER = Logger.getLogger(CompositeMusicGenerator.class.getSimpleName());
 
     /**
+     * Create a CompositeMusicGenerator for Rhythm r.
      *
      * @param r
      * @param mapGenRvs MusicGenerators and their associated RhythmVoices. Must be consistent with r.
@@ -62,7 +65,8 @@ public class CompositeMusicGenerator implements MusicGenerator
         Objects.requireNonNull(r);
         Objects.requireNonNull(mapGenRvs);
         Preconditions.checkArgument(mapGenRvs.values().stream().allMatch(rv -> r.getRhythmVoices().contains(rv)), "mapGenRvs=%s", mapGenRvs);
-        Preconditions.checkArgument(mapGenRvs.values().stream().allMatch(new HashSet<>()::add), "mapGenRvs=%s", mapGenRvs);    // Detect a rv duplicate
+        final var tmp = new HashSet<RhythmVoice>();
+        Preconditions.checkArgument(mapGenRvs.values().stream().allMatch(rv -> tmp.add(rv)), "mapGenRvs=%s", mapGenRvs);    // Detect a rv duplicate
 
         this.rhythm = r;
         this.mapGenRvs = ArrayListMultimap.create(mapGenRvs);
@@ -72,8 +76,8 @@ public class CompositeMusicGenerator implements MusicGenerator
     @Override
     public Map<RhythmVoice, Phrase> generateMusic(SongContext context, RhythmVoice... rvs) throws MusicGenerationException
     {
-        var rhythmRvs = rhythm.getRhythmVoices();
         var rvsList = List.of(rvs);
+        var rhythmRvs = rhythm.getRhythmVoices();
         Preconditions.checkArgument(rvsList.stream().allMatch(rv -> rhythmRvs.contains(rv)), "rvs=", rvsList);
         var rhythmVoices = rvsList.isEmpty() ? rhythmRvs : rvsList;
 
@@ -87,9 +91,9 @@ public class CompositeMusicGenerator implements MusicGenerator
             genRvs.retainAll(mapGenRvs.get(mg));
             if (!genRvs.isEmpty())
             {
-                LOGGER.log(Level.FINE, "generateMusic() generating music for mg={0} and rvs={1}", new Object[]
+                LOGGER.log(Level.SEVERE, "generateMusic() generating music for mg={0} and genRvs={1}", new Object[]
                 {
-                    mg, genRvs
+                    mg.getClass().getSimpleName(), genRvs
                 });
                 var map = mg.generateMusic(context, genRvs.toArray(RhythmVoice[]::new));
                 res.putAll(map);

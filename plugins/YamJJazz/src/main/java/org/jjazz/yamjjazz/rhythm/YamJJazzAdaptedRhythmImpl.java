@@ -150,84 +150,11 @@ public class YamJJazzAdaptedRhythmImpl implements YamJJazzRhythm, AdaptedRhythm
         }
 
         Style oldStyle = yjr.getStyle();
-        newStyle = new Style();
-
-        // Copy fields
-        newStyle.name = oldStyle.name;
-        newStyle.timeSignature = newTs;
-        newStyle.ticksPerQuarter = oldStyle.ticksPerQuarter;
-        newStyle.tempo = oldStyle.tempo;
-        newStyle.division = oldStyle.division;
-        newStyle.sffType = oldStyle.sffType;
-
-        // Copy sInt
-        newStyle.getSInt().set(oldStyle.getSInt());
-
-        // Copy the StyleParts
-        for (StylePartType type : oldStyle.getStylePartTypes())
-        {
-            // Create the copy that we update below
-            newStyle.addStylePart(type);
-            StylePart newSp = newStyle.getStylePart(type);
-            StylePart oldSp = oldStyle.getStylePart(type);
-
-            // Copy cTab data
-            for (Integer channel : oldSp.getSourceChannels(null, null, null))
-            {
-                CtabChannelSettings cTab = oldSp.getCtabChannelSettings(channel);
-                newSp.setCtabChannelSettings(channel, cTab);
-            }
-
-            // Update size in beats of the reference phrase
-            float oldSizeInBeats = oldSp.getSizeInBeats();  // It's an int
-            int nbBars = Math.round(oldSizeInBeats / yjr.getTimeSignature().getNbNaturalBeats());
-            float newSizeInBeats = nbBars * newTs.getNbNaturalBeats();
-            newSp.setSizeInBeats(newSizeInBeats);
-
-            // Copy and update SourcePhraseSets
-            for (Integer complexity : oldSp.getComplexityLevels())      // Get List<SPS> per complexity
-            {
-                int variationId = 0;
-                for (SourcePhraseSet oldSps : oldSp.getSourcePhraseSets(complexity))   // Get SPS per variation
-                {
-                    SourcePhraseSet newSps = newSp.getSourcePhraseSet(complexity, variationId);
-                    if (newSps == null)
-                    {
-                        newSps = new SourcePhraseSet(oldSps.getClientProperty(SourcePhraseSet.PROP_ID));
-                    }
-                    LOGGER.log(Level.FINE, "loadResources() type={0} complexity={1} variationId={2}", new Object[]
-                    {
-                        type, complexity,
-                        variationId
-                    });
-                    for (Integer channel : oldSps.getSourceChannels())          // Get Phrase per channel
-                    {
-                        SourcePhrase oldPhrase = oldSps.getPhrase(channel);
-                        SourcePhrase newPhrase = new SourcePhrase(channel, oldPhrase.getSourceChordSymbol());
-                        copyAndAdaptNotes(nbBars, oldPhrase, newPhrase);        // Copy relevant notes at new position
-                        newSps.setPhrase(channel, newPhrase);
-                        if (type == StylePartType.Main_A && oldSp.getAccType(channel) == AccType.RHYTHM)
-                        {
-                            LOGGER.log(Level.FINE, "loadResources() MainA AccType={0} oldPhrase=\n{1}", new Object[]
-                            {
-                                oldSp.getAccType(channel),
-                                oldPhrase
-                            });
-                            LOGGER.log(Level.FINE, "loadResources() MainA AccType={0} newPhrase=\n{1}", new Object[]
-                            {
-                                oldSp.getAccType(channel),
-                                newPhrase
-                            });
-                        }
-                    }
-                    newSp.addSourcePhraseSet(newSps, complexity);   // Add the new SourcePhraseSet 
-                    variationId++;
-                }
-            }
-        }
+        newStyle = adaptStyle(oldStyle, newTs);
 
         pcs.firePropertyChange(PROP_RESOURCES_LOADED, false, true);
     }
+
 
     @Override
     public void releaseResources()
@@ -408,6 +335,18 @@ public class YamJJazzAdaptedRhythmImpl implements YamJJazzRhythm, AdaptedRhythm
         return getName();
     }
 
+    @Override
+    public void addPropertyChangeListener(PropertyChangeListener l)
+    {
+        pcs.addPropertyChangeListener(l);
+    }
+
+    @Override
+    public void removePropertyChangeListener(PropertyChangeListener l)
+    {
+        pcs.removePropertyChangeListener(l);
+    }
+
     // =========================================================================================
     // Private methods
     // =========================================================================================
@@ -486,6 +425,94 @@ public class YamJJazzAdaptedRhythmImpl implements YamJJazzRhythm, AdaptedRhythm
         }
     }
 
+    /**
+     * Adapt oldStyle to a newTimeSignature.
+     *
+     * @param oldStyle
+     * @param newTimeSig
+     * @return
+     */
+    private Style adaptStyle(Style oldStyle, TimeSignature newTimeSig)
+    {
+        var adaptedStyle = new Style();
+
+        // Copy fields        
+        adaptedStyle.name = oldStyle.name;
+        adaptedStyle.timeSignature = newTimeSig;
+        adaptedStyle.ticksPerQuarter = oldStyle.ticksPerQuarter;
+        adaptedStyle.tempo = oldStyle.tempo;
+        adaptedStyle.division = oldStyle.division;
+        adaptedStyle.sffType = oldStyle.sffType;
+
+        // Copy sInt
+        adaptedStyle.getSInt().set(oldStyle.getSInt());
+
+        // Copy the StyleParts
+        for (StylePartType type : oldStyle.getStylePartTypes())
+        {
+            // Create the copy that we update below
+            adaptedStyle.addStylePart(type);
+            StylePart newSp = adaptedStyle.getStylePart(type);
+            StylePart oldSp = oldStyle.getStylePart(type);
+
+            // Copy cTab data
+            for (Integer channel : oldSp.getSourceChannels(null, null, null))
+            {
+                CtabChannelSettings cTab = oldSp.getCtabChannelSettings(channel);
+                newSp.setCtabChannelSettings(channel, cTab);
+            }
+
+            // Update size in beats of the reference phrase
+            float oldSizeInBeats = oldSp.getSizeInBeats();  // It's an int
+            int nbBars = Math.round(oldSizeInBeats / yjr.getTimeSignature().getNbNaturalBeats());
+            float newSizeInBeats = nbBars * newTimeSig.getNbNaturalBeats();
+            newSp.setSizeInBeats(newSizeInBeats);
+
+            // Copy and update SourcePhraseSets
+            for (Integer complexity : oldSp.getComplexityLevels())      // Get List<SPS> per complexity
+            {
+                int variationId = 0;
+                for (SourcePhraseSet oldSps : oldSp.getSourcePhraseSets(complexity))   // Get SPS per variation
+                {
+                    SourcePhraseSet newSps = newSp.getSourcePhraseSet(complexity, variationId);
+                    if (newSps == null)
+                    {
+                        newSps = new SourcePhraseSet(oldSps.getClientProperty(SourcePhraseSet.PROP_ID));
+                    }
+                    LOGGER.log(Level.FINE, "loadResources() type={0} complexity={1} variationId={2}", new Object[]
+                    {
+                        type, complexity,
+                        variationId
+                    });
+                    for (Integer channel : oldSps.getSourceChannels())          // Get Phrase per channel
+                    {
+                        SourcePhrase oldPhrase = oldSps.getPhrase(channel);
+                        SourcePhrase newPhrase = new SourcePhrase(channel, oldPhrase.getSourceChordSymbol());
+                        copyAndAdaptNotes(nbBars, oldPhrase, newPhrase);        // Copy relevant notes at new position
+                        newSps.setPhrase(channel, newPhrase);
+                        if (type == StylePartType.Main_A && oldSp.getAccType(channel) == AccType.RHYTHM)
+                        {
+                            LOGGER.log(Level.FINE, "loadResources() MainA AccType={0} oldPhrase=\n{1}", new Object[]
+                            {
+                                oldSp.getAccType(channel),
+                                oldPhrase
+                            });
+                            LOGGER.log(Level.FINE, "loadResources() MainA AccType={0} newPhrase=\n{1}", new Object[]
+                            {
+                                oldSp.getAccType(channel),
+                                newPhrase
+                            });
+                        }
+                    }
+                    newSp.addSourcePhraseSet(newSps, complexity);   // Add the new SourcePhraseSet 
+                    variationId++;
+                }
+            }
+        }
+
+        return adaptedStyle;
+    }
+
     private void buildRhythmVoices()
     {
         yjr.getRhythmVoices().stream().forEach(rv -> rhythmVoices.add(RhythmVoiceDelegate.createInstance(this, rv)));
@@ -517,16 +544,5 @@ public class YamJJazzAdaptedRhythmImpl implements YamJJazzRhythm, AdaptedRhythm
         }
     }
 
-    @Override
-    public void addPropertyChangeListener(PropertyChangeListener l)
-    {
-        pcs.addPropertyChangeListener(l);
-    }
-
-    @Override
-    public void removePropertyChangeListener(PropertyChangeListener l)
-    {
-        pcs.removePropertyChangeListener(l);
-    }
 
 }
