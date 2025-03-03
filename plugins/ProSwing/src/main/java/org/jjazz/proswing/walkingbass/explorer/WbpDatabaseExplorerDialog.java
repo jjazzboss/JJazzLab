@@ -37,7 +37,7 @@ import javax.swing.table.AbstractTableModel;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.phrase.api.NoteEvent;
-import org.jjazz.proswing.walkingbass.BassStyle;
+import org.jjazz.proswing.BassStyle;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.proswing.walkingbass.WbpSourceDatabase;
 import org.jjazz.proswing.walkingbass.WbpSource;

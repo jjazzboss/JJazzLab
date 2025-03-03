@@ -40,6 +40,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.harmony.api.TimeSignature;
+import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrasetransform.api.rps.RP_SYS_DrumsTransform;
 import org.jjazz.proswing.walkingbass.WbpSourceDatabase;
@@ -256,7 +257,12 @@ public class ProSwingRhythmImpl implements YjzCompositeRhythm
         // Initialize the WalkingBass database
         var wbpsDB = WbpSourceDatabase.getInstance();
         LOGGER.log(Level.INFO, "loadResources() wbpSourceDB size={0}", wbpsDB.getNbWbpSources(-1));
-
+        LOGGER.severe("loadResources() debug updating SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT");
+        System.setProperty(NoteEvent.SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT, "%1$s");
+        WbpSourceDatabase.getInstance().checkConsistency(BassStyle.TWO_FEEL_A);
+        WbpSourceDatabase.getInstance().checkConsistency(BassStyle.WALKING);
+        
+        
         pcs.firePropertyChange(PROP_RESOURCES_LOADED, false, true);
     }
 
@@ -420,7 +426,6 @@ public class ProSwingRhythmImpl implements YjzCompositeRhythm
 
 
         rps.add(rpVariation);
-        rps.add(new RP_DrumsStyle(true));
         rps.add(new RP_BassStyle(true));
         rps.add(rpIntensity);
         rps.add(rpFill);

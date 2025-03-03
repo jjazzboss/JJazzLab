@@ -37,7 +37,6 @@ import org.jjazz.rhythm.spi.RhythmProvider;
 import org.jjazz.utilities.api.MultipleErrorsReport;
 import org.openide.util.lookup.ServiceProvider;
 import org.jjazz.rhythmdatabase.api.RhythmInfo;
-import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 
 
@@ -50,20 +49,13 @@ public class ProSwingRhythmProvider implements RhythmProvider
 
     public static final String RP_ID = "ProSwingRhythmProviderID";
     private final Info info;
-    private final List<Rhythm> rhythms = new ArrayList<>();
+    private List<Rhythm> rhythms;
     private static final Logger LOGGER = Logger.getLogger(ProSwingRhythmProvider.class.getSimpleName());
 
 
     public ProSwingRhythmProvider()
     {
         info = new Info(RP_ID, "ProSwing JJazzLab styles", "ProSwing rhythm provider", "JL", "1");
-        try
-        {
-            rhythms.add(new ProSwingRhythmImpl());
-        } catch (IOException ex)
-        {
-            LOGGER.log(Level.SEVERE, "ProSwingRhythmProvider() Can not create ProSwingRhythm instance. ex={0}", ex.getMessage());
-        }
     }
 
     static public ProSwingRhythmProvider getInstance()
@@ -98,6 +90,20 @@ public class ProSwingRhythmProvider implements RhythmProvider
     @Override
     public List<Rhythm> getBuiltinRhythms(MultipleErrorsReport errRpt)
     {
+        if (rhythms == null)
+        {
+            rhythms = new ArrayList<>();
+            try
+            {
+                var r = new ProSwingRhythmImpl();
+                rhythms.add(r);
+            } catch (Exception ex)
+            {
+                LOGGER.log(Level.SEVERE, "ProSwingRhythmProvider() Can not create ProSwingRhythm instance. ex={0}", ex.getMessage());
+                errRpt.primaryErrorMessage = "Unexpected error creating the ProSwingRhythm instance: " + ex.getMessage();
+            }
+
+        }
         return rhythms;
     }
 

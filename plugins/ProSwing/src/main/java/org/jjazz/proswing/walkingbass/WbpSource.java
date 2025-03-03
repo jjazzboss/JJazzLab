@@ -1,5 +1,6 @@
 package org.jjazz.proswing.walkingbass;
 
+import org.jjazz.proswing.BassStyle;
 import static com.google.common.base.Preconditions.checkArgument;
 import java.util.ArrayList;
 import java.util.Collections;

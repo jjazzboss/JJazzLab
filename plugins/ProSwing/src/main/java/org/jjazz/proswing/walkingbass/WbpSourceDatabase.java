@@ -1,5 +1,6 @@
 package org.jjazz.proswing.walkingbass;
 
+import org.jjazz.proswing.BassStyle;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
@@ -849,7 +850,7 @@ public class WbpSourceDatabase
                 LOGGER.log(Level.SEVERE, "computeBassStyle() Inconsistent tags found in WbpSession={0}", this);
             } else if (twoFeel)
             {
-                res = BassStyle.TWO_FEEL;
+                res = BassStyle.TWO_FEEL_A;
             }
             return res;
         }

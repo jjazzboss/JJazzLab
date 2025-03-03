@@ -5,11 +5,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jjazz.harmony.api.ChordType;
+import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.api.SongChordSequence;
@@ -18,7 +20,8 @@ import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.Phrases;
 import org.jjazz.phrase.api.SizedPhrase;
-import org.jjazz.proswing.walkingbass.BassStyle;
+import org.jjazz.proswing.RP_BassStyle;
+import org.jjazz.proswing.BassStyle;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Intensity;
@@ -28,6 +31,9 @@ import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.proswing.walkingbass.WbpSource;
 import org.jjazz.proswing.walkingbass.WbpSourceDatabase;
+import org.jjazz.song.api.Song;
+import org.jjazz.song.api.SongFactory;
+import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.utilities.api.IntRange;
 
 /**
@@ -40,13 +46,11 @@ public class WalkingBassGenerator implements MusicGenerator
 
     private static int SESSION_COUNT = 0;
     private final Rhythm rhythm;
-    private SongContext context;
 
     /**
      * The Chord Sequence with all the chords.
      */
     private SongChordSequence songChordSequence;
-    private List<String> tags;
     private static final Logger LOGGER = Logger.getLogger(WalkingBassGenerator.class.getSimpleName());
 
     public WalkingBassGenerator(Rhythm r)
@@ -58,60 +62,54 @@ public class WalkingBassGenerator implements MusicGenerator
     }
 
     /**
-     * Only process bass tracks.
+     * Process only one bass track.
      *
      * @param context
-     * @param rvs
+     * @param rvs     0 or 1 value. If specified must be a bass RhythmVoice
      * @return
      * @throws MusicGenerationException
      */
     @Override
     public HashMap<RhythmVoice, Phrase> generateMusic(SongContext context, RhythmVoice... rvs) throws MusicGenerationException
     {
-        this.context = context;
+        Objects.requireNonNull(context);
+        Preconditions.checkArgument(rvs.length == 0 || (rvs.length == 1 && rvs[0].getType() == RhythmVoice.Type.BASS), "context=%s, rvs=%s", context, rvs);
 
-        var rhythmRvs = rhythm.getRhythmVoices();
-        var rvsList = List.of(rvs);
-        Preconditions.checkArgument(Stream.of(rvs).allMatch(rv -> rhythmRvs.contains(rv)), "rvs=", rvsList);
-        var bassRvs = new ArrayList<>(rvs.length == 0 ? rhythmRvs : rvsList);
-        bassRvs.removeIf(rv -> rv.getType() != RhythmVoice.Type.BASS);
-        if (bassRvs.isEmpty())
+        RhythmVoice rvBass;
+        if (rvs.length == 1)
         {
-            throw new IllegalArgumentException("No bass track found. rhythm=" + rhythm + " rvs=" + rvsList);
+            rvBass = rvs[0];
+        } else
+        {
+            rvBass = rhythm.getRhythmVoices().stream()
+                    .filter(rv -> rv.getType() == RhythmVoice.Type.BASS)
+                    .findAny()
+                    .orElseThrow();
         }
 
-        // The main chord sequence
-        songChordSequence = new SongChordSequence(context.getSong(), context.getBarRange());   // Will have a chord at beginning. Handle alternate chord symbols.       
-
         // Try to guess some tags (eg blues, slow, medium, fast, modal, ...) to influence the bass pattern selection
-        tags = guessTags(context);
+        List<String> tags = guessTags(context);
 
-        // System.setProperty(NoteEvent.SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT, "[%1$s p=%2$.1f d=%3$.1f]");
-        System.setProperty(NoteEvent.SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT, "%1$s");
-        // WbpDatabase.getInstance().dump();
-        WbpSourceDatabase.getInstance().checkConsistency(BassStyle.TWO_FEEL);
-        WbpSourceDatabase.getInstance().checkConsistency(BassStyle.WALKING);
 
-        LOGGER.log(Level.SEVERE, "generateMusic() -- rhythm={0} contextChordSequence={1}", new Object[]
+        LOGGER.log(Level.SEVERE, "generateMusic() -- rhythm={0} tags={1}", new Object[]
         {
-            rhythm.getName(), songChordSequence
+            rhythm.getName(), tags
         });
 
         // Get the bass phrase for each used variation value
-        var bassPhrases = getVariationBassPhrases();
+        var bassPhrases = getBassPhrases(context, tags);
 
-        // Merge the bass phrases for each rv
+
+        // Merge the bass phrases 
         HashMap<RhythmVoice, Phrase> res = new HashMap<>();
-        for (var rv : bassRvs)
+        int channel = getChannelFromMidiMix(context.getMidiMix(), rvBass);
+        Phrase pRes = new Phrase(channel, false);
+        for (var p : bassPhrases)
         {
-            int channel = getChannelFromMidiMix(rv);
-            Phrase pRes = new Phrase(channel, false);
-            for (var p : bassPhrases)
-            {
-                pRes.add(p);
-            }
-            res.put(rv, pRes);
+            pRes.add(p);
         }
+        res.put(rvBass, pRes);
+
 
         return res;
     }
@@ -120,20 +118,34 @@ public class WalkingBassGenerator implements MusicGenerator
     // Private methods
     // ===============================================================================
     /**
-     * Get the bass phrase for each variation value.
+     * Get the bass phrases for each consecutive sections using our rhythm and having the same bass style.
      * <p>
-     *
-     * @return @throws org.jjazz.rhythm.api.MusicGenerationException
+     * @param contextOrig
+     * @param tags
+     * @return
      * @throws org.jjazz.rhythm.api.MusicGenerationException
      */
-    private List<Phrase> getVariationBassPhrases() throws MusicGenerationException
+    private List<Phrase> getBassPhrases(SongContext contextOrig, List<String> tags) throws MusicGenerationException
     {
         LOGGER.fine("getVariationBassPhrases() --");
 
         List<Phrase> res = new ArrayList<>();
 
+
+        // Prepare a working context because SongStructure might be modified by preprocessBassStyleAutoValue
+        SongFactory sf = SongFactory.getInstance();
+        Song songCopy = sf.getCopyUnlinked(contextOrig.getSong(), false);
+        preprocessBassStyleAutoValue(songCopy);     // This will modify songCopy
+
+        // The working context 
+        SongContext contextWork = new SongContext(songCopy, contextOrig.getMidiMix(), contextOrig.getBarRange());
+
+        // Build the main chord sequence
+        songChordSequence = new SongChordSequence(songCopy, contextWork.getBarRange());   // Throw UserErrorGenerationException but no risk: will have a chord at beginning. Handle alternate chord symbols.       
+
         // Split the song structure in chord sequences of consecutive sections having the same rhythm and same RhythmParameter value
-        var splitResults = songChordSequence.split(rhythm, RP_SYS_Variation.getVariationRp(rhythm));
+        var splitResults = songChordSequence.split(rhythm, RP_BassStyle.get(rhythm));
+
 
         // Make one big SimpleChordSequence per rpValue: this will let us control "which pattern is used where" at the song level
         var usedRpValues = splitResults.stream()
@@ -149,12 +161,12 @@ public class WalkingBassGenerator implements MusicGenerator
                 var scs = new SimpleChordSequenceExt(splitResult.simpleChordSequence(), true);
                 mergedScs = mergedScs == null ? scs : mergedScs.getMerged(scs, true);
             }
-
             assert mergedScs != null : "splitResults=" + splitResults + " usedRpValues=" + usedRpValues;
+
+
             // We have our big SimpleChordSequenceExt, generate the walking bass for it
             mergedScs.removeRedundantChords();
-
-            var phrase = getBassPhrase(mergedScs, BassStyle.WALKING, context.getSong().getTempo());
+            var phrase = getBassPhrase(mergedScs, RP_BassStyle.toBassStyle(rpValue), contextOrig.getSong().getTempo());
             res.add(phrase);
         }
 
@@ -219,13 +231,14 @@ public class WalkingBassGenerator implements MusicGenerator
     /**
      * Manage the case of RhythmVoiceDelegate.
      *
+     * @param mm
      * @param rv
      * @return
      */
-    private int getChannelFromMidiMix(RhythmVoice rv)
+    private int getChannelFromMidiMix(MidiMix mm, RhythmVoice rv)
     {
         RhythmVoice myRv = (rv instanceof RhythmVoiceDelegate) ? ((RhythmVoiceDelegate) rv).getSource() : rv;
-        int destChannel = context.getMidiMix().getChannel(myRv);
+        int destChannel = mm.getChannel(myRv);
         return destChannel;
     }
 
@@ -366,7 +379,38 @@ public class WalkingBassGenerator implements MusicGenerator
         return res;
     }
 
+    /**
+     * Update SongParts with RP_BassStyle value="auto" to the appropriate value (depends on the RP_SYS_Variation value).
+     *
+     * @param song
+     */
+    private void preprocessBassStyleAutoValue(Song song)
+    {
+        SongStructure ss = song.getSongStructure();
+
+        for (var spt : ss.getSongParts())
+        {
+            var r = spt.getRhythm();
+            var rpBassStyle = RP_BassStyle.get(r);
+            if (rpBassStyle == null)
+            {
+                continue;
+            }
+            var rpValue = spt.getRPValue(rpBassStyle);
+            if (rpValue.equals(RP_BassStyle.AUTO_MODE_VALUE))
+            {
+                var rpVariation = RP_SYS_Variation.getVariationRp(r);
+                var rpVariationValue = spt.getRPValue(rpVariation);
+                var rpBassValue = RP_BassStyle.getAutoModeRpValueFromVariation (rpVariationValue);
+                ss.setRhythmParameterValue(spt, rpBassStyle, rpBassValue);
+            }
+        }
+    }
+
+   
+
     // =====================================================================================================================
     // Inner classes
     // =====================================================================================================================
+
 }

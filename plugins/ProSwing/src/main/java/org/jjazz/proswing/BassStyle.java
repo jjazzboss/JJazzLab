@@ -24,15 +24,34 @@
  */
 package org.jjazz.proswing;
 
-import org.jjazz.rhythm.api.RP_State;
+import org.jjazz.proswing.walkingbass.WbpSource;
 
 /**
- * RhythmParameter to specify the bass style.
+ * The possible bass styles of a WbpSource.
  */
-public class RP_DrumsStyle extends RP_State
+public enum BassStyle
 {
-    public RP_DrumsStyle(boolean isPrimary)
+    /**
+     * Special value for WbpSources created for non-standard cases (e.g. multiple chords at non standard positions).
+     */
+    CUSTOM,
+    BASIC,
+    TWO_FEEL_A,
+    TWO_FEEL_B,
+    WALKING,
+    /**
+     * A special value which can match any BassStyle.
+     */
+    ALL;
+
+    /**
+     * Check if WbpSource' bass style can match this BassStyle.
+     *
+     * @param wbps
+     * @return
+     */
+    public boolean matches(WbpSource wbps)
     {
-        super("DrumsStyleId", "Drums style", "Adjust drums style", isPrimary, "auto", "auto", "brushes A", "brushes B", "hi-hat A", "hi-hat B", "ride A", "ride B");
+        return this == ALL || wbps.getBassStyle() == this;
     }
 }
