@@ -55,7 +55,7 @@ class EvaluateScoreAction extends AbstractAction
     {
         LOGGER.info("\n### EvaluateScore");
 
-        WbpsaScorer wbpsaScorer = new DefaultWbpsaScorer(null, BassStyle.ALL, -1);
+        WbpsaScorer wbpsaScorer = new DefaultWbpsaScorer(null, -1);
         List<WbpSourceAdaptation> wbpsas = dialog.getSelectedWbpSourceAdaptations();
 
         for (var wbpsa : wbpsas)

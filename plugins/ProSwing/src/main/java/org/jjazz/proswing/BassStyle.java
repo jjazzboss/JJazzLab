@@ -38,20 +38,10 @@ public enum BassStyle
     BASIC,
     TWO_FEEL_A,
     TWO_FEEL_B,
-    WALKING,
-    /**
-     * A special value which can match any BassStyle.
-     */
-    ALL;
+    WALKING;
 
-    /**
-     * Check if WbpSource' bass style can match this BassStyle.
-     *
-     * @param wbps
-     * @return
-     */
     public boolean matches(WbpSource wbps)
     {
-        return this == ALL || wbps.getBassStyle() == this;
+        return wbps.getBassStyle() == this;
     }
 }

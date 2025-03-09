@@ -55,15 +55,15 @@ class PrintPhrasesAction extends AbstractAction
         List<WbpSourceAdaptation> wbpsas = dialog.getSelectedWbpSourceAdaptations();
         for (var wbpsa : wbpsas)
         {
-            var wbps = wbpsa.getWbpSource();
-            var sp = wbps.getSizedPhrase();
+            var wbpSource = wbpsa.getWbpSource();
+            var sp = wbpSource.getSizedPhrase();
             LOGGER.log(Level.INFO, "{0}: {1}", new Object[]
             {
-                wbps.getId(), sp
+                wbpSource.getId(), sp
             });
-            LOGGER.log(Level.INFO, "{0}: tags={1}", new Object[]
+            LOGGER.log(Level.INFO, "{0}: bassStyle={1} tags={2}", new Object[]
             {
-                wbps.getId(), wbps.getTags()
+                wbpSource.getId(), wbpSource.getBassStyle(), wbpSource.getTags()
             });
             LOGGER.info(Utilities.toMultilineString(sp, "  "));
         }

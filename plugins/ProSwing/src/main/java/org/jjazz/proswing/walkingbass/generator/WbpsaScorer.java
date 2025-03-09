@@ -26,10 +26,8 @@ package org.jjazz.proswing.walkingbass.generator;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ListMultimap;
-import com.google.common.collect.MultimapBuilder;
 import java.text.DecimalFormat;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
-import org.jjazz.proswing.walkingbass.WbpSourceDatabase;
 
 /**
  * Scores the compatibility of a WbpSource with a chord sequence.
@@ -178,6 +176,7 @@ public interface WbpsaScorer
      */
     Score computeCompatibilityScore(WbpSourceAdaptation wbpsa, WbpTiling tiling);
 
+
     /**
      * Find the WbpSources from the WbpDatabase which are compatible with the specified chord sequence.
      * <p>
@@ -185,23 +184,6 @@ public interface WbpsaScorer
      * @param tiling If null this might impact the resulting score
      * @return A multimap with Score keys in descending order
      */
-    default ListMultimap<Score, WbpSourceAdaptation> getWbpSourceAdaptations(SimpleChordSequence scs, WbpTiling tiling)
-    {
-        ListMultimap<Score, WbpSourceAdaptation> mmap = MultimapBuilder.treeKeys().arrayListValues().build();
-
-        // Check rootProfile first
-        var rpWbpSources = WbpSourceDatabase.getInstance().getWbpSources(scs.getRootProfile());
-        for (var wbpSource : rpWbpSources)
-        {
-            var wbpsa = new WbpSourceAdaptation(wbpSource, scs);
-            var score = computeCompatibilityScore(wbpsa, tiling);
-            if (score.compareTo(WbpsaScorer.SCORE_ZERO) > 0)
-            {
-                mmap.put(score, wbpsa);
-            }
-        }
-
-        return mmap;
-    }
+    ListMultimap<Score, WbpSourceAdaptation> getWbpSourceAdaptations(SimpleChordSequence scs, WbpTiling tiling);
 
 }

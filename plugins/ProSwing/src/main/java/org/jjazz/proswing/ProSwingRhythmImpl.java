@@ -259,8 +259,9 @@ public class ProSwingRhythmImpl implements YjzCompositeRhythm
         LOGGER.log(Level.INFO, "loadResources() wbpSourceDB size={0}", wbpsDB.getNbWbpSources(-1));
         LOGGER.severe("loadResources() debug updating SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT");
         System.setProperty(NoteEvent.SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT, "%1$s");
-        WbpSourceDatabase.getInstance().checkConsistency(BassStyle.TWO_FEEL_A);
-        WbpSourceDatabase.getInstance().checkConsistency(BassStyle.WALKING);
+        wbpsDB.checkConsistency(BassStyle.TWO_FEEL_A);
+        wbpsDB.checkConsistency(BassStyle.TWO_FEEL_B);
+        wbpsDB.checkConsistency(BassStyle.WALKING);
         
         
         pcs.firePropertyChange(PROP_RESOURCES_LOADED, false, true);

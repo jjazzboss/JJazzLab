@@ -112,13 +112,13 @@ final public class ChordType
      * <p>
      * Use NOT_PRESENT constant if a degree is not present.
      *
-     * @param b Base of the chord type, e.g. "m7" for "m79"
-     * @param e Extension of the chord type, e.g. "9" for "m79"
-     * @param f The family to which this chordtype belongs to.
-     * @param i3 An integer -1, 0 that represents the status (flat,natural) of degree 3.
-     * @param i5 An integer -1, 0 or 1 that represents the status (flat,natural or sharp) of degree 5.
-     * @param i7 An integer -1, 0 that represents the status (flat,natural) of degree 7.
-     * @param i9 An integer -1, 0 or 1 that represents the status (flat,natural or sharp) of degree 9.
+     * @param b   Base of the chord type, e.g. "m7" for "m79"
+     * @param e   Extension of the chord type, e.g. "9" for "m79"
+     * @param f   The family to which this chordtype belongs to.
+     * @param i3  An integer -1, 0 that represents the status (flat,natural) of degree 3.
+     * @param i5  An integer -1, 0 or 1 that represents the status (flat,natural or sharp) of degree 5.
+     * @param i7  An integer -1, 0 that represents the status (flat,natural) of degree 7.
+     * @param i9  An integer -1, 0 or 1 that represents the status (flat,natural or sharp) of degree 9.
      * @param i11 An integer 0 or 1 that represents the status (natural or sharp) of degree 11.
      * @param i13 An integer -1, 0 that represents the status (flat,natural) of degree 13.
      *
@@ -126,10 +126,10 @@ final public class ChordType
     public ChordType(String b, String e, Family f, int i9, int i3, int i11, int i5, int i13, int i7)
     {
         if ((b == null) || (e == null) || !checkDegree(i9) || !checkDegree(i3) || !checkDegree(i11)
-            || !checkDegree(i5) || !checkDegree(i13) || !checkDegree(i7))
+                || !checkDegree(i5) || !checkDegree(i13) || !checkDegree(i7))
         {
             throw new IllegalArgumentException(
-                "b=" + b + " e=" + e + " f=" + f + " i9=" + i9 + " i3=" + i3 + " i11=" + i11 + " i5=" + i5 + " i13=" + i13 + " i7=" + i7);
+                    "b=" + b + " e=" + e + " f=" + f + " i9=" + i9 + " i3=" + i3 + " i11=" + i11 + " i5=" + i5 + " i13=" + i13 + " i7=" + i7);
         }
 
         base = b;
@@ -192,8 +192,8 @@ final public class ChordType
         {
             // ELEVENTH, Cm11, C7M#11
             assert i11 != -1
-                && !(i3 == 0 && i11 == 0) // Can't have a 3rd degree with a sus4 chord
-                && !(i3 == NOT_PRESENT && i11 != 0);        // if no 3rd then it must be a sus4
+                    && !(i3 == 0 && i11 == 0) // Can't have a 3rd degree with a sus4 chord
+                    && !(i3 == NOT_PRESENT && i11 != 0);        // if no 3rd then it must be a sus4
             chord.add(new Note(5 + i11));
             Degree d = Degree.getDegree(Degree.Natural.ELEVENTH, i11);
             degrees.add(d);
@@ -209,8 +209,8 @@ final public class ChordType
 
         // Build degreeString
         degreeString = degrees.stream()
-            .map(d -> d.toStringShort())
-            .collect(Collectors.joining(" ", "[", "]"));
+                .map(d -> d.toStringShort())
+                .collect(Collectors.joining(" ", "[", "]"));
     }
 
     /**
@@ -309,8 +309,7 @@ final public class ChordType
     /**
      * The ordered list of each ChordDegree composing this chord.
      * <p>
-     * Order is ROOT, THIRD or FOURTH, FIFTH, [SIXTH_OR_THIRTEENTH(if==sixth)], [SEVENTH], [NINTH], [ELEVENTH],
-     * [SIXTH_OR_THIRTEENTH(if==extension)].
+     * Order is ROOT, THIRD or FOURTH, FIFTH, [SIXTH_OR_THIRTEENTH(if==sixth)], [SEVENTH], [NINTH], [ELEVENTH], [SIXTH_OR_THIRTEENTH(if==extension)].
      *
      * @return
      */
@@ -402,8 +401,7 @@ final public class ChordType
     /**
      * Find the most probable degree corresponding to relative pitch for this chordtype.
      * <p>
-     * First try to use getDegree(relPitch). If it returns null, make some assumptions based on the chord type to find the most
-     * probable degree.<br>
+     * First try to use getDegree(relPitch). If it returns null, make some assumptions based on the chord type to find the most probable degree.<br>
      * Ex: Cm7, relPitch=Eb=3, then returns THIRD_FLAT.<br>
      * Ex: C7, relPitch=Eb=3, then returns NINTH_SHARP.<br>
      * Ex: C7, relPitch=F=5, then returns FOURTH.<br>
@@ -723,8 +721,8 @@ final public class ChordType
     /**
      * Rely on fitDegreeAdvanced(Degree d, optScales).
      * <p>
-     * If di does not directly correspond to one of these ChordType degrees, make some assumptions, e.g. if
-     * di==DegreeIndex.SIXTH_OR_SEVENTH then try to fit to the seventh degree of this ChordType.
+     * If di does not directly correspond to one of these ChordType degrees, make some assumptions, e.g. if di==DegreeIndex.SIXTH_OR_SEVENTH then try to fit to
+     * the seventh degree of this ChordType.
      *
      * @param di
      * @param optScale Optional, can be null.
@@ -775,10 +773,17 @@ final public class ChordType
         if (degrees.size() > nbMaxDegrees)
         {
             var resDegrees = getDegrees().stream()
-                .limit(nbMaxDegrees)
-                .toList();
+                    .limit(nbMaxDegrees)
+                    .toList();
             res = ChordTypeDatabase.getDefault().getChordType(resDegrees);
-            assert res != null : "this=" + this + " resDegrees=" + resDegrees;
+            if (res == null)
+            {
+                LOGGER.log(Level.WARNING, "getSimplified() ChordType {0} can not be simplified with only {1} degrees", new Object[]
+                {
+                    this, nbMaxDegrees
+                });
+                res = this;
+            }
         }
 
         return res;
@@ -796,9 +801,8 @@ final public class ChordType
      * DegreeIndex.EXTENSION2: -2 (a score &gt;=62 means third+fifth+six_seventh match+ext1+ext2 match)<br>
      * DegreeIndex.EXTENSION3: -1 (a score ==63 means equal ChordTypes)<br>
      * <p>
-     * If acceptAbsentDegrees is true and chord types do not have the same number of Degrees (e.g. C and C69), score is reduced by
-     * 1 for each "extra" Degree. This way C and F6 (1 extra degree) are a bit less similar than C and F, and a bit more similar
-     * than C and F69 (2 extra degrees).
+     * If acceptAbsentDegrees is true and chord types do not have the same number of Degrees (e.g. C and C69), score is reduced by 1 for each "extra" Degree.
+     * This way C and F6 (1 extra degree) are a bit less similar than C and F, and a bit more similar than C and F69 (2 extra degrees).
      * <p>
      * <p>
      * Special handling: 6 and 7M are considered similar.

@@ -121,6 +121,7 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
     {
         // Compute the root profile
         SimpleChordSequence scs;
+        var wbpDb = WbpSourceDatabase.getInstance();
         try
         {
             scs = computeSimpleChordSequence();
@@ -135,19 +136,20 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
         if (scs.isEmpty())
         {
             // Special show all
-            var wbpSources = WbpSourceDatabase.getInstance().getWbpSources(getNbBars());
+            var wbpSources = wbpDb.getWbpSources(getNbBars());
             res = wbpSources.stream()
                     .map(wbps -> new WbpSourceAdaptation(wbps, scs))
                     .toList();
         } else if (rb_rootProfile.isSelected())
         {
-            var wbpSources = WbpSourceDatabase.getInstance().getWbpSources(scs.getRootProfile());
-            res = wbpSources.stream()
+            var rpScs = scs.getRootProfile();
+            res = wbpDb.getWbpSources().stream()
+                    .filter(s -> rpScs.equals(s.getRootProfile()))
                     .map(wbps -> new WbpSourceAdaptation(wbps, scs))
                     .toList();
         } else
         {
-            WbpsaScorer wbpsaScorer = new DefaultWbpsaScorer(null, BassStyle.ALL, -1);
+            WbpsaScorer wbpsaScorer = new DefaultWbpsaScorer(null, -1);
             res = new ArrayList<>(wbpsaScorer.getWbpSourceAdaptations(scs, null).values());
         }
 
@@ -239,11 +241,12 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
 
     /**
      * Note, NotePos, NotePosDur
-     * @return 
+     *
+     * @return
      */
     private String getNoteRepresentationDetail()
     {
-        return cmb_noteDetail.getSelectedItem().toString();             
+        return cmb_noteDetail.getSelectedItem().toString();
     }
 
 
@@ -372,9 +375,12 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
                 {
                     yield switch (getNoteRepresentationDetail())
                     {
-                        case "Note" ->  wbps.getSizedPhrase().toStringSimple(false);
-                        case "NotePos" -> wbps.getSizedPhrase().toStringSimple(true);
-                        case "NotePosDur" -> new ArrayList<>(wbps.getSizedPhrase()).toString();
+                        case "Note" ->
+                            wbps.getSizedPhrase().toStringSimple(false);
+                        case "NotePos" ->
+                            wbps.getSizedPhrase().toStringSimple(true);
+                        case "NotePosDur" ->
+                            new ArrayList<>(wbps.getSizedPhrase()).toString();
                         default -> throw new IllegalStateException(getNoteRepresentationDetail());
                     };
                 }

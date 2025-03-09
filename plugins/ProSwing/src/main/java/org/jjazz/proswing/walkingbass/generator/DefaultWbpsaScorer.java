@@ -24,14 +24,18 @@
  */
 package org.jjazz.proswing.walkingbass.generator;
 
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.MultimapBuilder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
-import java.util.Objects;
 import org.jjazz.proswing.BassStyle;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.proswing.walkingbass.WbpSource;
 import org.jjazz.proswing.walkingbass.WbpSourceChordPhrase;
+import org.jjazz.proswing.walkingbass.WbpSourceDatabase;
 
 /**
  * Relies on WbpSource.computeChordTypeCompatibilityScore() + WbpSource.getTransposibilityScore() + bonus if target notes match before/after.
@@ -41,28 +45,32 @@ public class DefaultWbpsaScorer implements WbpsaScorer
 
     private final PhraseAdapter wbpSourceAdapter;
     private final int tempo;
-    private final BassStyle bassStyle;
+    private final EnumSet<BassStyle> bassStyles;
 
     /**
      *
-     * @param sourceAdapter If null this prevents the use of target notes in score computing
-     * @param bassStyle
+     * @param sourceAdapter If null target note matching score will not impact the overall score
      * @param tempo         If &lt;= 0 tempo is ignored in score computing
+     * @param bStyles       Accept only WbpSources which match these bassStyle(s). If empty all
      */
-    public DefaultWbpsaScorer(PhraseAdapter sourceAdapter, BassStyle bassStyle, int tempo)
+    public DefaultWbpsaScorer(PhraseAdapter sourceAdapter, int tempo, BassStyle... bStyles)
     {
-        Objects.requireNonNull(bassStyle);
         this.wbpSourceAdapter = sourceAdapter;
         this.tempo = tempo;
-        this.bassStyle = bassStyle;
+        this.bassStyles = EnumSet.allOf(BassStyle.class);
+        if (bStyles.length > 0)
+        {
+            bassStyles.clear();
+            this.bassStyles.addAll(Arrays.asList(bStyles));
+        }
     }
 
     @Override
     public Score computeCompatibilityScore(WbpSourceAdaptation wbpsa, WbpTiling tiling)
     {
         Score res = WbpsaScorer.SCORE_ZERO;
-        
-        if (bassStyle.matches(wbpsa.getWbpSource()))
+
+        if (bassStyles.contains(wbpsa.getWbpSource().getBassStyle()))
         {
             var ctScores = getHarmonyCompatibilityScores(wbpsa);
             float ctScore = (float) ctScores.stream().mapToDouble(f -> Double.valueOf(f)).average().orElse(0);      // 0-100
@@ -73,7 +81,7 @@ public class DefaultWbpsaScorer implements WbpsaScorer
 
             float preTargetNoteScore = getPreTargetNoteScore(wbpsa, tiling);  //  0 - 100
             float postTargetNoteScore = getPostTargetNoteScore(wbpsa, tiling);  //  0 - 100
-            
+
             res = new Score(ctScore, trScore, preTargetNoteScore, postTargetNoteScore);
         }
 
@@ -81,6 +89,38 @@ public class DefaultWbpsaScorer implements WbpsaScorer
 
         return res;
 
+    }
+
+    @Override
+    public ListMultimap<Score, WbpSourceAdaptation> getWbpSourceAdaptations(SimpleChordSequence scs, WbpTiling tiling)
+    {
+        ListMultimap<Score, WbpSourceAdaptation> mmap = MultimapBuilder.treeKeys().arrayListValues().build();
+
+
+        int nbBars = scs.getBarRange().size();
+        var wbpsDb = WbpSourceDatabase.getInstance();
+        var wbpSources = bassStyles.size() == 1 ? wbpsDb.getWbpSources(nbBars, bassStyles.iterator().next())
+                : wbpsDb.getWbpSources(nbBars).stream()
+                        .filter(s -> bassStyles.contains(s.getBassStyle()))
+                        .toList();
+
+
+        // Check rootProfile first
+        var rpScs = scs.getRootProfile();
+        var rpWbpSources = wbpSources.stream()
+                .filter(s -> rpScs.equals(s.getRootProfile()))
+                .toList();
+        for (var wbpSource : rpWbpSources)
+        {
+            var wbpsa = new WbpSourceAdaptation(wbpSource, scs);
+            var score = computeCompatibilityScore(wbpsa, tiling);
+            if (score.compareTo(WbpsaScorer.SCORE_ZERO) > 0)
+            {
+                mmap.put(score, wbpsa);
+            }
+        }
+
+        return mmap;
     }
 
     // =====================================================================================================================

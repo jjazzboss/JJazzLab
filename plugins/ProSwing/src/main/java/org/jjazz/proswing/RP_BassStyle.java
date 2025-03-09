@@ -42,7 +42,6 @@ public class RP_BassStyle extends RP_State
             BassStyle.TWO_FEEL_A, "2-feel A",
             BassStyle.TWO_FEEL_B, "2-feel B",
             BassStyle.WALKING, "walking",
-            BassStyle.ALL, "all",
             BassStyle.CUSTOM, "custom"
     );
     

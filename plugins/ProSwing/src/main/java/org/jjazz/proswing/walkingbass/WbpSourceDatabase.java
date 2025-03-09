@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.logging.Level;
@@ -78,6 +79,7 @@ public class WbpSourceDatabase
     private final Map<String, String> mapSessionIdResource;
     private final ListMultimap<String, WbpSource> mmapSessionIdWbpSources;
     private final ListMultimap<Integer, WbpSource> mmapSizeWbpSources;
+    private final ListMultimap<BassStyle, WbpSource>[] mmapBassStyleWbpSources;
     private final Map<String, WbpSource> mapIdWbpSource;
     private static final Logger LOGGER = Logger.getLogger(WbpSourceDatabase.class.getSimpleName());
 
@@ -99,6 +101,11 @@ public class WbpSourceDatabase
 
         mmapSizeWbpSources = MultimapBuilder.hashKeys().arrayListValues().build();
         mmapSessionIdWbpSources = MultimapBuilder.hashKeys().arrayListValues().build();
+        mmapBassStyleWbpSources = new ListMultimap[SIZE_MAX - SIZE_MIN + 1];
+        for (int size = SIZE_MIN; size <= SIZE_MAX; size++)
+        {
+            mmapBassStyleWbpSources[size - SIZE_MIN] = MultimapBuilder.enumKeys(BassStyle.class).arrayListValues().build();
+        }
         mapIdWbpSource = new HashMap<>();
         mapSessionIdResource = new HashMap<>();
 
@@ -126,7 +133,7 @@ public class WbpSourceDatabase
      */
     public int getNbWbpSources(int nbBars)
     {
-        Preconditions.checkArgument(nbBars == -1 || (nbBars >= SIZE_MIN && nbBars <= SIZE_MAX), "nbBars=%s", nbBars);
+        Preconditions.checkArgument(nbBars == -1 || check(nbBars), "nbBars=%s", nbBars);
         return nbBars == -1 ? mapIdWbpSource.size() : mmapSizeWbpSources.get(nbBars).size();
     }
 
@@ -139,9 +146,7 @@ public class WbpSourceDatabase
     public boolean addWbpSource(WbpSource wbps)
     {
         boolean b = false;
-        if (mapIdWbpSource.get(wbps.getId()) == null
-                && !mmapSizeWbpSources.get(wbps.getBarRange().size()).contains(wbps)
-                && getWbpSources(wbps.getSimpleChordSequence(), wbps.getSizedPhrase()).isEmpty())
+        if (mapIdWbpSource.get(wbps.getId()) == null && getWbpSources(wbps.getBassStyle(), wbps.getSimpleChordSequence(), wbps.getSizedPhrase()).isEmpty())
         {
             addWbpSourceImpl(wbps);
             b = true;
@@ -158,7 +163,7 @@ public class WbpSourceDatabase
     public boolean removeWbpSource(WbpSource wbps)
     {
         boolean b = false;
-        if (mapIdWbpSource.get(wbps.getId()) != null && mmapSizeWbpSources.get(wbps.getBarRange().size()).contains(wbps))
+        if (mapIdWbpSource.get(wbps.getId()) != null)
         {
             removeWbpSourceImpl(wbps);
             b = true;
@@ -166,15 +171,6 @@ public class WbpSourceDatabase
         return b;
     }
 
-    /**
-     * Get all the WbpSources from the database (in no particular order).
-     *
-     * @return
-     */
-    public List<WbpSource> getWbpSources()
-    {
-        return new ArrayList<>(mapIdWbpSource.values());
-    }
 
     /**
      * Perform various checks on the database.
@@ -197,10 +193,10 @@ public class WbpSourceDatabase
         final var POS2 = new Position(0, 2);
         final int NB_BARS = 1;
         final var scs = new SimpleChordSequence(new IntRange(0, NB_BARS - 1), TimeSignature.FOUR_FOUR);
-        final WbpsaScorer scorer = new DefaultWbpsaScorer(null, bStyle, -1);
+        final WbpsaScorer scorer = new DefaultWbpsaScorer(null, -1, bStyle);
 
 
-        // Check for chord types with 0 or only 1 one-bar WbpSource
+        // Check for 1-chord-per-bar with 0 or only 1 one-bar WbpSource
         for (var ct : allChordTypes)
         {
             scs.clear();
@@ -209,7 +205,7 @@ public class WbpSourceDatabase
             var wbpsas = scorer.getWbpSourceAdaptations(scs, null);
             if (wbpsas.size() <= 1)
             {
-                LOGGER.log(Level.SEVERE, "checkConsistency() 2-feel {0} x {1}-bar WbpSource for {2}", new Object[]
+                LOGGER.log(Level.SEVERE, "checkConsistency() {0} x {1}-bar WbpSource for {2}", new Object[]
                 {
                     wbpsas.size(), NB_BARS, ecs
                 });
@@ -217,7 +213,7 @@ public class WbpSourceDatabase
         }
 
 
-        // Check for 2-chord bars with 0 or only 1 one-bar WbpSource
+        // Check for 2-chord-per-bar with 0 or only 1 one-bar WbpSource
         List<CLI_ChordSymbol> baseChords;
         try
         {
@@ -282,7 +278,16 @@ public class WbpSourceDatabase
                 NB_BARS, cSeq.toString()
             });
         }
+    }
 
+    /**
+     * Get all the WbpSources from the database (in no particular order).
+     *
+     * @return An unmodifiable list
+     */
+    public List<WbpSource> getWbpSources()
+    {
+        return new ArrayList<>(mapIdWbpSource.values());
     }
 
     /**
@@ -294,53 +299,35 @@ public class WbpSourceDatabase
      */
     public List<WbpSource> getWbpSources(int nbBars)
     {
-        Preconditions.checkArgument(nbBars >= SIZE_MIN && nbBars <= SIZE_MAX, "nbBars=%s", nbBars);
         return Collections.unmodifiableList(mmapSizeWbpSources.get(nbBars));
     }
 
     /**
-     * Get WbpSources of specified size which match the predicate.
-     * <p>
+     * Get the WbpSources matching size and bass style.
      *
-     * @param nbBars
-     * @param tester
-     * @return
+     * @param nbBars If -1 retrieve all WbpSources whatever the size
+     * @param style
+     * @return Unmodifiable list
      */
-    public List<WbpSource> getWbpSources(int nbBars, Predicate<WbpSource> tester)
+    public List<WbpSource> getWbpSources(int nbBars, BassStyle style)
     {
-        Preconditions.checkArgument(nbBars >= SIZE_MIN && nbBars <= SIZE_MAX, "nbBars=%s", nbBars);
-        return mmapSizeWbpSources.get(nbBars).stream()
-                .filter(tester)
-                .toList();
+        Objects.requireNonNull(style);
+        Preconditions.checkArgument(nbBars == -1 || check(nbBars), "nbBars=%s style=%s", nbBars, style);
+        List<WbpSource> res;
+        if (nbBars == -1)
+        {
+            res = new ArrayList<>();
+            for (int size = SIZE_MAX; size >= SIZE_MIN; size--)
+            {
+                res.addAll(getBassStyleMultimap(size).get(style));
+            }
+        } else
+        {
+            res = getBassStyleMultimap(nbBars).get(style);
+        }
+        return Collections.unmodifiableList(res);
     }
 
-    /**
-     * Get WbpSources which match the predicate.
-     * <p>
-     *
-     * @param tester
-     * @return
-     */
-    public List<WbpSource> getWbpSources(Predicate<WbpSource> tester)
-    {
-        return mmapSizeWbpSources.values().stream()
-                .filter(tester)
-                .toList();
-    }
-
-    /**
-     * Get the WbpSources which match the specified profile.
-     * <p>
-     * Results are cached.
-     *
-     * @param rootProfile
-     * @return
-     */
-    public List<WbpSource> getWbpSources(String rootProfile)
-    {
-        Predicate<WbpSource> tester = wbps -> wbps.getRootProfile().equals(rootProfile);
-        return getWbpSources(tester);
-    }
 
     /**
      * The original resource file from which a session was read.
@@ -408,7 +395,7 @@ public class WbpSourceDatabase
         for (var wbpSource : wbpSources)
         {
             wbpSource.simplifyChordSymbols();
-            if (getWbpSources(wbpSource.getSimpleChordSequence(), wbpSource.getSizedPhrase()).isEmpty())
+            if (getWbpSources(wbpSource.getBassStyle(), wbpSource.getSimpleChordSequence(), wbpSource.getSizedPhrase()).isEmpty())
             {
                 // Add only non redundant phrases                
                 addWbpSourceImpl(wbpSource);
@@ -501,7 +488,7 @@ public class WbpSourceDatabase
 
         // Read the big phrase
         var phrases = Phrases.getPhrases(seqResolution, sequence.getTracks());
-        assert phrases.size() == 1 : "phrases=" + phrases;
+        assert phrases.size() == 1 : "nb phrases=" + phrases.size();
         var bigPhrase = phrases.get(0);
 
         // Loop on each session markers
@@ -582,7 +569,7 @@ public class WbpSourceDatabase
             }
 
             // Build the WbpSession
-            WbpSession session = new WbpSession(sessionId, sessionTags, cSeq, sp, targetNote, null);
+            WbpSession session = new WbpSession(sessionId, sessionTags, cSeq, sp, targetNote);
             mapSessionIdResource.put(sessionId, midiFileResourcePath);
             res.add(session);
         }
@@ -644,22 +631,28 @@ public class WbpSourceDatabase
     }
 
     /**
-     * Find the WbpSources in the database which are compatible with the specified SimpleChordSequence and SizedPhrase.
+     * Find the WbpSources in the database which are compatible with the specified parameters.
      * <p>
      * <p>
      * Compatible means chord sequences share the same root profile and phrases have the same note intervals and approximately the same note positions.
      *
+     * @param style
      * @param scs
      * @param sp
      * @return Can be empty
      * @see SizedPhrase#equalsAsIntervals(org.jjazz.phrase.api.Phrase, float)
      */
-    private List<WbpSource> getWbpSources(SimpleChordSequence scs, SizedPhrase sp)
+    private List<WbpSource> getWbpSources(BassStyle style, SimpleChordSequence scs, SizedPhrase sp)
     {
         List<WbpSource> res = new ArrayList<>();
-        WbpsaScorer scorer = new DefaultWbpsaScorer(null, BassStyle.ALL, -1);
+        WbpsaScorer scorer = new DefaultWbpsaScorer(null, -1, style);
 
-        for (var rpWbpSource : getWbpSources(scs.getRootProfile()))
+        int nbBars = scs.getBarRange().size();
+        var wbpSources = getWbpSources(nbBars, style).stream()
+                .filter(s -> scs.getRootProfile().equals(s.getRootProfile()))
+                .toList();
+
+        for (WbpSource rpWbpSource : wbpSources)
         {
             var wbpsa = new WbpSourceAdaptation(rpWbpSource, scs);
             var score = scorer.computeCompatibilityScore(wbpsa, null);
@@ -688,6 +681,11 @@ public class WbpSourceDatabase
         {
             throw new IllegalStateException("Adding to mmapSessionIdWbpSources failed for " + wbpSource + " mmapSessionIdWbpSources=" + mmapSessionIdWbpSources);
         }
+        if (!getBassStyleMultimap(nbBars).put(wbpSource.getBassStyle(), wbpSource))
+        {
+            throw new IllegalStateException(
+                    "Adding to mmapBassStyleWbpSources failed for " + wbpSource + " getBassStyleMultimap(nbBars)=" + getBassStyleMultimap(nbBars));
+        }
     }
 
     private void removeWbpSourceImpl(WbpSource wbpSource)
@@ -700,8 +698,26 @@ public class WbpSourceDatabase
         int nbBars = wbpSource.getBarRange().size();
         if (!mmapSizeWbpSources.remove(nbBars, wbpSource))
         {
-            throw new IllegalStateException("Removing non-existing WbpSource=" + wbpSource);
+            throw new IllegalStateException("Removing non-existing WbpSource=" + wbpSource + " mmapSizeWbpSources=" + mmapSizeWbpSources);
         }
+        if (!mmapSessionIdWbpSources.remove(wbpSource.getSessionId(), wbpSource))
+        {
+            throw new IllegalStateException("Removing non-existing WbpSource=" + wbpSource + " mmapSessionIdWbpSources=" + mmapSessionIdWbpSources);
+        }
+        if (!getBassStyleMultimap(nbBars).remove(wbpSource.getBassStyle(), wbpSource))
+        {
+            throw new IllegalStateException("Removing non-existing WbpSource=" + wbpSource + " getBassStyleMultimap(nbBars)=" + getBassStyleMultimap(nbBars));
+        }
+    }
+
+    private ListMultimap<BassStyle, WbpSource> getBassStyleMultimap(int nbBars)
+    {
+        return mmapBassStyleWbpSources[nbBars - SIZE_MIN];
+    }
+
+    private boolean check(int nbBars)
+    {
+        return nbBars >= SIZE_MIN && nbBars <= SIZE_MAX;
     }
 
     // ==========================================================================================================
@@ -723,7 +739,7 @@ public class WbpSourceDatabase
         private final BassStyle bassStyle;
         private static final Logger LOGGER = Logger.getLogger(WbpSession.class.getSimpleName());
 
-        public WbpSession(String id, List<String> tags, SimpleChordSequence cSeq, SizedPhrase phrase, Note targetNote, BassStyle bassStyle)
+        public WbpSession(String id, List<String> tags, SimpleChordSequence cSeq, SizedPhrase phrase, Note targetNote)
         {
             super(cSeq, phrase, 0, targetNote);
             this.id = id;
@@ -796,6 +812,11 @@ public class WbpSourceDatabase
             SizedPhrase sessionPhrase = getSizedPhrase();
             TimeSignature ts = sessionPhrase.getTimeSignature();
 
+            LOGGER.log(Level.FINE, "extractWbpSource() barOffset={0} WbpSession={1}", new Object[]
+            {
+                barOffset, this
+            });
+
             // Get the notes
             FloatRange beatRange = new FloatRange(barOffset * ts.getNbNaturalBeats(), (barOffset + nbBars) * ts.getNbNaturalBeats());
             Phrase p = Phrases.getSlice(sessionPhrase, beatRange, true, 1, FIRST_NOTE_BEAT_WINDOW);
@@ -843,14 +864,20 @@ public class WbpSourceDatabase
         private BassStyle computeBassStyle(List<String> tags)
         {
             BassStyle res = BassStyle.WALKING;
-            boolean twoFeel = tags.stream().anyMatch(t -> t.startsWith("2feel"));
-            boolean walking = tags.stream().anyMatch(t -> t.startsWith("walking"));
-            if ((twoFeel && walking) || (!twoFeel && !walking))
+
+            boolean twoFeelA = tags.stream().anyMatch(t -> t.equalsIgnoreCase("2feel-a"));
+            boolean twoFeelB = tags.stream().anyMatch(t -> t.equalsIgnoreCase("2feel-b"));
+            boolean twoFeel = twoFeelA || twoFeelB;
+            boolean walking = tags.stream().anyMatch(t -> t.equalsIgnoreCase("walking"));
+            if ((twoFeelA && twoFeelB) || (twoFeel && walking) || (!twoFeel && !walking))
             {
                 LOGGER.log(Level.SEVERE, "computeBassStyle() Inconsistent tags found in WbpSession={0}", this);
-            } else if (twoFeel)
+            } else if (twoFeelA)
             {
                 res = BassStyle.TWO_FEEL_A;
+            } else if (twoFeelB)
+            {
+                res = BassStyle.TWO_FEEL_B;
             }
             return res;
         }
