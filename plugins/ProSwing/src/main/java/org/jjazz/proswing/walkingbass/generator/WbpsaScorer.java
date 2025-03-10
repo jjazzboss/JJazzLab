@@ -35,20 +35,21 @@ import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 public interface WbpsaScorer
 {
 
-    static public Score SCORE_ZERO = new Score(0, 0, 0, 0);
+    static public Score SCORE_ZERO = new Score(0, 0, 0, 0, 0);
 
     /**
      * Compatibility score.
      * <p>
      * compareTo(SCORE_ZERO) == 0 means incompatibility. compareTo(SCORE_ZERO) &gt; 0 means some compatibility.
      */
-    public record Score(float chordTypeCompatibility, float transposibility, float preTargetNoteMatch, float postTargetNoteMatch) implements Comparable<Score>
+    public record Score(float chordTypeCompatibility, float transposibility, float tempoCompatibility, float preTargetNoteMatch, float postTargetNoteMatch) implements Comparable<Score>
             {
 
-        public Score   
+        public Score    
         {
             Preconditions.checkArgument(chordTypeCompatibility >= 0 && chordTypeCompatibility <= 100, "chordTypeCompatibility=%s", chordTypeCompatibility);
             Preconditions.checkArgument(transposibility >= 0 && transposibility <= 100, "transposibility=%s", transposibility);
+            Preconditions.checkArgument(tempoCompatibility >= 0 && tempoCompatibility <= 100, "tempoCompatibility=%s", tempoCompatibility);
             Preconditions.checkArgument(preTargetNoteMatch >= 0 && preTargetNoteMatch <= 100, "preTargetNoteMatch=%s", preTargetNoteMatch);
             Preconditions.checkArgument(postTargetNoteMatch >= 0 && postTargetNoteMatch <= 100, "postTargetNoteMatch=%s", postTargetNoteMatch);
         }
@@ -63,7 +64,7 @@ public interface WbpsaScorer
             float res = 0;
             if (chordTypeCompatibility > 0)
             {
-                res = (6 * chordTypeCompatibility + 2 * transposibility + 1 * preTargetNoteMatch + 1 * postTargetNoteMatch) / 10;
+                res = (6 * chordTypeCompatibility + 2 * transposibility + 2 * tempoCompatibility + 1 * preTargetNoteMatch + 1 * postTargetNoteMatch) / 12;
             }
             return res;
         }
@@ -73,11 +74,11 @@ public interface WbpsaScorer
          *
          * @param overallValue
          */
-        static public Score buildFromOverallValue(float overallValue)
+        static public Score buildSampleFromOverallValue(float overallValue)
         {
             Preconditions.checkArgument(overallValue >= 0 && overallValue <= 100, "overallValue=%s", overallValue);
 
-            float ct, tr = 0, pretn = 0, posttn = 0;
+            float ct, tr = 0, te = 0, pretn = 0, posttn = 0;
             if (overallValue <= 60)
             {
                 ct = 10 * overallValue / 6;
@@ -85,17 +86,21 @@ public interface WbpsaScorer
             {
                 ct = 100;
                 tr = 10 * (overallValue - 60) / 2;
-            } else if (overallValue <= 90)
+            } else if (overallValue <= 100)
             {
                 ct = tr = 100;
-                pretn = 10 * (overallValue - 80) / 1;
+                te = 10 * (overallValue - 80) / 2;
+            }else if (overallValue <= 110)
+            {
+                ct = tr = te = 100;
+                pretn = 10 * (overallValue - 100) / 1;
             } else
             {
-                ct = tr = pretn = 100;
-                posttn = 10 * (overallValue - 90) / 1;
+                ct = tr = te = pretn = 100;
+                posttn = 10 * (overallValue - 110) / 1;
             }
 
-            return new Score(ct, tr, pretn, posttn);
+            return new Score(ct, tr, te, pretn, posttn);
         }
 
         /**
@@ -154,10 +159,11 @@ public interface WbpsaScorer
         {
             DecimalFormat df = new DecimalFormat("#.##");
 
-            String res = String.format("[all=%s, ct=%s tr=%s pre-tn=%s post-tn=%s]",
+            String res = String.format("[all=%s, ct=%s tr=%s te=%s pre-tn=%s post-tn=%s]",
                     df.format(overall()),
                     df.format(chordTypeCompatibility),
                     df.format(transposibility),
+                    df.format(tempoCompatibility),
                     df.format(preTargetNoteMatch),
                     df.format(postTargetNoteMatch));
             return res;

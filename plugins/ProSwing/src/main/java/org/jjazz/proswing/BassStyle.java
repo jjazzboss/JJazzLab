@@ -24,6 +24,7 @@
  */
 package org.jjazz.proswing;
 
+import com.google.common.base.Preconditions;
 import org.jjazz.proswing.walkingbass.WbpSource;
 
 /**
@@ -39,6 +40,22 @@ public enum BassStyle
     TWO_FEEL_A,
     TWO_FEEL_B,
     WALKING;
+
+    public boolean is2feel()
+    {
+        return this == TWO_FEEL_A || this == TWO_FEEL_B;
+    }
+
+    public boolean isWalking()
+    {
+        return this == WALKING;
+    }
+
+    public BassStyle getComplementary2feel()
+    {
+        Preconditions.checkArgument(is2feel());
+        return this == TWO_FEEL_A ? TWO_FEEL_B : TWO_FEEL_A;
+    }
 
     public boolean matches(WbpSource wbps)
     {

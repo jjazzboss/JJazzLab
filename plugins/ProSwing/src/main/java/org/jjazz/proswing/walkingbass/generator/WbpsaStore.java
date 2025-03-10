@@ -258,8 +258,8 @@ public class WbpsaStore
 
             for (float overallScore = scoreFirst; overallScore >= scoreLast; overallScore -= similarScoreWindow)
             {
-                var fromScore = Score.buildFromOverallValue(overallScore);
-                var toScore = Score.buildFromOverallValue(Math.max(overallScore - similarScoreWindow, 0));
+                var fromScore = Score.buildSampleFromOverallValue(overallScore);
+                var toScore = Score.buildSampleFromOverallValue(Math.max(overallScore - similarScoreWindow, 0));
                 var scoresSubset = scores.subSet(fromScore, toScore);   // inclusive, exclusive
                 List<WbpSourceAdaptation> wbpsaSubset = new ArrayList<>();
                 for (var score : scoresSubset)

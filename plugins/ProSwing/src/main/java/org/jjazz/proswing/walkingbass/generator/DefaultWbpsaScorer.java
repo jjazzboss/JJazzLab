@@ -31,14 +31,17 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 import org.jjazz.proswing.BassStyle;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.proswing.walkingbass.WbpSource;
 import org.jjazz.proswing.walkingbass.WbpSourceChordPhrase;
 import org.jjazz.proswing.walkingbass.WbpSourceDatabase;
+import org.jjazz.rhythm.api.TempoRange;
 
 /**
- * Relies on WbpSource.computeChordTypeCompatibilityScore() + WbpSource.getTransposibilityScore() + bonus if target notes match before/after.
+ * Evaluates compatibility using chord type, transposition, target notes before/after, tempo.
+ * <p>
  */
 public class DefaultWbpsaScorer implements WbpsaScorer
 {
@@ -51,7 +54,7 @@ public class DefaultWbpsaScorer implements WbpsaScorer
      *
      * @param sourceAdapter If null target note matching score will not impact the overall score
      * @param tempo         If &lt;= 0 tempo is ignored in score computing
-     * @param bStyles       Accept only WbpSources which match these bassStyle(s). If empty all
+     * @param bStyles       Accept only WbpSources which match these bassStyle(s). If empty any BassStyle is accepted
      */
     public DefaultWbpsaScorer(PhraseAdapter sourceAdapter, int tempo, BassStyle... bStyles)
     {
@@ -65,6 +68,16 @@ public class DefaultWbpsaScorer implements WbpsaScorer
         }
     }
 
+    public int getTempo()
+    {
+        return tempo;
+    }
+
+    public Set<BassStyle> getBassStyles()
+    {
+        return Collections.unmodifiableSet(bassStyles);
+    }
+
     @Override
     public Score computeCompatibilityScore(WbpSourceAdaptation wbpsa, WbpTiling tiling)
     {
@@ -75,6 +88,8 @@ public class DefaultWbpsaScorer implements WbpsaScorer
             var ctScores = getHarmonyCompatibilityScores(wbpsa);
             float ctScore = (float) ctScores.stream().mapToDouble(f -> Double.valueOf(f)).average().orElse(0);      // 0-100
 
+            float teScore = getTempoScore(wbpsa);           // 0 - 100
+
             var scs = wbpsa.getSimpleChordSequence();
             var scsFirstChordRoot = scs.first().getData().getRootNote();
             int trScore = wbpsa.getWbpSource().getTransposibilityScore(scsFirstChordRoot);     // 0 - 100
@@ -82,7 +97,7 @@ public class DefaultWbpsaScorer implements WbpsaScorer
             float preTargetNoteScore = getPreTargetNoteScore(wbpsa, tiling);  //  0 - 100
             float postTargetNoteScore = getPostTargetNoteScore(wbpsa, tiling);  //  0 - 100
 
-            res = new Score(ctScore, trScore, preTargetNoteScore, postTargetNoteScore);
+            res = new Score(ctScore, trScore, teScore, preTargetNoteScore, postTargetNoteScore);
         }
 
         wbpsa.setCompatibilityScore(res);
@@ -218,6 +233,61 @@ public class DefaultWbpsaScorer implements WbpsaScorer
                 }
             }
         }
+        return res;
+    }
+
+    public float getTempoScore(WbpSourceAdaptation wbpsa)
+    {
+        float res;
+        var wbpSource = wbpsa.getWbpSource();
+        var bassStyle = wbpSource.getBassStyle();
+        assert bassStyle.is2feel() || bassStyle.isWalking() : " wbpSource=" + wbpSource;
+        var stats = wbpSource.getStats();
+
+        if (tempo <= TempoRange.MEDIUM_SLOW.getMin())
+        {
+            // Slow, better if additional extra notes
+            if (bassStyle.is2feel())
+            {
+                float bonus = Math.min(stats.nbShortNotes() * 20 + stats.nbDottedEighthNotes() * 20 + stats.nbQuarterNotes() * 20, 60);
+                res = 40 + bonus;
+            } else
+            {
+                // Walking
+                float bonus = Math.min(stats.nbShortNotes() * 20 + stats.nbDottedEighthNotes() * 20, 40);
+                res = 60 + bonus;
+            }
+        } else if (tempo <= TempoRange.MEDIUM_SLOW.getMax())
+        {
+            // Medium slow, sightly better if additional extra notes
+            if (bassStyle.is2feel())
+            {
+                float bonus = Math.min(stats.nbShortNotes() * 15 + stats.nbDottedEighthNotes() * 15 + stats.nbQuarterNotes() * 15, 45);
+                res = 55 + bonus;
+            } else
+            {
+                // Walking
+                float bonus = Math.min(stats.nbShortNotes() * 10 + stats.nbDottedEighthNotes() * 10, 20);
+                res = 80 + bonus;
+            }
+        } else if (tempo <= TempoRange.MEDIUM.getMax())
+        {
+            // Medium, everything is ok
+            res = 80;
+        } else if (tempo <= TempoRange.MEDIUM_FAST.getMax())
+        {
+            // Medium fast, too much is bad
+            float malus = Math.min(stats.nbShortNotes() * 30 + stats.nbDottedEighthNotes() * 10, 70);
+            res = 100 - malus;
+        } else
+        {
+            // Fast, simple is best!
+            float malus = Math.min(stats.nbShortNotes() * 60 + stats.nbDottedEighthNotes() * 30, 100);
+            res = 100 - malus;
+        }
+
+        assert res >= 0 && res <= 100 : "res=" + res + " wbpSource=" + wbpSource;
+        
         return res;
     }
 }

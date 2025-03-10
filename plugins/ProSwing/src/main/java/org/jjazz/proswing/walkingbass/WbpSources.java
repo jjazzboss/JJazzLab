@@ -24,7 +24,6 @@
  */
 package org.jjazz.proswing.walkingbass;
 
-import org.jjazz.proswing.walkingbass.WbpSource;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
 import java.util.List;
@@ -44,35 +43,7 @@ public class WbpSources
 
   
 
-    /**
-     * Check if sp has one note per beat.
-     *
-     * @param sp
-     * @param nearBeatWindow Tolerate slight difference in beat position
-     * @return
-     */
-    static public boolean isOneNotePerBeat(SizedPhrase sp, float nearBeatWindow)
-    {
-        boolean b = true;
-        if (sp.size() == sp.getTimeSignature().getNbNaturalBeats())
-        {
-            int beat = 0;
-            for (var ne : sp)
-            {
-                FloatRange fr = new FloatRange(Math.max(0, beat - nearBeatWindow), beat + nearBeatWindow);
-                if (!fr.contains(ne.getPositionInBeats(), false))
-                {
-                    b = false;
-                    break;
-                }
-                beat++;
-            }
-        } else
-        {
-            b = false;
-        }
-        return b;
-    }
+  
 
     /**
      *

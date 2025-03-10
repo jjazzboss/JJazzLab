@@ -10,7 +10,6 @@ import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
-import org.jjazz.proswing.walkingbass.WbpStats;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
 
@@ -25,7 +24,6 @@ public class Wbp
     private final SizedPhrase sizedPhrase;
     private final Note targetNote;
     private final String rootProfile;
-    private WbpStats stats;
     private final float firstNoteBeatShift;
     private static final Logger LOGGER = Logger.getLogger(Wbp.class.getSimpleName());
 
@@ -62,15 +60,6 @@ public class Wbp
     public SimpleChordSequence getSimpleChordSequence()
     {
         return chordSequence;
-    }
-
-    public WbpStats getStats()
-    {
-        if (stats == null)
-        {
-            stats = new WbpStats(this);
-        }
-        return stats;
     }
 
     public String getRootProfile()

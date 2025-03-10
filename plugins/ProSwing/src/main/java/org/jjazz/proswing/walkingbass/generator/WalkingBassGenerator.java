@@ -183,40 +183,61 @@ public class WalkingBassGenerator implements MusicGenerator
      */
     private Phrase getBassPhrase(SimpleChordSequenceExt scs, BassStyle style, int tempo) throws MusicGenerationException
     {
-        LOGGER.log(Level.SEVERE, "getBassPhrase() -- scs={0} style={1} tempo={2}", new Object[]
+        LOGGER.log(Level.SEVERE, "getBassPhrase() -- style={0} tempo={1} scs={2}", new Object[]
         {
-            scs, style, tempo
+            style, tempo, scs
         });
 
         Phrase res = new Phrase(0);             // channel useless here
 
         var settings = WalkingBassGeneratorSettings.getInstance();
         WbpTiling tiling = new WbpTiling(scs);
-        int robustness = 5;
         var phraseAdapter = new TransposerPhraseAdapter();
-
         WbpsaScorer scorer = new DefaultWbpsaScorer(phraseAdapter, tempo, style);
-        boolean untiled = true;
 
-        while (untiled && robustness-- > 0)
+
+        var tiler0 = new TilerBestFirstNoRepeat(scorer, settings.getWbpsaStoreWidth());
+        tiler0.tile(tiling);
+        LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling BestFirstNoRepeat =\n{0}", tiling.toMultiLineString());
+
+
+        var tiler1 = new TilerMaxDistance(scorer, settings.getWbpsaStoreWidth());
+        tiler1.tile(tiling);
+        LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling MaxDistance =\n{0}", tiling.toMultiLineString());
+
+
+        // Special handling if 2-feel
+        var untiled = !tiling.isFullyTiled();
+        if (untiled && style.is2feel())
         {
-            var tiler0 = new TilerBestFirstNoRepeat(scorer, settings.getWbpsaStoreWidth());
-            tiler0.tile(tiling);
-            LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling BestFirstNoRepeat =\n{0}", tiling.toMultiLineString());
+            // Try to tile using WbpSources from the other 2-feel
+            var style2 = style.getComplementary2feel();
+            WbpsaScorer scorer2 = new DefaultWbpsaScorer(phraseAdapter, tempo, style2);
+            var tiler2 = new TilerMaxDistance(scorer2, settings.getWbpsaStoreWidth());
+            tiler2.tile(tiling);
+            LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling MaxDistance using complementary {0} =\n{1}",
+                    new Object[]
+                    {
+                        style2,
+                        tiling.toMultiLineString()
+                    });
+        }
 
-            var tiler1 = new TilerMaxDistance(scorer, settings.getWbpsaStoreWidth());
+
+        // Handle possibly remaining untiled zone using new custom WbpSources
+        untiled = handleNonTiledBars(tiling);
+        if (untiled)
+        {
             tiler1.tile(tiling);
-            LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling MaxDistance =\n{0}", tiling.toMultiLineString());
-
-            untiled = handleNonTiledBars(tiling);
-
+            LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling MaxDistance using Custom WbpSources =\n{0}", tiling.toMultiLineString());
         }
 
 
-        if (robustness == 0)
+        if (!tiling.isFullyTiled())
         {
-            LOGGER.severe("getBassPhrase() robustness == 0 something is wrong _________________________________________");
+            LOGGER.severe("getBassPhrase() ERROR could not fully tile");
         }
+
 
         LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ===============   Tiling stats  scs.usableBars={0} \n{1}", new Object[]
         {
@@ -343,7 +364,7 @@ public class WalkingBassGenerator implements MusicGenerator
         } else
         {
             LOGGER.log(Level.SEVERE, "createCustomWbpSources() => random phrase");
-            var p = DummyGenerator.getBasicBassPhrase(0, subSeq, 58, 0);
+            var p = DummyGenerator.getBasicBassPhrase(0, subSeq, new IntRange(50, 65), 0);
             SizedPhrase sp = new SizedPhrase(0, subSeq.getBeatRange(0), subSeq.getTimeSignature(), false);
             sp.add(p);
             String id = "GenDefault-" + (SESSION_COUNT++);

@@ -209,6 +209,7 @@ public class SongSequenceBuilder
      */
     public SongSequence buildSongSequence(Map<RhythmVoice, Phrase> rvPhrases)
     {
+        Objects.requireNonNull(rvPhrases);
         SongSequence res = new SongSequence();
         res.mapRvPhrase = new HashMap<>(rvPhrases);
 

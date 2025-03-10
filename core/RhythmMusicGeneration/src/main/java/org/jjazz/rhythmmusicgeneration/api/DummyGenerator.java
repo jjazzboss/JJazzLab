@@ -103,7 +103,7 @@ public class DummyGenerator implements MusicGenerator
                     if (rv.getPreferredInstrument().getSubstitute().getFamily().equals(InstrumentFamily.Bass))
                     {
                         LOGGER.log(Level.FINE, "generateMusic() generate dummy bass track for RhythmVoice: {0}", rv.getName());
-                        Phrase p = getBasicBassPhrase(sptPosInBeats, cSeq, destChannel, 58);
+                        Phrase p = getBasicBassPhrase(sptPosInBeats, cSeq, new IntRange(48, 68), destChannel);
                         pRes.add(p);
                     } else
                     {
@@ -119,26 +119,32 @@ public class DummyGenerator implements MusicGenerator
     }
 
     /**
-     * Get a basic bass phrase.For each chord play its bass note for the chord duration with random velocity around velocityCenter.
+     * Get a basic bass phrase.
+     * <p>
+     * For each chord play its bass note for the chord duration with random velocity.
      *
      *
      * @param startPosInBeats
      * @param cSeq
-     * @param velocityCenter  [0-127]
+     * @param velocityRange   Use random notes velocity in this range
      * @param channel         The channel of the returned phrase
      * @return
      */
-    static public Phrase getBasicBassPhrase(float startPosInBeats, SimpleChordSequence cSeq, int velocityCenter, int channel)
+    static public Phrase getBasicBassPhrase(float startPosInBeats, SimpleChordSequence cSeq, IntRange velocityRange, int channel)
     {
         Objects.requireNonNull(cSeq);
+        Objects.requireNonNull(velocityRange);
+        Preconditions.checkArgument(!velocityRange.isEmpty());
         Preconditions.checkArgument(MidiConst.checkMidiChannel(channel), "channel=%s", channel);
+
         Phrase p = new Phrase(channel, false);
         for (var cliCs : cSeq)
         {
             int bassPitch = 3 * 12 + cliCs.getData().getBassNote().getRelativePitch(); // stay on the 3rd octave            
             float duration = cSeq.getChordDuration(cliCs);
             float posInBeats = cSeq.toPositionInBeats(cliCs.getPosition(), startPosInBeats);
-            int velocity = Math.clamp(velocityCenter + (int) Math.round(Math.random() * 10) - 5, 0, 127);
+            int velocity = velocityRange.from + (int) Math.round(Math.random() * (velocityRange.size() - 1));
+            velocity = Math.clamp(velocity, 0, 127);
             NoteEvent ne = new NoteEvent(bassPitch, duration, velocity, posInBeats);
             p.add(ne);
         }

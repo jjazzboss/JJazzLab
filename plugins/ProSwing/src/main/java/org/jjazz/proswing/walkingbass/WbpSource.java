@@ -33,6 +33,7 @@ public class WbpSource extends Wbp
     private final BassStyle bassStyle;
     private final List<String> tags;
     private final SimpleChordSequence originalChordSequence;
+    private WbpSourceStats stats;
 
     private record TransposibilityResult(int score, int transpose)
             {
@@ -74,6 +75,16 @@ public class WbpSource extends Wbp
         this.tags = new ArrayList<>();
         this.bassStyle = bassStyle;
         Stream.of(tags).forEach(t -> this.tags.add(t.toLowerCase()));
+    }
+
+
+    public WbpSourceStats getStats()
+    {
+        if (stats == null)
+        {
+            stats = WbpSourceStats.of(this);
+        }
+        return stats;
     }
 
     /**
@@ -342,13 +353,13 @@ public class WbpSource extends Wbp
     @Override
     public String toString()
     {
-        return "WbpSource id=" + id + " " + super.toString();
+        return "WbpSource id=" + id + " style=" + bassStyle + " " + super.toString();
     }
 
     @Override
     public String toLongString()
     {
-        var res = String.format("WbpSource id=%s tags=%s %s", id, tags, super.toLongString());
+        var res = String.format("WbpSource id=%s style=%s tags=%s %s", id, bassStyle, tags, super.toLongString());
         return res;
     }
 
