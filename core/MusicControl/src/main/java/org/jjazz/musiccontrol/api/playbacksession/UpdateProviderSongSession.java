@@ -22,7 +22,6 @@
  */
 package org.jjazz.musiccontrol.api.playbacksession;
 
-import org.jjazz.rhythmmusicgeneration.api.MusicGenerationQueue;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
@@ -35,6 +34,8 @@ import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.musiccontrol.api.ControlTrack;
+import org.jjazz.musiccontrol.api.MusicGenerationQueue;
+import org.jjazz.musiccontrol.api.MusicGenerationQueue.Result;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.musiccontrol.api.SongMusicGenerationListener;
 import static org.jjazz.musiccontrol.api.playbacksession.BaseSongSession.PLAYBACK_SETTINGS_LOOP_COUNT;
@@ -516,15 +517,10 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
         }
 
 
-        // Make a copy of the SongContext so it can't be changed by user anymore
-        int transpose = isPlaybackTranspositionEnabled() ? PlaybackSettings.getInstance().getPlaybackKeyTransposition() : 0;
-        SongContext workContext = getContextCopy(getSongContext(), transpose);
-
-
         // Notify our update handler thread
         try
         {
-            musicGenerationQueue.add(workContext);
+            musicGenerationQueue.add(getSongContext());
         } catch (Exception e)
         {
             // Should never be here
@@ -589,7 +585,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
      *
      * @param result
      */
-    private void musicGenerationResultReceived(MusicGenerationQueue.Result result)
+    private void musicGenerationResultReceived(Result result)
     {
         assert result != null;
 

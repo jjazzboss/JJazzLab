@@ -22,6 +22,7 @@
  */
 package org.jjazz.activesong;
 
+import org.jjazz.musiccontrol.api.MusicGenerationQueue;
 import com.google.common.base.Preconditions;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -30,13 +31,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import org.jjazz.chordleadsheet.api.ClsUtilities;
 import org.jjazz.midimix.api.MidiMix;
-import org.jjazz.musiccontrol.api.PlaybackSettings;
+import org.jjazz.musiccontrol.api.MusicGenerationQueue.Result;
 import org.jjazz.musiccontrol.api.SongMusicGenerationListener;
-import org.jjazz.rhythmmusicgeneration.api.MusicGenerationQueue;
 import org.jjazz.song.api.Song;
-import org.jjazz.songcontext.api.SongContextCopy;
+import org.jjazz.songcontext.api.SongContext;
 import org.openide.util.ChangeSupport;
 
 /**
@@ -64,7 +63,7 @@ public class SongMusicBuilderTask implements ChangeListener, PropertyChangeListe
     public static final int POST_UPDATE_SLEEP_TIME_MS = 500;
 
 
-    private MusicGenerationQueue.Result lastResult;
+    private Result lastResult;
     private MusicGenerationQueue musicGenerationQueue;
     private SongMusicGenerationListener songMusicGenerationListener;
     private final Song song;
@@ -158,7 +157,7 @@ public class SongMusicBuilderTask implements ChangeListener, PropertyChangeListe
      *
      * @return Can be null. The SongContext field will be a SongContextCopy instance.
      */
-    public MusicGenerationQueue.Result getLastResult()
+    public Result getLastResult()
     {
         return lastResult;
     }
@@ -228,7 +227,6 @@ public class SongMusicBuilderTask implements ChangeListener, PropertyChangeListe
     //=============================================================================
     private void postMusicGenerationRequest()
     {
-        // Prepare a copy of the song context
         // Can't use a thread here because this might lead to concurrent modification (eg of a user phrase) while copy is being made                
         LOGGER.log(Level.FINE, "stateChanged() -- posting music generation request for {0}", song.getName());
         if (song.getChordLeadSheet().getSection(0) == null)
@@ -238,13 +236,11 @@ public class SongMusicBuilderTask implements ChangeListener, PropertyChangeListe
                     song.getChordLeadSheet().toDebugString());
             return;
         }
-        SongContextCopy sgContextCopy = new SongContextCopy(song, midiMix, false);
-        ClsUtilities.transpose(sgContextCopy.getSong().getChordLeadSheet(),
-                PlaybackSettings.getInstance().getPlaybackKeyTransposition());
+        SongContext sgContext = new SongContext(song, midiMix);
 
 
         // Request music generation
-        musicGenerationQueue.add(sgContextCopy);
+        musicGenerationQueue.add(sgContext);
     }
 
 

@@ -85,7 +85,7 @@ public class SongMidiExporter
 
 
         var sgContext = new SongContext(song, midiMix);
-        var ssb = new SongSequenceBuilder(sgContext);
+        var ssb = new SongSequenceBuilder(sgContext, PlaybackSettings.getInstance().getPlaybackKeyTransposition());
         SongSequenceBuilder.SongSequence songSequence = null;
 
 
@@ -94,7 +94,7 @@ public class SongMidiExporter
         if (asmb != null)
         {
             var result = asmb.getLastResult();
-            if (asmb.getSong() == song && !asmb.isDirectlyGeneratingMusic() && result != null && result.throwable()== null)
+            if (asmb.isLastResultUpToDate() && result.throwable() == null && result.songContext().getSong() == song)
             {
                 // We can reuse the last music generation
                 songSequence = ssb.buildSongSequence(result.mapRvPhrases());

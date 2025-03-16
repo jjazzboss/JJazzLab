@@ -42,7 +42,7 @@ import org.jjazz.midi.api.MidiConst;
 import org.jjazz.musiccontrol.spi.ActiveSongBackgroundMusicBuilder;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.phrase.api.Phrase;
-import org.jjazz.rhythmmusicgeneration.api.MusicGenerationQueue;
+import org.jjazz.musiccontrol.api.MusicGenerationQueue.Result;
 
 /**
  * The ghost phrases (one per channel, excepted for the edited channel) and their visible state.
@@ -67,7 +67,7 @@ public class GhostPhrasesModel implements PropertyChangeListener, ChangeListener
      */
     public static final String PROP_VISIBLE_PHRASE_SELECTION = "PropVisiblePhraseSelection";
 
-    private MusicGenerationQueue.Result lastResult;
+    private Result lastResult;
     private final MidiMix midiMix;
     private volatile Map<Integer, Phrase> mapChannelPhrase = new HashMap<>();
     private volatile Set<Integer> visibleChannels = new HashSet<>();
@@ -269,7 +269,7 @@ public class GhostPhrasesModel implements PropertyChangeListener, ChangeListener
      *
      * @param result
      */
-    private void musicGenerationResultReceived(MusicGenerationQueue.Result result)
+    private void musicGenerationResultReceived(Result result)
     {
         Preconditions.checkNotNull(result);
         LOGGER.fine("musicGenerationResultReceived() -- ");

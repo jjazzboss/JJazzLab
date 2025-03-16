@@ -25,12 +25,12 @@
 package org.jjazz.musiccontrol.spi;
 
 import javax.swing.event.ChangeListener;
-import org.jjazz.rhythmmusicgeneration.api.MusicGenerationQueue;
+import org.jjazz.musiccontrol.api.MusicGenerationQueue.Result;
 import org.jjazz.song.api.Song;
 import org.openide.util.Lookup;
 
 /**
- * A service provider which provides the musical phrases of the active song, which are built in a background task.
+ * A service provider which provides the musical phrases of the active song, which are built in some background task.
  * <p>
  */
 public interface ActiveSongBackgroundMusicBuilder
@@ -56,12 +56,25 @@ public interface ActiveSongBackgroundMusicBuilder
     void addChangeListener(ChangeListener listener);
 
     /**
-     * Get the last music generation result available.
+     * Get the latest music generation result available.
      * <p>
+     * Note that the returned value might not be up to date, see {@link #isLastResultUpToDate() }.
      *
      * @return Can be null.
      */
-    MusicGenerationQueue.Result getLastResult();
+    Result getLastResult();
+
+    /**
+     * Check if the Result returned by getLastResult() is up to date.
+     * <p>
+     * Returns false if :<br>
+     * - last result is null<br>
+     * - A new music generation is currently being generated<br>
+     * - Active song is playing and there was a song structure change<br>
+     *
+     * @return
+     */
+    boolean isLastResultUpToDate();
 
     /**
      * Get the active song for this ActiveSongMusicBuilder.
@@ -69,13 +82,6 @@ public interface ActiveSongBackgroundMusicBuilder
      * @return Can be null
      */
     Song getSong();
-
-    /**
-     * Check if ActiveSongMusicBuilder is directly being generating music that will produce a new Result.
-     *
-     * @return True if song is not playing and music is being generated because there was a song change.
-     */
-    boolean isDirectlyGeneratingMusic();
 
     /**
      * Get state (true by default).

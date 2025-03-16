@@ -170,15 +170,15 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
         // Retrieve the phrase
         var asmb = ActiveSongBackgroundMusicBuilder.getDefault();
         var lastResult = asmb.getLastResult();
-        if (lastResult == null)
+        if (!asmb.isLastResultUpToDate())
         {
-            String msg = "Unexpected error: lastResult is null";
-            LOGGER.log(Level.SEVERE, "cloneRhythmTrackAsUserTrack() {0}", msg);
+            String msg = ResUtil.getString(getClass(), "MixChannelPanelControllerImpl.ErrorCloneRhythmTrack");
             NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
             return;
         }
 
+        
         Phrase p = lastResult.mapRvPhrases().get(rv);
         if (p == null)
         {

@@ -183,13 +183,8 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
         }
 
 
-        // Make a copy of the song so it can't be changed anymore by user
-        int transpose = isPlaybackTranspositionEnabled() ? PlaybackSettings.getInstance().getPlaybackKeyTransposition() : 0;
-        SongContext workContext = getContextCopy(songContext, transpose);
-
-
         // Generate music
-        var songSeq = generateSongSequence(workContext, silent, isUseActiveSongBackgroundMusicBuilder);
+        var songSeq = generateSongSequence(songContext, silent, isUseActiveSongBackgroundMusicBuilder);
 
 
         // Retrieve the data
@@ -211,7 +206,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
         if (isControlTrackIncluded())
         {
             Track track = sequence.createTrack();
-            controlTrack = new ControlTrack(workContext, Arrays.asList(sequence.getTracks()).indexOf(track));
+            controlTrack = new ControlTrack(songContext, Arrays.asList(sequence.getTracks()).indexOf(track));
             controlTrack.fillTrack(track);
             mapTrackIdMuted.put(controlTrack.getTrackId(), false);
         }
@@ -220,7 +215,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
         // Add the playback click track
         if (isClickTrackIncluded())
         {
-            playbackClickTrackId = preparePlaybackClickTrack(sequence, workContext);
+            playbackClickTrackId = preparePlaybackClickTrack(sequence, songContext);
             mapTrackIdMuted.put(playbackClickTrackId, !PlaybackSettings.getInstance().isPlaybackClickEnabled());
         }
 
@@ -228,13 +223,13 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
         // Add the click precount track - this must be done last because it might shift all song events      
         if (isPrecountTrackIncluded())
         {
-            loopStartTick = PlaybackSettings.getInstance().addPrecountClickTrack(sequence, workContext);
+            loopStartTick = PlaybackSettings.getInstance().addPrecountClickTrack(sequence, songContext);
             precountClickTrackId = sequence.getTracks().length - 1;
             mapTrackIdMuted.put(precountClickTrackId, false);
         }
 
 
-        loopEndTick = loopStartTick + Math.round(workContext.getBeatRange().size() * MidiConst.PPQ_RESOLUTION);
+        loopEndTick = loopStartTick + Math.round(songContext.getBeatRange().size() * MidiConst.PPQ_RESOLUTION);
 
 
         // Listen to changes that can be handled without going dirty
@@ -583,21 +578,6 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     }
 
 
-    /**
-     * Get a context copy with a new song and a new MidiMix.
-     * <p>
-     *
-     * @param context
-     * @param chordSymbolTransposition If not 0 use it to transpose chord symbols
-     * @return
-     */
-    protected SongContext getContextCopy(SongContext context, int chordSymbolTransposition)
-    {
-        SongContext res = context.deepClone(false);
-        ClsUtilities.transpose(res.getSong().getChordLeadSheet(), chordSymbolTransposition);
-        return res;
-    }
-
     // ==========================================================================================================
     // Private methods
     // ==========================================================================================================
@@ -613,20 +593,21 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     private SongSequenceBuilder.SongSequence generateSongSequence(SongContext sgContext, boolean silent, boolean useBackgroundMusicBuilder) throws MusicGenerationException
     {
         SongSequenceBuilder.SongSequence res = null;
-        SongSequenceBuilder seqBuilder = new SongSequenceBuilder(sgContext);
+        
+        
+        int playbackKeyTranspose = isPlaybackTranspositionEnabled() ? PlaybackSettings.getInstance().getPlaybackKeyTransposition() : 0;        
+        SongSequenceBuilder seqBuilder = new SongSequenceBuilder(sgContext, playbackKeyTranspose);      // Will work on a deep copy of sgContext
 
 
         // Reuse ActiveSongBackgroundMusicBuilder result when possible
-        var bmb = ActiveSongBackgroundMusicBuilder.getDefault();
-        if (bmb != null)
+        var asbmb = ActiveSongBackgroundMusicBuilder.getDefault();
+        if (asbmb != null)
         {
-            var lastResult = bmb.getLastResult();
+            var lastResult = asbmb.getLastResult();
             if (useBackgroundMusicBuilder
-                    && lastResult != null
-                    && MusicController.getInstance().isStopped()
-                    && !bmb.isDirectlyGeneratingMusic()
-                    && sgContext.equals(lastResult.songContext())
-                    && lastResult.throwable() == null)
+                    && asbmb.isLastResultUpToDate()
+                    && lastResult.throwable() == null
+                    && sgContext.equals(lastResult.songContext()))
             {
                 // Build sequence directly from phrases
                 var mapRvPhrases = lastResult.mapRvPhrases();

@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.rhythmmusicgeneration.api;
+package org.jjazz.musiccontrol.api;
 
 import com.google.common.base.Preconditions;
 import java.util.Map;
@@ -37,6 +37,7 @@ import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.UserErrorGenerationException;
+import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.utilities.api.CheckedRunnable;
 import org.jjazz.utilities.api.Utilities;
@@ -119,7 +120,7 @@ public class MusicGenerationQueue implements Runnable
      */
     public boolean isGeneratingMusic()
     {
-        boolean idle = !running || lastAddedSongContext == null || (lastResult != null && lastResult.songContext == lastAddedSongContext);
+        boolean idle = !running || lastAddedSongContext == null || (lastResult != null && lastResult.songContext() == lastAddedSongContext);
         return !idle;
     }
 
@@ -407,8 +408,8 @@ public class MusicGenerationQueue implements Runnable
             //LOGGER.info("UpdateGenerationTask.run() >>> STARTING generation cls=" + toDebugString(songContext.getSong().getChordLeadSheet()));
 
 
-            // Recompute the RhythmVoice mapRvPhrases            
-            SongSequenceBuilder sgBuilder = new SongSequenceBuilder(songContext);
+            // Recompute the RhythmVoice mapRvPhrases      
+            SongSequenceBuilder sgBuilder = new SongSequenceBuilder(songContext, PlaybackSettings.getInstance().getPlaybackKeyTransposition());
             Throwable throwable = null;
             Map<RhythmVoice, Phrase> map = null;
             try
