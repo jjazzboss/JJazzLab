@@ -42,7 +42,6 @@ import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.musiccontrol.api.playbacksession.UpdateProviderSongSession;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
-import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSessionOnePlay;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.Song;
@@ -77,7 +76,7 @@ import org.openide.util.lookup.ServiceProvider;
 public class Play extends BooleanStateAction implements PropertyChangeListener, LookupListener
 {
 
-    private Lookup.Result<Song> lookupResult;
+    private final Lookup.Result<Song> lookupResult;
     private Song currentSong;
     private static final Logger LOGGER = Logger.getLogger(Play.class.getSimpleName());
 

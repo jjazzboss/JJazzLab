@@ -388,32 +388,29 @@ public class SongContext
     @Override
     public boolean equals(Object obj)
     {
-        if (this == obj)
+        if (obj instanceof SongContext other)
         {
+            if (this == other)
+            {
+                return true;
+            }
+            if (!Objects.equals(this.song, other.song))
+            {
+                return false;
+            }
+            if (!Objects.equals(this.midiMix, other.midiMix))
+            {
+                return false;
+            }
+            if (!Objects.equals(this.barRange, other.barRange))
+            {
+                return false;
+            }
             return true;
-        }
-        if (obj == null)
+        } else
         {
             return false;
         }
-        if (getClass() != obj.getClass())
-        {
-            return false;
-        }
-        final SongContext other = (SongContext) obj;
-        if (!Objects.equals(this.song, other.song))
-        {
-            return false;
-        }
-        if (!Objects.equals(this.midiMix, other.midiMix))
-        {
-            return false;
-        }
-        if (!Objects.equals(this.barRange, other.barRange))
-        {
-            return false;
-        }
-        return true;
     }
 
     @Override

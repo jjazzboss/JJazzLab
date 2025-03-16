@@ -234,6 +234,11 @@
             <artifactId>org-openide-dialogs</artifactId>
             <version>${netbeans.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.jjazzlab.core</groupId>
+            <artifactId>flatcomponents</artifactId>
+            <version>4.1.3-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
 </project>

@@ -177,7 +177,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     @Override
     public void generate(boolean silent) throws MusicGenerationException
     {
-        if (state!= State.NEW)
+        if (state != State.NEW)
         {
             throw new IllegalStateException("state=" + state);
         }
@@ -622,9 +622,10 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
         {
             var lastResult = bmb.getLastResult();
             if (useBackgroundMusicBuilder
-                    && !MusicController.getInstance().isStopped()
+                    && lastResult != null
+                    && MusicController.getInstance().isStopped()
                     && !bmb.isDirectlyGeneratingMusic()
-                    && sgContext.equals(lastResult)
+                    && sgContext.equals(lastResult.songContext())
                     && lastResult.throwable() == null)
             {
                 // Build sequence directly from phrases

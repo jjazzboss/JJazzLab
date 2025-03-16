@@ -25,6 +25,7 @@ package org.jjazz.activesong;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.EnumSet;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -87,12 +88,6 @@ public class ActiveSongBackgroundMusicBuilderImpl implements PropertyChangeListe
         LOGGER.info("ActiveSongBackgroundMusicBuilderImpl() Started");
     }
 
-    /**
-     * Get the last music generation result available.
-     * <p>
-     *
-     * @return Can be null.
-     */
     @Override
     public MusicGenerationQueue.Result getLastResult()
     {
@@ -136,7 +131,7 @@ public class ActiveSongBackgroundMusicBuilderImpl implements PropertyChangeListe
             return;
         }
         enabled = b;
-        LOGGER.info("setEnabled() b=" + b);
+        LOGGER.log(Level.INFO, "setEnabled() b={0}", b);
         if (!enabled)
         {
             setState(Mode.OFF, null, null, null);
@@ -308,7 +303,7 @@ public class ActiveSongBackgroundMusicBuilderImpl implements PropertyChangeListe
             {
                 assert activeSong != null;
                 assert activeMidiMix != null;
-                songMusicBuilderTask = new SongMusicBuilderTask(activeSong, activeMidiMix);
+                songMusicBuilderTask = new SongMusicBuilderTask(activeSong, activeMidiMix, null);
                 songMusicBuilderTask.addChangeListener(this);
                 songMusicBuilderTask.start();
             }

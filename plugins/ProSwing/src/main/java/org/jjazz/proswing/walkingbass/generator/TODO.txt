@@ -22,6 +22,5 @@
 * weighted duration calculation: don't count last note if half-tone up/sub next chord => it's a transition note
 * Adjust notes length and shift depending on tempo and 2-feel or 4-feel
 * Authorize WbpSources in the DB with non-root/chord-tone start/end notes => managed by Scorer
-* Only 1 WbpSource walking for for Bb F7
-* Exception when using play loop zone
+* Exception when using play loop zone in some cases
 

@@ -196,13 +196,13 @@ public class WalkingBassGenerator implements MusicGenerator
         WbpsaScorer scorer = new DefaultWbpsaScorer(phraseAdapter, tempo, style);
 
 
-        var tiler0 = new TilerBestFirstNoRepeat(scorer, settings.getWbpsaStoreWidth());
-        tiler0.tile(tiling);
+        var tilerBestFirstNoRepeat = new TilerBestFirstNoRepeat(scorer, settings.getWbpsaStoreWidth());
+        tilerBestFirstNoRepeat.tile(tiling);
         LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling BestFirstNoRepeat =\n{0}", tiling.toMultiLineString());
 
 
-        var tiler1 = new TilerMaxDistance(scorer, settings.getWbpsaStoreWidth());
-        tiler1.tile(tiling);
+        var tilerMaxDistance = new TilerMaxDistance(scorer, settings.getWbpsaStoreWidth());
+        tilerMaxDistance.tile(tiling);
         LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling MaxDistance =\n{0}", tiling.toMultiLineString());
 
 
@@ -211,29 +211,45 @@ public class WalkingBassGenerator implements MusicGenerator
         if (untiled && style.is2feel())
         {
             // Try to tile using WbpSources from the other 2-feel
-            var style2 = style.getComplementary2feel();
-            WbpsaScorer scorer2 = new DefaultWbpsaScorer(phraseAdapter, tempo, style2);
-            var tiler2 = new TilerMaxDistance(scorer2, settings.getWbpsaStoreWidth());
-            tiler2.tile(tiling);
+            var complementary2feel = style.getComplementary2feel();
+            WbpsaScorer scorerComplementary2feel = new DefaultWbpsaScorer(phraseAdapter, tempo, complementary2feel);
+            var tilerComplementary2feel = new TilerMaxDistance(scorerComplementary2feel, settings.getWbpsaStoreWidth());
+            tilerComplementary2feel.tile(tiling);
             LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling MaxDistance using complementary {0} =\n{1}",
                     new Object[]
                     {
-                        style2,
+                        complementary2feel,
                         tiling.toMultiLineString()
                     });
         }
 
 
-        // Handle possibly remaining untiled zone using new custom WbpSources
-        untiled = handleNonTiledBars(tiling);
+        // If still untiled try using previously computed CUSTOM source phrases
+        WbpsaScorer scorerCustom = new DefaultWbpsaScorer(phraseAdapter, tempo, BassStyle.CUSTOM);
+        var tilerCustom = new TilerMaxDistance(scorerCustom, settings.getWbpsaStoreWidth());
+        untiled = !tiling.isFullyTiled();
         if (untiled)
         {
-            tiler1.tile(tiling);
-            LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling MaxDistance using Custom WbpSources =\n{0}", tiling.toMultiLineString());
+            tilerCustom.tile(tiling);
+            LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling MaxDistance using existing CUSTOM WbpSources =\n{1}",
+                    new Object[]
+                    {
+                        tiling.toMultiLineString()
+                    });
         }
 
 
-        if (!tiling.isFullyTiled())
+        // If still untiled add new CUSTOM source phrases, that should normally tile everything left
+        untiled = !tiling.isFullyTiled();
+        if (untiled)
+        {
+            untiled = addCustomWbpSources(tiling);
+            tilerCustom.tile(tiling);
+            LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling MaxDistance using CREATED CUSTOM WbpSources =\n{0}", tiling.toMultiLineString());
+        }
+
+
+        if (untiled)
         {
             LOGGER.severe("getBassPhrase() ERROR could not fully tile");
         }
@@ -284,14 +300,14 @@ public class WalkingBassGenerator implements MusicGenerator
 
 
     /**
-     * Check if there are untiled bars, and if yes create and add the corresponding WbpSources (CUSTEOM BassStyle) to WbpSourceDatabase.
+     * For each untiled bar create and add BassStyle.CUSTOM WbpSource(s) to WbpSourceDatabase.
      * <p>
      * Untiled zones with only 1 chord are NOT handled by this method (it means that the default WbpSourceDatabase should be updated).
      *
      * @param tiling
      * @return True if there still are some untiled bars.
      */
-    private boolean handleNonTiledBars(WbpTiling tiling)
+    private boolean addCustomWbpSources(WbpTiling tiling)
     {
         boolean b = false;
 
@@ -332,7 +348,7 @@ public class WalkingBassGenerator implements MusicGenerator
     }
 
     /**
-     * Create one or more WbpSources with BassType=CUSTOM for subSeq, for which no standard tiling solution could be found.
+     * Create one or more default WbpSources with BassType=CUSTOM for subSeq.
      *
      * @param subSeq Must start at bar 0. Contains 2 or more chords.
      * @return

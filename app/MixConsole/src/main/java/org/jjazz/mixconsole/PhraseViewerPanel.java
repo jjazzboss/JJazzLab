@@ -197,7 +197,7 @@ public class PhraseViewerPanel extends PhraseBirdsEyeViewComponent implements Ch
 
     private void musicGenerationResultReceived(MusicGenerationQueue.Result result)
     {
-        if (result.throwable() != null)
+        if (result == null || result.throwable() != null)
         {
             return;
         }

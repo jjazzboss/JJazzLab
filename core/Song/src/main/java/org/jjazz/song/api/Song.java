@@ -121,12 +121,13 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
      */
     public static final String PROP_MODIFIED_OR_SAVED_OR_RESET = "PROP_MODIFIED_OR_SAVED_OR_RESET";
     /**
-     * Fired each time the musical content of the song is modified.
+     * Fired each time the "musical content" of the song is modified.
      * <p>
-     * OldValue=the property name or ClsActionEvent/SgsActionEvent actionId that triggered the musical change.<br>
+     * OldValue=the Song property name or ClsActionEvent/SgsActionEvent actionId that triggered the musical change.<br>
      * NewValue=the optional associated data
      * <p>
-     * Use PROP_MODIFIED_OR_SAVED_OR_RESET to get notified of any song change, including non-musical ones like tempo change, phrase name change, etc.
+     * Because a rhythm might adjust the generated music to the tempo, a PROP_TEMPO change can also trigger a PROP_MUSIC_GENERATION change event.<p>
+     * Use PROP_MODIFIED_OR_SAVED_OR_RESET to get notified of any song change, including non-musical ones like phrase name change, etc.
      */
     public static final String PROP_MUSIC_GENERATION = "PROP_MUSIC_GENERATION";
     private SongStructure songStructure;
@@ -595,6 +596,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
         {
             tempo = newTempo;
             pcs.firePropertyChange(PROP_TEMPO, oldTempo, newTempo);
+            fireIsMusicallyModified(PROP_TEMPO, tempo);
             fireIsModified();
         }
     }
@@ -1131,8 +1133,6 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
                 .findAny()
                 .orElseThrow();
     }
-
-   
 
 
     // --------------------------------------------------------------------- 
