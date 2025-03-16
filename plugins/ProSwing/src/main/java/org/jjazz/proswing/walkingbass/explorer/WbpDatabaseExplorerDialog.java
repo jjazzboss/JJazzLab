@@ -80,7 +80,8 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
 
         doUpdate();
 
-        pack();
+        setSize(1600, 600);
+        setLocationRelativeTo(null);
     }
 
     public List<WbpSource> getSelectedWbpSources()

@@ -35,23 +35,33 @@ import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 public interface WbpsaScorer
 {
 
+
     static public Score SCORE_ZERO = new Score(0, 0, 0, 0, 0);
 
     /**
-     * Compatibility score.
+     * Compatibility score, all float values must be in the [0;100] range.
      * <p>
      * compareTo(SCORE_ZERO) == 0 means incompatibility. compareTo(SCORE_ZERO) &gt; 0 means some compatibility.
+     * <p>
      */
     public record Score(float chordTypeCompatibility, float transposibility, float tempoCompatibility, float preTargetNoteMatch, float postTargetNoteMatch) implements Comparable<Score>
             {
 
+        private static final float MAX = 100;
+        private static final int CT_WEIGHT = 6;
+        private static final int TR_WEIGHT = 2;
+        private static final int TE_WEIGHT = 2;
+        private static final int PRE_TN_WEIGHT = 1;
+        private static final int POST_TN_WEIGHT = 1;
+        private static final int WEIGHT_SUM = CT_WEIGHT + TR_WEIGHT + TE_WEIGHT + PRE_TN_WEIGHT + POST_TN_WEIGHT;
+
         public Score    
         {
-            Preconditions.checkArgument(chordTypeCompatibility >= 0 && chordTypeCompatibility <= 100, "chordTypeCompatibility=%s", chordTypeCompatibility);
-            Preconditions.checkArgument(transposibility >= 0 && transposibility <= 100, "transposibility=%s", transposibility);
-            Preconditions.checkArgument(tempoCompatibility >= 0 && tempoCompatibility <= 100, "tempoCompatibility=%s", tempoCompatibility);
-            Preconditions.checkArgument(preTargetNoteMatch >= 0 && preTargetNoteMatch <= 100, "preTargetNoteMatch=%s", preTargetNoteMatch);
-            Preconditions.checkArgument(postTargetNoteMatch >= 0 && postTargetNoteMatch <= 100, "postTargetNoteMatch=%s", postTargetNoteMatch);
+            Preconditions.checkArgument(chordTypeCompatibility >= 0 && chordTypeCompatibility <= MAX, "chordTypeCompatibility=%s", chordTypeCompatibility);
+            Preconditions.checkArgument(transposibility >= 0 && transposibility <= MAX, "transposibility=%s", transposibility);
+            Preconditions.checkArgument(tempoCompatibility >= 0 && tempoCompatibility <= MAX, "tempoCompatibility=%s", tempoCompatibility);
+            Preconditions.checkArgument(preTargetNoteMatch >= 0 && preTargetNoteMatch <= MAX, "preTargetNoteMatch=%s", preTargetNoteMatch);
+            Preconditions.checkArgument(postTargetNoteMatch >= 0 && postTargetNoteMatch <= MAX, "postTargetNoteMatch=%s", postTargetNoteMatch);
         }
 
         /**
@@ -64,40 +74,50 @@ public interface WbpsaScorer
             float res = 0;
             if (chordTypeCompatibility > 0)
             {
-                res = (6 * chordTypeCompatibility + 2 * transposibility + 2 * tempoCompatibility + 1 * preTargetNoteMatch + 1 * postTargetNoteMatch) / 12;
+                res = (CT_WEIGHT * chordTypeCompatibility
+                        + TR_WEIGHT * transposibility
+                        + TE_WEIGHT * tempoCompatibility
+                        + PRE_TN_WEIGHT * preTargetNoteMatch
+                        + POST_TN_WEIGHT * postTargetNoteMatch)
+                        / WEIGHT_SUM;
             }
             return res;
         }
 
         /**
-         * Create a Score instance which will the specified overall value.
+         * Create a Score instance whose overall value is equal to overallTarget.
          *
-         * @param overallValue
+         * @param overallTarget
          */
-        static public Score buildSampleFromOverallValue(float overallValue)
+        static public Score buildSampleFromOverallValue(float overallTarget)
         {
-            Preconditions.checkArgument(overallValue >= 0 && overallValue <= 100, "overallValue=%s", overallValue);
+            Preconditions.checkArgument(overallTarget >= 0 && overallTarget <= MAX, "overallValue=%s", overallTarget);
 
             float ct, tr = 0, te = 0, pretn = 0, posttn = 0;
-            if (overallValue <= 60)
+            final float CT_MAX_OVERALL = CT_WEIGHT * MAX / WEIGHT_SUM;    // 50
+            final float CT_TR_MAX_OVERALL = (CT_WEIGHT + TR_WEIGHT) * MAX / WEIGHT_SUM;    // 66.6666...
+            final float CT_TR_TE_MAX_OVERALL = (CT_WEIGHT + TR_WEIGHT + TE_WEIGHT) * MAX / WEIGHT_SUM;    // 83.3333...
+            final float CT_TR_TE_PRE_MAX_OVERALL = (CT_WEIGHT + TR_WEIGHT + TE_WEIGHT + PRE_TN_WEIGHT) * MAX / WEIGHT_SUM;    // 91.66666...
+
+            if (overallTarget <= CT_MAX_OVERALL)
             {
-                ct = 10 * overallValue / 6;
-            } else if (overallValue <= 80)
+                ct = WEIGHT_SUM * overallTarget / CT_WEIGHT;
+            } else if (overallTarget <= CT_TR_MAX_OVERALL)
             {
-                ct = 100;
-                tr = 10 * (overallValue - 60) / 2;
-            } else if (overallValue <= 100)
+                ct = MAX;
+                tr = Math.min(WEIGHT_SUM * (overallTarget - CT_MAX_OVERALL) / TR_WEIGHT, MAX);
+            } else if (overallTarget <= CT_TR_TE_MAX_OVERALL)
             {
-                ct = tr = 100;
-                te = 10 * (overallValue - 80) / 2;
-            }else if (overallValue <= 110)
+                ct = tr = MAX;
+                te = Math.min(WEIGHT_SUM * (overallTarget - CT_TR_MAX_OVERALL) / TR_WEIGHT, MAX);
+            } else if (overallTarget <= CT_TR_TE_PRE_MAX_OVERALL)
             {
-                ct = tr = te = 100;
-                pretn = 10 * (overallValue - 100) / 1;
+                ct = tr = te = MAX;
+                pretn = Math.min(WEIGHT_SUM * (overallTarget - CT_TR_TE_MAX_OVERALL) / TR_WEIGHT, MAX);
             } else
             {
-                ct = tr = te = pretn = 100;
-                posttn = 10 * (overallValue - 110) / 1;
+                ct = tr = te = pretn = MAX;
+                posttn = Math.min(WEIGHT_SUM * (overallTarget - CT_TR_TE_PRE_MAX_OVERALL) / TR_WEIGHT, MAX);
             }
 
             return new Score(ct, tr, te, pretn, posttn);
@@ -188,7 +208,7 @@ public interface WbpsaScorer
      * <p>
      * @param scs
      * @param tiling If null this might impact the resulting score
-     * @return A multimap with Score keys in descending order
+     * @return A multimap with Score keys in ascending order
      */
     ListMultimap<Score, WbpSourceAdaptation> getWbpSourceAdaptations(SimpleChordSequence scs, WbpTiling tiling);
 

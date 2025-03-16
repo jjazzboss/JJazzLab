@@ -109,6 +109,7 @@ public class DefaultWbpsaScorer implements WbpsaScorer
     @Override
     public ListMultimap<Score, WbpSourceAdaptation> getWbpSourceAdaptations(SimpleChordSequence scs, WbpTiling tiling)
     {
+        // Score in ascending order
         ListMultimap<Score, WbpSourceAdaptation> mmap = MultimapBuilder.treeKeys().arrayListValues().build();
 
 
@@ -287,7 +288,7 @@ public class DefaultWbpsaScorer implements WbpsaScorer
         }
 
         assert res >= 0 && res <= 100 : "res=" + res + " wbpSource=" + wbpSource;
-        
+
         return res;
     }
 }

@@ -248,24 +248,22 @@ public class WbpsaStore
     private List<WbpSourceAdaptation> randomizeSimilarScoreSets(ListMultimap<Score, WbpSourceAdaptation> mmap, float similarScoreWindow)
     {
         List<WbpSourceAdaptation> res = new ArrayList<>();
-        SortedSet<Score> scores = ((SortedSet<Score>) mmap.keySet()).reversed();        // Start by highest score
+        SortedSet<Score> scores = ((SortedSet<Score>) mmap.keySet());        // Sorted by ascending score
 
         if (similarScoreWindow > 0 && !mmap.isEmpty())
         {
             // Group wbpsas per similar score
-            float scoreFirst = mmap.get(scores.getFirst()).getFirst().getCompatibilityScore().overall();
-            float scoreLast = mmap.get(scores.getLast()).getLast().getCompatibilityScore().overall();
+            float overallLowest = scores.getFirst().overall();
+            float overallHighest = scores.getLast().overall();
 
-            for (float overallScore = scoreFirst; overallScore >= scoreLast; overallScore -= similarScoreWindow)
+            for (float overall = overallLowest; overall <= overallHighest; overall += similarScoreWindow)
             {
-                var fromScore = Score.buildSampleFromOverallValue(overallScore);
-                var toScore = Score.buildSampleFromOverallValue(Math.max(overallScore - similarScoreWindow, 0));
+                var fromScore = Score.buildSampleFromOverallValue(overall);
+                var toScore = Score.buildSampleFromOverallValue(Math.min(overall + similarScoreWindow, overallHighest));
                 var scoresSubset = scores.subSet(fromScore, toScore);   // inclusive, exclusive
+
                 List<WbpSourceAdaptation> wbpsaSubset = new ArrayList<>();
-                for (var score : scoresSubset)
-                {
-                    wbpsaSubset.addAll(mmap.get(score));
-                }
+                scoresSubset.forEach(score -> wbpsaSubset.addAll(mmap.get(score)));
 
                 Collections.shuffle(wbpsaSubset);
                 res.addAll(wbpsaSubset);

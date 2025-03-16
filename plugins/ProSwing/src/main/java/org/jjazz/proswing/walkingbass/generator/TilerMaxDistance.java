@@ -68,7 +68,7 @@ public class TilerMaxDistance implements Tiler
         WbpsaStore store = new WbpsaStore(tiling, wbpsaStoreWidth, scorer, randomizeWithinOverallScoreWindow);
 
 
-        // LOGGER.log(Level.SEVERE, "tile() store=\n{0}", store.toDebugString(true));
+        //LOGGER.log(Level.SEVERE, "tile() store=\n{0}", store.toDebugString(true));
 
 
         var nonTiledBars = tiling.getNonTiledBars();
