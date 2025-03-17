@@ -41,20 +41,14 @@ public class TilerMaxDistance implements Tiler
 
     private final Set<WbpSource> usedWbpSources;
     private final int wbpsaStoreWidth;
-    private final float randomizeWithinOverallScoreWindow;
     private final WbpsaScorer scorer;    
     private static final Logger LOGGER = Logger.getLogger(TilerMaxDistance.class.getSimpleName());
 
-    public TilerMaxDistance(WbpsaScorer scorer, int wbpsaStoreWidth)
-    {
-        this(scorer, wbpsaStoreWidth, WbpsaStore.DEFAULT_RANDOMIZE_WITHIN_OVERALL_SCORE_WINDOW);
-    }
 
-    public TilerMaxDistance(WbpsaScorer scorer, int wbpsaStoreWidth, float randomizeWithinOverallScoreWindow)
+    public TilerMaxDistance(WbpsaScorer scorer, int wbpsaStoreWidth)
     {
         this.usedWbpSources = new HashSet<>();
         this.wbpsaStoreWidth = wbpsaStoreWidth;
-        this.randomizeWithinOverallScoreWindow = randomizeWithinOverallScoreWindow;
         this.scorer = scorer;
     }
 
@@ -65,7 +59,7 @@ public class TilerMaxDistance implements Tiler
         LOGGER.log(Level.SEVERE, "tile() --");
         reset();
 
-        WbpsaStore store = new WbpsaStore(tiling, wbpsaStoreWidth, scorer, randomizeWithinOverallScoreWindow);
+        WbpsaStore store = new WbpsaStore(tiling, wbpsaStoreWidth, scorer);
 
 
         //LOGGER.log(Level.SEVERE, "tile() store=\n{0}", store.toDebugString(true));

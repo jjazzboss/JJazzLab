@@ -43,7 +43,6 @@ import org.jjazz.proswing.walkingbass.generator.WbpsaScorer.Score;
 public class WbpsaStore
 {
 
-    public static final float DEFAULT_RANDOMIZE_WITHIN_OVERALL_SCORE_WINDOW = 5f;
     private final WbpTiling tiling;
     /**
      * [0] not used, [1] for size=1 bar, ... [4] for size=4 bars.
@@ -57,20 +56,18 @@ public class WbpsaStore
     /**
      * Create a WbpsaStore for the untiled bars of tiling.
      * <p>
-     * If randomizeWithinOverallScoreWindow is &gt; 0; some randomization is added between WbpSourceAdaptations whose compatibility scores are similar (i.e.
-     * within randomizeWithinOverallScoreWindow).
+
      *
      * @param tiling                            The store will ignore already tiled bars
      * @param width                             Max number of WbpSourceAdaptations kept per bar
      * @param scorer
-     * @param randomizeWithinOverallScoreWindow If &lt;= 0 there is no randomization
      */
-    public WbpsaStore(WbpTiling tiling, int width, WbpsaScorer scorer, float randomizeWithinOverallScoreWindow)
+    public WbpsaStore(WbpTiling tiling, int width, WbpsaScorer scorer)
     {
         this.tiling = tiling;
         this.wbpsaScorer = scorer;
         this.width = width;
-        this.randomizeWithinOverallScoreWindow = randomizeWithinOverallScoreWindow;
+        this.randomizeWithinOverallScoreWindow = WalkingBassGeneratorSettings.getInstance().getWbpsaStoreRandomizedScoreWindow();
 
         for (int size = WbpSourceDatabase.SIZE_MIN; size <= WbpSourceDatabase.SIZE_MAX; size++)
         {
@@ -242,8 +239,8 @@ public class WbpsaStore
      * Add some order randomization within sets of WbpSourceAdaptations which are in the same similar score window.
      *
      * @param mmap
-     * @param similarScoreWindow If 0 no randomization applied
-     * @return A new list with some randomness applied
+     * @param similarScoreWindow Set the "similar score window" where some randomization is applied. If 0 no randomization applied.
+     * @return A new list globally ordered by descending Score, but some randomness can still occur within similarScoreWindow.
      */
     private List<WbpSourceAdaptation> randomizeSimilarScoreSets(ListMultimap<Score, WbpSourceAdaptation> mmap, float similarScoreWindow)
     {
@@ -272,8 +269,9 @@ public class WbpsaStore
         {
             res.addAll(mmap.values());
         }
+                
 
-        return res;
+        return res.reversed();  
     }
 
 }
