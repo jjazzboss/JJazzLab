@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -865,19 +864,14 @@ public class WbpSourceDatabase
         {
             BassStyle res = BassStyle.WALKING;
 
-            boolean twoFeelA = tags.stream().anyMatch(t -> t.equalsIgnoreCase("2feel-a"));
-            boolean twoFeelB = tags.stream().anyMatch(t -> t.equalsIgnoreCase("2feel-b"));
-            boolean twoFeel = twoFeelA || twoFeelB;
+            boolean twoFeel = tags.stream().anyMatch(t -> t.startsWith("2feel"));
             boolean walking = tags.stream().anyMatch(t -> t.equalsIgnoreCase("walking"));
-            if ((twoFeelA && twoFeelB) || (twoFeel && walking) || (!twoFeel && !walking))
+            if ((twoFeel && walking) || (!twoFeel && !walking))
             {
                 LOGGER.log(Level.SEVERE, "computeBassStyle() Inconsistent tags found in WbpSession={0}", this);
-            } else if (twoFeelA)
+            } else if (twoFeel)
             {
-                res = BassStyle.TWO_FEEL_A;
-            } else if (twoFeelB)
-            {
-                res = BassStyle.TWO_FEEL_B;
+                res = BassStyle.TWO_FEEL;
             }
             return res;
         }

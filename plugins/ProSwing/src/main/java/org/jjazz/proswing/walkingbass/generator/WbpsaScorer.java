@@ -49,8 +49,8 @@ public interface WbpsaScorer
 
         private static final float MAX = 100;
         private static final int CT_WEIGHT = 6;
-        private static final int TR_WEIGHT = 2;
-        private static final int TE_WEIGHT = 2;
+        private static final int TR_WEIGHT = 4;
+        private static final int TE_WEIGHT = 4;
         private static final int PRE_TN_WEIGHT = 1;
         private static final int POST_TN_WEIGHT = 1;
         private static final int WEIGHT_SUM = CT_WEIGHT + TR_WEIGHT + TE_WEIGHT + PRE_TN_WEIGHT + POST_TN_WEIGHT;
@@ -94,10 +94,10 @@ public interface WbpsaScorer
             Preconditions.checkArgument(overallTarget >= 0 && overallTarget <= MAX, "overallValue=%s", overallTarget);
 
             float ct, tr = 0, te = 0, pretn = 0, posttn = 0;
-            final float CT_MAX_OVERALL = CT_WEIGHT * MAX / WEIGHT_SUM;    // 50
-            final float CT_TR_MAX_OVERALL = (CT_WEIGHT + TR_WEIGHT) * MAX / WEIGHT_SUM;    // 66.6666...
-            final float CT_TR_TE_MAX_OVERALL = (CT_WEIGHT + TR_WEIGHT + TE_WEIGHT) * MAX / WEIGHT_SUM;    // 83.3333...
-            final float CT_TR_TE_PRE_MAX_OVERALL = (CT_WEIGHT + TR_WEIGHT + TE_WEIGHT + PRE_TN_WEIGHT) * MAX / WEIGHT_SUM;    // 91.66666...
+            final float CT_MAX_OVERALL = CT_WEIGHT * MAX / WEIGHT_SUM;    
+            final float CT_TR_MAX_OVERALL = (CT_WEIGHT + TR_WEIGHT) * MAX / WEIGHT_SUM;    
+            final float CT_TR_TE_MAX_OVERALL = (CT_WEIGHT + TR_WEIGHT + TE_WEIGHT) * MAX / WEIGHT_SUM;    
+            final float CT_TR_TE_PRE_MAX_OVERALL = (CT_WEIGHT + TR_WEIGHT + TE_WEIGHT + PRE_TN_WEIGHT) * MAX / WEIGHT_SUM;    
 
             if (overallTarget <= CT_MAX_OVERALL)
             {

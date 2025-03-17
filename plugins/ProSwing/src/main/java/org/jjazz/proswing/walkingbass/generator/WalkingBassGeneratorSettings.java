@@ -62,13 +62,13 @@ public class WalkingBassGeneratorSettings
      */
     public float getWbpsaStoreRandomizedScoreWindow()
     {
-        return prefs.getFloat(PREF_WBPSA_STORE_RANDOMIZED_SCORE_WINDOW, 3f);
+        return prefs.getFloat(PREF_WBPSA_STORE_RANDOMIZED_SCORE_WINDOW, 0f);
     }
 
     /**
      * WbpsaStore applies some randomization in the order of WbpSourceAdaptations whose compatibility overall scores are similar, i.e. within scoreWindow.
      *
-     * @param scoreWindow
+     * @param scoreWindow Use 0 to disable randomization.
      */
     public void setWbpsaStoreRandomizedScoreWindow(float scoreWindow)
     {

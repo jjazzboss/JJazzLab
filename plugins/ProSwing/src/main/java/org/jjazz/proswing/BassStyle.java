@@ -37,24 +37,17 @@ public enum BassStyle
      */
     CUSTOM,
     BASIC,
-    TWO_FEEL_A,
-    TWO_FEEL_B,
+    TWO_FEEL,
     WALKING;
 
     public boolean is2feel()
     {
-        return this == TWO_FEEL_A || this == TWO_FEEL_B;
+        return this == TWO_FEEL;
     }
 
     public boolean isWalking()
     {
         return this == WALKING;
-    }
-
-    public BassStyle getComplementary2feel()
-    {
-        Preconditions.checkArgument(is2feel());
-        return this == TWO_FEEL_A ? TWO_FEEL_B : TWO_FEEL_A;
     }
 
     public boolean matches(WbpSource wbps)

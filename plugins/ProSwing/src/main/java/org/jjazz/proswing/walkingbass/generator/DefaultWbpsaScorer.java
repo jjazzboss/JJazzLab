@@ -245,7 +245,7 @@ public class DefaultWbpsaScorer implements WbpsaScorer
         assert bassStyle.is2feel() || bassStyle.isWalking() : " wbpSource=" + wbpSource;
         var stats = wbpSource.getStats();
 
-        if (tempo <= TempoRange.MEDIUM_SLOW.getMin())
+        if (tempo <= TempoRange.MEDIUM_SLOW.getMin())       // < 75
         {
             // Slow, better if additional extra notes
             if (bassStyle.is2feel())
@@ -258,7 +258,7 @@ public class DefaultWbpsaScorer implements WbpsaScorer
                 float bonus = Math.min(stats.nbShortNotes() * 20 + stats.nbDottedEighthNotes() * 20, 40);
                 res = 60 + bonus;
             }
-        } else if (tempo <= TempoRange.MEDIUM_SLOW.getMax())
+        } else if (tempo <= TempoRange.MEDIUM_SLOW.getMax())    // < 115
         {
             // Medium slow, sightly better if additional extra notes
             if (bassStyle.is2feel())
@@ -271,16 +271,16 @@ public class DefaultWbpsaScorer implements WbpsaScorer
                 float bonus = Math.min(stats.nbShortNotes() * 10 + stats.nbDottedEighthNotes() * 10, 20);
                 res = 80 + bonus;
             }
-        } else if (tempo <= TempoRange.MEDIUM.getMax())
+        } else if (tempo <= TempoRange.MEDIUM.getMax())     // < 135
         {
             // Medium, everything is ok
             res = 80;
-        } else if (tempo <= TempoRange.MEDIUM_FAST.getMax())
+        } else if (tempo <= TempoRange.MEDIUM_FAST.getMax())        // < 180
         {
             // Medium fast, too much is bad
             float malus = Math.min(stats.nbShortNotes() * 30 + stats.nbDottedEighthNotes() * 10, 70);
             res = 100 - malus;
-        } else
+        } else              
         {
             // Fast, simple is best!
             float malus = Math.min(stats.nbShortNotes() * 60 + stats.nbDottedEighthNotes() * 30, 100);

@@ -206,28 +206,11 @@ public class WalkingBassGenerator implements MusicGenerator
         LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling MaxDistance =\n{0}", tiling.toMultiLineString());
 
 
-        // Special handling if 2-feel
-        var untiled = !tiling.isFullyTiled();
-        if (untiled && style.is2feel())
-        {
-            // Try to tile using WbpSources from the other 2-feel
-            var complementary2feel = style.getComplementary2feel();
-            WbpsaScorer scorerComplementary2feel = new DefaultWbpsaScorer(phraseAdapter, tempo, complementary2feel);
-            var tilerComplementary2feel = new TilerMaxDistance(scorerComplementary2feel, settings.getWbpsaStoreWidth());
-            tilerComplementary2feel.tile(tiling);
-            LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling MaxDistance using complementary {0} =\n{1}",
-                    new Object[]
-                    {
-                        complementary2feel,
-                        tiling.toMultiLineString()
-                    });
-        }
-
-
+        
         // If still untiled try using previously computed CUSTOM source phrases
         WbpsaScorer scorerCustom = new DefaultWbpsaScorer(phraseAdapter, tempo, BassStyle.CUSTOM);
         var tilerCustom = new TilerMaxDistance(scorerCustom, settings.getWbpsaStoreWidth());
-        untiled = !tiling.isFullyTiled();
+        var untiled = !tiling.isFullyTiled();
         if (untiled)
         {
             tilerCustom.tile(tiling);
