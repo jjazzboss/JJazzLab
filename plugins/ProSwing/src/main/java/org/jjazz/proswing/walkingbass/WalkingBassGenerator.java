@@ -173,7 +173,7 @@ public class WalkingBassGenerator implements MusicGenerator
         return res;
     }
 
- 
+
     /**
      * Get the bass phrase from a SimpleChordSequenceExt.
      *
@@ -197,42 +197,49 @@ public class WalkingBassGenerator implements MusicGenerator
         var phraseAdapter = new TransposerPhraseAdapter();
 
 
-        // PREMIUM PHASE 1
+        // PREMIUM PHASE
         WbpsaScorer scorerPremium = new DefaultWbpsaScorer(phraseAdapter, tempo, Score.PREMIUM_ONLY_TESTER, style);
 
-        var tilerBestFirstNoRepeat = new TilerLongestFirstNoRepeat(scorerPremium, settings.getWbpsaStoreWidth());
-        tilerBestFirstNoRepeat.tile(tiling);
+        var tilerLongestPremium = new TilerLongestFirstNoRepeat(scorerPremium, settings.getWbpsaStoreWidth());
+        tilerLongestPremium.tile(tiling);
         LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling PREMIUM LongestFirstNoRepeat =\n{0}", tiling.toMultiLineString());
 
-
-        var tilerMaxDistance = new TilerMaxDistance(scorerPremium, settings.getWbpsaStoreWidth());
-        tilerMaxDistance.tile(tiling);
-        LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling PREMIUM MaxDistance =\n{0}", tiling.toMultiLineString());
-
-
         var untiled = !tiling.isFullyTiled();
-        WbpsaScorer scorerStandard = new DefaultWbpsaScorer(phraseAdapter, tempo, null, style);
         if (untiled)
         {
-            // STANDARD PHASE 2
-            tilerBestFirstNoRepeat = new TilerLongestFirstNoRepeat(scorerStandard, settings.getWbpsaStoreWidth());
-            tilerBestFirstNoRepeat.tile(tiling);
-            LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling STANDARD LongestFirstNoRepeat =\n{0}", tiling.toMultiLineString());
-
-
-            tilerMaxDistance = new TilerMaxDistance(scorerStandard, settings.getWbpsaStoreWidth());
-            tilerMaxDistance.tile(tiling);
-            LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling STANDARD MaxDistance =\n{0}", tiling.toMultiLineString());
+            var tilerMaxDistancePremium = new TilerMaxDistance(scorerPremium, settings.getWbpsaStoreWidth());
+            tilerMaxDistancePremium.tile(tiling);
+            LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling PREMIUM MaxDistance =\n{0}", tiling.toMultiLineString());
         }
-        
-        
-        // If still untiled try using previously computed CUSTOM source phrases
-        WbpsaScorer scorerCustom = new DefaultWbpsaScorer(phraseAdapter, tempo, null, BassStyle.CUSTOM);
-        var tilerCustom = new TilerMaxDistance(scorerCustom, settings.getWbpsaStoreWidth());
+
+
+        // STANDARD PHASE
         untiled = !tiling.isFullyTiled();
         if (untiled)
         {
-            tilerCustom.tile(tiling);
+            WbpsaScorer scorerStandard = new DefaultWbpsaScorer(phraseAdapter, tempo, null, style);
+
+            var tilerLongestStandard = new TilerLongestFirstNoRepeat(scorerStandard, settings.getWbpsaStoreWidth());
+            tilerLongestStandard.tile(tiling);
+            LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling STANDARD LongestFirstNoRepeat =\n{0}", tiling.toMultiLineString());
+
+            untiled = !tiling.isFullyTiled();
+            if (untiled)
+            {
+                var tilerMaxDistanceStandard = new TilerMaxDistance(scorerStandard, settings.getWbpsaStoreWidth());
+                tilerMaxDistanceStandard.tile(tiling);
+                LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling STANDARD MaxDistance =\n{0}", tiling.toMultiLineString());
+            }
+        }
+
+
+        // If still untiled, try using previously computed CUSTOM source phrases
+        WbpsaScorer scorerCustom = new DefaultWbpsaScorer(phraseAdapter, tempo, null, BassStyle.CUSTOM);
+        var tilerMaxDistanceCustomStandard = new TilerMaxDistance(scorerCustom, settings.getWbpsaStoreWidth());
+        untiled = !tiling.isFullyTiled();
+        if (untiled)
+        {
+            tilerMaxDistanceCustomStandard.tile(tiling);
             LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling EXISTING CUSTOM MaxDistance =\n{1}",
                     new Object[]
                     {
@@ -241,12 +248,12 @@ public class WalkingBassGenerator implements MusicGenerator
         }
 
 
-        // If still untiled add new CUSTOM source phrases, that should normally tile everything left
+        // If still untiled, add new CUSTOM source phrases then retile -that should be enough
         untiled = !tiling.isFullyTiled();
         if (untiled)
         {
             untiled = addCustomWbpSources(tiling);
-            tilerCustom.tile(tiling);
+            tilerMaxDistanceCustomStandard.tile(tiling);
             LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling CREATED CUSTOM MaxDistance =\n{0}", tiling.toMultiLineString());
         }
 
