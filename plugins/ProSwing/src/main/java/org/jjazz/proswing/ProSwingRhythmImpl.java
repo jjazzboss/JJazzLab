@@ -44,7 +44,7 @@ import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrasetransform.api.rps.RP_SYS_DrumsTransform;
 import org.jjazz.proswing.walkingbass.WbpSourceDatabase;
-import org.jjazz.proswing.walkingbass.generator.WalkingBassGenerator;
+import org.jjazz.proswing.walkingbass.WalkingBassGenerator;
 import org.jjazz.rhythm.api.Division;
 import org.jjazz.rhythm.api.Genre;
 import org.jjazz.rhythm.api.MusicGenerationException;

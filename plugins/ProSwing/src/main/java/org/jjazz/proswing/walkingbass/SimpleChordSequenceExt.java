@@ -22,7 +22,7 @@
  *   Contributor(s): 
  * 
  */
-package org.jjazz.proswing.walkingbass.generator;
+package org.jjazz.proswing.walkingbass;
 
 import com.google.common.base.Preconditions;
 import java.util.ArrayList;

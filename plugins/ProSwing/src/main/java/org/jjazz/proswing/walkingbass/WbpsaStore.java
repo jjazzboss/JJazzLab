@@ -22,7 +22,7 @@
  *   Contributor(s): 
  * 
  */
-package org.jjazz.proswing.walkingbass.generator;
+package org.jjazz.proswing.walkingbass;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ListMultimap;
@@ -33,9 +33,7 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jjazz.proswing.walkingbass.WbpSourceDatabase;
 import org.jjazz.utilities.api.IntRange;
-import org.jjazz.proswing.walkingbass.generator.WbpsaScorer.Score;
 
 /**
  * Store the best WbpSourceAdaptations of all sizes for each non-tiled bar of a tiling.
@@ -56,10 +54,10 @@ public class WbpsaStore
     /**
      * Create a WbpsaStore for the untiled bars of tiling.
      * <p>
-
      *
-     * @param tiling                            The store will ignore already tiled bars
-     * @param width                             Max number of WbpSourceAdaptations kept per bar
+     *
+     * @param tiling The store will ignore already tiled bars
+     * @param width  Max number of WbpSourceAdaptations kept per bar
      * @param scorer
      */
     public WbpsaStore(WbpTiling tiling, int width, WbpsaScorer scorer)
@@ -68,6 +66,10 @@ public class WbpsaStore
         this.wbpsaScorer = scorer;
         this.width = width;
         this.randomizeWithinOverallScoreWindow = WalkingBassGeneratorSettings.getInstance().getWbpsaStoreRandomizedScoreWindow();
+        if (this.randomizeWithinOverallScoreWindow < 1)
+        {
+            LOGGER.log(Level.SEVERE, "WbpsaStore() NO RANDOMIZATION randomizeWithinOverallScoreWindow={0}", randomizeWithinOverallScoreWindow);
+        }
 
         for (int size = WbpSourceDatabase.SIZE_MIN; size <= WbpSourceDatabase.SIZE_MAX; size++)
         {
@@ -269,9 +271,9 @@ public class WbpsaStore
         {
             res.addAll(mmap.values());
         }
-                
 
-        return res.reversed();  
+
+        return res.reversed();
     }
 
 }

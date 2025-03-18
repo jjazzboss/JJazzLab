@@ -22,7 +22,7 @@
  *   Contributor(s): 
  * 
  */
-package org.jjazz.proswing.walkingbass.generator;
+package org.jjazz.proswing.walkingbass;
 
 import org.jjazz.harmony.api.Note;
 import org.jjazz.phrase.api.Phrase;

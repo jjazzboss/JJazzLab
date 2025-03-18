@@ -1,4 +1,4 @@
-package org.jjazz.proswing.walkingbass.generator;
+package org.jjazz.proswing.walkingbass;
 
 import com.google.common.base.Preconditions;
 import java.util.ArrayList;
@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -173,6 +174,17 @@ public class WalkingBassGenerator implements MusicGenerator
     }
 
     /**
+     * A predicate to keep only "premium" scores, i.e. discard compatible but possibly problematic scores.
+     * <p>
+     *
+     * @return
+     */
+    private Predicate<Score> getPremiumOnlyTester()
+    {
+        return s -> s.tempoCompatibility() >= 50 && s.transposability() >= 50;
+    }
+
+    /**
      * Get the bass phrase from a SimpleChordSequenceExt.
      *
      * @param scs
@@ -193,28 +205,45 @@ public class WalkingBassGenerator implements MusicGenerator
         var settings = WalkingBassGeneratorSettings.getInstance();
         WbpTiling tiling = new WbpTiling(scs);
         var phraseAdapter = new TransposerPhraseAdapter();
-        WbpsaScorer scorer = new DefaultWbpsaScorer(phraseAdapter, tempo, style);
 
 
-        var tilerBestFirstNoRepeat = new TilerBestFirstNoRepeat(scorer, settings.getWbpsaStoreWidth());
+        // PREMIUM PHASE 1
+        WbpsaScorer scorerPremium = new DefaultWbpsaScorer(phraseAdapter, tempo, getPremiumOnlyTester(), style);
+
+        var tilerBestFirstNoRepeat = new TilerLongestFirstNoRepeat(scorerPremium, settings.getWbpsaStoreWidth());
         tilerBestFirstNoRepeat.tile(tiling);
-        LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling BestFirstNoRepeat =\n{0}", tiling.toMultiLineString());
+        LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling PREMIUM LongestFirstNoRepeat =\n{0}", tiling.toMultiLineString());
 
 
-        var tilerMaxDistance = new TilerMaxDistance(scorer, settings.getWbpsaStoreWidth());
+        var tilerMaxDistance = new TilerMaxDistance(scorerPremium, settings.getWbpsaStoreWidth());
         tilerMaxDistance.tile(tiling);
-        LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling MaxDistance =\n{0}", tiling.toMultiLineString());
+        LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling PREMIUM MaxDistance =\n{0}", tiling.toMultiLineString());
 
 
+        var untiled = !tiling.isFullyTiled();
+        WbpsaScorer scorerStandard = new DefaultWbpsaScorer(phraseAdapter, tempo, null, style);
+        if (untiled)
+        {
+            // STANDARD PHASE 2
+            tilerBestFirstNoRepeat = new TilerLongestFirstNoRepeat(scorerStandard, settings.getWbpsaStoreWidth());
+            tilerBestFirstNoRepeat.tile(tiling);
+            LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling STANDARD LongestFirstNoRepeat =\n{0}", tiling.toMultiLineString());
+
+
+            tilerMaxDistance = new TilerMaxDistance(scorerStandard, settings.getWbpsaStoreWidth());
+            tilerMaxDistance.tile(tiling);
+            LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling STANDARD MaxDistance =\n{0}", tiling.toMultiLineString());
+        }
+        
         
         // If still untiled try using previously computed CUSTOM source phrases
-        WbpsaScorer scorerCustom = new DefaultWbpsaScorer(phraseAdapter, tempo, BassStyle.CUSTOM);
+        WbpsaScorer scorerCustom = new DefaultWbpsaScorer(phraseAdapter, tempo, null, BassStyle.CUSTOM);
         var tilerCustom = new TilerMaxDistance(scorerCustom, settings.getWbpsaStoreWidth());
-        var untiled = !tiling.isFullyTiled();
+        untiled = !tiling.isFullyTiled();
         if (untiled)
         {
             tilerCustom.tile(tiling);
-            LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling MaxDistance using existing CUSTOM WbpSources =\n{1}",
+            LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling EXISTING CUSTOM MaxDistance =\n{1}",
                     new Object[]
                     {
                         tiling.toMultiLineString()
@@ -228,7 +257,7 @@ public class WalkingBassGenerator implements MusicGenerator
         {
             untiled = addCustomWbpSources(tiling);
             tilerCustom.tile(tiling);
-            LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling MaxDistance using CREATED CUSTOM WbpSources =\n{0}", tiling.toMultiLineString());
+            LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling CREATED CUSTOM MaxDistance =\n{0}", tiling.toMultiLineString());
         }
 
 

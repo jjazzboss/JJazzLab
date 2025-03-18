@@ -25,8 +25,8 @@ import org.jjazz.utilities.api.IntRange;
 public class WbpSource extends Wbp
 {
 
-    public final IntRange BASS_MAIN_PITCH_RANGE = new IntRange(28, 55);  // E1 - G3
-    public final IntRange BASS_PITCH_RANGE = new IntRange(23, 64);  // B0 - E4
+    public final IntRange BASS_GOOD_PITCH_RANGE = new IntRange(28, 52);  // E1 - E3
+    public final IntRange BASS_EXTENDED_PITCH_RANGE = new IntRange(28, 64);  // E1 - E4
     private final String sessionId;
     private final String id;
     private final int sessionBarOffset;
@@ -187,22 +187,26 @@ public class WbpSource extends Wbp
 
     /**
      * Get a score which indicates how much the original phrase will preserve an acceptable bass pitch range when transposed to destChordRoot.
+     * <p>
+     * Return value will be &lt; 50 if there is at least one note which becomes out of BASS_EXTENDED_PITCH_RANGE.
      *
      * @param destChordRoot The target root of the first chord symbol
      * @return [0;100]
      */
-    public int getTransposibilityScore(Note destChordRoot)
+    public int getTransposabilityScore(Note destChordRoot)
     {
         Note srcChordRoot = getSimpleChordSequence().first().getData().getRootNote();
-        if (destChordRoot.equalsRelativePitch(srcChordRoot))
+        int destChordRelPitch = destChordRoot.getRelativePitch();
+        int rootPitchDistance = Math.abs(destChordRelPitch - srcChordRoot.getRelativePitch());
+        if (rootPitchDistance == 0)
         {
             int score = 100;
-            mapDestChordRootTransposibility.put(destChordRoot.getRelativePitch(), new TransposibilityResult(score, 0));
+            mapDestChordRootTransposibility.put(destChordRelPitch, new TransposibilityResult(score, 0));
             return score;
         }
 
         // Check cache
-        var tr = mapDestChordRootTransposibility.get(destChordRoot.getRelativePitch());
+        var tr = mapDestChordRootTransposibility.get(destChordRelPitch);
         if (tr != null)
         {
             return tr.score();
@@ -211,8 +215,8 @@ public class WbpSource extends Wbp
         int nbNotes = getSizedPhrase().size();
 
         // Count transposing up
-        int countMainUp = 0;
-        int countBassRangeUp = 0;
+        int countGoodUp = 0;
+        int countExtendedUp = 0;
         int countOutsideUp = 0;
         int transposeUp = srcChordRoot.getRelativeAscInterval(destChordRoot);
         int pitchSum = 0;
@@ -220,12 +224,12 @@ public class WbpSource extends Wbp
         {
             pitchSum += ne.getPitch();
             int pitch = ne.getPitch() + transposeUp;
-            if (BASS_MAIN_PITCH_RANGE.contains(pitch))
+            if (BASS_GOOD_PITCH_RANGE.contains(pitch))
             {
-                countMainUp++;
-            } else if (BASS_PITCH_RANGE.contains(pitch))
+                countGoodUp++;
+            } else if (BASS_EXTENDED_PITCH_RANGE.contains(pitch))
             {
-                countBassRangeUp++;
+                countExtendedUp++;
             } else
             {
                 countOutsideUp++;
@@ -235,19 +239,19 @@ public class WbpSource extends Wbp
 
 
         // Count transposing down
-        int countMainDown = 0;
-        int countBassRangeDown = 0;
+        int countGoodDown = 0;
+        int countExtendedDown = 0;
         int countOutsideDown = 0;
         int transposeDown = srcChordRoot.getRelativeDescInterval(destChordRoot);
         for (var ne : getSizedPhrase())
         {
             int pitch = ne.getPitch() - transposeDown;
-            if (BASS_MAIN_PITCH_RANGE.contains(pitch))
+            if (BASS_GOOD_PITCH_RANGE.contains(pitch))
             {
-                countMainDown++;
-            } else if (BASS_PITCH_RANGE.contains(pitch))
+                countGoodDown++;
+            } else if (BASS_EXTENDED_PITCH_RANGE.contains(pitch))
             {
-                countBassRangeDown++;
+                countExtendedDown++;
             } else
             {
                 countOutsideDown++;
@@ -260,12 +264,12 @@ public class WbpSource extends Wbp
         boolean tDown;
         if (countOutsideUp == countOutsideDown)
         {
-            if (countBassRangeDown == countBassRangeUp)
+            if (countExtendedDown == countExtendedUp)
             {
                 tDown = Math.abs(pitchAvg - transposeDown - IDEAL_CENTRAL_PITCH) < Math.abs(pitchAvg + transposeUp - IDEAL_CENTRAL_PITCH);
             } else
             {
-                tDown = countBassRangeDown < countBassRangeUp;
+                tDown = countExtendedDown < countExtendedUp;
             }
         } else
         {
@@ -274,29 +278,32 @@ public class WbpSource extends Wbp
 
 
         float countOutside = tDown ? countOutsideDown : countOutsideDown;
-        float countBassRange = tDown ? countBassRangeDown : countBassRangeUp;
+        float countExtended = tDown ? countExtendedDown : countExtendedUp;
+        float countGood = tDown ? countGoodDown : countGoodUp;
         int transpose = tDown ? -transposeDown : transposeUp;
-        float distanceToIdealCentralPitch = Math.min(11, Math.abs(pitchAvg + transpose - IDEAL_CENTRAL_PITCH));
-        float outsideRatio = countOutside / nbNotes;
-        float bassRangeRatio = countBassRange / nbNotes;
-        float idealShiftRatio = distanceToIdealCentralPitch / 11;
-        float ratio = (10 * outsideRatio + 5 * idealShiftRatio + bassRangeRatio) / 16f;
+        float distanceToIdealCentralPitch = Math.min(11, Math.abs(pitchAvg + transpose - IDEAL_CENTRAL_PITCH)); // [1-11]
+        float ratioDistanceToIdealCentralPitch = (11 - distanceToIdealCentralPitch) / 11;
+        float ratioGoodToOutside = safeRatio(countGood, countGood + countOutside);
+        float ratioGoodToExtended = safeRatio(countGood, countGood + countExtended);
 
 
-        int res = Math.round(95 * (1 - ratio));
+        float maxFactor = countOutside > 0 ? 0.49f : 1f;
+        float ratio = maxFactor * (60 * ratioGoodToOutside + 20 * ratioGoodToExtended + 20 * ratioDistanceToIdealCentralPitch);
+        int res = Math.round(ratio);
+
 
         // Save cache
         mapDestChordRootTransposibility.put(destChordRoot.getRelativePitch(), new TransposibilityResult(res, transpose));
-        LOGGER.log(Level.FINE, "getTransposibilityScore() countOutsideDown={0} countOutsideUp={1} countBassRangeDown={2} countBassRangeUp={3} pitchAvg={4}",
+        LOGGER.log(Level.FINE, "getTransposibilityScore() countGood={0} countOutside={1} countExtended={2}",
                 new Object[]
                 {
-                    countOutsideDown, countOutsideUp, countBassRangeDown, countBassRangeUp, pitchAvg
+                    countGood, countOutside, countExtended
                 });
         LOGGER.log(Level.FINE,
-                "                          srcChordRoot={0} destChordRoot={1} distToCentralPitch={2} transpose={3} score={4} phrase={5} ",
+                "                          srcChordRoot={0} destChordRoot={1} transpose={2} score={3} phrase={4} ",
                 new Object[]
                 {
-                    srcChordRoot, destChordRoot, distanceToIdealCentralPitch, transpose, res, getSizedPhrase()
+                    srcChordRoot, destChordRoot, transpose, res, getSizedPhrase()
                 });
 
         return res;
@@ -313,7 +320,7 @@ public class WbpSource extends Wbp
         var tr = mapDestChordRootTransposibility.get(destChordRoot.getRelativePitch());
         if (tr == null)
         {
-            getTransposibilityScore(destChordRoot);     // This will update mapDestChordRootTransposibility to get transposition direction
+            getTransposabilityScore(destChordRoot);     // This will update mapDestChordRootTransposibility to get transposition direction
             tr = mapDestChordRootTransposibility.get(destChordRoot.getRelativePitch());
             assert tr != null;
         }
@@ -367,4 +374,8 @@ public class WbpSource extends Wbp
     // Private methods
     // =================================================================================================================    
 
+    private float safeRatio(float upper, float lower)
+    {
+        return lower == 0 ? 1 : upper / lower;
+    }
 }

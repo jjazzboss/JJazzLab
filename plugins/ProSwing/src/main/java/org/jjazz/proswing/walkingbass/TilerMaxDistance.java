@@ -22,7 +22,7 @@
  *   Contributor(s): 
  * 
  */
-package org.jjazz.proswing.walkingbass.generator;
+package org.jjazz.proswing.walkingbass;
 
 import com.google.common.base.Preconditions;
 import java.util.HashSet;
@@ -62,7 +62,7 @@ public class TilerMaxDistance implements Tiler
         WbpsaStore store = new WbpsaStore(tiling, wbpsaStoreWidth, scorer);
 
 
-        LOGGER.log(Level.SEVERE, "tile() store=\n{0}", store.toDebugString(true));
+        //LOGGER.log(Level.SEVERE, "tile() store=\n{0}", store.toDebugString(true));
 
 
         var nonTiledBars = tiling.getNonTiledBars();

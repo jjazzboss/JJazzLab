@@ -22,19 +22,32 @@
  *   Contributor(s): 
  * 
  */
-package org.jjazz.proswing.walkingbass.generator;
+package org.jjazz.proswing.walkingbass;
+
+import org.jjazz.harmony.api.Note;
+import org.jjazz.phrase.api.Phrase;
 
 /**
- * Tile a WbpTiling with WbpSourceAdaptations.
+ * Get the resulting phrase from a WbpSourceAdaptation.
  */
-public interface Tiler
+public interface PhraseAdapter
 {
 
     /**
-     * Try to tile the non-tiled bars of the specified tiling.
+     * Get the resulting phrase from wbpsa.
+     * <p>
+     * NOTE: first note position might be slightly before wbpsa start bar if WbpSource.getFirstNoteBeatShift() is &lt; 0.
      *
-     * @param tiling
+     * @param wbpsa The source phrase context
+     * @return
      */
-    void tile(WbpTiling tiling);
+    Phrase getPhrase(WbpSourceAdaptation wbpsa);
 
+    /**
+     * Get the resulting target note from wbpsa.
+     *
+     * @param wbpsa
+     * @return Can be null if WbpSource has no target note 
+     */
+    Note getTargetNote(WbpSourceAdaptation wbpsa);
 }

@@ -22,10 +22,9 @@
  *   Contributor(s): 
  * 
  */
-package org.jjazz.proswing.walkingbass.generator;
+package org.jjazz.proswing.walkingbass;
 
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
-import org.jjazz.proswing.walkingbass.WbpSource;
 import org.jjazz.utilities.api.IntRange;
 
 /**
@@ -37,7 +36,7 @@ import org.jjazz.utilities.api.IntRange;
 public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
 {
 
-    private WbpsaScorer.Score compatibilityScore;
+    private Score compatibilityScore;
     private final WbpSource wbpSource;
     private final SimpleChordSequence scs;
 
@@ -49,10 +48,10 @@ public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
      */
     public WbpSourceAdaptation(WbpSource wbpSource, SimpleChordSequence scs)
     {
-        this(wbpSource, scs, WbpsaScorer.SCORE_ZERO);
+        this(wbpSource, scs, Score.ZERO);
     }
 
-    public WbpSourceAdaptation(WbpSource wbpSource, SimpleChordSequence scs, WbpsaScorer.Score compatibilityScore)
+    public WbpSourceAdaptation(WbpSource wbpSource, SimpleChordSequence scs, Score compatibilityScore)
     {
         this.wbpSource = wbpSource;
         this.scs = scs;
@@ -69,12 +68,12 @@ public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
         return scs;
     }
 
-    public WbpsaScorer.Score getCompatibilityScore()
+    public Score getCompatibilityScore()
     {
         return compatibilityScore;
     }
 
-    public void setCompatibilityScore(WbpsaScorer.Score compatibilityScore)
+    public void setCompatibilityScore(Score compatibilityScore)
     {
         this.compatibilityScore = compatibilityScore;
     }

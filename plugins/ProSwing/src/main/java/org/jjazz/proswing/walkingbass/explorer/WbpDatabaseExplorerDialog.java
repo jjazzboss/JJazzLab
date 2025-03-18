@@ -42,9 +42,9 @@ import org.jjazz.proswing.BassStyle;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.proswing.walkingbass.WbpSourceDatabase;
 import org.jjazz.proswing.walkingbass.WbpSource;
-import org.jjazz.proswing.walkingbass.generator.DefaultWbpsaScorer;
-import org.jjazz.proswing.walkingbass.generator.WbpSourceAdaptation;
-import org.jjazz.proswing.walkingbass.generator.WbpsaScorer;
+import org.jjazz.proswing.walkingbass.DefaultWbpsaScorer;
+import org.jjazz.proswing.walkingbass.WbpSourceAdaptation;
+import org.jjazz.proswing.walkingbass.WbpsaScorer;
 import org.jjazz.uiutilities.api.UIUtilities;
 import org.jjazz.utilities.api.IntRange;
 import org.openide.DialogDisplayer;
@@ -167,7 +167,7 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
                     .toList();
         } else
         {
-            WbpsaScorer wbpsaScorer = new DefaultWbpsaScorer(null, tempo, bassStyles);
+            WbpsaScorer wbpsaScorer = new DefaultWbpsaScorer(null, tempo, null, bassStyles);
             res = new ArrayList<>(wbpsaScorer.getWbpSourceAdaptations(scs, null).values());
         }
 

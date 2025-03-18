@@ -37,9 +37,6 @@ import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.Phrases;
 import org.jjazz.phrase.api.SizedPhrase;
-import org.jjazz.proswing.walkingbass.generator.DefaultWbpsaScorer;
-import org.jjazz.proswing.walkingbass.generator.WbpSourceAdaptation;
-import org.jjazz.proswing.walkingbass.generator.WbpsaScorer;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
@@ -192,7 +189,7 @@ public class WbpSourceDatabase
         final var POS2 = new Position(0, 2);
         final int NB_BARS = 1;
         final var scs = new SimpleChordSequence(new IntRange(0, NB_BARS - 1), TimeSignature.FOUR_FOUR);
-        final WbpsaScorer scorer = new DefaultWbpsaScorer(null, -1, bStyle);
+        final WbpsaScorer scorer = new DefaultWbpsaScorer(null, -1, null, bStyle);
 
 
         // Check for 1-chord-per-bar with 0 or only 1 one-bar WbpSource
@@ -644,7 +641,7 @@ public class WbpSourceDatabase
     private List<WbpSource> getWbpSources(BassStyle style, SimpleChordSequence scs, SizedPhrase sp)
     {
         List<WbpSource> res = new ArrayList<>();
-        WbpsaScorer scorer = new DefaultWbpsaScorer(null, -1, style);
+        WbpsaScorer scorer = new DefaultWbpsaScorer(null, -1, null, style);
 
         int nbBars = scs.getBarRange().size();
         var wbpSources = getWbpSources(nbBars, style).stream()
@@ -656,7 +653,7 @@ public class WbpSourceDatabase
             var wbpsa = new WbpSourceAdaptation(rpWbpSource, scs);
             var score = scorer.computeCompatibilityScore(wbpsa, null);
             var spRp = rpWbpSource.getSizedPhrase();
-            if (score.compareTo(WbpsaScorer.SCORE_ZERO) > 0 && sp.equalsAsIntervals(spRp, 0.15f))
+            if (score.compareTo(Score.ZERO) > 0 && sp.equalsAsIntervals(spRp, 0.15f))
             {
                 res.add(rpWbpSource);
             }

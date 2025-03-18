@@ -22,29 +22,27 @@
  *   Contributor(s): 
  * 
  */
-package org.jjazz.proswing.walkingbass.generator;
+package org.jjazz.proswing.walkingbass;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jjazz.proswing.walkingbass.WbpSourceDatabase;
-import org.jjazz.proswing.walkingbass.WbpSource;
 
 /**
  * Tile the longest and most compatible WbpSourceAdaptations first, using a given WbpSource maximum once.
  * <p>
  * When a 2/3/4-bar WbpSource is used, its "sub-WbpSources" (1/2/3 bars) are also considered used.
  */
-public class TilerBestFirstNoRepeat implements Tiler
+public class TilerLongestFirstNoRepeat implements Tiler
 {
 
     private final Set<WbpSource> usedWbpSources;
     private final int wbpsaStoreWidth;
     private final WbpsaScorer scorer;
-    private static final Logger LOGGER = Logger.getLogger(TilerBestFirstNoRepeat.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(TilerLongestFirstNoRepeat.class.getSimpleName());
 
-    public TilerBestFirstNoRepeat(WbpsaScorer scorer, int wbpsaStoreWidth)
+    public TilerLongestFirstNoRepeat(WbpsaScorer scorer, int wbpsaStoreWidth)
     {
         this.usedWbpSources = new HashSet<>();
         this.wbpsaStoreWidth = wbpsaStoreWidth;
@@ -60,7 +58,7 @@ public class TilerBestFirstNoRepeat implements Tiler
 
         WbpsaStore store = new WbpsaStore(tiling, wbpsaStoreWidth, scorer);
 
-        LOGGER.log(Level.SEVERE, "tile() store=\n{0}", store.toDebugString(true));
+        // LOGGER.log(Level.SEVERE, "tile() store=\n{0}", store.toDebugString(true));
 
         for (int size = WbpSourceDatabase.SIZE_MAX; size >= WbpSourceDatabase.SIZE_MIN; size--)
         {
