@@ -26,6 +26,7 @@ package org.jjazz.proswing.walkingbass;
 
 import com.google.common.base.Preconditions;
 import java.text.DecimalFormat;
+import java.util.function.Predicate;
 
 /**
  * Compatibility score as calculated by a WbpsaScorer.
@@ -38,6 +39,7 @@ public record Score(float chordTypeCompatibility, float transposability, float t
         {
 
     static public Score ZERO = new Score(0, 0, 0, 0, 0);
+    static public Predicate<Score> PREMIUM_ONLY_TESTER = s -> s.tempoCompatibility() >= 50 && s.transposability() >= 50;
 
     public static final float MAX = 100;
     private static final int CT_WEIGHT = 6;

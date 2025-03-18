@@ -173,17 +173,7 @@ public class WalkingBassGenerator implements MusicGenerator
         return res;
     }
 
-    /**
-     * A predicate to keep only "premium" scores, i.e. discard compatible but possibly problematic scores.
-     * <p>
-     *
-     * @return
-     */
-    private Predicate<Score> getPremiumOnlyTester()
-    {
-        return s -> s.tempoCompatibility() >= 50 && s.transposability() >= 50;
-    }
-
+ 
     /**
      * Get the bass phrase from a SimpleChordSequenceExt.
      *
@@ -208,7 +198,7 @@ public class WalkingBassGenerator implements MusicGenerator
 
 
         // PREMIUM PHASE 1
-        WbpsaScorer scorerPremium = new DefaultWbpsaScorer(phraseAdapter, tempo, getPremiumOnlyTester(), style);
+        WbpsaScorer scorerPremium = new DefaultWbpsaScorer(phraseAdapter, tempo, Score.PREMIUM_ONLY_TESTER, style);
 
         var tilerBestFirstNoRepeat = new TilerLongestFirstNoRepeat(scorerPremium, settings.getWbpsaStoreWidth());
         tilerBestFirstNoRepeat.tile(tiling);
