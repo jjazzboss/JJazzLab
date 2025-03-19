@@ -13,11 +13,9 @@
 * Handle non standard chords positioning & anticipated chords: handle 3 chords/bar case. For complex case play one beat per chord (reuse groove pos/vel)
 * Handle the tags to select WbpSources
 * Do not directly disable duplicates: they provide velocity/timing variety. Check should be done by Scorer vs Tiling ? 
-* Bug: when merging WbpSources handle case where same pitch for last note and first note + first beat shift makes first note starts before end of last note! 
 * Scorer: take into account start/end slopes matching ?
 * Database: harmonize phrases velocity ?
 * Generate alternate phrases from DB: try symetric patterns ?
-* Do not use WBpSources with crossing notes at boundaries
 * Scorer, reject wbpsources with out of scale long notes at slow tempos
 * weighted duration calculation: don't count last note if half-tone up/sub next chord => it's a transition note
 * Adjust notes length and shift depending on tempo and 2-feel or 4-feel

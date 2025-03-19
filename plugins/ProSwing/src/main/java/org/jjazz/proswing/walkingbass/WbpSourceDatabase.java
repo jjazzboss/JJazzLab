@@ -34,6 +34,7 @@ import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.harmony.spi.ChordTypeDatabase;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
+import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.Phrases;
 import org.jjazz.phrase.api.SizedPhrase;
@@ -733,6 +734,7 @@ public class WbpSourceDatabase
         private final String id;
         private final List<String> tags;
         private final BassStyle bassStyle;
+        private final Set<NoteEvent> loggedCrossingNotes;
         private static final Logger LOGGER = Logger.getLogger(WbpSession.class.getSimpleName());
 
         public WbpSession(String id, List<String> tags, SimpleChordSequence cSeq, SizedPhrase phrase, Note targetNote)
@@ -741,6 +743,7 @@ public class WbpSourceDatabase
             this.id = id;
             this.tags = tags;
             this.bassStyle = computeBassStyle(tags);
+            this.loggedCrossingNotes = new HashSet<>();
         }
 
         public String getId()
@@ -782,11 +785,14 @@ public class WbpSourceDatabase
                 for (int bar = 0; bar < sessionSizeInBars - srcSize + 1; bar++)
                 {
                     WbpSource wbpSource = extractWbpSource(bar, srcSize);
-                    boolean bFirst = !disallowNonRootStartNote || wbpSource.startsOnChordRoot();
-                    boolean bLast = !disallowNonChordToneLastNote || wbpSource.endsOnChordTone();
-                    if (bFirst && bLast)
+                    if (wbpSource != null)
                     {
-                        res.add(wbpSource);
+                        boolean bFirst = !disallowNonRootStartNote || wbpSource.startsOnChordRoot();
+                        boolean bLast = !disallowNonChordToneLastNote || wbpSource.endsOnChordTone();
+                        if (bFirst && bLast)
+                        {
+                            res.add(wbpSource);
+                        }
                     }
                 }
             }
@@ -803,21 +809,79 @@ public class WbpSourceDatabase
         // ==============================================================================================
         // Private methods
         // ==============================================================================================
+        /**
+         * Extract a WbpSource from a SizedPhrase.
+         *
+         * @param barOffset
+         * @param nbBars
+         * @return Can be null if no valid WbpSource could be extracted
+         */
         private WbpSource extractWbpSource(int barOffset, int nbBars)
         {
             SizedPhrase sessionPhrase = getSizedPhrase();
             TimeSignature ts = sessionPhrase.getTimeSignature();
+            IntRange barRange = new IntRange(barOffset, barOffset + nbBars - 1);
 
-            LOGGER.log(Level.FINE, "extractWbpSource() barOffset={0} WbpSession={1}", new Object[]
+            LOGGER.log(Level.FINE, "extractWbpSource() barRange={0} WbpSession={1}", new Object[]
             {
-                barOffset, this
+                barRange, this
             });
 
-            // Get the notes
-            FloatRange beatRange = new FloatRange(barOffset * ts.getNbNaturalBeats(), (barOffset + nbBars) * ts.getNbNaturalBeats());
-            Phrase p = Phrases.getSlice(sessionPhrase, beatRange, true, 1, FIRST_NOTE_BEAT_WINDOW);
+
+            // Compute phrase beat range
+            FloatRange beatRange = new FloatRange(barRange.from * ts.getNbNaturalBeats(), (barRange.to + 1) * ts.getNbNaturalBeats());
+
+
+            // Do not extract if there is a crossing note at start (but ignore crossing notes due to non quantized notes)
+            var crossingNotes = Phrases.getCrossingNotes(sessionPhrase, beatRange.from, true);
+            if (crossingNotes.stream()
+                    .anyMatch(ne
+                            -> ne.getPositionInBeats() < beatRange.from - FIRST_NOTE_BEAT_WINDOW && (ne.getPositionInBeats() + ne.getDurationInBeats()) > (beatRange.from + FIRST_NOTE_BEAT_WINDOW)))
+            {
+                if (!loggedCrossingNotes.contains(crossingNotes.get(0)))
+                {
+                    loggedCrossingNotes.addAll(crossingNotes);
+                    LOGGER.log(Level.WARNING, "extractWbpSource() start crossing note(s) detected={0} at bar {1}, WbpSession={2}",
+                            new Object[]
+                            {
+                                crossingNotes, barRange.from, getId()
+                            }
+                    );
+                    loggedCrossingNotes.addAll(crossingNotes);
+                    return null;
+                }
+            }
+
+
+            // Do not extract if there is a crossing note at end (but ignore crossing notes due to non quantized start notes from next bar)
+            crossingNotes = Phrases.getCrossingNotes(sessionPhrase, beatRange.to, true);
+            if (crossingNotes.stream()
+                    .anyMatch(ne
+                            -> ne.getPositionInBeats() < beatRange.to - FIRST_NOTE_BEAT_WINDOW
+                    && (ne.getPositionInBeats() + ne.getDurationInBeats()) > (beatRange.to + FIRST_NOTE_BEAT_WINDOW)))
+            {
+                if (!loggedCrossingNotes.contains(crossingNotes.get(0)))
+                {
+                    loggedCrossingNotes.addAll(crossingNotes);
+                    LOGGER.log(Level.WARNING, "extractWbpSource() end crossing note(s) detected={0} at bar {1}, WbpSession={2}",
+                            new Object[]
+                            {
+                                crossingNotes, barRange.to, getId()
+                            }
+                    );
+                }
+                return null;
+            }
+
+
+            // For slice to work, remove FIRST_NOTE_BEAT_WINDOW from range.to in order to avoid possible (though rare) same-pitch notes overlaps when the generator
+            // will assemble WbpSources
+            FloatRange sliceBeatRange = beatRange.getTransformed(0, -FIRST_NOTE_BEAT_WINDOW);
+            Phrase p = Phrases.getSlice(sessionPhrase, sliceBeatRange, true, 1, FIRST_NOTE_BEAT_WINDOW);
+
             p.shiftAllEvents(-beatRange.from);
             SizedPhrase sp = new SizedPhrase(sessionPhrase.getChannel(), beatRange.getTransformed(-beatRange.from), sessionPhrase.getTimeSignature(), false);
+
             sp.addAll(p);
 
             // Get possible firstNoteBeatShift
@@ -852,10 +916,12 @@ public class WbpSourceDatabase
             }
 
             var wbpSource = new WbpSource(getId(), barOffset, bassStyle, cSeq, sp, firstNoteBeatShift, targetNote);
+
             tags.forEach(t -> wbpSource.addTag(t));
 
             return wbpSource;
         }
+
 
         private BassStyle computeBassStyle(List<String> tags)
         {
