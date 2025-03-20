@@ -53,7 +53,7 @@ import org.jjazz.phrase.api.NoteEvent;
 /**
  * Associate a chord symbol from a WbpSource with its corresponding sub-phrase.
  * <p>
- * Used to analyze phrase compatibility with chord symbol extensions.
+ * Used to analyze phrase compatibility with a chord symbol.
  */
 public class WbpSourceChordPhrase
 {
@@ -232,7 +232,7 @@ public class WbpSourceChordPhrase
     }
 
     /**
-     * Extract the notes corresponding to srcCliChordSymbol, take non-quantization into account.
+     * Extract the notes corresponding to srcCliChordSymbol, taking non-quantization into account.
      *
      * @return
      */
@@ -278,14 +278,14 @@ public class WbpSourceChordPhrase
     {
         boolean b = true;
 
-        var degreesToAvoid = getIncompatibleDegrees(targetEcs, d);
-        boolean avoidNotesPresent = degreesToAvoid.stream().anyMatch(dg -> isUsed(dg));
+        var incompatibleDegrees = getIncompatibleDegrees(targetEcs, d);
+        boolean incompatibibleDegreePresent = incompatibleDegrees.stream().anyMatch(dg -> isUsed(dg));
 
-        if (avoidNotesPresent)
+        if (incompatibibleDegreePresent)
         {
             // There is at least 1 degree to avoid, check that it's not more "significant" than d
-            float totalAvoidDuration = (float) degreesToAvoid.stream()
-                .mapToDouble(dg -> getTotalDuration(dg)) // Promotes downbeat over upbeat 
+            float totalAvoidDuration = (float) incompatibleDegrees.stream()
+                .mapToDouble(dg -> getTotalDuration(dg))                    
                 .sum();
 
             b = getTotalDuration(d) > 1.2f * totalAvoidDuration;
@@ -295,7 +295,7 @@ public class WbpSourceChordPhrase
     }
 
     /**
-     * Compute total duration used by relPitch.
+     * Compute total duration used by notes corresponding to the specified degree.
      * <p>
      *
      * @param d
@@ -311,9 +311,9 @@ public class WbpSourceChordPhrase
         {
             if (n.getRelativePitch() == relPitch)
             {
-                float pos = n.getPositionInBeats();
-                int nbBars = (int) (pos / ts.getNbNaturalBeats());
-                float beat = pos - (nbBars * ts.getNbNaturalBeats());
+                // float pos = n.getPositionInBeats();
+                // int nbBars = (int) (pos / ts.getNbNaturalBeats());
+                // float beat = pos - (nbBars * ts.getNbNaturalBeats());
                 float dur = n.getDurationInBeats();
                 res += dur;
             }

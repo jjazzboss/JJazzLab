@@ -24,6 +24,8 @@
  */
 package org.jjazz.proswing.walkingbass;
 
+import com.google.common.base.Preconditions;
+import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.utilities.api.IntRange;
 
@@ -39,6 +41,9 @@ public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
     private Score compatibilityScore;
     private final WbpSource wbpSource;
     private final SimpleChordSequence scs;
+    private Phrase adaptedPhrase;
+    private int targetPitch;
+
 
     /**
      * Create an object with a score=0.
@@ -56,6 +61,8 @@ public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
         this.wbpSource = wbpSource;
         this.scs = scs;
         this.compatibilityScore = compatibilityScore;
+        this.adaptedPhrase = null;
+        this.targetPitch = -1;
     }
 
     public WbpSource getWbpSource()
@@ -78,6 +85,46 @@ public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
         this.compatibilityScore = compatibilityScore;
     }
 
+    /**
+     * Set the adapted phrase for this WbpSourceAdaptation.
+     *
+     * @param p
+     */
+    public void setAdaptedPhrase(Phrase p)
+    {
+        adaptedPhrase = p;
+    }
+
+    /**
+     * Get the adapted phrase as set by {@link #setAdaptedPhrase(org.jjazz.phrase.api.Phrase) }.
+     *
+     * @return Can be null
+     */
+    public Phrase getAdaptedPhrase()
+    {
+        return adaptedPhrase;
+    }
+
+    /**
+     * Get the adapted target pitch as set by {@link #setTargetPitch(int) }.
+     *
+     * @return -1 if not set
+     */
+    public int getTargetPitch()
+    {
+        return targetPitch;
+    }
+
+    /**
+     * Set the adapted target pitch.
+     *
+     * @param targetPitch Use -1 to unset
+     */
+    public void setTargetPitch(int targetPitch)
+    {
+        Preconditions.checkArgument(targetPitch >= -1 && targetPitch < 128, "targetPitch=%s", targetPitch);
+        this.targetPitch = targetPitch;
+    }
 
     /**
      * Rely on Score.compareTo() whose natural ordering is by DESCENDING overall compatibility score.

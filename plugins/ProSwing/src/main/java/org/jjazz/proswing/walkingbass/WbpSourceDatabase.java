@@ -190,7 +190,7 @@ public class WbpSourceDatabase
         final var POS2 = new Position(0, 2);
         final int NB_BARS = 1;
         final var scs = new SimpleChordSequence(new IntRange(0, NB_BARS - 1), TimeSignature.FOUR_FOUR);
-        final WbpsaScorer scorer = new DefaultWbpsaScorer(null, -1, null, bStyle);
+        final WbpsaScorer scorer = new WbpsaScorerDefault(null, -1, null, bStyle);
 
 
         // Check for 1-chord-per-bar with 0 or only 1 one-bar WbpSource
@@ -642,7 +642,7 @@ public class WbpSourceDatabase
     private List<WbpSource> getWbpSources(BassStyle style, SimpleChordSequence scs, SizedPhrase sp)
     {
         List<WbpSource> res = new ArrayList<>();
-        WbpsaScorer scorer = new DefaultWbpsaScorer(null, -1, null, style);
+        WbpsaScorer scorer = new WbpsaScorerDefault(null, -1, null, style);
 
         int nbBars = scs.getBarRange().size();
         var wbpSources = getWbpSources(nbBars, style).stream()

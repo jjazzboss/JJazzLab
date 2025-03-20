@@ -55,7 +55,6 @@ public class WbpsaStore
      * Create a WbpsaStore for the untiled bars of tiling.
      * <p>
      *
-     *
      * @param tiling The store will ignore already tiled bars
      * @param width  Max number of WbpSourceAdaptations kept per bar
      * @param scorer
@@ -68,7 +67,7 @@ public class WbpsaStore
         this.randomizeWithinOverallScoreWindow = WalkingBassGeneratorSettings.getInstance().getWbpsaStoreRandomizedScoreWindow();
         if (this.randomizeWithinOverallScoreWindow < 1)
         {
-            LOGGER.log(Level.SEVERE, "WbpsaStore() NO RANDOMIZATION randomizeWithinOverallScoreWindow={0}", randomizeWithinOverallScoreWindow);
+            LOGGER.log(Level.WARNING, "WbpsaStore() randomization is DISABLED (randomizeWithinOverallScoreWindow={0})", randomizeWithinOverallScoreWindow);
         }
 
         for (int size = WbpSourceDatabase.SIZE_MIN; size <= WbpSourceDatabase.SIZE_MAX; size++)

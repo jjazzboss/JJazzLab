@@ -33,6 +33,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
+import org.jjazz.phrase.api.Phrase;
 import org.jjazz.proswing.BassStyle;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.rhythm.api.TempoRange;
@@ -41,7 +42,7 @@ import org.jjazz.rhythm.api.TempoRange;
  * Evaluates the compatibility of a WbpSourceAdaptation using chord type, transposition, tempo, target notes before/after.
  * <p>
  */
-public class DefaultWbpsaScorer implements WbpsaScorer
+public class WbpsaScorerDefault implements WbpsaScorer
 {
 
     private final PhraseAdapter wbpSourceAdapter;
@@ -57,7 +58,7 @@ public class DefaultWbpsaScorer implements WbpsaScorer
      *                               {@link #computeCompatibilityScore(org.jjazz.proswing.walkingbass.WbpSourceAdaptation, org.jjazz.proswing.walkingbass.WbpTiling)}
      * @param bStyles                Accept only WbpSources which match these bassStyle(s). If empty any BassStyle is accepted
      */
-    public DefaultWbpsaScorer(PhraseAdapter sourceAdapter, int tempo, Predicate<Score> minCompatibilityTester, BassStyle... bStyles)
+    public WbpsaScorerDefault(PhraseAdapter sourceAdapter, int tempo, Predicate<Score> minCompatibilityTester, BassStyle... bStyles)
     {
         this.wbpSourceAdapter = sourceAdapter;
         this.tempo = tempo;
@@ -94,18 +95,41 @@ public class DefaultWbpsaScorer implements WbpsaScorer
 
         if (bassStyles.contains(wbpsa.getWbpSource().getBassStyle()))
         {
-            var ctScores = getHarmonyCompatibilityScores(wbpsa);
+            Phrase p = wbpSourceAdapter != null ? wbpSourceAdapter.getPhrase(wbpsa) : null;
+            wbpsa.setAdaptedPhrase(p);
+
+
+            // Pre target note match, 0 or 100
+            int prevWbpsaTargetPitch = getPrevWbpsaTargetPitch(wbpsa, tiling);   // Can be -1
+            int firstNotePitch = p != null ? p.first().getPitch() : -1;
+            float preTargetNoteScore = prevWbpsaTargetPitch != -1 && prevWbpsaTargetPitch == firstNotePitch ? 100f : 0f;
+
+
+            // Pre target note match, 0 or 100
+            int wbpsaTargetPitch = getTargetPitch(wbpsa);   // Can be -1
+            wbpsa.setTargetPitch(wbpsaTargetPitch);
+            var nextWbpsa = getNextWbpsa(wbpsa, tiling);        // Can be null
+            int nextWbpsaFirstPitch = getFirstNotePitch(nextWbpsa);  // Can be -1
+            boolean postTargetNoteMatch = wbpsaTargetPitch != -1 && wbpsaTargetPitch == nextWbpsaFirstPitch;
+            float postTargetNoteScore = postTargetNoteMatch ? 100f : 0f;
+
+
+            // Harmonic compatibility
+            var ctScores = getHarmonyCompatibilityScores(wbpsa, postTargetNoteMatch);
             float ctScore = (float) ctScores.stream().mapToDouble(f -> Double.valueOf(f)).average().orElse(0);      // 0-100
 
+
+            // Tempo compatibility
             float teScore = getTempoScore(wbpsa);           // 0 - 100
 
+
+            // Transposability
             var scs = wbpsa.getSimpleChordSequence();
             var scsFirstChordRoot = scs.first().getData().getRootNote();
             int trScore = wbpsa.getWbpSource().getTransposabilityScore(scsFirstChordRoot);     // 0 - 100
 
-            float preTargetNoteScore = getPreTargetNoteScore(wbpsa, tiling);  //  0 - 100
-            float postTargetNoteScore = getPostTargetNoteScore(wbpsa, tiling);  //  0 - 100
 
+            // Final score
             var s = new Score(ctScore, trScore, teScore, preTargetNoteScore, postTargetNoteScore);
             res = minCompatibilityTester.test(s) ? s : Score.ZERO;
         }
@@ -154,55 +178,67 @@ public class DefaultWbpsaScorer implements WbpsaScorer
     // =====================================================================================================================
 
     /**
-     * +100 if previous WbpSourceAdaptation's target note matches the 1st note of our phrase.
+     * Get the (optional) target pitch of the previous WbpSourceAdaptation.
      *
      * @param wbpsa
      * @param tiling
-     * @return
+     * @return -1 if no target note available
      */
-    private float getPreTargetNoteScore(WbpSourceAdaptation wbpsa, WbpTiling tiling)
+    private int getPrevWbpsaTargetPitch(WbpSourceAdaptation wbpsa, WbpTiling tiling)
     {
-        float res = 0;
+        int res = -1;
         int prevBar = wbpsa.getBarRange().from - 1;
         WbpSourceAdaptation prevWbpsa;
-
-        if (tiling != null
-                && wbpSourceAdapter != null
+        if (tiling != null && wbpSourceAdapter != null
                 && tiling.getBarRange().contains(prevBar)
-                && (prevWbpsa = tiling.getWbpSourceAdaptation(prevBar)) != null
-                && prevWbpsa.getWbpSource().getTargetNote() != null)
+                && (prevWbpsa = tiling.getWbpSourceAdaptation(prevBar)) != null)
         {
-
-            int firstNotePitch = wbpSourceAdapter.getPhrase(wbpsa).first().getPitch();
-            int targetNotePitch = wbpSourceAdapter.getTargetNote(prevWbpsa).getPitch();
-            res = targetNotePitch == firstNotePitch ? 100f : 0;
+            var tn = wbpSourceAdapter.getTargetNote(prevWbpsa);
+            res = tn != null ? tn.getPitch() : -1;
         }
         return res;
     }
 
     /**
-     * +100 if next WbpSourceAdaptation's first note matches our target note.
+     * Get the target pitch of wbpsa.
+     *
+     * @param wbpsa
+     * @return Can be -1
+     */
+    private int getTargetPitch(WbpSourceAdaptation wbpsa)
+    {
+        int res = -1;
+        if (wbpSourceAdapter != null)
+        {
+            var tn = wbpSourceAdapter.getTargetNote(wbpsa);
+            res = tn != null ? tn.getPitch() : -1;
+        }
+        return res;
+    }
+
+    /**
+     * Get the first note of the source phrase adapted to wbpsa.
+     *
+     * @param wbpsa
+     * @return -1 if can not be computed
+     */
+    private int getFirstNotePitch(WbpSourceAdaptation wbpsa)
+    {
+        var res = wbpsa != null && wbpSourceAdapter != null ? wbpSourceAdapter.getPhrase(wbpsa).first().getPitch() : -1;
+        return res;
+    }
+
+    /**
+     * Get the next Wbpsa right after wbpsa.
      *
      * @param wbpsa
      * @param tiling
-     * @return
+     * @return Can be null
      */
-    private float getPostTargetNoteScore(WbpSourceAdaptation wbpsa, WbpTiling tiling)
+    private WbpSourceAdaptation getNextWbpsa(WbpSourceAdaptation wbpsa, WbpTiling tiling)
     {
-        float res = 0;
         int nextBar = wbpsa.getBarRange().to + 1;
-        WbpSourceAdaptation nextWbpsa;
-
-        if (tiling != null
-                && wbpSourceAdapter != null
-                && tiling.getBarRange().contains(nextBar)
-                && (nextWbpsa = tiling.getWbpSourceAdaptation(nextBar)) != null
-                && wbpsa.getWbpSource().getTargetNote() != null)
-        {
-            int firstNotePitch = wbpSourceAdapter.getPhrase(nextWbpsa).first().getPitch();
-            int targetNotePitch = wbpSourceAdapter.getTargetNote(wbpsa).getPitch();
-            res = targetNotePitch == firstNotePitch ? 100f : 0;
-        }
+        WbpSourceAdaptation res = (tiling != null) ? tiling.getWbpSourceAdaptation(nextBar) : null;
         return res;
     }
 
@@ -212,9 +248,10 @@ public class DefaultWbpsaScorer implements WbpsaScorer
      * <p>
      *
      * @param wbpsa
+     * @param targetNoteMatch True if wbpsa target note matches the next wbpsa first note
      * @return An empty list (if 2 incompatible chords types are found) or a list of float values in the [0;100] range
      */
-    private List<Float> getHarmonyCompatibilityScores(WbpSourceAdaptation wbpsa)
+    private List<Float> getHarmonyCompatibilityScores(WbpSourceAdaptation wbpsa, boolean targetNoteMatch)
     {
         List<Float> res = Collections.emptyList();
 
@@ -259,53 +296,79 @@ public class DefaultWbpsaScorer implements WbpsaScorer
         float res;
         var wbpSource = wbpsa.getWbpSource();
         var bassStyle = wbpSource.getBassStyle();
-        assert bassStyle.is2feel() || bassStyle.isWalking() : " wbpSource=" + wbpSource;
         var stats = wbpSource.getStats();
 
-        if (tempo <= TempoRange.MEDIUM_SLOW.getMin())       // < 75
+        res = switch (bassStyle)
         {
-            // Slow, better if many short notes
-            if (bassStyle.is2feel())
+            case CUSTOM, BASIC ->
+                60;
+
+            case TWO_FEEL ->
             {
-                float bonus = stats.nbShortNotes() * 10 + stats.nbDottedEighthNotes() * 10 + stats.nbQuarterNotes() * 10;
-                res = 60 + bonus;
-            } else
-            {
-                // Walking
-                float bonus = stats.nbShortNotes() * 10 + stats.nbDottedEighthNotes() * 10;
-                res = 60 + bonus;
+                if (tempo <= TempoRange.MEDIUM_SLOW.getMin())       // < 75
+                {
+                    // Slow, better if many short notes
+                    float bonus = stats.nbShortNotes() * 10 + stats.nbDottedEighthNotes() * 10 + stats.nbQuarterNotes() * 10;
+                    yield 60 + bonus;
+
+                } else if (tempo <= TempoRange.MEDIUM_SLOW.getMax())    // < 115
+                {
+                    // Medium slow, sightly better if additional extra notes
+                    float bonus = stats.nbShortNotes() * 5 + stats.nbDottedEighthNotes() * 5 + stats.nbQuarterNotes() * 5;
+                    yield 60 + bonus;
+
+                } else if (tempo <= TempoRange.MEDIUM.getMax())     // < 135
+                {
+                    // Medium, everything is ok
+                    yield 80;
+
+                } else if (tempo <= TempoRange.MEDIUM_FAST.getMax())        // < 180
+                {
+                    // Medium fast, from 2 short notes we'll be < 50
+                    yield 100 - stats.nbShortNotes() * 30;
+
+                } else
+                {
+                    // Medium fast, from one short note we'll be < 50
+                    yield 100 - stats.nbShortNotes() * 60;
+
+                }
             }
-            
-        } else if (tempo <= TempoRange.MEDIUM_SLOW.getMax())    // < 115
-        {
-            // Medium slow, sightly better if additional extra notes
-            if (bassStyle.is2feel())
+
+            case WALKING ->
             {
-                float bonus = stats.nbShortNotes() * 5 + stats.nbDottedEighthNotes() * 5 + stats.nbQuarterNotes() * 5;
-                res = 60 + bonus;
-            } else
-            {
-                // Walking
-                float bonus = stats.nbShortNotes() * 5 + stats.nbDottedEighthNotes() * 5;
-                res = 60 + bonus;
+                if (tempo <= TempoRange.MEDIUM_SLOW.getMin())       // < 75
+                {
+                    // Slow, better if many short notes
+                    float bonus = stats.nbShortNotes() * 10 + stats.nbDottedEighthNotes() * 10;
+                    yield 60 + bonus;
+
+                } else if (tempo <= TempoRange.MEDIUM_SLOW.getMax())    // < 115
+                {
+                    // Medium slow, sightly better if additional extra notes
+                    float bonus = stats.nbShortNotes() * 5 + stats.nbDottedEighthNotes() * 5;
+                    yield 60 + bonus;
+
+                } else if (tempo <= TempoRange.MEDIUM.getMax())     // < 135
+                {
+                    // Medium, everything is ok
+                    yield 80;
+
+                } else if (tempo <= TempoRange.MEDIUM_FAST.getMax())        // < 180
+                {
+                    // Medium fast, from 2 short notes we'll be < 50
+                    yield 100 - stats.nbShortNotes() * 30;
+
+                } else
+                {
+                    // Medium fast, from one short note we'll be < 50
+                    yield 100 - stats.nbShortNotes() * 60;
+                }
             }
-            
-        } else if (tempo <= TempoRange.MEDIUM.getMax())     // < 135
-        {
-            // Medium, everything is ok
-            res = 80;
-            
-        } else if (tempo <= TempoRange.MEDIUM_FAST.getMax())        // < 180
-        {
-            // Medium fast, from 2 short notes we'll be < 50
-            res = 100 - stats.nbShortNotes() * 30;     
-            
-        } else
-        {
-            // Medium fast, from one short note we'll be < 50
-            res = 100 - stats.nbShortNotes() * 60;     
-            
-        }
+
+            default -> throw new IllegalStateException("bassStyle=" + bassStyle);
+        };
+
 
         res = Math.clamp(res, 0, 100);
 

@@ -1,24 +1,24 @@
+* Exception when using play loop zone in some cases
 * Variations: 2 feel (2 variations LACoolSwing-B1, JazzClub.S120-B1) ? check out Shuffle rhythm examples), walking, walking double notes (C C Bb Bb etc.)
-* Variation: fast double-notes walking (youtube fast walking bass for examples)
-* Programmatically add embellishments like p15 (for 2 feel), p28 of Constructig-walking-pdf...
-* Handle slow / medium / fast tempo
 * Handle slash chords
 * Create the AdaptedRhythm
 * Handle pedal notes in walking or 1 out of 2
-* Generate alternate phrases from DB: some simple phrases are compatible C and Cm, duplicate the WBpSource with the other chord so phrase becomes available for both chord types
 * Generator: if a WbpSource is used twice, alter its "groove" (positions+velocity) by copying a similar phrase groove
-* Try to automatically assign a chord scale to chords (DB and song)
-* Handle non recognized multi-chord bars. If walking and chord duratino >=2-beat play 2 notes. If 2-feel and chord duration >= 3 beats play 2 notes.
+* Handle non recognized multi-chord bars. If walking and chord duratino >=2-beat play 2 notes. If 2-feel and chord duration >= 3 beats play 2 notes. If walking and all notes on beat, fill.
 * Handle RP intensity
-* Handle non standard chords positioning & anticipated chords: handle 3 chords/bar case. For complex case play one beat per chord (reuse groove pos/vel)
-* Handle the tags to select WbpSources
-* Do not directly disable duplicates: they provide velocity/timing variety. Check should be done by Scorer vs Tiling ? 
-* Scorer: take into account start/end slopes matching ?
-* Database: harmonize phrases velocity ?
-* Generate alternate phrases from DB: try symetric patterns ?
+* Handle anticipated chords
 * Scorer, reject wbpsources with out of scale long notes at slow tempos
-* weighted duration calculation: don't count last note if half-tone up/sub next chord => it's a transition note
+* WbpSourceChordPhrase weighted duration calculation: don't count last note if half-tone up/sub next chord => it's a transition note
 * Adjust notes length and shift depending on tempo and 2-feel or 4-feel
 * Authorize WbpSources in the DB with non-root/chord-tone start/end notes => managed by Scorer
-* Exception when using play loop zone in some cases
 
+
+
+MAYBE LATER
+* Generate alternate phrases from DB: try symetric patterns ?
+* Database: harmonize phrases velocity ?
+* Scorer: take into account start/end slopes matching ?
+* Programmatically add embellishments like p15 (for 2 feel), p28 of Constructig-walking-pdf...
+* Try to automatically assign a chord scale to chords (DB and song)
+* Handle the tags to select WbpSources
+* Do not directly disable duplicates: they provide velocity/timing variety. Check should be done by Scorer vs Tiling ? 

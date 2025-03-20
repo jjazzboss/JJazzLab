@@ -123,7 +123,6 @@ public class DummyGenerator implements MusicGenerator
      * <p>
      * For each chord play its bass note for the chord duration with random velocity.
      *
-     *
      * @param startPosInBeats
      * @param cSeq
      * @param velocityRange   Use random notes velocity in this range
@@ -140,8 +139,10 @@ public class DummyGenerator implements MusicGenerator
         Phrase p = new Phrase(channel, false);
         for (var cliCs : cSeq)
         {
-            int bassPitch = 3 * 12 + cliCs.getData().getBassNote().getRelativePitch(); // stay on the 3rd octave            
-            float duration = cSeq.getChordDuration(cliCs);
+            int relPitch = cliCs.getData().getBassNote().getRelativePitch();
+            int octave = relPitch >= 4 ? 3 : 4;     // from E1(28) to D#2(39)
+            int bassPitch = (octave - 1) * 12 + relPitch;
+            float duration = cSeq.getChordDuration(cliCs) - 0.1f;
             float posInBeats = cSeq.toPositionInBeats(cliCs.getPosition(), startPosInBeats);
             int velocity = velocityRange.from + (int) Math.round(Math.random() * (velocityRange.size() - 1));
             velocity = Math.clamp(velocity, 0, 127);
@@ -170,7 +171,7 @@ public class DummyGenerator implements MusicGenerator
         {
             float chordDuration = cSeq.getChordDuration(cliCs);
             Chord c = cliCs.getData().getChord();
-            float noteDuration = (chordDuration / c.size()) - 0.001f;
+            float noteDuration = (chordDuration / c.size()) - 0.01f;
             float posInBeats = cSeq.toPositionInBeats(cliCs.getPosition(), startPosInBeats);
 
             var notes = c.getNotes();

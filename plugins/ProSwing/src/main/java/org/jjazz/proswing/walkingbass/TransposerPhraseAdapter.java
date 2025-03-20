@@ -26,7 +26,6 @@ package org.jjazz.proswing.walkingbass;
 
 import org.jjazz.harmony.api.Note;
 import org.jjazz.phrase.api.Phrase;
-import org.jjazz.proswing.walkingbass.WbpSourceDatabase;
 
 /**
  * Just transpose the WbpSource phrase so that the 2 first chord roots match.
