@@ -11,7 +11,7 @@ import org.jjazz.utilities.api.FloatRange;
 /**
  * Statistics of a WbpSource.
  * <p>
- * IMPORTANT: variables counting a number of notes (e.g. nbEighthNotes) are based on *note-to-note duration*, not note duration.
+ * IMPORTANT: variables counting a number of notes (e.g. nbEighthNotes) are based on *note-to-note duration* (not on note duration).
  */
 public record WbpSourceStats(Slope startSlope,
         Slope endSlope,

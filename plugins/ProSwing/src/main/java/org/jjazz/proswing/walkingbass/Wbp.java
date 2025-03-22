@@ -34,7 +34,7 @@ public class Wbp
      * @param cSeq               Must start at bar 0, must have a chord at beginning and use only one time signature
      * @param phrase             Can not be empty, must start at beat 0
      * @param firstNoteBeatShift A 0 or negative beat value. Any note starting at the start position should be shifted with this value.
-     * @param targetNote         Can be null
+     * @param targetNote         The ideal target note of this phrase. Can be null.
      */
     public Wbp(SimpleChordSequence cSeq, SizedPhrase phrase, float firstNoteBeatShift, Note targetNote)
     {
@@ -109,7 +109,7 @@ public class Wbp
      *
      * @return
      */
-    public boolean startsOnChordRoot()
+    public boolean isStartingOnChordRoot()
     {
         var rootNote = getFirstChordSymbol().getData().getRootNote();
         boolean b = getFirstNote().equalsRelativePitch(rootNote);
@@ -122,7 +122,7 @@ public class Wbp
      *
      * @return
      */
-    public boolean endsOnChordTone()
+    public boolean isEndingOnChordTone()
     {
         Chord lastChord = getLastChordSymbol().getData().getChord();
         int lastRelPitch = getLastNote().getRelativePitch();

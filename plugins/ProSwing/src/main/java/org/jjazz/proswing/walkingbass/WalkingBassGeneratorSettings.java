@@ -3,6 +3,7 @@ package org.jjazz.proswing.walkingbass;
 import com.google.common.base.Preconditions;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
+import org.jjazz.phrase.api.Grid;
 import org.openide.util.NbPreferences;
 
 /**
@@ -13,6 +14,7 @@ public class WalkingBassGeneratorSettings
 
     private static final String PREF_WBPSA_STORE_WIDTH = "PrefWbpsaStoreWidth";
     private static final String PREF_WBPSA_STORE_RANDOMIZED_SCORE_WINDOW = "PrefRandomizedScoreWindow";
+    private static final String PREF_ACCEPT_NON_ROOT_START_NOTE = "PrefAcceptNonRootStartNote";
     private static WalkingBassGeneratorSettings INSTANCE;
     private final Preferences prefs = NbPreferences.forModule(WalkingBassGeneratorSettings.class);
     ;
@@ -32,6 +34,21 @@ public class WalkingBassGeneratorSettings
 
     private WalkingBassGeneratorSettings()
     {
+    }
+
+    public boolean isAcceptNonRootStartNote()
+    {
+        return prefs.getBoolean(PREF_ACCEPT_NON_ROOT_START_NOTE, true);
+    }
+
+    /**
+     * Do we accept that a start bass note for a chord symbol is not the root note.
+     *
+     * @param b
+     */
+    public void setAcceptNonRootStartNote(boolean b)
+    {
+        prefs.putBoolean(PREF_ACCEPT_NON_ROOT_START_NOTE, b);
     }
 
     /**

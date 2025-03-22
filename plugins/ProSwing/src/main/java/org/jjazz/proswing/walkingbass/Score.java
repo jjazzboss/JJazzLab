@@ -35,23 +35,24 @@ import java.util.function.Predicate;
  * <p>
  * compareTo(SCORE_ZERO) == 0 means incompatibility. compareTo(SCORE_ZERO) &gt; 0 means some compatibility.
  */
-public record Score(float chordTypeCompatibility, float transposability, float tempoCompatibility, float preTargetNoteMatch, float postTargetNoteMatch) implements Comparable<Score>
+public record Score(float harmonicCompatibility, float transposability, float tempoCompatibility, float preTargetNoteMatch, float postTargetNoteMatch) implements Comparable<Score>
         {
 
     static public Score ZERO = new Score(0, 0, 0, 0, 0);
-    static public Predicate<Score> PREMIUM_ONLY_TESTER = s -> s.tempoCompatibility() >= 50 && s.transposability() >= 50;
+    static public Predicate<Score> PREMIUM_ONLY_TESTER = s -> s.harmonicCompatibility > 0 && s.tempoCompatibility() >= 50 && s.transposability() >= 50;
+    static public Predicate<Score> DEFAULT_TESTER = s -> s.harmonicCompatibility > 0;
 
     public static final float MAX = 100;
-    private static final int CT_WEIGHT = 6;
-    private static final int TR_WEIGHT = 4;
-    private static final int TE_WEIGHT = 4;
-    private static final int PRE_TN_WEIGHT = 1;
-    private static final int POST_TN_WEIGHT = 1;
+    private static final int CT_WEIGHT = 5;
+    private static final int TR_WEIGHT = 3;
+    private static final int TE_WEIGHT = 3;
+    private static final int PRE_TN_WEIGHT = 2;
+    private static final int POST_TN_WEIGHT = 2;
     private static final int WEIGHT_SUM = CT_WEIGHT + TR_WEIGHT + TE_WEIGHT + PRE_TN_WEIGHT + POST_TN_WEIGHT;
 
     public Score    
     {
-        Preconditions.checkArgument(chordTypeCompatibility >= 0 && chordTypeCompatibility <= MAX, "chordTypeCompatibility=%s", chordTypeCompatibility);
+        Preconditions.checkArgument(harmonicCompatibility >= 0 && harmonicCompatibility <= MAX, "chordTypeCompatibility=%s", harmonicCompatibility);
         Preconditions.checkArgument(transposability >= 0 && transposability <= MAX, "transposibility=%s", transposability);
         Preconditions.checkArgument(tempoCompatibility >= 0 && tempoCompatibility <= MAX, "tempoCompatibility=%s", tempoCompatibility);
         Preconditions.checkArgument(preTargetNoteMatch >= 0 && preTargetNoteMatch <= MAX, "preTargetNoteMatch=%s", preTargetNoteMatch);
@@ -66,9 +67,9 @@ public record Score(float chordTypeCompatibility, float transposability, float t
     public float overall()
     {
         float res = 0;
-        if (chordTypeCompatibility > 0)
+        if (harmonicCompatibility > 0)
         {
-            res = (CT_WEIGHT * chordTypeCompatibility
+            res = (CT_WEIGHT * harmonicCompatibility
                     + TR_WEIGHT * transposability
                     + TE_WEIGHT * tempoCompatibility
                     + PRE_TN_WEIGHT * preTargetNoteMatch
@@ -175,7 +176,7 @@ public record Score(float chordTypeCompatibility, float transposability, float t
 
         String res = String.format("[all=%s, ct=%s tr=%s te=%s pre-tn=%s post-tn=%s]",
                 df.format(overall()),
-                df.format(chordTypeCompatibility),
+                df.format(harmonicCompatibility),
                 df.format(transposability),
                 df.format(tempoCompatibility),
                 df.format(preTargetNoteMatch),

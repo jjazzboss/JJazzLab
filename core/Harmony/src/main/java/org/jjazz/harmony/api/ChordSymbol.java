@@ -591,7 +591,7 @@ public class ChordSymbol implements Cloneable
     }
 
     /**
-     * Return the relative pitch corresponding to the specified degree of this chord symbol.
+     * Return the relative pitch corresponding to the specified degree based on this chord symbol root note.
      * <p>
      * Ex: this=E7, degree=THIRT_FLAT, return G
      *

@@ -39,6 +39,8 @@ public class TransposerPhraseAdapter implements PhraseAdapter
     public Phrase getPhrase(WbpSourceAdaptation wbpsa)
     {
         Phrase res;
+        
+
 
         var wbpSource = wbpsa.getWbpSource();
         var scs = wbpsa.getSimpleChordSequence();

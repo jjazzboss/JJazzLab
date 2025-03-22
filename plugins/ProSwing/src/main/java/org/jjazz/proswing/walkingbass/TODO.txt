@@ -8,15 +8,16 @@
 * Handle RP intensity
 * Handle anticipated chords
 * Scorer, reject wbpsources with out of scale long notes at slow tempos
-* WbpSourceChordPhrase weighted duration calculation: don't count last note if half-tone up/sub next chord => it's a transition note
 * Adjust notes length and shift depending on tempo and 2-feel or 4-feel
-* Authorize WbpSources in the DB with non-root/chord-tone start/end notes => managed by Scorer
+* Authorize WbpSources in the DB with non-root/chord-tone start/end notes => managed by Scorer. If last note is a semitone approach note to target note, mark it, so it can only be used with the right target note.
+* Database: harmonize phrases velocity
+* Test minor chords with scale 
 
 
 
 MAYBE LATER
 * Generate alternate phrases from DB: try symetric patterns ?
-* Database: harmonize phrases velocity ?
+
 * Scorer: take into account start/end slopes matching ?
 * Programmatically add embellishments like p15 (for 2 feel), p28 of Constructig-walking-pdf...
 * Try to automatically assign a chord scale to chords (DB and song)

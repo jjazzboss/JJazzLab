@@ -33,6 +33,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.logging.Logger;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.proswing.BassStyle;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
@@ -49,12 +50,13 @@ public class WbpsaScorerDefault implements WbpsaScorer
     private final int tempo;
     private final EnumSet<BassStyle> bassStyles;
     private final Predicate<Score> minCompatibilityTester;
+    private static final Logger LOGGER = Logger.getLogger(WbpsaScorerDefault.class.getSimpleName());
 
     /**
      *
      * @param sourceAdapter          If null target note matching score will not impact the overall score
      * @param tempo                  If &lt;= 0 tempo is ignored in score computing
-     * @param minCompatibilityTester If null use the default value (!Score.ZERO.equals(s)). Used by
+     * @param minCompatibilityTester If null use Score.DEFAULT_TESTER. Used by
      *                               {@link #computeCompatibilityScore(org.jjazz.proswing.walkingbass.WbpSourceAdaptation, org.jjazz.proswing.walkingbass.WbpTiling)}
      * @param bStyles                Accept only WbpSources which match these bassStyle(s). If empty any BassStyle is accepted
      */
@@ -63,7 +65,7 @@ public class WbpsaScorerDefault implements WbpsaScorer
         this.wbpSourceAdapter = sourceAdapter;
         this.tempo = tempo;
         this.bassStyles = EnumSet.allOf(BassStyle.class);
-        this.minCompatibilityTester = minCompatibilityTester == null ? s -> !Score.ZERO.equals(s) : minCompatibilityTester;
+        this.minCompatibilityTester = minCompatibilityTester == null ? Score.DEFAULT_TESTER : minCompatibilityTester;
         if (bStyles.length > 0)
         {
             bassStyles.clear();
@@ -82,18 +84,24 @@ public class WbpsaScorerDefault implements WbpsaScorer
     }
 
     /**
+     * Compute global compatibility of this WbpSourceAdaptation.
+     * <p>
+     * Returns Score.ZERO as soon as one chord symbol is incompatible with the phrase.
      *
      * @param wbpsa
-     * @param tiling
+     * @param tiling Can be null, in this case pre/post target notes scores are 0
      * @return If the resulting Score does not satisfy the minCompatibilityTester predicate, returned score is Score.ZERO.
      * @see #DefaultWbpsaScorer(org.jjazz.proswing.walkingbass.PhraseAdapter, int, java.util.function.Predicate, org.jjazz.proswing.BassStyle...)
      */
     @Override
     public Score computeCompatibilityScore(WbpSourceAdaptation wbpsa, WbpTiling tiling)
     {
+        var wbpSource = wbpsa.getWbpSource();
+        var acceptNonRootStartNote = WalkingBassGeneratorSettings.getInstance().isAcceptNonRootStartNote();
+
         Score res = Score.ZERO;
 
-        if (bassStyles.contains(wbpsa.getWbpSource().getBassStyle()))
+        if (bassStyles.contains(wbpsa.getWbpSource().getBassStyle()) && (acceptNonRootStartNote || wbpSource.isStartingOnChordRoot()))
         {
             Phrase p = wbpSourceAdapter != null ? wbpSourceAdapter.getPhrase(wbpsa) : null;
             wbpsa.setAdaptedPhrase(p);
@@ -102,36 +110,62 @@ public class WbpsaScorerDefault implements WbpsaScorer
             // Pre target note match, 0 or 100
             int prevWbpsaTargetPitch = getPrevWbpsaTargetPitch(wbpsa, tiling);   // Can be -1
             int firstNotePitch = p != null ? p.first().getPitch() : -1;
-            float preTargetNoteScore = prevWbpsaTargetPitch != -1 && prevWbpsaTargetPitch == firstNotePitch ? 100f : 0f;
+            boolean preTargetNoteMatch = prevWbpsaTargetPitch != -1 && prevWbpsaTargetPitch == firstNotePitch;
+            float preTargetNoteScore = preTargetNoteMatch ? 100f : 0f;
 
 
-            // Pre target note match, 0 or 100
+            // Post target note match, 0 or 100
             int wbpsaTargetPitch = getTargetPitch(wbpsa);   // Can be -1
-            wbpsa.setTargetPitch(wbpsaTargetPitch);
-            var nextWbpsa = getNextWbpsa(wbpsa, tiling);        // Can be null
+            wbpsa.setAdaptedTargetPitch(wbpsaTargetPitch);
+            var nextWbpsa = getNextWbpsa(wbpsa, tiling);        // Can be null -will happen often when starting the tiling...
             int nextWbpsaFirstPitch = getFirstNotePitch(nextWbpsa);  // Can be -1
             boolean postTargetNoteMatch = wbpsaTargetPitch != -1 && wbpsaTargetPitch == nextWbpsaFirstPitch;
             float postTargetNoteScore = postTargetNoteMatch ? 100f : 0f;
 
 
-            // Harmonic compatibility
-            var ctScores = getHarmonyCompatibilityScores(wbpsa, postTargetNoteMatch);
-            float ctScore = (float) ctScores.stream().mapToDouble(f -> Double.valueOf(f)).average().orElse(0);      // 0-100
+            // Check constraints on non-root start note and non-chord-tone last note: 
+            // - if start note is not root, make sure it's the target note of the previous wbpsa
+            // - if last note is not a chord tone, make sure next wbpsa matches our target note
+            boolean startEndCheckOK = (wbpSource.isStartingOnChordRoot() || preTargetNoteMatch)
+                    && (wbpSource.isEndingOnChordTone() || postTargetNoteMatch);
 
 
-            // Tempo compatibility
-            float teScore = getTempoScore(wbpsa);           // 0 - 100
+            // If wbpsa's last note is not a chord tone, we need a postTargetNoteMatch
+            if (startEndCheckOK || tiling == null || wbpSourceAdapter == null)
+            {
+
+                // Harmonic compatibility
+                var ctScores = getHarmonicCompatibilityScores(wbpsa);
+                float ctScore = (float) ctScores.stream().mapToDouble(f -> Double.valueOf(f)).average().orElse(0);      // 0-100
 
 
-            // Transposability
-            var scs = wbpsa.getSimpleChordSequence();
-            var scsFirstChordRoot = scs.first().getData().getRootNote();
-            int trScore = wbpsa.getWbpSource().getTransposabilityScore(scsFirstChordRoot);     // 0 - 100
+                // Tempo compatibility
+                float teScore = getTempoScore(wbpsa);           // 0 - 100
 
 
-            // Final score
-            var s = new Score(ctScore, trScore, teScore, preTargetNoteScore, postTargetNoteScore);
-            res = minCompatibilityTester.test(s) ? s : Score.ZERO;
+                // Transposability
+                var scs = wbpsa.getSimpleChordSequence();
+                var scsFirstChordRoot = scs.first().getData().getRootNote();
+                int trScore = wbpsa.getWbpSource().getTransposabilityScore(scsFirstChordRoot);     // 0 - 100
+
+
+                // Final score
+                var s = new Score(ctScore, trScore, teScore, preTargetNoteScore, postTargetNoteScore);
+                res = minCompatibilityTester.test(s) ? s : Score.ZERO;
+
+            } else
+            {
+//                if (wbpsaTargetPitch > -1 && nextWbpsaFirstPitch > -1)
+//                {
+//                    LOGGER.log(Level.SEVERE, "computeCompatibilityScore() DBG last note tone/mismatch wbpsaTargetPitch={0} nextWbpsaFirstPitch={1}",
+//                            new Object[]
+//                            {
+//                                wbpsaTargetPitch,
+//                                nextWbpsaFirstPitch
+//                            });
+//                }
+            }
+
         }
 
         wbpsa.setCompatibilityScore(res);
@@ -248,10 +282,9 @@ public class WbpsaScorerDefault implements WbpsaScorer
      * <p>
      *
      * @param wbpsa
-     * @param targetNoteMatch True if wbpsa target note matches the next wbpsa first note
      * @return An empty list (if 2 incompatible chords types are found) or a list of float values in the [0;100] range
      */
-    private List<Float> getHarmonyCompatibilityScores(WbpSourceAdaptation wbpsa, boolean targetNoteMatch)
+    private List<Float> getHarmonicCompatibilityScores(WbpSourceAdaptation wbpsa)
     {
         List<Float> res = Collections.emptyList();
 
@@ -268,8 +301,8 @@ public class WbpsaScorerDefault implements WbpsaScorer
             {
                 var csSrc = itSrc.next();
                 var csTarget = it.next();
-                var wbpscp = new WbpSourceChordPhrase(wbpSource, csSrc);
-                var score = wbpscp.getHarmonyCompatibilityScore(csTarget.getData());
+                var slice = wbpSource.getSlice(csSrc);
+                var score = slice.getHarmonicCompatibilityScore(csTarget.getData());
                 if (score > 0)
                 {
                     res.add(score);

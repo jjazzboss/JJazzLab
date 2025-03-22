@@ -6,7 +6,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -29,8 +28,6 @@ import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
 import org.jjazz.rhythmmusicgeneration.api.DummyGenerator;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
-import org.jjazz.proswing.walkingbass.WbpSource;
-import org.jjazz.proswing.walkingbass.WbpSourceDatabase;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
 import org.jjazz.songstructure.api.SongStructure;
@@ -185,6 +182,7 @@ public class WalkingBassGenerator implements MusicGenerator
      */
     private Phrase getBassPhrase(SimpleChordSequenceExt scs, BassStyle style, int tempo) throws MusicGenerationException
     {
+        LOGGER.log(Level.SEVERE, "\n");
         LOGGER.log(Level.SEVERE, "getBassPhrase() -- style={0} tempo={1} scs={2}", new Object[]
         {
             style, tempo, scs
@@ -199,17 +197,17 @@ public class WalkingBassGenerator implements MusicGenerator
 
         // PREMIUM PHASE
         WbpsaScorer scorerPremium = new WbpsaScorerDefault(phraseAdapter, tempo, Score.PREMIUM_ONLY_TESTER, style);
-        
+
         LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling PREMIUM LongestFirstNoRepeat");
         var tilerLongestPremium = new TilerLongestFirstNoRepeat(scorerPremium, settings.getWbpsaStoreWidth());
         tilerLongestPremium.tile(tiling);
         LOGGER.log(Level.SEVERE, tiling.toMultiLineString());
 
-        
+
         var untiled = !tiling.isFullyTiled();
         if (untiled)
         {
-            LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling PREMIUM MaxDistance");            
+            LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling PREMIUM MaxDistance");
             var tilerMaxDistancePremium = new TilerMaxDistance(scorerPremium, settings.getWbpsaStoreWidth());
             tilerMaxDistancePremium.tile(tiling);
             LOGGER.log(Level.SEVERE, tiling.toMultiLineString());
@@ -220,7 +218,7 @@ public class WalkingBassGenerator implements MusicGenerator
         untiled = !tiling.isFullyTiled();
         if (untiled)
         {
-            LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling STANDARD LongestFirstNoRepeat");            
+            LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling STANDARD LongestFirstNoRepeat");
             WbpsaScorer scorerStandard = new WbpsaScorerDefault(phraseAdapter, tempo, null, style);
 
             var tilerLongestStandard = new TilerLongestFirstNoRepeat(scorerStandard, settings.getWbpsaStoreWidth());
@@ -230,7 +228,7 @@ public class WalkingBassGenerator implements MusicGenerator
             untiled = !tiling.isFullyTiled();
             if (untiled)
             {
-                LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling STANDARD MaxDistance");                
+                LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling STANDARD MaxDistance");
                 var tilerMaxDistanceStandard = new TilerMaxDistance(scorerStandard, settings.getWbpsaStoreWidth());
                 tilerMaxDistanceStandard.tile(tiling);
                 LOGGER.log(Level.SEVERE, tiling.toMultiLineString());
@@ -244,7 +242,7 @@ public class WalkingBassGenerator implements MusicGenerator
         untiled = !tiling.isFullyTiled();
         if (untiled)
         {
-            LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling EXISTING CUSTOM MaxDistance");            
+            LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling EXISTING CUSTOM MaxDistance");
             tilerMaxDistanceCustomStandard.tile(tiling);
             LOGGER.log(Level.SEVERE, tiling.toMultiLineString());
         }
@@ -254,12 +252,14 @@ public class WalkingBassGenerator implements MusicGenerator
         untiled = !tiling.isFullyTiled();
         if (untiled)
         {
-            LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling CREATED CUSTOM MaxDistance");            
+            LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling CREATED CUSTOM MaxDistance");
             untiled = addCustomWbpSources(tiling);
             tilerMaxDistanceCustomStandard.tile(tiling);
             LOGGER.log(Level.SEVERE, tiling.toMultiLineString());
         }
 
+
+        debugCheck(tiling);
 
         if (untiled)
         {
@@ -273,10 +273,16 @@ public class WalkingBassGenerator implements MusicGenerator
             tiling.toStatsString()
         });
 
-        // Transpose WbpSources to target phrases
+
+        // Compile phrases into the result
         for (var wbpsa : tiling.getWbpSourceAdaptations())
         {
-            var p = phraseAdapter.getPhrase(wbpsa);
+            var p = wbpsa.getAdaptedPhrase();
+            if (p == null)
+            {
+                p = phraseAdapter.getPhrase(wbpsa);
+                wbpsa.setAdaptedPhrase(p);
+            }
             LOGGER.log(Level.FINE, "getBassPhrase() transposedPhrase={0}", p);
             res.add(p, false);
         }
@@ -487,8 +493,26 @@ public class WalkingBassGenerator implements MusicGenerator
         }
     }
 
+    private void debugCheck(WbpTiling tiling)
+    {
+        LOGGER.log(Level.SEVERE, "\n\n debugCheck() =========");
+        
+        // Search for WbpSourceAdaptations with WbpSources using non-standard start/end note        
+        for (var wbpsa : tiling.getWbpSourceAdaptations())
+        {
+            var wbpSource = wbpsa.getWbpSource();
+            if (!wbpSource.isStartingOnChordRoot() && wbpsa.getCompatibilityScore().preTargetNoteMatch() > 0)
+            {
+                LOGGER.log(Level.SEVERE, "  non-root start-note: {0}", wbpsa);
+            } else if (!wbpSource.isEndingOnChordTone() && wbpsa.getCompatibilityScore().postTargetNoteMatch() > 0)
+            {
+                LOGGER.log(Level.SEVERE, "  non-chord-tone end-note: {0}", wbpsa);
+            }
+        }
+    }
 
     // =====================================================================================================================
     // Inner classes
     // =====================================================================================================================
+
 }

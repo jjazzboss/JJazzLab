@@ -275,6 +275,34 @@ public class WbpSourceDatabase
                 NB_BARS, cSeq.toString()
             });
         }
+
+
+        // Search suspicious ghost notes
+        for (var wbpSource : getWbpSources(1, bStyle))
+        {
+            var sp = wbpSource.getSizedPhrase();
+            float lastStartPos = -1;
+            final float LIMIT = 0.06f;
+            for (var ne : sp)
+            {
+                var pos = ne.getPositionInBeats();
+                if (pos - lastStartPos < LIMIT)
+                {
+                    LOGGER.log(Level.SEVERE, "checkConsistency() suspicious near-same-position notes at pos={0} for {1}", new Object[]
+                    {
+                        pos, wbpSource
+                    });
+                }
+                if (ne.getDurationInBeats() < LIMIT)
+                {
+                    LOGGER.log(Level.SEVERE, "checkConsistency() suspicious very short note at pos={0} for {1}", new Object[]
+                    {
+                        pos, wbpSource
+                    });
+                }
+                lastStartPos = pos;
+            }
+        }
     }
 
     /**
@@ -388,7 +416,7 @@ public class WbpSourceDatabase
      */
     private void processWbpSession(WbpSession wbpSession)
     {
-        var wbpSources = wbpSession.extractWbpSources(true, true);
+        var wbpSources = wbpSession.extractWbpSources(false, false);
         for (var wbpSource : wbpSources)
         {
             wbpSource.simplifyChordSymbols();
@@ -546,7 +574,7 @@ public class WbpSourceDatabase
             Phrase p = Phrases.getSlice(bigPhrase, beatRange, false, 2, 0);
             if (p.isEmpty())
             {
-                LOGGER.log(Level.WARNING, "Empty session found for barRange={0}", barRange);
+                LOGGER.log(Level.FINE, "Empty session found for barRange={0}", barRange);
                 continue;
             }
             p.shiftAllEvents(-beatRange.from);
@@ -735,6 +763,7 @@ public class WbpSourceDatabase
         private final List<String> tags;
         private final BassStyle bassStyle;
         private final Set<NoteEvent> loggedCrossingNotes;
+        private final boolean disableTargetNotes;
         private static final Logger LOGGER = Logger.getLogger(WbpSession.class.getSimpleName());
 
         public WbpSession(String id, List<String> tags, SimpleChordSequence cSeq, SizedPhrase phrase, Note targetNote)
@@ -742,8 +771,10 @@ public class WbpSourceDatabase
             super(cSeq, phrase, 0, targetNote);
             this.id = id;
             this.tags = tags;
+            this.disableTargetNotes = this.tags.contains("notn");
             this.bassStyle = computeBassStyle(tags);
             this.loggedCrossingNotes = new HashSet<>();
+
         }
 
         public String getId()
@@ -787,8 +818,8 @@ public class WbpSourceDatabase
                     WbpSource wbpSource = extractWbpSource(bar, srcSize);
                     if (wbpSource != null)
                     {
-                        boolean bFirst = !disallowNonRootStartNote || wbpSource.startsOnChordRoot();
-                        boolean bLast = !disallowNonChordToneLastNote || wbpSource.endsOnChordTone();
+                        boolean bFirst = !disallowNonRootStartNote || wbpSource.isStartingOnChordRoot();
+                        boolean bLast = !disallowNonChordToneLastNote || wbpSource.isEndingOnChordTone();
                         if (bFirst && bLast)
                         {
                             res.add(wbpSource);
@@ -863,7 +894,7 @@ public class WbpSourceDatabase
                 if (!loggedCrossingNotes.contains(crossingNotes.get(0)))
                 {
                     loggedCrossingNotes.addAll(crossingNotes);
-                    LOGGER.log(Level.WARNING, "extractWbpSource() end crossing note(s) detected={0} at bar {1}, WbpSession={2}",
+                    LOGGER.log(Level.FINE, "extractWbpSource() end crossing note(s) detected={0} at bar {1}, WbpSession={2}",
                             new Object[]
                             {
                                 crossingNotes, barRange.to, getId()
@@ -879,10 +910,18 @@ public class WbpSourceDatabase
             FloatRange sliceBeatRange = beatRange.getTransformed(0, -FIRST_NOTE_BEAT_WINDOW);
             Phrase p = Phrases.getSlice(sessionPhrase, sliceBeatRange, true, 1, FIRST_NOTE_BEAT_WINDOW);
 
+
+            // Above we handled crossing notes but because of non-quantization we ignored possible crossing notes which stops at the beginning of our bar. 
+            // The slice() might have produced remaining short notes, we need to remove them
+            p.removeIf(ne -> ne.getPositionInBeats() < (sliceBeatRange.from + FIRST_NOTE_BEAT_WINDOW) && ne.getDurationInBeats() <= FIRST_NOTE_BEAT_WINDOW);
+
+
+            // Adjust start positions
             p.shiftAllEvents(-beatRange.from);
             SizedPhrase sp = new SizedPhrase(sessionPhrase.getChannel(), beatRange.getTransformed(-beatRange.from), sessionPhrase.getTimeSignature(), false);
 
             sp.addAll(p);
+
 
             // Get possible firstNoteBeatShift
             float firstNoteBeatShift = 0;       // By default
@@ -906,7 +945,7 @@ public class WbpSourceDatabase
             // Target note
             Note targetNote = getTargetNote();      // By default
             int nextBar = barOffset + nbBars;
-            if (nextBar < sessionPhrase.getSizeInBars())
+            if (!disableTargetNotes && nextBar < sessionPhrase.getSizeInBars())
             {
                 // If one bar after our phrase, find the next note
                 FloatRange fr = new FloatRange(nextBar * ts.getNbNaturalBeats(), (nextBar + 1) * ts.getNbNaturalBeats());

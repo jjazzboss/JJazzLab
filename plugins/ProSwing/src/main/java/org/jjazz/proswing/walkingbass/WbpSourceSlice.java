@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Logger;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
@@ -48,14 +49,16 @@ import static org.jjazz.harmony.api.Degree.SIXTH_OR_THIRTEENTH;
 import static org.jjazz.harmony.api.Degree.THIRD;
 import static org.jjazz.harmony.api.Degree.THIRD_FLAT;
 import static org.jjazz.harmony.api.Degree.THIRTEENTH_FLAT;
+import org.jjazz.harmony.api.Note;
 import org.jjazz.phrase.api.NoteEvent;
+import org.jjazz.utilities.api.FloatRange;
 
 /**
- * Associate a chord symbol from a WbpSource with its corresponding sub-phrase.
+ * The subpart of a WbpSource corresponding to one chord symbol of the WbpSource source chord sequence.
  * <p>
- * Used to analyze phrase compatibility with a chord symbol.
+ * Used to analyze slice compatibility with a different chord symbol.
  */
-public class WbpSourceChordPhrase
+public class WbpSourceSlice
 {
 
     /**
@@ -67,14 +70,18 @@ public class WbpSourceChordPhrase
     private final CLI_ChordSymbol srcCliChordSymbol;
     private final ExtChordSymbol srcExtChordSymbol;
     private final ChordType srcChordType;
-    private final List<NoteEvent> notes;
+    private final List<NoteEvent> srcNotes;
+    private final List<NoteEvent> srcNotesNoGhost;
+    private final List<NoteEvent> srcNotesNoGhostNoLastApproachNote;
+    private final Note targetNote;
+    private static final Logger LOGGER = Logger.getLogger(WbpSourceSlice.class.getSimpleName());
 
     /**
      *
      * @param wbpSource
-     * @param srcCliCs Must be part of the wbpSource chord sequence
+     * @param srcCliCs  Must be part of the wbpSource chord sequence
      */
-    public WbpSourceChordPhrase(WbpSource wbpSource, CLI_ChordSymbol srcCliCs)
+    public WbpSourceSlice(WbpSource wbpSource, CLI_ChordSymbol srcCliCs)
     {
         Objects.requireNonNull(wbpSource);
         Preconditions.checkArgument(wbpSource.getSimpleChordSequence().contains(srcCliCs), "wbpSource=%s srcCliCs=%s", wbpSource, srcCliCs);
@@ -83,14 +90,69 @@ public class WbpSourceChordPhrase
         this.srcCliChordSymbol = srcCliCs;
         this.srcExtChordSymbol = srcCliCs.getData();
         this.srcChordType = srcExtChordSymbol.getChordType();
-        this.notes = extractNotes();
+
+
+        // Extract notes (which are not quantized)
+        var csBeatRange = wbpSource.getSimpleChordSequence().getBeatRange(srcCliChordSymbol, 0);
+        float fromOffset = csBeatRange.from >= NEAR_WINDOW ? NEAR_WINDOW : 0;
+        float toOffset = csBeatRange.size() > NEAR_WINDOW ? NEAR_WINDOW : 0;
+        var phraseBeatRange = csBeatRange.getTransformed(-fromOffset, -toOffset);
+        var sp = wbpSource.getSizedPhrase();
+        srcNotes = new ArrayList<>(sp.subSet(phraseBeatRange, true));
+        srcNotesNoGhost = srcNotes.stream()
+                .filter(ne -> ne.getDurationInBeats() > GHOST_NOTE_MAX_DURATION)
+                .toList();
+
+
+        // Target note
+        if (srcCliChordSymbol == wbpSource.getLastChordSymbol())
+        {
+            targetNote = wbpSource.getTargetNote(); // Might be null
+        } else
+        {
+            var nextBeatRange = new FloatRange(phraseBeatRange.to, phraseBeatRange.to + 0.3f);
+            var nextPhrase = sp.subSet(nextBeatRange, true);
+            targetNote = nextPhrase.isEmpty() ? null : nextPhrase.first();
+        }
+
+
+        // Check if last note is a semitone approach note
+        srcNotesNoGhostNoLastApproachNote = new ArrayList<>(srcNotesNoGhost);
+        if (!srcNotesNoGhostNoLastApproachNote.isEmpty() && targetNote != null)
+        {
+            var lastNote = srcNotesNoGhostNoLastApproachNote.getLast();
+            if (lastNote.getPositionInBeats() >= phraseBeatRange.to - 1.15f
+                    && srcCliCs.getData().getChord().indexOfRelativePitch(lastNote.getRelativePitch()) == -1
+                    && Math.abs(lastNote.getPitch() - targetNote.getPitch()) == 1)
+            {
+                // Last note is a semitone approach note
+//                LOGGER.log(Level.INFO,
+//                        "DBG semitone approach note detected: wbpSource={0} chords={1} srcCliCs={2} targetNote={3} p={4}",
+//                        new Object[]
+//                        {
+//                            wbpSource.getId(),
+//                            wbpSource.getSimpleChordSequence(),
+//                            srcCliCs,
+//                            targetNote,
+//                            sp
+//                        });
+                srcNotesNoGhostNoLastApproachNote.removeLast();
+            }
+        }
+
+    }
+
+    public WbpSource getWbpSource()
+    {
+        return wbpSource;
     }
 
     /**
      * Check if our chord phrase can be used for targetExtChordSymbol, and if yes score this compatibility.
      * <p>
-     * If targetExtChordSymbol is considered incompatible, score is 0. If chord types are equal, score is 100 (max). Note that 6
-     * and 7M degrees are considered equal in this method (e.g. C6=C7M, Cm69=Cm7M9).
+     * If targetExtChordSymbol is considered incompatible, score is 0. If chord types are equal, score is 100 (max). Note that 6 and 7M degrees are considered
+     * equal in this method (e.g. C6=C7M, Cm69=Cm7M9). Method recognizes a semitone approach note to the target note so it doesn't interfere with chord type
+     * compatibility.
      * <p>
      * Score is 0 if :<br>
      * - srcChordType has more degrees than targetChordType<br>
@@ -111,28 +173,27 @@ public class WbpSourceChordPhrase
      * @param targetExtChordSymbol
      * @return [0; 100] 0 means incompatibility
      */
-    public float getHarmonyCompatibilityScore(ExtChordSymbol targetExtChordSymbol)
+    public float getHarmonicCompatibilityScore(ExtChordSymbol targetExtChordSymbol)
     {
         Objects.requireNonNull(targetExtChordSymbol);
         float res;
 
         var targetChordType = targetExtChordSymbol.getChordType();
         int nbDegreesSrc = srcChordType.getNbDegrees();
-        int nbDegreesTarget = targetChordType.getNbDegrees();
+        var targetDegrees = targetChordType.getDegrees();
 
         if (srcChordType.equalsSixthMajorSeventh(targetChordType))
         {
             res = 100;
 
-        } else if (nbDegreesSrc <= nbDegreesTarget)
+        } else if (nbDegreesSrc <= targetDegrees.size())
         {
             // Search for possible incompatibility for each targetExtChordSymbol degree
             res = 100;
 
-            for (int i = 1; i < nbDegreesTarget; i++)
+            for (var d : targetDegrees)
             {
-                var targetDegree = targetChordType.getDegrees().get(i);
-                var dc = getDegreeCompatibility(targetExtChordSymbol, targetDegree);
+                var dc = getDegreeCompatibility(srcNotesNoGhostNoLastApproachNote, targetExtChordSymbol, d);
                 switch (dc)
                 {
                     case INCOMPATIBLE ->
@@ -142,7 +203,7 @@ public class WbpSourceChordPhrase
                     }
                     case COMPATIBLE_NO_USE ->
                     {
-                        res -= 10;
+                        res -= d == Degree.ROOT ? 15 : 10;          // Slight penalty when root note is absent
                     }
                     case COMPATIBLE_USE ->
                     {
@@ -160,7 +221,7 @@ public class WbpSourceChordPhrase
         }
 
         // If we're compatible check it's also compatible with the optional scale
-        if (res > 0 && !isPhraseScaleCompatible(targetExtChordSymbol))
+        if (res > 0 && !checkScaleCompatibility(srcNotesNoGhostNoLastApproachNote, targetExtChordSymbol))
         {
             res = 0;
         }
@@ -171,8 +232,8 @@ public class WbpSourceChordPhrase
     /**
      * Try to get a simplified source chord symbol of srcCliChordSymbol based on the used phrase notes.
      * <p>
-     * If srcCliChordSymbol uses 6/7 or extension degrees (eg C69), check that the phrase really uses the corresponding degrees,
-     * and if not, return a simplified chord symbol.
+     * If srcCliChordSymbol uses 6/7 or extension degrees (eg C69), check that the phrase really uses the corresponding degrees, and if not, return a simplified
+     * chord symbol.
      *
      * @return srcCliChordSymbol or a simplified version (less degrees)
      */
@@ -183,8 +244,8 @@ public class WbpSourceChordPhrase
         // It's dangerous to simplify if notes/chordsymbol consistency for 3rd and 5th is not cristal-clear 
         // Example D7b9 with notes D C Bb A should not be simplified as D7
         var d3 = srcChordType.getDegree(DegreeIndex.THIRD_OR_FOURTH);       // Might be null for C2 chord
-        boolean consistencyOK = (d3 == null || !getDegreeCompatibility(srcExtChordSymbol, d3).isIncompatible())
-            && !getDegreeCompatibility(srcExtChordSymbol, srcChordType.getDegree(DegreeIndex.FIFTH)).isIncompatible();
+        boolean consistencyOK = (d3 == null || !getDegreeCompatibility(srcNotesNoGhost, srcExtChordSymbol, d3).isIncompatible())
+                && !getDegreeCompatibility(srcNotesNoGhost, srcExtChordSymbol, srcChordType.getDegree(DegreeIndex.FIFTH)).isIncompatible();
 
         if (consistencyOK)
         {
@@ -195,7 +256,7 @@ public class WbpSourceChordPhrase
             while (degreeIndex > 2)     // Leave root/3rd/5th alone
             {
                 var d = degrees.get(degreeIndex);       // 6, 7/7M, b9/9/#9, 11/#11, 13
-                if (!isUsed(d))
+                if (!isUsed(srcNotesNoGhost, d))
                 {
                     var newCs = srcExtChordSymbol.getSimplified(degreeIndex);
                     var newEcs = srcExtChordSymbol.getCopy(newCs, null, null, null);
@@ -211,131 +272,87 @@ public class WbpSourceChordPhrase
         return res;
     }
 
-    /**
-     * The WbpSource phrase notes corresponding to the srcCliCs slice of time (ghost notes are removed).
-     * <p>
-     *
-     * @return Can be empty. Unmodifiable list. Because of non-quantization, some notes might start a little bit earlier than
-     * srcCliCs.
-     */
-    public List<NoteEvent> getNotes()
-    {
-        return Collections.unmodifiableList(notes);
-    }
 
     // =================================================================================================================
     // Private methods
     // =================================================================================================================    
-    private void removeGhostNotes(List<NoteEvent> notes)
-    {
-        notes.removeIf(ne -> ne.getDurationInBeats() <= GHOST_NOTE_MAX_DURATION);
-    }
-
     /**
-     * Extract the notes corresponding to srcCliChordSymbol, taking non-quantization into account.
-     *
-     * @return
-     */
-    private List<NoteEvent> extractNotes()
-    {
-        var csBeatRange = wbpSource.getSimpleChordSequence().getBeatRange(srcCliChordSymbol, 0);
-        float fromOffset = Math.min(NEAR_WINDOW, csBeatRange.from);
-        float toOffset = Math.min(NEAR_WINDOW, csBeatRange.size());
-        csBeatRange = csBeatRange.getTransformed(-fromOffset, -toOffset);     // phrase can be non-quantized
-
-        var res = new ArrayList<>(wbpSource.getSizedPhrase().subSet(csBeatRange, true));
-        removeGhostNotes(res);
-
-        return res;
-    }
-
-    /**
-     * Check that our phrase does not contain notes usually considered "musically incompatible" with d.
+     * Check that notes does not contain "significant" notes usually considered musically incompatible with d when playing targetEcs.
      * <p>
      * Examples:<br>
      * - If d=9th of targetEcs=C9, check that notes do not contain "significant" Db or D# notes.<br>
      * - If d=9th of targetEcs=Cm9, check that notes do not contain "significant" Db notes.<br>
      *
+     * @param notes
      * @param targetEcs
-     * @param d targetEcs degree to be tested against this WbpSourceChordPhrase. Valid degrees are any degree except the root.
+     * @param d         targetEcs degree to be tested against this WbpSourceChordPhrase.
      * @return
      */
-    private DegreeCompatibility getDegreeCompatibility(ExtChordSymbol targetEcs, Degree d)
+    private DegreeCompatibility getDegreeCompatibility(List<NoteEvent> notes, ExtChordSymbol targetEcs, Degree d)
     {
-        Preconditions.checkArgument(d != Degree.ROOT);
         Preconditions.checkArgument(targetEcs.getChordType().getDegrees().contains(d), "targetEcs=%s degree=%s", targetEcs, d);
 
         DegreeCompatibility res = DegreeCompatibility.INCOMPATIBLE;
-        if (containsNoIncompatibleDegrees(targetEcs, d))
+        if (containsNoIncompatibleDegrees(notes, targetEcs, d))
         {
-            res = isUsed(d) ? DegreeCompatibility.COMPATIBLE_USE : DegreeCompatibility.COMPATIBLE_NO_USE;
+            res = isUsed(notes, d) ? DegreeCompatibility.COMPATIBLE_USE : DegreeCompatibility.COMPATIBLE_NO_USE;
         }
 
         return res;
     }
 
-    private boolean containsNoIncompatibleDegrees(ExtChordSymbol targetEcs, Degree d)
+    /**
+     * Check that notes does not contain "significant" notes incompatible with d when playing targetEcs.
+     * <p>
+     * As an exception, if the last source phrase note is a semitone approach note to the target note (if defined), it is not considered incompatible.
+     *
+     * @param notes
+     * @param targetEcs
+     * @param degree
+     * @return
+     */
+    private boolean containsNoIncompatibleDegrees(List<NoteEvent> notes, ExtChordSymbol targetEcs, Degree degree)
     {
-        boolean b = true;
+        // Compute total duration of incompatible notes
+        float totalIncompatibleNotesDuration = 0;
+        float totalDegreeNotesDuration = 0;
+        int dRelPitch = srcExtChordSymbol.getRelativePitch(degree);
 
-        var incompatibleDegrees = getIncompatibleDegrees(targetEcs, d);
-        boolean incompatibibleDegreePresent = incompatibleDegrees.stream().anyMatch(dg -> isUsed(dg));
-
-        if (incompatibibleDegreePresent)
+        var incompatibleDegrees = getIncompatibleDegrees(targetEcs, degree);
+        for (var ne : notes)
         {
-            // There is at least 1 degree to avoid, check that it's not more "significant" than d
-            float totalAvoidDuration = (float) incompatibleDegrees.stream()
-                .mapToDouble(dg -> getTotalDuration(dg))                    
-                .sum();
-
-            b = getTotalDuration(d) > 1.2f * totalAvoidDuration;
+            float neDur = ne.getDurationInBeats();
+            if (incompatibleDegrees.stream()
+                    .map(di -> srcExtChordSymbol.getRelativePitch(di))
+                    .anyMatch(relPitch -> relPitch == ne.getRelativePitch()))
+            {
+                totalIncompatibleNotesDuration += neDur;
+            } else if (ne.getRelativePitch() == dRelPitch)
+            {
+                totalDegreeNotesDuration += neDur;
+            }
         }
+
+        boolean b = totalDegreeNotesDuration >= 1.5f * totalIncompatibleNotesDuration;
 
         return b;
     }
 
     /**
-     * Compute total duration used by notes corresponding to the specified degree.
-     * <p>
+     * Check if the relative pitch corresponding to d is used in the notes.
      *
+     * @param notes
      * @param d
      * @return
      */
-    private float getTotalDuration(Degree d)
-    {
-        float res = 0;
-        var ts = wbpSource.getTimeSignature();
-        int relPitch = srcExtChordSymbol.getRelativePitch(d);
-
-        for (var n : notes)
-        {
-            if (n.getRelativePitch() == relPitch)
-            {
-                // float pos = n.getPositionInBeats();
-                // int nbBars = (int) (pos / ts.getNbNaturalBeats());
-                // float beat = pos - (nbBars * ts.getNbNaturalBeats());
-                float dur = n.getDurationInBeats();
-                res += dur;
-            }
-        }
-
-        return res;
-    }
-
-    /**
-     * Check if d is used in the source phrase.
-     *
-     * @param d
-     * @return
-     */
-    private boolean isUsed(Degree d)
+    private boolean isUsed(List<NoteEvent> notes, Degree d)
     {
         int relPitch = srcExtChordSymbol.getRelativePitch(d);
         return notes.stream().anyMatch(n -> n.getRelativePitch() == relPitch);
     }
 
     /**
-     * Get the "usually" musically-incompatible degrees of extraDegree when playing targetEcs.
+     * Get the "usually" musically-incompatible degrees of d when playing targetEcs.
      * <p>
      *
      * @param targetEcs
@@ -345,12 +362,12 @@ public class WbpSourceChordPhrase
     private List<Degree> getIncompatibleDegrees(ExtChordSymbol targetEcs, Degree d)
     {
         var targetCt = targetEcs.getChordType();
-        assert d != Degree.ROOT;
 
         List<Degree> res = switch (d)
         {
             case ROOT ->
-                throw new IllegalArgumentException("d=" + d);
+                // Any note OK
+                List.of();      
 
             case NINTH_FLAT ->
                 // targetCt can be C7b9(b5,#5,#11), C13b9(b5,#11), Cm7b9, C7susb9, C13susb9
@@ -369,7 +386,8 @@ public class WbpSourceChordPhrase
                 } else
                 {
                     assert targetCt.isSus();
-                    y = "2".equals(targetCt.getName()) ? List.of(Degree.NINTH_FLAT, Degree.THIRD_FLAT, Degree.THIRD) : List.of(Degree.NINTH_FLAT, Degree.THIRD_FLAT);
+                    y = "2".equals(targetCt.getName()) ? List.of(Degree.NINTH_FLAT, Degree.THIRD_FLAT, Degree.THIRD) : List.of(Degree.NINTH_FLAT,
+                            Degree.THIRD_FLAT);
                 }
                 yield y;
             }
@@ -433,34 +451,30 @@ public class WbpSourceChordPhrase
     }
 
     /**
-     * Check that source phrase is also compatible with targetExtChordSymbol optional scale.
+     * Check that notes are compatible with targetExtChordSymbol optional scale.
      * <p>
-     * Example: srcCliChordSymbol=Cm, targetExtChordSymbol=Cm7 with phrygian scale (Ab key) => phrase should not use 9th
-     * significant notes to be compatible.<p>
-     * Returns true if all phrase notes belong to the scale: it's a bit radical condition, there are probably smarter ways to do
-     * this...
+     * Example: srcCliChordSymbol=Cm, targetExtChordSymbol=Cm7 with phrygian scale (Ab key) => phrase should not use 9th significant notes to be compatible.<p>
+     * Returns true if all phrase notes belong to the scale: it's a bit radical condition, there are probably smarter ways to do this...
      *
+     * @param notes
      * @param targetExtChordSymbol
      * @return
      */
-    private boolean isPhraseScaleCompatible(ExtChordSymbol targetExtChordSymbol)
+    private boolean checkScaleCompatibility(List<NoteEvent> notes, ExtChordSymbol targetExtChordSymbol)
     {
         boolean b = true;
 
         var stdScaleInstance = targetExtChordSymbol.getRenderingInfo().getScaleInstance();
         if (stdScaleInstance != null)
         {
-            List<NoteEvent> notesClean = new ArrayList<>(notes);
-            removeGhostNotes(notesClean);
-
             // We need to transpose notes to targetExtChordSymbol root
             int t = srcExtChordSymbol.getRootNote().getRelativeAscInterval(targetExtChordSymbol.getRootNote());
-            var tNotes = notesClean.stream()
-                .map(ne -> ne.getTransposed(t))
-                .toList();
+            var transposedNotes = notes.stream()
+                    .map(ne -> ne.getTransposed(t))
+                    .toList();
 
-            b = tNotes.stream()
-                .allMatch(n -> stdScaleInstance.getRelativePitches().contains(n.getRelativePitch()));
+            b = transposedNotes.stream()
+                    .allMatch(n -> stdScaleInstance.getRelativePitches().contains(n.getRelativePitch()));
         }
 
         return b;

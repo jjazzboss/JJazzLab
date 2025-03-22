@@ -1,5 +1,6 @@
 package org.jjazz.proswing.walkingbass;
 
+import com.google.common.base.Preconditions;
 import org.jjazz.proswing.BassStyle;
 import static com.google.common.base.Preconditions.checkArgument;
 import java.util.ArrayList;
@@ -35,11 +36,13 @@ public class WbpSource extends Wbp
     private final SimpleChordSequence originalChordSequence;
     private WbpSourceStats stats;
 
+
     private record TransposibilityResult(int score, int transpose)
             {
 
     }
     ;
+    private final Map<CLI_ChordSymbol, WbpSourceSlice> mapCsSlice;
     private final Map<Integer, TransposibilityResult> mapDestChordRootTransposibility;
 
     private static final Logger LOGGER = Logger.getLogger(WbpSource.class.getSimpleName());
@@ -68,6 +71,7 @@ public class WbpSource extends Wbp
         checkArgument(phrase.getSizeInBars() >= 1 && phrase.getSizeInBars() <= 4, "phrase=%s", phrase);
 
         this.mapDestChordRootTransposibility = new HashMap<>();
+        this.mapCsSlice = new HashMap<>();
         this.originalChordSequence = cSeq.clone();
         this.sessionId = sessionId;
         this.id = sessionId + "#fr=" + sessionBarFrom + "#sz=" + phrase.getSizeInBars();
@@ -77,6 +81,25 @@ public class WbpSource extends Wbp
         Stream.of(tags).forEach(t -> this.tags.add(t.toLowerCase()));
     }
 
+    /**
+     * Get the WbpSourceSlice for srcCliCs.
+     * <p>
+     * Results are cached.
+     *
+     * @param srcCliCs Must belong to this WbpSource chord sequence.
+     * @return
+     */
+    public WbpSourceSlice getSlice(CLI_ChordSymbol srcCliCs)
+    {
+        Preconditions.checkArgument(getSimpleChordSequence().contains(srcCliCs), "this=%s srcCliCs=%s", this, srcCliCs);
+        var res = mapCsSlice.get(srcCliCs);
+        if (res == null)
+        {
+            res = new WbpSourceSlice(this, srcCliCs);
+            mapCsSlice.put(srcCliCs, res);
+        }
+        return res;
+    }
 
     public WbpSourceStats getStats()
     {
@@ -154,27 +177,23 @@ public class WbpSource extends Wbp
      * Simplify the chord symbols of the chord sequence so that this source phrase can be reused for a maximum of derivative chord symbols.
      *
      * @return True if the SimpleChordSequence was modified as a result
-     * @see WbpSourceChordPhrase#getSimplifiedSourceChordSymbol()
+     * @see WbpSourceSlice#getSimplifiedSourceChordSymbol()
      */
     public boolean simplifyChordSymbols()
     {
         boolean b = false;
 
         var scs = getSimpleChordSequence();
-//        LOGGER.log(Level.SEVERE, "simplifyChordSequence() {0}  {1}  p={2}:", new Object[]
-//        {
-//            getId(), scs.toString(), getSizedPhrase().toStringSimple(true)
-//        });
 
         for (var cliCs : scs.toArray(CLI_ChordSymbol[]::new))
         {
-            var newCliCs = new WbpSourceChordPhrase(this, cliCs).getSimplifiedSourceChordSymbol();
+            var newCliCs = getSlice(cliCs).getSimplifiedSourceChordSymbol();
             if (newCliCs != cliCs)
             {
                 scs.remove(cliCs);
                 scs.add(newCliCs);
                 b = true;
-//                LOGGER.log(Level.SEVERE, "  cliCs={0} => {1}", new Object[]
+//                LOGGER.log(Level.SEVERE, "simplifyChordSymbols()  cliCs={0} => {1}", new Object[]
 //                {
 //                    cliCs.toString(), newCliCs.getData().toString()
 //                });                
@@ -189,13 +208,15 @@ public class WbpSource extends Wbp
      * Get a score which indicates how much the original phrase will preserve an acceptable bass pitch range when transposed to destChordRoot.
      * <p>
      * Return value will be &lt; 50 if there is at least one note which becomes out of BASS_EXTENDED_PITCH_RANGE.
+     * <p>
+     * Return values are cached to speed up next calls with the same note.
      *
      * @param destChordRoot The target root of the first chord symbol
      * @return [0;100]
      */
     public int getTransposabilityScore(Note destChordRoot)
     {
-        Note srcChordRoot = getSimpleChordSequence().first().getData().getRootNote();
+        Note srcChordRoot = getFirstChordSymbol().getData().getRootNote();
         int destChordRelPitch = destChordRoot.getRelativePitch();
         int rootPitchDistance = Math.abs(destChordRelPitch - srcChordRoot.getRelativePitch());
         if (rootPitchDistance == 0)
@@ -311,6 +332,8 @@ public class WbpSource extends Wbp
 
     /**
      * Get the optimal transposition to apply to the source phrase so that first chord root becomes destChordRoot.
+     * <p>
+     * Return values are cached to speed up next calls with the same note.
      *
      * @param destChordRoot
      * @return
@@ -378,4 +401,5 @@ public class WbpSource extends Wbp
     {
         return lower == 0 ? 1 : upper / lower;
     }
+
 }

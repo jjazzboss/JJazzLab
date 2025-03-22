@@ -106,11 +106,11 @@ public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
     }
 
     /**
-     * Get the adapted target pitch as set by {@link #setTargetPitch(int) }.
+     * Get the adapted target pitch as set by {@link #setAdaptedTargetPitch(int) }.
      *
      * @return -1 if not set
      */
-    public int getTargetPitch()
+    public int getAdaptedTargetPitch()
     {
         return targetPitch;
     }
@@ -120,7 +120,7 @@ public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
      *
      * @param targetPitch Use -1 to unset
      */
-    public void setTargetPitch(int targetPitch)
+    public void setAdaptedTargetPitch(int targetPitch)
     {
         Preconditions.checkArgument(targetPitch >= -1 && targetPitch < 128, "targetPitch=%s", targetPitch);
         this.targetPitch = targetPitch;

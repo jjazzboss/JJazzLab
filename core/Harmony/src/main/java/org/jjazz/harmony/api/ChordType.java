@@ -311,11 +311,11 @@ final public class ChordType
      * <p>
      * Order is ROOT, THIRD or FOURTH, FIFTH, [SIXTH_OR_THIRTEENTH(if==sixth)], [SEVENTH], [NINTH], [ELEVENTH], [SIXTH_OR_THIRTEENTH(if==extension)].
      *
-     * @return
+     * @return An unmodifiable list
      */
     public List<Degree> getDegrees()
     {
-        return new ArrayList<>(degrees);
+        return Collections.unmodifiableList(degrees);
     }
 
     /**
@@ -778,7 +778,7 @@ final public class ChordType
             res = ChordTypeDatabase.getDefault().getChordType(resDegrees);
             if (res == null)
             {
-                LOGGER.log(Level.WARNING, "getSimplified() ChordType {0} can not be simplified with only {1} degrees", new Object[]
+                LOGGER.log(Level.FINE, "getSimplified() ChordType {0} can not be simplified with only {1} degrees", new Object[]
                 {
                     this, nbMaxDegrees
                 });

@@ -282,7 +282,8 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
         public static final int COL_CHORDS = 4;
         public static final int COL_STATS = 5;
         public static final int COL_PHRASE = 6;
-        private static final int NB_COLS = 7;
+        public static final int COL_TARGET_NOTE = 7;
+        private static final int NB_COLS = 8;
 
 
         private final List<WbpSourceAdaptation> wbpsas = new ArrayList<>();
@@ -354,7 +355,7 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
         {
             var res = switch (col)
             {
-                case COL_ID, COL_SCORE_DETAILS, COL_CHORDS, COL_PHRASE, COL_STYLE, COL_STATS ->
+                case COL_ID, COL_SCORE_DETAILS, COL_CHORDS, COL_PHRASE, COL_STYLE, COL_STATS, COL_TARGET_NOTE ->
                     String.class;
                 case COL_SCORE ->
                     Float.class;
@@ -382,6 +383,8 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
                     "Chords";
                 case COL_PHRASE ->
                     "Phrase";
+                case COL_TARGET_NOTE ->
+                    "Target note";
                 default -> throw new IllegalStateException("columnIndex=" + col);
             };
             return s;
@@ -412,6 +415,11 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
                     wbpsa.getCompatibilityScore().toString();
                 case COL_CHORDS ->
                     new ArrayList<>(wbpSource.getSimpleChordSequence()).toString();
+                case COL_TARGET_NOTE ->
+                {
+                    var note = wbpsa.getWbpSource().getTargetNote();
+                    yield note == null ? "" : note.toPianoOctaveString();
+                }
                 case COL_PHRASE ->
                 {
                     yield switch (getNoteRepresentationDetail())
