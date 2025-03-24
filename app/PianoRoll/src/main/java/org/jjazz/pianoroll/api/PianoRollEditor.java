@@ -254,7 +254,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
         this.mapPosTimeSignature.put(0f, TimeSignature.FOUR_FOUR);
         this.loopZone = null;
         this.noteSelection = new NoteSelection();
-        this.playbackAutoScrollEnabled = MusicController.getInstance().isPlaying();
+        this.playbackAutoScrollEnabled = true;                  // MusicController.getInstance().isPlaying();
 
         // Be notified of changes, note added, moved, removed, set
         model.addPropertyChangeListener(this);

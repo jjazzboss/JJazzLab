@@ -3,36 +3,35 @@ package org.jjazz.proswing.walkingbass;
 import com.google.common.base.Preconditions;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
-import org.jjazz.phrase.api.Grid;
 import org.openide.util.NbPreferences;
 
 /**
  * Generator settings.
  */
-public class WalkingBassGeneratorSettings
+public class WalkingBassMusicGeneratorSettings
 {
 
     private static final String PREF_WBPSA_STORE_WIDTH = "PrefWbpsaStoreWidth";
     private static final String PREF_WBPSA_STORE_RANDOMIZED_SCORE_WINDOW = "PrefRandomizedScoreWindow";
     private static final String PREF_ACCEPT_NON_ROOT_START_NOTE = "PrefAcceptNonRootStartNote";
-    private static WalkingBassGeneratorSettings INSTANCE;
-    private final Preferences prefs = NbPreferences.forModule(WalkingBassGeneratorSettings.class);
+    private static WalkingBassMusicGeneratorSettings INSTANCE;
+    private final Preferences prefs = NbPreferences.forModule(WalkingBassMusicGeneratorSettings.class);
     ;
-    private static final Logger LOGGER = Logger.getLogger(WalkingBassGeneratorSettings.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(WalkingBassMusicGeneratorSettings.class.getSimpleName());
 
-    public static WalkingBassGeneratorSettings getInstance()
+    public static WalkingBassMusicGeneratorSettings getInstance()
     {
-        synchronized (WalkingBassGeneratorSettings.class)
+        synchronized (WalkingBassMusicGeneratorSettings.class)
         {
             if (INSTANCE == null)
             {
-                INSTANCE = new WalkingBassGeneratorSettings();
+                INSTANCE = new WalkingBassMusicGeneratorSettings();
             }
         }
         return INSTANCE;
     }
 
-    private WalkingBassGeneratorSettings()
+    private WalkingBassMusicGeneratorSettings()
     {
     }
 

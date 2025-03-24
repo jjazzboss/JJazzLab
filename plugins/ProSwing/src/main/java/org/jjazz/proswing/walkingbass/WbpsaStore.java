@@ -64,7 +64,7 @@ public class WbpsaStore
         this.tiling = tiling;
         this.wbpsaScorer = scorer;
         this.width = width;
-        this.randomizeWithinOverallScoreWindow = WalkingBassGeneratorSettings.getInstance().getWbpsaStoreRandomizedScoreWindow();
+        this.randomizeWithinOverallScoreWindow = WalkingBassMusicGeneratorSettings.getInstance().getWbpsaStoreRandomizedScoreWindow();
         if (this.randomizeWithinOverallScoreWindow < 1)
         {
             LOGGER.log(Level.WARNING, "WbpsaStore() randomization is DISABLED (randomizeWithinOverallScoreWindow={0})", randomizeWithinOverallScoreWindow);

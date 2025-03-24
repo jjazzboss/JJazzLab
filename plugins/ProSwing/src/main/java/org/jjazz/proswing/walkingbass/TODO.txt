@@ -1,9 +1,8 @@
 * Exception when using play loop zone in some cases
-* Variations: 2 feel (2 variations LACoolSwing-B1, JazzClub.S120-B1) ? check out Shuffle rhythm examples), walking, walking double notes (C C Bb Bb etc.)
+* Variations: 2 feel (2 variations LACoolSwing-B1, JazzClub.S120-B1) ? check out Shuffle rhythm examples), walking, walking double notes (C C Bb Bb etc.) seeJazzClub.S120-C
 * Handle slash chords
 * Create the AdaptedRhythm
 * Handle pedal notes in walking or 1 out of 2
-* Generator: if a WbpSource is used twice, alter its "groove" (positions+velocity) by copying a similar phrase groove
 * Handle non recognized multi-chord bars. If walking and chord duratino >=2-beat play 2 notes. If 2-feel and chord duration >= 3 beats play 2 notes. If walking and all notes on beat, fill.
 * Handle RP intensity
 * Handle anticipated chords
@@ -14,12 +13,11 @@
 * Test minor chords with scale 
 
 
-
 MAYBE LATER
+* Generator: if a WbpSource is used twice, alter its "groove" (positions+velocity) by copying a similar phrase groove
 * Generate alternate phrases from DB: try symetric patterns ?
-
 * Scorer: take into account start/end slopes matching ?
-* Programmatically add embellishments like p15 (for 2 feel), p28 of Constructig-walking-pdf...
+* Programmatically add embellishments like p15 (for 2 feel), p28 of Constructing-walking-pdf...
 * Try to automatically assign a chord scale to chords (DB and song)
 * Handle the tags to select WbpSources
 * Do not directly disable duplicates: they provide velocity/timing variety. Check should be done by Scorer vs Tiling ? 

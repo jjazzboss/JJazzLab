@@ -9,36 +9,29 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import org.jjazz.harmony.api.ChordType;
 import org.jjazz.midimix.api.MidiMix;
-import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.api.SongChordSequence;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.phrase.api.Phrase;
-import org.jjazz.phrase.api.Phrases;
-import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.proswing.RP_BassStyle;
 import org.jjazz.proswing.BassStyle;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Intensity;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
-import org.jjazz.rhythmmusicgeneration.api.DummyGenerator;
-import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
 import org.jjazz.songstructure.api.SongStructure;
-import org.jjazz.utilities.api.IntRange;
 
 /**
  * Walking bass generator based on pre-recorded patterns from WbpDatabase.
  *
  * @see WbpSourceDatabase
  */
-public class WalkingBassGenerator implements MusicGenerator
+public class WalkingBassMusicGenerator implements MusicGenerator
 {
 
     private static int SESSION_COUNT = 0;
@@ -48,9 +41,9 @@ public class WalkingBassGenerator implements MusicGenerator
      * The Chord Sequence with all the chords.
      */
     private SongChordSequence songChordSequence;
-    private static final Logger LOGGER = Logger.getLogger(WalkingBassGenerator.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(WalkingBassMusicGenerator.class.getSimpleName());
 
-    public WalkingBassGenerator(Rhythm r)
+    public WalkingBassMusicGenerator(Rhythm r)
     {
         Preconditions.checkArgument(RP_SYS_Variation.getVariationRp(r) != null
                 && RP_SYS_Intensity.getIntensityRp(r) != null,
@@ -172,7 +165,7 @@ public class WalkingBassGenerator implements MusicGenerator
 
 
     /**
-     * Get the bass phrase from a SimpleChordSequenceExt.
+     * Get the bass phrase for the usable bars of a SimpleChordSequenceExt.
      *
      * @param scs
      * @param style
@@ -188,84 +181,17 @@ public class WalkingBassGenerator implements MusicGenerator
             style, tempo, scs
         });
 
-        Phrase res = new Phrase(0);             // channel useless here
+        
+        // Do the work
+        var tiling = style.getTilingFactory().build(scs, tempo);
 
-        var settings = WalkingBassGeneratorSettings.getInstance();
-        WbpTiling tiling = new WbpTiling(scs);
-        var phraseAdapter = new TransposerPhraseAdapter();
-
-
-        // PREMIUM PHASE
-        WbpsaScorer scorerPremium = new WbpsaScorerDefault(phraseAdapter, tempo, Score.PREMIUM_ONLY_TESTER, style);
-
-        LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling PREMIUM LongestFirstNoRepeat");
-        var tilerLongestPremium = new TilerLongestFirstNoRepeat(scorerPremium, settings.getWbpsaStoreWidth());
-        tilerLongestPremium.tile(tiling);
-        LOGGER.log(Level.SEVERE, tiling.toMultiLineString());
-
-
-        var untiled = !tiling.isFullyTiled();
-        if (untiled)
-        {
-            LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling PREMIUM MaxDistance");
-            var tilerMaxDistancePremium = new TilerMaxDistance(scorerPremium, settings.getWbpsaStoreWidth());
-            tilerMaxDistancePremium.tile(tiling);
-            LOGGER.log(Level.SEVERE, tiling.toMultiLineString());
-        }
-
-
-        // STANDARD PHASE
-        untiled = !tiling.isFullyTiled();
-        if (untiled)
-        {
-            LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling STANDARD LongestFirstNoRepeat");
-            WbpsaScorer scorerStandard = new WbpsaScorerDefault(phraseAdapter, tempo, null, style);
-
-            var tilerLongestStandard = new TilerLongestFirstNoRepeat(scorerStandard, settings.getWbpsaStoreWidth());
-            tilerLongestStandard.tile(tiling);
-            LOGGER.log(Level.SEVERE, tiling.toMultiLineString());
-
-            untiled = !tiling.isFullyTiled();
-            if (untiled)
-            {
-                LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling STANDARD MaxDistance");
-                var tilerMaxDistanceStandard = new TilerMaxDistance(scorerStandard, settings.getWbpsaStoreWidth());
-                tilerMaxDistanceStandard.tile(tiling);
-                LOGGER.log(Level.SEVERE, tiling.toMultiLineString());
-            }
-        }
-
-
-        // If still untiled, try using previously computed CUSTOM source phrases
-        WbpsaScorer scorerCustom = new WbpsaScorerDefault(phraseAdapter, tempo, null, BassStyle.CUSTOM);
-        var tilerMaxDistanceCustomStandard = new TilerMaxDistance(scorerCustom, settings.getWbpsaStoreWidth());
-        untiled = !tiling.isFullyTiled();
-        if (untiled)
-        {
-            LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling EXISTING CUSTOM MaxDistance");
-            tilerMaxDistanceCustomStandard.tile(tiling);
-            LOGGER.log(Level.SEVERE, tiling.toMultiLineString());
-        }
-
-
-        // If still untiled, add new CUSTOM source phrases then retile -that should be enough
-        untiled = !tiling.isFullyTiled();
-        if (untiled)
-        {
-            LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling CREATED CUSTOM MaxDistance");
-            untiled = addCustomWbpSources(tiling);
-            tilerMaxDistanceCustomStandard.tile(tiling);
-            LOGGER.log(Level.SEVERE, tiling.toMultiLineString());
-        }
-
-
+        
+        // Control
         debugCheck(tiling);
-
-        if (untiled)
+        if (!tiling.isFullyTiled())
         {
             LOGGER.severe("getBassPhrase() ERROR could not fully tile");
         }
-
 
         LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ===============   Tiling stats  scs.usableBars={0} \n{1}", new Object[]
         {
@@ -275,6 +201,8 @@ public class WalkingBassGenerator implements MusicGenerator
 
 
         // Compile phrases into the result
+        var phraseAdapter = new TransposerPhraseAdapter();
+        Phrase res = new Phrase(0);             // channel useless here        
         for (var wbpsa : tiling.getWbpSourceAdaptations())
         {
             var p = wbpsa.getAdaptedPhrase();
@@ -286,6 +214,7 @@ public class WalkingBassGenerator implements MusicGenerator
             LOGGER.log(Level.FINE, "getBassPhrase() transposedPhrase={0}", p);
             res.add(p, false);
         }
+        
         return res;
     }
 
@@ -317,153 +246,6 @@ public class WalkingBassGenerator implements MusicGenerator
     }
 
 
-    /**
-     * For each untiled bar create and add BassStyle.CUSTOM WbpSource(s) to WbpSourceDatabase.
-     * <p>
-     * Untiled zones with only 1 chord are NOT handled by this method (it means that the default WbpSourceDatabase should be updated).
-     *
-     * @param tiling
-     * @return True if there still are some untiled bars.
-     */
-    private boolean addCustomWbpSources(WbpTiling tiling)
-    {
-        boolean b = false;
-
-        for (int size = WbpSourceDatabase.SIZE_MAX; size >= WbpSourceDatabase.SIZE_MIN; size--)
-        {
-            var startBars = tiling.getUntiledZonesStartBarIndexes(size);
-            for (int startBar : startBars)
-            {
-                b = true;
-                var br = new IntRange(startBar, startBar + size - 1);
-                var subSeq = tiling.getSimpleChordSequenceExt().subSequence(br, true).getShifted(-startBar);
-                if (subSeq.size() == 1)
-                {
-                    // Not normal, some additional default WbpSources should be added in the database
-                    LOGGER.log(Level.SEVERE, "handleNonTiledBars() 1-chord subSeq not previously tiled: {0}", subSeq);
-                    continue;
-                }
-
-                // subSeq contains at least 2 chords
-                List<WbpSource> wbpSources = createCustomWbpSources(subSeq);
-
-                // Add 
-                var wbpDb = WbpSourceDatabase.getInstance();
-                for (var wbps : wbpSources)
-                {
-                    if (!wbpDb.addWbpSource(wbps))
-                    {
-                        LOGGER.log(Level.WARNING, "handleNonTiledBars() subSeq={0} ADD FAIL: {1} ", new Object[]
-                        {
-                            subSeq, wbps
-                        });
-                    }
-                }
-            }
-        }
-
-        return b;
-    }
-
-    /**
-     * Create one or more default WbpSources with BassType=CUSTOM for subSeq.
-     *
-     * @param subSeq Must start at bar 0. Contains 2 or more chords.
-     * @return
-     */
-    private List<WbpSource> createCustomWbpSources(SimpleChordSequence subSeq)
-    {
-        Preconditions.checkArgument(subSeq.getBarRange().from == 0 && subSeq.size() > 1, "subSeq=%s", subSeq);
-
-        LOGGER.log(Level.SEVERE, "createCustomWbpSources() - subSeq={0}", subSeq);
-
-        List<WbpSource> res = new ArrayList<>();
-        if (subSeq.isTwoChordsPerBar(0.25f, false))
-        {
-            LOGGER.log(Level.SEVERE, "createCustomWbpSources() => 2-chord-per-bar phrase");
-            SizedPhrase sp = create2ChordsPerBarPhrase(subSeq);
-            String id = "Gen2Chords-" + (SESSION_COUNT++);
-            WbpSource wbpSource = new WbpSource(id, 0, BassStyle.CUSTOM, subSeq, sp, 0, null);
-            WbpSource wbpGrooveRef = findGrooveReference(sp);
-            if (wbpGrooveRef != null)
-            {
-                Phrases.applyGroove(wbpGrooveRef.getSizedPhrase(), sp, 0.15f);
-            } else
-            {
-                LOGGER.log(Level.WARNING, "createCustomWbpSources() no groove reference found for phrase {0}", sp);
-            }
-
-            res.add(wbpSource);
-
-        } else
-        {
-            LOGGER.log(Level.SEVERE, "createCustomWbpSources() => random phrase");
-            var p = DummyGenerator.getBasicBassPhrase(0, subSeq, new IntRange(50, 65), 0);
-            SizedPhrase sp = new SizedPhrase(0, subSeq.getBeatRange(0), subSeq.getTimeSignature(), false);
-            sp.add(p);
-            String id = "GenDefault-" + (SESSION_COUNT++);
-            WbpSource wbpSource = new WbpSource(id, 0, BassStyle.CUSTOM, subSeq, sp, 0, null);
-            res.add(wbpSource);
-        }
-
-        return res;
-    }
-
-    /**
-     * Create a bass phrase for a 2-chord per bar chord sequence.
-     *
-     * @param subSeq
-     * @return
-     */
-    private SizedPhrase create2ChordsPerBarPhrase(SimpleChordSequence subSeq)
-    {
-        SizedPhrase sp = new SizedPhrase(0, subSeq.getBeatRange(0), subSeq.getTimeSignature(), false);
-        for (var cliCs : subSeq)
-        {
-            var ecs = cliCs.getData();
-            int cBase = 3 * 12;
-            int bassPitch0 = cBase + ecs.getRootNote().getRelativePitch();
-            int bassPitch1 = cBase + ecs.getRelativePitch(ChordType.DegreeIndex.THIRD_OR_FOURTH);
-            float pos0 = subSeq.toPositionInBeats(cliCs.getPosition(), 0);
-            float pos1 = pos0 + 1f;
-            NoteEvent ne0 = new NoteEvent(bassPitch0, 1f, 80, pos0);
-            NoteEvent ne1 = new NoteEvent(bassPitch1, 1f, 80, pos1);
-            sp.add(ne0);
-            sp.add(ne1);
-        }
-        return sp;
-    }
-
-    private boolean isGeneratedWbpSource(WbpSource wbpSource)
-    {
-        return wbpSource.getId().startsWith("Gen");
-    }
-
-    /**
-     * Find a random WbpSource which can serve as groove reference for sp.
-     *
-     * @param sp
-     * @return
-     */
-    private WbpSource findGrooveReference(SizedPhrase sp)
-    {
-        WbpSource res = null;
-
-        var wbpSources = WbpSourceDatabase.getInstance().getWbpSources(sp.getSizeInBars()).stream()
-                .filter(w -> !isGeneratedWbpSource(w) && Phrases.isSamePositions(w.getSizedPhrase(), sp, 0.15f))
-                .toList();
-
-        if (wbpSources.size() == 1)
-        {
-            res = wbpSources.get(0);
-        } else if (wbpSources.size() > 1)
-        {
-            int index = (int) (Math.random() * wbpSources.size());
-            res = wbpSources.get(index);
-        }
-
-        return res;
-    }
 
     /**
      * Update SongParts with RP_BassStyle value="auto" to the appropriate value (depends on the RP_SYS_Variation value).
@@ -496,7 +278,7 @@ public class WalkingBassGenerator implements MusicGenerator
     private void debugCheck(WbpTiling tiling)
     {
         LOGGER.log(Level.SEVERE, "\n\n debugCheck() =========");
-        
+
         // Search for WbpSourceAdaptations with WbpSources using non-standard start/end note        
         for (var wbpsa : tiling.getWbpSourceAdaptations())
         {

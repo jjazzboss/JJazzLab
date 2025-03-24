@@ -41,13 +41,13 @@ public class RP_BassStyle extends RP_State
             BassStyle.BASIC, "basic",
             BassStyle.TWO_FEEL, "2-feel",
             BassStyle.WALKING, "walking",
-            BassStyle.CUSTOM, "custom"
+            BassStyle.WALKING_DOUBLE, "walking-double"
     );
     
     public RP_BassStyle(boolean isPrimary)
     {
         super("BassStyleId", "Bass style", "Adjust bass style", isPrimary, AUTO_MODE_VALUE,
-                AUTO_MODE_VALUE, toRpValue(BassStyle.BASIC), toRpValue(BassStyle.TWO_FEEL), toRpValue(BassStyle.WALKING));
+                AUTO_MODE_VALUE, toRpValue(BassStyle.BASIC), toRpValue(BassStyle.TWO_FEEL), toRpValue(BassStyle.WALKING), toRpValue(BassStyle.WALKING_DOUBLE));
     }
 
     /**
@@ -91,7 +91,7 @@ public class RP_BassStyle extends RP_State
             case "Main B-1", "Main B-2" ->
                 BassStyle.TWO_FEEL;
             case "Main C-1", "Main C-2" ->
-                BassStyle.WALKING;
+                BassStyle.WALKING_DOUBLE;
             case "Main D-1", "Main D-2" ->
                 BassStyle.WALKING;
             case "Intro A", "Intro B", "Intro C", "Ending A", "Ending B", "Ending C", "Fill In AA","Fill In BB","Fill In CC","Fill In DD","Fill In BA" ->

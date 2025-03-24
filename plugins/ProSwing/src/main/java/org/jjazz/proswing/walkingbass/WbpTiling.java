@@ -28,18 +28,22 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.SortedSetMultimap;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
-import org.jjazz.proswing.walkingbass.WbpSourceDatabase;
-import org.jjazz.proswing.walkingbass.WbpSource;
+import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.utilities.api.IntRange;
 
 /**
- * Which WbpSourceAdaptations (various sizes) cover which usable bars of a SimpleChordSequenceExt.
+ * Define which WbpSourceAdaptations (of various sizes) cover which usable bars of a SimpleChordSequenceExt.
  * <p>
  */
 public class WbpTiling
@@ -368,6 +372,63 @@ public class WbpTiling
         }
         var floorEntry = mapBarWbpsa.floorEntry(barRange.to);
         return floorEntry == null || !floorEntry.getValue().getBarRange().isIntersecting(barRange);
+    }
+
+
+    /**
+     * For each chord sequence corresponding to an untiled zone, try to create WbpSources using wbpSourcesBuilder.
+     * <p>
+     *
+     * @param wbpSourcesBuilder Generate a list (possibly empty) of WbpSources for a SimpleChordSequence.
+     * @param sizes             The untiled zone size(s) to be processed, in that order. If not specified, start from WbpSourceDatabase.SIZE_MAX down to
+     *                          WbpSourceDatabase.SIZE_MIN
+     * @return The built WbpSources
+     */
+    public List<WbpSource> buildWbpSources(Function<SimpleChordSequence, List<WbpSource>> wbpSourcesBuilder, Integer... sizes)
+    {
+        Objects.requireNonNull(wbpSourcesBuilder);
+
+        List<WbpSource> res = new ArrayList<>();
+        List<Integer> sizeList = new ArrayList<>();
+        if (sizes.length == 0)
+        {
+            for (int i = WbpSourceDatabase.SIZE_MAX; i >= WbpSourceDatabase.SIZE_MIN; i--)
+            {
+                sizeList.add(i);
+            }
+        } else
+        {
+            sizeList.addAll(List.of(sizes));
+        }
+        
+        List<IntRange> processedBarRanges = new ArrayList<>();
+
+        for (var size : sizeList)
+        {
+            var startBars = getUntiledZonesStartBarIndexes(size);
+
+            for (int startBar : startBars)
+            {
+                var br = new IntRange(startBar, startBar + size - 1);
+
+                if (processedBarRanges.stream().anyMatch(rg -> rg.contains(br)))
+                {
+                    // We already created WbpSource(s) for the enclosing range
+                    continue;
+                }
+
+                var subSeq = getSimpleChordSequenceExt().subSequence(br, true).getShifted(-startBar);
+                var wbpSources = wbpSourcesBuilder.apply(subSeq);
+
+                if (!wbpSources.isEmpty())
+                {
+                    res.addAll(wbpSources);
+                    processedBarRanges.add(br);
+                }
+            }
+        }
+
+        return res;
     }
 
     @Override

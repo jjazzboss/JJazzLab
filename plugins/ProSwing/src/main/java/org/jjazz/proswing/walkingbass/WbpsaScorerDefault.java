@@ -97,7 +97,7 @@ public class WbpsaScorerDefault implements WbpsaScorer
     public Score computeCompatibilityScore(WbpSourceAdaptation wbpsa, WbpTiling tiling)
     {
         var wbpSource = wbpsa.getWbpSource();
-        var acceptNonRootStartNote = WalkingBassGeneratorSettings.getInstance().isAcceptNonRootStartNote();
+        var acceptNonRootStartNote = WalkingBassMusicGeneratorSettings.getInstance().isAcceptNonRootStartNote();
 
         Score res = Score.ZERO;
 
@@ -333,7 +333,7 @@ public class WbpsaScorerDefault implements WbpsaScorer
 
         res = switch (bassStyle)
         {
-            case CUSTOM, BASIC ->
+            case TWO_FEEL_CUSTOM, WALKING_CUSTOM, WALKING_DOUBLE_CUSTOM, BASIC ->
                 60;
 
             case TWO_FEEL ->
