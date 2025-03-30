@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IntSummaryStatistics;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -395,6 +396,20 @@ public class WbpSourceDatabase
                 .toList();
         return res;
     }
+
+    /**
+     * Get the most probable velocity range.
+     * <p>
+     * TODO: calculate it from the WbpSources.
+     *
+     * @return
+     *
+     */
+    public IntRange getMostProbableVelocityRange()
+    {
+        return new IntRange(50, 65);
+    }
+    
 
     public void dump()
     {
@@ -979,5 +994,9 @@ public class WbpSourceDatabase
         }
 
     }
+    // ==============================================================================================
+    // Inner classes
+    // ==============================================================================================
+
 
 }

@@ -30,7 +30,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Logger;
 import org.jjazz.midi.api.DrumKit;
-import org.jjazz.midi.api.MidiUtilities;
+import org.jjazz.midi.api.MidiConst;
 import org.jjazz.phrase.api.CyclicPositions;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.SizedPhrase;
@@ -115,7 +115,7 @@ public class DrumsAccentsTransform implements PhraseTransform
 
             if (validPitches.contains(pitch) && cyclicPositions.matches(pos, POS_WINDOW))
             {
-                int velocity = MidiUtilities.limit(ne.getVelocity() + accentOffset);
+                int velocity = MidiConst.clamp(ne.getVelocity() + accentOffset);
                 nne = new NoteEvent(pitch, ne.getDurationInBeats(), velocity, pos);
             }
 

@@ -33,7 +33,7 @@ import java.util.function.Predicate;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.midi.api.MidiUtilities;
+import org.jjazz.midi.api.MidiConst;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
 import org.openide.util.Exceptions;
@@ -365,7 +365,7 @@ public class Grid implements Cloneable
         Map<NoteEvent, NoteEvent> mapOldNew = new HashMap<>();
         for (NoteEvent ne : nes)
         {
-            int newVelocity = MidiUtilities.limit(f.apply(ne.getVelocity()));
+            int newVelocity = MidiConst.clamp(f.apply(ne.getVelocity()));
             NoteEvent newNe = ne.setVelocity(newVelocity);
             mapOldNew.put(ne, newNe);
         }

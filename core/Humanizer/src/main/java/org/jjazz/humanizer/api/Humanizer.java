@@ -39,7 +39,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.midi.api.MidiUtilities;
+import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.synths.InstrumentFamily;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
@@ -101,7 +101,7 @@ public class Humanizer
         {
             Objects.requireNonNull(str);
             Config res;
-            Scanner s = new Scanner(str).useLocale(Locale.ENGLISH);  // Because Float.toString() alwyas uses english locale ("." in floating point)
+            Scanner s = new Scanner(str).useLocale(Locale.ENGLISH);  // Because Float.toString() always uses english locale ("." in floating point)
             try
             {
                 float tr = s.nextFloat();
@@ -122,7 +122,7 @@ public class Humanizer
     }
 
     /**
-     * ldValue=old config, newValue=new config.
+     * oldValue=old config, newValue=new config.
      */
     public static final String PROP_USER_CONFIG = "PropUserConfig";
     /**
@@ -374,7 +374,7 @@ public class Humanizer
 
             // New velocity
             int velShift = Math.round(noteRandomFactors.velocityFactor() * MAX_VELOCITY_DEVIATION * config.velocityRandomness);
-            int newVelocity = MidiUtilities.limit(velocity + velShift);
+            int newVelocity = MidiConst.clamp(velocity + velShift);
 
 
             if (Float.compare(newDuration, ne.getDurationInBeats()) == 0

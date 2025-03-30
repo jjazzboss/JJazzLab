@@ -221,14 +221,15 @@ public class Phrases
     }
 
     /**
-     * Check if both phrases have the same number of notes with approximatly the same note start positions.
+     * Check if both phrases have the same number of notes with approximatly the same note start positions, and optionnaly the same note durations.
      *
      * @param sp1
-     * @param sp2            Start beat range might be different from sp1, but size in bars and time signature must be equal.
+     * @param sp2               Start beat range might be different from sp1, but size in bars and time signature must be equal.
+     * @param sameNoteDurations If true also check if note durations are approximatively the same.
      * @param nearBeatWindow
      * @return
      */
-    static public boolean isSamePositions(SizedPhrase sp1, SizedPhrase sp2, float nearBeatWindow)
+    static public boolean isSameNotePositions(SizedPhrase sp1, SizedPhrase sp2, boolean sameNoteDurations, float nearBeatWindow)
     {
         boolean b = false;
 
@@ -238,9 +239,15 @@ public class Phrases
             b = true;
             for (var ne1 : sp1)
             {
+                var dur1 = ne1.getDurationInBeats();
+                var relPos1 = ne1.getPositionInBeats() - sp1.getBeatRange().from;
+                
                 var ne2 = it2.next();
-                var n2NewPos = ne1.getPositionInBeats() - sp1.getBeatRange().from + sp2.getBeatRange().from;
-                if (Math.abs(n2NewPos - ne2.getPositionInBeats()) > nearBeatWindow)
+                var dur2 = ne2.getDurationInBeats();
+                var relPos2 =  ne2.getPositionInBeats() - sp2.getBeatRange().from;
+                
+                if (Math.abs(relPos2 - relPos1) > nearBeatWindow
+                        || (sameNoteDurations && Math.abs(dur2 - dur1) > (2 * nearBeatWindow)))
                 {
                     b = false;
                     break;

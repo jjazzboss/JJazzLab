@@ -37,17 +37,18 @@ import org.jjazz.midi.api.synths.InstrumentFamily;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.proswing.BassStyle;
+import org.jjazz.rhythmmusicgeneration.api.DummyGenerator;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 
 /**
- * A factory for BassStyle.WALKING.
+ * A factory for BassStyle.TWO_FEEL.
  */
-public class WalkingTilingFactory implements TilingFactory
+public class TwoFeelTilingFactory implements TilingFactory
 {
 
     private static int sessionCount = 0;
-    private static final BassStyle STYLE = BassStyle.WALKING;
-    private static final Logger LOGGER = Logger.getLogger(WalkingTilingFactory.class.getSimpleName());
+    private static final BassStyle STYLE = BassStyle.TWO_FEEL;
+    private static final Logger LOGGER = Logger.getLogger(TwoFeelTilingFactory.class.getSimpleName());
 
     @Override
     public WbpTiling build(SimpleChordSequenceExt scs, int tempo)
@@ -130,7 +131,7 @@ public class WalkingTilingFactory implements TilingFactory
             {
                 if (!wbpDb.addWbpSource(wbps))
                 {
-                    LOGGER.log(Level.WARNING, "handleNonTiledBars() add failed for {1} ", new Object[]
+                    LOGGER.log(Level.WARNING, "build() add failed for {1} ", new Object[]
                     {
                         wbps
                     });
@@ -170,7 +171,7 @@ public class WalkingTilingFactory implements TilingFactory
 
         var ts = scs.getTimeSignature();
         boolean is2chordsPerBar = scs.isMatchingInBarBeatPositions(false, 0, ts.getHalfBarBeat(true));
-        var idPrefix = is2chordsPerBar ? "cWalking-2chords" : "cWalking-default";
+        var idPrefix = is2chordsPerBar ? "c2feel-2chords" : "c2feel-default";
         var phrases = is2chordsPerBar ? create2ChordsPerBarPhrases(scs, targetPitch) : createDefaultPhrases(scs, targetPitch);
         List<WbpSource> res = new ArrayList<>();
 
@@ -194,7 +195,7 @@ public class WalkingTilingFactory implements TilingFactory
     }
 
     /**
-     * Create one or more walking bass phrases for a 2-chord per bar chord sequence.
+     * Create one or more 2-feel bass phrases for a 2-chord per bar chord sequence.
      *
      * @param scs
      * @param targetPitch -1 if unknown
@@ -209,20 +210,7 @@ public class WalkingTilingFactory implements TilingFactory
         var ecsBeat2 = scs.last().getData();
         assert ecsBeat0 != ecsBeat2;
         int bassPitchBeat0 = InstrumentFamily.Bass.toAbsolutePitch(ecsBeat0.getBassNote().getRelativePitch());
-        int bassPitchBeat1 = bassPitchBeat0;
         int bassPitchBeat2 = InstrumentFamily.Bass.toAbsolutePitch(ecsBeat2.getBassNote().getRelativePitch());
-        int bassPitchBeat3 = bassPitchBeat2;
-
-
-        if (!ecsBeat0.isSlashChord())
-        {
-            bassPitchBeat1 = getClosestPitch(ecsBeat0, bassPitchBeat2);
-        }
-        if (!ecsBeat2.isSlashChord())
-        {
-            int pitch = targetPitch != -1 ? targetPitch : InstrumentFamily.Bass.toAbsolutePitch(11);        // B
-            bassPitchBeat3 = getClosestPitch(ecsBeat0, pitch);
-        }
 
 
         var res = new ArrayList<SizedPhrase>();
@@ -230,39 +218,20 @@ public class WalkingTilingFactory implements TilingFactory
 
         // A basic phrase with only the chord root/bass notes
         SizedPhrase sp = new SizedPhrase(0, scs.getBeatRange(0), scs.getTimeSignature(), false);
-        NoteEvent ne = new NoteEvent(bassPitchBeat0, 0.9f, 80, 0);
+        NoteEvent ne = new NoteEvent(bassPitchBeat0, 1.85f, 80, 0);
         sp.add(ne);
-        ne = new NoteEvent(bassPitchBeat0, 0.9f, 80, 1);
-        sp.add(ne);
-        ne = new NoteEvent(bassPitchBeat2, 0.9f, 80, 2);
-        sp.add(ne);
-        ne = new NoteEvent(bassPitchBeat2, 0.9f, 80, 3);
+        ne = new NoteEvent(bassPitchBeat2, 1.85f, 80, 2);
         sp.add(ne);
         res.add(sp);
 
 
-        if (bassPitchBeat0 != bassPitchBeat1 || bassPitchBeat2 != bassPitchBeat3)
-        {
-            // A second phrase using the closest notes to target note
-            sp = new SizedPhrase(0, scs.getBeatRange(0), scs.getTimeSignature(), false);
-            ne = new NoteEvent(bassPitchBeat0, 0.9f, 80, 0);
-            sp.add(ne);
-            ne = new NoteEvent(bassPitchBeat1, 0.9f, 80, 1);
-            sp.add(ne);
-            ne = new NoteEvent(bassPitchBeat2, 0.9f, 80, 2);
-            sp.add(ne);
-            ne = new NoteEvent(bassPitchBeat3, 0.9f, 80, 3);
-            sp.add(ne);
-            res.add(sp);
-        }
-
-
+        // TODO: create another one with passing note
         return res;
     }
 
 
     /**
-     * Create phrases for all non standard cases of chord positions (minimum 2 chords per bar).
+     * Create 2-feel phrases for all non standard cases of chord positions (minimum 2 chords per bar).
      *
      * @param scs
      * @param targetPitch -1 if unknown
@@ -273,114 +242,12 @@ public class WalkingTilingFactory implements TilingFactory
         Preconditions.checkArgument(scs.size() >= 2 && scs.getBarRange().from == 0, "subSeq=%s", scs);
 
         var velocityRange = WbpSourceDatabase.getInstance().getMostProbableVelocityRange();
-
         SizedPhrase sp = new SizedPhrase(0, scs.getBeatRange(0), scs.getTimeSignature(), false);
-
-        for (var cliCs : scs)
-        {
-            var ecs = cliCs.getData();
-            int relPitch = cliCs.getData().getBassNote().getRelativePitch();
-            int bassPitch = InstrumentFamily.Bass.toAbsolutePitch(relPitch);
-            float duration = scs.getChordDuration(cliCs) - 0.1f;
-            float beatPos = scs.toPositionInBeats(cliCs.getPosition(), 0);
-            float beatPosEnd = beatPos + duration;
-            int velocity = velocityRange.from + (int) Math.round(Math.random() * (velocityRange.size() - 1));
-            velocity = MidiConst.clamp(velocity);
-
-            if (duration >= 2.8f)
-            {
-                // Play 3 notes: bass note, 3rd, 5th (or always bass note if slash chord)
-
-                int addNote2RelPitch = ecs.isSlashChord() ? relPitch : ecs.getRelativePitch(DegreeIndex.FIFTH);
-                int addNote2Pitch = InstrumentFamily.Bass.toAbsolutePitch(addNote2RelPitch);
-                float addNote2BeatPos = (float) Math.floor(beatPosEnd);
-                float addNote2Duration = beatPosEnd - addNote2Pitch;
-
-                
-                int addNote1RelPitch = ecs.isSlashChord() ? relPitch : ecs.getRelativePitch(DegreeIndex.THIRD_OR_FOURTH);
-                int addNote1Pitch = InstrumentFamily.Bass.toAbsolutePitch(addNote1RelPitch != -1 ? addNote1RelPitch : addNote2Pitch);
-                float addNote1BeatPos = (float) Math.floor(beatPosEnd - 1);
-                float addNote1Duration = addNote2BeatPos - addNote1BeatPos - 0.1f;
-
-
-                duration = addNote1BeatPos - beatPos - 0.1f;
-                
-                
-                NoteEvent ne = new NoteEvent(bassPitch, duration, velocity, beatPos);
-                sp.add(ne);
-                ne = new NoteEvent(addNote1Pitch, addNote1Duration, velocity - 4, addNote1BeatPos);
-                sp.add(ne);
-                ne = new NoteEvent(addNote2Pitch, addNote2Duration, velocity + 3, addNote2BeatPos);
-                sp.add(ne);
-
-
-            } else if (duration >= 1.8f)
-            {
-                // Play 2 notes: bass note and 5th  (or always bass note if slash chord)
-                int addNote1RelPitch = ecs.isSlashChord() ? relPitch : ecs.getRelativePitch(DegreeIndex.FIFTH);
-                int addNote1Pitch = InstrumentFamily.Bass.toAbsolutePitch(addNote1RelPitch);
-                float addNote1BeatPos = (float) Math.floor(beatPosEnd);
-                float addNote1Duration = beatPosEnd - addNote1BeatPos;
-                
-                
-                duration = addNote1BeatPos - beatPos - 0.1f;
-
-                
-                NoteEvent ne = new NoteEvent(bassPitch, duration, velocity, beatPos);
-                sp.add(ne);
-                ne = new NoteEvent(addNote1Pitch, addNote1Duration, velocity - 4, addNote1BeatPos);
-                sp.add(ne);
-            } else
-            {
-                // Play a single note: bass note
-                NoteEvent ne = new NoteEvent(bassPitch, duration, velocity, beatPos);
-                sp.add(ne);
-            }
-        }
+        
+        var p = DummyGenerator.getBasicBassPhrase(0, scs, velocityRange, 0);
+        sp.add(p);
 
         return List.of(sp);
     }
 
-    /**
-     * Return, amongst the specified degreeIndexes of ecs, the one corresponding to the closest to targetPitch -but different from.
-     *
-     * @param ecs
-     * @param targetPitch
-     * @param degreeIndexes 1 or more DegreeIndexes
-     * @return Can be -1 if no valid solution could be found.
-     */
-    private int getClosestPitch(ExtChordSymbol ecs, int targetPitch, DegreeIndex... degreeIndexes)
-    {
-        Objects.requireNonNull(ecs);
-        Preconditions.checkArgument(degreeIndexes.length > 0);
-        Preconditions.checkArgument(MidiConst.check(targetPitch), "targetPitch=%s", targetPitch);
-
-
-        var validPitches = new ArrayList<Integer>();
-        for (var di : degreeIndexes)
-        {
-            var relPitch = ecs.getRelativePitch(di);
-            if (relPitch != -1)
-            {
-                int absPitch = InstrumentFamily.Bass.toAbsolutePitch(relPitch);
-                if (targetPitch != absPitch)
-                {
-                    validPitches.add(absPitch);
-                }
-            }
-        }
-
-
-        int res = -1;
-        for (var pitch : validPitches)
-        {
-            if (res == -1 || Math.abs(targetPitch - pitch) < Math.abs(targetPitch - res))
-            {
-                res = pitch;
-            }
-        }
-
-        return res;
-
-    }
 }

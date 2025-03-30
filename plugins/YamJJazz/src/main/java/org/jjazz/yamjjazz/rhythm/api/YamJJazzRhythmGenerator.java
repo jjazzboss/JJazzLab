@@ -44,7 +44,7 @@ import org.jjazz.harmony.api.Position;
 import org.jjazz.harmony.spi.ScaleManager;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midi.api.Instrument;
-import org.jjazz.midi.api.MidiUtilities;
+import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.keymap.KeyMapGM;
 import org.jjazz.midi.api.keymap.StandardKeyMapConverter;
 import org.jjazz.midi.api.synths.GMSynth;
@@ -1108,7 +1108,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
                 {
                     p.processNotes(ne -> frg.contains(ne.getPositionInBeats(), true), ne -> 
                     {
-                        int v = MidiUtilities.limit(ne.getVelocity() + velShift);
+                        int v = MidiConst.clamp(ne.getVelocity() + velShift);
                         NoteEvent newNe = ne.setVelocity(v);
                         return newNe;
                     });

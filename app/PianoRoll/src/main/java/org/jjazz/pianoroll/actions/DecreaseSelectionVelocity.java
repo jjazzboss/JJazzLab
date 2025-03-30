@@ -27,10 +27,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
-import org.jjazz.midi.api.MidiUtilities;
+import org.jjazz.midi.api.MidiConst;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
-import org.jjazz.pianoroll.api.NoteView;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.utilities.api.ResUtil;
 
@@ -67,7 +66,7 @@ public class DecreaseSelectionVelocity extends AbstractAction
         Map<NoteEvent, NoteEvent> mapOldNew = new HashMap<>();
         for (var ne : nes)
         {
-            int newVel = MidiUtilities.limit(ne.getVelocity() - IncreaseSelectionVelocity.CHANGE);
+            int newVel = MidiConst.clamp(ne.getVelocity() - IncreaseSelectionVelocity.CHANGE);
             if (newVel != ne.getVelocity())
             {
                 var newNe = ne.setVelocity(newVel);

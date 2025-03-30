@@ -49,6 +49,23 @@ import org.jjazz.utilities.api.IntRange;
 public class WbpTiling
 {
 
+    /**
+     * An interface to create custom WbpSources.
+     *
+     * @see #buildMissingWbpSources(org.jjazz.proswing.walkingbass.WbpTiling.CustomWbpSourcesBuilder, java.lang.Integer...) 
+     */
+    public interface CustomWbpSourcesBuilder
+    {
+        /**
+         * Try to create WbpSources for scs.
+         *
+         * @param scs
+         * @param targetPitch -1 if unknown
+         * @return
+         */
+        List<WbpSource> build(SimpleChordSequence scs, int targetPitch);
+    }
+
     private final SimpleChordSequenceExt simpleChordSequenceExt;
     private final TreeMap<Integer, WbpSourceAdaptation> mapBarWbpsa;
     private static final Logger LOGGER = Logger.getLogger(WbpTiling.class.getSimpleName());
@@ -384,7 +401,7 @@ public class WbpTiling
      *                          WbpSourceDatabase.SIZE_MIN
      * @return The built WbpSources
      */
-    public List<WbpSource> buildWbpSources(Function<SimpleChordSequence, List<WbpSource>> wbpSourcesBuilder, Integer... sizes)
+    public List<WbpSource> buildMissingWbpSources(CustomWbpSourcesBuilder wbpSourcesBuilder, Integer... sizes)
     {
         Objects.requireNonNull(wbpSourcesBuilder);
 
@@ -400,7 +417,7 @@ public class WbpTiling
         {
             sizeList.addAll(List.of(sizes));
         }
-        
+
         List<IntRange> processedBarRanges = new ArrayList<>();
 
         for (var size : sizeList)
@@ -418,7 +435,11 @@ public class WbpTiling
                 }
 
                 var subSeq = getSimpleChordSequenceExt().subSequence(br, true).getShifted(-startBar);
-                var wbpSources = wbpSourcesBuilder.apply(subSeq);
+                var nextWbpsa = getWbpSourceAdaptationStartingAt(br.to + 1);
+                int targetPitch = nextWbpsa != null ? nextWbpsa.getAdaptedTargetPitch() : -1;
+
+                // Create the WbpSources
+                var wbpSources = wbpSourcesBuilder.build(subSeq, targetPitch);
 
                 if (!wbpSources.isEmpty())
                 {

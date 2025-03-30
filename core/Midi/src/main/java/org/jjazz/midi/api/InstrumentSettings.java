@@ -227,7 +227,7 @@ public class InstrumentSettings implements Serializable
 
     public final void setVolume(int v)
     {
-        if (!MidiConst.checkVolume(v))
+        if (!MidiConst.check(v))
         {
             throw new IllegalArgumentException("v=" + v);
         }
@@ -246,7 +246,7 @@ public class InstrumentSettings implements Serializable
 
     public final void setPanoramic(int v)
     {
-        if (!MidiConst.checkPanoramic(v))
+        if (!MidiConst.check(v))
         {
             throw new IllegalArgumentException("v=" + v);
         }
@@ -265,7 +265,7 @@ public class InstrumentSettings implements Serializable
 
     public final void setReverb(int v)
     {
-        if (!MidiConst.checkReverb(v))
+        if (!MidiConst.check(v))
         {
             throw new IllegalArgumentException("v=" + v);
         }
@@ -284,7 +284,7 @@ public class InstrumentSettings implements Serializable
 
     public final void setChorus(int v)
     {
-        if (!MidiConst.checkChorus(v))
+        if (!MidiConst.check(v))
         {
             throw new IllegalArgumentException("v=" + v);
         }

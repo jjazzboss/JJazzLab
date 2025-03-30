@@ -39,8 +39,8 @@ public class MidiConst
     /**
      * Fixed sequencer reference tempo in BPM.
      * <p>
-     * To enable interactive tempo changes during playback, sequencer tempo is set to a fixed value so that we can use
-     * Sequencer.setTempoFactor() instead of Sequencer.setTempoInBPM().
+     * To enable interactive tempo changes during playback, sequencer tempo is set to a fixed value so that we can use Sequencer.setTempoFactor() instead of
+     * Sequencer.setTempoInBPM().
      */
     public static final int SEQUENCER_REF_TEMPO = 120;  // Must be 120: this avoids side effects with JDK RealTimeSequencer bug :
     // tempo resets at 120 upon start! 
@@ -60,8 +60,8 @@ public class MidiConst
     public static final int CTRL_CHG_ALL_SOUND_OFF = 120;
     public static final int CTRL_CHG_RESET_ALL_CONTROLLERS = 121;
     public static final int CTRL_CHG_ALL_NOTES_OFF = 123;
-    
-    
+
+
     // Meta event type values
     public static final int META_TEXT = 1;
     public static final int META_COPYRIGHT = 2;
@@ -70,23 +70,15 @@ public class MidiConst
     public static final int META_LYRICS = 5;
     public static final int META_MARKER = 6;
     public static final int META_END_OF_TRACK = 47;
-    public static final int META_TEMPO = 81;    
+    public static final int META_TEMPO = 81;
     public static final int META_TIME_SIGNATURE = 88;
-    
-    
+
+
     // SysEx
-    public static final int VOLUME_MIN = 0;
     public static final int VOLUME_STD = 100;
-    public static final int VOLUME_MAX = 127;
-    public static final int PANORAMIC_MIN = 0;
     public static final int PANORAMIC_STD = 64;
-    public static final int PANORAMIC_MAX = 127;
-    public static final int CHORUS_MIN = 0;
     public static final int CHORUS_STD = 8;
-    public static final int CHORUS_MAX = 127;
-    public static final int REVERB_MIN = 0;
     public static final int REVERB_STD = 20;
-    public static final int REVERB_MAX = 127;
     public static final int CHANNEL_MIN = 0;
     public static final int CHANNEL_MAX = 15;
     public static final int CHANNEL_DRUMS = 9;
@@ -158,8 +150,7 @@ public class MidiConst
     /**
      * A String array (size=82) with percussion name for each note pitch.
      * <p>
-     * Names start at pitch 35 until 81, so for index &lt; 35 array contains null values. E.g. getGMPercussionMap()[35] =
-     * "Acoustic Bass Drum" @return
+     * Names start at pitch 35 until 81, so for index &lt; 35 array contains null values. E.g. getGMPercussionMap()[35] = "Acoustic Bass Drum" @return
      */
     static public String[] getGMPercussionMap()
     {
@@ -216,58 +207,30 @@ public class MidiConst
         return percussionMap;
     }
 
-    public static boolean checkPanoramic(int p)
+    /**
+     * Check that midiValue is in the Midi range [0;127].
+     *
+     * @param midiValue
+     * @return
+     */
+    public static boolean check(int midiValue)
     {
-        if ((p < PANORAMIC_MIN) || (p > PANORAMIC_MAX))
-        {
-            return false;
-        } else
-        {
-            return true;
-        }
+        return (midiValue >= 0) && (midiValue <= 127);
     }
 
-    public static boolean checkReverb(int v)
+    /**
+     * Return a value in the Midi range [0;127].
+     *
+     * @param midiValue
+     * @return
+     */
+    public static int clamp(int midiValue)
     {
-        if ((v < REVERB_MIN) || (v > REVERB_MAX))
-        {
-            return false;
-        } else
-        {
-            return true;
-        }
-    }
-
-    public static boolean checkChorus(int v)
-    {
-        if ((v < CHORUS_MIN) || (v > CHORUS_MAX))
-        {
-            return false;
-        } else
-        {
-            return true;
-        }
-    }   
-
-    public static boolean checkVolume(int v)
-    {
-        if ((v < VOLUME_MIN) || (v > VOLUME_MAX))
-        {
-            return false;
-        } else
-        {
-            return true;
-        }
+        return Math.clamp(midiValue, 0, 127);
     }
 
     public static boolean checkMidiChannel(int c)
     {
-        if ((c < CHANNEL_MIN) || (c > CHANNEL_MAX))
-        {
-            return false;
-        } else
-        {
-            return true;
-        }
+        return (c >= CHANNEL_MIN) && (c <= CHANNEL_MAX);
     }
 }

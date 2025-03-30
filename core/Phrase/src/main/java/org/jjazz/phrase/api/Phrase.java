@@ -532,7 +532,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
     {
         return getProcessedPhrase(ne -> true, ne -> 
         {
-            int v = MidiUtilities.limit(f.apply(ne.getVelocity()));
+            int v = MidiConst.clamp(f.apply(ne.getVelocity()));
             NoteEvent newNe = ne.setVelocity(v);
             return newNe;
         });
@@ -549,7 +549,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
     {
         processNotes(ne -> true, ne -> 
         {
-            int v = MidiUtilities.limit(f.apply(ne.getVelocity()));
+            int v = MidiConst.clamp(f.apply(ne.getVelocity()));
             NoteEvent newNe = ne.setVelocity(v);
             return newNe;
         });
@@ -569,7 +569,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
     {
         return getProcessedPhrase(ne -> true, ne -> 
         {
-            int p = MidiUtilities.limit(f.apply(ne.getPitch()));
+            int p = MidiConst.clamp(f.apply(ne.getPitch()));
             NoteEvent newNe = ne.setPitch(p);
             return newNe;
         });
@@ -586,7 +586,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
     {
         processNotes(ne -> true, ne -> 
         {
-            int p = MidiUtilities.limit(f.apply(ne.getPitch()));
+            int p = MidiConst.clamp(f.apply(ne.getPitch()));
             NoteEvent newNe = ne.setPitch(p);
             return newNe;
         });

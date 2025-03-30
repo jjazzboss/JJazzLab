@@ -140,17 +140,18 @@ public class DummyGenerator implements MusicGenerator
         for (var cliCs : cSeq)
         {
             int relPitch = cliCs.getData().getBassNote().getRelativePitch();
-            int octave = relPitch >= 4 ? 3 : 4;     // from E1(28) to D#2(39)
-            int bassPitch = (octave - 1) * 12 + relPitch;
+            int bassPitch = InstrumentFamily.Bass.toAbsolutePitch(relPitch);
             float duration = cSeq.getChordDuration(cliCs) - 0.1f;
             float posInBeats = cSeq.toPositionInBeats(cliCs.getPosition(), startPosInBeats);
             int velocity = velocityRange.from + (int) Math.round(Math.random() * (velocityRange.size() - 1));
-            velocity = Math.clamp(velocity, 0, 127);
+            velocity = MidiConst.clamp(velocity);
             NoteEvent ne = new NoteEvent(bassPitch, duration, velocity, posInBeats);
             p.add(ne);
         }
         return p;
     }
+
+   
 
     /**
      * Get a basic random phrase for a melodic instrument (use chord notes).

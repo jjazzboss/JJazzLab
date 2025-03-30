@@ -23,6 +23,8 @@
  */
 package org.jjazz.midi.api.synths;
 
+import org.jjazz.utilities.api.IntRange;
+
 /**
  * A family of similar instruments.
  * <p>
@@ -30,7 +32,8 @@ package org.jjazz.midi.api.synths;
  */
 public enum InstrumentFamily
 {
-    Piano("piano"), Chromatic_Percussion("cperc"), Organ("orgn"), Guitar("guit"), Bass("bass"), Strings("violn"), Ensemble("strgs"), Brass("brass"), Reed("reed"), Pipe("wind"), Synth_Lead("lead"), Synth_Pad("pad"), Synth_Effects("synfx"), Ethnic("ethnc"), Percussive("perc"), Sound_Effects("sndfx");
+    Piano("piano"), Chromatic_Percussion("cperc"), Organ("orgn"), Guitar("guit"), Bass("bass"), Strings("violn"), Ensemble("strgs"), Brass("brass"), Reed("reed"), Pipe(
+            "wind"), Synth_Lead("lead"), Synth_Pad("pad"), Synth_Effects("synfx"), Ethnic("ethnc"), Percussive("perc"), Sound_Effects("sndfx");
 
     private final String shortName;
 
@@ -48,6 +51,28 @@ public enum InstrumentFamily
     {
         return this.shortName;
     }
+
+    /**
+     * Get an appropriate absolute pitch corresponding to relPitch for this instrument family.
+     * <p>
+     * E.g. for a BASS instrument pick the lowest note from E1.
+     *
+     * @param relPitch
+     * @return
+     */
+    public int toAbsolutePitch(int relPitch)
+    {
+        int octave = switch (this)
+        {
+            case Bass ->
+                relPitch >= 4 ? 3 : 4; // from E1(28) to D#2(39)
+            default ->
+                5;
+        };
+        int res = (octave - 1) * 12 + relPitch;
+        return res;
+    }
+    
 
     @Override
     public String toString()

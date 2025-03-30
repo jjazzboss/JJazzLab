@@ -30,7 +30,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midi.api.DrumKit.Subset;
-import org.jjazz.midi.api.MidiUtilities;
+import org.jjazz.midi.api.MidiConst;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.songcontext.api.SongPartContext;
@@ -178,7 +178,7 @@ public class DrumsMixTransform implements PhraseTransform
                 int offset = properties.getPropertyAsInteger(subset.toString());
                 if (offset != 0)
                 {
-                    int velocity = MidiUtilities.limit(ne.getVelocity() + offset);
+                    int velocity = MidiConst.clamp(ne.getVelocity() + offset);
                     nne = ne.setVelocity(velocity);
                 }
             }

@@ -63,9 +63,9 @@ final public class ChordType
      */
     public enum DegreeIndex
     {
-        ROOT,
-        THIRD_OR_FOURTH, // Can't have both in the same time. Only the "C2" chord has neither 3rd nor 4th
-        FIFTH,
+        ROOT,       // Always defined
+        THIRD_OR_FOURTH, // Always defined EXCEPT for the "C2" which chord has neither 3rd nor 4th
+        FIFTH, // Always defined
         SIXTH_OR_SEVENTH,
         EXTENSION1, // 9, 11, or 13
         EXTENSION2, // 11 or 13
@@ -257,7 +257,7 @@ final public class ChordType
      * Ex: C6 EXTENSION1=null<br>
      *
      * @param di
-     * @return The degree corresponding to specified index. Can be null.
+     * @return The degree corresponding to specified index. Can be null (even if di==THIRD_OR_FOURTH, see the C2 chord type)
      */
     public Degree getDegree(DegreeIndex di)
     {
