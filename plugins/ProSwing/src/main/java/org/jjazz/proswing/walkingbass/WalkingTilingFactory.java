@@ -123,7 +123,7 @@ public class WalkingTilingFactory implements TilingFactory
             LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling CREATED CUSTOM MaxDistance");
 
             // Create custom WbpSources and add them to the database
-            var customWbpSources = tiling.buildMissingWbpSources((chordSeq, targetNote) -> createCustomWbpSources(chordSeq, targetNote));
+            var customWbpSources = tiling.buildMissingWbpSources((chordSeq, targetNote) -> createWalkingCustomWbpSources(chordSeq, targetNote), WbpSourceDatabase.SIZE_MIN);
 
             var wbpDb = WbpSourceDatabase.getInstance();
             for (var wbps : customWbpSources)
@@ -157,7 +157,7 @@ public class WalkingTilingFactory implements TilingFactory
      * @param targetPitch -1 if unknown
      * @return
      */
-    private List<WbpSource> createCustomWbpSources(SimpleChordSequence scs, int targetPitch)
+    private List<WbpSource> createWalkingCustomWbpSources(SimpleChordSequence scs, int targetPitch)
     {
         Preconditions.checkArgument(scs.getBarRange().from == 0, "subSeq=%s", scs);
 
@@ -294,7 +294,7 @@ public class WalkingTilingFactory implements TilingFactory
                 int addNote2RelPitch = ecs.isSlashChord() ? relPitch : ecs.getRelativePitch(DegreeIndex.FIFTH);
                 int addNote2Pitch = InstrumentFamily.Bass.toAbsolutePitch(addNote2RelPitch);
                 float addNote2BeatPos = (float) Math.floor(beatPosEnd);
-                float addNote2Duration = beatPosEnd - addNote2Pitch;
+                float addNote2Duration = beatPosEnd - addNote2BeatPos;
 
                 
                 int addNote1RelPitch = ecs.isSlashChord() ? relPitch : ecs.getRelativePitch(DegreeIndex.THIRD_OR_FOURTH);

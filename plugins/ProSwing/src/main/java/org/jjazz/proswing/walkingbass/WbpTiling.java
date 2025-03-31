@@ -52,10 +52,11 @@ public class WbpTiling
     /**
      * An interface to create custom WbpSources.
      *
-     * @see #buildMissingWbpSources(org.jjazz.proswing.walkingbass.WbpTiling.CustomWbpSourcesBuilder, java.lang.Integer...) 
+     * @see #buildMissingWbpSources(org.jjazz.proswing.walkingbass.WbpTiling.CustomWbpSourcesBuilder, java.lang.Integer...)
      */
     public interface CustomWbpSourcesBuilder
     {
+
         /**
          * Try to create WbpSources for scs.
          *
@@ -397,56 +398,28 @@ public class WbpTiling
      * <p>
      *
      * @param wbpSourcesBuilder Generate a list (possibly empty) of WbpSources for a SimpleChordSequence.
-     * @param sizes             The untiled zone size(s) to be processed, in that order. If not specified, start from WbpSourceDatabase.SIZE_MAX down to
-     *                          WbpSourceDatabase.SIZE_MIN
+     * @param size              The size in bars of the WbpSources to be created.
      * @return The built WbpSources
      */
-    public List<WbpSource> buildMissingWbpSources(CustomWbpSourcesBuilder wbpSourcesBuilder, Integer... sizes)
+    public List<WbpSource> buildMissingWbpSources(CustomWbpSourcesBuilder wbpSourcesBuilder, int size)
     {
         Objects.requireNonNull(wbpSourcesBuilder);
+        Preconditions.checkArgument(WbpSourceDatabase.checkWbpSourceSize(size), "size=%s", size);
 
         List<WbpSource> res = new ArrayList<>();
-        List<Integer> sizeList = new ArrayList<>();
-        if (sizes.length == 0)
+
+        var startBars = getUntiledZonesStartBarIndexes(size);
+        for (int startBar : startBars)
         {
-            for (int i = WbpSourceDatabase.SIZE_MAX; i >= WbpSourceDatabase.SIZE_MIN; i--)
-            {
-                sizeList.add(i);
-            }
-        } else
-        {
-            sizeList.addAll(List.of(sizes));
-        }
+            var br = new IntRange(startBar, startBar + size - 1);
 
-        List<IntRange> processedBarRanges = new ArrayList<>();
+            var subSeq = getSimpleChordSequenceExt().subSequence(br, true).getShifted(-startBar);
+            var nextWbpsa = getWbpSourceAdaptationStartingAt(br.to + 1);
+            int targetPitch = nextWbpsa != null ? nextWbpsa.getAdaptedTargetPitch() : -1;
 
-        for (var size : sizeList)
-        {
-            var startBars = getUntiledZonesStartBarIndexes(size);
-
-            for (int startBar : startBars)
-            {
-                var br = new IntRange(startBar, startBar + size - 1);
-
-                if (processedBarRanges.stream().anyMatch(rg -> rg.contains(br)))
-                {
-                    // We already created WbpSource(s) for the enclosing range
-                    continue;
-                }
-
-                var subSeq = getSimpleChordSequenceExt().subSequence(br, true).getShifted(-startBar);
-                var nextWbpsa = getWbpSourceAdaptationStartingAt(br.to + 1);
-                int targetPitch = nextWbpsa != null ? nextWbpsa.getAdaptedTargetPitch() : -1;
-
-                // Create the WbpSources
-                var wbpSources = wbpSourcesBuilder.build(subSeq, targetPitch);
-
-                if (!wbpSources.isEmpty())
-                {
-                    res.addAll(wbpSources);
-                    processedBarRanges.add(br);
-                }
-            }
+            // Create the WbpSources
+            var wbpSources = wbpSourcesBuilder.build(subSeq, targetPitch);         
+            res.addAll(wbpSources);
         }
 
         return res;

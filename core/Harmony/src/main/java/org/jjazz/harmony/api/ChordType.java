@@ -30,6 +30,7 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javax.swing.FocusManager;
 import static org.jjazz.harmony.api.Degree.*;
 import org.jjazz.harmony.spi.ChordTypeDatabase;
 
@@ -63,7 +64,7 @@ final public class ChordType
      */
     public enum DegreeIndex
     {
-        ROOT,       // Always defined
+        ROOT, // Always defined
         THIRD_OR_FOURTH, // Always defined EXCEPT for the "C2" which chord has neither 3rd nor 4th
         FIFTH, // Always defined
         SIXTH_OR_SEVENTH,
@@ -214,16 +215,23 @@ final public class ChordType
     }
 
     /**
-     * The ordered list of DegreeIndexes starting from NINTH.
+     * The ordered list of DegreeIndexes used by this chord type starting from NINTH.
      *
      * @return
      */
     public List<DegreeIndex> getExtensionDegreeIndexes()
     {
         ArrayList<DegreeIndex> res = new ArrayList<>();
-        for (int i = DegreeIndex.EXTENSION1.ordinal(); i < degrees.size(); i++)
+        int start = DegreeIndex.EXTENSION1.ordinal();
+        if (isSpecial2Chord())
+        {            
+            res.add(DegreeIndex.EXTENSION1);
+        }else
+        {
+        for (int i = start; i < degrees.size(); i++)
         {
             res.add(DegreeIndex.values()[i]);
+        }
         }
         return res;
     }
@@ -241,11 +249,28 @@ final public class ChordType
             throw new NullPointerException("d");
         }
         int index = degrees.indexOf(d);
-        if (index == -1)
+
+        if (index != -1 && isSpecial2Chord())
         {
-            return null;
+            // Exception no third, no sixth nor seventh !
+            index = switch (d)
+            {
+                case ROOT ->
+                    index;
+                case FIFTH ->   
+                    index + 1;
+                case NINTH ->
+                    index + 2;
+                default -> throw new IllegalStateException("d=" + d);
+            };
         }
-        return DegreeIndex.values()[index];
+
+        DegreeIndex res = null;
+        if (index != -1)
+        {
+            res = DegreeIndex.values()[index];
+        }
+        return res;
     }
 
     /**
@@ -261,10 +286,29 @@ final public class ChordType
      */
     public Degree getDegree(DegreeIndex di)
     {
-        Degree d = null;
-        if (di.ordinal() < degrees.size())
+        int ordinal = di.ordinal();
+
+
+        if (isSpecial2Chord())
         {
-            d = degrees.get(di.ordinal());
+            // Special case, no third, no six or seventh!
+            ordinal = switch (di)
+            {
+                case ROOT ->
+                    ordinal;
+                case FIFTH ->
+                    ordinal - 1;
+                case EXTENSION1 ->
+                    ordinal - 2;
+                default ->
+                    1000;   // so we return null
+            };
+        }
+
+        Degree d = null;
+        if (ordinal < degrees.size())
+        {
+            d = degrees.get(ordinal);
         }
         return d;
     }
@@ -428,7 +472,7 @@ final public class ChordType
                 case 2 ->
                     NINTH;
                 case 3 ->
-                    isMinor() ? THIRD_FLAT : NINTH_SHARP;
+                    isMajor() ? NINTH_SHARP : THIRD_FLAT;
                 case 4 ->
                     THIRD;
                 case 5 ->
@@ -469,48 +513,48 @@ final public class ChordType
     {
         if (mostImportantDegrees == null)
         {
-            mostImportantDegrees = new ArrayList<>();
-            if (!getName().equals("2"))
+            List<DegreeIndex> dis = new ArrayList<>();
+            if (!isSpecial2Chord())
             {
-                mostImportantDegrees.add(DegreeIndex.THIRD_OR_FOURTH);
+                dis.add(DegreeIndex.THIRD_OR_FOURTH);
             }
             if (!getDegree(DegreeIndex.FIFTH).equals(Degree.FIFTH))         // If altered 5 it's important
             {
-                mostImportantDegrees.add(DegreeIndex.FIFTH);
+                dis.add(DegreeIndex.FIFTH);
             }
             if (getDegree(DegreeIndex.SIXTH_OR_SEVENTH) != null)
             {
-                mostImportantDegrees.add(DegreeIndex.SIXTH_OR_SEVENTH);
+                dis.add(DegreeIndex.SIXTH_OR_SEVENTH);
             }
             if (getDegree(DegreeIndex.EXTENSION1) != null)
             {
-                mostImportantDegrees.add(DegreeIndex.EXTENSION1);
+                dis.add(DegreeIndex.EXTENSION1);
             }
             if (base.contains("6"))
             {
-                mostImportantDegrees.add(DegreeIndex.ROOT);
+                dis.add(DegreeIndex.ROOT);
                 if (getDegree(DegreeIndex.FIFTH).equals(Degree.FIFTH))
                 {
-                    mostImportantDegrees.add(DegreeIndex.FIFTH);
+                    dis.add(DegreeIndex.FIFTH);
                 }
             } else
             {
                 if (getDegree(DegreeIndex.FIFTH).equals(Degree.FIFTH))
                 {
-                    mostImportantDegrees.add(DegreeIndex.FIFTH);
+                    dis.add(DegreeIndex.FIFTH);
                 }
-                mostImportantDegrees.add(DegreeIndex.ROOT);
+                dis.add(DegreeIndex.ROOT);
             }
             if (getDegree(DegreeIndex.EXTENSION2) != null)
             {
-                mostImportantDegrees.add(DegreeIndex.EXTENSION2);
+                dis.add(DegreeIndex.EXTENSION2);
             }
             if (getDegree(DegreeIndex.EXTENSION3) != null)
             {
-                mostImportantDegrees.add(DegreeIndex.EXTENSION3);
+                dis.add(DegreeIndex.EXTENSION3);
             }
 
-            mostImportantDegrees = Collections.unmodifiableList(mostImportantDegrees);
+            mostImportantDegrees = Collections.unmodifiableList(dis);
         }
         LOGGER.log(Level.FINE, "getMostImportantDegreeIndexes() this={0} result={1}", new Object[]
         {
@@ -739,7 +783,7 @@ final public class ChordType
                     throw new IllegalStateException("di=" + di);
                 case THIRD_OR_FOURTH ->  // It can only be a "2" chord
                 {
-                    if (!getName().equals("2"))
+                    if (!isSpecial2Chord())
                     {
                         throw new IllegalArgumentException("this=" + this + " di=" + di + " d=" + d);
                     }
@@ -869,6 +913,18 @@ final public class ChordType
     }
 
     /**
+     * The special C2 chord which has no third no fourth no 6/7, but has a ninth.
+     * <p>
+     * E.g. true for a "C2" chord.
+     *
+     * @return
+     */
+    public boolean isSpecial2Chord()
+    {
+        return getName().equals("2");
+    }
+
+    /**
      *
      * @return True for Cm7, C°, etc.
      */
@@ -970,7 +1026,7 @@ final public class ChordType
     /**
      * True if family is Family.SUS (no third degree).
      *
-     * @return True for e.g. Csus, C7sus
+     * @return True for e.g. Csus, C7sus, C2, ...
      */
     public boolean isSus()
     {

@@ -1,4 +1,3 @@
-* Exception when using play loop zone in some cases
 * Variations: 2 feel (2 variations LACoolSwing-B1, JazzClub.S120-B1) ? check out Shuffle rhythm examples), walking, walking double notes (C C Bb Bb etc.) seeJazzClub.S120-C
 * Handle slash chords
 * Create the AdaptedRhythm
@@ -21,3 +20,9 @@ MAYBE LATER
 * Try to automatically assign a chord scale to chords (DB and song)
 * Handle the tags to select WbpSources
 * Do not directly disable duplicates: they provide velocity/timing variety. Check should be done by Scorer vs Tiling ? 
+
+
+BUGS
+* Save as default rhythm file with "/" in proswin 4/4
+* test with 2 chords
+* Exception when using play loop zone in some cases

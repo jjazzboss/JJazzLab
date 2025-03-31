@@ -386,7 +386,7 @@ public class WbpSourceSlice
                 } else
                 {
                     assert targetCt.isSus();
-                    y = "2".equals(targetCt.getName()) ? List.of(Degree.NINTH_FLAT, Degree.THIRD_FLAT, Degree.THIRD) : List.of(Degree.NINTH_FLAT,
+                    y = targetCt.isSpecial2Chord() ? List.of(Degree.NINTH_FLAT, Degree.THIRD_FLAT, Degree.THIRD) : List.of(Degree.NINTH_FLAT,
                             Degree.THIRD_FLAT);
                 }
                 yield y;

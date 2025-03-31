@@ -95,8 +95,6 @@ public class WbpSourceDatabase
 
     private WbpSourceDatabase()
     {
-
-
         mmapSizeWbpSources = MultimapBuilder.hashKeys().arrayListValues().build();
         mmapSessionIdWbpSources = MultimapBuilder.hashKeys().arrayListValues().build();
         mmapBassStyleWbpSources = new ListMultimap[SIZE_MAX - SIZE_MIN + 1];
@@ -117,7 +115,8 @@ public class WbpSourceDatabase
         wbpSessions = loadWbpSessionsFromMidiFile(MIDI_FILE_2FEEL_B_RESOURCE_PATH, "2FB", "2feel-b", TimeSignature.FOUR_FOUR);
         wbpSessions.forEach(s -> processWbpSession(s));
 
-        LOGGER.log(Level.SEVERE, "WbpDatabase() 1-bar:{0}  2-bar:{1}  3-bar:{2}  4-bar:{3}", new Object[]
+        // {x,number,#} avoids auto number formatting which turns 1200 into "1,200"
+        LOGGER.log(Level.SEVERE, "WbpDatabase() 1-bar:{0,number,#}  2-bar:{1,number,#}  3-bar:{2,number,#}  4-bar:{3,number,#}", new Object[]
         {
             mmapSizeWbpSources.get(1).size(), mmapSizeWbpSources.get(2).size(), mmapSizeWbpSources.get(3).size(), mmapSizeWbpSources.get(4).size()
         });
@@ -131,7 +130,7 @@ public class WbpSourceDatabase
      */
     public int getNbWbpSources(int nbBars)
     {
-        Preconditions.checkArgument(nbBars == -1 || check(nbBars), "nbBars=%s", nbBars);
+        Preconditions.checkArgument(nbBars == -1 || checkWbpSourceSize(nbBars), "nbBars=%s", nbBars);
         return nbBars == -1 ? mapIdWbpSource.size() : mmapSizeWbpSources.get(nbBars).size();
     }
 
@@ -338,7 +337,7 @@ public class WbpSourceDatabase
     public List<WbpSource> getWbpSources(int nbBars, BassStyle style)
     {
         Objects.requireNonNull(style);
-        Preconditions.checkArgument(nbBars == -1 || check(nbBars), "nbBars=%s style=%s", nbBars, style);
+        Preconditions.checkArgument(nbBars == -1 || checkWbpSourceSize(nbBars), "nbBars=%s style=%s", nbBars, style);
         List<WbpSource> res;
         if (nbBars == -1)
         {
@@ -409,7 +408,17 @@ public class WbpSourceDatabase
     {
         return new IntRange(50, 65);
     }
-    
+
+    /**
+     * Check that nbBars is a valid WbpSource size.
+     *
+     * @param nbBars
+     * @return
+     */
+    static public boolean checkWbpSourceSize(int nbBars)
+    {
+        return nbBars >= SIZE_MIN && nbBars <= SIZE_MAX;
+    }
 
     public void dump()
     {
@@ -755,10 +764,6 @@ public class WbpSourceDatabase
         return mmapBassStyleWbpSources[nbBars - SIZE_MIN];
     }
 
-    private boolean check(int nbBars)
-    {
-        return nbBars >= SIZE_MIN && nbBars <= SIZE_MAX;
-    }
 
     // ==========================================================================================================
     // Inner classes

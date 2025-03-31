@@ -27,14 +27,13 @@ package org.jjazz.proswing.walkingbass;
 import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
-import org.jjazz.harmony.api.ChordType.DegreeIndex;
+import org.jjazz.harmony.api.ChordType;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.synths.InstrumentFamily;
 import org.jjazz.phrase.api.NoteEvent;
+import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.proswing.BassStyle;
 import org.jjazz.rhythmmusicgeneration.api.DummyGenerator;
@@ -124,7 +123,8 @@ public class TwoFeelTilingFactory implements TilingFactory
             LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling CREATED CUSTOM MaxDistance");
 
             // Create custom WbpSources and add them to the database
-            var customWbpSources = tiling.buildMissingWbpSources((chordSeq, targetNote) -> createCustomWbpSources(chordSeq, targetNote));
+            var customWbpSources = tiling.buildMissingWbpSources((chordSeq, targetNote) -> create2feelCustomWbpSources(chordSeq, targetNote),
+                    WbpSourceDatabase.SIZE_MIN);
 
             var wbpDb = WbpSourceDatabase.getInstance();
             for (var wbps : customWbpSources)
@@ -158,7 +158,7 @@ public class TwoFeelTilingFactory implements TilingFactory
      * @param targetPitch -1 if unknown
      * @return
      */
-    private List<WbpSource> createCustomWbpSources(SimpleChordSequence scs, int targetPitch)
+    private List<WbpSource> create2feelCustomWbpSources(SimpleChordSequence scs, int targetPitch)
     {
         Preconditions.checkArgument(scs.getBarRange().from == 0, "subSeq=%s", scs);
 
@@ -225,7 +225,17 @@ public class TwoFeelTilingFactory implements TilingFactory
         res.add(sp);
 
 
-        // TODO: create another one with passing note
+        // A second phrase with the first note repeated twice
+        sp = new SizedPhrase(0, scs.getBeatRange(0), scs.getTimeSignature(), false);
+        ne = new NoteEvent(bassPitchBeat0, 0.3f, 80, 0);        // shorter
+        sp.add(ne);
+        ne = new NoteEvent(bassPitchBeat0, 0.85f, 80, 1);
+        sp.add(ne);
+        ne = new NoteEvent(bassPitchBeat2, 1.85f, 80, 2);
+        sp.add(ne);
+        res.add(sp);
+
+
         return res;
     }
 
@@ -243,9 +253,37 @@ public class TwoFeelTilingFactory implements TilingFactory
 
         var velocityRange = WbpSourceDatabase.getInstance().getMostProbableVelocityRange();
         SizedPhrase sp = new SizedPhrase(0, scs.getBeatRange(0), scs.getTimeSignature(), false);
-        
-        var p = DummyGenerator.getBasicBassPhrase(0, scs, velocityRange, 0);
-        sp.add(p);
+
+        for (var cliCs : scs)
+        {
+            var ecs = cliCs.getData();
+            int relPitch = cliCs.getData().getBassNote().getRelativePitch();
+            int bassPitch = InstrumentFamily.Bass.toAbsolutePitch(relPitch);
+            float duration = scs.getChordDuration(cliCs) - 0.1f;
+            float beatPos = scs.toPositionInBeats(cliCs.getPosition(), 0);
+            float beatPosEnd = beatPos + duration;
+            int velocity = velocityRange.from + (int) Math.round(Math.random() * (velocityRange.size() - 1));
+            velocity = MidiConst.clamp(velocity);
+
+            if (duration >= 2.8f)
+            {
+                // Play 2 notes
+                float addNote1BeatPos = (float) Math.floor(beatPosEnd);
+                float addNote1Duration = beatPosEnd - addNote1BeatPos;
+
+                duration = addNote1BeatPos - beatPos - 0.1f;
+
+                NoteEvent ne = new NoteEvent(bassPitch, duration, velocity, beatPos);
+                sp.add(ne);
+                ne = new NoteEvent(bassPitch, addNote1Duration, velocity - 4, addNote1BeatPos);
+                sp.add(ne);
+            } else
+            {
+                // Play a single note: bass note
+                NoteEvent ne = new NoteEvent(bassPitch, duration, velocity, beatPos);
+                sp.add(ne);
+            }
+        }
 
         return List.of(sp);
     }
