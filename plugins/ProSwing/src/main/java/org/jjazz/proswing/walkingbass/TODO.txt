@@ -1,8 +1,7 @@
-* Variations: 2 feel (2 variations LACoolSwing-B1, JazzClub.S120-B1) ? check out Shuffle rhythm examples), walking, walking double notes (C C Bb Bb etc.) seeJazzClub.S120-C
+* Variations: 2 feel (2 variations LACoolSwing-B1, JazzClub.S120-B1) ? check out Shuffle rhythm examples), walking, walking double notes (C C Bb Bb etc.) see JazzClub.S120-C
 * Handle slash chords
 * Create the AdaptedRhythm
 * Handle pedal notes in walking or 1 out of 2
-* Handle non recognized multi-chord bars. If walking and chord duratino >=2-beat play 2 notes. If 2-feel and chord duration >= 3 beats play 2 notes. If walking and all notes on beat, fill.
 * Handle RP intensity
 * Handle anticipated chords
 * Scorer, reject wbpsources with out of scale long notes at slow tempos
