@@ -10,22 +10,26 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.phrase.api.Grid;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.api.SongChordSequence;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.phrase.api.Phrase;
+import org.jjazz.phrase.api.Phrases;
 import org.jjazz.proswing.RP_BassStyle;
 import org.jjazz.proswing.BassStyle;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Intensity;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
+import org.jjazz.rhythmmusicgeneration.api.AccentProcessor;
+import org.jjazz.rhythmmusicgeneration.api.AnticipatedChordProcessor;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
 import org.jjazz.songstructure.api.SongStructure;
-import org.jjazz.utilities.api.IntRange;
+import org.jjazz.utilities.api.FloatRange;
 
 /**
  * Walking bass generator based on pre-recorded patterns from WbpDatabase.
@@ -35,13 +39,8 @@ import org.jjazz.utilities.api.IntRange;
 public class WalkingBassMusicGenerator implements MusicGenerator
 {
 
-    private static int SESSION_COUNT = 0;
     private final Rhythm rhythm;
 
-    /**
-     * The Chord Sequence with all the chords.
-     */
-    private SongChordSequence songChordSequence;
     private static final Logger LOGGER = Logger.getLogger(WalkingBassMusicGenerator.class.getSimpleName());
 
     public WalkingBassMusicGenerator(Rhythm r)
@@ -66,6 +65,7 @@ public class WalkingBassMusicGenerator implements MusicGenerator
         Objects.requireNonNull(context);
         Preconditions.checkArgument(rvs.length == 0 || (rvs.length == 1 && rvs[0].getType() == RhythmVoice.Type.BASS), "context=%s, rvs=%s", context, rvs);
 
+
         RhythmVoice rvBass;
         if (rvs.length == 1)
         {
@@ -87,7 +87,7 @@ public class WalkingBassMusicGenerator implements MusicGenerator
             rhythm.getName(), tags
         });
 
-        // Get the bass phrase for each used variation value
+        // Get one bass phrase per used BassStyle
         var bassPhrases = getBassPhrases(context, tags);
 
 
@@ -111,12 +111,12 @@ public class WalkingBassMusicGenerator implements MusicGenerator
     /**
      * Get the bass phrases for each consecutive sections using our rhythm and having the same bass style.
      * <p>
-     * @param contextOrig
+     * @param sgContextOrig
      * @param tags
      * @return
      * @throws org.jjazz.rhythm.api.MusicGenerationException
      */
-    private List<Phrase> getBassPhrases(SongContext contextOrig, List<String> tags) throws MusicGenerationException
+    private List<Phrase> getBassPhrases(SongContext sgContextOrig, List<String> tags) throws MusicGenerationException
     {
         LOGGER.fine("getVariationBassPhrases() --");
 
@@ -125,39 +125,39 @@ public class WalkingBassMusicGenerator implements MusicGenerator
 
         // Prepare a working context because SongStructure might be modified by preprocessBassStyleAutoValue
         SongFactory sf = SongFactory.getInstance();
-        Song songCopy = sf.getCopyUnlinked(contextOrig.getSong(), false);
+        Song songCopy = sf.getCopyUnlinked(sgContextOrig.getSong(), false);
         preprocessBassStyleAutoValue(songCopy);     // This will modify songCopy
 
+
         // The working context 
-        SongContext contextWork = new SongContext(songCopy, contextOrig.getMidiMix(), contextOrig.getBarRange());
-
-        // Build the main chord sequence
-        songChordSequence = new SongChordSequence(songCopy, contextWork.getBarRange());   // Throw UserErrorGenerationException but no risk: will have a chord at beginning. Handle alternate chord symbols.       
-
-        // Split the song structure in chord sequences of consecutive sections having the same rhythm and same RhythmParameter value
-        var splitResults = songChordSequence.split(rhythm, RP_BassStyle.get(rhythm));
+        SongContext contextWork = new SongContext(songCopy, sgContextOrig.getMidiMix(), sgContextOrig.getBarRange());
 
 
-        // Make one big SimpleChordSequence per rpValue: this will let us control "which pattern is used where" at the song level
+        // Build the main chord sequence and split the song structure in chord sequences of consecutive sections having our rhythm with the same bass style
+        var scs = new SongChordSequence(songCopy, contextWork.getBarRange());   // Throws UserErrorGenerationException but no risk: will have a chord at beginning. Handle alternate chord symbols.            
+        var splitResults = scs.split(rhythm, RP_BassStyle.get(rhythm));
+
+
+        // Make one big SimpleChordSequenceExt per rpValue: this will let us control "which pattern is used where" at the song level
         var usedRpValues = splitResults.stream()
                 .map(sr -> sr.rpValue())
                 .collect(Collectors.toSet());
         for (var rpValue : usedRpValues)
         {
-            SimpleChordSequenceExt mergedScs = null;
+            SimpleChordSequenceExt mergedScsExt = null;
 
             for (var splitResult : splitResults.stream().filter(sr -> sr.rpValue().equals(rpValue)).toList())
             {
                 // Merge to current SimpleChordSequence
-                var scs = new SimpleChordSequenceExt(splitResult.simpleChordSequence(), true);
-                mergedScs = mergedScs == null ? scs : mergedScs.getMerged(scs, true);
+                var scsExt = new SimpleChordSequenceExt(splitResult.simpleChordSequence(), true);
+                mergedScsExt = mergedScsExt == null ? scsExt : mergedScsExt.getMerged(scsExt, true);
             }
-            assert mergedScs != null : "splitResults=" + splitResults + " usedRpValues=" + usedRpValues;
+            assert mergedScsExt != null : "splitResults=" + splitResults + " usedRpValues=" + usedRpValues;
 
 
-            // We have our big SimpleChordSequenceExt, generate the walking bass for it
-            mergedScs.removeRedundantChords();
-            var phrase = getBassPhrase(mergedScs, RP_BassStyle.toBassStyle(rpValue), contextOrig.getSong().getTempo());
+            // We have our big SimpleChordSequenceExt (possibly with non usable bars), generate the walking bass for it
+            mergedScsExt.removeRedundantChords();
+            var phrase = getBassPhrase(contextWork, mergedScsExt, RP_BassStyle.toBassStyle(rpValue));
             res.add(phrase);
         }
 
@@ -168,25 +168,25 @@ public class WalkingBassMusicGenerator implements MusicGenerator
     /**
      * Get the bass phrase for the usable bars of a SimpleChordSequenceExt.
      *
+     * @param sgContext
      * @param scs
      * @param style
-     * @param tempo
      * @return
      * @throws MusicGenerationException
      */
-    private Phrase getBassPhrase(SimpleChordSequenceExt scs, BassStyle style, int tempo) throws MusicGenerationException
+    private Phrase getBassPhrase(SongContext sgContext, SimpleChordSequenceExt scs, BassStyle style) throws MusicGenerationException
     {
         LOGGER.log(Level.SEVERE, "\n");
-        LOGGER.log(Level.SEVERE, "getBassPhrase() -- style={0} tempo={1} scs={2}", new Object[]
+        LOGGER.log(Level.SEVERE, "getBassPhrase() -- sgContext.barRange={0}  style={1}  scs={2}", new Object[]
         {
-            style, tempo, scs
+            sgContext.getBarRange(), style, scs
         });
 
-        
-        // Do the work
-        var tiling = style.getTilingFactory().build(scs, tempo);
 
-        
+        // Do the work
+        var tiling = style.getTilingFactory().build(scs, sgContext.getSong().getTempo());
+
+
         // Control
         debugCheck(tiling);
         if (!tiling.isFullyTiled())
@@ -201,21 +201,14 @@ public class WalkingBassMusicGenerator implements MusicGenerator
         });
 
 
-        // Compile phrases into the result
-        var phraseAdapter = new TransposerPhraseAdapter();
-        Phrase res = new Phrase(0);             // channel useless here        
-        for (var wbpsa : tiling.getWbpSourceAdaptations())
-        {
-            var p = wbpsa.getAdaptedPhrase();
-            if (p == null)
-            {
-                p = phraseAdapter.getPhrase(wbpsa);
-                wbpsa.setAdaptedPhrase(p);
-            }
-            LOGGER.log(Level.FINE, "getBassPhrase() transposedPhrase={0}", p);
-            res.add(p, false);
-        }
-        
+        // Get the resulting phrase
+        var res = tiling.buildPhrase(new TransposerPhraseAdapter());
+
+
+        // Handle accents and chords anticipation
+        postProcessBassPhrase(res, sgContext, scs);
+
+
         return res;
     }
 
@@ -247,7 +240,6 @@ public class WalkingBassMusicGenerator implements MusicGenerator
     }
 
 
-
     /**
      * Update SongParts with RP_BassStyle value="auto" to the appropriate value (depends on the RP_SYS_Variation value).
      *
@@ -274,6 +266,36 @@ public class WalkingBassMusicGenerator implements MusicGenerator
                 ss.setRhythmParameterValue(spt, rpBassStyle, rpBassValue);
             }
         }
+    }
+
+    /**
+     * Process p for possible accents and chords anticipation.
+     *
+     * @param p
+     * @param sgContext
+     * @param scs
+     *
+     */
+    private void postProcessBassPhrase(Phrase p, SongContext sgContext, SimpleChordSequenceExt scs)
+    {
+        int nbCellsPerBeat = Grid.getRecommendedNbCellsPerBeat(rhythm.getTimeSignature(), rhythm.getFeatures().division().isSwing());
+        float cSeqStartInBeats = sgContext.getSong().getSongStructure().toPositionInNaturalBeats(scs.getBarRange().from);
+
+
+        // Processors below require that first phrase note does not start before cSeqStartInBeats, but it can happen because of non-quantized WbpSources when
+        // we process e.g. a song part in the middle of a song. So we need to cut such note.
+        if (cSeqStartInBeats > 0)
+        {
+            Phrases.silence(p, new FloatRange(0, cSeqStartInBeats), true, true, 0);
+        }
+
+
+        AccentProcessor ap = new AccentProcessor(scs, cSeqStartInBeats, nbCellsPerBeat, sgContext.getSong().getTempo());
+        AnticipatedChordProcessor acp = new AnticipatedChordProcessor(scs, cSeqStartInBeats, nbCellsPerBeat);
+        acp.anticipateChords_Mono(p);
+        ap.processAccentBass(p);
+        ap.processHoldShotMono(p, AccentProcessor.HoldShotMode.NORMAL);
+
     }
 
     private void debugCheck(WbpTiling tiling)

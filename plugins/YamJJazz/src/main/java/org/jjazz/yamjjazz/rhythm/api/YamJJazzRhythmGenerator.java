@@ -1181,8 +1181,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
     private void processAnticipationsAndAccents(List<ChordSeqPhrases> chordSeqPhrases)
     {
         SongStructure ss = contextWork.getSong().getSongStructure();
-        int nbCellsPerBeat = Grid.getRecommendedNbCellsPerBeat(rhythm.getTimeSignature(),
-                rhythm.getFeatures().division().isSwing());
+        int nbCellsPerBeat = Grid.getRecommendedNbCellsPerBeat(rhythm.getTimeSignature(), rhythm.getFeatures().division().isSwing());
 
         LOGGER.fine("processAnticipationsAndAccents() --");
 
@@ -1281,7 +1280,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
                     : chordSeqPhrases.get(i - 1).simpleChordSequence();  // cSeq fake value on last iteration (just it must not be null)
             SimpleChordSequence prevSeq = chordSeqPhrases.get(i - 1).simpleChordSequence();
             int prevSeqLastBar = prevSeq.getBarRange().from + prevSeq.getBarRange().size() - 1;
-            
+
             if (i == chordSeqPhrases.size() || cSeq.getBarRange().from != prevSeqLastBar + 1)
             {
                 // We finished the loop, or cSeq is not contiguous : create a longer ChordSequence with a new AccType/Phrase map
@@ -1293,7 +1292,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
                     // Merge each ChordSequence into newSeq
                     SimpleChordSequence cSeqj = chordSeqPhrases.get(j).simpleChordSequence();
                     newSeq.addAll(cSeqj);
-                    
+
                     // Merge its AccType phrases into newMap
                     HashMap<AccType, Phrase> mapj = chordSeqPhrases.get(j).mapAccTypePhrase();
                     for (AccType at : mapj.keySet())
@@ -1308,7 +1307,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
                         pAt.add(pj);
                     }
                 }
-                
+
                 // Save the result
                 ChordSeqPhrases csp = new ChordSeqPhrases(newSeq, newMap);
                 res.add(csp);

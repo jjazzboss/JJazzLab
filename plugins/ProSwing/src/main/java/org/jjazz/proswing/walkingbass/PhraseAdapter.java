@@ -28,7 +28,7 @@ import org.jjazz.harmony.api.Note;
 import org.jjazz.phrase.api.Phrase;
 
 /**
- * Get the resulting phrase from a WbpSourceAdaptation.
+ * Adapt a WbpSource phrase from a WbpSourceAdaptation into the resulting phrase.
  */
 public interface PhraseAdapter
 {

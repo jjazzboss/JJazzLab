@@ -22,11 +22,13 @@
  */
 package org.jjazz.rhythmmusicgeneration.api;
 
+import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -41,15 +43,13 @@ import org.jjazz.midi.api.MidiConst;
 import static org.jjazz.rhythmmusicgeneration.api.AccentProcessor.LOGGER;
 import org.jjazz.rhythm.api.TempoRange;
 import org.jjazz.phrase.api.Grid;
-import org.jjazz.rhythmmusicgeneration.api.GridChordContext;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
-import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
 
 /**
- * Phrase manipulation methods dealing with accents and anticipated chords.
+ * Phrase manipulation methods dealing with accents.
  *
  * @see ChordRenderingInfo
  */
@@ -74,40 +74,38 @@ public class AccentProcessor
          */
         IGNORE
     }
-    private SimpleChordSequence chordSequence;
+    private final SimpleChordSequence chordSequence;
     private FloatRange cSeqBeatRange;
     private int nbCellsPerBeat;
     private int lastCellIndex;
     private float cellDuration;
-    private TimeSignature timeSignature;
+    private final TimeSignature timeSignature;
     private int tempo;
-    private final List<CLI_ChordSymbol> anticipatableChords = new ArrayList<>();
 
     protected static final Logger LOGGER = Logger.getLogger(AccentProcessor.class.getSimpleName());
 
     /**
      * Construct an object to manipulate phrases corresponding to the specified parameters.
      *
-     * @param cSeq Can't be empty
+     * @param cSeq                Can't be empty
      * @param cSeqStartPosInBeats The start position in beats of cSeq. Must be an integer.
-     * @param nbCellsPerBeat 4 or 3. 3 should be used for ternary feel rhythm or 3/8 or 6/8 or 12/8 time signatures.
-     * @param tempo Required to best adjust e.g. "shot" notes duration
+     * @param nbCellsPerBeat      4 or 3. 3 should be used for ternary feel rhythm or 3/8 or 6/8 or 12/8 time signatures.
+     * @param tempo               Required to best adjust e.g. "shot" notes duration
      */
     public AccentProcessor(SimpleChordSequence cSeq, float cSeqStartPosInBeats, int nbCellsPerBeat, int tempo)
     {
-        if (cSeq == null || cSeq.isEmpty() || cSeqStartPosInBeats < 0 || !TempoRange.checkTempo(tempo)
-                || cSeqStartPosInBeats != Math.floor(cSeqStartPosInBeats)
-                || nbCellsPerBeat < 3 || nbCellsPerBeat > 4)
-        {
-            throw new IllegalArgumentException( //NOI18N
-                    "cSeq=" + cSeq + " cSeqStartPosInBeats=" + cSeqStartPosInBeats + " nbCellsPerBeat=" + nbCellsPerBeat);
-        }
+        Objects.requireNonNull(cSeq);
+        Preconditions.checkArgument(!cSeq.isEmpty());
+        Preconditions.checkArgument(TempoRange.checkTempo(tempo), "tempo=%s", tempo);
+        Preconditions.checkArgument(cSeqStartPosInBeats >= 0 && cSeqStartPosInBeats == Math.floor(cSeqStartPosInBeats), "cSeqStartPosInBeats=%s",
+                cSeqStartPosInBeats);
+        Preconditions.checkArgument(nbCellsPerBeat >= 3 && nbCellsPerBeat <= 4, "nbCellsPerBeat=%s", nbCellsPerBeat);
 
 
         this.chordSequence = cSeq;
         timeSignature = chordSequence.getTimeSignature();
 
-        
+
         float nbNaturalBeats = timeSignature.getNbNaturalBeats();
         if (nbNaturalBeats != Math.floor(nbNaturalBeats))
         {
@@ -122,9 +120,9 @@ public class AccentProcessor
         cSeqBeatRange = new FloatRange(cSeqStartPosInBeats, cSeqStartPosInBeats + cSeq.getBarRange().size() * nbNaturalBeats);
         this.tempo = tempo;
 
-        LOGGER.log(Level.FINE, "\nAccentProcessor() -- cSeqBeatRange={0} timeSignature={1} nbCellsPerBeat={2} anticipatableChords={3}", new Object[]
+        LOGGER.log(Level.FINE, "\nAccentProcessor() -- cSeqBeatRange={0} timeSignature={1} nbCellsPerBeat={2}", new Object[]
         {
-            cSeqBeatRange, timeSignature, nbCellsPerBeat, anticipatableChords
+            cSeqBeatRange, timeSignature, nbCellsPerBeat
         });
     }
 
@@ -255,7 +253,7 @@ public class AccentProcessor
                 notePitch = computeDrumsAccentPitch(gdh.refGridAccents, gct.chordCell);
                 noteVel = computeNewDrumAccentNoteVelocity(notePitch, gdh.refGridAccents, gct.chordCell, cri);
                 accentNote = new NoteEvent(notePitch, noteDur, noteVel, gct.chordPosInBeats);
-                gct.grid.addNote(gct.chordCell, accentNote, gct.relPosInCell);;
+                gct.grid.addNote(gct.chordCell, accentNote, gct.relPosInCell);
 
             } else
             {
@@ -308,10 +306,10 @@ public class AccentProcessor
      */
     public void processAccentBass(Phrase p)
     {
-        if (p == null || (!p.isEmpty() && p.getBeatRange().from < cSeqBeatRange.from))
-        {
-            throw new IllegalArgumentException("p=" + p);   //NOI18N
-        }
+        Objects.requireNonNull(p);
+        Preconditions.checkArgument(p.isEmpty() || p.getBeatRange().from >= cSeqBeatRange.from, "p.getBeatRange()=%s cSeqBeatRange=%s", p.getBeatRange(),
+                cSeqBeatRange);
+
 
         LOGGER.log(Level.FINE, "processAccentBass() ");
 
@@ -735,6 +733,7 @@ public class AccentProcessor
      * @param grid
      * @param cellIndex
      * @param cri
+     * @return
      */
     private int computeNewNoteVelocity(Grid grid, int cellIndex, ChordRenderingInfo cri)
     {
@@ -797,7 +796,7 @@ public class AccentProcessor
      * <p>
      * Use the most used pitch in the cells around.
      *
-     * @param grid A grid limited to DRUMS_ACCENT_PITCHES.
+     * @param grid      A grid limited to DRUMS_ACCENT_PITCHES.
      * @param cellIndex
      * @return One of the DRUMS_ACCENT_PITCHES pitches
      * @see DRUMS_ACCENT_PITCHES
@@ -840,7 +839,8 @@ public class AccentProcessor
      * @param pitch
      * @param grid
      * @param cellIndex
-     * @param level
+     * @param cri
+     * @return
      */
     private int computeNewDrumAccentNoteVelocity(int pitch, Grid grid, int cellIndex, ChordRenderingInfo cri)
     {
@@ -867,6 +867,7 @@ public class AccentProcessor
      *
      * @param cliCs
      * @param accentNote
+     * @return
      */
     private int computeExistingDrumAccentNoteVelocity(CLI_ChordSymbol cliCs, NoteEvent accentNote)
     {
@@ -898,8 +899,8 @@ public class AccentProcessor
     {
         // We need a copy : we'll modify the list for the calculations
         velocities = new ArrayList<>(velocities);
-        
-        
+
+
 //        final float MEDIUM_VEL_FACTOR = 1f;
 //        final float STRONG_VEL_FACTOR = 1.3f;
         final int MEDIUM_VEL_OFFSET = 14;
@@ -1053,8 +1054,7 @@ public class AccentProcessor
     /**
      * Get the cell range from specified beatRange without taking into account pre-cell beat window for the 'to' bound.
      * <p>
-     * If we want to remove notes, with 4 cells per beat, if beatRange stops at 0.22, no need to clear cell 1 [0.25-0.5], only
-     * cell 0 is enough.
+     * If we want to remove notes, with 4 cells per beat, if beatRange stops at 0.22, no need to clear cell 1 [0.25-0.5], only cell 0 is enough.
      *
      * @param gct
      * @param beatRange
@@ -1128,7 +1128,7 @@ public class AccentProcessor
          * Should we insert a crash at specified cellIndex ?
          *
          * @param cellIndex
-         * @param cri A Strong accent has higher chances to use a crash.
+         * @param cri       A Strong accent has higher chances to use a crash.
          * @return
          */
         public boolean needCrash(int cellIndex, ChordRenderingInfo cri)
@@ -1183,7 +1183,7 @@ public class AccentProcessor
         /**
          * If not already present add a splash or a crash at specified cell.
          *
-         * @param cellIndex The cell where to add the cymbal
+         * @param cellIndex  The cell where to add the cymbal
          * @param posInBeats The position of the crash
          * @param cri
          */

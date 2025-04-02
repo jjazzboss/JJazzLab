@@ -50,7 +50,7 @@ public class AnticipatedChordProcessor
     private int lastCellIndex;
     private float cellDuration;
     private TimeSignature timeSignature;
-    private final List<CLI_ChordSymbol> anticipatableChords = new ArrayList<>();
+    private final List<CLI_ChordSymbol> anticipatableChords;
 
     protected static final Logger LOGGER = Logger.getLogger(AnticipatedChordProcessor.class.getSimpleName());
 
@@ -87,7 +87,7 @@ public class AnticipatedChordProcessor
         cellDuration = 1f / nbCellsPerBeat;
         cSeqBeatRange = new FloatRange(cSeqStartPosInBeats, cSeqStartPosInBeats + cSeq.getBarRange().size() * nbNaturalBeats);
 
-        identifyAnticipatableChords();
+        anticipatableChords = identifyAnticipatableChords(simpleChordSequence, timeSignature);
 
         LOGGER.log(Level.FINE, "AnticipatedChordProcessor -- cSeqStartPosInBeats={0} nbCellsPerBeat={1} ={2}", new Object[]
         {
@@ -250,12 +250,16 @@ public class AnticipatedChordProcessor
     // ==============================================================================================================
     /**
      * Identify the anticipatable chords in anticipatableChords.
+     * @param scs
+     * @param ts
+     * @return 
      */
-    private void identifyAnticipatableChords()
+    private List<CLI_ChordSymbol> identifyAnticipatableChords(SimpleChordSequence scs, TimeSignature ts)
     {
-        int lastBar = simpleChordSequence.getBarRange().to;
+        List<CLI_ChordSymbol> res = new ArrayList<>();
+        int lastBar = scs.getBarRange().to;
 
-        for (var cliCs : simpleChordSequence)
+        for (var cliCs : scs)
         {
             Position pos = cliCs.getPosition();
             ChordRenderingInfo cri = cliCs.getData().getRenderingInfo();
@@ -271,14 +275,14 @@ public class AnticipatedChordProcessor
 
             int anticipatedBar = pos.getBar();
             int anticipatedBeat = (int) Math.ceil(pos.getBeat());
-            if (pos.isLastBarBeat(timeSignature))
+            if (pos.isLastBarBeat(ts))
             {
                 // If we fall over next bar
                 anticipatedBar++;
                 anticipatedBeat = 0;
             }
 
-            CLI_ChordSymbol cliCsNext = simpleChordSequence.higher(cliCs);
+            CLI_ChordSymbol cliCsNext = scs.higher(cliCs);
             if (cliCsNext != null)
             {
                 // Not the last chord 
@@ -293,7 +297,7 @@ public class AnticipatedChordProcessor
                         ChordRenderingInfo.Feature.HOLD, ChordRenderingInfo.Feature.SHOT)))
                 {
                     // There is no problematic chord symbol on start of next beat, cliCs is anticipatable
-                    anticipatableChords.add(cliCs);
+                    res.add(cliCs);
                 }
 
             } else
@@ -301,10 +305,12 @@ public class AnticipatedChordProcessor
                 // Last chord, don't need to check next chord
                 if (anticipatedBar <= lastBar)
                 {
-                    anticipatableChords.add(cliCs);
+                    res.add(cliCs);
                 }
             }
         }
+        
+        return res;
     }
 
     private int getGhostNoteVelocityLimitBass(Phrase p)

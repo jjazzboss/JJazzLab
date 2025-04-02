@@ -55,7 +55,6 @@ import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.UndoableEdit;
 import org.jjazz.midi.api.MidiConst;
-import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.undomanager.api.SimpleEdit;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.xstream.spi.XStreamConfigurator;

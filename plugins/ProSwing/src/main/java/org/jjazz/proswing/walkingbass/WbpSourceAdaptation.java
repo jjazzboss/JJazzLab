@@ -97,8 +97,10 @@ public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
 
     /**
      * Get the adapted phrase as set by {@link #setAdaptedPhrase(org.jjazz.phrase.api.Phrase) }.
+     * <p>
+     * First note position might be slightly before this object bar range if WbpSource.getFirstNoteBeatShift() is &lt; 0.
      *
-     * @return Can be null
+     * @return Can be null.
      */
     public Phrase getAdaptedPhrase()
     {

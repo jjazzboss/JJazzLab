@@ -28,17 +28,14 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.SortedSetMultimap;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.TreeMap;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
+import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.utilities.api.IntRange;
 
@@ -142,6 +139,32 @@ public class WbpTiling
             throw new IllegalArgumentException("Can not add " + wbpsa + ", bar zone is not free. this=" + this);
         }
         mapBarWbpsa.put(br.from, wbpsa);
+    }
+
+    /**
+     * Build the resulting phrase by adapting and merging all the WbpSourceAdaptations.
+     *
+     * @param phraseAdapter 
+     * @return A channel 0 phrase. Might be empty.
+     */
+    public Phrase buildPhrase(TransposerPhraseAdapter phraseAdapter)
+    {
+        Objects.requireNonNull(phraseAdapter);
+        Phrase res = new Phrase(0);             
+        
+        for (var wbpsa : getWbpSourceAdaptations())
+        {
+            var p = wbpsa.getAdaptedPhrase();
+            if (p == null)
+            {
+                p = phraseAdapter.getPhrase(wbpsa);
+                wbpsa.setAdaptedPhrase(p);
+            }
+            LOGGER.log(Level.FINE, "buildPhrase() p={0}", p);
+            res.add(p, false);
+        }
+        
+        return res;
     }
 
     /**
@@ -418,7 +441,7 @@ public class WbpTiling
             int targetPitch = nextWbpsa != null ? nextWbpsa.getAdaptedTargetPitch() : -1;
 
             // Create the WbpSources
-            var wbpSources = wbpSourcesBuilder.build(subSeq, targetPitch);         
+            var wbpSources = wbpSourcesBuilder.build(subSeq, targetPitch);
             res.addAll(wbpSources);
         }
 
