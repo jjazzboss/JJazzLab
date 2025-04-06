@@ -22,8 +22,10 @@
  *   Contributor(s): 
  * 
  */
-package org.jjazz.proswing.walkingbass;
+package org.jjazz.proswing.walkingbass.db;
 
+import org.jjazz.proswing.walkingbass.db.WbpSource;
+import org.jjazz.proswing.walkingbass.db.WbpSourceDatabase;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;

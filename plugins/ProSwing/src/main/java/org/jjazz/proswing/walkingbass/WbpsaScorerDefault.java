@@ -24,6 +24,8 @@
  */
 package org.jjazz.proswing.walkingbass;
 
+import org.jjazz.proswing.walkingbass.db.WbpSource;
+import org.jjazz.proswing.walkingbass.db.WbpSourceDatabase;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
 import java.util.ArrayList;
@@ -36,6 +38,7 @@ import java.util.function.Predicate;
 import java.util.logging.Logger;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.proswing.BassStyle;
+import org.jjazz.proswing.walkingbass.db.RootProfile;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.rhythm.api.TempoRange;
 
@@ -65,12 +68,12 @@ public class WbpsaScorerDefault implements WbpsaScorer
         this.wbpSourceAdapter = sourceAdapter;
         this.tempo = tempo;
         this.bassStyles = EnumSet.allOf(BassStyle.class);
-        this.minCompatibilityTester = minCompatibilityTester == null ? Score.DEFAULT_TESTER : minCompatibilityTester;
         if (bStyles.length > 0)
         {
             bassStyles.clear();
             this.bassStyles.addAll(Arrays.asList(bStyles));
         }
+        this.minCompatibilityTester = minCompatibilityTester == null ? Score.DEFAULT_TESTER : minCompatibilityTester;
     }
 
     public int getTempo()
@@ -88,7 +91,7 @@ public class WbpsaScorerDefault implements WbpsaScorer
      * <p>
      * Returns Score.ZERO as soon as one chord symbol is incompatible with the phrase.
      *
-     * @param wbpsa
+     * @param wbpsa The instance for which we evaluate the compatibility score. The passed instance is updated with its Score.
      * @param tiling Can be null, in this case pre/post target notes scores are 0
      * @return If the resulting Score does not satisfy the minCompatibilityTester predicate, returned score is Score.ZERO.
      * @see #DefaultWbpsaScorer(org.jjazz.proswing.walkingbass.PhraseAdapter, int, java.util.function.Predicate, org.jjazz.proswing.BassStyle...)
@@ -178,33 +181,31 @@ public class WbpsaScorerDefault implements WbpsaScorer
     public ListMultimap<Score, WbpSourceAdaptation> getWbpSourceAdaptations(SimpleChordSequence scs, WbpTiling tiling)
     {
         // Score in ascending order
-        ListMultimap<Score, WbpSourceAdaptation> mmap = MultimapBuilder.treeKeys().arrayListValues().build();
+        ListMultimap<Score, WbpSourceAdaptation> res = MultimapBuilder.treeKeys().arrayListValues().build();
 
 
-        int nbBars = scs.getBarRange().size();
+        // Get the WbpSources
+        var rootProfile = RootProfile.of(scs);
         var wbpsDb = WbpSourceDatabase.getInstance();
-        var wbpSources = bassStyles.size() == 1 ? wbpsDb.getWbpSources(nbBars, bassStyles.iterator().next())
-                : wbpsDb.getWbpSources(nbBars).stream()
-                        .filter(s -> bassStyles.contains(s.getBassStyle()))
-                        .toList();
-
-
-        // Check rootProfile first
-        var rpScs = scs.getRootProfile();
-        var rpWbpSources = wbpSources.stream()
-                .filter(s -> rpScs.equals(s.getRootProfile()))
+        var wbpSources = bassStyles.size() == 1 ? 
+                wbpsDb.getWbpSources(bassStyles.iterator().next(), rootProfile)          
+                : bassStyles.stream()
+                .flatMap(bs -> wbpsDb.getWbpSources(bs, rootProfile).stream())
                 .toList();
-        for (var wbpSource : rpWbpSources)
+
+
+        // Calculate compatibility scores
+        for (var wbpSource : wbpSources)
         {
             var wbpsa = new WbpSourceAdaptation(wbpSource, scs);
-            var score = computeCompatibilityScore(wbpsa, tiling);
+            var score = computeCompatibilityScore(wbpsa, tiling);       // This also save the score in wbpsa
             if (score.compareTo(Score.ZERO) > 0)
             {
-                mmap.put(score, wbpsa);
+                res.put(score, wbpsa);
             }
         }
 
-        return mmap;
+        return res;
     }
 
     // =====================================================================================================================

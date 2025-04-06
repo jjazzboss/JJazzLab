@@ -22,9 +22,11 @@
  */
 package org.jjazz.rhythmmusicgeneration.api;
 
+import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.TimeSignature;
@@ -44,15 +46,17 @@ import org.jjazz.utilities.api.IntRange;
 public class AnticipatedChordProcessor
 {
 
-    private SimpleChordSequence simpleChordSequence;
+    private final SimpleChordSequence simpleChordSequence;
     private FloatRange cSeqBeatRange;
     private int nbCellsPerBeat;
     private int lastCellIndex;
     private float cellDuration;
-    private TimeSignature timeSignature;
+    private final float preCellBeatWindow;
+    private final TimeSignature timeSignature;
     private final List<CLI_ChordSymbol> anticipatableChords;
 
     protected static final Logger LOGGER = Logger.getLogger(AnticipatedChordProcessor.class.getSimpleName());
+
 
     /**
      * Construct the processor of a chord sequence.
@@ -60,19 +64,21 @@ public class AnticipatedChordProcessor
      * @param cSeq                Can't be empty
      * @param cSeqStartPosInBeats The start position in beats of cSeq. Must be an integer.
      * @param nbCellsPerBeat      4 or 3. 3 should be used for ternary feel rhythm or 3/8 or 6/8 or 12/8 time signatures.
+     * @param preCellBeatWindow   A value in the range [0;1/nbCellsPerBeat[. Used to accomodate for non-quantized notes: notes whose relative position is &gt;
+     *                            -preCellBeatWindow will be included in the current cell.
      */
-    public AnticipatedChordProcessor(SimpleChordSequence cSeq, float cSeqStartPosInBeats, int nbCellsPerBeat)
+    public AnticipatedChordProcessor(SimpleChordSequence cSeq, float cSeqStartPosInBeats, int nbCellsPerBeat, float preCellBeatWindow)
     {
-        if (cSeq == null || cSeq.isEmpty() || cSeqStartPosInBeats < 0
-                || cSeqStartPosInBeats != Math.floor(cSeqStartPosInBeats)
-                || nbCellsPerBeat < 3 || nbCellsPerBeat > 4)
-        {
-            throw new IllegalArgumentException( //NOI18N
-                    "cSeq=" + cSeq + " cSeqStartPosInBeats=" + cSeqStartPosInBeats + " nbCellsPerBeat=" + nbCellsPerBeat);
-        }
+        Objects.requireNonNull(cSeq);
+        Preconditions.checkArgument(!cSeq.isEmpty());
+        Preconditions.checkArgument(nbCellsPerBeat >= 3 && nbCellsPerBeat <= 4, "nbCellsPerBeat=%s", nbCellsPerBeat);
+        Preconditions.checkArgument(cSeqStartPosInBeats >= 0 && cSeqStartPosInBeats == Math.floor(cSeqStartPosInBeats), "cSeqStartPosInBeats=%s",
+                cSeqStartPosInBeats);
+
 
         this.simpleChordSequence = cSeq;
         this.timeSignature = simpleChordSequence.getTimeSignature();
+        this.preCellBeatWindow = preCellBeatWindow;
 
 
         float nbNaturalBeats = this.timeSignature.getNbNaturalBeats();
@@ -105,14 +111,12 @@ public class AnticipatedChordProcessor
      */
     public void anticipateChords_Mono(Phrase p)
     {
-        if (p == null)
-        {
-            throw new IllegalArgumentException("p=" + p);   //NOI18N
-        }
+        Objects.requireNonNull(p);
+
 
         int nonGhostVelLimit = getGhostNoteVelocityLimitBass(p);
-        Grid gridHighPass = new Grid(p, cSeqBeatRange, nbCellsPerBeat, ne -> ne.getVelocity() >= nonGhostVelLimit);
-        Grid grid = new Grid(p, cSeqBeatRange, nbCellsPerBeat, null);
+        Grid gridHighPass = new Grid(p, cSeqBeatRange, nbCellsPerBeat, ne -> ne.getVelocity() >= nonGhostVelLimit, preCellBeatWindow);
+        Grid grid = new Grid(p, cSeqBeatRange, nbCellsPerBeat, null, preCellBeatWindow);
 
 
         for (CLI_ChordSymbol cliCs : anticipatableChords)
@@ -154,11 +158,8 @@ public class AnticipatedChordProcessor
      */
     public void anticipateChords_Poly(Phrase p)
     {
-        if (p == null)
-        {
-            throw new IllegalArgumentException("p=" + p);   //NOI18N
-        }
-        Grid grid = new Grid(p, cSeqBeatRange, nbCellsPerBeat, null);
+        Objects.requireNonNull(p);
+        Grid grid = new Grid(p, cSeqBeatRange, nbCellsPerBeat, null, preCellBeatWindow);
 
         for (CLI_ChordSymbol cliCs : anticipatableChords)
         {
@@ -180,7 +181,7 @@ public class AnticipatedChordProcessor
                 int pitch = ne.getPitch();
                 if (mapPitchGrid.get(pitch) == null)
                 {
-                    Grid pitchGrid = new Grid(p, cSeqBeatRange, nbCellsPerBeat, n -> n.getPitch() == pitch);
+                    Grid pitchGrid = new Grid(p, cSeqBeatRange, nbCellsPerBeat, n -> n.getPitch() == pitch, preCellBeatWindow);
                     mapPitchGrid.put(pitch, pitchGrid);
                 }
             }
@@ -218,9 +219,10 @@ public class AnticipatedChordProcessor
         }
         int nonGhostVelLimit = getGhostNoteVelocityLimitDrums(p);
         List<Integer> accentPitches = kit.getKeyMap().getKeys(DrumKit.Subset.ACCENT);
-        Grid gridHighPass = new Grid(p, cSeqBeatRange, nbCellsPerBeat, ne -> ne.getVelocity() >= nonGhostVelLimit && accentPitches.contains(
-                ne.getPitch()));
-        Grid grid = new Grid(p, cSeqBeatRange, nbCellsPerBeat, ne -> accentPitches.contains(ne.getPitch()));
+        Grid gridHighPass = new Grid(p, cSeqBeatRange, nbCellsPerBeat,
+                ne -> ne.getVelocity() >= nonGhostVelLimit && accentPitches.contains(ne.getPitch()),
+                preCellBeatWindow);
+        Grid grid = new Grid(p, cSeqBeatRange, nbCellsPerBeat, ne -> accentPitches.contains(ne.getPitch()), preCellBeatWindow);
 
         for (CLI_ChordSymbol cliCs : anticipatableChords)
         {
@@ -250,9 +252,10 @@ public class AnticipatedChordProcessor
     // ==============================================================================================================
     /**
      * Identify the anticipatable chords in anticipatableChords.
+     *
      * @param scs
      * @param ts
-     * @return 
+     * @return
      */
     private List<CLI_ChordSymbol> identifyAnticipatableChords(SimpleChordSequence scs, TimeSignature ts)
     {
@@ -309,7 +312,7 @@ public class AnticipatedChordProcessor
                 }
             }
         }
-        
+
         return res;
     }
 

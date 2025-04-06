@@ -8,6 +8,7 @@
 * Database: harmonize phrases velocity
 * FInalize rhythm dialog settings
 * Automate rhythm tests on 2000 sngs
+* Do tests with multiple rhythms, play from start, middle, loop selection
 
 
 MAYBE LATER

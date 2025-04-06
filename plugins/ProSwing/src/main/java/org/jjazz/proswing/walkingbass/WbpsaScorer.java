@@ -48,12 +48,12 @@ public interface WbpsaScorer
 
 
     /**
-     * Find the WbpSourceAdaptations derived from WbpDatabase which are compatible (i.e. compatibility score is not Score.ZERO) with the specified chord
-     * sequence.
+     * Find the WbpSources from WbpDatabase which are compatible with scs (compatibility score is not Score.ZERO), and return the corresponding
+     * WbpSourceAdaptations.
      * <p>
      * @param scs
-     * @param tiling If null this might impact the resulting score
-     * @return A multimap with Score keys in ascending order
+     * @param tiling Can be null. Used in the compatibility score calculation.
+     * @return A multimap with WbpSourceAdaptation's Score keys in ascending order
      */
     ListMultimap<Score, WbpSourceAdaptation> getWbpSourceAdaptations(SimpleChordSequence scs, WbpTiling tiling);
 

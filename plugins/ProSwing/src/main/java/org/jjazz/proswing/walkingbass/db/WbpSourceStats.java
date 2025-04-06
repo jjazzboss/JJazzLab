@@ -1,5 +1,6 @@
-package org.jjazz.proswing.walkingbass;
+package org.jjazz.proswing.walkingbass.db;
 
+import org.jjazz.proswing.walkingbass.db.WbpSource;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;

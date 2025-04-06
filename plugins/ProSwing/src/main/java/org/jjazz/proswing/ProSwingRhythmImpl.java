@@ -43,7 +43,7 @@ import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrasetransform.api.rps.RP_SYS_DrumsTransform;
-import org.jjazz.proswing.walkingbass.WbpSourceDatabase;
+import org.jjazz.proswing.walkingbass.db.WbpSourceDatabase;
 import org.jjazz.proswing.walkingbass.WalkingBassMusicGenerator;
 import org.jjazz.rhythm.api.Division;
 import org.jjazz.rhythm.api.Genre;
@@ -255,14 +255,23 @@ public class ProSwingRhythmImpl implements YjzCompositeRhythm
         baseRhythm.loadResources();  // throws MusicGenerationException
 
         // Initialize the WalkingBass database
+        long time = System.currentTimeMillis();
+        LOGGER.log(Level.INFO, "loadResources() initialization WbpSourceDB...");
         var wbpsDB = WbpSourceDatabase.getInstance();
-        LOGGER.log(Level.INFO, "loadResources() wbpSourceDB size={0}", wbpsDB.getNbWbpSources(-1));
-        LOGGER.severe("loadResources() debug updating SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT");
-        System.setProperty(NoteEvent.SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT, "%1$s");
-        wbpsDB.checkConsistency(BassStyle.TWO_FEEL);
-        wbpsDB.checkConsistency(BassStyle.WALKING);
-        
-        
+        time = System.currentTimeMillis() - time;
+        LOGGER.log(Level.INFO, "loadResources() wbpSourceDB size={0,number,#}  init time={1,number,#}ms  ", new Object[]
+        {
+            wbpsDB.getNbWbpSources(-1), time
+        });
+
+
+        // LOGGER.log(Level.INFO, "loadResources() checkConsistency() skipped");
+        // LOGGER.severe("loadResources() debug updating SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT");
+        // System.setProperty(NoteEvent.SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT, "%1$s");
+         wbpsDB.checkConsistency(BassStyle.TWO_FEEL);
+         wbpsDB.checkConsistency(BassStyle.WALKING);
+
+
         pcs.firePropertyChange(PROP_RESOURCES_LOADED, false, true);
     }
 

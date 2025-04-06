@@ -190,12 +190,13 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
      * Compare the intervals and the note positions.
      *
      * @param p
-     * @param nearWindow Accept note-to-note position difference of +- nearWindow. Use 0 for a strict position comparison, Float.MAX_VALUE to ignore position
-     *                   differences.
+     * @param checkNoteDuration If true check also that notes durations are equal +/- 2*nearWindow.
+     * @param nearWindow        Accept note-to-note position difference of +/- nearWindow. Use 0 for a strict position comparison, or Float.MAX_VALUE to ignore
+     *                          position (and possibly duration) differences.
      * @return
      * @see NoteEvent#equalsAsNoteNearPosition(org.jjazz.phrase.api.NoteEvent, float)
      */
-    public boolean equalsAsIntervals(Phrase p, float nearWindow)
+    public boolean equalsAsIntervals(Phrase p, boolean checkNoteDuration, float nearWindow)
     {
         boolean b = false;
         if (p.size() == size())
@@ -206,18 +207,24 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
             for (var ne : this)
             {
                 var pNe = pIt.next();
+                if (!ne.isNear(pNe.getPositionInBeats(), nearWindow))
+                {
+                    b = false;
+                    break;
+                }
+                if (checkNoteDuration && Math.abs(ne.getDurationInBeats() - pNe.getDurationInBeats()) > 2 * nearWindow)
+                {
+                    b = false;
+                    break;
+                }
                 if (lastNe != null)
                 {
-                    if (!ne.isNear(pNe.getPositionInBeats(), nearWindow))
-                    {
-                        b = false;
-                        break;
-                    }
                     if ((ne.getPitch() - lastNe.getPitch()) != (pNe.getPitch() - lastPNe.getPitch()))
                     {
                         b = false;
                         break;
                     }
+
                 }
                 lastNe = ne;
                 lastPNe = pNe;

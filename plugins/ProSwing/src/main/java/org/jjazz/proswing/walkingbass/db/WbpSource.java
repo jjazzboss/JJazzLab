@@ -1,4 +1,4 @@
-package org.jjazz.proswing.walkingbass;
+package org.jjazz.proswing.walkingbass.db;
 
 import com.google.common.base.Preconditions;
 import org.jjazz.proswing.BassStyle;
@@ -13,9 +13,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.harmony.api.Chord;
 import org.jjazz.harmony.api.Note;
+import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SizedPhrase;
+import org.jjazz.proswing.walkingbass.WalkingBassMusicGenerator;
+import org.jjazz.proswing.walkingbass.WbpSourceSlice;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.utilities.api.IntRange;
 
@@ -34,28 +38,28 @@ public class WbpSource extends Wbp
     private final BassStyle bassStyle;
     private final List<String> tags;
     private final SimpleChordSequence originalChordSequence;
+    private final float firstNoteBeatShift;
+    private NoteEvent firstNote, lastNote;
+    private Boolean isStartingOnRoot, isEndingOnChordTone;
+    private CLI_ChordSymbol firstChord, lastChord;
     private WbpSourceStats stats;
-
-
-    private record TransposibilityResult(int score, int transpose)
-            {
-
-    }
-    ;
+    private RootProfile rootProfile;
     private final Map<CLI_ChordSymbol, WbpSourceSlice> mapCsSlice;
     private final Map<Integer, TransposibilityResult> mapDestChordRootTransposibility;
-
     private static final Logger LOGGER = Logger.getLogger(WbpSource.class.getSimpleName());
+
 
     /**
      * Create a source bass phrase.
+     * <p>
+     * NOTE: all parameters are expected to represent immutable values.
      *
      * @param sessionId          The session id from which this source phrase comes.
      * @param sessionBarFrom     The bar index in the session phrase from which this source phrase comes
      * @param bassStyle          The bass style of this WbpSource
-     * @param cSeq               Must start at bar 0. Chord simplification will be applied on the passed SimpleChordSequence?
-     * @param phrase             Size must be between 1 and 4 bars, must start at beat 0
-     * @param firstNoteBeatShift A 0 or negative beat value. A phrase note starting at 0 should be shifted with this value.
+     * @param cSeq               Must start at bar 0. Chord simplification will be applied on the passed SimpleChordSequence.
+     * @param phrase             Size must be between 1 and 4 bars, must start at beat 0. Ghost notes will be removed on the passed phrase.
+     * @param firstNoteBeatShift A 0 or negative beat value. Any phrase note at bar=0 beat=0 should be shifted with this value.
      * @param targetNote         Can be null
      * @param tags
      * @see #setOriginalChordSequence(org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence)
@@ -64,10 +68,12 @@ public class WbpSource extends Wbp
             Note targetNote,
             String... tags)
     {
-        super(cSeq, phrase, firstNoteBeatShift, targetNote);
+        super(cSeq, phrase, targetNote);
         Objects.requireNonNull(bassStyle);
         checkArgument(sessionId != null && !sessionId.isBlank());
         checkArgument(sessionBarFrom >= 0, "sessionBarFrom=%s", sessionBarFrom);
+        checkArgument(firstNoteBeatShift <= 0 && firstNoteBeatShift >= -WalkingBassMusicGenerator.NON_QUANTIZED_WINDOW,
+                "firstNoteBeatShift=%s", firstNoteBeatShift);
         checkArgument(phrase.getSizeInBars() >= 1 && phrase.getSizeInBars() <= 4, "phrase=%s", phrase);
 
         this.mapDestChordRootTransposibility = new HashMap<>();
@@ -76,9 +82,123 @@ public class WbpSource extends Wbp
         this.sessionId = sessionId;
         this.id = sessionId + "#fr=" + sessionBarFrom + "#sz=" + phrase.getSizeInBars();
         this.sessionBarOffset = sessionBarFrom;
-        this.tags = new ArrayList<>();
         this.bassStyle = bassStyle;
+        this.firstNoteBeatShift = firstNoteBeatShift;
+        this.tags = new ArrayList<>();
         Stream.of(tags).forEach(t -> this.tags.add(t.toLowerCase()));
+
+
+        // Session slicing might have produced remaining short notes at the beginning of the phrase
+        WalkingBassMusicGenerator.removeGhostNotes(getSizedPhrase());
+
+
+        // Must be called last because WbpSource must be fully initialized
+        simplifyChordSymbols();
+    }
+
+    /**
+     * If &lt; 0 the phrase notes starting on bar/beat 0 should be shifted with this value.
+     * <p>
+     * This is used to store the exact timing of "live-played notes" which can start a bit ahead of this phrase theorical start.
+     *
+     * @return A 0 or negative value
+     */
+    public float getFirstNoteBeatShift()
+    {
+        return firstNoteBeatShift;
+    }
+
+//    /**
+//     * Manually set the RootProfile.
+//     * <p>
+//     * When creating WbpSources from a WbpSession we can directly compute the RootProfile in a more efficient way that calculating it for each individual
+//     * WbpSource.
+//     *
+//     * @param rp
+//     */
+//    protected void setRootProfile(RootProfile rp)
+//    {
+//        rootProfile = rp;
+//    }
+
+    public RootProfile getRootProfile()
+    {
+        if (rootProfile == null)
+        {
+            rootProfile = RootProfile.of(chordSequence);
+        }
+        return rootProfile;
+    }
+
+    public NoteEvent getFirstNote()
+    {
+        // Called often, save result because underlying structure is a TreeSet        
+        if (firstNote == null)
+        {
+            firstNote = sizedPhrase.first();
+        }
+        return firstNote;
+    }
+
+    public NoteEvent getLastNote()
+    {
+        // Called often, save result because underlying structure is a TreeSet        
+        if (lastNote == null)
+        {
+            lastNote = sizedPhrase.last();
+        }
+        return lastNote;
+    }
+
+    public CLI_ChordSymbol getFirstChordSymbol()
+    {
+        // Called often, save result because underlying structure is a TreeSet        
+        if (firstChord == null)
+        {
+            firstChord = chordSequence.first();
+        }
+        return firstChord;
+    }
+
+    public CLI_ChordSymbol getLastChordSymbol()
+    {
+        // Called often, save result because underlying structure is a TreeSet        
+        if (lastChord == null)
+        {
+            lastChord = chordSequence.last();
+        }
+        return lastChord;
+    }
+
+    /**
+     * Check if the first note of the phrase corresponds to the root of the first chord.
+     *
+     * @return
+     */
+    public boolean isStartingOnChordRoot()
+    {
+        if (isStartingOnRoot == null)
+        {
+            Note rootNote = getFirstChordSymbol().getData().getRootNote();
+            isStartingOnRoot = getFirstNote().equalsRelativePitch(rootNote);
+        }
+        return isStartingOnRoot;
+    }
+
+    /**
+     * Check if the last note of the phrase is a chord tone.
+     *
+     * @return
+     */
+    public boolean isEndingOnChordTone()
+    {
+        if (isEndingOnChordTone == null)
+        {
+            Chord lastChordNotes = getLastChordSymbol().getData().getChord();
+            int lastRelPitch = getLastNote().getRelativePitch();
+            isEndingOnChordTone = lastChordNotes.indexOfRelativePitch(lastRelPitch) != -1;
+        }
+        return isEndingOnChordTone;
     }
 
     /**
@@ -172,37 +292,6 @@ public class WbpSource extends Wbp
     {
         return tags.remove(tag);
     }
-
-    /**
-     * Simplify the chord symbols of the chord sequence so that this source phrase can be reused for a maximum of derivative chord symbols.
-     *
-     * @return True if the SimpleChordSequence was modified as a result
-     * @see WbpSourceSlice#getSimplifiedSourceChordSymbol()
-     */
-    public boolean simplifyChordSymbols()
-    {
-        boolean b = false;
-
-        var scs = getSimpleChordSequence();
-
-        for (var cliCs : scs.toArray(CLI_ChordSymbol[]::new))
-        {
-            var newCliCs = getSlice(cliCs).getSimplifiedSourceChordSymbol();
-            if (newCliCs != cliCs)
-            {
-                scs.remove(cliCs);
-                scs.add(newCliCs);
-                b = true;
-//                LOGGER.log(Level.SEVERE, "simplifyChordSymbols()  cliCs={0} => {1}", new Object[]
-//                {
-//                    cliCs.toString(), newCliCs.getData().toString()
-//                });                
-            }
-        }
-
-        return b;
-    }
-
 
     /**
      * Get a score which indicates how much the original phrase will preserve an acceptable bass pitch range when transposed to destChordRoot.
@@ -393,13 +482,46 @@ public class WbpSource extends Wbp
         return res;
     }
 
+
     // =================================================================================================================
     // Private methods
     // =================================================================================================================    
 
+
+    /**
+     * Simplify the chord symbols of the chord sequence so that this source phrase can be reused for a maximum of derivative chord symbols.
+     *
+     * @see WbpSourceSlice#getSimplifiedSourceChordSymbol()
+     */
+    private void simplifyChordSymbols()
+    {
+        for (var cliCs : chordSequence.toArray(CLI_ChordSymbol[]::new))
+        {
+            var newCliCs = getSlice(cliCs).getSimplifiedSourceChordSymbol();
+            if (newCliCs != cliCs)
+            {
+                chordSequence.remove(cliCs);
+                chordSequence.add(newCliCs);
+//                LOGGER.log(Level.SEVERE, "simplifyChordSymbols()  cliCs={0} => {1}", new Object[]
+//                {
+//                    cliCs.toString(), newCliCs.getData().toString()
+//                });                
+            }
+        }
+    }
+
     private float safeRatio(float upper, float lower)
     {
         return lower == 0 ? 1 : upper / lower;
+    }
+
+
+    // =================================================================================================================
+    // Inner classes
+    // =================================================================================================================    
+    private record TransposibilityResult(int score, int transpose)
+            {
+
     }
 
 }

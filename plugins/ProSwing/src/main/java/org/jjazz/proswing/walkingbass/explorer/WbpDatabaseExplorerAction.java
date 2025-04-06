@@ -31,8 +31,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
-import org.jjazz.proswing.walkingbass.WbpSourceDatabase;
-import org.jjazz.proswing.walkingbass.WbpSource;
+import org.jjazz.proswing.walkingbass.db.WbpSourceDatabase;
+import org.jjazz.proswing.walkingbass.db.WbpSource;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -55,36 +55,11 @@ public final class WbpDatabaseExplorerAction implements ActionListener
     @Override
     public void actionPerformed(ActionEvent ae)
     {
-        LOGGER.log(Level.INFO, "DumpWbpDatabaseAction.actionPerformed() --");
-
         SwingUtilities.invokeLater(() -> 
         {
             var dlg = new WbpDatabaseExplorerDialog(false);
             dlg.setVisible(true);
         });
-
-    }
-
-    private void dumpWbpSourcesPerRootProfile()
-    {
-        var wbpdb = WbpSourceDatabase.getInstance();
-        ListMultimap<String, WbpSource> mmapRpWbps = MultimapBuilder.hashKeys().arrayListValues().build();
-        for (var wbps : wbpdb.getWbpSources())
-        {
-            String rp = wbps.getRootProfile();
-            mmapRpWbps.put(rp, wbps);
-        }
-
-        List<String> sortedRps = new ArrayList<>(mmapRpWbps.keySet());
-        sortedRps.sort((rp1, rp2) -> Integer.compare(mmapRpWbps.get(rp2).size(), mmapRpWbps.get(rp1).size()));
-        for (var rp : sortedRps)
-        {
-            LOGGER.log(Level.INFO, "rp: {0}", rp);
-            for (var wbps : mmapRpWbps.get(rp))
-            {
-                LOGGER.log(Level.INFO, "  {0}", wbps);
-            }
-        }
 
     }
 

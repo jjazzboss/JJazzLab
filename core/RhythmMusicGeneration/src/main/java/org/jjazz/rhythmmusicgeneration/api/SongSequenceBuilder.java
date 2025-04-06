@@ -1105,21 +1105,14 @@ public class SongSequenceBuilder
             Phrase p = rvPhrases.get(rv);
             for (NoteEvent ne : p)
             {
-                boolean inRange = false;
-                for (FloatRange rg : sptRanges)
-                {
-                    if (rg.contains(ne.getPositionInBeats(), true))
-                    {
-                        inRange = true;
-                        break;
-                    }
-                }
+                boolean inRange = sptRanges.stream()
+                        .anyMatch(rg -> rg.contains(ne.getPositionInBeats(), true));
                 if (!inRange)
                 {
                     // songContext.toPosition(0)
-                    String msg = ResUtil.getString(getClass(), "ERR_InvalidNotePosition", ne.toString(), r.getName());
-                    LOGGER.log(Level.INFO, "checkRhythmPhrasesScope() {0}", msg);
-                    LOGGER.log(Level.FINE, "DEBUG!  rv={0} ne={1} p={2}", new Object[]
+                    String msg = ResUtil.getString(getClass(), "ERR_InvalidNotePosition", ne.toString(), rv.getName(), r.getName());
+                    LOGGER.log(Level.WARNING, "checkRhythmPhrasesScope() {0}", msg);
+                    LOGGER.log(Level.WARNING, "checkRhythmPhrasesScope() => rv={0} ne={1} p={2}", new Object[]
                     {
                         rv.getName(), ne, p
                     });

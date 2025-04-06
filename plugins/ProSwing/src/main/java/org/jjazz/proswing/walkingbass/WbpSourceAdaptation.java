@@ -24,7 +24,9 @@
  */
 package org.jjazz.proswing.walkingbass;
 
+import org.jjazz.proswing.walkingbass.db.WbpSource;
 import com.google.common.base.Preconditions;
+import java.util.Objects;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.utilities.api.IntRange;
@@ -58,6 +60,10 @@ public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
 
     public WbpSourceAdaptation(WbpSource wbpSource, SimpleChordSequence scs, Score compatibilityScore)
     {
+        Objects.requireNonNull(wbpSource);
+        Objects.requireNonNull(scs);
+        Objects.requireNonNull(compatibilityScore);
+        
         this.wbpSource = wbpSource;
         this.scs = scs;
         this.compatibilityScore = compatibilityScore;

@@ -26,6 +26,7 @@ package org.jjazz.proswing.walkingbass;
 
 import org.jjazz.harmony.api.Note;
 import org.jjazz.phrase.api.Phrase;
+import static org.jjazz.proswing.walkingbass.WalkingBassMusicGenerator.NON_QUANTIZED_WINDOW;
 
 /**
  * This  implementation just transposes the WbpSource phrase so that the 2 first chord roots match.
@@ -43,16 +44,15 @@ public class TransposerPhraseAdapter implements PhraseAdapter
 
         var wbpSource = wbpsa.getWbpSource();
         var scs = wbpsa.getSimpleChordSequence();
-        var firstRootNote = scs.first().getData().getRootNote();
         float startPos = scs.getBarRange().from * scs.getTimeSignature().getNbNaturalBeats();
 
 
         // Adapt to target chord symbol
-        var sp = wbpSource.getTransposedPhrase(firstRootNote);      // Starts at beat 0        
+        var sp = wbpSource.getTransposedPhrase(wbpSource.getFirstChordSymbol().getData().getRootNote());      // Starts at beat 0        
         sp.shiftAllEvents(startPos);
 
 
-        if (startPos >= WbpSourceDatabase.FIRST_NOTE_BEAT_WINDOW && wbpSource.getFirstNoteBeatShift() < 0)
+        if (startPos >= NON_QUANTIZED_WINDOW && wbpSource.getFirstNoteBeatShift() < 0)
         {
             // Restore first note position whose start was anticipated (because non-quantized playing)
             var firstNe = sp.first();

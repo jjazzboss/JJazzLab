@@ -24,6 +24,7 @@
  */
 package org.jjazz.proswing.walkingbass;
 
+import org.jjazz.proswing.walkingbass.db.WbpSource;
 import com.google.common.base.Preconditions;
 import java.util.HashSet;
 import java.util.List;

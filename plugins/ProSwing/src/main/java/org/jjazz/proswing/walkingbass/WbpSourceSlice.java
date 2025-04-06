@@ -24,6 +24,7 @@
  */
 package org.jjazz.proswing.walkingbass;
 
+import org.jjazz.proswing.walkingbass.db.WbpSource;
 import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -60,12 +61,6 @@ import org.jjazz.utilities.api.FloatRange;
  */
 public class WbpSourceSlice
 {
-
-    /**
-     * +/- beat position tolerance when comparing notes (accomodate for unquantized notes)
-     */
-    public static final float NEAR_WINDOW = 0.15f;
-    public static final float GHOST_NOTE_MAX_DURATION = 0.15f;
     private final WbpSource wbpSource;
     private final CLI_ChordSymbol srcCliChordSymbol;
     private final ExtChordSymbol srcExtChordSymbol;
@@ -94,13 +89,13 @@ public class WbpSourceSlice
 
         // Extract notes (which are not quantized)
         var csBeatRange = wbpSource.getSimpleChordSequence().getBeatRange(srcCliChordSymbol, 0);
-        float fromOffset = csBeatRange.from >= NEAR_WINDOW ? NEAR_WINDOW : 0;
-        float toOffset = csBeatRange.size() > NEAR_WINDOW ? NEAR_WINDOW : 0;
+        float fromOffset = csBeatRange.from >= WalkingBassMusicGenerator.NON_QUANTIZED_WINDOW ? WalkingBassMusicGenerator.NON_QUANTIZED_WINDOW : 0;
+        float toOffset = csBeatRange.size() > WalkingBassMusicGenerator.NON_QUANTIZED_WINDOW ? WalkingBassMusicGenerator.NON_QUANTIZED_WINDOW : 0;
         var phraseBeatRange = csBeatRange.getTransformed(-fromOffset, -toOffset);
         var sp = wbpSource.getSizedPhrase();
         srcNotes = new ArrayList<>(sp.subSet(phraseBeatRange, true));
         srcNotesNoGhost = srcNotes.stream()
-                .filter(ne -> ne.getDurationInBeats() > GHOST_NOTE_MAX_DURATION)
+                .filter(ne -> ne.getDurationInBeats() > WalkingBassMusicGenerator.GHOST_NOTE_MAX_DURATION)
                 .toList();
 
 

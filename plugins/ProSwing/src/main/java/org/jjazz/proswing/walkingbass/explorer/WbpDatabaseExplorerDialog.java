@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 import javax.swing.JList;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
@@ -40,12 +41,13 @@ import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.proswing.BassStyle;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
-import org.jjazz.proswing.walkingbass.WbpSourceDatabase;
-import org.jjazz.proswing.walkingbass.WbpSource;
+import org.jjazz.proswing.walkingbass.db.WbpSourceDatabase;
+import org.jjazz.proswing.walkingbass.db.WbpSource;
 import org.jjazz.proswing.walkingbass.WbpsaScorerDefault;
 import org.jjazz.proswing.walkingbass.Score;
 import org.jjazz.proswing.walkingbass.WbpSourceAdaptation;
 import org.jjazz.proswing.walkingbass.WbpsaScorer;
+import org.jjazz.proswing.walkingbass.db.RootProfile;
 import org.jjazz.uiutilities.api.UIUtilities;
 import org.jjazz.utilities.api.IntRange;
 import org.openide.DialogDisplayer;
@@ -138,7 +140,8 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
 
     private List<WbpSourceAdaptation> getWbpSourceAdaptations(int tempo, BassStyle[] bassStyles)
     {
-        // Compute the root profile
+
+        // Prepare chord sequence and root profile
         SimpleChordSequence scs;
         var wbpDb = WbpSourceDatabase.getInstance();
         try
@@ -151,29 +154,31 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
             return Collections.EMPTY_LIST;
         }
 
-        List<WbpSourceAdaptation> res;
+
+        // Get the WbpSources
+        List<WbpSource> wbpSources;
         if (scs.isEmpty())
         {
-            // Special show all
-            var wbpSources = wbpDb.getWbpSources(getNbBars());
-            res = wbpSources.stream()
-                    .map(wbps -> new WbpSourceAdaptation(wbps, scs))
-                    .toList();
-        } else if (rb_rootProfile.isSelected())
-        {
-            var rpScs = scs.getRootProfile();
-            res = wbpDb.getWbpSources().stream()
-                    .filter(s -> rpScs.equals(s.getRootProfile()))
-                    .map(wbps -> new WbpSourceAdaptation(wbps, scs))
-                    .toList();
+            wbpSources = wbpDb.getWbpSources(getNbBars(), bassStyles);
+
         } else
         {
-            WbpsaScorer wbpsaScorer = new WbpsaScorerDefault(null, tempo, cb_premiumOnly.isSelected() ? Score.PREMIUM_ONLY_TESTER : null, bassStyles);
-            res = new ArrayList<>(wbpsaScorer.getWbpSourceAdaptations(scs, null).values());
+            var rootProfile = RootProfile.of(scs);
+            wbpSources = Stream.of(bassStyles)
+                    .flatMap(bs -> wbpDb.getWbpSources(bs, rootProfile).stream())
+                    .toList();
         }
 
 
-        return res;
+        // Evaluate compatibility
+        WbpsaScorer wbpsaScorer = new WbpsaScorerDefault(null, tempo, cb_premiumOnly.isSelected() ? Score.PREMIUM_ONLY_TESTER : null, bassStyles);
+        var wbpsas = wbpSources.stream()
+                .map(wbps -> new WbpSourceAdaptation(wbps, scs))
+                .filter(wbpsa -> cb_rootProfileOnly.isSelected() || scs.isEmpty() || wbpsaScorer.computeCompatibilityScore(wbpsa, null).compareTo(Score.ZERO) > 0)
+                .toList();
+
+
+        return wbpsas;
 
     }
 
@@ -237,7 +242,7 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
         tbl_wbpSources.getColumnModel().getColumn(MyModel.COL_SCORE).setMaxWidth(60);
         tbl_wbpSources.getColumnModel().getColumn(MyModel.COL_CHORDS).setPreferredWidth(170);
         tbl_wbpSources.getColumnModel().getColumn(MyModel.COL_CHORDS).setMinWidth(150);
-        tbl_wbpSources.getColumnModel().getColumn(MyModel.COL_PHRASE).setPreferredWidth(500);
+        tbl_wbpSources.getColumnModel().getColumn(MyModel.COL_PHRASE).setPreferredWidth(400);
         tbl_wbpSources.getColumnModel().getColumn(MyModel.COL_PHRASE).setMinWidth(200);
 
 
@@ -283,7 +288,8 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
         public static final int COL_STATS = 5;
         public static final int COL_PHRASE = 6;
         public static final int COL_TARGET_NOTE = 7;
-        private static final int NB_COLS = 8;
+        public static final int COL_FIRST_NOTE_SHIFT = 8;
+        private static final int NB_COLS = 9;
 
 
         private final List<WbpSourceAdaptation> wbpsas = new ArrayList<>();
@@ -357,7 +363,7 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
             {
                 case COL_ID, COL_SCORE_DETAILS, COL_CHORDS, COL_PHRASE, COL_STYLE, COL_STATS, COL_TARGET_NOTE ->
                     String.class;
-                case COL_SCORE ->
+                case COL_SCORE, COL_FIRST_NOTE_SHIFT ->
                     Float.class;
                 default -> throw new IllegalStateException("col=" + col);
             };
@@ -385,6 +391,8 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
                     "Phrase";
                 case COL_TARGET_NOTE ->
                     "Target note";
+                case COL_FIRST_NOTE_SHIFT ->
+                    "1st note shift";
                 default -> throw new IllegalStateException("columnIndex=" + col);
             };
             return s;
@@ -415,6 +423,8 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
                     wbpsa.getCompatibilityScore().toString();
                 case COL_CHORDS ->
                     new ArrayList<>(wbpSource.getSimpleChordSequence()).toString();
+                case COL_FIRST_NOTE_SHIFT ->
+                    wbpSource.getFirstNoteBeatShift();
                 case COL_TARGET_NOTE ->
                 {
                     var note = wbpsa.getWbpSource().getTargetNote();
@@ -463,11 +473,8 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
         lbl_chordSeq = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         tbl_wbpSources = new javax.swing.JTable();
-        jLabel3 = new javax.swing.JLabel();
         lbl_info = new javax.swing.JLabel();
         btn_update = new javax.swing.JButton();
-        rb_rootProfile = new javax.swing.JRadioButton();
-        rb_rpChordTypes = new javax.swing.JRadioButton();
         btn_whatChanged = new javax.swing.JButton();
         cmb_noteDetail = new javax.swing.JComboBox<>();
         spn_tempo = new org.jjazz.flatcomponents.api.WheelSpinner();
@@ -475,6 +482,7 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
         jScrollPane2 = new javax.swing.JScrollPane();
         list_Styles = new JList(BassStyle.values());
         cb_premiumOnly = new javax.swing.JCheckBox();
+        cb_rootProfileOnly = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle(org.openide.util.NbBundle.getMessage(WbpDatabaseExplorerDialog.class, "WbpDatabaseExplorerDialog.title")); // NOI18N
@@ -541,8 +549,6 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
         tbl_wbpSources.setModel(new MyModel());
         jScrollPane1.setViewportView(tbl_wbpSources);
 
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel3, "Matching goal:"); // NOI18N
-
         org.openide.awt.Mnemonics.setLocalizedText(lbl_info, org.openide.util.NbBundle.getMessage(WbpDatabaseExplorerDialog.class, "WbpDatabaseExplorerDialog.lbl_info.text")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_update, "Update"); // NOI18N
@@ -551,27 +557,6 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
                 btn_updateActionPerformed(evt);
-            }
-        });
-
-        buttonGroup1.add(rb_rootProfile);
-        org.openide.awt.Mnemonics.setLocalizedText(rb_rootProfile, "root profile"); // NOI18N
-        rb_rootProfile.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                rb_rootProfileActionPerformed(evt);
-            }
-        });
-
-        buttonGroup1.add(rb_rpChordTypes);
-        rb_rpChordTypes.setSelected(true);
-        org.openide.awt.Mnemonics.setLocalizedText(rb_rpChordTypes, "rp + chord types"); // NOI18N
-        rb_rpChordTypes.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                rb_rpChordTypesActionPerformed(evt);
             }
         });
 
@@ -616,6 +601,15 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
             }
         });
 
+        org.openide.awt.Mnemonics.setLocalizedText(cb_rootProfileOnly, org.openide.util.NbBundle.getMessage(WbpDatabaseExplorerDialog.class, "WbpDatabaseExplorerDialog.cb_rootProfileOnly.text")); // NOI18N
+        cb_rootProfileOnly.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                cb_rootProfileOnlyActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -630,40 +624,34 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addGroup(layout.createSequentialGroup()
                                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                                .addComponent(jLabel3)
-                                                .addGap(18, 18, 18)
-                                                .addComponent(rb_rootProfile)
-                                                .addGap(2, 2, 2))
                                             .addGroup(layout.createSequentialGroup()
-                                                .addComponent(tf_bar0, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                                .addComponent(tf_bar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                                .addGap(21, 21, 21)
+                                                .addComponent(tf_bar0, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                            .addComponent(cb_rootProfileOnly))
+                                        .addGap(18, 18, 18)
                                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                                .addGroup(layout.createSequentialGroup()
-                                                    .addComponent(lbl_Tempo)
-                                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                                    .addComponent(spn_tempo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                                .addGroup(layout.createSequentialGroup()
-                                                    .addComponent(tf_bar2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                                    .addComponent(tf_bar3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                                             .addGroup(layout.createSequentialGroup()
-                                                .addGap(10, 10, 10)
-                                                .addComponent(rb_rpChordTypes)
-                                                .addGap(18, 18, 18)
-                                                .addComponent(cb_premiumOnly))))
+                                                .addComponent(tf_bar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                                    .addGroup(layout.createSequentialGroup()
+                                                        .addComponent(lbl_Tempo)
+                                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                        .addComponent(spn_tempo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                                    .addGroup(layout.createSequentialGroup()
+                                                        .addComponent(tf_bar2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                        .addComponent(tf_bar3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                                            .addComponent(cb_premiumOnly)))
                                     .addComponent(lbl_chordSeq)
                                     .addGroup(layout.createSequentialGroup()
                                         .addComponent(spn_barSize, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(jLabel1)))
-                                .addGap(67, 67, 67))
+                                .addGap(117, 117, 117))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(lbl_info, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)))
-                        .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 264, Short.MAX_VALUE)
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 246, Short.MAX_VALUE)
                         .addGap(12, 12, 12)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(cmb_noteDetail, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -694,13 +682,11 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
                             .addComponent(tf_bar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(tf_bar2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(tf_bar3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(18, 18, 18)
+                        .addGap(24, 24, 24)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel3)
-                            .addComponent(rb_rootProfile)
-                            .addComponent(rb_rpChordTypes)
+                            .addComponent(cb_rootProfileOnly)
                             .addComponent(cb_premiumOnly))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGap(6, 6, 6)
                         .addComponent(lbl_info))
                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                         .addGroup(layout.createSequentialGroup()
@@ -713,7 +699,7 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
                             .addComponent(btn_whatChanged))
                         .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 256, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 257, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -763,16 +749,6 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
         doUpdate();
     }//GEN-LAST:event_tf_bar3ActionPerformed
 
-    private void rb_rootProfileActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_rb_rootProfileActionPerformed
-    {//GEN-HEADEREND:event_rb_rootProfileActionPerformed
-        doUpdate();
-    }//GEN-LAST:event_rb_rootProfileActionPerformed
-
-    private void rb_rpChordTypesActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_rb_rpChordTypesActionPerformed
-    {//GEN-HEADEREND:event_rb_rpChordTypesActionPerformed
-        doUpdate();
-    }//GEN-LAST:event_rb_rpChordTypesActionPerformed
-
     private void btn_whatChangedActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_whatChangedActionPerformed
     {//GEN-HEADEREND:event_btn_whatChangedActionPerformed
         LOGGER.info(getTableModel().getWhatChangedString());
@@ -793,6 +769,11 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
         doUpdate();
     }//GEN-LAST:event_cb_premiumOnlyActionPerformed
 
+    private void cb_rootProfileOnlyActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cb_rootProfileOnlyActionPerformed
+    {//GEN-HEADEREND:event_cb_rootProfileOnlyActionPerformed
+        doUpdate();
+    }//GEN-LAST:event_cb_rootProfileOnlyActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_clear;
@@ -800,17 +781,15 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
     private javax.swing.JButton btn_whatChanged;
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JCheckBox cb_premiumOnly;
+    private javax.swing.JCheckBox cb_rootProfileOnly;
     private javax.swing.JComboBox<String> cmb_noteDetail;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel3;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JLabel lbl_Tempo;
     private javax.swing.JLabel lbl_chordSeq;
     private javax.swing.JLabel lbl_info;
     private javax.swing.JList<BassStyle> list_Styles;
-    private javax.swing.JRadioButton rb_rootProfile;
-    private javax.swing.JRadioButton rb_rpChordTypes;
     private javax.swing.JSpinner spn_barSize;
     private org.jjazz.flatcomponents.api.WheelSpinner spn_tempo;
     private javax.swing.JTable tbl_wbpSources;

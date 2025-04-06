@@ -892,7 +892,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
             float shortenedDuration = posDestNote - prevParentDestNote.getPositionInBeats();
             NoteEvent shortenedPrevParentDestNote = prevParentDestNote.setDuration(shortenedDuration);
 
-            if (prevParentDestNote.getDurationInBeats() >= Grid.PRE_CELL_BEAT_WINDOW && shortenedDuration <= Grid.PRE_CELL_BEAT_WINDOW)
+            if (prevParentDestNote.getDurationInBeats() >= Grid.PRE_CELL_BEAT_WINDOW_DEFAULT && shortenedDuration <= Grid.PRE_CELL_BEAT_WINDOW_DEFAULT)
             {
                 // Note will be shortened to a very short note. Remove it, it's now probably useless musically, and 
                 // this avoids problems later with chord hold processing when extending the duration of notes that 
@@ -1102,7 +1102,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
                 }
 
                 int rpIntensityValue = spt.getRPValue(RP_SYS_Intensity.getIntensityRp(rhythm));
-                int velShift = getVelocityShiftFromRpIntensity(rpIntensityValue);
+                int velShift = RP_SYS_Intensity.getRecommendedVelocityShift(rpIntensityValue);
 
                 for (Phrase p : mapAccTypePhrase.values())
                 {
@@ -1147,7 +1147,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
 
 
                 // Get notes around chord symbol position
-                float from = Math.max(cliCsPosInBeats - Grid.PRE_CELL_BEAT_WINDOW, 0);
+                float from = Math.max(cliCsPosInBeats - Grid.PRE_CELL_BEAT_WINDOW_DEFAULT, 0);
                 float to = cliCsPosInBeats + 0.2f;
                 var notes = p.getNotes(ne -> true, new FloatRange(from, to), true);
 
@@ -1192,8 +1192,8 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
             float cSeqStartInBeats = ss.toPositionInNaturalBeats(cSeq.getBarRange().from);
 
 
-            AccentProcessor ap = new AccentProcessor(cSeq, cSeqStartInBeats, nbCellsPerBeat, contextWork.getSong().getTempo());
-            AnticipatedChordProcessor acp = new AnticipatedChordProcessor(cSeq, cSeqStartInBeats, nbCellsPerBeat);
+            AccentProcessor ap = new AccentProcessor(cSeq, cSeqStartInBeats, nbCellsPerBeat, contextWork.getSong().getTempo(), Grid.PRE_CELL_BEAT_WINDOW_DEFAULT);
+            AnticipatedChordProcessor acp = new AnticipatedChordProcessor(cSeq, cSeqStartInBeats, nbCellsPerBeat, Grid.PRE_CELL_BEAT_WINDOW_DEFAULT);
 
 
             HashMap<AccType, Phrase> mapAtPhrase = chordSeqPhrase.mapAccTypePhrase();
@@ -1318,10 +1318,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
         return res;
     }
 
-    private int getVelocityShiftFromRpIntensity(int rpValue)
-    {
-        return 3 * rpValue;
-    }
+
 
     /**
      * Manage the case of RhythmVoiceDelegate.

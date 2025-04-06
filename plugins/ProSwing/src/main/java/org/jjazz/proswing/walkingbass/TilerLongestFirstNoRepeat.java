@@ -24,6 +24,8 @@
  */
 package org.jjazz.proswing.walkingbass;
 
+import org.jjazz.proswing.walkingbass.db.WbpSource;
+import org.jjazz.proswing.walkingbass.db.WbpSourceDatabase;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Level;

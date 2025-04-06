@@ -666,7 +666,7 @@ public class Phrases
 
 
         List<NoteEvent> noteOnBuffer = new ArrayList<>();
-        for (Integer pitch : mapPitchNotes.keySet())
+        for (int pitch : mapPitchNotes.keySet())
         {
             List<NoteEvent> notes = mapPitchNotes.get(pitch);       // Ordered by position
             if (notes.size() == 1)
