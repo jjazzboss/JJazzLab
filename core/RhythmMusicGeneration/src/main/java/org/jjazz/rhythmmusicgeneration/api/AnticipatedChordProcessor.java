@@ -24,6 +24,7 @@ package org.jjazz.rhythmmusicgeneration.api;
 
 import com.google.common.base.Preconditions;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -93,7 +94,7 @@ public class AnticipatedChordProcessor
         cellDuration = 1f / nbCellsPerBeat;
         cSeqBeatRange = new FloatRange(cSeqStartPosInBeats, cSeqStartPosInBeats + cSeq.getBarRange().size() * nbNaturalBeats);
 
-        anticipatableChords = identifyAnticipatableChords(simpleChordSequence, timeSignature);
+        anticipatableChords = identifyAnticipatableChords(simpleChordSequence);
 
         LOGGER.log(Level.FINE, "AnticipatedChordProcessor -- cSeqStartPosInBeats={0} nbCellsPerBeat={1} ={2}", new Object[]
         {
@@ -101,6 +102,10 @@ public class AnticipatedChordProcessor
         });
     }
 
+    public List<CLI_ChordSymbol> getAnticipatableChords()
+    {
+        return Collections.unmodifiableList(anticipatableChords);
+    }
 
     /**
      * Process the anticipatable chords for a monophonic phrase p (eg a bass phrase).
@@ -246,18 +251,21 @@ public class AnticipatedChordProcessor
 
     }
 
-
     // ==============================================================================================================
     // Private methods
     // ==============================================================================================================
     /**
-     * Identify the anticipatable chords in anticipatableChords.
+     * Identify the anticipatable chords in scs.
+     * 
+     * Conditions to be an anticipatable chord:<br>
+     * - latest offbeat chord of a given beat<br>
+     * - not followed by a different chord on the next beat (or by the same chord but with a special interpretation)<br>
+     * - not in the latest beat of scs<br>
      *
      * @param scs
-     * @param ts
      * @return
      */
-    private List<CLI_ChordSymbol> identifyAnticipatableChords(SimpleChordSequence scs, TimeSignature ts)
+    private List<CLI_ChordSymbol> identifyAnticipatableChords(SimpleChordSequence scs)
     {
         List<CLI_ChordSymbol> res = new ArrayList<>();
         int lastBar = scs.getBarRange().to;
@@ -279,7 +287,7 @@ public class AnticipatedChordProcessor
 
             int anticipatedBar = bar;
             int anticipatedBeat = (int) Math.ceil(beat);
-            if (pos.isLastBarBeat(ts))
+            if (pos.isLastBarBeat(timeSignature))
             {
                 // If we fall over next bar
                 anticipatedBar++;

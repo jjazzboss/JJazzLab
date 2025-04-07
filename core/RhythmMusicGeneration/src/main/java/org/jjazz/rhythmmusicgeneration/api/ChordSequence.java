@@ -242,6 +242,31 @@ public class ChordSequence extends TreeSet<CLI_ChordSymbol> implements Comparabl
     }
 
     /**
+     * Remove successive identical chord symbols.
+     *
+     * @return True if chord sequence was modified
+     */
+    public boolean removeRedundantChords()
+    {
+        boolean changed = false;
+        var it = iterator();
+        ExtChordSymbol lastEcs = null;
+        while (it.hasNext())
+        {
+            var ecs = it.next().getData();
+            if (Objects.equals(lastEcs, ecs))
+            {
+                it.remove();
+                changed = true;
+            } else
+            {
+                lastEcs = ecs;
+            }
+        }
+        return changed;
+    }
+
+    /**
      * Comparison is only based on startBar.
      *
      * @param cSeq

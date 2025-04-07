@@ -25,7 +25,9 @@ package org.jjazz.utilities.api;
 
 import com.google.common.base.Preconditions;
 import java.awt.Rectangle;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.stream.IntStream;
 
 /**
@@ -40,6 +42,7 @@ public class IntRange implements Iterable<Integer>
      * The special shared instance for the empty range.
      */
     public static final IntRange EMPTY_RANGE = new VoidRange();
+
     public final int from, to;
 
     /**
@@ -86,6 +89,37 @@ public class IntRange implements Iterable<Integer>
         if (r.y >= 0 && r.height > 0)
         {
             res = new IntRange(r.y, r.y + r.height - 1);
+        }
+        return res;
+    }
+
+    /**
+     * Merge adjacent IntRanges from a list.
+     *
+     * @param rhythmSectionRanges
+     * @return
+     */
+    public static List<IntRange> merge(List<IntRange> rhythmSectionRanges)
+    {
+        List<IntRange> res = new ArrayList<>();
+        if (rhythmSectionRanges.size() <= 1)
+        {
+            res.addAll(rhythmSectionRanges);
+        } else
+        {
+            res.add(rhythmSectionRanges.get(1));
+            for (int i = 1; i < rhythmSectionRanges.size(); i++)
+            {
+                var rLast = res.getLast();
+                var r = rhythmSectionRanges.get(i);
+                if (rLast.isAdjacent(r))
+                {
+                    res.set(res.size() - 1, rLast.getUnion(r));
+                } else
+                {
+                    res.add(r);
+                }
+            }
         }
         return res;
     }
@@ -245,8 +279,7 @@ public class IntRange implements Iterable<Integer>
         if (value < from)
         {
             res = from;
-        }
-        else if (value > to)
+        } else if (value > to)
         {
             res = to;
         }
@@ -267,8 +300,7 @@ public class IntRange implements Iterable<Integer>
         if (isEmpty())
         {
             return this;
-        }
-        else
+        } else
         {
             return new IntRange(from + fromOffset, to + toOffset);
         }

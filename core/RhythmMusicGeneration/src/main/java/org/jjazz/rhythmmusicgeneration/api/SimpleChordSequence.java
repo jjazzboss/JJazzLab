@@ -24,11 +24,12 @@ package org.jjazz.rhythmmusicgeneration.api;
 
 import com.google.common.base.Preconditions;
 import static com.google.common.base.Preconditions.checkArgument;
-import static java.lang.Math.round;
-import java.text.DecimalFormat;
 import java.util.Objects;
+import java.util.stream.Stream;
+import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.utilities.api.FloatRange;
@@ -77,6 +78,23 @@ public class SimpleChordSequence extends ChordSequence
     {
         SimpleChordSequence scs = new SimpleChordSequence(this, getTimeSignature());
         return scs;
+    }
+
+    /**
+     * Create a SimpleChordSequence from a section of ChordLeadSheet.
+     *
+     * @param cls
+     * @param section
+     * @return
+     */
+    static public SimpleChordSequence of(ChordLeadSheet cls, CLI_Section section)
+    {
+        SimpleChordSequence res = new SimpleChordSequence(cls.getBarRange(section), section.getData().getTimeSignature());
+        for (CLI_ChordSymbol cliCs : cls.getItems(section, CLI_ChordSymbol.class))
+        {
+            res.add(cliCs);
+        }
+        return res;
     }
 
     @Override
@@ -226,47 +244,48 @@ public class SimpleChordSequence extends ChordSequence
 
 
     /**
-     * Check if chords positions of each bar match the specified in-bar beat positions.
+     * For each bar, check if each chord position is in the corresponding in-bar beat range (excluding the upper bound).
      * <p>
-     * Example: if inBarBeatPosition=[0; 1.5], we expect 2 chords on each bar at beat position 0 and 1.5.
+     * For example in 4/4, in order to check there are 2 chords at start and middle of each bar, use:<br>
+     * {@code isMatchingInBarBeatPositions(true, new FloatRange(0, 0.01f), new FloatRange(2f, 2.01f))}
      *
-     * @param acceptEmptyBars    If true, bars with no chords are ignored
-     * @param inBarBeatPositions Expected beat positions. At least 1 beat position must be specified.
+     * @param acceptEmptyBars If true, bars with no chords are ignored
+     * @param inBarBeatRanges Can not be empty. Each beat range must have an exclusive upper bound.
      * @return
+     * @see FloatRange#contains(float, boolean)
      */
-    public boolean isMatchingInBarBeatPositions(boolean acceptEmptyBars, float... inBarBeatPositions)
+    public boolean isMatchingInBarBeatPositions(boolean acceptEmptyBars, FloatRange... inBarBeatRanges)
     {
-        Preconditions.checkArgument(inBarBeatPositions.length > 0);
+        Preconditions.checkArgument(inBarBeatRanges.length > 0);
 
         boolean b = true;
 
         for (var bar : getBarRange())
         {
-            var chordsList = subSequence(new IntRange(bar, bar), false)
+            var chordBeatPositions = subSequence(new IntRange(bar, bar), false)
                     .stream()
                     .map(cliCs -> cliCs.getPosition().getBeat())
                     .toList();
-            
-            if (chordsList.isEmpty() && acceptEmptyBars)
+
+            if (chordBeatPositions.isEmpty() && acceptEmptyBars)
             {
                 continue;
-                
-            } else if (chordsList.size() != inBarBeatPositions.length)
+
+            } else if (chordBeatPositions.size() != inBarBeatRanges.length)
             {
                 b = false;
-                
             } else
             {
-                for (int i = 0; i < chordsList.size(); i++)
+                for (int i = 0; i < chordBeatPositions.size(); i++)
                 {
-                    if (Math.abs(chordsList.get(i) - inBarBeatPositions[i]) > 0.001)
+                    if (!inBarBeatRanges[i].contains(chordBeatPositions.get(i), true))
                     {
                         b = false;
                         break;
                     }
                 }
             }
-            
+
             if (b == false)
             {
                 break;
@@ -274,31 +293,6 @@ public class SimpleChordSequence extends ChordSequence
         }
 
         return b;
-    }
-
-    /**
-     * Remove successive identical chord symbols.
-     *
-     * @return True if sequence was modified
-     */
-    public boolean removeRedundantChords()
-    {
-        boolean changed = false;
-        var it = iterator();
-        ExtChordSymbol lastEcs = null;
-        while (it.hasNext())
-        {
-            var ecs = it.next().getData();
-            if (Objects.equals(lastEcs, ecs))
-            {
-                it.remove();
-                changed = true;
-            } else
-            {
-                lastEcs = ecs;
-            }
-        }
-        return changed;
     }
 
     /**
@@ -323,7 +317,7 @@ public class SimpleChordSequence extends ChordSequence
      *
      * @param scs must have the same TimeSignature that this object.
      * @return A new SimpleChordSequence instance
-     * @see #removeRedundantChords()
+     * @see ChordSequence#removeRedundantChords() 
      */
     public SimpleChordSequence getMerged(SimpleChordSequence scs)
     {

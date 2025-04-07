@@ -32,15 +32,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jjazz.harmony.api.ChordType;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.synths.InstrumentFamily;
 import org.jjazz.phrase.api.NoteEvent;
-import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.proswing.BassStyle;
-import org.jjazz.rhythmmusicgeneration.api.DummyGenerator;
+import static org.jjazz.proswing.walkingbass.WalkingBassMusicGenerator.DURATION_BEAT_MARGIN;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
+import org.jjazz.utilities.api.FloatRange;
 
 /**
  * A factory for BassStyle.TWO_FEEL.
@@ -173,7 +172,9 @@ public class TwoFeelTilingFactory implements TilingFactory
         }
 
         var ts = scs.getTimeSignature();
-        boolean is2chordsPerBar = scs.isMatchingInBarBeatPositions(false, 0, ts.getHalfBarBeat(true));
+        boolean is2chordsPerBar = scs.isMatchingInBarBeatPositions(false,
+                new FloatRange(0, 0.001f),
+                 new FloatRange(ts.getHalfBarBeat(true) - 0.05f, ts.getHalfBarBeat(true) + 0.05f));
         var idPrefix = is2chordsPerBar ? "c2feel-2chords" : "c2feel-default";
         var phrases = is2chordsPerBar ? create2ChordsPerBarPhrases(scs, targetPitch) : createDefaultPhrases(scs, targetPitch);
         List<WbpSource> res = new ArrayList<>();
@@ -259,10 +260,9 @@ public class TwoFeelTilingFactory implements TilingFactory
 
         for (var cliCs : scs)
         {
-            var ecs = cliCs.getData();
             int relPitch = cliCs.getData().getBassNote().getRelativePitch();
             int bassPitch = InstrumentFamily.Bass.toAbsolutePitch(relPitch);
-            float duration = scs.getChordDuration(cliCs) - 0.1f;
+            float duration = scs.getChordDuration(cliCs) - DURATION_BEAT_MARGIN;
             float beatPos = scs.toPositionInBeats(cliCs.getPosition(), 0);
             float beatPosEnd = beatPos + duration;
             int velocity = velocityRange.from + (int) Math.round(Math.random() * (velocityRange.size() - 1));
@@ -274,7 +274,7 @@ public class TwoFeelTilingFactory implements TilingFactory
                 float addNote1BeatPos = (float) Math.floor(beatPosEnd);
                 float addNote1Duration = beatPosEnd - addNote1BeatPos;
 
-                duration = addNote1BeatPos - beatPos - 0.1f;
+                duration = addNote1BeatPos - beatPos - DURATION_BEAT_MARGIN;
 
                 NoteEvent ne = new NoteEvent(bassPitch, duration, velocity, beatPos);
                 sp.add(ne);

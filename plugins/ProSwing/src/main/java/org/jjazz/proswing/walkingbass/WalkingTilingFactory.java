@@ -40,7 +40,9 @@ import org.jjazz.midi.api.synths.InstrumentFamily;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.proswing.BassStyle;
+import static org.jjazz.proswing.walkingbass.WalkingBassMusicGenerator.DURATION_BEAT_MARGIN;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
+import org.jjazz.utilities.api.FloatRange;
 
 /**
  * A factory for BassStyle.WALKING.
@@ -126,7 +128,8 @@ public class WalkingTilingFactory implements TilingFactory
             LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ================  tiling CREATED CUSTOM MaxDistance");
 
             // Create custom WbpSources and add them to the database
-            var customWbpSources = tiling.buildMissingWbpSources((chordSeq, targetNote) -> createWalkingCustomWbpSources(chordSeq, targetNote), WbpSourceDatabase.SIZE_MIN);
+            var customWbpSources = tiling.buildMissingWbpSources((chordSeq, targetNote) -> createWalkingCustomWbpSources(chordSeq, targetNote),
+                    WbpSourceDatabase.SIZE_MIN);
 
             var wbpDb = WbpSourceDatabase.getInstance();
             for (var wbps : customWbpSources)
@@ -172,7 +175,9 @@ public class WalkingTilingFactory implements TilingFactory
         }
 
         var ts = scs.getTimeSignature();
-        boolean is2chordsPerBar = scs.isMatchingInBarBeatPositions(false, 0, ts.getHalfBarBeat(true));
+        boolean is2chordsPerBar = scs.isMatchingInBarBeatPositions(false,
+                new FloatRange(0, 0.001f),
+                new FloatRange(ts.getHalfBarBeat(true) - 0.05f, ts.getHalfBarBeat(true) + 0.05f));
         var idPrefix = is2chordsPerBar ? "cWalking-2chords" : "cWalking-default";
         var phrases = is2chordsPerBar ? create2ChordsPerBarPhrases(scs, targetPitch) : createDefaultPhrases(scs, targetPitch);
         List<WbpSource> res = new ArrayList<>();
@@ -274,7 +279,6 @@ public class WalkingTilingFactory implements TilingFactory
     private List<SizedPhrase> createDefaultPhrases(SimpleChordSequence scs, int targetPitch)
     {
         Preconditions.checkArgument(scs.size() >= 2 && scs.getBarRange().from == 0, "subSeq=%s", scs);
-
         var velocityRange = WbpSourceDatabase.getInstance().getMostProbableVelocityRange();
 
         SizedPhrase sp = new SizedPhrase(0, scs.getBeatRange(0), scs.getTimeSignature(), false);
@@ -284,7 +288,7 @@ public class WalkingTilingFactory implements TilingFactory
             var ecs = cliCs.getData();
             int relPitch = cliCs.getData().getBassNote().getRelativePitch();
             int bassPitch = InstrumentFamily.Bass.toAbsolutePitch(relPitch);
-            float duration = scs.getChordDuration(cliCs) - 0.1f;
+            float duration = scs.getChordDuration(cliCs) - DURATION_BEAT_MARGIN;
             float beatPos = scs.toPositionInBeats(cliCs.getPosition(), 0);
             float beatPosEnd = beatPos + duration;
             int velocity = velocityRange.from + (int) Math.round(Math.random() * (velocityRange.size() - 1));
@@ -299,16 +303,16 @@ public class WalkingTilingFactory implements TilingFactory
                 float addNote2BeatPos = (float) Math.floor(beatPosEnd);
                 float addNote2Duration = beatPosEnd - addNote2BeatPos;
 
-                
+
                 int addNote1RelPitch = ecs.isSlashChord() ? relPitch : ecs.getRelativePitch(DegreeIndex.THIRD_OR_FOURTH);
                 int addNote1Pitch = InstrumentFamily.Bass.toAbsolutePitch(addNote1RelPitch != -1 ? addNote1RelPitch : addNote2Pitch);
                 float addNote1BeatPos = (float) Math.floor(beatPosEnd - 1);
-                float addNote1Duration = addNote2BeatPos - addNote1BeatPos - 0.1f;
+                float addNote1Duration = addNote2BeatPos - addNote1BeatPos - DURATION_BEAT_MARGIN;
 
 
-                duration = addNote1BeatPos - beatPos - 0.1f;
-                
-                
+                duration = addNote1BeatPos - beatPos - DURATION_BEAT_MARGIN;
+
+
                 NoteEvent ne = new NoteEvent(bassPitch, duration, velocity, beatPos);
                 sp.add(ne);
                 ne = new NoteEvent(addNote1Pitch, addNote1Duration, velocity - 4, addNote1BeatPos);
@@ -324,11 +328,11 @@ public class WalkingTilingFactory implements TilingFactory
                 int addNote1Pitch = InstrumentFamily.Bass.toAbsolutePitch(addNote1RelPitch);
                 float addNote1BeatPos = (float) Math.floor(beatPosEnd);
                 float addNote1Duration = beatPosEnd - addNote1BeatPos;
-                
-                
-                duration = addNote1BeatPos - beatPos - 0.1f;
 
-                
+
+                duration = addNote1BeatPos - beatPos - DURATION_BEAT_MARGIN;
+
+
                 NoteEvent ne = new NoteEvent(bassPitch, duration, velocity, beatPos);
                 sp.add(ne);
                 ne = new NoteEvent(addNote1Pitch, addNote1Duration, velocity - 4, addNote1BeatPos);

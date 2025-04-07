@@ -48,7 +48,7 @@ public class TransposerPhraseAdapter implements PhraseAdapter
 
 
         // Adapt to target chord symbol
-        var sp = wbpSource.getTransposedPhrase(wbpSource.getFirstChordSymbol().getData().getRootNote());      // Starts at beat 0        
+        var sp = wbpSource.getTransposedPhrase(scs.getFirst().getData().getRootNote());      // Starts at beat 0        
         sp.shiftAllEvents(startPos);
 
 

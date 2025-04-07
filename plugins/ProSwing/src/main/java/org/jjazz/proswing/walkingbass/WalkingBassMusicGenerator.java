@@ -4,13 +4,13 @@ import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.harmony.api.Position;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.phrase.api.Grid;
@@ -23,25 +23,30 @@ import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.Phrases;
 import org.jjazz.proswing.RP_BassStyle;
 import org.jjazz.proswing.BassStyle;
+import org.jjazz.proswing.walkingbass.db.WbpSourceDatabase;
+import org.jjazz.rhythm.api.Division;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
+import org.jjazz.rhythm.api.UserErrorGenerationException;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Intensity;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
 import org.jjazz.rhythmmusicgeneration.api.AccentProcessor;
 import org.jjazz.rhythmmusicgeneration.api.AnticipatedChordProcessor;
+import org.jjazz.rhythmmusicgeneration.api.ChordSequence;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.utilities.api.FloatRange;
+import org.jjazz.utilities.api.IntRange;
 
 /**
  * Walking bass generator based on pre-recorded patterns from WbpDatabase.
  *
  * @see WbpSourceDatabase
  */
+
 public class WalkingBassMusicGenerator implements MusicGenerator
 {
 
@@ -53,6 +58,14 @@ public class WalkingBassMusicGenerator implements MusicGenerator
      * Used to identify ghost notes that might be ignored in some cases.
      */
     public static final float GHOST_NOTE_MAX_DURATION = NON_QUANTIZED_WINDOW;
+
+    /**
+     * The value removed from duration when generating beat-to-beat notes.
+     * <p>
+     * Do not use 0.1f because 0.25f-0.1f=0.15f, a duration which might be considered as a ghost note and removed (0.25f=smallest chord symbol duration)
+     */
+    public static final float DURATION_BEAT_MARGIN = 0.09f;
+
 
     private final Rhythm rhythm;
 
@@ -145,6 +158,7 @@ public class WalkingBassMusicGenerator implements MusicGenerator
 
             // Accents and chord anticipations
             var scsSpt = new SimpleChordSequence(songChordSequence.subSequence(sptBarRange, false), rhythm.getTimeSignature());
+            // LOGGER.severe("generateMusic() processAccentAndChordAnticipation SKIPPED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
             processAccentAndChordAnticipation(pRes, sptBeatRange.from, scsSpt, song.getTempo());
 
 
@@ -191,19 +205,19 @@ public class WalkingBassMusicGenerator implements MusicGenerator
         List<Phrase> res = new ArrayList<>();
 
 
-        // Prepare a working context because SongStructure might be modified by preprocessBassStyleAutoValue
+        // Prepare a working context because we'll use a modified song copy 
         SongFactory sf = SongFactory.getInstance();
         Song songCopy = sf.getCopyUnlinked(sgContextOrig.getSong(), false);
-        preprocessBassStyleAutoValue(songCopy);     // This will modify songCopy
-
-
-        // The working context with auto bass style processed
         SongContext contextWork = new SongContext(songCopy, sgContextOrig.getMidiMix(), sgContextOrig.getBarRange());
+        preprocessBassStyleAutoValue(contextWork);     // Update SongStructure to replace auto BassStyle values by standard BassStyle values
 
 
-        // Build the main chord sequence and split the song structure in chord sequences of consecutive sections having our rhythm with the same bass style
-        var scs = new SongChordSequence(songCopy, contextWork.getBarRange());   // Throws UserErrorGenerationException but no risk: will have a chord at beginning. Handle alternate chord symbols.            
-        var rpBassStyleSplitResults = scs.split(rhythm, getRP_BassStyle());
+        // Prepare a SongChordSequence where we removed some anticipated chords to facilitate tiling of WbpSources
+        var scsWork = prepareWorkSongChordSequence(contextWork);
+        LOGGER.log(Level.SEVERE, "getOneBassPhrasePerBassStyle() scsWork={0}", scsWork);
+
+        // Split the song structure in chord sequences of consecutive sections having our rhythm with the same bass style        
+        var rpBassStyleSplitResults = scsWork.split(rhythm, getRP_BassStyle());
 
 
         // We want one big SimpleChordSequenceExt per rpValue: this will let us control "which pattern is used where" at the song level thus avoiding repetitions
@@ -258,7 +272,6 @@ public class WalkingBassMusicGenerator implements MusicGenerator
 
 
         // Control
-        debugCheck(tiling);
         if (!tiling.isFullyTiled())
         {
             LOGGER.severe("getBassPhrase() ERROR could not fully tile");
@@ -313,13 +326,11 @@ public class WalkingBassMusicGenerator implements MusicGenerator
     /**
      * Update SongParts with RP_BassStyle value="auto" to the appropriate value (depends on the RP_SYS_Variation value).
      *
-     * @param song
+     * @param context
      */
-    private void preprocessBassStyleAutoValue(Song song)
+    private void preprocessBassStyleAutoValue(SongContext context)
     {
-        SongStructure ss = song.getSongStructure();
-
-        for (var spt : ss.getSongParts())
+        for (var spt : context.getSongParts())
         {
             var r = spt.getRhythm();
             var rpBassStyle = RP_BassStyle.get(r);
@@ -333,10 +344,101 @@ public class WalkingBassMusicGenerator implements MusicGenerator
                 var rpVariation = RP_SYS_Variation.getVariationRp(r);
                 var rpVariationValue = spt.getRPValue(rpVariation);
                 var rpBassValue = RP_BassStyle.getAutoModeRpValueFromVariation(rpVariationValue);
-                ss.setRhythmParameterValue(spt, rpBassStyle, rpBassValue);
+                context.getSong().getSongStructure().setRhythmParameterValue(spt, rpBassStyle, rpBassValue);
             }
         }
     }
+
+    /**
+     * Create a SongChordSequence with some anticipated chords moved to facilitate standard WbpSources tiling.
+     * <p>
+     * Anticipated chords are moved when :<br>
+     * 1/ it allows to use standard 1 or 2-chord-per-bar WbpSources<br>
+     * 2/ the chord anticipation can be later processed by an AnticipatedChordProcessor.
+     *
+     * @param context
+     * @return
+     * @throws org.jjazz.rhythm.api.UserErrorGenerationException
+     */
+    private SongChordSequence prepareWorkSongChordSequence(SongContext context) throws UserErrorGenerationException
+    {
+        var ts = rhythm.getTimeSignature();
+        boolean isTernary = rhythm.getFeatures().division() == Division.EIGHTH_SHUFFLE || rhythm.getFeatures().division() == Division.EIGHTH_TRIPLET;
+        float halfBeat = ts.getHalfBarBeat(isTernary);
+        float nbBeats = ts.getNbNaturalBeats();
+
+
+        // The merged bar ranges which use our rhythm
+        List<IntRange> rhythmBarRanges = context.getSongParts().stream()
+                .filter(spt -> spt.getRhythm() == rhythm)
+                .map(spt -> context.getSptBarRange(spt))
+                .toList();
+        rhythmBarRanges = IntRange.merge(rhythmBarRanges);
+
+
+        SongChordSequence res = new SongChordSequence(context.getSong(), context.getBarRange());    // throws UserErrorGenerationException
+        res.removeRedundantChords();
+
+
+        for (var rhythmBarRange : rhythmBarRanges)
+        {
+            // Retrieve the default anticipatable chords
+            SimpleChordSequence scs = new SimpleChordSequence(res.subSequence(rhythmBarRange, true), ts);
+            var acp = new AnticipatedChordProcessor(scs, 0, isTernary ? 3 : 4, Grid.PRE_CELL_BEAT_WINDOW_DEFAULT); // cSeqStartPosInBeats=0 not required to spot anticipated chords 
+            var anticipatableChords = acp.getAnticipatableChords();
+
+
+            // Process bar by bar
+            for (int bar : rhythmBarRange)
+            {
+                var scsBar = scs.subSequence(new IntRange(bar, bar), true);     // contains an initial chord at beat 0     
+
+                switch (scsBar.size())          // first chord is on beat 0
+                {
+                    case 2 ->
+                    {
+                        // OK if 2nd chord is an anticipatable chord for half bar or next bar
+                        var cliCs = scsBar.last();
+                        var pos = cliCs.getPosition();
+                        float beat = pos.getBeat();
+                        if (anticipatableChords.contains(cliCs) && (Math.floor(beat) == halfBeat - 1 || Math.floor(beat) == nbBeats - 1))
+                        {
+                            moveChordSymbol(res, cliCs, pos.getNext(ts));
+                        }
+                    }
+                    case 3 ->
+                    {
+                        // OK if 2nd and 3rd chords are for half bar and next bar anticipation
+                        if (!scsBar.isMatchingInBarBeatPositions(false, new FloatRange(0, 0.01f),
+                                new FloatRange(halfBeat - 0.8f, halfBeat + 0.01f),
+                                new FloatRange(nbBeats - 0.8f, nbBeats)))
+                        {
+                            continue;
+                        }
+                        var cliCsLast = scsBar.last();
+                        var posLast = cliCsLast.getPosition();
+                        var cliCsMiddle = scsBar.lower(cliCsLast);
+                        var posMiddle = cliCsMiddle.getPosition();
+                        if (posMiddle.getBeat() == halfBeat && anticipatableChords.contains(cliCsLast))
+                        {
+                            moveChordSymbol(res, cliCsLast, posLast.getNext(ts));
+                        } else if (anticipatableChords.contains(cliCsMiddle) && anticipatableChords.contains(cliCsLast))
+                        {
+                            moveChordSymbol(res, cliCsMiddle, posMiddle.getNext(ts));
+                            moveChordSymbol(res, cliCsLast, posLast.getNext(ts));
+                        }
+                    }
+                    default ->
+                    {
+                        // Nothing
+                    }
+                }
+            }
+        }
+
+        return res;
+    }
+
 
     /**
      * Update p for possible accents and chords anticipation found in scs.
@@ -378,28 +480,6 @@ public class WalkingBassMusicGenerator implements MusicGenerator
         }
     }
 
-    private void debugCheck(WbpTiling tiling)
-    {
-        LOGGER.log(Level.SEVERE, "\n\n debugCheck() =========");
-
-        // Search for WbpSourceAdaptations with WbpSources using non-standard start/end note        
-        for (var wbpsa : tiling.getWbpSourceAdaptations())
-        {
-            var wbpSource = wbpsa.getWbpSource();
-            if (!wbpSource.isStartingOnChordRoot() && wbpsa.getCompatibilityScore().preTargetNoteMatch() > 0)
-            {
-                LOGGER.log(Level.SEVERE, "  non-root start-note: {0}", wbpsa);
-            } else if (!wbpSource.isEndingOnChordTone() && wbpsa.getCompatibilityScore().postTargetNoteMatch() > 0)
-            {
-                LOGGER.log(Level.SEVERE, "  non-chord-tone end-note: {0}", wbpsa);
-            }
-        }
-    }
-
-
-    // =====================================================================================================================
-    // Inner classes
-    // =====================================================================================================================
     /**
      * Make sure no note start a bit before sptBeatPos because of non quantization.
      *
@@ -415,5 +495,23 @@ public class WalkingBassMusicGenerator implements MusicGenerator
             var newNe = ne.setAll(-1, dur, -1, beatPos, false);
             p.replace(ne, newNe);
         }
+    }
+
+
+    // =====================================================================================================================
+    // Inner classes
+    // =====================================================================================================================
+    /**
+     * Move a chord symbol to newPos in scs.
+     *
+     * @param scs
+     * @param cliCs
+     * @param newPos
+     */
+    private void moveChordSymbol(ChordSequence scs, CLI_ChordSymbol cliCs, Position newPos)
+    {
+        var movedCliCs = (CLI_ChordSymbol) cliCs.getCopy(newPos);
+        assert scs.remove(cliCs) : "cliCs" + cliCs + " scs=" + scs;
+        scs.add(movedCliCs);
     }
 }

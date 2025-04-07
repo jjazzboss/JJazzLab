@@ -144,6 +144,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
 
         // Build the main chord sequence
         songChordSequence = new SongChordSequence(songCopy, contextWork.getBarRange());   // Throw UserErrorGenerationException but no risk: will have a chord at beginning. Handle alternate chord symbols.       
+        songChordSequence.removeRedundantChords();
 
         LOGGER.log(Level.FINE, "generateMusic()-- rhythm={0} songChordSequence={1}", new Object[]
         {
