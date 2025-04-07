@@ -265,19 +265,20 @@ public class AnticipatedChordProcessor
         for (var cliCs : scs)
         {
             Position pos = cliCs.getPosition();
+            int bar = pos.getBar();
+            float beat = pos.getBeat();
             ChordRenderingInfo cri = cliCs.getData().getRenderingInfo();
 
 
             // Check if we can anticipate on next chord
             if (cri.hasOneFeature(ChordRenderingInfo.Feature.NO_ANTICIPATION) || !pos.isOffBeat())
             {
-                // Chord is OnBeat
                 continue;
             }
 
 
-            int anticipatedBar = pos.getBar();
-            int anticipatedBeat = (int) Math.ceil(pos.getBeat());
+            int anticipatedBar = bar;
+            int anticipatedBeat = (int) Math.ceil(beat);
             if (pos.isLastBarBeat(ts))
             {
                 // If we fall over next bar
@@ -288,11 +289,15 @@ public class AnticipatedChordProcessor
             CLI_ChordSymbol cliCsNext = scs.higher(cliCs);
             if (cliCsNext != null)
             {
-                // Not the last chord 
                 ChordRenderingInfo criNext = cliCsNext.getData().getRenderingInfo();
                 int barNext = cliCsNext.getPosition().getBar();
                 float beatNext = cliCsNext.getPosition().getBeat();
 
+                if (barNext == bar && Math.floor(beat) == Math.floor(beatNext))
+                {
+                    // This is not the last off-beat chord of the same beat
+                    continue;
+                }
 
                 if (barNext > anticipatedBar
                         || beatNext >= (anticipatedBeat + cellDuration)
@@ -303,13 +308,10 @@ public class AnticipatedChordProcessor
                     res.add(cliCs);
                 }
 
-            } else
+            } else if (anticipatedBar <= lastBar)
             {
-                // Last chord, don't need to check next chord
-                if (anticipatedBar <= lastBar)
-                {
-                    res.add(cliCs);
-                }
+                // Last offbeat chord but not last beat of the chord sequence
+                res.add(cliCs);
             }
         }
 
