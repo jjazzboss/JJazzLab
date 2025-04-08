@@ -25,12 +25,10 @@ package org.jjazz.rhythmmusicgeneration.api;
 import com.google.common.base.Preconditions;
 import static com.google.common.base.Preconditions.checkArgument;
 import java.util.Objects;
-import java.util.stream.Stream;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
@@ -189,6 +187,7 @@ public class SimpleChordSequence extends ChordSequence
         return br;
     }
 
+    
     /**
      * Return the specified chord duration in natural beats.
      * <p>

@@ -2,13 +2,13 @@
 * Handle slash chords
 * Create the AdaptedRhythm
 * Handle pedal notes in walking or 1 out of 2
-* Handle RP intensity
 * Scorer, reject wbpsources with out of scale long notes at slow tempos
 * Adjust notes length and shift depending on tempo and 2-feel or 4-feel
 * Database: harmonize phrases velocity
 * FInalize rhythm dialog settings
 * Automate rhythm tests on 2000 sngs
 * Do tests with multiple rhythms, play from start, middle, loop selection
+* Avoid same note from bar x == first note from bar x+1 => tiling scoring impact ? but also for after tiling pedal bass handling...
 
 
 MAYBE LATER
@@ -23,5 +23,5 @@ MAYBE LATER
 
 BUGS
 * Save as default rhythm file with "/" in proswin 4/4
-* test with 2 chords
+* BUG nonStdPos.sng
 * Exception when using play loop zone in some cases

@@ -30,8 +30,8 @@ import org.jjazz.utilities.api.IntRange;
 public class WbpSource extends Wbp
 {
 
-    public final IntRange BASS_GOOD_PITCH_RANGE = new IntRange(28, 52);  // E1 - E3
-    public final IntRange BASS_EXTENDED_PITCH_RANGE = new IntRange(28, 64);  // E1 - E4
+    public static final IntRange BASS_GOOD_PITCH_RANGE = new IntRange(28, 52);  // E1 - E3
+    public static final IntRange BASS_EXTENDED_PITCH_RANGE = new IntRange(28, 64);  // E1 - E4
     private final String sessionId;
     private final String id;
     private final int sessionBarOffset;

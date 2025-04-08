@@ -33,9 +33,9 @@ import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 
 /**
- * The profile of the chord symbol bass notes of a 1-4 bars SimpleChordSequence.
+ * The profile of the chord symbol root notes of a 1-4 bars SimpleChordSequence.
  * <p>
- * Used to quick compare similar SimpleChordSequences.
+ * Used to compare similar SimpleChordSequences (ignoring chord types).
  */
 public record RootProfile(int nbBars, List<Float> relativeChordPositionsInBeats, List<Integer> ascendingIntervals)
         {
@@ -83,7 +83,7 @@ public record RootProfile(int nbBars, List<Float> relativeChordPositionsInBeats,
 
             if (last != null)
             {
-                int ascInterval = cliCs.getData().getBassNote().getRelativeAscInterval(last.getData().getBassNote());
+                int ascInterval = cliCs.getData().getRootNote().getRelativeAscInterval(last.getData().getRootNote());
                 ascIntervals.add(ascInterval);
             }
 

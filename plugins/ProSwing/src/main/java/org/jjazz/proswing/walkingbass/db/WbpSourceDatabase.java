@@ -14,6 +14,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Random;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -46,6 +47,7 @@ import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
 import org.jjazz.utilities.api.LongRange;
+import org.jjazz.utilities.api.Utilities;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.util.Exceptions;
 
@@ -80,6 +82,7 @@ public class WbpSourceDatabase
     private final ListMultimap<String, WbpSource> mmapSessionIdWbpSources;
     private final ListMultimap<BsRp, WbpSource> mmapBsrpWbpSources;
     private final Map<String, WbpSource> mapIdWbpSource;
+    private final Random random;
     private static final Logger LOGGER = Logger.getLogger(WbpSourceDatabase.class.getSimpleName());
 
     public static WbpSourceDatabase getInstance()
@@ -100,6 +103,7 @@ public class WbpSourceDatabase
         mmapSessionIdWbpSources = MultimapBuilder.hashKeys().arrayListValues().build();
         mapIdWbpSource = new HashMap<>();
         mapSessionIdResource = new HashMap<>();
+        random = new Random();
 
         // Extract the WbpSources from the WbpSessions
         List<WbpSession> wbpSessions = loadWbpSessionsFromMidiFile(MIDI_FILE_WALKING_RESOURCE_PATH, "", "walking", TimeSignature.FOUR_FOUR);
@@ -423,6 +427,21 @@ public class WbpSourceDatabase
     public IntRange getMostProbableVelocityRange()
     {
         return new IntRange(50, 65);
+    }
+
+    /**
+     * Get a random velocity using a gaussian distribution in the range returned by getMostProbableVelocityRange().
+     *
+     * @return
+     * @see #getMostProbableVelocityRange()
+     */
+    public int getRandomVelocity()
+    {
+        float r = Utilities.getNextGaussianRandomValue(random); // [-1;1]
+        var rg = getMostProbableVelocityRange();
+        float f = rg.getCenter() + r * rg.size() / 2;
+        int vel = rg.clamp(Math.round(f));
+        return vel;
     }
 
     /**

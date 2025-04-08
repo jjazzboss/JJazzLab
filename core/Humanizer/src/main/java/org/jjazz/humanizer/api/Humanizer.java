@@ -46,6 +46,7 @@ import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.Phrases;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.utilities.api.FloatRange;
+import org.jjazz.utilities.api.Utilities;
 
 /**
  * Humanize notes from a Phrase.
@@ -446,20 +447,7 @@ public class Humanizer
     // ====================================================================================
     // Private methods
     // ====================================================================================    
-    /**
-     * Get the next gaussian random value between -1 and 1 (standard deviation is 0.3)
-     *
-     * @param random
-     * @return
-     */
-    private float getNextGaussianRandomValue(Random random)
-    {
-        double res = random.nextGaussian(0, 0.3);
-        res = Math.max(res, -1);
-        res = Math.min(res, 1);
-        return (float) res;
-    }
-
+  
     /**
      * Compute the base random values for each note.
      *
@@ -476,7 +464,7 @@ public class Humanizer
             {
                 throw new IllegalStateException("Source phrase does not contain ne=" + ne + ", sourcePhrase=" + sourcePhrase);
             }
-            NoteFactors nf = new NoteFactors(getNextGaussianRandomValue(randTiming), getNextGaussianRandomValue(randVelocity));
+            NoteFactors nf = new NoteFactors(Utilities.getNextGaussianRandomValue(randTiming), Utilities.getNextGaussianRandomValue(randVelocity));
             mapNoteRandomFactors.put(ne, nf);
         }
     }

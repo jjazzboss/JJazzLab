@@ -66,6 +66,12 @@ public class FloatRange
         this.from = from;
         this.to = to;
     }
+    
+    @Override
+    public FloatRange clone()
+    {
+        return new FloatRange(from, to);
+    }
 
     public boolean isEmpty()
     {

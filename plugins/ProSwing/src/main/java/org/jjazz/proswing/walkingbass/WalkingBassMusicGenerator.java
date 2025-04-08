@@ -10,8 +10,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo.Feature;
+import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.Position;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.midi.api.MidiConst;
+import org.jjazz.midi.api.synths.InstrumentFamily;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.phrase.api.Grid;
 import org.jjazz.phrase.api.NoteEvent;
@@ -23,6 +27,7 @@ import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.Phrases;
 import org.jjazz.proswing.RP_BassStyle;
 import org.jjazz.proswing.BassStyle;
+import org.jjazz.proswing.walkingbass.db.WbpSource;
 import org.jjazz.proswing.walkingbass.db.WbpSourceDatabase;
 import org.jjazz.rhythm.api.Division;
 import org.jjazz.rhythm.api.Rhythm;
@@ -115,11 +120,8 @@ public class WalkingBassMusicGenerator implements MusicGenerator
             rhythm.getName(), tags
         });
 
-        // Get one bass phrase per used BassStyle
+        // Get one bass phrase per used BassStyle, then merge them into pRes
         var bassPhrases = getOneBassPhrasePerBassStyle(context, tags);
-
-
-        // Merge the bass phrases
         HashMap<RhythmVoice, Phrase> res = new HashMap<>();
         int channel = getChannelFromMidiMix(context.getMidiMix(), rvBass);
         Phrase pRes = new Phrase(channel, false);
@@ -127,11 +129,6 @@ public class WalkingBassMusicGenerator implements MusicGenerator
         {
             pRes.add(p);
         }
-
-
-        // Some overlaps might happen when combining 2 WbpSources, when last note of 1st WbpSource is long and same pitch than the 1st note of 2nd WbpSource 
-        // AND 2nd WbpSource has a firstNoteBeatShift < 0
-        Phrases.fixOverlappedNotes(pRes);
 
 
         // Post process the phrase by SongPart, since SongParts using our rhythm can be any anywhere in the song     
@@ -148,17 +145,20 @@ public class WalkingBassMusicGenerator implements MusicGenerator
         {
             var sptBeatRange = context.getSptBeatRange(spt);
             var sptBarRange = context.getSptBarRange(spt);
-
+            var scsSpt = new SimpleChordSequence(songChordSequence.subSequence(sptBarRange, false), rhythm.getTimeSignature());
+            
+            
             if (sptBeatRange.from > 0 && (prevSpt == null || prevSpt.getStartBarIndex() + prevSpt.getNbBars() != spt.getStartBarIndex()))
             {
                 // Previous spt is for another rhythm, make sure our first note does not start a bit before spt start because of non quantization
                 enforceCleanStart(pRes, sptBeatRange.from);
             }
 
+            // Adapt notes for pedal bass and slash chords
+            processPedalBassAndSlashChords(pRes, sptBeatRange.from, scsSpt, song.getTempo());
+
 
             // Accents and chord anticipations
-            var scsSpt = new SimpleChordSequence(songChordSequence.subSequence(sptBarRange, false), rhythm.getTimeSignature());
-            // LOGGER.severe("generateMusic() processAccentAndChordAnticipation SKIPPED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
             processAccentAndChordAnticipation(pRes, sptBeatRange.from, scsSpt, song.getTempo());
 
 
@@ -168,6 +168,11 @@ public class WalkingBassMusicGenerator implements MusicGenerator
 
             prevSpt = spt;
         }
+
+
+        // Some overlaps might happen when combining 2 WbpSources, when last note of 1st WbpSource is long and same pitch than the 1st note of 2nd WbpSource 
+        // AND 2nd WbpSource has a firstNoteBeatShift < 0. Also when converting a normal bass line to a pedal bass line, some same pitch notes overlaps may appear.
+        Phrases.fixOverlappedNotes(pRes);
 
         res.put(rvBass, pRes);
 
@@ -286,7 +291,6 @@ public class WalkingBassMusicGenerator implements MusicGenerator
 
         // Get the resulting phrase
         var p = tiling.buildPhrase(new TransposerPhraseAdapter());
-
 
         return p;
     }
@@ -441,18 +445,18 @@ public class WalkingBassMusicGenerator implements MusicGenerator
 
 
     /**
-     * Update p for possible accents and chords anticipation found in scs.
+     * Update p for possible accents and chords anticipation in a SongPart.
      *
      * @param p
-     * @param scsStartBeatPos
-     * @param scs
+     * @param scsSptStartBeatPos The start beat position of the SongPart
+     * @param scsSpt             The song chord sequence of the SongPart
      * @param tempo
      */
-    private void processAccentAndChordAnticipation(Phrase p, float scsStartBeatPos, SimpleChordSequence scs, int tempo)
+    private void processAccentAndChordAnticipation(Phrase p, float scsSptStartBeatPos, SimpleChordSequence scsSpt, int tempo)
     {
         int nbCellsPerBeat = Grid.getRecommendedNbCellsPerBeat(rhythm.getTimeSignature(), rhythm.getFeatures().division().isSwing());
-        AccentProcessor ap = new AccentProcessor(scs, scsStartBeatPos, nbCellsPerBeat, tempo, NON_QUANTIZED_WINDOW);
-        AnticipatedChordProcessor acp = new AnticipatedChordProcessor(scs, scsStartBeatPos, nbCellsPerBeat, NON_QUANTIZED_WINDOW);
+        AccentProcessor ap = new AccentProcessor(scsSpt, scsSptStartBeatPos, nbCellsPerBeat, tempo, NON_QUANTIZED_WINDOW);
+        AnticipatedChordProcessor acp = new AnticipatedChordProcessor(scsSpt, scsSptStartBeatPos, nbCellsPerBeat, NON_QUANTIZED_WINDOW);
 
         acp.anticipateChords_Mono(p);
         ap.processAccentBass(p);
@@ -481,6 +485,131 @@ public class WalkingBassMusicGenerator implements MusicGenerator
     }
 
     /**
+     * Update notes for pedal bass and slash chords in a SongPart.
+     *
+     * @param p
+     * @param scsSptStartBeatPos The start beat position of the SongPart
+     * @param scsSpt             The song chord sequence of the SongPart
+     * @param tempo
+     */
+    private void processPedalBassAndSlashChords(Phrase p, float scsSptStartBeatPos, SimpleChordSequence scsSpt, int tempo)
+    {
+        var ts = rhythm.getTimeSignature();
+        var nbBeatsPerBar = ts.getNbNaturalBeats();
+
+
+        var cliCs = scsSpt.first();
+        while (cliCs != null)
+        {
+            var pos = cliCs.getPosition();
+            var ecs = cliCs.getData();
+            boolean isSlash = ecs.isSlashChord();
+            boolean isPedalBass = ecs.getRenderingInfo().getFeatures().contains(Feature.PEDAL_BASS);
+
+
+            if (!isSlash && !isPedalBass)
+            {
+                cliCs = scsSpt.higher(cliCs);
+                continue;
+            }
+
+
+            var bassRelPitch = ecs.getBassNote().getRelativePitch();
+            var brCliCs = scsSpt.getBeatRange(cliCs, scsSptStartBeatPos);
+
+
+            if (isPedalBass)
+            {
+                // How long is the pedal bass  ?
+                var cliCsStopPedalBass = getStopPedalBassChord(cliCs, scsSpt);
+                var stopPedalBeatPos = cliCsStopPedalBass == null ? scsSpt.getBeatRange(scsSptStartBeatPos).to
+                        : scsSpt.toPositionInBeats(cliCsStopPedalBass.getPosition(), scsSptStartBeatPos);
+                FloatRange extendedChordBeatRange = new FloatRange(brCliCs.from, stopPedalBeatPos);
+
+
+                // Accomodate for non-quantized playing
+                var notesBeatRange = extendedChordBeatRange.getTransformed(extendedChordBeatRange.from >= NON_QUANTIZED_WINDOW ? -NON_QUANTIZED_WINDOW : 0,
+                        -NON_QUANTIZED_WINDOW);
+                var nes = new ArrayList<>(p.subSet(notesBeatRange, true));
+
+
+                if (!pos.isFirstBarBeat() || extendedChordBeatRange.size() < nbBeatsPerBar)
+                {
+                    // Simple, just change the pitch of existing notes
+                    for (var ne : nes)
+                    {
+                        var neNew = ne.setPitch(getClosestBassPitch(ne, bassRelPitch));
+                        p.replace(ne, neNew);
+                    }
+                } else
+                {
+                    // Starting on a beat for 1 bar or more: use a pattern like quarter half quarter half ...
+                    var ne0 = nes.isEmpty() ? null : nes.get(0);
+                    int pitch = ne0 == null ? InstrumentFamily.Bass.toAbsolutePitch(bassRelPitch) : getClosestBassPitch(ne0, bassRelPitch);
+
+                    p.removeAll(nes);
+
+                    float beatPos = extendedChordBeatRange.from;
+                    while (beatPos < extendedChordBeatRange.to)
+                    {
+                        int oneOrTwo = ((int) beatPos) % 2 == 0 ? 1 : 2;
+                        float dur = oneOrTwo - 2 * NON_QUANTIZED_WINDOW;
+                        if (beatPos + dur >= extendedChordBeatRange.to)
+                        {
+                            dur = extendedChordBeatRange.to - 2 * NON_QUANTIZED_WINDOW - beatPos;
+                        }
+                        int vel = WbpSourceDatabase.getInstance().getRandomVelocity();
+                        var ne = new NoteEvent(pitch, dur, vel, beatPos);
+                        p.add(ne);
+
+                        beatPos += oneOrTwo;
+                    }
+                }
+
+
+                // Skip to non pedal chord 
+                cliCs = cliCsStopPedalBass;
+
+            } else
+            {
+                // Slash chord with no pedal bass, make sure bass note is played during the 2 first beats
+                var notesBeatRange = brCliCs.getTransformed(brCliCs.from >= NON_QUANTIZED_WINDOW ? -NON_QUANTIZED_WINDOW : 0, -NON_QUANTIZED_WINDOW);
+
+                var nes = new ArrayList<>(p.subSet(notesBeatRange, true));
+                nes.stream()
+                        .filter(ne -> ne.getPositionInBeats() < brCliCs.from + 2f - NON_QUANTIZED_WINDOW)
+                        .forEach(ne -> 
+                        {
+                            var neNew = ne.setPitch(getClosestBassPitch(ne, bassRelPitch));
+                            p.replace(ne, neNew);
+                        });
+
+                cliCs = scsSpt.higher(cliCs);
+            }
+
+
+        }
+    }
+
+
+    /**
+     * Get closest bass pitch from n while ensuring note remains in bass acceptable range.
+     *
+     * @param n
+     * @param relPitch
+     * @return
+     */
+    private int getClosestBassPitch(Note n, int relPitch)
+    {
+        int res = n.getClosestPitch(relPitch);
+        if (res < WbpSource.BASS_EXTENDED_PITCH_RANGE.from)
+        {
+            res += 12;
+        }
+        return res;
+    }
+
+    /**
      * Make sure no note start a bit before sptBeatPos because of non quantization.
      *
      * @param p
@@ -498,9 +627,6 @@ public class WalkingBassMusicGenerator implements MusicGenerator
     }
 
 
-    // =====================================================================================================================
-    // Inner classes
-    // =====================================================================================================================
     /**
      * Move a chord symbol to newPos in scs.
      *
@@ -514,4 +640,36 @@ public class WalkingBassMusicGenerator implements MusicGenerator
         assert scs.remove(cliCs) : "cliCs" + cliCs + " scs=" + scs;
         scs.add(movedCliCs);
     }
+
+    /**
+     * Get the first next chord after cliCS which is not a pedal bass or which does not use the same bass note than cliCs.
+     * <p>
+     * @param cliCs  A pedal bass chord
+     * @param scsSpt
+     * @return Can be null if we reached the end of scsSpt
+     */
+    private CLI_ChordSymbol getStopPedalBassChord(CLI_ChordSymbol cliCs, SimpleChordSequence scsSpt)
+    {
+        var bassNote = cliCs.getData().getBassNote();
+
+        var nextCliCs = scsSpt.higher(cliCs);
+        while (nextCliCs != null)
+        {
+            var ecsNext = nextCliCs.getData();
+            if (ecsNext.getRenderingInfo().getFeatures().contains(Feature.PEDAL_BASS) && ecsNext.getBassNote().equalsRelativePitch(bassNote))
+            {
+                nextCliCs = scsSpt.higher(nextCliCs);
+            } else
+            {
+                break;
+            }
+        }
+
+        return nextCliCs;
+    }
+
+
+    // =====================================================================================================================
+    // Inner classes
+    // =====================================================================================================================
 }
