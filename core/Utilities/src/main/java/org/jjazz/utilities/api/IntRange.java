@@ -107,7 +107,7 @@ public class IntRange implements Iterable<Integer>
             res.addAll(rhythmSectionRanges);
         } else
         {
-            res.add(rhythmSectionRanges.get(1));
+            res.add(rhythmSectionRanges.get(0));
             for (int i = 1; i < rhythmSectionRanges.size(); i++)
             {
                 var rLast = res.getLast();

@@ -1,7 +1,6 @@
 * Variations: Walking double notes (C C Bb Bb etc. reuse walking bass line to get contour), Drums shuffle with walking bass "a la" Twisted/Joni Mitchel 
 * Handle slash chords
 * Create the AdaptedRhythm
-* Handle pedal notes in walking or 1 out of 2
 * Scorer, reject wbpsources with out of scale long notes at slow tempos
 * Adjust notes length and shift depending on tempo and 2-feel or 4-feel
 * Database: harmonize phrases velocity

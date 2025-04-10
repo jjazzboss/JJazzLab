@@ -170,8 +170,9 @@ public class WalkingBassMusicGenerator implements MusicGenerator
         }
 
 
-        // Some overlaps might happen when combining 2 WbpSources, when last note of 1st WbpSource is long and same pitch than the 1st note of 2nd WbpSource 
-        // AND 2nd WbpSource has a firstNoteBeatShift < 0. Also when converting a normal bass line to a pedal bass line, some same pitch notes overlaps may appear.
+        // Some overlaps might happen when :
+        // - combining 2 WbpSources, if last note of 1st WbpSource is long and has the same pitch than 1st note of 2nd WbpSource, and 2nd WbpSource has firstNoteBeatShift < 0
+        // - when converting a normal bass line to a pedal bass line, some same pitch notes overlaps may appear.
         Phrases.fixOverlappedNotes(pRes);
 
         res.put(rvBass, pRes);

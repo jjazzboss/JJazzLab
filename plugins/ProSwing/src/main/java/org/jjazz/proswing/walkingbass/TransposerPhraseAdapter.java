@@ -74,16 +74,16 @@ public class TransposerPhraseAdapter implements PhraseAdapter
     }
 
     @Override
-    public Note getTargetNote(WbpSourceAdaptation wbpsa)
+    public int getTargetPitch(WbpSourceAdaptation wbpsa)
     {
-        Note res = null;
+        int res = -1;
         var wbpSource = wbpsa.getWbpSource();
         var tn = wbpSource.getTargetNote();
         if (tn != null)
         {
             var firstRootNote = wbpsa.getSimpleChordSequence().first().getData().getRootNote();
             var t = wbpSource.getRequiredTransposition(firstRootNote);
-            res = tn.getTransposed(t);
+            res = tn.getTransposed(t).getPitch();
         }
         return res;
     }

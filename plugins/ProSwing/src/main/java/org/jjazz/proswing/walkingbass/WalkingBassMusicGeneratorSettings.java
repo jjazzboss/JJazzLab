@@ -13,7 +13,7 @@ public class WalkingBassMusicGeneratorSettings
 
     private static final String PREF_WBPSA_STORE_WIDTH = "PrefWbpsaStoreWidth";
     private static final String PREF_WBPSA_STORE_RANDOMIZED_SCORE_WINDOW = "PrefRandomizedScoreWindow";
-    private static final String PREF_ACCEPT_NON_ROOT_START_NOTE = "PrefAcceptNonRootStartNote";
+    private static final String PREF_ACCEPT_NON_CHORD_BASS_START_NOTE = "PrefAcceptNonChordBassStartNote";
     private static WalkingBassMusicGeneratorSettings INSTANCE;
     private final Preferences prefs = NbPreferences.forModule(WalkingBassMusicGeneratorSettings.class);
     ;
@@ -35,9 +35,9 @@ public class WalkingBassMusicGeneratorSettings
     {
     }
 
-    public boolean isAcceptNonRootStartNote()
+    public boolean isAcceptNonChordBassStartNote()
     {
-        return prefs.getBoolean(PREF_ACCEPT_NON_ROOT_START_NOTE, true);
+        return prefs.getBoolean(PREF_ACCEPT_NON_CHORD_BASS_START_NOTE, true);
     }
 
     /**
@@ -47,7 +47,7 @@ public class WalkingBassMusicGeneratorSettings
      */
     public void setAcceptNonRootStartNote(boolean b)
     {
-        prefs.putBoolean(PREF_ACCEPT_NON_ROOT_START_NOTE, b);
+        prefs.putBoolean(PREF_ACCEPT_NON_CHORD_BASS_START_NOTE, b);
     }
 
     /**

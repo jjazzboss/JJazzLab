@@ -171,22 +171,22 @@ public class WbpSource extends Wbp
     }
 
     /**
-     * Check if the first note of the phrase corresponds to the root of the first chord.
+     * Check if the first note of the phrase corresponds to the bass of the first chord.
      *
      * @return
      */
-    public boolean isStartingOnChordRoot()
+    public boolean isStartingOnChordBass()
     {
         if (isStartingOnRoot == null)
         {
-            Note rootNote = getFirstChordSymbol().getData().getRootNote();
-            isStartingOnRoot = getFirstNote().equalsRelativePitch(rootNote);
+            Note bassNote = getFirstChordSymbol().getData().getBassNote();
+            isStartingOnRoot = getFirstNote().equalsRelativePitch(bassNote);
         }
         return isStartingOnRoot;
     }
 
     /**
-     * Check if the last note of the phrase is a chord tone.
+     * Check if the last note of the phrase is a chord tone or the bass note.
      *
      * @return
      */
@@ -194,9 +194,9 @@ public class WbpSource extends Wbp
     {
         if (isEndingOnChordTone == null)
         {
-            Chord lastChordNotes = getLastChordSymbol().getData().getChord();
+            var lastChordSymbol = getLastChordSymbol().getData();
             int lastRelPitch = getLastNote().getRelativePitch();
-            isEndingOnChordTone = lastChordNotes.indexOfRelativePitch(lastRelPitch) != -1;
+            isEndingOnChordTone = lastChordSymbol.getChord().indexOfRelativePitch(lastRelPitch) != -1 || lastRelPitch == lastChordSymbol.getBassNote().getRelativePitch();
         }
         return isEndingOnChordTone;
     }
@@ -486,8 +486,6 @@ public class WbpSource extends Wbp
     // =================================================================================================================
     // Private methods
     // =================================================================================================================    
-
-
     /**
      * Simplify the chord symbols of the chord sequence so that this source phrase can be reused for a maximum of derivative chord symbols.
      *

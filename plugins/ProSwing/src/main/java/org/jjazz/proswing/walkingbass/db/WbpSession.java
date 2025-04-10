@@ -121,7 +121,7 @@ class WbpSession extends Wbp
 
                 WbpSource wbpSource = extractWbpSource(barRange);
 
-                boolean bFirst = !disallowNonRootStartNote || wbpSource.isStartingOnChordRoot();
+                boolean bFirst = !disallowNonRootStartNote || wbpSource.isStartingOnChordBass();
                 boolean bLast = !disallowNonChordToneLastNote || wbpSource.isEndingOnChordTone();
                 if (bFirst && bLast)
                 {
