@@ -14,6 +14,7 @@ public class WalkingBassMusicGeneratorSettings
     private static final String PREF_WBPSA_STORE_WIDTH = "PrefWbpsaStoreWidth";
     private static final String PREF_WBPSA_STORE_RANDOMIZED_SCORE_WINDOW = "PrefRandomizedScoreWindow";
     private static final String PREF_ACCEPT_NON_CHORD_BASS_START_NOTE = "PrefAcceptNonChordBassStartNote";
+    private static final String PREF_NOTE_TIMING_BIAS_FACTOR = "PrefNoteTimingBias";
     private static WalkingBassMusicGeneratorSettings INSTANCE;
     private final Preferences prefs = NbPreferences.forModule(WalkingBassMusicGeneratorSettings.class);
     ;
@@ -90,6 +91,27 @@ public class WalkingBassMusicGeneratorSettings
     {
         Preconditions.checkArgument(scoreWindow >= 0, "scoreWindow=%s", scoreWindow);
         prefs.putFloat(PREF_WBPSA_STORE_RANDOMIZED_SCORE_WINDOW, scoreWindow);
+    }
+
+    /**
+     * Bass note timing bias factor.
+     *
+     * @return [-1;1]
+     */
+    public float getTempoNotePositionBiasFactor()
+    {
+        return prefs.getFloat(PREF_NOTE_TIMING_BIAS_FACTOR, 0f);
+    }
+
+    /**
+     * Bass note timing bias factor.
+     *
+     * @param bias [-1;1]
+     */
+    public void setTempoNotePositionBias(float bias)
+    {
+        Preconditions.checkArgument(bias >= -1 && bias <= 1, "bias=%s", bias);
+        prefs.putFloat(PREF_NOTE_TIMING_BIAS_FACTOR, bias);
     }
 
 

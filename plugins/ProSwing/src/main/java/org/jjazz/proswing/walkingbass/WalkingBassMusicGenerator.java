@@ -13,7 +13,6 @@ import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.Position;
-import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.synths.InstrumentFamily;
 import org.jjazz.midimix.api.MidiMix;
@@ -146,8 +145,8 @@ public class WalkingBassMusicGenerator implements MusicGenerator
             var sptBeatRange = context.getSptBeatRange(spt);
             var sptBarRange = context.getSptBarRange(spt);
             var scsSpt = new SimpleChordSequence(songChordSequence.subSequence(sptBarRange, false), rhythm.getTimeSignature());
-            
-            
+
+
             if (sptBeatRange.from > 0 && (prevSpt == null || prevSpt.getStartBarIndex() + prevSpt.getNbBars() != spt.getStartBarIndex()))
             {
                 // Previous spt is for another rhythm, make sure our first note does not start a bit before spt start because of non quantization
@@ -162,9 +161,15 @@ public class WalkingBassMusicGenerator implements MusicGenerator
             processAccentAndChordAnticipation(pRes, sptBeatRange.from, scsSpt, song.getTempo());
 
 
-            // RP_SYS_Intensity
+            // process RP_SYS_Intensity
             processIntensity(pRes, sptBeatRange, spt.getRPValue(rpIntensity));
 
+            
+            // Position shift depending on setting and tempo
+            float bias = computeNotePositionBias(song.getTempo());
+            // LOGGER.severe("  BIAS="+bias+" (tempo="+song.getTempo()+")");
+            processNotePositionBias(pRes, sptBeatRange, bias);
+            
 
             prevSpt = spt;
         }
@@ -464,6 +469,7 @@ public class WalkingBassMusicGenerator implements MusicGenerator
         ap.processHoldShotMono(p, AccentProcessor.HoldShotMode.NORMAL);
     }
 
+
     /**
      * Update notes from p depending on intensity.
      *
@@ -483,6 +489,51 @@ public class WalkingBassMusicGenerator implements MusicGenerator
                 return newNe;
             });
         }
+    }
+
+    /**
+     * Update note timing depending on bias and tempo.
+     * <p>
+     *
+     * @param p
+     * @param beatRange    Update notes in this range
+     * @param positionBias
+     */
+    private void processNotePositionBias(Phrase p, FloatRange beatRange, float positionBias)
+    {
+        if (positionBias != 0)
+        {
+            p.processNotes(ne -> beatRange.contains(ne.getPositionInBeats(), true), ne -> 
+            {
+                float newPos = Math.max(ne.getPositionInBeats() + positionBias, beatRange.from);
+                NoteEvent newNe = ne.setPosition(newPos, false);
+                return newNe;
+            });
+        }
+    }
+
+    /**
+     * The faster the tempo the more we play before the beat.
+     * <p>
+     * Also depends on the setting getTempoNotePositionBiasFactor().
+     *
+     * @param tempo
+     * @return
+     */
+    private float computeNotePositionBias(int tempo)
+    {
+        final int TEMPO_HIGH = 240;
+        final int TEMPO_NORMAL = TEMPO_HIGH / 2;
+        float TEMPO_HIGH_BIAS = -0.04f;
+        float TEMPO_NORMAL_BIAS = 0;
+        float tempo2 = Math.clamp(tempo, TEMPO_NORMAL, TEMPO_HIGH);
+        float biasTempo = TEMPO_NORMAL_BIAS + (tempo2 - TEMPO_NORMAL) / (TEMPO_HIGH - TEMPO_NORMAL) * (TEMPO_HIGH_BIAS - TEMPO_NORMAL_BIAS);
+
+        float BIAS_RANGE_MAX = 0.07f;
+        float biasSettingFactor = WalkingBassMusicGeneratorSettings.getInstance().getTempoNotePositionBiasFactor();
+        float biasSetting = biasSettingFactor * BIAS_RANGE_MAX;
+        float res = Math.clamp(biasSetting + biasTempo, -BIAS_RANGE_MAX, BIAS_RANGE_MAX);
+        return res;
     }
 
     /**
