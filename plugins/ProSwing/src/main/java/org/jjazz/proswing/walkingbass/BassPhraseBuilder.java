@@ -24,18 +24,20 @@
  */
 package org.jjazz.proswing.walkingbass;
 
+import org.jjazz.phrase.api.Phrase;
+
 /**
- * Create a WbpTiling according to a specific strategy.
+ * Produce a bass phrase according to a specific strategy.
  */
-public interface TilingFactory
+public interface BassPhraseBuilder
 {
     
     /**
-     * Create a WbpTiling for the usable bars of scs.
+     * Create a bass Phrase for the usable bars of scs.
      *
-     * @param scs
+     * @param scsExt
      * @param tempo
      * @return
      */
-    WbpTiling build(SimpleChordSequenceExt scs, int tempo);
+    Phrase build(SimpleChordSequenceExt scsExt, int tempo);
 }

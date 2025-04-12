@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import org.jjazz.harmony.api.TimeSignature;
+import org.jjazz.rhythmmusicgeneration.api.ChordSequence;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.utilities.api.IntRange;
 
@@ -39,22 +40,6 @@ public class SimpleChordSequenceExt extends SimpleChordSequence
 {
 
     private final List<Integer> usableBars = new ArrayList<>();
-
-    /**
-     * Build an object from a SimpleChordSequence.
-     *
-     * @param scs
-     * @param addUsableBars If true all bars from scs are considered usable
-     */
-    public SimpleChordSequenceExt(SimpleChordSequence scs, boolean addUsableBars)
-    {
-        super(scs.getBarRange(), scs.getTimeSignature());
-        addAll(scs);
-        if (addUsableBars)
-        {
-            usableBars.addAll(scs.getBarRange().stream().boxed().toList());
-        }
-    }
 
     /**
      * Build an empty object.
@@ -70,6 +55,30 @@ public class SimpleChordSequenceExt extends SimpleChordSequence
         {
             usableBars.addAll(barRange.stream().boxed().toList());
         }
+    }
+
+    /**
+     * Build an object from a ChordSequence.
+     *
+     * @param cSeq
+     * @param ts
+     * @param addUsableBars If true all bars from scs are considered usable
+     */
+    public SimpleChordSequenceExt(ChordSequence cSeq, TimeSignature ts, boolean addUsableBars)
+    {
+        this(cSeq.getBarRange(), ts, addUsableBars);
+        addAll(cSeq);
+    }
+
+    /**
+     * Build an object from a SimpleChordSequence.
+     *
+     * @param scs
+     * @param addUsableBars If true all bars from scs are considered usable
+     */
+    public SimpleChordSequenceExt(SimpleChordSequence scs, boolean addUsableBars)
+    {
+        this(scs, scs.getTimeSignature(), addUsableBars);
     }
 
 
@@ -122,7 +131,7 @@ public class SimpleChordSequenceExt extends SimpleChordSequence
         usableBars.addAll(bars);
         Collections.sort(usableBars);
         if (!usableBars.isEmpty()
-            && (!getBarRange().contains(usableBars.get(0)) || !getBarRange().contains(usableBars.get(usableBars.size() - 1))))
+                && (!getBarRange().contains(usableBars.get(0)) || !getBarRange().contains(usableBars.get(usableBars.size() - 1))))
         {
             throw new IllegalArgumentException("barRange=" + getBarRange() + " usableBars=" + usableBars);
         }

@@ -22,6 +22,7 @@
  */
 package org.jjazz.songcontext.api;
 
+import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -29,6 +30,7 @@ import org.jjazz.harmony.api.Position;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.rhythm.api.Rhythm;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
@@ -258,6 +260,35 @@ public class SongContext
     public boolean isInRange(SongPart spt)
     {
         return barRange.isIntersecting(spt.getBarRange());
+    }
+
+    /**
+     * Get the bar ranges in this context whose SongParts use rpValue.
+     * <p>
+     * Adjacent BarRanges are merged in the returned list.
+     *
+     * @param <E>
+     * @param r
+     * @param rp      A RhythmParameter from r
+     * @param rpValue A value for rp
+     * @return Can be empty
+     */
+    public <E> List<IntRange> getBarRanges(Rhythm r, RhythmParameter<E> rp, E rpValue)
+    {
+        Objects.requireNonNull(r);
+        Objects.requireNonNull(rp);
+        Preconditions.checkArgument(r.getRhythmParameters().contains(rp));
+
+        List<IntRange> res = new ArrayList<>();
+        for (var spt : getSongParts())
+        {
+            if (spt.getRhythm() == r && spt.getRPValue(rp).equals(rpValue))
+            {
+                res.add(getSptBarRange(spt));
+            }
+        }
+        res = IntRange.merge(res);
+        return res;
     }
 
     /**

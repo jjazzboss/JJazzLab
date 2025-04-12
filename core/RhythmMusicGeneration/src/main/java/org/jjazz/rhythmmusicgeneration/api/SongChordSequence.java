@@ -24,7 +24,6 @@ package org.jjazz.rhythmmusicgeneration.api;
 
 import com.google.common.base.Preconditions;
 import static com.google.common.base.Preconditions.checkArgument;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -36,8 +35,6 @@ import org.jjazz.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.chordleadsheet.api.item.VoidAltExtChordSymbol;
-import org.jjazz.rhythm.api.Rhythm;
-import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythm.api.UserErrorGenerationException;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Marker;
 import org.jjazz.song.api.Song;
@@ -52,10 +49,6 @@ import org.jjazz.utilities.api.IntRange;
  */
 public class SongChordSequence extends ChordSequence
 {
-    public record SplitResult<T>(SimpleChordSequence simpleChordSequence, T rpValue)
-            {
-
-    }    
     private final Song song;
     private static final Logger LOGGER = Logger.getLogger(SongChordSequence.class.getSimpleName());
 
@@ -160,88 +153,6 @@ public class SongChordSequence extends ChordSequence
         float duration = pos.getDuration(nextPos, ts);
 
         return duration;
-    }
-
-    /**
-     * Split this SongChordSequence in different SimpleChordSequences for each song contiguous Rhythm's SongParts which have the same specified RhythmParameter
-     * value.
-     * <p>
-     * The resulting SimpleChordSequences will have a starting chord symbol.
-     * <p>
-     * Example: <br>
-     * Spt0 rpValue=Main A-1 chords=Cm7 F7<br>
-     * Spt1 rpValue=Main A-1 chords=Bbm7 Eb7<br>
-     * Spt2 rpValue=Main B-2 chords=F7M Dm7<br>
-     * Then return 1 chordSequence for Main A-1=Spt0+Spt1="Cm7 F7 Bbm7 Eb7", and 1 chordSequence for Main B-2=Spt2=F7M Dm7<br>
-     *
-     * @param <T> The type of the RhythmParameter value
-     * @param r
-     * @param rp  The Rhythm's RhythmParameter for which we will check the value
-     * @return The list of ChordSequences with their respective common rpValue, sorted by startBar.
-     */
-    public <T> List<SplitResult<T>> split(Rhythm r, RhythmParameter<T> rp)
-    {
-        LOGGER.fine("split() --");
-
-        List<SplitResult<T>> res = new ArrayList<>();
-
-
-        int seqStartBar = getBarRange().from;
-        int seqEndBar = seqStartBar;
-        T lastRpValue = null;
-
-
-        for (SongPart spt : getSongParts())
-        {
-            IntRange sptCsRange = getSptBarRange(spt);
-            if (spt.getRhythm() == r)
-            {
-                // Song part is covered by this ChordSequence and it's our rhythm
-                T rpValue = spt.getRPValue(rp);
-                if (lastRpValue == null)
-                {
-                    // Start a new chord sequence
-                    seqStartBar = sptCsRange.from;
-                    seqEndBar = sptCsRange.to;
-                    lastRpValue = rpValue;
-                } else if (lastRpValue == rpValue)
-                {
-                    // Different song parts with same rpValues: we continue the current chord sequence                    
-                    seqEndBar += sptCsRange.size();
-                } else
-                {
-                    // Different song parts with different rpValues: complete the chord sequence and start a new one
-                    ChordSequence cSeq = subSequence(new IntRange(seqStartBar, seqEndBar), true);
-                    SimpleChordSequence sSeq = new SimpleChordSequence(cSeq, r.getTimeSignature());
-                    res.add(new SplitResult(sSeq, lastRpValue));
-                    seqStartBar = sptCsRange.from;
-                    seqEndBar = sptCsRange.to;
-                    lastRpValue = rpValue;
-                }
-            } else
-            {
-                // Not our rhythm
-                if (lastRpValue != null)
-                {
-                    // We have one chord sequence pending, save it
-                    ChordSequence cSeq = subSequence(new IntRange(seqStartBar, seqEndBar), true);
-                    SimpleChordSequence sSeq = new SimpleChordSequence(cSeq, r.getTimeSignature());
-                    res.add(new SplitResult(sSeq, lastRpValue));
-                    lastRpValue = null;
-                }
-            }
-        }
-
-        if (lastRpValue != null)
-        {
-            // Complete the last chord sequence 
-            ChordSequence cSeq = subSequence(new IntRange(seqStartBar, seqEndBar), true);
-            SimpleChordSequence sSeq = new SimpleChordSequence(cSeq, r.getTimeSignature());
-            res.add(new SplitResult(sSeq, lastRpValue));
-        }
-
-        LOGGER.log(Level.FINE, "split()   res={0}", res.toString());
-        return res;
     }
 
 

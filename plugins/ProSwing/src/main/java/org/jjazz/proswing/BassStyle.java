@@ -26,9 +26,10 @@ package org.jjazz.proswing;
 
 import com.google.common.collect.ImmutableBiMap;
 import java.util.logging.Logger;
-import org.jjazz.proswing.walkingbass.TilingFactory;
-import org.jjazz.proswing.walkingbass.TwoFeelTilingFactory;
-import org.jjazz.proswing.walkingbass.WalkingTilingFactory;
+import org.jjazz.proswing.walkingbass.BassPhraseBuilder;
+import org.jjazz.proswing.walkingbass.TwoFeelPhraseBuilder;
+import org.jjazz.proswing.walkingbass.WalkingDoublePhraseBuilder;
+import org.jjazz.proswing.walkingbass.WalkingPhraseBuilder;
 
 /**
  * The possible bass styles of a WbpSource.
@@ -37,7 +38,6 @@ import org.jjazz.proswing.walkingbass.WalkingTilingFactory;
  */
 public enum BassStyle
 {
-    BASIC,
     TWO_FEEL,
     TWO_FEEL_CUSTOM,
     WALKING,
@@ -57,19 +57,17 @@ public enum BassStyle
      *
      * @return
      */
-    public TilingFactory getTilingFactory()
+    public BassPhraseBuilder getBassPhraseBuilder()
     {
-        TilingFactory res;
+        BassPhraseBuilder res;
         res = switch (this)
         {
-            case BASIC ->
-                new WalkingTilingFactory();
             case TWO_FEEL ->
-                new TwoFeelTilingFactory();
+                new TwoFeelPhraseBuilder();
             case WALKING ->
-                new WalkingTilingFactory();
+                new WalkingPhraseBuilder();
             case WALKING_DOUBLE ->
-                new WalkingTilingFactory();
+                new WalkingDoublePhraseBuilder();
             default -> throw new IllegalStateException("this=" + this);
         };
         return res;
@@ -114,5 +112,4 @@ public enum BassStyle
     //===============================================================================================
     // Inner classes
     //===============================================================================================
-
 }

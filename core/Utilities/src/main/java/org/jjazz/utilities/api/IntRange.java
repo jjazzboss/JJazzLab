@@ -28,6 +28,7 @@ import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.IntStream;
 
 /**
@@ -101,7 +102,9 @@ public class IntRange implements Iterable<Integer>
      */
     public static List<IntRange> merge(List<IntRange> rhythmSectionRanges)
     {
+        Objects.requireNonNull(rhythmSectionRanges);
         List<IntRange> res = new ArrayList<>();
+
         if (rhythmSectionRanges.size() <= 1)
         {
             res.addAll(rhythmSectionRanges);

@@ -164,12 +164,12 @@ public class WalkingBassMusicGenerator implements MusicGenerator
             // process RP_SYS_Intensity
             processIntensity(pRes, sptBeatRange, spt.getRPValue(rpIntensity));
 
-            
+
             // Position shift depending on setting and tempo
             float bias = computeNotePositionBias(song.getTempo());
             // LOGGER.severe("  BIAS="+bias+" (tempo="+song.getTempo()+")");
             processNotePositionBias(pRes, sptBeatRange, bias);
-            
+
 
             prevSpt = spt;
         }
@@ -218,8 +218,8 @@ public class WalkingBassMusicGenerator implements MusicGenerator
 
         // Prepare a working context because we'll use a modified song copy 
         SongFactory sf = SongFactory.getInstance();
-        Song songCopy = sf.getCopyUnlinked(sgContextOrig.getSong(), false);
-        SongContext contextWork = new SongContext(songCopy, sgContextOrig.getMidiMix(), sgContextOrig.getBarRange());
+        Song songWork = sf.getCopyUnlinked(sgContextOrig.getSong(), false);
+        SongContext contextWork = new SongContext(songWork, sgContextOrig.getMidiMix(), sgContextOrig.getBarRange());
         preprocessBassStyleAutoValue(contextWork);     // Update SongStructure to replace auto BassStyle values by standard BassStyle values
 
 
@@ -227,79 +227,44 @@ public class WalkingBassMusicGenerator implements MusicGenerator
         var scsWork = prepareWorkSongChordSequence(contextWork);
         LOGGER.log(Level.SEVERE, "getOneBassPhrasePerBassStyle() scsWork={0}", scsWork);
 
-        // Split the song structure in chord sequences of consecutive sections having our rhythm with the same bass style        
-        var rpBassStyleSplitResults = scsWork.split(rhythm, getRP_BassStyle());
+
+        // Process each bass style
+        var rpBassStyle = RP_BassStyle.get(rhythm);
 
 
-        // We want one big SimpleChordSequenceExt per rpValue: this will let us control "which pattern is used where" at the song level thus avoiding repetitions
-        var usedBassStyleRpValues = rpBassStyleSplitResults.stream()
-                .map(sr -> sr.rpValue())
-                .collect(Collectors.toSet());
-        for (var bassStyleRpValue : usedBassStyleRpValues)
+        for (var style : BassStyle.values())
         {
-            SimpleChordSequenceExt mergedScsExt = null;
-
-            for (var splitResult : rpBassStyleSplitResults.stream().filter(sr -> sr.rpValue().equals(bassStyleRpValue)).toList())
+            // Prepare a SimpleChordSequenceExt of chords using style
+            SimpleChordSequenceExt mergedScsExt = null;            
+            var barRanges = contextWork.getBarRanges(rhythm, rpBassStyle, RP_BassStyle.toRpValue(style));
+            for (var barRange : barRanges)
             {
-                // Merge to current SimpleChordSequence
-                var scsExt = new SimpleChordSequenceExt(splitResult.simpleChordSequence(), true);
+                var scsExt = new SimpleChordSequenceExt(scsWork.subSequence(barRange, true), rhythm.getTimeSignature(), true);
                 mergedScsExt = mergedScsExt == null ? scsExt : mergedScsExt.getMerged(scsExt, true);
             }
-            assert mergedScsExt != null : "splitResults=" + rpBassStyleSplitResults + " usedRpValues=" + usedBassStyleRpValues;
+            if (mergedScsExt == null)
+            {
+                continue;
+            }
 
-
-            // We have our big SimpleChordSequenceExt, possibly with non usable bars corresponding to song parts which do not use our rhythm, or which use our 
+            // We have our SimpleChordSequenceExt, possibly with non usable bars corresponding to song parts which do not use our rhythm, or which use our 
             // rhythm but not with bassStyleRpValue
             mergedScsExt.removeRedundantChords();
-            var phrase = getBassPhrase(contextWork, mergedScsExt, bassStyleRpValue);      // Generate the bass phrase
+
+
+            // Build the bass phrase for that style
+            var bassPhraseBuilder = style.getBassPhraseBuilder();
+            var phrase = bassPhraseBuilder.build(mergedScsExt, songWork.getTempo());
+
+
             res.add(phrase);
+
         }
+
 
         return res;
     }
 
-
-    /**
-     * Get the bass phrase for the usable bars of a SimpleChordSequenceExt.
-     *
-     * @param sgContext
-     * @param scsExt
-     * @param bassStyleRpValue The style of the generated phrase
-     * @return
-     * @throws MusicGenerationException
-     */
-    private Phrase getBassPhrase(SongContext sgContext, SimpleChordSequenceExt scsExt, String bassStyleRpValue) throws MusicGenerationException
-    {
-        LOGGER.log(Level.SEVERE, "\n");
-        LOGGER.log(Level.SEVERE, "getBassPhrase() -- sgContext.barRange={0}  bassStyleRpValue={1}  scsExt={2}", new Object[]
-        {
-            sgContext.getBarRange(), bassStyleRpValue, scsExt
-        });
-
-        BassStyle bassStyle = RP_BassStyle.toBassStyle(bassStyleRpValue);
-
-        // Do the work
-        var tiling = bassStyle.getTilingFactory().build(scsExt, sgContext.getSong().getTempo());
-
-
-        // Control
-        if (!tiling.isFullyTiled())
-        {
-            LOGGER.severe("getBassPhrase() ERROR could not fully tile");
-        }
-
-        LOGGER.log(Level.SEVERE, "\ngetBassPhrase() ===============   Tiling stats  scsExt.usableBars={0} \n{1}", new Object[]
-        {
-            scsExt.getUsableBars().size(),
-            tiling.toStatsString()
-        });
-
-
-        // Get the resulting phrase
-        var p = tiling.buildPhrase(new TransposerPhraseAdapter());
-
-        return p;
-    }
 
     /**
      * Manage the case of RhythmVoiceDelegate.

@@ -204,9 +204,8 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
     // Private methods
     // ===============================================================================
     /**
-     * Get all phrases (all AccTypes) for all SimpleChordSequences using our rhythm.
+     * Get all phrases (for all AccTypes) for all song context parts using our rhythm.
      * <p>
-     * Create one SimpleChordSequence for several contiguous parts sharing the same rhythm and same style part.
      *
      * @return
      * @throws org.jjazz.rhythm.api.MusicGenerationException
@@ -217,31 +216,39 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
 
         List<ChordSeqPhrases> res = new ArrayList<>();
 
-        // Split the song structure in chord sequences of consecutive sections having the same rhythm and same RhythmParameter value
-        var splitResults = songChordSequence.split(rhythm, RP_SYS_Variation.getVariationRp(rhythm));
 
-
-        for (SplitResult<String> splitResult : splitResults)
+        // Process each variation 
+        var rpVariation = RP_SYS_Variation.getVariationRp(rhythm);        
+        for (var rpVariationValue : rpVariation.getPossibleValues())
         {
-            // Generate music for each chord sequence
-            SimpleChordSequence cSeq = splitResult.simpleChordSequence();
-            String rpValue = splitResult.rpValue();
-            StylePart stylePart = rhythm.getStylePart(rpValue);
-            int complexity = rhythm.getComplexityLevel(rpValue);
+            StylePart stylePart = rhythm.getStylePart(rpVariationValue);
+            int complexity = rhythm.getComplexityLevel(rpVariationValue);
             if (stylePart == null || complexity < 1)
             {
                 LOGGER.log(Level.SEVERE,
-                        "getAllPhrasesAllChordSequences() Invalid values stylePart={0} complexity={1} rhythm={2} rpValue={3}", new Object[]
+                        "getAllPhrasesAllChordSequences() Invalid values stylePart={0} complexity={1} rhythm={2} rpVariationValue={3}", new Object[]
                         {
-                            stylePart, complexity, rhythm.getName(), rpValue
+                            stylePart, complexity, rhythm.getName(), rpVariationValue
                         });
                 throw new MusicGenerationException("Invalid rhythm data for rhythm " + rhythm.getName());
             }
 
-            HashMap<AccType, Phrase> mapAccTypePhrase = getAllAccTypesPhrasesOneChordSequence(stylePart, complexity, cSeq);
-            ChordSeqPhrases csp = new ChordSeqPhrases(cSeq, mapAccTypePhrase);
-            res.add(csp);
+
+            // Get all the (merged) bar ranges which use rpVariationValue
+            var barRanges = contextWork.getBarRanges(rhythm, rpVariation, rpVariationValue);
+
+
+            // Generate music for each bar range
+            for (var barRange : barRanges)
+            {
+                SimpleChordSequence cSeq = new SimpleChordSequence(songChordSequence.subSequence(barRange, true), rhythm.getTimeSignature());
+                HashMap<AccType, Phrase> mapAccTypePhrase = getAllAccTypesPhrasesOneChordSequence(stylePart, complexity, cSeq);
+                ChordSeqPhrases csp = new ChordSeqPhrases(cSeq, mapAccTypePhrase);
+                res.add(csp);
+            }
+
         }
+
         return res;
     }
 
@@ -1318,7 +1325,6 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
         }
         return res;
     }
-
 
 
     /**

@@ -25,7 +25,7 @@
 package org.jjazz.proswing.walkingbass;
 
 /**
- * Tile a WbpTiling with WbpSourceAdaptations.
+ * Tile a WbpTiling with WbpSourceAdaptations according to a specific strategy.
  */
 public interface Tiler
 {

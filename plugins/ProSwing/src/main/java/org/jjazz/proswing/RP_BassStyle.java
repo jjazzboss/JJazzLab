@@ -38,7 +38,6 @@ public class RP_BassStyle extends RP_State
     
     public static final String AUTO_MODE_VALUE = "auto";
     public static final ImmutableBiMap<BassStyle, String> BIMAP_STYLE_RPVALUE = ImmutableBiMap.of(
-            BassStyle.BASIC, "basic",
             BassStyle.TWO_FEEL, "2-feel",
             BassStyle.WALKING, "walking",
             BassStyle.WALKING_DOUBLE, "walking-double"
@@ -47,7 +46,7 @@ public class RP_BassStyle extends RP_State
     public RP_BassStyle(boolean isPrimary)
     {
         super("BassStyleId", "Bass style", "Adjust bass style", isPrimary, AUTO_MODE_VALUE,
-                AUTO_MODE_VALUE, toRpValue(BassStyle.BASIC), toRpValue(BassStyle.TWO_FEEL), toRpValue(BassStyle.WALKING), toRpValue(BassStyle.WALKING_DOUBLE));
+                AUTO_MODE_VALUE, toRpValue(BassStyle.TWO_FEEL), toRpValue(BassStyle.WALKING), toRpValue(BassStyle.WALKING_DOUBLE));
     }
 
     /**

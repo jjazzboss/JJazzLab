@@ -403,7 +403,7 @@ public class WbpsaScorerDefault implements WbpsaScorer
 
         res = switch (bassStyle)
         {
-            case TWO_FEEL_CUSTOM, WALKING_CUSTOM, WALKING_DOUBLE_CUSTOM, BASIC ->
+            case TWO_FEEL_CUSTOM, WALKING_CUSTOM, WALKING_DOUBLE_CUSTOM ->
                 60;
 
             case TWO_FEEL ->
