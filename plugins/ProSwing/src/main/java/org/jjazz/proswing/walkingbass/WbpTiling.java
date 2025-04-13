@@ -36,13 +36,12 @@ import java.util.TreeMap;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.IntStream;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.utilities.api.IntRange;
 
 /**
- * Define which WbpSourceAdaptations (of various sizes) cover which usable bars of a SimpleChordSequenceExt.
+ * Define which WbpSourceAdaptations (of various sizes) cover which bars.
  * <p>
  */
 public class WbpTiling
@@ -66,40 +65,35 @@ public class WbpTiling
         List<WbpSource> build(SimpleChordSequence scs, int targetPitch);
     }
 
-    private final SimpleChordSequenceExt simpleChordSequenceExt;
+    private final List<SimpleChordSequence> scsList;
+    private final List<Integer> usableBars;
     private final TreeMap<Integer, WbpSourceAdaptation> mapBarWbpsa;
     private static final Logger LOGGER = Logger.getLogger(WbpTiling.class.getSimpleName());
 
-    public WbpTiling(SimpleChordSequenceExt scs)
+    /**
+     * Create a WbpTiling for a list of SimpleChordSequence using the same style.
+     *
+     * @param scsList
+     */
+    public WbpTiling(List<SimpleChordSequence> scsList)
     {
-        this.simpleChordSequenceExt = scs;
+        this.scsList = scsList;
         mapBarWbpsa = new TreeMap<>();
+        usableBars = scsList.stream()
+                .map(scs -> scs.getBarRange())
+                .flatMap(br -> br.stream().boxed())
+                .toList();
 
-    }
-
-    public SimpleChordSequenceExt getSimpleChordSequenceExt()
-    {
-        return simpleChordSequenceExt;
     }
 
     /**
-     * Redirect to simpleChordSequenceExt.getUsableBars().
+     * The bar indexes managed by this WbpTiling.
      *
      * @return
      */
     public List<Integer> getUsableBars()
     {
-        return simpleChordSequenceExt.getUsableBars();
-    }
-
-    /**
-     * Redirect to simpleChordSequenceExt.getBarRange().
-     *
-     * @return
-     */
-    public IntRange getBarRange()
-    {
-        return simpleChordSequenceExt.getBarRange();
+        return usableBars;
     }
 
     /**
@@ -146,14 +140,14 @@ public class WbpTiling
     /**
      * Build the resulting phrase by adapting and merging all the WbpSourceAdaptations.
      *
-     * @param phraseAdapter 
+     * @param phraseAdapter
      * @return A channel 0 phrase. Might be empty.
      */
     public Phrase buildPhrase(TransposerPhraseAdapter phraseAdapter)
     {
         Objects.requireNonNull(phraseAdapter);
-        Phrase res = new Phrase(0);             
-        
+        Phrase res = new Phrase(0);
+
         for (var wbpsa : getWbpSourceAdaptations())
         {
             var p = wbpsa.getAdaptedPhrase();
@@ -165,7 +159,7 @@ public class WbpTiling
             LOGGER.log(Level.FINE, "buildPhrase() p={0}", p);
             res.add(p, false);
         }
-        
+
         return res;
     }
 
@@ -290,38 +284,34 @@ public class WbpTiling
      */
     public boolean isFullyTiled()
     {
-        boolean res = true;
-        var barRange = getBarRange();
-        int bar = barRange.from;
-
-        for (var wbpsa : mapBarWbpsa.values())
-        {
-            var br = wbpsa.getBarRange();
-            if (IntStream.range(bar, br.from).anyMatch(b -> simpleChordSequenceExt.isUsable(b)))
-            {
-                res = false;
-                break;
-            }
-            bar = br.to + 1;
-        }
-
-        if (res)
-        {
-            res = !IntStream.rangeClosed(bar, barRange.to).anyMatch(b -> simpleChordSequenceExt.isUsable(b));
-        }
-
-        return res;
+        return getTiledBars().size() == usableBars.size();
     }
 
     /**
-     * Get the bars tiled.
+     * Get the usable bars tiled.
      *
      * @return
      */
     public List<Integer> getTiledBars()
     {
-        var res = new ArrayList<>(simpleChordSequenceExt.getUsableBars());
-        res.removeAll(getNonTiledBars());
+        List<Integer> res = new ArrayList<>();
+
+        var it = usableBars.iterator();
+        while (it.hasNext())
+        {
+            int bar = it.next();
+            var wbpsa = getWbpSourceAdaptationStartingAt(bar);
+            if (wbpsa != null)
+            {
+                res.add(bar);
+                for (int i = 1; i < wbpsa.getBarRange().size(); i++)
+                {
+                    res.add(bar + i);
+                    it.next();
+                }
+            }
+        }
+
         return res;
     }
 
@@ -332,27 +322,10 @@ public class WbpTiling
      */
     public List<Integer> getNonTiledBars()
     {
-        List<Integer> res = new ArrayList<>();
-        var barRange = getBarRange();
-        int bar = barRange.from;
-
-        for (var wbpsa : mapBarWbpsa.values())
-        {
-            var br = wbpsa.getBarRange();
-            var nonTiledBars = IntStream.range(bar, br.from)
-                    .boxed()
-                    .filter(b -> simpleChordSequenceExt.isUsable(b))
-                    .toList();
-            res.addAll(nonTiledBars);
-            bar = br.to + 1;
-        }
-
-        var nonTiledBars = IntStream.rangeClosed(bar, barRange.to)
-                .boxed()
-                .filter(b -> simpleChordSequenceExt.isUsable(b))
+        var tiledBars = getTiledBars();
+        var res = usableBars.stream()
+                .filter(bar -> !tiledBars.contains(bar))
                 .toList();
-        res.addAll(nonTiledBars);
-
         return res;
     }
 
@@ -367,25 +340,25 @@ public class WbpTiling
         Preconditions.checkArgument(zoneSize >= 1 && zoneSize <= 4, "zoneSize=%s", zoneSize);
         List<Integer> res = new ArrayList<>();
 
-        var nonTiledUsableBars = getNonTiledBars();
+        var nonTiledBars = getNonTiledBars();
 
-        if (nonTiledUsableBars.isEmpty())
+        if (nonTiledBars.isEmpty())
         {
             return res;
         }
 
         if (zoneSize == 1)
         {
-            return nonTiledUsableBars;
+            return nonTiledBars;
         }
 
-        for (int i = 0; i <= nonTiledUsableBars.size() - zoneSize; i++)
+        for (int i = 0; i <= nonTiledBars.size() - zoneSize; i++)
         {
-            int bar = nonTiledUsableBars.get(i);
+            int bar = nonTiledBars.get(i);
             boolean ok = true;
             for (int j = 1; j < zoneSize; j++)
             {
-                if (nonTiledUsableBars.get(i + j) != bar + j)
+                if (nonTiledBars.get(i + j) != bar + j)
                 {
                     ok = false;
                     break;
@@ -402,14 +375,30 @@ public class WbpTiling
     }
 
     /**
+     * Check if barRange is within one of the SimpleChordSequence bar ranges managed by this tiling.
+     *
+     * @param barRange
+     * @return
+     * @see #isUsableAndFree(org.jjazz.utilities.api.IntRange)
+     */
+    public boolean isUsable(IntRange barRange)
+    {
+        boolean b = scsList.stream()
+                .map(scs -> scs.getBarRange())
+                .anyMatch(br -> br.contains(barRange));
+        return b;
+    }
+
+    /**
      * Check if bar zone is usable and not covered yet by a WbpSourceAdaptation.
      *
      * @param barRange
      * @return
+     * @see #isUsable(org.jjazz.utilities.api.IntRange)
      */
     public boolean isUsableAndFree(IntRange barRange)
     {
-        if (!simpleChordSequenceExt.isUsable(barRange))
+        if (!isUsable(barRange))
         {
             return false;
         }
@@ -417,6 +406,30 @@ public class WbpTiling
         return floorEntry == null || !floorEntry.getValue().getBarRange().isIntersecting(barRange);
     }
 
+    /**
+     * Get the SimpleChordSequence corresponding to barRange.
+     *
+     * @param barRange
+     * @param addInitChordSympol
+     * @return
+     * @throws IllegalArgumentException If barRange is not a usable bar range
+     * @see #isUsable(org.jjazz.utilities.api.IntRange)
+     */
+    public SimpleChordSequence getSimpleChordSequence(IntRange barRange, boolean addInitChordSympol)
+    {
+        Objects.requireNonNull(barRange);
+
+        SimpleChordSequence scs = scsList.stream()
+                .filter(cs -> cs.getBarRange().contains(barRange))
+                .findAny()
+                .orElse(null);
+        if (scs == null)
+        {
+            throw new IllegalArgumentException("barRange=" + barRange + " this=" + this);
+        }
+        var res = scs.subSequence(barRange, addInitChordSympol);
+        return res;
+    }
 
     /**
      * For each chord sequence corresponding to an untiled zone, try to create WbpSources using wbpSourcesBuilder.
@@ -437,8 +450,7 @@ public class WbpTiling
         for (int startBar : startBars)
         {
             var br = new IntRange(startBar, startBar + size - 1);
-
-            var subSeq = getSimpleChordSequenceExt().subSequence(br, true).getShifted(-startBar);
+            var subSeq = getSimpleChordSequence(br, true).getShifted(-startBar);
             var nextWbpsa = getWbpSourceAdaptationStartingAt(br.to + 1);
             int targetPitch = nextWbpsa != null ? nextWbpsa.getAdaptedTargetPitch() : -1;
 

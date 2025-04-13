@@ -320,12 +320,8 @@ public class WbpsaScorerDefault implements WbpsaScorer
      */
     private WbpSourceAdaptation getPrevWbpsa(WbpSourceAdaptation wbpsa, WbpTiling tiling)
     {
-        WbpSourceAdaptation res = null;
         int prevBar = wbpsa.getBarRange().from - 1;
-        if (tiling.getBarRange().contains(prevBar))
-        {
-            res = tiling.getWbpSourceAdaptation(prevBar);
-        }
+        WbpSourceAdaptation res = tiling.getWbpSourceAdaptation(prevBar);
         return res;
     }
 
@@ -338,12 +334,8 @@ public class WbpsaScorerDefault implements WbpsaScorer
      */
     private WbpSourceAdaptation getNextWbpsa(WbpSourceAdaptation wbpsa, WbpTiling tiling)
     {
-        WbpSourceAdaptation res = null;
         int nextBar = wbpsa.getBarRange().to + 1;
-        if (tiling.getBarRange().contains(nextBar))
-        {
-            res = tiling.getWbpSourceAdaptation(nextBar);
-        }
+        WbpSourceAdaptation res = tiling.getWbpSourceAdaptation(nextBar);
         return res;
     }
 

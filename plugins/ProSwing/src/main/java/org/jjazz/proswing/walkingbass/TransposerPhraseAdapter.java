@@ -24,7 +24,6 @@
  */
 package org.jjazz.proswing.walkingbass;
 
-import org.jjazz.harmony.api.Note;
 import org.jjazz.phrase.api.Phrase;
 import static org.jjazz.proswing.walkingbass.WalkingBassMusicGenerator.NON_QUANTIZED_WINDOW;
 

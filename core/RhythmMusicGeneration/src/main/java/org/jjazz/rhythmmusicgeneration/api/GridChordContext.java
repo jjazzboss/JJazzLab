@@ -22,6 +22,8 @@
  */
 package org.jjazz.rhythmmusicgeneration.api;
 
+import com.google.common.base.Preconditions;
+import java.util.Objects;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.phrase.api.Grid;
@@ -43,7 +45,6 @@ public class GridChordContext
     public Grid grid;
     public CLI_ChordSymbol chord;
     public TimeSignature timeSignature;
-    public float cSeqStartPosInBeats;
 
     /**
      * The cell of the chord symbol.
@@ -86,25 +87,24 @@ public class GridChordContext
      */
     public FloatRange afterBeatRange;
 
-    public GridChordContext(CLI_ChordSymbol cliCs, SimpleChordSequence cSeq, float cSeqStartPosInBeats, Grid grid)
+    public GridChordContext(CLI_ChordSymbol cliCs, SimpleChordSequence cSeq, Grid grid)
     {
-        if (cliCs == null || cSeq == null || !cSeq.contains(cliCs) || cSeqStartPosInBeats < 0 || grid == null)
-        {
-            throw new IllegalArgumentException(
-                    "cliCs=" + cliCs + " cSeq=" + cSeq + " cSeqStartPosInBeats=" + cSeqStartPosInBeats + " grid=" + grid);
-        }
+        Objects.requireNonNull(cliCs);
+        Objects.requireNonNull(cSeq);
+        Objects.requireNonNull(grid);
+        Preconditions.checkArgument(cSeq.contains(cliCs), "cliCs=%s cSeq=%s", cliCs, cSeq);
+        
         this.chord = cliCs;
         this.chordSequence = cSeq;
         this.grid = grid;
         this.timeSignature = cSeq.getTimeSignature();
-        this.cSeqStartPosInBeats = cSeqStartPosInBeats;
         calculate();
     }
 
 
     private void calculate()
     {
-        chordPosInBeats = chordSequence.toPositionInBeats(chord.getPosition(), cSeqStartPosInBeats);
+        chordPosInBeats = chordSequence.toPositionInBeats(chord.getPosition());
         chordCell = grid.getCell(chordPosInBeats, true);
         int cellFrom, cellTo;
         float posInBeats;
@@ -114,7 +114,7 @@ public class GridChordContext
         var nextChord = chordSequence.higher(chord);
         if (nextChord != null)
         {
-            posInBeats = chordSequence.toPositionInBeats(nextChord.getPosition(), cSeqStartPosInBeats);
+            posInBeats = chordSequence.toPositionInBeats(nextChord.getPosition());
             cellTo = grid.getCell(posInBeats, true) - 1;
         } else
         {
@@ -127,7 +127,7 @@ public class GridChordContext
         var previousChord = chordSequence.lower(chord);
         if (previousChord != null)
         {
-            posInBeats = chordSequence.toPositionInBeats(previousChord.getPosition(), cSeqStartPosInBeats);
+            posInBeats = chordSequence.toPositionInBeats(previousChord.getPosition());
             cellFrom = grid.getCell(posInBeats, true) + 1;
 
         } else

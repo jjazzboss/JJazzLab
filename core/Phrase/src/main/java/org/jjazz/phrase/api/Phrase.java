@@ -1152,6 +1152,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
     }
 
     /**
+     * A subset of all notes starting between the specified notes.
      *
      * @return Return value is unmodifiable.
      */
@@ -1162,7 +1163,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
     }
 
     /**
-     * A subset of all notes in the specified range.
+     * A subset of all notes starting in the specified range.
      *
      * @param range
      * @param excludeUpperBound

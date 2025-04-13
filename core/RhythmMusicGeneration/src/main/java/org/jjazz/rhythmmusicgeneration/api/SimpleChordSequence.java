@@ -34,7 +34,7 @@ import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
 
 /**
- * A ChordSequence which has only one TimeSignature.
+ * A ChordSequence which has only one TimeSignature and a start position in beats.
  * <p>
  * User is responsible to ensure CLI_ChordSymbols are added in the right position order, in the startBar/nbBars range, and are compatible with the
  * TimeSignature.
@@ -42,23 +42,37 @@ import org.jjazz.utilities.api.IntRange;
 public class SimpleChordSequence extends ChordSequence
 {
 
-    private TimeSignature timeSignature;
+    private final TimeSignature timeSignature;
+    private float startBeatPosition;
 
-    public SimpleChordSequence(IntRange barRange, TimeSignature ts)
+
+    /**
+     * Create an empty SimpleChordSequence.
+     *
+     * @param barRange
+     * @param startBeatPosition The beat start position of the created SimpleChordSequence
+     * @param ts
+     */
+    public SimpleChordSequence(IntRange barRange, float startBeatPosition, TimeSignature ts)
     {
         super(barRange);
+        Objects.requireNonNull(ts);
+        Preconditions.checkArgument(startBeatPosition >= 0, "startBeatPosition=%s", startBeatPosition);
+        this.startBeatPosition = startBeatPosition;
         this.timeSignature = ts;
     }
+
 
     /**
      * Construct a SimpleChordSequence from a standard ChordSequence.
      *
-     * @param cSeq All ChordSymbols are checked to be compatible with the specified TimeSignature.
+     * @param cSeq              All ChordSymbols are checked to be compatible with the specified TimeSignature.
+     * @param startBeatPosition The beat start position of the created SimpleChordSequence
      * @param ts
      */
-    public SimpleChordSequence(ChordSequence cSeq, TimeSignature ts)
+    public SimpleChordSequence(ChordSequence cSeq, float startBeatPosition, TimeSignature ts)
     {
-        this(cSeq.getBarRange(), ts);
+        this(cSeq.getBarRange(), startBeatPosition, ts);
 
         // Add the ChordSymbols
         for (var cliCs : cSeq)
@@ -74,12 +88,12 @@ public class SimpleChordSequence extends ChordSequence
     @Override
     public SimpleChordSequence clone()
     {
-        SimpleChordSequence scs = new SimpleChordSequence(this, getTimeSignature());
+        SimpleChordSequence scs = new SimpleChordSequence(this, this.startBeatPosition, this.timeSignature);
         return scs;
     }
 
     /**
-     * Create a SimpleChordSequence from a section of ChordLeadSheet.
+     * Create a SimpleChordSequence starting at beat 0 from a section of ChordLeadSheet.
      *
      * @param cls
      * @param section
@@ -87,7 +101,7 @@ public class SimpleChordSequence extends ChordSequence
      */
     static public SimpleChordSequence of(ChordLeadSheet cls, CLI_Section section)
     {
-        SimpleChordSequence res = new SimpleChordSequence(cls.getBarRange(section), section.getData().getTimeSignature());
+        SimpleChordSequence res = new SimpleChordSequence(cls.getBarRange(section), 0, section.getData().getTimeSignature());
         for (CLI_ChordSymbol cliCs : cls.getItems(section, CLI_ChordSymbol.class))
         {
             res.add(cliCs);
@@ -95,11 +109,33 @@ public class SimpleChordSequence extends ChordSequence
         return res;
     }
 
+    /**
+     * The start position in beats of the chord sequence.
+     *
+     * @return A value &gt;= 0
+     */
+    public float getStartBeatPosition()
+    {
+        return startBeatPosition;
+    }
+
+    /**
+     * Set the start position in beats of the chord sequence.
+     *
+     * @param startBeatPosition Must be &gt;= 0
+     */
+    public void setStartBeatPosition(float startBeatPosition)
+    {
+        Preconditions.checkArgument(startBeatPosition >= 0, "startBeatPosition=%s", startBeatPosition);
+        this.startBeatPosition = startBeatPosition;
+    }
+
     @Override
     public int hashCode()
     {
-        int hash = super.hashCode();
-        hash = 37 * hash + Objects.hashCode(this.timeSignature);
+        int hash = 7;
+        hash = 73 * hash + Objects.hashCode(this.timeSignature);
+        hash = 73 * hash + Float.floatToIntBits(this.startBeatPosition);
         return hash;
     }
 
@@ -119,25 +155,26 @@ public class SimpleChordSequence extends ChordSequence
             return false;
         }
         final SimpleChordSequence other = (SimpleChordSequence) obj;
-        if (this.timeSignature != other.timeSignature)
+        if (Float.floatToIntBits(this.startBeatPosition) != Float.floatToIntBits(other.startBeatPosition))
         {
             return false;
         }
-        return super.equals(other);
+        return this.timeSignature == other.timeSignature;
     }
+
 
     /**
      * Get a copy of this SimpleChordSequence shifted by barOffset.
      *
      * @param barOffset Must be &gt;= -getBarRange().from
-     * @return
+     * @return An instance with a start beat position set to 0
      */
     public SimpleChordSequence getShifted(int barOffset)
     {
         Preconditions.checkArgument(barOffset >= -getBarRange().from, "barOffset=%s this=%s", barOffset, this);
 
         IntRange barRange = getBarRange().getTransformed(barOffset);
-        SimpleChordSequence res = new SimpleChordSequence(barRange, getTimeSignature());
+        SimpleChordSequence res = new SimpleChordSequence(barRange, 0, getTimeSignature());
 
         for (var cliCs : this)
         {
@@ -153,88 +190,67 @@ public class SimpleChordSequence extends ChordSequence
         return timeSignature;
     }
 
-
     /**
-     * The beat range of this SimpleChordSequence provided it starts at startBarPosInBeats.
+     * The beat range of this SimpleChordSequence.
      *
-     * @param startBarPosInBeats
      * @return
+     * @see #getStartBeatPosition()
      */
-    public FloatRange getBeatRange(float startBarPosInBeats)
+    public FloatRange getBeatRange()
     {
-        if (startBarPosInBeats < 0)
-        {
-            throw new IllegalArgumentException("startBarPosInBeats=" + startBarPosInBeats);
-        }
-        return new FloatRange(startBarPosInBeats, startBarPosInBeats + getBarRange().size() * timeSignature.getNbNaturalBeats());
+        return new FloatRange(startBeatPosition, startBeatPosition + getBarRange().size() * timeSignature.getNbNaturalBeats());
+    }
+
+
+    public float getPositionInBeats(CLI_ChordSymbol cliCs)
+    {
+        return toPositionInBeats(cliCs.getPosition());
     }
 
     /**
-     * The beat range of a ChordSymbol, provided ChordSequence starts at startBarPosInBeats.
+     * The beat range of a ChordSymbol of this SimpleChordSequence
      *
-     * @param cliCs              Must belong to this SimpleChordSequence
-     * @param startBarPosInBeats
+     * @param cliCs Must belong to this SimpleChordSequence
      * @return
      */
-    public FloatRange getBeatRange(CLI_ChordSymbol cliCs, float startBarPosInBeats)
+    public FloatRange getBeatRange(CLI_ChordSymbol cliCs)
     {
-        Preconditions.checkArgument(startBarPosInBeats >= 0, "%s", startBarPosInBeats);
         Preconditions.checkArgument(contains(cliCs), "cliCs=%s  this=%s", cliCs, this);
-
-        var beatPos = toPositionInBeats(cliCs.getPosition(), startBarPosInBeats);
-        FloatRange br = new FloatRange(beatPos, beatPos + getChordDuration(cliCs));
-
-        return br;
-    }
-
-    
-    /**
-     * Return the specified chord duration in natural beats.
-     * <p>
-     * This is the duration until next chord or the end of the chordsequence.
-     *
-     * @param cliCs
-     * @return
-     */
-    public float getChordDuration(CLI_ChordSymbol cliCs)
-    {
-        Preconditions.checkNotNull(cliCs);
 
         Position pos = cliCs.getPosition();
         Position nextPos = cliCs == last() ? new Position(getBarRange().to + 1) : higher(cliCs).getPosition();
         float duration = pos.getDuration(nextPos, timeSignature);
+        var beatPos = toPositionInBeats(pos);
+        FloatRange br = new FloatRange(beatPos, beatPos + duration);
 
-        return duration;
+        return br;
     }
-
 
     /**
      * Convert the specified position into an absolute position in natural beats.
      *
      * @param pos
-     * @param startBarPosInBeats The start position of this chord sequence.
      * @return If pos is beyond the end of this ChordSequence, then returned value will also be beyond this ChordSequence.
+     * @see #getStartBeatPosition()
      */
-    public float toPositionInBeats(Position pos, float startBarPosInBeats)
+    public float toPositionInBeats(Position pos)
     {
         Objects.requireNonNull(pos);
-        Preconditions.checkArgument(startBarPosInBeats >= 0, "startBarPosInBeats=%s", startBarPosInBeats);
-
         float relPosInBeats = (pos.getBar() - getBarRange().from) * timeSignature.getNbNaturalBeats() + pos.getBeat();
-        return startBarPosInBeats + relPosInBeats;
+        return startBeatPosition + relPosInBeats;
     }
 
     /**
      * Convert the specified position in beats into a Position.
      *
      * @param posInBeats
-     * @param startBarPosInBeats The start position of this chord sequence.
      * @return If posInBeats is beyond the end of this ChordSequence, then returned value will also be beyond this ChordSequence.
+     * @throws IllegalArgumentException If posInBeats is &lt; than getStartBeatPosition()
      */
-    public Position toPosition(float posInBeats, float startBarPosInBeats)
+    public Position toPosition(float posInBeats)
     {
-        Preconditions.checkArgument(posInBeats >= 0 && posInBeats >= startBarPosInBeats, "posInBeats=%s startBarPosInBeats=%s", posInBeats, startBarPosInBeats);
-        float relPosInBeats = posInBeats - startBarPosInBeats;
+        Preconditions.checkArgument(posInBeats >= 0 && posInBeats >= startBeatPosition, "posInBeats=%s startBeatPosition=%s", posInBeats, startBeatPosition);
+        float relPosInBeats = posInBeats - startBeatPosition;
         int relBars = (int) Math.floor(relPosInBeats / getTimeSignature().getNbNaturalBeats());
         float beat = relPosInBeats - relBars * getTimeSignature().getNbNaturalBeats();
         Position pos = new Position(getBarRange().from + relBars, beat);
@@ -295,7 +311,7 @@ public class SimpleChordSequence extends ChordSequence
     }
 
     /**
-     * Overridden to return a SimpleChordSequence.
+     * Overridden to return a SimpleChordSequence with the appropriate startBeatPosition.
      *
      * @param subRange
      * @param addInitChordSymbol
@@ -305,27 +321,8 @@ public class SimpleChordSequence extends ChordSequence
     public SimpleChordSequence subSequence(IntRange subRange, boolean addInitChordSymbol)
     {
         ChordSequence cSeq = super.subSequence(subRange, addInitChordSymbol);
-        return new SimpleChordSequence(cSeq, timeSignature);
-    }
-
-
-    /**
-     * Merge this SimpleChordSequence with scs into a new instance.
-     * <p>
-     * You might want to use removeRedundantChords() on the result.
-     *
-     * @param scs must have the same TimeSignature that this object.
-     * @return A new SimpleChordSequence instance
-     * @see ChordSequence#removeRedundantChords() 
-     */
-    public SimpleChordSequence getMerged(SimpleChordSequence scs)
-    {
-        Preconditions.checkArgument(scs.getTimeSignature() == timeSignature);
-        IntRange newRange = scs.getBarRange().getUnion(getBarRange());
-        SimpleChordSequence res = new SimpleChordSequence(newRange, timeSignature);
-        res.addAll(this);
-        res.addAll(scs);
-        return res;
+        float newStartBeatPos = startBeatPosition + (subRange.from - getBarRange().from) * timeSignature.getNbNaturalBeats();
+        return new SimpleChordSequence(cSeq, newStartBeatPos, timeSignature);
     }
 
 }

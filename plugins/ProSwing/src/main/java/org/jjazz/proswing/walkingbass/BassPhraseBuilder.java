@@ -24,7 +24,9 @@
  */
 package org.jjazz.proswing.walkingbass;
 
+import java.util.List;
 import org.jjazz.phrase.api.Phrase;
+import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 
 /**
  * Produce a bass phrase according to a specific strategy.
@@ -33,11 +35,11 @@ public interface BassPhraseBuilder
 {
     
     /**
-     * Create a bass Phrase for the usable bars of scs.
+     * Create a bass Phrase for one or more SimpleChordSequences.
      *
-     * @param scsExt
+     * @param scsList
      * @param tempo
      * @return
      */
-    Phrase build(SimpleChordSequenceExt scsExt, int tempo);
+    Phrase build(List<SimpleChordSequence> scsList, int tempo);
 }

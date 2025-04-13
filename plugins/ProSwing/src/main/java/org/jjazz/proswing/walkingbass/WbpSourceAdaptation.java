@@ -27,12 +27,14 @@ package org.jjazz.proswing.walkingbass;
 import org.jjazz.proswing.walkingbass.db.WbpSource;
 import com.google.common.base.Preconditions;
 import java.util.Objects;
+import org.jjazz.midi.api.MidiConst;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
+import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
 
 /**
- * Associates a WbpSource to a chord sequence, with a compatibility score.
+ * Associates a WbpSource to a chord sequence at a given start beat position, with a compatibility score.
  * <p>
  * NOTE: Comparable implementation is implemented so that natural order is by descending compatibility score. Comparable implementation is NOT consistent with
  * equal(), so WbpSourceAdaptation should NOT be used in a SortedSet or SortedMap.
@@ -42,13 +44,13 @@ public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
 
     private Score compatibilityScore;
     private final WbpSource wbpSource;
-    private final SimpleChordSequence scs;
+    private final SimpleChordSequence simpleChordSequence;
     private Phrase adaptedPhrase;
     private int targetPitch;
 
 
     /**
-     * Create an object with a score=0.
+     * Create an instance with a score=0.
      *
      * @param wbpSource
      * @param scs
@@ -58,14 +60,20 @@ public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
         this(wbpSource, scs, Score.ZERO);
     }
 
+    /**
+     *
+     * @param wbpSource
+     * @param scs
+     * @param compatibilityScore The score by default
+     */
     public WbpSourceAdaptation(WbpSource wbpSource, SimpleChordSequence scs, Score compatibilityScore)
     {
         Objects.requireNonNull(wbpSource);
         Objects.requireNonNull(scs);
         Objects.requireNonNull(compatibilityScore);
-        
+
         this.wbpSource = wbpSource;
-        this.scs = scs;
+        this.simpleChordSequence = scs;
         this.compatibilityScore = compatibilityScore;
         this.adaptedPhrase = null;
         this.targetPitch = -1;
@@ -78,7 +86,7 @@ public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
 
     public SimpleChordSequence getSimpleChordSequence()
     {
-        return scs;
+        return simpleChordSequence;
     }
 
     public Score getCompatibilityScore()
@@ -88,13 +96,14 @@ public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
 
     public void setCompatibilityScore(Score compatibilityScore)
     {
+        Objects.requireNonNull(compatibilityScore);
         this.compatibilityScore = compatibilityScore;
     }
 
     /**
      * Set the adapted phrase for this WbpSourceAdaptation.
      *
-     * @param p
+     * @param p Can be null
      */
     public void setAdaptedPhrase(Phrase p)
     {
@@ -130,7 +139,7 @@ public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
      */
     public void setAdaptedTargetPitch(int targetPitch)
     {
-        Preconditions.checkArgument(targetPitch >= -1 && targetPitch < 128, "targetPitch=%s", targetPitch);
+        Preconditions.checkArgument(targetPitch == -1 || MidiConst.check(targetPitch), "targetPitch=%s", targetPitch);
         this.targetPitch = targetPitch;
     }
 
@@ -143,6 +152,7 @@ public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
     @Override
     public int compareTo(WbpSourceAdaptation other)
     {
+        Objects.requireNonNull(other);
         return compatibilityScore.compareTo(other.compatibilityScore);
     }
 
@@ -153,18 +163,28 @@ public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
      */
     public IntRange getBarRange()
     {
-        return scs.getBarRange();
+        return simpleChordSequence.getBarRange();
+    }
+
+    /**
+     * Same as scs.getBeatRange().
+     *
+     * @return
+     */
+    public FloatRange getBeatRange()
+    {
+        return simpleChordSequence.getBeatRange();
     }
 
     @Override
     public String toString()
     {
-        return "wbpsa{" + compatibilityScore + " " + getBarRange() + " " + wbpSource.getId() + " " + wbpSource.getSimpleChordSequence() + "}";
+        return "wbpsa{" + compatibilityScore + ", " + getBarRange() + ", " + getBeatRange() + ", " + wbpSource.getId() + ", " + wbpSource.getSimpleChordSequence() + "}";
     }
 
     public String toString2()
     {
-        return "wbpsa{" + getBarRange() + " " + wbpSource + "}";
+        return "wbpsa{" + getBarRange() + ", " + wbpSource + "}";
     }
 
 }

@@ -179,7 +179,7 @@ public class WbpSourceDatabase
         final var POS0 = new Position();
         final var POS2 = new Position(0, 2);
         final int NB_BARS = 1;
-        final var scs = new SimpleChordSequence(new IntRange(0, NB_BARS - 1), TimeSignature.FOUR_FOUR);
+        final var scs = new SimpleChordSequence(new IntRange(0, NB_BARS - 1), 0, TimeSignature.FOUR_FOUR);
         final WbpsaScorer scorer = new WbpsaScorerDefault(null, -1, null, bStyle);
 
 
@@ -683,7 +683,7 @@ public class WbpSourceDatabase
 
     private SimpleChordSequence getChordSequence(int nbBars, TimeSignature ts, List<MidiEvent> sessionChords, long tickOffset)
     {
-        SimpleChordSequence cSeq = new SimpleChordSequence(new IntRange(0, nbBars - 1), ts);
+        SimpleChordSequence cSeq = new SimpleChordSequence(new IntRange(0, nbBars - 1), 0, ts);
 
         for (var me : sessionChords)
         {

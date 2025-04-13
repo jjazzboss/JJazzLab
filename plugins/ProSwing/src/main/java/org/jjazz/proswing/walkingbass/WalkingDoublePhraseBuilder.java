@@ -42,37 +42,81 @@ import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.proswing.BassStyle;
 import static org.jjazz.proswing.walkingbass.WalkingBassMusicGenerator.DURATION_BEAT_MARGIN;
+import static org.jjazz.proswing.walkingbass.WalkingBassMusicGenerator.NON_QUANTIZED_WINDOW;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.utilities.api.FloatRange;
 
 /**
  * A phrase builder for BassStyle.WALKING_DOUBLE.
- * 
+ * <p>
  * Delegates to a WalkingBassPhraseBuilder then post-process the results.
  */
 public class WalkingDoublePhraseBuilder implements BassPhraseBuilder
 {
+
     private static int sessionCount = 0;
     private static final BassStyle STYLE = BassStyle.WALKING_DOUBLE;
     private static final Logger LOGGER = Logger.getLogger(WalkingDoublePhraseBuilder.class.getSimpleName());
 
     @Override
-    public Phrase build(SimpleChordSequenceExt scsExt, int tempo)
+    public Phrase build(List<SimpleChordSequence> scsList, int tempo)
     {
-        LOGGER.log(Level.SEVERE, "build() -- tempo={1} scs={2}", new Object[]
+        LOGGER.log(Level.SEVERE, "build() -- tempo={1} scsList={2}", new Object[]
         {
-            tempo, scsExt
+            tempo, scsList
         });
-
+        
 
         // Delegates to the normal walking bass phrase builder
         BassPhraseBuilder walkingBuilder = BassStyle.WALKING.getBassPhraseBuilder();
-        Phrase p = walkingBuilder.build(scsExt, tempo);
+        Phrase p = walkingBuilder.build(scsList, tempo);
+
         
+        var usableBars = scsList.stream()
+                .map(scs -> scs.getBarRange())
+                .flatMap(br -> br.stream().boxed())
+                .toList();
         
-        // Turn it into double notes phrase
-        
-      
+
+        // Turn it into double notes phrase using notes from beat 0 and beat 2
+        float nbBeatsPerBar = 4;
+        for (int bar : usableBars)
+        {
+            float barStartBeatPos = bar * nbBeatsPerBar;
+
+
+            FloatRange fr0 = new FloatRange(Math.max(0, barStartBeatPos - NON_QUANTIZED_WINDOW), barStartBeatPos + 2 - NON_QUANTIZED_WINDOW);
+            var p0 = p.subSet(fr0, true);
+            if (p0.isEmpty())
+            {
+                LOGGER.log(Level.WARNING, "build() No note found in first half of bar={0}", bar);
+                continue;
+            }
+            var ne0 = p0.first();
+            float beatPos0 = ne0.getPositionInBeats() < barStartBeatPos + NON_QUANTIZED_WINDOW ? ne0.getPositionInBeats() : barStartBeatPos;
+            ne0 = ne0.setAll(-1, 0.9f, -1, beatPos0, false);
+            var ne1 = ne0.setPosition(barStartBeatPos + 1, false);
+
+
+            FloatRange fr2 = new FloatRange(barStartBeatPos + 2 - NON_QUANTIZED_WINDOW, barStartBeatPos + 4 - NON_QUANTIZED_WINDOW);
+            var p2 = p.subSet(fr2, true);
+            if (p2.isEmpty())
+            {
+                LOGGER.log(Level.WARNING, "build() No note found in second half of bar={0}", bar);
+                continue;
+            }
+            var ne2 = p2.first();
+            float beatPos2 = ne2.getPositionInBeats() < barStartBeatPos + 2 + NON_QUANTIZED_WINDOW ? ne2.getPositionInBeats() : barStartBeatPos + 2;
+            ne0 = ne0.setAll(-1, 0.9f, -1, beatPos2, false);
+            var ne3 = ne2.setPosition(barStartBeatPos + 3, false);
+
+
+            p.removeAll(new ArrayList<>(p0));
+            p.removeAll(new ArrayList<>(p2));
+            p.addAll(List.of(ne0, ne1, ne2, ne3));
+
+        }
+
 
         return p;
     }
@@ -81,238 +125,4 @@ public class WalkingDoublePhraseBuilder implements BassPhraseBuilder
     // Private methods
     // ===============================================================================
 
-    /**
-     * Try to create one or more new WbpSources for scs.
-     *
-     * @param scs         Must start at bar 0.
-     * @param targetPitch -1 if unknown
-     * @return
-     */
-    private List<WbpSource> createWalkingCustomWbpSources(SimpleChordSequence scs, int targetPitch)
-    {
-        Preconditions.checkArgument(scs.getBarRange().from == 0, "subSeq=%s", scs);
-
-        LOGGER.log(Level.ALL, "createCustomWbpSources() - scs={0}", scs);
-
-        if (scs.size() == 1)
-        {
-            LOGGER.log(Level.WARNING, "createCustomWbpSources() chord sequence with only 1 chord should have been processed earlier. scs={0}", scs);
-        }
-
-        var ts = scs.getTimeSignature();
-        boolean is2chordsPerBar = scs.isMatchingInBarBeatPositions(false,
-                new FloatRange(0, 0.001f),
-                new FloatRange(ts.getHalfBarBeat(true) - 0.05f, ts.getHalfBarBeat(true) + 0.05f));
-        var idPrefix = is2chordsPerBar ? "cWalking-2chords" : "cWalking-default";
-        var phrases = is2chordsPerBar ? create2ChordsPerBarPhrases(scs, targetPitch) : createDefaultPhrases(scs, targetPitch);
-        List<WbpSource> res = new ArrayList<>();
-
-        for (var sp : phrases)
-        {
-            String id = getUniqueCustomId(idPrefix);
-            WbpSource wbpSource = new WbpSource(id, 0, STYLE.getCustomStyle(), scs, sp, 0, null);
-            WbpSources.humanizeCustomWbpSource(wbpSource);
-            res.add(wbpSource);
-        }
-
-        return res;
-    }
-
-
-    private String getUniqueCustomId(String prefix)
-    {
-        var res = prefix + "_" + sessionCount;
-        sessionCount++;
-        return res;
-    }
-
-    /**
-     * Create one or more walking bass phrases for a 2-chord per bar chord sequence.
-     *
-     * @param scs
-     * @param targetPitch -1 if unknown
-     * @return
-     */
-    private List<SizedPhrase> create2ChordsPerBarPhrases(SimpleChordSequence scs, int targetPitch)
-    {
-        Preconditions.checkArgument(scs.size() == 2 && scs.getBarRange().from == 0, "subSeq=%s", scs);
-
-
-        var ecsBeat0 = scs.first().getData();
-        var ecsBeat2 = scs.last().getData();
-        assert ecsBeat0 != ecsBeat2;
-        int bassPitchBeat0 = InstrumentFamily.Bass.toAbsolutePitch(ecsBeat0.getBassNote().getRelativePitch());
-        int bassPitchBeat1 = bassPitchBeat0;
-        int bassPitchBeat2 = InstrumentFamily.Bass.toAbsolutePitch(ecsBeat2.getBassNote().getRelativePitch());
-        int bassPitchBeat3 = bassPitchBeat2;
-
-
-        if (!ecsBeat0.isSlashChord())
-        {
-            bassPitchBeat1 = getClosestPitch(ecsBeat0, bassPitchBeat2);
-        }
-        if (!ecsBeat2.isSlashChord())
-        {
-            int pitch = targetPitch != -1 ? targetPitch : InstrumentFamily.Bass.toAbsolutePitch(11);        // B
-            bassPitchBeat3 = getClosestPitch(ecsBeat0, pitch);
-        }
-
-
-        var res = new ArrayList<SizedPhrase>();
-
-
-        // A basic phrase with only the chord root/bass notes
-        SizedPhrase sp = new SizedPhrase(0, scs.getBeatRange(0), scs.getTimeSignature(), false);
-        NoteEvent ne = new NoteEvent(bassPitchBeat0, 0.9f, 80, 0);
-        sp.add(ne);
-        ne = new NoteEvent(bassPitchBeat0, 0.9f, 80, 1);
-        sp.add(ne);
-        ne = new NoteEvent(bassPitchBeat2, 0.9f, 80, 2);
-        sp.add(ne);
-        ne = new NoteEvent(bassPitchBeat2, 0.9f, 80, 3);
-        sp.add(ne);
-        res.add(sp);
-
-
-        if (bassPitchBeat0 != bassPitchBeat1 || bassPitchBeat2 != bassPitchBeat3)
-        {
-            // A second phrase using the closest notes to target note
-            sp = new SizedPhrase(0, scs.getBeatRange(0), scs.getTimeSignature(), false);
-            ne = new NoteEvent(bassPitchBeat0, 0.9f, 80, 0);
-            sp.add(ne);
-            ne = new NoteEvent(bassPitchBeat1, 0.9f, 80, 1);
-            sp.add(ne);
-            ne = new NoteEvent(bassPitchBeat2, 0.9f, 80, 2);
-            sp.add(ne);
-            ne = new NoteEvent(bassPitchBeat3, 0.9f, 80, 3);
-            sp.add(ne);
-            res.add(sp);
-        }
-
-
-        return res;
-    }
-
-
-    /**
-     * Create phrases for all non standard cases of chord positions (minimum 2 chords per bar).
-     *
-     * @param scs
-     * @param targetPitch -1 if unknown
-     * @return
-     */
-    private List<SizedPhrase> createDefaultPhrases(SimpleChordSequence scs, int targetPitch)
-    {
-        Preconditions.checkArgument(scs.size() >= 2 && scs.getBarRange().from == 0, "subSeq=%s", scs);
-        var velocityRange = WbpSourceDatabase.getInstance().getMostProbableVelocityRange();
-
-        SizedPhrase sp = new SizedPhrase(0, scs.getBeatRange(0), scs.getTimeSignature(), false);
-
-        for (var cliCs : scs)
-        {
-            var ecs = cliCs.getData();
-            int relPitch = cliCs.getData().getBassNote().getRelativePitch();
-            int bassPitch = InstrumentFamily.Bass.toAbsolutePitch(relPitch);
-            float duration = scs.getChordDuration(cliCs) - DURATION_BEAT_MARGIN;
-            float beatPos = scs.toPositionInBeats(cliCs.getPosition(), 0);
-            float beatPosEnd = beatPos + duration;
-            int velocity = velocityRange.from + (int) Math.round(Math.random() * (velocityRange.size() - 1));
-            velocity = MidiConst.clamp(velocity);
-
-            if (duration >= 2.8f)
-            {
-                // Play 3 notes: bass note, 3rd, 5th (or always bass note if slash chord)
-
-                int addNote2RelPitch = ecs.isSlashChord() ? relPitch : ecs.getRelativePitch(DegreeIndex.FIFTH);
-                int addNote2Pitch = InstrumentFamily.Bass.toAbsolutePitch(addNote2RelPitch);
-                float addNote2BeatPos = (float) Math.floor(beatPosEnd);
-                float addNote2Duration = beatPosEnd - addNote2BeatPos;
-
-
-                int addNote1RelPitch = ecs.isSlashChord() ? relPitch : ecs.getRelativePitch(DegreeIndex.THIRD_OR_FOURTH);
-                int addNote1Pitch = InstrumentFamily.Bass.toAbsolutePitch(addNote1RelPitch != -1 ? addNote1RelPitch : addNote2Pitch);
-                float addNote1BeatPos = (float) Math.floor(beatPosEnd - 1);
-                float addNote1Duration = addNote2BeatPos - addNote1BeatPos - DURATION_BEAT_MARGIN;
-
-
-                duration = addNote1BeatPos - beatPos - DURATION_BEAT_MARGIN;
-
-
-                NoteEvent ne = new NoteEvent(bassPitch, duration, velocity, beatPos);
-                sp.add(ne);
-                ne = new NoteEvent(addNote1Pitch, addNote1Duration, velocity - 4, addNote1BeatPos);
-                sp.add(ne);
-                ne = new NoteEvent(addNote2Pitch, addNote2Duration, velocity + 3, addNote2BeatPos);
-                sp.add(ne);
-
-
-            } else if (duration >= 1.8f)
-            {
-                // Play 2 notes: bass note and 5th  (or always bass note if slash chord)
-                int addNote1RelPitch = ecs.isSlashChord() ? relPitch : ecs.getRelativePitch(DegreeIndex.FIFTH);
-                int addNote1Pitch = InstrumentFamily.Bass.toAbsolutePitch(addNote1RelPitch);
-                float addNote1BeatPos = (float) Math.floor(beatPosEnd);
-                float addNote1Duration = beatPosEnd - addNote1BeatPos;
-
-
-                duration = addNote1BeatPos - beatPos - DURATION_BEAT_MARGIN;
-
-
-                NoteEvent ne = new NoteEvent(bassPitch, duration, velocity, beatPos);
-                sp.add(ne);
-                ne = new NoteEvent(addNote1Pitch, addNote1Duration, velocity - 4, addNote1BeatPos);
-                sp.add(ne);
-            } else
-            {
-                // Play a single note: bass note
-                NoteEvent ne = new NoteEvent(bassPitch, duration, velocity, beatPos);
-                sp.add(ne);
-            }
-        }
-
-        return List.of(sp);
-    }
-
-    /**
-     * Return, amongst the specified degreeIndexes of ecs, the one corresponding to the closest to targetPitch -but different from.
-     *
-     * @param ecs
-     * @param targetPitch
-     * @param degreeIndexes 1 or more DegreeIndexes
-     * @return Can be -1 if no valid solution could be found.
-     */
-    private int getClosestPitch(ExtChordSymbol ecs, int targetPitch, DegreeIndex... degreeIndexes)
-    {
-        Objects.requireNonNull(ecs);
-        Preconditions.checkArgument(degreeIndexes.length > 0);
-        Preconditions.checkArgument(MidiConst.check(targetPitch), "targetPitch=%s", targetPitch);
-
-
-        var validPitches = new ArrayList<Integer>();
-        for (var di : degreeIndexes)
-        {
-            var relPitch = ecs.getRelativePitch(di);
-            if (relPitch != -1)
-            {
-                int absPitch = InstrumentFamily.Bass.toAbsolutePitch(relPitch);
-                if (targetPitch != absPitch)
-                {
-                    validPitches.add(absPitch);
-                }
-            }
-        }
-
-
-        int res = -1;
-        for (var pitch : validPitches)
-        {
-            if (res == -1 || Math.abs(targetPitch - pitch) < Math.abs(targetPitch - res))
-            {
-                res = pitch;
-            }
-        }
-
-        return res;
-
-    }
 }

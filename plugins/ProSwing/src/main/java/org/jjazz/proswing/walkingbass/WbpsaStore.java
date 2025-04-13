@@ -98,7 +98,7 @@ public class WbpsaStore
      */
     public List<WbpSourceAdaptation> getWbpSourceAdaptations(int bar, int size)
     {
-        Preconditions.checkArgument(tiling.getBarRange().contains(bar), "bar=%s", bar);
+        Preconditions.checkArgument(tiling.getUsableBars().contains(bar), "bar=%s", bar);
         Preconditions.checkArgument(size >= WbpSourceDatabase.SIZE_MIN && size <= WbpSourceDatabase.SIZE_MAX, "size=%s", size);
         var res = Collections.unmodifiableList(mmapWbpsAdaptations[size].get(bar));
         return res;
@@ -166,15 +166,14 @@ public class WbpsaStore
     public String toDebugString(int size, boolean hideEmptyBars)
     {
         StringBuilder sb = new StringBuilder();
-        var scsBr = tiling.getBarRange();
         for (int bar : tiling.getUsableBars())
         {
             var wbpsas = getWbpSourceAdaptations(bar, size);
 
             if (!hideEmptyBars || !wbpsas.isEmpty())
             {
-                var br = new IntRange(bar, bar + size - 1).getIntersection(scsBr);
-                var barChords = tiling.getSimpleChordSequenceExt().subSequence(br, true);
+                var br = new IntRange(bar, bar + size - 1);
+                var barChords = tiling.getSimpleChordSequence(br, true);
                 sb.append(String.format("%1$03d: %2$s\n", bar, barChords.toString()));
             }
 
@@ -194,7 +193,6 @@ public class WbpsaStore
      */
     private void initialize()
     {
-        var scsExt = tiling.getSimpleChordSequenceExt();
         var nonTiledBars = tiling.getNonTiledBars();
         LOGGER.log(Level.SEVERE, "initialize() nonTiledBars={0}", nonTiledBars);
 
@@ -209,7 +207,7 @@ public class WbpsaStore
                 }
 
                 // Get all possible wbpsas for the sub sequence
-                var subSeq = scsExt.subSequence(br, true);
+                var subSeq = tiling.getSimpleChordSequence(br, true);
                 ListMultimap<Score, WbpSourceAdaptation> bestWbpsas = wbpsaScorer.getWbpSourceAdaptations(subSeq, tiling);
 
 

@@ -273,7 +273,7 @@ public class SongContext
      * @param rpValue A value for rp
      * @return Can be empty
      */
-    public <E> List<IntRange> getBarRanges(Rhythm r, RhythmParameter<E> rp, E rpValue)
+    public <E> List<IntRange> getMergedBarRanges(Rhythm r, RhythmParameter<E> rp, E rpValue)
     {
         Objects.requireNonNull(r);
         Objects.requireNonNull(rp);

@@ -191,7 +191,7 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
     {
         int nbBars = getNbBars();
 
-        SimpleChordSequence res = new SimpleChordSequence(new IntRange(0, nbBars - 1), TimeSignature.FOUR_FOUR);
+        SimpleChordSequence res = new SimpleChordSequence(new IntRange(0, nbBars - 1), 0, TimeSignature.FOUR_FOUR);
         switch (nbBars)
         {
             case 4:

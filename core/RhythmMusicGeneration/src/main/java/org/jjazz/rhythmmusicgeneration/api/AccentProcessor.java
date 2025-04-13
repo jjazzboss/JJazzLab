@@ -89,24 +89,26 @@ public class AccentProcessor
     /**
      * Construct an object to manipulate phrases corresponding to the specified parameters.
      *
-     * @param cSeq                Can't be empty
-     * @param cSeqStartPosInBeats The start position in beats of cSeq. Must be an integer.
-     * @param nbCellsPerBeat      4 or 3. 3 should be used for ternary feel rhythm or 3/8 or 6/8 or 12/8 time signatures.
-     * @param tempo               Required to best adjust e.g. "shot" notes duration
-     * @param preCellBeatWindow   A value in the range [0;1/nbCellsPerBeat[. Used to accomodate for non-quantized notes: notes whose relative position is &gt;
-     *                            -preCellBeatWindow will be included in the current cell.
+     * @param cSeq              Can't be empty. The start position in beats must be an arithmetic integer.
+     * @param nbCellsPerBeat    4 or 3. 3 should be used for ternary feel rhythm or 3/8 or 6/8 or 12/8 time signatures.
+     * @param tempo             Required to best adjust e.g. "shot" notes duration
+     * @param preCellBeatWindow A value in the range [0;1/nbCellsPerBeat[. Used to accomodate for non-quantized notes: notes whose relative position is &gt;
+     *                          -preCellBeatWindow will be included in the current cell.
      */
-    public AccentProcessor(SimpleChordSequence cSeq, float cSeqStartPosInBeats, int nbCellsPerBeat, int tempo, float preCellBeatWindow)
+    public AccentProcessor(SimpleChordSequence cSeq, int nbCellsPerBeat, int tempo, float preCellBeatWindow)
     {
         Objects.requireNonNull(cSeq);
         Preconditions.checkArgument(!cSeq.isEmpty());
+        Preconditions.checkArgument(cSeq.getStartBeatPosition() >= 0 && cSeq.getStartBeatPosition() == Math.floor(cSeq.getStartBeatPosition()),
+                "cSeq.getStartBeatPosition()=%s",
+                cSeq.getStartBeatPosition());
+
         Preconditions.checkArgument(TempoRange.checkTempo(tempo), "tempo=%s", tempo);
-        Preconditions.checkArgument(cSeqStartPosInBeats >= 0 && cSeqStartPosInBeats == Math.floor(cSeqStartPosInBeats), "cSeqStartPosInBeats=%s",
-                cSeqStartPosInBeats);
         Preconditions.checkArgument(nbCellsPerBeat >= 3 && nbCellsPerBeat <= 4, "nbCellsPerBeat=%s", nbCellsPerBeat);
 
 
         this.simpleChordSequence = cSeq;
+        this.cSeqBeatRange = cSeq.getBeatRange();
         timeSignature = simpleChordSequence.getTimeSignature();
         this.preCellBeatWindow = preCellBeatWindow;
 
@@ -121,7 +123,7 @@ public class AccentProcessor
         this.nbCellsPerBeat = nbCellsPerBeat;
         lastCellIndex = ((int) nbNaturalBeats * nbCellsPerBeat * simpleChordSequence.getBarRange().size()) - 1;
         cellDuration = 1f / nbCellsPerBeat;
-        cSeqBeatRange = new FloatRange(cSeqStartPosInBeats, cSeqStartPosInBeats + cSeq.getBarRange().size() * nbNaturalBeats);
+
         this.tempo = tempo;
 
         LOGGER.log(Level.FINE, "\nAccentProcessor() -- cSeqBeatRange={0} timeSignature={1} nbCellsPerBeat={2}", new Object[]
@@ -163,7 +165,7 @@ public class AccentProcessor
         for (CLI_ChordSymbol cliCs : simpleChordSequence)
         {
 
-            GridChordContext gct = new GridChordContext(cliCs, simpleChordSequence, cSeqBeatRange.from, gdh.gridAccents);
+            GridChordContext gct = new GridChordContext(cliCs, simpleChordSequence, gdh.gridAccents);
             ChordRenderingInfo cri = cliCs.getData().getRenderingInfo();
 
 
@@ -228,7 +230,7 @@ public class AccentProcessor
         for (CLI_ChordSymbol cliCs : simpleChordSequence)
         {
 
-            GridChordContext gct = new GridChordContext(cliCs, simpleChordSequence, cSeqBeatRange.from, gdh.gridAccents);
+            GridChordContext gct = new GridChordContext(cliCs, simpleChordSequence, gdh.gridAccents);
             ChordRenderingInfo cri = cliCs.getData().getRenderingInfo();
 
             if (cri.getAccentFeature() == null)
@@ -334,7 +336,7 @@ public class AccentProcessor
         for (CLI_ChordSymbol cliCs : simpleChordSequence)
         {
 
-            GridChordContext gct = new GridChordContext(cliCs, simpleChordSequence, cSeqBeatRange.from, grid);
+            GridChordContext gct = new GridChordContext(cliCs, simpleChordSequence, grid);
             ChordRenderingInfo cri = cliCs.getData().getRenderingInfo();
 
 
@@ -413,7 +415,7 @@ public class AccentProcessor
         for (CLI_ChordSymbol cliCs : simpleChordSequence)
         {
 
-            GridChordContext gct = new GridChordContext(cliCs, simpleChordSequence, cSeqBeatRange.from, grid);
+            GridChordContext gct = new GridChordContext(cliCs, simpleChordSequence, grid);
             ChordRenderingInfo cri = cliCs.getData().getRenderingInfo();
 
 
@@ -509,7 +511,7 @@ public class AccentProcessor
         for (CLI_ChordSymbol cliCs : simpleChordSequence)
         {
 
-            GridChordContext gct = new GridChordContext(cliCs, simpleChordSequence, cSeqBeatRange.from, grid);
+            GridChordContext gct = new GridChordContext(cliCs, simpleChordSequence, grid);
             ChordRenderingInfo cri = cliCs.getData().getRenderingInfo();
 
             if (!isProcessHoldShot(cri, hsMode))
@@ -600,7 +602,7 @@ public class AccentProcessor
         for (CLI_ChordSymbol cliCs : simpleChordSequence)
         {
 
-            GridChordContext gct = new GridChordContext(cliCs, simpleChordSequence, cSeqBeatRange.from, grid);
+            GridChordContext gct = new GridChordContext(cliCs, simpleChordSequence, grid);
             ChordRenderingInfo cri = cliCs.getData().getRenderingInfo();
 
             if (cri.getAccentFeature() == null)

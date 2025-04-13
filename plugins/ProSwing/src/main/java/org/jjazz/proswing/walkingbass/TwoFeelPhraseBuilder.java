@@ -53,16 +53,16 @@ public class TwoFeelPhraseBuilder implements BassPhraseBuilder
     private static final Logger LOGGER = Logger.getLogger(TwoFeelPhraseBuilder.class.getSimpleName());
 
     @Override
-    public Phrase build(SimpleChordSequenceExt scsExt, int tempo)
+    public Phrase build(List<SimpleChordSequence> scsList, int tempo)
     {
-        LOGGER.log(Level.SEVERE, "build() -- tempo={1} scsExt={2}", new Object[]
+        LOGGER.log(Level.SEVERE, "build() -- tempo={1} scsList={2}", new Object[]
         {
-            tempo, scsExt
+            tempo, scsList
         });
 
 
         var settings = WalkingBassMusicGeneratorSettings.getInstance();
-        WbpTiling tiling = new WbpTiling(scsExt);
+        WbpTiling tiling = new WbpTiling(scsList);
         var phraseAdapter = new TransposerPhraseAdapter();
 
 
@@ -153,10 +153,10 @@ public class TwoFeelPhraseBuilder implements BassPhraseBuilder
             LOGGER.log(Level.WARNING, "build() could not fully tile, untiled bars={0}", tiling.getNonTiledBars());
         }
 
-        
-        LOGGER.log(Level.SEVERE, "\nbuild() ===============   Tiling stats  scsExt.usableBars={0} \n{1}", new Object[]
+
+        LOGGER.log(Level.SEVERE, "\nbuild() ===============   Tiling stats  usableBars={0} \n{1}", new Object[]
         {
-            scsExt.getUsableBars().size(),
+            tiling.getUsableBars().size(),
             tiling.toStatsString()
         });
 
@@ -238,7 +238,7 @@ public class TwoFeelPhraseBuilder implements BassPhraseBuilder
 
 
         // A basic phrase with only the chord root/bass notes
-        SizedPhrase sp = new SizedPhrase(0, scs.getBeatRange(0), scs.getTimeSignature(), false);
+        SizedPhrase sp = new SizedPhrase(0, scs.getBeatRange(), scs.getTimeSignature(), false);
         NoteEvent ne = new NoteEvent(bassPitchBeat0, 1.85f, 80, 0);
         sp.add(ne);
         ne = new NoteEvent(bassPitchBeat2, 1.85f, 80, 2);
@@ -247,7 +247,7 @@ public class TwoFeelPhraseBuilder implements BassPhraseBuilder
 
 
         // A second phrase with the first note repeated twice
-        sp = new SizedPhrase(0, scs.getBeatRange(0), scs.getTimeSignature(), false);
+        sp = new SizedPhrase(0, scs.getBeatRange(), scs.getTimeSignature(), false);
         ne = new NoteEvent(bassPitchBeat0, 0.3f, 80, 0);        // shorter
         sp.add(ne);
         ne = new NoteEvent(bassPitchBeat0, 0.85f, 80, 1);
@@ -273,34 +273,33 @@ public class TwoFeelPhraseBuilder implements BassPhraseBuilder
         Preconditions.checkArgument(scs.size() >= 2 && scs.getBarRange().from == 0, "subSeq=%s", scs);
 
         var velocityRange = WbpSourceDatabase.getInstance().getMostProbableVelocityRange();
-        SizedPhrase sp = new SizedPhrase(0, scs.getBeatRange(0), scs.getTimeSignature(), false);
+        SizedPhrase sp = new SizedPhrase(0, scs.getBeatRange(), scs.getTimeSignature(), false);
 
         for (var cliCs : scs)
         {
             int relPitch = cliCs.getData().getBassNote().getRelativePitch();
             int bassPitch = InstrumentFamily.Bass.toAbsolutePitch(relPitch);
-            float duration = scs.getChordDuration(cliCs) - DURATION_BEAT_MARGIN;
-            float beatPos = scs.toPositionInBeats(cliCs.getPosition(), 0);
-            float beatPosEnd = beatPos + duration;
+            FloatRange brCliCs = scs.getBeatRange(cliCs);
+            float duration = brCliCs.size() - DURATION_BEAT_MARGIN;
             int velocity = velocityRange.from + (int) Math.round(Math.random() * (velocityRange.size() - 1));
             velocity = MidiConst.clamp(velocity);
 
             if (duration >= 2.8f)
             {
                 // Play 2 notes
-                float addNote1BeatPos = (float) Math.floor(beatPosEnd);
-                float addNote1Duration = beatPosEnd - addNote1BeatPos;
+                float addNote1BeatPos = (float) Math.floor(brCliCs.to);
+                float addNote1Duration = brCliCs.to - addNote1BeatPos;
 
-                duration = addNote1BeatPos - beatPos - DURATION_BEAT_MARGIN;
+                duration = addNote1BeatPos - brCliCs.from - DURATION_BEAT_MARGIN;
 
-                NoteEvent ne = new NoteEvent(bassPitch, duration, velocity, beatPos);
+                NoteEvent ne = new NoteEvent(bassPitch, duration, velocity, brCliCs.from);
                 sp.add(ne);
                 ne = new NoteEvent(bassPitch, addNote1Duration, velocity - 4, addNote1BeatPos);
                 sp.add(ne);
             } else
             {
                 // Play a single note: bass note
-                NoteEvent ne = new NoteEvent(bassPitch, duration, velocity, beatPos);
+                NoteEvent ne = new NoteEvent(bassPitch, duration, velocity, brCliCs.from);
                 sp.add(ne);
             }
         }

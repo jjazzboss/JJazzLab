@@ -42,6 +42,7 @@ import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
 
@@ -144,7 +145,7 @@ public class WalkingBassMusicGenerator implements MusicGenerator
         {
             var sptBeatRange = context.getSptBeatRange(spt);
             var sptBarRange = context.getSptBarRange(spt);
-            var scsSpt = new SimpleChordSequence(songChordSequence.subSequence(sptBarRange, false), rhythm.getTimeSignature());
+            var scsSpt = new SimpleChordSequence(songChordSequence.subSequence(sptBarRange, false), sptBeatRange.from, rhythm.getTimeSignature());
 
 
             if (sptBeatRange.from > 0 && (prevSpt == null || prevSpt.getStartBarIndex() + prevSpt.getNbBars() != spt.getStartBarIndex()))
@@ -154,11 +155,11 @@ public class WalkingBassMusicGenerator implements MusicGenerator
             }
 
             // Adapt notes for pedal bass and slash chords
-            processPedalBassAndSlashChords(pRes, sptBeatRange.from, scsSpt, song.getTempo());
+            processPedalBassAndSlashChords(pRes, scsSpt, song.getTempo());
 
 
             // Accents and chord anticipations
-            processAccentAndChordAnticipation(pRes, sptBeatRange.from, scsSpt, song.getTempo());
+            processAccentAndChordAnticipation(pRes, scsSpt, song.getTempo());
 
 
             // process RP_SYS_Intensity
@@ -230,37 +231,27 @@ public class WalkingBassMusicGenerator implements MusicGenerator
 
         // Process each bass style
         var rpBassStyle = RP_BassStyle.get(rhythm);
-
-
-        for (var style : BassStyle.values())
+        for (var style : BassStyle.getNonCustomStyles())
         {
-            // Prepare a SimpleChordSequenceExt of chords using style
-            SimpleChordSequenceExt mergedScsExt = null;            
-            var barRanges = contextWork.getBarRanges(rhythm, rpBassStyle, RP_BassStyle.toRpValue(style));
+            // Prepare the SimpleChordSequences
+            var barRanges = contextWork.getMergedBarRanges(rhythm, rpBassStyle, RP_BassStyle.toRpValue(style));
+            List<SimpleChordSequence> scsList = new ArrayList<>();
             for (var barRange : barRanges)
             {
-                var scsExt = new SimpleChordSequenceExt(scsWork.subSequence(barRange, true), rhythm.getTimeSignature(), true);
-                mergedScsExt = mergedScsExt == null ? scsExt : mergedScsExt.getMerged(scsExt, true);
+                float startBeatPos = contextWork.getSong().getSongStructure().toPositionInNaturalBeats(barRange.from);
+                var scs = new SimpleChordSequence((ChordSequence)scsWork.subSequence(barRange, true), startBeatPos, rhythm.getTimeSignature());
+                scs.removeRedundantChords();
+                scsList.add(scs);
             }
-            if (mergedScsExt == null)
-            {
-                continue;
-            }
-
-            // We have our SimpleChordSequenceExt, possibly with non usable bars corresponding to song parts which do not use our rhythm, or which use our 
-            // rhythm but not with bassStyleRpValue
-            mergedScsExt.removeRedundantChords();
 
 
             // Build the bass phrase for that style
-            var bassPhraseBuilder = style.getBassPhraseBuilder();
-            var phrase = bassPhraseBuilder.build(mergedScsExt, songWork.getTempo());
+            var phrase = style.getBassPhraseBuilder().build(scsList, songWork.getTempo());
 
 
             res.add(phrase);
 
         }
-
 
         return res;
     }
@@ -351,15 +342,17 @@ public class WalkingBassMusicGenerator implements MusicGenerator
         rhythmBarRanges = IntRange.merge(rhythmBarRanges);
 
 
-        SongChordSequence res = new SongChordSequence(context.getSong(), context.getBarRange());    // throws UserErrorGenerationException
+        SongChordSequence res = new SongChordSequence(context.getSong(), context.getBarRange());    // throws UserErrorGenerationException        
         res.removeRedundantChords();
 
 
+        SongStructure ss = context.getSong().getSongStructure();
         for (var rhythmBarRange : rhythmBarRanges)
         {
             // Retrieve the default anticipatable chords
-            SimpleChordSequence scs = new SimpleChordSequence(res.subSequence(rhythmBarRange, true), ts);
-            var acp = new AnticipatedChordProcessor(scs, 0, isTernary ? 3 : 4, Grid.PRE_CELL_BEAT_WINDOW_DEFAULT); // cSeqStartPosInBeats=0 not required to spot anticipated chords 
+            float startBeatPos = ss.toPositionInNaturalBeats(rhythmBarRange.from);
+            SimpleChordSequence scs = new SimpleChordSequence(res.subSequence(rhythmBarRange, true), startBeatPos, ts);
+            var acp = new AnticipatedChordProcessor(scs, isTernary ? 3 : 4, Grid.PRE_CELL_BEAT_WINDOW_DEFAULT);
             var anticipatableChords = acp.getAnticipatableChords();
 
 
@@ -419,15 +412,14 @@ public class WalkingBassMusicGenerator implements MusicGenerator
      * Update p for possible accents and chords anticipation in a SongPart.
      *
      * @param p
-     * @param scsSptStartBeatPos The start beat position of the SongPart
-     * @param scsSpt             The song chord sequence of the SongPart
+     * @param scsSpt The song chord sequence of the SongPart
      * @param tempo
      */
-    private void processAccentAndChordAnticipation(Phrase p, float scsSptStartBeatPos, SimpleChordSequence scsSpt, int tempo)
+    private void processAccentAndChordAnticipation(Phrase p, SimpleChordSequence scsSpt, int tempo)
     {
         int nbCellsPerBeat = Grid.getRecommendedNbCellsPerBeat(rhythm.getTimeSignature(), rhythm.getFeatures().division().isSwing());
-        AccentProcessor ap = new AccentProcessor(scsSpt, scsSptStartBeatPos, nbCellsPerBeat, tempo, NON_QUANTIZED_WINDOW);
-        AnticipatedChordProcessor acp = new AnticipatedChordProcessor(scsSpt, scsSptStartBeatPos, nbCellsPerBeat, NON_QUANTIZED_WINDOW);
+        AccentProcessor ap = new AccentProcessor(scsSpt, nbCellsPerBeat, tempo, NON_QUANTIZED_WINDOW);
+        AnticipatedChordProcessor acp = new AnticipatedChordProcessor(scsSpt, nbCellsPerBeat, NON_QUANTIZED_WINDOW);
 
         acp.anticipateChords_Mono(p);
         ap.processAccentBass(p);
@@ -505,11 +497,10 @@ public class WalkingBassMusicGenerator implements MusicGenerator
      * Update notes for pedal bass and slash chords in a SongPart.
      *
      * @param p
-     * @param scsSptStartBeatPos The start beat position of the SongPart
-     * @param scsSpt             The song chord sequence of the SongPart
+     * @param scsSpt The simple chord sequence corresponding to a SongPart
      * @param tempo
      */
-    private void processPedalBassAndSlashChords(Phrase p, float scsSptStartBeatPos, SimpleChordSequence scsSpt, int tempo)
+    private void processPedalBassAndSlashChords(Phrase p, SimpleChordSequence scsSpt, int tempo)
     {
         var ts = rhythm.getTimeSignature();
         var nbBeatsPerBar = ts.getNbNaturalBeats();
@@ -532,15 +523,14 @@ public class WalkingBassMusicGenerator implements MusicGenerator
 
 
             var bassRelPitch = ecs.getBassNote().getRelativePitch();
-            var brCliCs = scsSpt.getBeatRange(cliCs, scsSptStartBeatPos);
+            var brCliCs = scsSpt.getBeatRange(cliCs);
 
 
             if (isPedalBass)
             {
                 // How long is the pedal bass  ?
                 var cliCsStopPedalBass = getStopPedalBassChord(cliCs, scsSpt);
-                var stopPedalBeatPos = cliCsStopPedalBass == null ? scsSpt.getBeatRange(scsSptStartBeatPos).to
-                        : scsSpt.toPositionInBeats(cliCsStopPedalBass.getPosition(), scsSptStartBeatPos);
+                var stopPedalBeatPos = cliCsStopPedalBass == null ? scsSpt.getBeatRange().to : scsSpt.toPositionInBeats(cliCsStopPedalBass.getPosition());
                 FloatRange extendedChordBeatRange = new FloatRange(brCliCs.from, stopPedalBeatPos);
 
 

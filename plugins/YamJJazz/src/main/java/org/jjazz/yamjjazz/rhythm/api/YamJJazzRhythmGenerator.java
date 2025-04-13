@@ -70,7 +70,6 @@ import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Fill;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Intensity;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
-import org.jjazz.rhythmmusicgeneration.api.SongChordSequence.SplitResult;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.song.api.SongFactory;
 import org.openide.util.Exceptions;
@@ -204,11 +203,10 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
     // Private methods
     // ===============================================================================
     /**
-     * Get all phrases (for all AccTypes) for all song context parts using our rhythm.
+     * Get all phrases for all AccTypes for all song context parts using our rhythm.
      * <p>
      *
-     * @return
-     * @throws org.jjazz.rhythm.api.MusicGenerationException
+     * @return @throws org.jjazz.rhythm.api.MusicGenerationException
      */
     private List<ChordSeqPhrases> getAllPhrasesAllChordSequences() throws MusicGenerationException
     {
@@ -218,7 +216,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
 
 
         // Process each variation 
-        var rpVariation = RP_SYS_Variation.getVariationRp(rhythm);        
+        var rpVariation = RP_SYS_Variation.getVariationRp(rhythm);
         for (var rpVariationValue : rpVariation.getPossibleValues())
         {
             StylePart stylePart = rhythm.getStylePart(rpVariationValue);
@@ -235,13 +233,14 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
 
 
             // Get all the (merged) bar ranges which use rpVariationValue
-            var barRanges = contextWork.getBarRanges(rhythm, rpVariation, rpVariationValue);
+            var barRanges = contextWork.getMergedBarRanges(rhythm, rpVariation, rpVariationValue);
 
 
             // Generate music for each bar range
             for (var barRange : barRanges)
             {
-                SimpleChordSequence cSeq = new SimpleChordSequence(songChordSequence.subSequence(barRange, true), rhythm.getTimeSignature());
+                float beatStart = contextWork.getSong().getSongStructure().toPositionInNaturalBeats(new Position(barRange.from));
+                SimpleChordSequence cSeq = new SimpleChordSequence(songChordSequence.subSequence(barRange, true), beatStart, rhythm.getTimeSignature());
                 HashMap<AccType, Phrase> mapAccTypePhrase = getAllAccTypesPhrasesOneChordSequence(stylePart, complexity, cSeq);
                 ChordSeqPhrases csp = new ChordSeqPhrases(cSeq, mapAccTypePhrase);
                 res.add(csp);
@@ -312,7 +311,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
                 }
                 pRes.add(p);
                 // Make sure all notes are OFF at the end
-                Phrases.silenceAfter(pRes, contextWork.getSong().getSongStructure().toPositionInNaturalBeats(cSeqEndBar + 1));
+                Phrases.silenceAfter(pRes, cSeq.getBeatRange().to);
             }
         }
         //LOGGER.log(Level.FINE, "getAllAccTypesPhrasesOneChordSequence() res=" + res);
@@ -411,8 +410,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
         });
 
         // The position of the chord sequence in the song structure
-        float cSeqStartPosInBeats = ss.toPositionInNaturalBeats(shortcSeq.getBarRange().from);
-        float cSeqEndPosInBeats = ss.toPositionInNaturalBeats(shortcSeq.getBarRange().to + 1);
+        FloatRange cSeqBeatRange = shortcSeq.getBeatRange();
 
         // The resulting phrase combining all source channels
         Phrase pRes = new Phrase(destChannel, at.isDrums());
@@ -438,8 +436,8 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
 
             // Adjust it to shortcSeq's start and length => need a copy
             pSrc = pSrc.clone();
-            pSrc.shiftAllEvents(cSeqStartPosInBeats);
-            Phrases.silenceAfter(pSrc, cSeqEndPosInBeats);
+            pSrc.shiftAllEvents(cSeqBeatRange.from);
+            Phrases.silenceAfter(pSrc, cSeqBeatRange.to);
 
 
             LOGGER.log(Level.FINE, "getOneAccTypePhraseOneShortChordSequence() at={0} srcChannel={1} pSrc={2}", new Object[]
@@ -526,20 +524,10 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
                 }
 
 
-                // Get the start and end positions for the current chord symbol            
-                float posInBeats = shortcSeq.toPositionInBeats(destCliCs.getPosition(), cSeqStartPosInBeats);
-                float nextPosInBeats = posInBeats + shortcSeq.getChordDuration(destCliCs);
-                if (posInBeats == nextPosInBeats)
-                {
-                    throw new MusicGenerationException("Several chord symbols can not share the same position: " + destCliCs);
-                }
-
-
                 LOGGER.log(Level.FINE,
-                        "getOneAccTypePhraseOneShortChordSequence()      destEcs={0} yc={1} posInBeats={2} nextPosInBeats={3}", new Object[]
+                        "getOneAccTypePhraseOneShortChordSequence()      destCliCs={0} yc={1}", new Object[]
                         {
-                            destEcs,
-                            yc, posInBeats, nextPosInBeats
+                            destCliCs, yc
                         });
 
 
@@ -637,7 +625,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
                     assert nextYc != null : "nextDestEcs=" + nextDestEcs;   //NOI18N
                     cutRight = !stylePart.getSourceChannels(at, nextDestEcs.getRootNote(), nextYc).contains(srcChannel) ? 1 : 0;
                 }
-                pDestOneCs = Phrases.getSlice(pDestOneCs, new FloatRange(posInBeats, nextPosInBeats), true, cutRight, 0.1f);
+                pDestOneCs = Phrases.getSlice(pDestOneCs, shortcSeq.getBeatRange(destCliCs), true, cutRight, 0.1f);
 
                 // LOGGER.log(Level.FINE, "------getOneAccTypePhraseOneShortChordSequence()  post-slice cutRight="+cutRight+" pDestOneCs=" + pDestOneCs.toString());
 
@@ -861,7 +849,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
         {
 
             float posDestNote = destNote.getPositionInBeats();
-            if (!cSeq.getBeatRange(ss.toPositionInNaturalBeats(cSeq.getBarRange().from)).contains(posDestNote, true))
+            if (!cSeq.getBeatRange().contains(posDestNote, true))
             {
                 throw new IllegalStateException("destNote=" + destNote + " cSeq=" + cSeq);   //NOI18N
             }
@@ -1151,7 +1139,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
 
                 // Prepare data
                 int bassRelPitch = cliCs.getData().getBassNote().getRelativePitch();
-                float cliCsPosInBeats = cSeq.toPositionInBeats(cliCs.getPosition(), cSeqStartInBeats);
+                float cliCsPosInBeats = cSeq.toPositionInBeats(cliCs.getPosition());
 
 
                 // Get notes around chord symbol position
@@ -1200,8 +1188,8 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
             float cSeqStartInBeats = ss.toPositionInNaturalBeats(cSeq.getBarRange().from);
 
 
-            AccentProcessor ap = new AccentProcessor(cSeq, cSeqStartInBeats, nbCellsPerBeat, contextWork.getSong().getTempo(), Grid.PRE_CELL_BEAT_WINDOW_DEFAULT);
-            AnticipatedChordProcessor acp = new AnticipatedChordProcessor(cSeq, cSeqStartInBeats, nbCellsPerBeat, Grid.PRE_CELL_BEAT_WINDOW_DEFAULT);
+            AccentProcessor ap = new AccentProcessor(cSeq, nbCellsPerBeat, contextWork.getSong().getTempo(), Grid.PRE_CELL_BEAT_WINDOW_DEFAULT);
+            AnticipatedChordProcessor acp = new AnticipatedChordProcessor(cSeq, nbCellsPerBeat, Grid.PRE_CELL_BEAT_WINDOW_DEFAULT);
 
 
             HashMap<AccType, Phrase> mapAtPhrase = chordSeqPhrase.mapAccTypePhrase();
@@ -1282,18 +1270,23 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
         List<ChordSeqPhrases> res = new ArrayList<>();
         int startBar = chordSeqPhrases.get(0).simpleChordSequence().getBarRange().from;
         int startIndex = 0;
+
+
         for (int i = 1; i <= chordSeqPhrases.size(); i++)
         {
-            SimpleChordSequence cSeq = i < chordSeqPhrases.size() ? chordSeqPhrases.get(i).simpleChordSequence()
-                    : chordSeqPhrases.get(i - 1).simpleChordSequence();  // cSeq fake value on last iteration (just it must not be null)
+            SimpleChordSequence cSeq = i < chordSeqPhrases.size() ? 
+                    chordSeqPhrases.get(i).simpleChordSequence()
+                    : chordSeqPhrases.get(i - 1).simpleChordSequence();  // cSeq fake value on last iteration (it must not be null)
             SimpleChordSequence prevSeq = chordSeqPhrases.get(i - 1).simpleChordSequence();
             int prevSeqLastBar = prevSeq.getBarRange().from + prevSeq.getBarRange().size() - 1;
+
 
             if (i == chordSeqPhrases.size() || cSeq.getBarRange().from != prevSeqLastBar + 1)
             {
                 // We finished the loop, or cSeq is not contiguous : create a longer ChordSequence with a new AccType/Phrase map
                 int nbBars = prevSeqLastBar - startBar + 1;
-                SimpleChordSequence newSeq = new SimpleChordSequence(new IntRange(startBar, startBar + nbBars - 1), rhythm.getTimeSignature());
+                float startBeatPos = contextWork.getSong().getSongStructure().toPositionInNaturalBeats(startBar);
+                SimpleChordSequence newSeq = new SimpleChordSequence(new IntRange(startBar, startBar + nbBars - 1), startBeatPos, rhythm.getTimeSignature());
                 HashMap<AccType, Phrase> newMap = new HashMap<>();
                 for (int j = startIndex; j < i; j++)
                 {

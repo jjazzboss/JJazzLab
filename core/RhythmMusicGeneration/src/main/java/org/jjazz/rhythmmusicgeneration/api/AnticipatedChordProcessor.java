@@ -48,7 +48,7 @@ public class AnticipatedChordProcessor
 {
 
     private final SimpleChordSequence simpleChordSequence;
-    private FloatRange cSeqBeatRange;
+    private final FloatRange beatRange;
     private int nbCellsPerBeat;
     private int lastCellIndex;
     private float cellDuration;
@@ -62,22 +62,22 @@ public class AnticipatedChordProcessor
     /**
      * Construct the processor of a chord sequence.
      *
-     * @param cSeq                Can't be empty
-     * @param cSeqStartPosInBeats The start position in beats of cSeq. Must be an integer.
-     * @param nbCellsPerBeat      4 or 3. 3 should be used for ternary feel rhythm or 3/8 or 6/8 or 12/8 time signatures.
-     * @param preCellBeatWindow   A value in the range [0;1/nbCellsPerBeat[. Used to accomodate for non-quantized notes: notes whose relative position is &gt;
-     *                            -preCellBeatWindow will be included in the current cell.
+     * @param cSeq              Can't be empty. Start beat position must be an arithmetic integer.
+     * @param nbCellsPerBeat    4 or 3. 3 should be used for ternary feel rhythm or 3/8 or 6/8 or 12/8 time signatures.
+     * @param preCellBeatWindow A value in the range [0;1/nbCellsPerBeat[. Used to accomodate for non-quantized notes: notes whose relative position is &gt;
+     *                          -preCellBeatWindow will be included in the current cell.
      */
-    public AnticipatedChordProcessor(SimpleChordSequence cSeq, float cSeqStartPosInBeats, int nbCellsPerBeat, float preCellBeatWindow)
+    public AnticipatedChordProcessor(SimpleChordSequence cSeq, int nbCellsPerBeat, float preCellBeatWindow)
     {
         Objects.requireNonNull(cSeq);
         Preconditions.checkArgument(!cSeq.isEmpty());
         Preconditions.checkArgument(nbCellsPerBeat >= 3 && nbCellsPerBeat <= 4, "nbCellsPerBeat=%s", nbCellsPerBeat);
-        Preconditions.checkArgument(cSeqStartPosInBeats >= 0 && cSeqStartPosInBeats == Math.floor(cSeqStartPosInBeats), "cSeqStartPosInBeats=%s",
-                cSeqStartPosInBeats);
+        Preconditions.checkArgument(cSeq.getBeatRange().from >= 0 && cSeq.getBeatRange().from == Math.floor(cSeq.getBeatRange().from),
+                "cSeq.getBeatRange()=%s", cSeq.getBeatRange());
 
 
         this.simpleChordSequence = cSeq;
+        this.beatRange = cSeq.getBeatRange();
         this.timeSignature = simpleChordSequence.getTimeSignature();
         this.preCellBeatWindow = preCellBeatWindow;
 
@@ -92,13 +92,13 @@ public class AnticipatedChordProcessor
         this.nbCellsPerBeat = nbCellsPerBeat;
         lastCellIndex = ((int) nbNaturalBeats * nbCellsPerBeat * simpleChordSequence.getBarRange().size()) - 1;
         cellDuration = 1f / nbCellsPerBeat;
-        cSeqBeatRange = new FloatRange(cSeqStartPosInBeats, cSeqStartPosInBeats + cSeq.getBarRange().size() * nbNaturalBeats);
+
 
         anticipatableChords = identifyAnticipatableChords(simpleChordSequence);
 
-        LOGGER.log(Level.FINE, "AnticipatedChordProcessor -- cSeqStartPosInBeats={0} nbCellsPerBeat={1} ={2}", new Object[]
+        LOGGER.log(Level.FINE, "AnticipatedChordProcessor -- beatRange={0} nbCellsPerBeat={1} ={2}", new Object[]
         {
-            cSeqStartPosInBeats, nbCellsPerBeat, anticipatableChords
+            beatRange, nbCellsPerBeat, anticipatableChords
         });
     }
 
@@ -120,13 +120,13 @@ public class AnticipatedChordProcessor
 
 
         int nonGhostVelLimit = getGhostNoteVelocityLimitBass(p);
-        Grid gridHighPass = new Grid(p, cSeqBeatRange, nbCellsPerBeat, ne -> ne.getVelocity() >= nonGhostVelLimit, preCellBeatWindow);
-        Grid grid = new Grid(p, cSeqBeatRange, nbCellsPerBeat, null, preCellBeatWindow);
+        Grid gridHighPass = new Grid(p, beatRange, nbCellsPerBeat, ne -> ne.getVelocity() >= nonGhostVelLimit, preCellBeatWindow);
+        Grid grid = new Grid(p, beatRange, nbCellsPerBeat, null, preCellBeatWindow);
 
 
         for (CLI_ChordSymbol cliCs : anticipatableChords)
         {
-            int chordCell = grid.getCell(getChordPositionInBeats(cliCs), true);
+            int chordCell = grid.getCell(simpleChordSequence.getPositionInBeats(cliCs), true);
             if (chordCell == lastCellIndex)
             {
                 continue;
@@ -164,11 +164,11 @@ public class AnticipatedChordProcessor
     public void anticipateChords_Poly(Phrase p)
     {
         Objects.requireNonNull(p);
-        Grid grid = new Grid(p, cSeqBeatRange, nbCellsPerBeat, null, preCellBeatWindow);
+        Grid grid = new Grid(p, beatRange, nbCellsPerBeat, null, preCellBeatWindow);
 
         for (CLI_ChordSymbol cliCs : anticipatableChords)
         {
-            int chordCell = grid.getCell(getChordPositionInBeats(cliCs), true);
+            int chordCell = grid.getCell(simpleChordSequence.getPositionInBeats(cliCs), true);
             int inBeatChordCell = chordCell % nbCellsPerBeat;
             int nextBeatChordCell = Math.min(lastCellIndex, chordCell + (nbCellsPerBeat - inBeatChordCell));
             LOGGER.log(Level.FINE, "anticipateChords_Poly() cliCs={0} chordCell={1} nextBeatChordCell={2}", new Object[]
@@ -186,7 +186,7 @@ public class AnticipatedChordProcessor
                 int pitch = ne.getPitch();
                 if (mapPitchGrid.get(pitch) == null)
                 {
-                    Grid pitchGrid = new Grid(p, cSeqBeatRange, nbCellsPerBeat, n -> n.getPitch() == pitch, preCellBeatWindow);
+                    Grid pitchGrid = new Grid(p, beatRange, nbCellsPerBeat, n -> n.getPitch() == pitch, preCellBeatWindow);
                     mapPitchGrid.put(pitch, pitchGrid);
                 }
             }
@@ -224,14 +224,14 @@ public class AnticipatedChordProcessor
         }
         int nonGhostVelLimit = getGhostNoteVelocityLimitDrums(p);
         List<Integer> accentPitches = kit.getKeyMap().getKeys(DrumKit.Subset.ACCENT);
-        Grid gridHighPass = new Grid(p, cSeqBeatRange, nbCellsPerBeat,
+        Grid gridHighPass = new Grid(p, beatRange, nbCellsPerBeat,
                 ne -> ne.getVelocity() >= nonGhostVelLimit && accentPitches.contains(ne.getPitch()),
                 preCellBeatWindow);
-        Grid grid = new Grid(p, cSeqBeatRange, nbCellsPerBeat, ne -> accentPitches.contains(ne.getPitch()), preCellBeatWindow);
+        Grid grid = new Grid(p, beatRange, nbCellsPerBeat, ne -> accentPitches.contains(ne.getPitch()), preCellBeatWindow);
 
         for (CLI_ChordSymbol cliCs : anticipatableChords)
         {
-            int chordCell = grid.getCell(getChordPositionInBeats(cliCs), true);
+            int chordCell = grid.getCell(simpleChordSequence.getPositionInBeats(cliCs), true);
             int inBeatChordCell = chordCell % nbCellsPerBeat;
             int nextBeatChordCell = Math.min(lastCellIndex, chordCell + (nbCellsPerBeat - inBeatChordCell));
             int anticipatedCell = (chordCell == lastCellIndex) ? -1 : gridHighPass.getLastNoteCell(new IntRange(chordCell + 1,
@@ -256,7 +256,7 @@ public class AnticipatedChordProcessor
     // ==============================================================================================================
     /**
      * Identify the anticipatable chords in scs.
-     * 
+     * <p>
      * Conditions to be an anticipatable chord:<br>
      * - latest offbeat chord of a given beat<br>
      * - not followed by a different chord on the next beat (or by the same chord but with a special interpretation)<br>
@@ -335,10 +335,5 @@ public class AnticipatedChordProcessor
     {
         return 30;
     }
-
-    private float getChordPositionInBeats(CLI_ChordSymbol cliCs)
-    {
-        return simpleChordSequence.toPositionInBeats(cliCs.getPosition(), cSeqBeatRange.from);
-    }
-
+  
 }

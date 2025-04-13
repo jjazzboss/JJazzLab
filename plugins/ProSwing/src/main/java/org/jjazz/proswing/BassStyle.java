@@ -25,6 +25,8 @@
 package org.jjazz.proswing;
 
 import com.google.common.collect.ImmutableBiMap;
+import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 import org.jjazz.proswing.walkingbass.BassPhraseBuilder;
 import org.jjazz.proswing.walkingbass.TwoFeelPhraseBuilder;
@@ -86,6 +88,11 @@ public enum BassStyle
     public boolean isCustom()
     {
         return BIMAP_STYLE_CUSTOM.containsValue(this);
+    }
+
+    static public Set<BassStyle> getNonCustomStyles()
+    {
+        return BIMAP_STYLE_CUSTOM.keySet();
     }
 
     public BassStyle getCustomStyle()

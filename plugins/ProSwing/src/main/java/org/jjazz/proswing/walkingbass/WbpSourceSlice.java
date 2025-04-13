@@ -88,7 +88,7 @@ public class WbpSourceSlice
 
 
         // Extract notes (which are not quantized)
-        var csBeatRange = wbpSource.getSimpleChordSequence().getBeatRange(srcCliChordSymbol, 0);
+        var csBeatRange = wbpSource.getSimpleChordSequence().getBeatRange(srcCliChordSymbol);
         float fromOffset = csBeatRange.from >= WalkingBassMusicGenerator.NON_QUANTIZED_WINDOW ? WalkingBassMusicGenerator.NON_QUANTIZED_WINDOW : 0;
         float toOffset = csBeatRange.size() > WalkingBassMusicGenerator.NON_QUANTIZED_WINDOW ? WalkingBassMusicGenerator.NON_QUANTIZED_WINDOW : 0;
         var phraseBeatRange = csBeatRange.getTransformed(-fromOffset, -toOffset);

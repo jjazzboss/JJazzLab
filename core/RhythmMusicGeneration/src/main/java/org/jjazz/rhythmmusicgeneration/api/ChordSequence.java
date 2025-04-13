@@ -151,6 +151,7 @@ public class ChordSequence extends TreeSet<CLI_ChordSymbol> implements Comparabl
      * @param addInitChordSymbol If true, try to add an init chordsymbol if the resulting subsequence does not have one: reuse the last chord symbol before
      *                           subRange.from if any
      * @return
+     * @throws IllegalArgumentException If subRange is not contained in this ChordSequence bar range
      */
     public ChordSequence subSequence(IntRange subRange, boolean addInitChordSymbol)
     {
