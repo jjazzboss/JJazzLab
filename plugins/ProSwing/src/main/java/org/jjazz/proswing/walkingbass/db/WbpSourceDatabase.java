@@ -1,6 +1,6 @@
 package org.jjazz.proswing.walkingbass.db;
 
-import org.jjazz.proswing.BassStyle;
+import org.jjazz.proswing.api.BassStyle;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
@@ -99,6 +99,10 @@ public class WbpSourceDatabase
 
     private WbpSourceDatabase()
     {
+        long time = System.currentTimeMillis();
+        LOGGER.log(Level.FINE, "WbpSourceDatabase() initializing...");
+
+
         mmapBsrpWbpSources = MultimapBuilder.hashKeys().arrayListValues().build();
         mmapSessionIdWbpSources = MultimapBuilder.hashKeys().arrayListValues().build();
         mapIdWbpSource = new HashMap<>();
@@ -115,11 +119,19 @@ public class WbpSourceDatabase
         wbpSessions = loadWbpSessionsFromMidiFile(MIDI_FILE_2FEEL_B_RESOURCE_PATH, "2FB", "2feel-b", TimeSignature.FOUR_FOUR);
         wbpSessions.forEach(s -> processWbpSession(s));
 
-        // {x,number,#} avoids auto number formatting which turns 1200 into "1,200"
-        LOGGER.log(Level.SEVERE, "WbpDatabase() 1-bar:{0,number,#}  2-bar:{1,number,#}  3-bar:{2,number,#}  4-bar:{3,number,#}", new Object[]
+
+        time = System.currentTimeMillis() - time;
+        // {x,number,#} avoids auto number formatting which turns 1200 into "1,200"        
+        LOGGER.log(Level.INFO, "WbpSourceDatabase() initialized in {1,number,#}ms  ", new Object[]
         {
-            getNbWbpSources(1), getNbWbpSources(2), getNbWbpSources(3), getNbWbpSources(4)
+            time
         });
+
+//        LOGGER.log(Level.FINE, "WbpSourceDatabase() 1-bar:{0,number,#}  2-bar:{1,number,#}  3-bar:{2,number,#}  4-bar:{3,number,#}", new Object[]
+//        {
+//            getNbWbpSources(1), getNbWbpSources(2), getNbWbpSources(3), getNbWbpSources(4)
+//        });
+
     }
 
 
@@ -506,7 +518,7 @@ public class WbpSourceDatabase
      */
     private List<WbpSession> loadWbpSessionsFromMidiFile(String midiFileResourcePath, String sessionIdPrefix, String sessionTag, TimeSignature ts)
     {
-        LOGGER.log(Level.INFO, "loadWbpSessionsFromMidiFile() -- prefix={0} sessionTag={1} file={2}", new Object[]
+        LOGGER.log(Level.FINE, "loadWbpSessionsFromMidiFile() -- prefix={0} sessionTag={1} file={2}", new Object[]
         {
             sessionIdPrefix, sessionTag, midiFileResourcePath
         });

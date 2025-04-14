@@ -55,12 +55,12 @@ public class TilerLongestFirstNoRepeat implements Tiler
     @Override
     public void tile(WbpTiling tiling)
     {
-        LOGGER.log(Level.SEVERE, "tile() --");
+        LOGGER.log(Level.FINE, "tile() --");
         reset();
 
         WbpsaStore store = new WbpsaStore(tiling, wbpsaStoreWidth, scorer);
 
-        // LOGGER.log(Level.SEVERE, "tile() store=\n{0}", store.toDebugString(true));
+        // LOGGER.log(Level.FINE, "tile() store=\n{0}", store.toDebugString(true));
 
         for (int size = WbpSourceDatabase.SIZE_MAX; size >= WbpSourceDatabase.SIZE_MIN; size--)
         {

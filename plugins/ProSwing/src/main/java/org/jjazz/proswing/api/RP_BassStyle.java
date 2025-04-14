@@ -22,7 +22,7 @@
  *   Contributor(s): 
  * 
  */
-package org.jjazz.proswing;
+package org.jjazz.proswing.api;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableBiMap;

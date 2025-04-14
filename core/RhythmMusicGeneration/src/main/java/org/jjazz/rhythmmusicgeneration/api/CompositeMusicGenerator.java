@@ -91,7 +91,7 @@ public class CompositeMusicGenerator implements MusicGenerator
             genRvs.retainAll(mapGenRvs.get(mg));
             if (!genRvs.isEmpty())
             {
-                LOGGER.log(Level.SEVERE, "generateMusic() generating music for mg={0} and genRvs={1}", new Object[]
+                LOGGER.log(Level.FINE, "generateMusic() generating music for mg={0} and genRvs={1}", new Object[]
                 {
                     mg.getClass().getSimpleName(), genRvs
                 });

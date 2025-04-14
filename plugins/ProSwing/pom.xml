@@ -53,7 +53,8 @@
                 <groupId>org.apache.netbeans.utilities</groupId>
                 <artifactId>nbm-maven-plugin</artifactId>
                 <configuration>
-                    <publicPackages>                
+                    <publicPackages>
+                        <publicPackage>org.jjazz.proswing.api</publicPackage>
                     </publicPackages>                               
                 </configuration>
                 <extensions>true</extensions>

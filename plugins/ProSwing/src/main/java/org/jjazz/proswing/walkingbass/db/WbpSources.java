@@ -35,7 +35,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.phrase.api.Phrases;
 import org.jjazz.phrase.api.SizedPhrase;
-import org.jjazz.proswing.BassStyle;
+import org.jjazz.proswing.api.BassStyle;
 
 /**
  * Algorithms to process WbpSources.

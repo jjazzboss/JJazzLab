@@ -40,7 +40,7 @@ import org.jjazz.midi.api.synths.InstrumentFamily;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SizedPhrase;
-import org.jjazz.proswing.BassStyle;
+import org.jjazz.proswing.api.BassStyle;
 import static org.jjazz.proswing.walkingbass.JJSwingBassMusicGenerator.DURATION_BEAT_MARGIN;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.utilities.api.FloatRange;
@@ -58,7 +58,7 @@ public class WalkingPhraseBuilder implements BassPhraseBuilder
     @Override
     public Phrase build(List<SimpleChordSequence> scsList, int tempo)
     {
-        LOGGER.log(Level.SEVERE, "build() -- tempo={0} scsList={1}", new Object[]
+        LOGGER.log(Level.FINE, "build() -- tempo={0} scsList={1}", new Object[]
         {
             tempo, scsList
         });
@@ -72,21 +72,21 @@ public class WalkingPhraseBuilder implements BassPhraseBuilder
         // PREMIUM PHASE
         WbpsaScorer scorerPremium = new WbpsaScorerDefault(phraseAdapter, tempo, Score.PREMIUM_ONLY_TESTER, STYLE);
 
-        LOGGER.log(Level.SEVERE, "\n");
-        LOGGER.log(Level.SEVERE, "build() ================  tiling PREMIUM LongestFirstNoRepeat");
+        LOGGER.log(Level.FINE, "\n");
+        LOGGER.log(Level.FINE, "build() ================  tiling PREMIUM LongestFirstNoRepeat");
         var tilerLongestPremium = new TilerLongestFirstNoRepeat(scorerPremium, settings.getWbpsaStoreWidth());
         tilerLongestPremium.tile(tiling);
-        LOGGER.log(Level.SEVERE, tiling.toMultiLineString());
+        LOGGER.log(Level.FINE, tiling.toMultiLineString());
 
 
         var untiled = !tiling.isFullyTiled();
         if (untiled)
         {
-            LOGGER.log(Level.SEVERE, "\n");
-            LOGGER.log(Level.SEVERE, "build() ================  tiling PREMIUM MaxDistance");
+            LOGGER.log(Level.FINE, "\n");
+            LOGGER.log(Level.FINE, "build() ================  tiling PREMIUM MaxDistance");
             var tilerMaxDistancePremium = new TilerMaxDistance(scorerPremium, settings.getWbpsaStoreWidth());
             tilerMaxDistancePremium.tile(tiling);
-            LOGGER.log(Level.SEVERE, tiling.toMultiLineString());
+            LOGGER.log(Level.FINE, tiling.toMultiLineString());
         }
 
 
@@ -94,22 +94,22 @@ public class WalkingPhraseBuilder implements BassPhraseBuilder
         untiled = !tiling.isFullyTiled();
         if (untiled)
         {
-            LOGGER.log(Level.SEVERE, "\n");
-            LOGGER.log(Level.SEVERE, "build() ================  tiling STANDARD LongestFirstNoRepeat");
+            LOGGER.log(Level.FINE, "\n");
+            LOGGER.log(Level.FINE, "build() ================  tiling STANDARD LongestFirstNoRepeat");
             WbpsaScorer scorerStandard = new WbpsaScorerDefault(phraseAdapter, tempo, null, STYLE);
 
             var tilerLongestStandard = new TilerLongestFirstNoRepeat(scorerStandard, settings.getWbpsaStoreWidth());
             tilerLongestStandard.tile(tiling);
-            LOGGER.log(Level.SEVERE, tiling.toMultiLineString());
+            LOGGER.log(Level.FINE, tiling.toMultiLineString());
 
             untiled = !tiling.isFullyTiled();
             if (untiled)
             {
-                LOGGER.log(Level.SEVERE, "\n");
-                LOGGER.log(Level.SEVERE, "build() ================  tiling STANDARD MaxDistance");
+                LOGGER.log(Level.FINE, "\n");
+                LOGGER.log(Level.FINE, "build() ================  tiling STANDARD MaxDistance");
                 var tilerMaxDistanceStandard = new TilerMaxDistance(scorerStandard, settings.getWbpsaStoreWidth());
                 tilerMaxDistanceStandard.tile(tiling);
-                LOGGER.log(Level.SEVERE, tiling.toMultiLineString());
+                LOGGER.log(Level.FINE, tiling.toMultiLineString());
             }
         }
 
@@ -120,10 +120,10 @@ public class WalkingPhraseBuilder implements BassPhraseBuilder
         untiled = !tiling.isFullyTiled();
         if (untiled)
         {
-            LOGGER.log(Level.SEVERE, "\n");
-            LOGGER.log(Level.SEVERE, "build() ================  tiling EXISTING CUSTOM MaxDistance");
+            LOGGER.log(Level.FINE, "\n");
+            LOGGER.log(Level.FINE, "build() ================  tiling EXISTING CUSTOM MaxDistance");
             tilerMaxDistanceCustomStandard.tile(tiling);
-            LOGGER.log(Level.SEVERE, tiling.toMultiLineString());
+            LOGGER.log(Level.FINE, tiling.toMultiLineString());
         }
 
 
@@ -131,8 +131,8 @@ public class WalkingPhraseBuilder implements BassPhraseBuilder
         untiled = !tiling.isFullyTiled();
         if (untiled)
         {
-            LOGGER.log(Level.SEVERE, "\n");
-            LOGGER.log(Level.SEVERE, "build() ================  tiling CREATED CUSTOM MaxDistance");
+            LOGGER.log(Level.FINE, "\n");
+            LOGGER.log(Level.FINE, "build() ================  tiling CREATED CUSTOM MaxDistance");
 
             // Create custom WbpSources and add them to the database
             var customWbpSources = tiling.buildMissingWbpSources((chordSeq, targetNote) -> createWalkingCustomWbpSources(chordSeq, targetNote),
@@ -143,7 +143,7 @@ public class WalkingPhraseBuilder implements BassPhraseBuilder
             {
                 if (!wbpDb.addWbpSource(wbps))
                 {
-                    LOGGER.log(Level.WARNING, "handleNonTiledBars() add failed for {1} ", new Object[]
+                    LOGGER.log(Level.WARNING, "handleNonTiledBars() add failed for {0} ", new Object[]
                     {
                         wbps
                     });
@@ -152,28 +152,28 @@ public class WalkingPhraseBuilder implements BassPhraseBuilder
 
             // Redo a tiling
             tilerMaxDistanceCustomStandard.tile(tiling);
-            LOGGER.log(Level.SEVERE, tiling.toMultiLineString());
+            LOGGER.log(Level.FINE, tiling.toMultiLineString());
         }
-        
-        
+
+
         // Control
         if (!tiling.isFullyTiled())
         {
             LOGGER.log(Level.WARNING, "build() could not fully tile, untiled bars={0}", tiling.getNonTiledBars());
         }
 
-        
-        LOGGER.log(Level.SEVERE, "\n");
-        LOGGER.log(Level.SEVERE, "build() ===============   Tiling stats  tiling.usableBars={0} \n{1}", new Object[]
+
+        LOGGER.log(Level.FINE, "\n");
+        LOGGER.log(Level.FINE, "build() ===============   Tiling stats  tiling.usableBars={0} \n{1}", new Object[]
         {
             tiling.getUsableBars().size(),
             tiling.toStatsString()
         });
-        
+
 
         var phrase = tiling.buildPhrase(phraseAdapter);
-        
-        
+
+
         return phrase;
     }
 
@@ -249,12 +249,20 @@ public class WalkingPhraseBuilder implements BassPhraseBuilder
 
         if (!ecsBeat0.isSlashChord())
         {
-            bassPitchBeat1 = getClosestPitch(ecsBeat0, bassPitchBeat2);
+            int pitch = getClosestPitch(ecsBeat0, bassPitchBeat2, DegreeIndex.THIRD_OR_FOURTH, DegreeIndex.FIFTH, DegreeIndex.SIXTH_OR_SEVENTH);
+            if (pitch != -1)
+            {
+                bassPitchBeat1 = pitch;
+            }
         }
         if (!ecsBeat2.isSlashChord())
         {
-            int pitch = targetPitch != -1 ? targetPitch : InstrumentFamily.Bass.toAbsolutePitch(11);        // B
-            bassPitchBeat3 = getClosestPitch(ecsBeat0, pitch);
+            int tPitch = targetPitch != -1 ? targetPitch : InstrumentFamily.Bass.toAbsolutePitch(11);        // B
+            int pitch = getClosestPitch(ecsBeat0, tPitch, DegreeIndex.THIRD_OR_FOURTH, DegreeIndex.FIFTH, DegreeIndex.SIXTH_OR_SEVENTH);
+            if (pitch != -1)
+            {
+                bassPitchBeat3 = pitch;
+            }
         }
 
 
@@ -313,31 +321,30 @@ public class WalkingPhraseBuilder implements BassPhraseBuilder
             var ecs = cliCs.getData();
             int relPitch = cliCs.getData().getBassNote().getRelativePitch();
             int bassPitch = InstrumentFamily.Bass.toAbsolutePitch(relPitch);
-            FloatRange brCliCs = scs.getBeatRange(cliCs);
-            float duration = brCliCs.size() - DURATION_BEAT_MARGIN;
+            FloatRange brCliCsAdjusted = scs.getBeatRange(cliCs).getTransformed(0, -DURATION_BEAT_MARGIN);
             int velocity = velocityRange.from + (int) Math.round(Math.random() * (velocityRange.size() - 1));
             velocity = MidiConst.clamp(velocity);
 
-            if (duration >= 2.8f)
+            if (brCliCsAdjusted.size() >= 2.8f)
             {
                 // Play 3 notes: bass note, 3rd, 5th (or always bass note if slash chord)
 
                 int addNote2RelPitch = ecs.isSlashChord() ? relPitch : ecs.getRelativePitch(DegreeIndex.FIFTH);
                 int addNote2Pitch = InstrumentFamily.Bass.toAbsolutePitch(addNote2RelPitch);
-                float addNote2BeatPos = (float) Math.floor(brCliCs.to);
-                float addNote2Duration = brCliCs.to - addNote2BeatPos;
+                float addNote2BeatPos = (float) Math.floor(brCliCsAdjusted.to);
+                float addNote2Duration = brCliCsAdjusted.to - addNote2BeatPos;
 
 
                 int addNote1RelPitch = ecs.isSlashChord() ? relPitch : ecs.getRelativePitch(DegreeIndex.THIRD_OR_FOURTH);
                 int addNote1Pitch = InstrumentFamily.Bass.toAbsolutePitch(addNote1RelPitch != -1 ? addNote1RelPitch : addNote2Pitch);
-                float addNote1BeatPos = (float) Math.floor(brCliCs.to - 1);
+                float addNote1BeatPos = (float) Math.floor(brCliCsAdjusted.to - 1);
                 float addNote1Duration = addNote2BeatPos - addNote1BeatPos - DURATION_BEAT_MARGIN;
 
 
-                duration = addNote1BeatPos - brCliCs.from - DURATION_BEAT_MARGIN;
+                float duration = addNote1BeatPos - brCliCsAdjusted.from - DURATION_BEAT_MARGIN;
 
 
-                NoteEvent ne = new NoteEvent(bassPitch, duration, velocity, brCliCs.from);
+                NoteEvent ne = new NoteEvent(bassPitch, duration, velocity, brCliCsAdjusted.from);
                 sp.add(ne);
                 ne = new NoteEvent(addNote1Pitch, addNote1Duration, velocity - 4, addNote1BeatPos);
                 sp.add(ne);
@@ -345,26 +352,26 @@ public class WalkingPhraseBuilder implements BassPhraseBuilder
                 sp.add(ne);
 
 
-            } else if (duration >= 1.8f)
+            } else if (brCliCsAdjusted.size() >= 1.8f)
             {
                 // Play 2 notes: bass note and 5th  (or always bass note if slash chord)
                 int addNote1RelPitch = ecs.isSlashChord() ? relPitch : ecs.getRelativePitch(DegreeIndex.FIFTH);
                 int addNote1Pitch = InstrumentFamily.Bass.toAbsolutePitch(addNote1RelPitch);
-                float addNote1BeatPos = (float) Math.floor(brCliCs.to);
-                float addNote1Duration = brCliCs.to - addNote1BeatPos;
+                float addNote1BeatPos = (float) Math.floor(brCliCsAdjusted.to);
+                float addNote1Duration = brCliCsAdjusted.to - addNote1BeatPos;
 
 
-                duration = addNote1BeatPos - brCliCs.from - DURATION_BEAT_MARGIN;
+                float duration = addNote1BeatPos - brCliCsAdjusted.from - DURATION_BEAT_MARGIN;
 
 
-                NoteEvent ne = new NoteEvent(bassPitch, duration, velocity, brCliCs.from);
+                NoteEvent ne = new NoteEvent(bassPitch, duration, velocity, brCliCsAdjusted.from);
                 sp.add(ne);
                 ne = new NoteEvent(addNote1Pitch, addNote1Duration, velocity - 4, addNote1BeatPos);
                 sp.add(ne);
             } else
             {
                 // Play a single note: bass note
-                NoteEvent ne = new NoteEvent(bassPitch, duration, velocity, brCliCs.from);
+                NoteEvent ne = new NoteEvent(bassPitch, brCliCsAdjusted.size(), velocity, brCliCsAdjusted.from);
                 sp.add(ne);
             }
         }

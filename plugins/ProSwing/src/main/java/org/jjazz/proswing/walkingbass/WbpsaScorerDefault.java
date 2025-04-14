@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
-import org.jjazz.proswing.BassStyle;
+import org.jjazz.proswing.api.BassStyle;
 import org.jjazz.proswing.walkingbass.db.RootProfile;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.rhythm.api.TempoRange;

@@ -22,7 +22,7 @@
  *   Contributor(s): 
  * 
  */
-package org.jjazz.proswing;
+package org.jjazz.proswing.test;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -37,21 +37,21 @@ import org.openide.util.NbBundle.Messages;
 
 @ActionID(
         category = "Edit",
-        id = "org.jjazz.proswing.WdbAction"
+        id = "org.jjazz.proswing.WbpSourceDbStats"
 )
 @ActionRegistration(
-        displayName = "#CTL_WdbAction"
+        displayName = "#CTL_WbpSourceDbStats"
 )
 @ActionReference(path = "Menu/Edit", position = 60100)
-@Messages("CTL_WdbAction=WdbAction")
-public final class WdbAction implements ActionListener
+@Messages("CTL_WbpSourceDbStats=WbpSourceDatabase stats")
+public final class WbpSourceDbStats implements ActionListener
 {
 
-    protected static final Logger LOGGER = Logger.getLogger(WdbAction.class.getSimpleName());
+    protected static final Logger LOGGER = Logger.getLogger(WbpSourceDbStats.class.getSimpleName());
 
     @Override public void actionPerformed(ActionEvent e)
     {
-        LOGGER.severe("WdbAction started");
+        LOGGER.severe("WbpSourceDbStats started");
         var db = WbpSourceDatabase.getInstance();
 
         // Compute stats about offset from beat 0 of the first note of each bar

@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.phrase.api.Phrase;
-import org.jjazz.proswing.BassStyle;
+import org.jjazz.proswing.api.BassStyle;
 import static org.jjazz.proswing.walkingbass.JJSwingBassMusicGenerator.NON_QUANTIZED_WINDOW;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.utilities.api.FloatRange;
@@ -42,29 +42,28 @@ import org.jjazz.utilities.api.FloatRange;
 public class WalkingDoublePhraseBuilder implements BassPhraseBuilder
 {
 
-    private static int sessionCount = 0;
     private static final BassStyle STYLE = BassStyle.WALKING_DOUBLE;
     private static final Logger LOGGER = Logger.getLogger(WalkingDoublePhraseBuilder.class.getSimpleName());
 
     @Override
     public Phrase build(List<SimpleChordSequence> scsList, int tempo)
     {
-        LOGGER.log(Level.SEVERE, "build() -- tempo={0} scsList={1}", new Object[]
+        LOGGER.log(Level.FINE, "build() -- tempo={0} scsList={1}", new Object[]
         {
             tempo, scsList
         });
-        
+
 
         // Delegates to the normal walking bass phrase builder
         BassPhraseBuilder walkingBuilder = BassStyle.WALKING.getBassPhraseBuilder();
         Phrase p = walkingBuilder.build(scsList, tempo);
 
-        
+
         var usableBars = scsList.stream()
                 .map(scs -> scs.getBarRange())
                 .flatMap(br -> br.stream().boxed())
                 .toList();
-        
+
 
         // Turn it into double notes phrase using notes from beat 0 and beat 2
         float nbBeatsPerBar = 4;
@@ -94,8 +93,13 @@ public class WalkingDoublePhraseBuilder implements BassPhraseBuilder
                 continue;
             }
             var ne2 = p2.first();
+            if (ne0.getPitch() == ne2.getPitch())
+            {
+                // Leave the normal walking bass for a change, better than 4 times the same note!
+                continue;
+            }
             float beatPos2 = ne2.getPositionInBeats() < barStartBeatPos + 2 + NON_QUANTIZED_WINDOW ? ne2.getPositionInBeats() : barStartBeatPos + 2;
-            ne0 = ne0.setAll(-1, 0.9f, -1, beatPos2, false);
+            ne2 = ne2.setAll(-1, 0.9f, -1, beatPos2, false);
             var ne3 = ne2.setPosition(barStartBeatPos + 3, false);
 
 

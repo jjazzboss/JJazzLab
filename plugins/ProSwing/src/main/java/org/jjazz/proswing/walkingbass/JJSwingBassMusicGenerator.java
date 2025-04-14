@@ -23,8 +23,8 @@ import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.Phrases;
-import org.jjazz.proswing.RP_BassStyle;
-import org.jjazz.proswing.BassStyle;
+import org.jjazz.proswing.api.RP_BassStyle;
+import org.jjazz.proswing.api.BassStyle;
 import org.jjazz.proswing.walkingbass.db.WbpSource;
 import org.jjazz.proswing.walkingbass.db.WbpSourceDatabase;
 import org.jjazz.rhythm.api.Division;
@@ -114,7 +114,7 @@ public class JJSwingBassMusicGenerator implements MusicGenerator
         List<String> tags = guessTags(context);
 
 
-        LOGGER.log(Level.SEVERE, "\n\n\n\n############################################ \ngenerateMusic() -- rhythm={0} tags={1}", new Object[]
+        LOGGER.log(Level.FINE, "\n\n\n\n############################################ \ngenerateMusic() -- rhythm={0} tags={1}", new Object[]
         {
             rhythm.getName(), tags
         });
@@ -226,7 +226,7 @@ public class JJSwingBassMusicGenerator implements MusicGenerator
 
         // Prepare a SongChordSequence where we removed some anticipated chords to facilitate tiling of WbpSources
         var scsWork = prepareWorkSongChordSequence(contextWork);
-        LOGGER.log(Level.SEVERE, "getOneBassPhrasePerBassStyle() scsWork={0}", scsWork);
+        LOGGER.log(Level.FINE, "getOneBassPhrasePerBassStyle() scsWork={0}", scsWork);
 
 
         // Process each bass style

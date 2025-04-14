@@ -382,7 +382,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
                     doDisableUpdates = true;
                 }
             }
-            case Song.PROP_VETOABLE_USER_PHRASE_CONTENT ->
+            case Song.PROP_VETOABLE_USER_PHRASE_CONTENT, Song.PROP_TEMPO ->
             {
                 doUpdate = true;
             }

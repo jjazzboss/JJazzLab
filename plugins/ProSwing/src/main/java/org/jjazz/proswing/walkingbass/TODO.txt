@@ -21,6 +21,4 @@ it can happen, and  it can also happen after tiling because of pedal bass handli
 
 
 BUGS
-* BUG nonStdPos.sng
 * Exception when using play loop zone in some cases
-* changement de tempo warning

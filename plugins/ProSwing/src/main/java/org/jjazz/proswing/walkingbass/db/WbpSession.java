@@ -33,7 +33,7 @@ import org.jjazz.harmony.api.Note;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.Phrases;
 import org.jjazz.phrase.api.SizedPhrase;
-import org.jjazz.proswing.BassStyle;
+import org.jjazz.proswing.api.BassStyle;
 import static org.jjazz.proswing.walkingbass.JJSwingBassMusicGenerator.NON_QUANTIZED_WINDOW;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.utilities.api.FloatRange;
