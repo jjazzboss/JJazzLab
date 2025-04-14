@@ -35,7 +35,7 @@ import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythm;
 public interface YjzCompositeRhythm extends YamJJazzRhythm
 {
 
-    YamJJazzRhythm getBaseRhythm();
+    YamJJazzRhythm getBaseYamJJazzRhythm();
 
     /**
      * Get the MusicGenerators to be used, and the associated RhythmVoice list.

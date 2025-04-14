@@ -22,6 +22,7 @@
  */
 package org.jjazz.yamjjazz.rhythm;
 
+import com.google.common.base.Preconditions;
 import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythmGenerator;
 import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythm;
 import java.beans.PropertyChangeListener;
@@ -53,41 +54,42 @@ import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Marker;
 import org.jjazz.rhythmmusicgeneration.api.RP_SYS_Mute;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_TempoFactor;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
-import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.yamjjazz.rhythm.api.AccType;
 import org.jjazz.yamjjazz.rhythm.api.CtabChannelSettings;
 import org.jjazz.yamjjazz.rhythm.api.Style;
 import org.jjazz.yamjjazz.rhythm.api.StylePart;
 import org.jjazz.yamjjazz.rhythm.api.StylePartType;
+import org.jjazz.yamjjazz.rhythm.api.YamJJazzAdaptedRhythm;
 
 /**
  * A time signature adapter rhythm for our YamJJazz rhythms.
  * <p>
  */
-public class YamJJazzAdaptedRhythmImpl implements YamJJazzRhythm, AdaptedRhythm
+public class YamJJazzAdaptedRhythmImpl implements YamJJazzAdaptedRhythm
 {
 
-    private String rhythmProviderId;
-    private final List<RhythmVoice> rhythmVoices = new ArrayList<>();
-    private final List<RhythmParameter<?>> rhythmParameters = new ArrayList<>();
-    private YamJJazzRhythm yjr; // The original rhythm
-    private TimeSignature newTs; // The new time signature
-    private Style newStyle; // The style copy adapted to new time signature
+    private final String rhythmProviderId;
+    private final List<RhythmVoiceDelegate> rhythmVoices;
+    private final List<RhythmParameter<?>> rhythmParameters;
+    private final YamJJazzRhythm sourceRhythm;          // The source rhythm
+    private final TimeSignature newTs;                  // The new time signature
+    private Style newStyle;                             // The style copy adapted to new time signature
     MusicGenerator generator;
     private final transient SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(YamJJazzAdaptedRhythmImpl.class.getSimpleName());
 
-    public YamJJazzAdaptedRhythmImpl(String rhythmProviderId, YamJJazzRhythm originalRhythm, TimeSignature ts)
+    public YamJJazzAdaptedRhythmImpl(String rhythmProviderId, YamJJazzRhythm sourceRhythm, TimeSignature ts)
     {
-        if (rhythmProviderId == null || originalRhythm == null || ts == null || ts.equals(originalRhythm.getTimeSignature()))
-        {
-            throw new IllegalArgumentException("rhythmProviderId=" + rhythmProviderId + " originalRhythm=" + originalRhythm + " ts=" + ts);   //NOI18N
-        }
+        Objects.requireNonNull(rhythmProviderId);
+        Objects.requireNonNull(sourceRhythm);
+        Objects.requireNonNull(ts);
+        Preconditions.checkArgument(!sourceRhythm.getTimeSignature().equals(ts), "sourceRhythm=%s ts=%s", sourceRhythm, ts);
+
         this.rhythmProviderId = rhythmProviderId;
-        yjr = originalRhythm;
+        this.sourceRhythm = sourceRhythm;
         newTs = ts;
-        buildRhythmVoices();
-        buildRhythmParameters();
+        rhythmVoices = buildRhythmVoices();
+        rhythmParameters = buildRhythmParameters();
     }
 
     @Override
@@ -113,13 +115,13 @@ public class YamJJazzAdaptedRhythmImpl implements YamJJazzRhythm, AdaptedRhythm
     @Override
     public Rhythm getSourceRhythm()
     {
-        return yjr;
+        return sourceRhythm;
     }
 
     @Override
     public String getUniqueId()
     {
-        return rhythmProviderId + AdaptedRhythm.RHYTHM_ID_DELIMITER + yjr.getUniqueId() + AdaptedRhythm.RHYTHM_ID_DELIMITER + newTs;
+        return AdaptedRhythm.buildUniqueId(rhythmProviderId, sourceRhythm, newTs);
     }
 
     // ==================================================================================================
@@ -128,7 +130,7 @@ public class YamJJazzAdaptedRhythmImpl implements YamJJazzRhythm, AdaptedRhythm
     @Override
     public RhythmFeatures getFeatures()
     {
-        return yjr.getFeatures();
+        return sourceRhythm.getFeatures();
     }
 
     /**
@@ -144,12 +146,12 @@ public class YamJJazzAdaptedRhythmImpl implements YamJJazzRhythm, AdaptedRhythm
             return;
         }
 
-        if (!yjr.isResourcesLoaded())
+        if (!sourceRhythm.isResourcesLoaded())
         {
-            yjr.loadResources();
+            sourceRhythm.loadResources();
         }
 
-        Style oldStyle = yjr.getStyle();
+        Style oldStyle = sourceRhythm.getStyle();
         newStyle = adaptStyle(oldStyle, newTs);
 
         pcs.firePropertyChange(PROP_RESOURCES_LOADED, false, true);
@@ -195,13 +197,13 @@ public class YamJJazzAdaptedRhythmImpl implements YamJJazzRhythm, AdaptedRhythm
     @Override
     public String getDescription()
     {
-        return getName() + " - " + ResUtil.getString(getClass(), "CTL_AdaptedRhythmDesc", yjr.getTimeSignature(), newTs);
+        return AdaptedRhythm.buildDescription(sourceRhythm, newTs);
     }
 
     @Override
     public int getPreferredTempo()
     {
-        return yjr.getPreferredTempo();
+        return sourceRhythm.getPreferredTempo();
     }
 
     @Override
@@ -213,25 +215,25 @@ public class YamJJazzAdaptedRhythmImpl implements YamJJazzRhythm, AdaptedRhythm
     @Override
     public String getName()
     {
-        return "[" + newTs + "]" + yjr.getName();
+        return AdaptedRhythm.buildName(sourceRhythm, newTs);
     }
 
     @Override
     public String getAuthor()
     {
-        return yjr.getAuthor();
+        return sourceRhythm.getAuthor();
     }
 
     @Override
     public String getVersion()
     {
-        return yjr.getVersion();
+        return sourceRhythm.getVersion();
     }
 
     @Override
     public String[] getTags()
     {
-        return yjr.getTags();
+        return sourceRhythm.getTags();
     }
 
     // ==================================================================================================
@@ -240,13 +242,13 @@ public class YamJJazzAdaptedRhythmImpl implements YamJJazzRhythm, AdaptedRhythm
     @Override
     public AccType getAccType(String rpMuteValue)
     {
-        return yjr.getAccType(rpMuteValue);
+        return sourceRhythm.getAccType(rpMuteValue);
     }
 
     @Override
     public int getComplexityLevel(String rpValue)
     {
-        return yjr.getComplexityLevel(rpValue);
+        return sourceRhythm.getComplexityLevel(rpValue);
     }
 
     /**
@@ -272,11 +274,6 @@ public class YamJJazzAdaptedRhythmImpl implements YamJJazzRhythm, AdaptedRhythm
         return newStyle;
     }
 
-    /**
-     * Use our adapted style !
-     *
-     * @return
-     */
     /**
      * Use our style copy.
      *
@@ -306,7 +303,7 @@ public class YamJJazzAdaptedRhythmImpl implements YamJJazzRhythm, AdaptedRhythm
     @Override
     public boolean isExtendedRhythm()
     {
-        return yjr.isExtendedRhythm();
+        return sourceRhythm.isExtendedRhythm();
     }
 
     @Override
@@ -359,7 +356,7 @@ public class YamJJazzAdaptedRhythmImpl implements YamJJazzRhythm, AdaptedRhythm
      */
     private void copyAndAdaptNotes(int nbBars, SourcePhrase oldPhrase, SourcePhrase newPhrase)
     {
-        int oldNbBeatsPerBar = (int) yjr.getTimeSignature().getNbNaturalBeats();
+        int oldNbBeatsPerBar = (int) sourceRhythm.getTimeSignature().getNbNaturalBeats();
         int newNbBeatsPerBar = (int) newTs.getNbNaturalBeats();
         newPhrase.clear();
         int bar = 0;
@@ -464,7 +461,7 @@ public class YamJJazzAdaptedRhythmImpl implements YamJJazzRhythm, AdaptedRhythm
 
             // Update size in beats of the reference phrase
             float oldSizeInBeats = oldSp.getSizeInBeats();  // It's an int
-            int nbBars = Math.round(oldSizeInBeats / yjr.getTimeSignature().getNbNaturalBeats());
+            int nbBars = Math.round(oldSizeInBeats / sourceRhythm.getTimeSignature().getNbNaturalBeats());
             float newSizeInBeats = nbBars * newTimeSig.getNbNaturalBeats();
             newSp.setSizeInBeats(newSizeInBeats);
 
@@ -513,15 +510,29 @@ public class YamJJazzAdaptedRhythmImpl implements YamJJazzRhythm, AdaptedRhythm
         return adaptedStyle;
     }
 
-    private void buildRhythmVoices()
+    /**
+     * Create RhythmVoiceDelegates for source RhythmVoices.
+     *
+     * @return
+     */
+    private List<RhythmVoiceDelegate> buildRhythmVoices()
     {
-        yjr.getRhythmVoices().stream().forEach(rv -> rhythmVoices.add(RhythmVoiceDelegate.createInstance(this, rv)));
+        List<RhythmVoiceDelegate> res = sourceRhythm.getRhythmVoices().stream()
+                .map(rv -> RhythmVoiceDelegate.createInstance(this, rv))
+                .toList();
+        return res;
     }
 
-    private void buildRhythmParameters()
+    /**
+     * Directly reuse the source rhythm RhythmParameters, except we need new specific instances.
+     *
+     * @return
+     */
+    private List<RhythmParameter<?>> buildRhythmParameters()
     {
+        List<RhythmParameter<?>> res = new ArrayList<>();
         // Some RhythmParameters take a Rhythm as argument, can't directly reuse
-        for (RhythmParameter<?> rp : yjr.getRhythmParameters())
+        for (RhythmParameter<?> rp : sourceRhythm.getRhythmParameters())
         {
             if (rp instanceof RP_SYS_Variation
                     || rp instanceof RP_SYS_Variation
@@ -533,15 +544,16 @@ public class YamJJazzAdaptedRhythmImpl implements YamJJazzRhythm, AdaptedRhythm
                     || rp instanceof RP_SYS_TempoFactor)
             {
                 // Those rhythmParameters can be directly reused between rhythms
-                rhythmParameters.add(rp);
+                res.add(rp);
             } else if (rp instanceof RP_SYS_CustomPhrase)
             {
-                rhythmParameters.add(new RP_SYS_CustomPhrase(this, rp.isPrimary()));
+                res.add(new RP_SYS_CustomPhrase(this, rp.isPrimary()));
             } else if (rp instanceof RP_SYS_DrumsTransform)
             {
-                rhythmParameters.add(new RP_SYS_DrumsTransform(getRhythmVoice(AccType.RHYTHM), rp.isPrimary()));
+                res.add(new RP_SYS_DrumsTransform(getRhythmVoice(AccType.RHYTHM), rp.isPrimary()));
             }
         }
+        return res;
     }
 
 

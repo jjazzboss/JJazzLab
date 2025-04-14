@@ -41,7 +41,7 @@ import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.proswing.BassStyle;
-import static org.jjazz.proswing.walkingbass.WalkingBassMusicGenerator.DURATION_BEAT_MARGIN;
+import static org.jjazz.proswing.walkingbass.JJSwingBassMusicGenerator.DURATION_BEAT_MARGIN;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.utilities.api.FloatRange;
 
@@ -58,21 +58,22 @@ public class WalkingPhraseBuilder implements BassPhraseBuilder
     @Override
     public Phrase build(List<SimpleChordSequence> scsList, int tempo)
     {
-        LOGGER.log(Level.SEVERE, "build() -- tempo={1} scsList={2}", new Object[]
+        LOGGER.log(Level.SEVERE, "build() -- tempo={0} scsList={1}", new Object[]
         {
             tempo, scsList
         });
 
 
-        var settings = WalkingBassMusicGeneratorSettings.getInstance();
+        var settings = JJSwingBassMusicGeneratorSettings.getInstance();
         WbpTiling tiling = new WbpTiling(scsList);
-        var phraseAdapter = new TransposerPhraseAdapter();
+        var phraseAdapter = new DefaultPhraseAdapter();
 
 
         // PREMIUM PHASE
         WbpsaScorer scorerPremium = new WbpsaScorerDefault(phraseAdapter, tempo, Score.PREMIUM_ONLY_TESTER, STYLE);
 
-        LOGGER.log(Level.SEVERE, "\nbuild() ================  tiling PREMIUM LongestFirstNoRepeat");
+        LOGGER.log(Level.SEVERE, "\n");
+        LOGGER.log(Level.SEVERE, "build() ================  tiling PREMIUM LongestFirstNoRepeat");
         var tilerLongestPremium = new TilerLongestFirstNoRepeat(scorerPremium, settings.getWbpsaStoreWidth());
         tilerLongestPremium.tile(tiling);
         LOGGER.log(Level.SEVERE, tiling.toMultiLineString());
@@ -81,7 +82,8 @@ public class WalkingPhraseBuilder implements BassPhraseBuilder
         var untiled = !tiling.isFullyTiled();
         if (untiled)
         {
-            LOGGER.log(Level.SEVERE, "\nbuild() ================  tiling PREMIUM MaxDistance");
+            LOGGER.log(Level.SEVERE, "\n");
+            LOGGER.log(Level.SEVERE, "build() ================  tiling PREMIUM MaxDistance");
             var tilerMaxDistancePremium = new TilerMaxDistance(scorerPremium, settings.getWbpsaStoreWidth());
             tilerMaxDistancePremium.tile(tiling);
             LOGGER.log(Level.SEVERE, tiling.toMultiLineString());
@@ -92,7 +94,8 @@ public class WalkingPhraseBuilder implements BassPhraseBuilder
         untiled = !tiling.isFullyTiled();
         if (untiled)
         {
-            LOGGER.log(Level.SEVERE, "\nbuild() ================  tiling STANDARD LongestFirstNoRepeat");
+            LOGGER.log(Level.SEVERE, "\n");
+            LOGGER.log(Level.SEVERE, "build() ================  tiling STANDARD LongestFirstNoRepeat");
             WbpsaScorer scorerStandard = new WbpsaScorerDefault(phraseAdapter, tempo, null, STYLE);
 
             var tilerLongestStandard = new TilerLongestFirstNoRepeat(scorerStandard, settings.getWbpsaStoreWidth());
@@ -102,7 +105,8 @@ public class WalkingPhraseBuilder implements BassPhraseBuilder
             untiled = !tiling.isFullyTiled();
             if (untiled)
             {
-                LOGGER.log(Level.SEVERE, "\nbuild() ================  tiling STANDARD MaxDistance");
+                LOGGER.log(Level.SEVERE, "\n");
+                LOGGER.log(Level.SEVERE, "build() ================  tiling STANDARD MaxDistance");
                 var tilerMaxDistanceStandard = new TilerMaxDistance(scorerStandard, settings.getWbpsaStoreWidth());
                 tilerMaxDistanceStandard.tile(tiling);
                 LOGGER.log(Level.SEVERE, tiling.toMultiLineString());
@@ -116,7 +120,8 @@ public class WalkingPhraseBuilder implements BassPhraseBuilder
         untiled = !tiling.isFullyTiled();
         if (untiled)
         {
-            LOGGER.log(Level.SEVERE, "\nbuild() ================  tiling EXISTING CUSTOM MaxDistance");
+            LOGGER.log(Level.SEVERE, "\n");
+            LOGGER.log(Level.SEVERE, "build() ================  tiling EXISTING CUSTOM MaxDistance");
             tilerMaxDistanceCustomStandard.tile(tiling);
             LOGGER.log(Level.SEVERE, tiling.toMultiLineString());
         }
@@ -126,7 +131,8 @@ public class WalkingPhraseBuilder implements BassPhraseBuilder
         untiled = !tiling.isFullyTiled();
         if (untiled)
         {
-            LOGGER.log(Level.SEVERE, "\nbuild() ================  tiling CREATED CUSTOM MaxDistance");
+            LOGGER.log(Level.SEVERE, "\n");
+            LOGGER.log(Level.SEVERE, "build() ================  tiling CREATED CUSTOM MaxDistance");
 
             // Create custom WbpSources and add them to the database
             var customWbpSources = tiling.buildMissingWbpSources((chordSeq, targetNote) -> createWalkingCustomWbpSources(chordSeq, targetNote),
@@ -157,7 +163,8 @@ public class WalkingPhraseBuilder implements BassPhraseBuilder
         }
 
         
-        LOGGER.log(Level.SEVERE, "\nbuild() ===============   Tiling stats  tiling.usableBars={0} \n{1}", new Object[]
+        LOGGER.log(Level.SEVERE, "\n");
+        LOGGER.log(Level.SEVERE, "build() ===============   Tiling stats  tiling.usableBars={0} \n{1}", new Object[]
         {
             tiling.getUsableBars().size(),
             tiling.toStatsString()

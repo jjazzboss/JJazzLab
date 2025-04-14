@@ -1,11 +1,10 @@
 * Variations: Walking double notes (C C Bb Bb etc. reuse walking bass line to get contour), Drums shuffle with walking bass "a la" Twisted/Joni Mitchel 
 * Variations: 2-feel but walking ? listent to swan lake hubert laws 3:30
-* Create the AdaptedRhythm
 * Scorer, reject wbpsources with out of scale long notes at slow tempos
 * Database: harmonize phrases velocity
 * FInalize rhythm dialog settings
 * Automate rhythm tests on 2000 sngs
-* Do tests with multiple rhythms, play from start, middle, loop selection
+* Do tests with multiple rhythms/time signatures, play from start, middle, loop selection
 
 
 
@@ -22,7 +21,6 @@ it can happen, and  it can also happen after tiling because of pedal bass handli
 
 
 BUGS
-* Save as default rhythm file with "/" in proswin 4/4
 * BUG nonStdPos.sng
 * Exception when using play loop zone in some cases
 * changement de tempo warning

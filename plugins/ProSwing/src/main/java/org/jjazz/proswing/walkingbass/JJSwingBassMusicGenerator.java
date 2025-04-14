@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.harmony.api.Note;
@@ -52,7 +51,7 @@ import org.jjazz.utilities.api.IntRange;
  * @see WbpSourceDatabase
  */
 
-public class WalkingBassMusicGenerator implements MusicGenerator
+public class JJSwingBassMusicGenerator implements MusicGenerator
 {
 
     /**
@@ -74,9 +73,9 @@ public class WalkingBassMusicGenerator implements MusicGenerator
 
     private final Rhythm rhythm;
 
-    private static final Logger LOGGER = Logger.getLogger(WalkingBassMusicGenerator.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(JJSwingBassMusicGenerator.class.getSimpleName());
 
-    public WalkingBassMusicGenerator(Rhythm r)
+    public JJSwingBassMusicGenerator(Rhythm r)
     {
         Preconditions.checkArgument(RP_SYS_Variation.getVariationRp(r) != null
                 && RP_SYS_Intensity.getIntensityRp(r) != null,
@@ -119,6 +118,7 @@ public class WalkingBassMusicGenerator implements MusicGenerator
         {
             rhythm.getName(), tags
         });
+
 
         // Get one bass phrase per used BassStyle, then merge them into pRes
         var bassPhrases = getOneBassPhrasePerBassStyle(context, tags);
@@ -194,7 +194,7 @@ public class WalkingBassMusicGenerator implements MusicGenerator
      */
     static public void removeGhostNotes(Phrase p)
     {
-        p.removeIf(ne -> ne.getDurationInBeats() <= WalkingBassMusicGenerator.GHOST_NOTE_MAX_DURATION);
+        p.removeIf(ne -> ne.getDurationInBeats() <= JJSwingBassMusicGenerator.GHOST_NOTE_MAX_DURATION);
     }
 
     // ===============================================================================
@@ -233,23 +233,26 @@ public class WalkingBassMusicGenerator implements MusicGenerator
         var rpBassStyle = RP_BassStyle.get(rhythm);
         for (var style : BassStyle.getNonCustomStyles())
         {
-            // Prepare the SimpleChordSequences
+            // Prepare the list of SimpleChordSequence
             var barRanges = contextWork.getMergedBarRanges(rhythm, rpBassStyle, RP_BassStyle.toRpValue(style));
-            List<SimpleChordSequence> scsList = new ArrayList<>();
-            for (var barRange : barRanges)
+            var scsList = barRanges.stream()
+                    .map(barRange -> 
+                    {
+                        float startBeatPos = contextWork.getSong().getSongStructure().toPositionInNaturalBeats(barRange.from);
+                        var scs = new SimpleChordSequence((ChordSequence) scsWork.subSequence(barRange, true), startBeatPos, rhythm.getTimeSignature());
+                        scs.removeRedundantChords();
+                        return scs;
+                    })
+                    .toList();
+
+
+            if (!scsList.isEmpty())
             {
-                float startBeatPos = contextWork.getSong().getSongStructure().toPositionInNaturalBeats(barRange.from);
-                var scs = new SimpleChordSequence((ChordSequence)scsWork.subSequence(barRange, true), startBeatPos, rhythm.getTimeSignature());
-                scs.removeRedundantChords();
-                scsList.add(scs);
+                // Build the bass phrase for that style
+                var phrase = style.getBassPhraseBuilder().build(scsList, songWork.getTempo());
+
+                res.add(phrase);
             }
-
-
-            // Build the bass phrase for that style
-            var phrase = style.getBassPhraseBuilder().build(scsList, songWork.getTempo());
-
-
-            res.add(phrase);
 
         }
 
@@ -282,11 +285,6 @@ public class WalkingBassMusicGenerator implements MusicGenerator
     private List<String> guessTags(SongContext context)
     {
         return Collections.emptyList();
-    }
-
-    private RP_BassStyle getRP_BassStyle()
-    {
-        return RP_BassStyle.get(rhythm);
     }
 
     /**
@@ -487,7 +485,7 @@ public class WalkingBassMusicGenerator implements MusicGenerator
         float biasTempo = TEMPO_NORMAL_BIAS + (tempo2 - TEMPO_NORMAL) / (TEMPO_HIGH - TEMPO_NORMAL) * (TEMPO_HIGH_BIAS - TEMPO_NORMAL_BIAS);
 
         float BIAS_RANGE_MAX = 0.07f;
-        float biasSettingFactor = WalkingBassMusicGeneratorSettings.getInstance().getTempoNotePositionBiasFactor();
+        float biasSettingFactor = JJSwingBassMusicGeneratorSettings.getInstance().getTempoNotePositionBiasFactor();
         float biasSetting = biasSettingFactor * BIAS_RANGE_MAX;
         float res = Math.clamp(biasSetting + biasTempo, -BIAS_RANGE_MAX, BIAS_RANGE_MAX);
         return res;

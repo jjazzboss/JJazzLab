@@ -8,31 +8,31 @@ import org.openide.util.NbPreferences;
 /**
  * Generator settings.
  */
-public class WalkingBassMusicGeneratorSettings
+public class JJSwingBassMusicGeneratorSettings
 {
 
     private static final String PREF_WBPSA_STORE_WIDTH = "PrefWbpsaStoreWidth";
     private static final String PREF_WBPSA_STORE_RANDOMIZED_SCORE_WINDOW = "PrefRandomizedScoreWindow";
     private static final String PREF_ACCEPT_NON_CHORD_BASS_START_NOTE = "PrefAcceptNonChordBassStartNote";
     private static final String PREF_NOTE_TIMING_BIAS_FACTOR = "PrefNoteTimingBias";
-    private static WalkingBassMusicGeneratorSettings INSTANCE;
-    private final Preferences prefs = NbPreferences.forModule(WalkingBassMusicGeneratorSettings.class);
+    private static JJSwingBassMusicGeneratorSettings INSTANCE;
+    private final Preferences prefs = NbPreferences.forModule(JJSwingBassMusicGeneratorSettings.class);
     ;
-    private static final Logger LOGGER = Logger.getLogger(WalkingBassMusicGeneratorSettings.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(JJSwingBassMusicGeneratorSettings.class.getSimpleName());
 
-    public static WalkingBassMusicGeneratorSettings getInstance()
+    public static JJSwingBassMusicGeneratorSettings getInstance()
     {
-        synchronized (WalkingBassMusicGeneratorSettings.class)
+        synchronized (JJSwingBassMusicGeneratorSettings.class)
         {
             if (INSTANCE == null)
             {
-                INSTANCE = new WalkingBassMusicGeneratorSettings();
+                INSTANCE = new JJSwingBassMusicGeneratorSettings();
             }
         }
         return INSTANCE;
     }
 
-    private WalkingBassMusicGeneratorSettings()
+    private JJSwingBassMusicGeneratorSettings()
     {
     }
 

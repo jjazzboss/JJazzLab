@@ -168,7 +168,7 @@ public class StringRpRenderer implements RpViewerRenderer, PropertyChangeListene
     public void fireChanged()
     {
         ChangeEvent evt = new ChangeEvent(this);
-        listeners.stream().forEach(l -> l.stateChanged(evt));
+        listeners.forEach(l -> l.stateChanged(evt));
     }
 
     // ---------------------------------------------------------------

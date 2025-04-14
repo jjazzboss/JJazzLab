@@ -24,25 +24,13 @@
  */
 package org.jjazz.proswing.walkingbass;
 
-import org.jjazz.proswing.walkingbass.db.WbpSources;
-import org.jjazz.proswing.walkingbass.db.WbpSource;
-import org.jjazz.proswing.walkingbass.db.WbpSourceDatabase;
-import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
-import org.jjazz.harmony.api.ChordType.DegreeIndex;
-import org.jjazz.midi.api.MidiConst;
-import org.jjazz.midi.api.synths.InstrumentFamily;
-import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
-import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.proswing.BassStyle;
-import static org.jjazz.proswing.walkingbass.WalkingBassMusicGenerator.DURATION_BEAT_MARGIN;
-import static org.jjazz.proswing.walkingbass.WalkingBassMusicGenerator.NON_QUANTIZED_WINDOW;
+import static org.jjazz.proswing.walkingbass.JJSwingBassMusicGenerator.NON_QUANTIZED_WINDOW;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.utilities.api.FloatRange;
 
@@ -61,7 +49,7 @@ public class WalkingDoublePhraseBuilder implements BassPhraseBuilder
     @Override
     public Phrase build(List<SimpleChordSequence> scsList, int tempo)
     {
-        LOGGER.log(Level.SEVERE, "build() -- tempo={1} scsList={2}", new Object[]
+        LOGGER.log(Level.SEVERE, "build() -- tempo={0} scsList={1}", new Object[]
         {
             tempo, scsList
         });

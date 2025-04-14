@@ -66,7 +66,7 @@ public class WbpsaStore
         this.tiling = tiling;
         this.wbpsaScorer = scorer;
         this.width = width;
-        this.randomizeWithinOverallScoreWindow = WalkingBassMusicGeneratorSettings.getInstance().getWbpsaStoreRandomizedScoreWindow();
+        this.randomizeWithinOverallScoreWindow = JJSwingBassMusicGeneratorSettings.getInstance().getWbpsaStoreRandomizedScoreWindow();
         if (this.randomizeWithinOverallScoreWindow < 1)
         {
             LOGGER.log(Level.WARNING, "WbpsaStore() randomization is DISABLED (randomizeWithinOverallScoreWindow={0})", randomizeWithinOverallScoreWindow);
@@ -177,7 +177,7 @@ public class WbpsaStore
                 sb.append(String.format("%1$03d: %2$s\n", bar, barChords.toString()));
             }
 
-            wbpsas.stream().forEach(wbpsa -> sb.append("     ").append(wbpsa).append("\n"));
+            wbpsas.forEach(wbpsa -> sb.append("     ").append(wbpsa).append("\n"));
         }
         return sb.toString();
     }
@@ -194,7 +194,7 @@ public class WbpsaStore
     private void initialize()
     {
         var nonTiledBars = tiling.getNonTiledBars();
-        LOGGER.log(Level.SEVERE, "initialize() nonTiledBars={0}", nonTiledBars);
+        // LOGGER.log(Level.SEVERE, "initialize() nonTiledBars={0}", nonTiledBars);
 
         for (int bar : nonTiledBars)
         {

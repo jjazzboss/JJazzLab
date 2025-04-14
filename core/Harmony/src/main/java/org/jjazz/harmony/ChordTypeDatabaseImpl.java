@@ -154,7 +154,7 @@ public class ChordTypeDatabaseImpl implements ChordTypeDatabase
 
         buildAliasMap();
         // LOGGER.severe("DEBUG DUMP AliasMap=============");
-        // mapAliasCt.keySet().stream().forEach(s -> LOGGER.severe(s + " -> " + mapAliasCt.get(s)));
+        // mapAliasCt.keySet().forEach(s -> LOGGER.severe(s + " -> " + mapAliasCt.get(s)));
 
         buildExtensionMap();
 

@@ -143,7 +143,7 @@ public class WbpTiling
      * @param phraseAdapter
      * @return A channel 0 phrase. Might be empty.
      */
-    public Phrase buildPhrase(TransposerPhraseAdapter phraseAdapter)
+    public Phrase buildPhrase(DefaultPhraseAdapter phraseAdapter)
     {
         Objects.requireNonNull(phraseAdapter);
         Phrase res = new Phrase(0);

@@ -25,14 +25,14 @@
 package org.jjazz.proswing.walkingbass;
 
 import org.jjazz.phrase.api.Phrase;
-import static org.jjazz.proswing.walkingbass.WalkingBassMusicGenerator.NON_QUANTIZED_WINDOW;
+import static org.jjazz.proswing.walkingbass.JJSwingBassMusicGenerator.NON_QUANTIZED_WINDOW;
 
 /**
- * This  implementation just transposes the WbpSource phrase so that the 2 first chord roots match.
+ * This implementation just transposes the WbpSource phrase so that the 2 first chord roots match.
  * <p>
  * Manage possible WbpSource first note beat shift.
  */
-public class TransposerPhraseAdapter implements PhraseAdapter
+public class DefaultPhraseAdapter implements PhraseAdapter
 {
 
     @Override
@@ -43,7 +43,7 @@ public class TransposerPhraseAdapter implements PhraseAdapter
 
         var wbpSource = wbpsa.getWbpSource();
         var scs = wbpsa.getSimpleChordSequence();
-        float startPos = scs.getBarRange().from * scs.getTimeSignature().getNbNaturalBeats();
+        float startPos = scs.getStartBeatPosition();
 
 
         // Adapt to target chord symbol

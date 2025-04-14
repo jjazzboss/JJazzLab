@@ -100,7 +100,7 @@ public class WbpsaScorerDefault implements WbpsaScorer
     public Score computeCompatibilityScore(WbpSourceAdaptation wbpsa, WbpTiling tiling)
     {
         var wbpSource = wbpsa.getWbpSource();
-        var acceptNonRootStartNote = WalkingBassMusicGeneratorSettings.getInstance().isAcceptNonChordBassStartNote();
+        var acceptNonRootStartNote = JJSwingBassMusicGeneratorSettings.getInstance().isAcceptNonChordBassStartNote();
 
         Score res = Score.ZERO;
 

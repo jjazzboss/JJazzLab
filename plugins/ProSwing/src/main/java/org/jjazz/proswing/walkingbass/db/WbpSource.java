@@ -18,7 +18,7 @@ import org.jjazz.harmony.api.Note;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SizedPhrase;
-import org.jjazz.proswing.walkingbass.WalkingBassMusicGenerator;
+import org.jjazz.proswing.walkingbass.JJSwingBassMusicGenerator;
 import org.jjazz.proswing.walkingbass.WbpSourceSlice;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.utilities.api.IntRange;
@@ -72,7 +72,7 @@ public class WbpSource extends Wbp
         Objects.requireNonNull(bassStyle);
         checkArgument(sessionId != null && !sessionId.isBlank());
         checkArgument(sessionBarFrom >= 0, "sessionBarFrom=%s", sessionBarFrom);
-        checkArgument(firstNoteBeatShift <= 0 && firstNoteBeatShift >= -WalkingBassMusicGenerator.NON_QUANTIZED_WINDOW,
+        checkArgument(firstNoteBeatShift <= 0 && firstNoteBeatShift >= -JJSwingBassMusicGenerator.NON_QUANTIZED_WINDOW,
                 "firstNoteBeatShift=%s", firstNoteBeatShift);
         checkArgument(phrase.getSizeInBars() >= 1 && phrase.getSizeInBars() <= 4, "phrase=%s", phrase);
 
@@ -89,7 +89,7 @@ public class WbpSource extends Wbp
 
 
         // Session slicing might have produced remaining short notes at the beginning of the phrase
-        WalkingBassMusicGenerator.removeGhostNotes(getSizedPhrase());
+        JJSwingBassMusicGenerator.removeGhostNotes(getSizedPhrase());
 
 
         // Must be called last because WbpSource must be fully initialized

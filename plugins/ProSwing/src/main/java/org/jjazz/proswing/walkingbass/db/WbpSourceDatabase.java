@@ -42,7 +42,7 @@ import org.jjazz.proswing.walkingbass.Score;
 import org.jjazz.proswing.walkingbass.WbpSourceAdaptation;
 import org.jjazz.proswing.walkingbass.WbpsaScorer;
 import org.jjazz.proswing.walkingbass.WbpsaScorerDefault;
-import static org.jjazz.proswing.walkingbass.WalkingBassMusicGenerator.NON_QUANTIZED_WINDOW;
+import static org.jjazz.proswing.walkingbass.JJSwingBassMusicGenerator.NON_QUANTIZED_WINDOW;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
