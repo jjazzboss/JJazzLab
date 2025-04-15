@@ -654,7 +654,7 @@
         </dependency>           
         <dependency> 
             <groupId>org.jjazzlab.plugins</groupId> 
-            <artifactId>proswing</artifactId> 
+            <artifactId>jjswing</artifactId> 
             <version>${project.version}</version> 
         </dependency>           
     </dependencies>

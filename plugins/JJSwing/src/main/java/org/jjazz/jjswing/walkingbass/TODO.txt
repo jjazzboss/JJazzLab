@@ -1,0 +1,25 @@
+* Variations: Walking double notes (C C Bb Bb etc. reuse walking bass line to get contour), Drums shuffle with walking bass "a la" Twisted/Joni Mitchel 
+* Variations: 2-feel but walking ? listent to swan lake hubert laws 3:30
+* Scorer, reject wbpsources with out of scale long notes at slow tempos
+* Database: harmonize phrases velocity
+* FInalize rhythm dialog settings
+* Automate rhythm tests on 2000 sngs
+* Do tests with multiple rhythms/time signatures, play from start, middle, loop selection
+* Reuse WbpsaStore between calls (save all the Wbpsas with score > 0), so they can be later quickly recheked with standard score tester
+* Profile music generation for optimization
+
+
+MAYBE LATER
+* Generator: if a WbpSource is used twice, alter its "groove" (positions+velocity) by copying a similar phrase groove
+* Generate alternate phrases from DB: try symetric patterns ?
+* Scorer: take into account start/end slopes matching ?
+* Programmatically add embellishments like p15 (for 2 feel), p28 of Constructing-walking-pdf...
+* Try to automatically assign a chord scale to chords (DB and song)
+* Handle the tags to select WbpSources
+* Post-process to avoid same note from bar x == first note from bar x+1. Already managed at WbpSource scoring level, but still 
+it can happen, and  it can also happen after tiling because of pedal bass handling
+* Do not directly disable duplicates: they provide velocity/timing variety. Check should be done by Scorer vs Tiling ? 
+
+
+BUGS
+* Exception when using play loop zone in some cases

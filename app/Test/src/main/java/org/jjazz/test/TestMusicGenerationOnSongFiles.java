@@ -25,6 +25,8 @@ package org.jjazz.test;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
@@ -32,6 +34,8 @@ import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
+import org.jjazz.jjswing.api.BassStyle;
+import org.jjazz.jjswing.api.RP_BassStyle;
 import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
@@ -41,6 +45,7 @@ import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongCreationException;
+import org.jjazz.songstructure.api.SongPart;
 import org.netbeans.api.progress.BaseProgressUtils;
 import org.openide.util.Exceptions;
 import org.jjazz.songstructure.api.SongStructure;
@@ -117,6 +122,8 @@ public final class TestMusicGenerationOnSongFiles implements ActionListener
         public void run()
         {
 
+            var rpBassStyle = RP_BassStyle.get(rhythm);
+
             for (var songFile : songFiles)
             {
                 LOGGER.log(Level.INFO, "Processing ===================  {0}", songFile);
@@ -124,31 +131,66 @@ public final class TestMusicGenerationOnSongFiles implements ActionListener
                 try
                 {
                     Song song = Song.loadFromFile(songFile);
+                    SongStructure sgs = song.getSongStructure();
                     var midiMix = MidiMixManager.getDefault().findMix(song);      // Can raise MidiUnavailableException      
 
 
-                    // Use our rhythm in 4/4 bars
-                    SongStructure sgs = song.getSongStructure();
-                    var oldSpts = sgs.getSongParts().stream()
-                            .filter(spt -> spt.getRhythm() != rhythm && spt.getRhythm().getTimeSignature() == rhythm.getTimeSignature())
-                            .toList();
-                    var newSpts = oldSpts.stream()
-                            .map(spt -> spt.clone(rhythm, spt.getStartBarIndex(), spt.getNbBars(), spt.getParentSection()))
-                            .toList();
-                    sgs.replaceSongParts(oldSpts, newSpts);
+                    // Use our rhythm whenever possible
+                    {
+                        var oldSpts = sgs.getSongParts().stream()
+                                .filter(spt -> spt.getRhythm() != rhythm && spt.getRhythm().getTimeSignature() == rhythm.getTimeSignature())
+                                .toList();
+                        var newSpts = oldSpts.stream()
+                                .map(spt -> spt.clone(rhythm, spt.getStartBarIndex(), spt.getNbBars(), spt.getParentSection()))
+                                .toList();
+                        sgs.replaceSongParts(oldSpts, newSpts);
+                    }
+
+
+                    var rhythmSpts = new ArrayList<>(sgs.getSongParts(spt -> spt.getRhythm() == rhythm));
+                    if (rhythmSpts.isEmpty())
+                    {
+                        LOGGER.info("   No 4/4 song parts, skipping song");
+                        continue;
+                    }
+
+
+                    // Make sure there is at least 3 song parts with our rhythm
+                    if (rhythmSpts.size() < 3)
+                    {
+                        // Add SongParts
+                        int nbMissingSpts = 3 - rhythmSpts.size();
+                        var sptLast = rhythmSpts.getLast();
+                        var sptLastRange = sptLast.getBarRange();
+                        List<SongPart> extraSpts = new ArrayList<>();
+                        for (int i = 0; i < nbMissingSpts; i++)
+                        {
+                            var extraSpt = sptLast.clone(null, sptLastRange.to + 1 + (i * sptLastRange.size()), sptLastRange.size(), sptLast.getParentSection());
+                            extraSpts.add(extraSpt);
+                        }
+                        sgs.addSongParts(extraSpts);
+                        rhythmSpts.addAll(extraSpts);
+                        LOGGER.info("   Adding " + nbMissingSpts + " song parts");
+                    }
+
+
+                    // Make sure we use all BassStyles
+                    for (int i = 0; i < rhythmSpts.size(); i++)
+                    {
+                        BassStyle style = i % 3 == 0 ? BassStyle.TWO_FEEL : (i % 3 == 1 ? BassStyle.WALKING : BassStyle.WALKING_DOUBLE);
+                        var spt = rhythmSpts.get(i);
+                        sgs.setRhythmParameterValue(spt, rpBassStyle, RP_BassStyle.toRpValue(style));
+                    }
 
 
                     // Generate music
-                    if (!newSpts.isEmpty())
-                    {
-                        SongSequenceBuilder seqBuilder = new SongSequenceBuilder(new SongContext(song, midiMix), 0);
-                        seqBuilder.buildMapRvPhrase(true);
-                    }
+                    SongSequenceBuilder seqBuilder = new SongSequenceBuilder(new SongContext(song, midiMix), 0);
+                    seqBuilder.buildMapRvPhrase(true);
 
 
                 } catch (MidiUnavailableException | MusicGenerationException | SongCreationException | UnsupportedEditException ex)
                 {
-                    LOGGER.log(Level.SEVERE, "==> EXCEPTION ex=" + ex.getMessage());
+                    LOGGER.log(Level.SEVERE, "  !!! EXCEPTION ex=" + ex.getMessage());
                     // Exceptions.printStackTrace(ex);
                 }
             }
