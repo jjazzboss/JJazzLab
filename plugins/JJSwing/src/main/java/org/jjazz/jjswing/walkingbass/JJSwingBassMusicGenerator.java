@@ -543,14 +543,14 @@ public class JJSwingBassMusicGenerator implements MusicGenerator
                     // Simple, just change the pitch of existing notes
                     for (var ne : nes)
                     {
-                        var neNew = ne.setPitch(getClosestBassPitch(ne, bassRelPitch));
+                        var neNew = ne.setPitch(getClosestAndAcceptableBassPitch(ne, bassRelPitch));
                         p.replace(ne, neNew);
                     }
                 } else
                 {
                     // Starting on a beat for 1 bar or more: use a pattern like quarter half quarter half ...
                     var ne0 = nes.isEmpty() ? null : nes.get(0);
-                    int pitch = ne0 == null ? InstrumentFamily.Bass.toAbsolutePitch(bassRelPitch) : getClosestBassPitch(ne0, bassRelPitch);
+                    int pitch = ne0 == null ? InstrumentFamily.Bass.toAbsolutePitch(bassRelPitch) : getClosestAndAcceptableBassPitch(ne0, bassRelPitch);
 
                     p.removeAll(nes);
 
@@ -585,7 +585,7 @@ public class JJSwingBassMusicGenerator implements MusicGenerator
                         .filter(ne -> ne.getPositionInBeats() < brCliCs.from + 2f - NON_QUANTIZED_WINDOW)
                         .forEach(ne -> 
                         {
-                            var neNew = ne.setPitch(getClosestBassPitch(ne, bassRelPitch));
+                            var neNew = ne.setPitch(getClosestAndAcceptableBassPitch(ne, bassRelPitch));
                             p.replace(ne, neNew);
                         });
 
@@ -597,19 +597,15 @@ public class JJSwingBassMusicGenerator implements MusicGenerator
     }
 
 
-    /**
-     * Get closest bass pitch from n while ensuring note remains in bass acceptable range.
-     *
-     * @param n
-     * @param relPitch
-     * @return
-     */
-    private int getClosestBassPitch(Note n, int relPitch)
+    private int getClosestAndAcceptableBassPitch(Note n, int relPitch)
     {
         int res = n.getClosestPitch(relPitch);
-        if (res < WbpSource.BASS_EXTENDED_PITCH_RANGE.from)
+        if (res < WbpSource.BASS_GOOD_PITCH_RANGE.from)
         {
             res += 12;
+        } else if (res > WbpSource.BASS_GOOD_PITCH_RANGE.to)
+        {
+            res -= 12;
         }
         return res;
     }

@@ -30,8 +30,10 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.SortedSetMultimap;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Predicate;
 import java.util.logging.Level;
@@ -446,17 +448,26 @@ public class WbpTiling
 
         List<WbpSource> res = new ArrayList<>();
 
+        Set<SimpleChordSequence> processedChordSequences = new HashSet<>();
+
         var startBars = getUntiledZonesStartBarIndexes(size);
         for (int startBar : startBars)
         {
             var br = new IntRange(startBar, startBar + size - 1);
             var subSeq = getSimpleChordSequence(br, true).getShifted(-startBar);
+            if (processedChordSequences.contains(subSeq))
+            {
+                continue;
+            }
+
             var nextWbpsa = getWbpSourceAdaptationStartingAt(br.to + 1);
-            int targetPitch = nextWbpsa != null ? nextWbpsa.getAdaptedTargetPitch() : -1;
+            int targetPitch = nextWbpsa != null ? nextWbpsa.getAdaptedPhrase().first().getPitch() : -1;
 
             // Create the WbpSources
             var wbpSources = wbpSourcesBuilder.build(subSeq, targetPitch);
             res.addAll(wbpSources);
+
+            processedChordSequences.add(subSeq);
         }
 
         return res;

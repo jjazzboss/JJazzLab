@@ -150,36 +150,29 @@ public final class TestMusicGenerationOnSongFiles implements ActionListener
                     var rhythmSpts = new ArrayList<>(sgs.getSongParts(spt -> spt.getRhythm() == rhythm));
                     if (rhythmSpts.isEmpty())
                     {
-                        LOGGER.info("   No 4/4 song parts, skipping song");
+                        LOGGER.log(Level.INFO, "   No relevant song parts to use {0}, skipping song", rhythm.getName());
                         continue;
                     }
 
 
-                    // Make sure there is at least 3 song parts with our rhythm
-                    if (rhythmSpts.size() < 3)
+                    // Update the rhythmSpts with first BassStyle
+                    var bassStyles = new ArrayList<>(BassStyle.getNonCustomStyles());
+                    for (var spt : rhythmSpts)
                     {
-                        // Add SongParts
-                        int nbMissingSpts = 3 - rhythmSpts.size();
-                        var sptLast = rhythmSpts.getLast();
-                        var sptLastRange = sptLast.getBarRange();
-                        List<SongPart> extraSpts = new ArrayList<>();
-                        for (int i = 0; i < nbMissingSpts; i++)
-                        {
-                            var extraSpt = sptLast.clone(null, sptLastRange.to + 1 + (i * sptLastRange.size()), sptLastRange.size(), sptLast.getParentSection());
-                            extraSpts.add(extraSpt);
-                        }
-                        sgs.addSongParts(extraSpts);
-                        rhythmSpts.addAll(extraSpts);
-                        LOGGER.info("   Adding " + nbMissingSpts + " song parts");
+                        sgs.setRhythmParameterValue(spt, rpBassStyle, RP_BassStyle.toRpValue(bassStyles.get(0)));
                     }
 
 
-                    // Make sure we use all BassStyles
-                    for (int i = 0; i < rhythmSpts.size(); i++)
+                    // Create rhythmSpts copies for each other bass style
+                    int insertBar = rhythmSpts.getLast().getBarRange().to + 1;
+                    for (var bassStyle : bassStyles.stream().skip(1).toList())
                     {
-                        BassStyle style = i % 3 == 0 ? BassStyle.TWO_FEEL : (i % 3 == 1 ? BassStyle.WALKING : BassStyle.WALKING_DOUBLE);
-                        var spt = rhythmSpts.get(i);
-                        sgs.setRhythmParameterValue(spt, rpBassStyle, RP_BassStyle.toRpValue(style));
+                        for (var spt : rhythmSpts.reversed())
+                        {
+                            var newSpt = spt.clone(null, insertBar, spt.getNbBars(), spt.getParentSection());
+                            sgs.addSongParts(List.of(newSpt));
+                            sgs.setRhythmParameterValue(newSpt, rpBassStyle, RP_BassStyle.toRpValue(bassStyle));
+                        }
                     }
 
 
@@ -194,6 +187,10 @@ public final class TestMusicGenerationOnSongFiles implements ActionListener
                     // Exceptions.printStackTrace(ex);
                 }
             }
+
+
+            LOGGER.log(Level.INFO, "\n");
+            LOGGER.log(Level.INFO, "{0} songs processed", songFiles.length);
         }
 
     }

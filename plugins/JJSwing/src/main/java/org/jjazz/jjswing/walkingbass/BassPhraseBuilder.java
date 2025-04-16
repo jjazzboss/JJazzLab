@@ -34,7 +34,7 @@ import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
  */
 public interface BassPhraseBuilder
 {
-    public static Level BassPhraseBuilderLogLevel = Level.FINE;
+    public static Level BassPhraseBuilderLogLevel = Level.SEVERE;
     
     /**
      * Create a bass Phrase for one or more SimpleChordSequences.
