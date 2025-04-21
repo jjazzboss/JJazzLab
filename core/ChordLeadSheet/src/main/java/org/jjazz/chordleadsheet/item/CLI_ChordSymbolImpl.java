@@ -50,7 +50,7 @@ import org.openide.util.lookup.ServiceProvider;
  * CLI_ChordSymbol implementation.
  *
  * Note that equals() and hashCode() are NOT defined because they can be used as Map keys and can change while being in the map
- * (InstanceContent for selected items in the CL_Editor, or ChordLeadSheet.moveSection()).
+ * (InstanceContent for selected items in the CL_Editor, or ChordLeadSheet.moveSection()). 
  */
 public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtChordSymbol>, Serializable
 {
