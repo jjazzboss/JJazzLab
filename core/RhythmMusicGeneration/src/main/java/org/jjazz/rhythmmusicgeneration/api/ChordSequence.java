@@ -114,11 +114,7 @@ public class ChordSequence extends TreeSet<CLI_ChordSymbol> implements Comparabl
         {
             return true;
         }
-        if (obj == null)
-        {
-            return false;
-        }
-        if (getClass() != obj.getClass())
+        if (!getClass().isInstance(obj))
         {
             return false;
         }

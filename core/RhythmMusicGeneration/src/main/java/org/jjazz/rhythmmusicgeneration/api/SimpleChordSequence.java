@@ -36,15 +36,14 @@ import org.jjazz.utilities.api.IntRange;
 /**
  * A ChordSequence which has only one TimeSignature and a start position in beats.
  * <p>
- * User is responsible to ensure CLI_ChordSymbols are added in the right position order, in the startBar/nbBars range, and are compatible with the
- * TimeSignature.
+ * User is responsible to ensure CLI_ChordSymbols are added in the right position order, in the startBar/nbBars range, and are
+ * compatible with the TimeSignature.
  */
 public class SimpleChordSequence extends ChordSequence
 {
 
     private final TimeSignature timeSignature;
     private float startBeatPosition;
-
 
     /**
      * Create an empty SimpleChordSequence.
@@ -62,11 +61,10 @@ public class SimpleChordSequence extends ChordSequence
         this.timeSignature = ts;
     }
 
-
     /**
      * Construct a SimpleChordSequence from a standard ChordSequence.
      *
-     * @param cSeq              All ChordSymbols are checked to be compatible with the specified TimeSignature.
+     * @param cSeq All ChordSymbols are checked to be compatible with the specified TimeSignature.
      * @param startBeatPosition The beat start position of the created SimpleChordSequence
      * @param ts
      */
@@ -109,6 +107,34 @@ public class SimpleChordSequence extends ChordSequence
         return res;
     }
 
+    @Override
+    public int hashCode()
+    {
+        int hash = super.hashCode();
+        hash = 17 * hash + Objects.hashCode(this.timeSignature);
+        hash = 17 * hash + Float.floatToIntBits(this.startBeatPosition);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (!super.equals(obj))
+        {
+            return false;
+        }
+        if (!getClass().isInstance(obj))
+        {
+            return false;
+        }
+        final SimpleChordSequence other = (SimpleChordSequence) obj;
+        if (Float.floatToIntBits(this.startBeatPosition) != Float.floatToIntBits(other.startBeatPosition))
+        {
+            return false;
+        }
+        return this.timeSignature == other.timeSignature;
+    }
+
     /**
      * The start position in beats of the chord sequence.
      *
@@ -129,39 +155,6 @@ public class SimpleChordSequence extends ChordSequence
         Preconditions.checkArgument(startBeatPosition >= 0, "startBeatPosition=%s", startBeatPosition);
         this.startBeatPosition = startBeatPosition;
     }
-
-    @Override
-    public int hashCode()
-    {
-        int hash = 7;
-        hash = 73 * hash + Objects.hashCode(this.timeSignature);
-        hash = 73 * hash + Float.floatToIntBits(this.startBeatPosition);
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object obj)
-    {
-        if (this == obj)
-        {
-            return true;
-        }
-        if (obj == null)
-        {
-            return false;
-        }
-        if (getClass() != obj.getClass())
-        {
-            return false;
-        }
-        final SimpleChordSequence other = (SimpleChordSequence) obj;
-        if (Float.floatToIntBits(this.startBeatPosition) != Float.floatToIntBits(other.startBeatPosition))
-        {
-            return false;
-        }
-        return this.timeSignature == other.timeSignature;
-    }
-
 
     /**
      * Get a copy of this SimpleChordSequence shifted by barOffset.
@@ -200,7 +193,6 @@ public class SimpleChordSequence extends ChordSequence
     {
         return new FloatRange(startBeatPosition, startBeatPosition + getBarRange().size() * timeSignature.getNbNaturalBeats());
     }
-
 
     public float getPositionInBeats(CLI_ChordSymbol cliCs)
     {
@@ -257,7 +249,6 @@ public class SimpleChordSequence extends ChordSequence
         return pos;
     }
 
-
     /**
      * For each bar, check if each chord position is in the corresponding in-bar beat range (excluding the upper bound).
      * <p>
@@ -278,9 +269,9 @@ public class SimpleChordSequence extends ChordSequence
         for (var bar : getBarRange())
         {
             var chordBeatPositions = subSequence(new IntRange(bar, bar), false)
-                    .stream()
-                    .map(cliCs -> cliCs.getPosition().getBeat())
-                    .toList();
+                .stream()
+                .map(cliCs -> cliCs.getPosition().getBeat())
+                .toList();
 
             if (chordBeatPositions.isEmpty() && acceptEmptyBars)
             {

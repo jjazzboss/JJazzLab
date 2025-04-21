@@ -116,7 +116,7 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
 
 
     /**
-     * Default implementation compares items using position then positionOrder if required.
+     * Default implementation compares items only using position then positionOrder if required.
      * <p>
      *
      * @param other
