@@ -160,6 +160,20 @@ public class Utilities
     }
 
     /**
+     * Get the next gaussian random value between -1 and 1 (using a standard deviation is 0.3).
+     *
+     * @param random
+     * @return
+     */
+    public static float getNextGaussianRandomValue(Random random)
+    {
+        double res = random.nextGaussian(0, 0.3);
+        res = Math.max(res, -1);
+        res = Math.min(res, 1);
+        return (float) res;
+    }
+
+    /**
      * Check if a class is an inner class (ie a non-static nested class).
      *
      * @param <T>
@@ -277,11 +291,10 @@ public class Utilities
      */
     public static final boolean isLatin(Locale locale)
     {
-        return !(locale.getLanguage().equals("zh") 
+        return !(locale.getLanguage().equals("zh")
                 || locale.getLanguage().equals("ja")
                 || locale.getLanguage().equals("ru")
-                || locale.getLanguage().equals("uk")
-                );
+                || locale.getLanguage().equals("uk"));
     }
 
     /**

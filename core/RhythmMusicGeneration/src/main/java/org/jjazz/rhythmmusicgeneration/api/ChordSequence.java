@@ -41,7 +41,8 @@ import org.jjazz.harmony.api.Position;
 import org.jjazz.utilities.api.IntRange;
 
 /**
- * A convenience class to analyze and manipulate a suite of chord symbols extracted from a ChordLeadSheet, possibly with different TimeSignatures.
+ * A convenience class to analyze and manipulate a suite of chord symbols extracted from a ChordLeadSheet, possibly with different
+ * TimeSignatures.
  * <p>
  */
 public class ChordSequence extends TreeSet<CLI_ChordSymbol> implements Comparable<ChordSequence>, Cloneable
@@ -129,7 +130,6 @@ public class ChordSequence extends TreeSet<CLI_ChordSymbol> implements Comparabl
         return super.equals(other);
     }
 
-
     /**
      * Get the CLI_ChordSymbol from this ChordSequence which is active at the specified position.
      *
@@ -142,14 +142,14 @@ public class ChordSequence extends TreeSet<CLI_ChordSymbol> implements Comparabl
         return floor(item);
     }
 
-
     /**
      * A new sub-sequence from this sequence.
      *
-     * @param subRange           The range of the sub-sequence.
-     * @param addInitChordSymbol If true, try to add an init chordsymbol if the resulting subsequence does not have one: reuse the last chord symbol before
-     *                           subRange.from if any
+     * @param subRange The range of the sub-sequence.
+     * @param addInitChordSymbol If true, try to add an init chordsymbol if the resulting subsequence does not have one: reuse the
+     * last chord symbol before subRange.from if any
      * @return
+     * @throws IllegalArgumentException If subRange is not contained in this ChordSequence bar range
      */
     public ChordSequence subSequence(IntRange subRange, boolean addInitChordSymbol)
     {
@@ -157,7 +157,6 @@ public class ChordSequence extends TreeSet<CLI_ChordSymbol> implements Comparabl
 
         ChordSequence cSeq = new ChordSequence(subRange);
         cSeq.addAll(subSet(CLI_ChordSymbol.createItemFrom(subRange.from), CLI_ChordSymbol.createItemTo(subRange.to)));
-
 
         if (addInitChordSymbol && !cSeq.hasChordAtBeginning())
         {
@@ -171,7 +170,6 @@ public class ChordSequence extends TreeSet<CLI_ChordSymbol> implements Comparabl
 
         return cSeq;
     }
-
 
     /**
      * Get the first matching chord symbol whose position is after (or equal, if inclusive is true) posFrom.
@@ -187,11 +185,11 @@ public class ChordSequence extends TreeSet<CLI_ChordSymbol> implements Comparabl
         Preconditions.checkNotNull(tester);
 
         var headSet = headSet(CLI_ChordSymbol.createItemFrom(posFrom, inclusive),
-                false);   // useless because of createItemFrom
+            false);   // useless because of createItemFrom
         var res = headSet.stream().
-                filter(cliCs -> tester.test(cliCs))
-                .findFirst()
-                .orElse(null);
+            filter(cliCs -> tester.test(cliCs))
+            .findFirst()
+            .orElse(null);
 
         return res;
     }
@@ -211,7 +209,7 @@ public class ChordSequence extends TreeSet<CLI_ChordSymbol> implements Comparabl
         CLI_ChordSymbol res = null;
 
         var headSet = headSet(CLI_ChordSymbol.createItemTo(posTo, inclusive),
-                false);   // useless because of createItemFrom
+            false);   // useless because of createItemFrom
         var it = headSet.descendingIterator();
         while (it.hasNext())
         {
@@ -226,7 +224,6 @@ public class ChordSequence extends TreeSet<CLI_ChordSymbol> implements Comparabl
         return res;
     }
 
-
     /**
      *
      * @return True if there is a chord on bar=startBar, beat=0.
@@ -239,6 +236,31 @@ public class ChordSequence extends TreeSet<CLI_ChordSymbol> implements Comparabl
         }
         Position pos = first().getPosition();
         return pos.getBar() == barRange.from && pos.isFirstBarBeat();
+    }
+
+    /**
+     * Remove successive identical chord symbols.
+     *
+     * @return True if chord sequence was modified
+     */
+    public boolean removeRedundantChords()
+    {
+        boolean changed = false;
+        var it = iterator();
+        ExtChordSymbol lastEcs = null;
+        while (it.hasNext())
+        {
+            var ecs = it.next().getData();
+            if (Objects.equals(lastEcs, ecs))
+            {
+                it.remove();
+                changed = true;
+            } else
+            {
+                lastEcs = ecs;
+            }
+        }
+        return changed;
     }
 
     /**

@@ -23,7 +23,6 @@
 package org.jjazz.chordleadsheet.api.item;
 
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.harmony.api.Position;
 
 public interface WritableItem<T> extends ChordLeadSheetItem<T>

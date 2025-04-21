@@ -42,7 +42,6 @@ import javax.swing.JOptionPane;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.RhythmInfo;
-import org.jjazz.rhythmdatabaseimpl.RhythmDbCache;
 import org.jjazz.utilities.api.Utilities;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;

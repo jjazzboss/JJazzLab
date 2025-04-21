@@ -29,6 +29,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -63,7 +64,7 @@ public class ObservableProperties<T> implements Serializable
 
     /**
      *
-     * @param owner           Can be null
+     * @param owner Can be null
      * @param otherProperties
      */
     public ObservableProperties(Object owner, ObservableProperties<T> otherProperties)
@@ -88,7 +89,7 @@ public class ObservableProperties<T> implements Serializable
      * Fire a PropertyChangeEvent using propertyName.
      *
      * @param propertyName
-     * @param value        If null the property is removed.
+     * @param value If null the property is removed.
      */
     public void put(String propertyName, T value)
     {
@@ -109,8 +110,7 @@ public class ObservableProperties<T> implements Serializable
             {
                 properties = new HashMap<>();
             }
-            T old = properties.get(propertyName);
-            properties.put(propertyName, value);
+            T old = properties.put(propertyName, value);
             firePropertyChange(propertyName, old, value);
         }
     }
@@ -137,10 +137,10 @@ public class ObservableProperties<T> implements Serializable
     public T get(String propertyName, T defaultValue)
     {
         Preconditions.checkNotNull(propertyName);
-        T res = defaultValue;
-        if (properties != null && properties.containsKey(propertyName))
+        T res = properties != null ? properties.get(propertyName) : null;
+        if (res == null)
         {
-            res = properties.get(propertyName);
+            res = defaultValue;
         }
         return res;
     }
@@ -210,6 +210,37 @@ public class ObservableProperties<T> implements Serializable
         }
     }
 
+    @Override
+    public int hashCode()
+    {
+        int hash = 3;
+        hash = 29 * hash + Objects.hashCode(this.properties);
+        hash = 29 * hash + Objects.hashCode(this.owner);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (this == obj)
+        {
+            return true;
+        }
+        if (obj == null)
+        {
+            return false;
+        }
+        if (getClass() != obj.getClass())
+        {
+            return false;
+        }
+        final ObservableProperties<?> other = (ObservableProperties<?>) obj;
+        if (!Objects.equals(this.properties, other.properties))
+        {
+            return false;
+        }
+        return Objects.equals(this.owner, other.owner);
+    }
 
     public void addPropertyChangeListener(PropertyChangeListener listener)
     {
@@ -234,7 +265,6 @@ public class ObservableProperties<T> implements Serializable
     // =============================================================================================
     // Private methods
     // =============================================================================================
-
     protected void firePropertyChange(String prop, T oldValue, T newValue)
     {
         pcs.firePropertyChange(prop, oldValue, newValue);

@@ -48,6 +48,7 @@ import javax.swing.SwingUtilities;
 import org.jjazz.harmony.api.ChordSymbol;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.Position;
+import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
@@ -672,7 +673,7 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
 
     private NoteEvent transpose(NoteEvent ne)
     {
-        return octaveTransposition == 0 ? ne : ne.setPitch(MidiUtilities.limit(ne.getPitch() + octaveTransposition * 12));
+        return octaveTransposition == 0 ? ne : ne.setPitch(MidiConst.clamp(ne.getPitch() + octaveTransposition * 12));
     }
 
     /**

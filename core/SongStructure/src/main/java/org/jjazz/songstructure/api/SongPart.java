@@ -98,7 +98,8 @@ public interface SongPart extends Transferable
      *
      * @param <T>
      * @param rp
-     * @return the java.lang.Object
+     * @return Can not be null
+     * @throws IllegalArgumentException If rp is not a valid RhythmParameter for this SongPart
      */
     public <T> T getRPValue(RhythmParameter<T> rp);
 

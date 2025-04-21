@@ -254,7 +254,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
         this.mapPosTimeSignature.put(0f, TimeSignature.FOUR_FOUR);
         this.loopZone = null;
         this.noteSelection = new NoteSelection();
-        this.playbackAutoScrollEnabled = MusicController.getInstance().isPlaying();
+        this.playbackAutoScrollEnabled = true;                  // MusicController.getInstance().isPlaying();
 
         // Be notified of changes, note added, moved, removed, set
         model.addPropertyChangeListener(this);
@@ -663,8 +663,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
         LOGGER.fine("cleanup() --");
 
         // Save some UI settings for the session
-        int h = splitPane_TopBottom.getHeight();
-        double dividerWeight = h > 0 ? (double) splitPane_TopBottom.getDividerLocation() / h : 0.8d;
+        double h = splitPane_TopBottom.getHeight();
+        double dividerWeight = Math.clamp(h > 0 ? splitPane_TopBottom.getDividerLocation() / h : 0.8d, 0, 1);
         lastSessionUISettings = new SessionUISettings(dividerWeight, getZoom().hValue(), getZoom().vValue());
 
 

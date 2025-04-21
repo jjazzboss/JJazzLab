@@ -22,11 +22,13 @@
  */
 package org.jjazz.rhythmmusicgeneration.api;
 
+import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -41,20 +43,19 @@ import org.jjazz.midi.api.MidiConst;
 import static org.jjazz.rhythmmusicgeneration.api.AccentProcessor.LOGGER;
 import org.jjazz.rhythm.api.TempoRange;
 import org.jjazz.phrase.api.Grid;
-import org.jjazz.rhythmmusicgeneration.api.GridChordContext;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
-import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
 
 /**
- * Phrase manipulation methods dealing with accents and anticipated chords.
+ * Phrase manipulation methods dealing with accents.
  *
  * @see ChordRenderingInfo
  */
 public class AccentProcessor
 {
+
 
     /**
      * For a given phrase decide how chord symbols with HOLD/SHOT/EXTENDED_HOLD_SHOT rendering options should be processed.
@@ -74,40 +75,43 @@ public class AccentProcessor
          */
         IGNORE
     }
-    private SimpleChordSequence chordSequence;
+    private final SimpleChordSequence simpleChordSequence;
     private FloatRange cSeqBeatRange;
     private int nbCellsPerBeat;
     private int lastCellIndex;
     private float cellDuration;
-    private TimeSignature timeSignature;
+    private final float preCellBeatWindow;
+    private final TimeSignature timeSignature;
     private int tempo;
-    private final List<CLI_ChordSymbol> anticipatableChords = new ArrayList<>();
 
     protected static final Logger LOGGER = Logger.getLogger(AccentProcessor.class.getSimpleName());
 
     /**
      * Construct an object to manipulate phrases corresponding to the specified parameters.
      *
-     * @param cSeq Can't be empty
-     * @param cSeqStartPosInBeats The start position in beats of cSeq. Must be an integer.
-     * @param nbCellsPerBeat 4 or 3. 3 should be used for ternary feel rhythm or 3/8 or 6/8 or 12/8 time signatures.
-     * @param tempo Required to best adjust e.g. "shot" notes duration
+     * @param cSeq              Can't be empty. The start position in beats must be an arithmetic integer.
+     * @param nbCellsPerBeat    4 or 3. 3 should be used for ternary feel rhythm or 3/8 or 6/8 or 12/8 time signatures.
+     * @param tempo             Required to best adjust e.g. "shot" notes duration
+     * @param preCellBeatWindow A value in the range [0;1/nbCellsPerBeat[. Used to accomodate for non-quantized notes: notes whose relative position is &gt;
+     *                          -preCellBeatWindow will be included in the current cell.
      */
-    public AccentProcessor(SimpleChordSequence cSeq, float cSeqStartPosInBeats, int nbCellsPerBeat, int tempo)
+    public AccentProcessor(SimpleChordSequence cSeq, int nbCellsPerBeat, int tempo, float preCellBeatWindow)
     {
-        if (cSeq == null || cSeq.isEmpty() || cSeqStartPosInBeats < 0 || !TempoRange.checkTempo(tempo)
-                || cSeqStartPosInBeats != Math.floor(cSeqStartPosInBeats)
-                || nbCellsPerBeat < 3 || nbCellsPerBeat > 4)
-        {
-            throw new IllegalArgumentException( //NOI18N
-                    "cSeq=" + cSeq + " cSeqStartPosInBeats=" + cSeqStartPosInBeats + " nbCellsPerBeat=" + nbCellsPerBeat);
-        }
+        Objects.requireNonNull(cSeq);
+        Preconditions.checkArgument(!cSeq.isEmpty());
+        Preconditions.checkArgument(cSeq.getStartBeatPosition() >= 0 && cSeq.getStartBeatPosition() == Math.floor(cSeq.getStartBeatPosition()),
+                "cSeq.getStartBeatPosition()=%s",
+                cSeq.getStartBeatPosition());
+
+        Preconditions.checkArgument(TempoRange.checkTempo(tempo), "tempo=%s", tempo);
+        Preconditions.checkArgument(nbCellsPerBeat >= 3 && nbCellsPerBeat <= 4, "nbCellsPerBeat=%s", nbCellsPerBeat);
 
 
-        this.chordSequence = cSeq;
-        timeSignature = chordSequence.getTimeSignature();
+        this.simpleChordSequence = cSeq;
+        this.cSeqBeatRange = cSeq.getBeatRange();
+        timeSignature = simpleChordSequence.getTimeSignature();
+        this.preCellBeatWindow = preCellBeatWindow;
 
-        
         float nbNaturalBeats = timeSignature.getNbNaturalBeats();
         if (nbNaturalBeats != Math.floor(nbNaturalBeats))
         {
@@ -117,14 +121,14 @@ public class AccentProcessor
 
 
         this.nbCellsPerBeat = nbCellsPerBeat;
-        lastCellIndex = ((int) nbNaturalBeats * nbCellsPerBeat * chordSequence.getBarRange().size()) - 1;
+        lastCellIndex = ((int) nbNaturalBeats * nbCellsPerBeat * simpleChordSequence.getBarRange().size()) - 1;
         cellDuration = 1f / nbCellsPerBeat;
-        cSeqBeatRange = new FloatRange(cSeqStartPosInBeats, cSeqStartPosInBeats + cSeq.getBarRange().size() * nbNaturalBeats);
+
         this.tempo = tempo;
 
-        LOGGER.log(Level.FINE, "\nAccentProcessor() -- cSeqBeatRange={0} timeSignature={1} nbCellsPerBeat={2} anticipatableChords={3}", new Object[]
+        LOGGER.log(Level.FINE, "\nAccentProcessor() -- cSeqBeatRange={0} timeSignature={1} nbCellsPerBeat={2}", new Object[]
         {
-            cSeqBeatRange, timeSignature, nbCellsPerBeat, anticipatableChords
+            cSeqBeatRange, timeSignature, nbCellsPerBeat
         });
     }
 
@@ -158,10 +162,10 @@ public class AccentProcessor
         GridDrumsHelper gdh = new GridDrumsHelper(p, kit);
 
 
-        for (CLI_ChordSymbol cliCs : chordSequence)
+        for (CLI_ChordSymbol cliCs : simpleChordSequence)
         {
 
-            GridChordContext gct = new GridChordContext(cliCs, chordSequence, cSeqBeatRange.from, gdh.gridAccents);
+            GridChordContext gct = new GridChordContext(cliCs, simpleChordSequence, gdh.gridAccents);
             ChordRenderingInfo cri = cliCs.getData().getRenderingInfo();
 
 
@@ -223,10 +227,10 @@ public class AccentProcessor
         GridDrumsHelper gdh = new GridDrumsHelper(p, kit);
 
 
-        for (CLI_ChordSymbol cliCs : chordSequence)
+        for (CLI_ChordSymbol cliCs : simpleChordSequence)
         {
 
-            GridChordContext gct = new GridChordContext(cliCs, chordSequence, cSeqBeatRange.from, gdh.gridAccents);
+            GridChordContext gct = new GridChordContext(cliCs, simpleChordSequence, gdh.gridAccents);
             ChordRenderingInfo cri = cliCs.getData().getRenderingInfo();
 
             if (cri.getAccentFeature() == null)
@@ -255,7 +259,7 @@ public class AccentProcessor
                 notePitch = computeDrumsAccentPitch(gdh.refGridAccents, gct.chordCell);
                 noteVel = computeNewDrumAccentNoteVelocity(notePitch, gdh.refGridAccents, gct.chordCell, cri);
                 accentNote = new NoteEvent(notePitch, noteDur, noteVel, gct.chordPosInBeats);
-                gct.grid.addNote(gct.chordCell, accentNote, gct.relPosInCell);;
+                gct.grid.addNote(gct.chordCell, accentNote, gct.relPosInCell);
 
             } else
             {
@@ -308,10 +312,11 @@ public class AccentProcessor
      */
     public void processAccentBass(Phrase p)
     {
-        if (p == null || (!p.isEmpty() && p.getBeatRange().from < cSeqBeatRange.from))
-        {
-            throw new IllegalArgumentException("p=" + p);   //NOI18N
-        }
+        Objects.requireNonNull(p);
+//        if (!p.isEmpty() && p.getBeatRange().from < cSeqBeatRange.from)
+//        {
+//            throw new IllegalArgumentException("p=" + p);   //NOI18N
+//        }        
 
         LOGGER.log(Level.FINE, "processAccentBass() ");
 
@@ -324,14 +329,14 @@ public class AccentProcessor
 
 
         // Prepare the grids
-        Grid grid = new Grid(p, cSeqBeatRange, nbCellsPerBeat, null);
-        Grid refGrid = new Grid(p.clone(), cSeqBeatRange, nbCellsPerBeat, null);    // Reference grid not modified, used for velocity/pitch calculation                
+        Grid grid = new Grid(p, cSeqBeatRange, nbCellsPerBeat, null, preCellBeatWindow);
+        Grid refGrid = new Grid(p.clone(), cSeqBeatRange, nbCellsPerBeat, null, preCellBeatWindow);    // Reference grid not modified, used for velocity/pitch calculation                
 
 
-        for (CLI_ChordSymbol cliCs : chordSequence)
+        for (CLI_ChordSymbol cliCs : simpleChordSequence)
         {
 
-            GridChordContext gct = new GridChordContext(cliCs, chordSequence, cSeqBeatRange.from, grid);
+            GridChordContext gct = new GridChordContext(cliCs, simpleChordSequence, grid);
             ChordRenderingInfo cri = cliCs.getData().getRenderingInfo();
 
 
@@ -386,10 +391,12 @@ public class AccentProcessor
      */
     public void processHoldShotMono(Phrase p, HoldShotMode hsMode)
     {
-        if (p == null || hsMode == null || (!p.isEmpty() && p.getBeatRange().from < cSeqBeatRange.from))
-        {
-            throw new IllegalArgumentException("hsMode=" + hsMode + " p=" + p);   //NOI18N
-        }
+        Objects.requireNonNull(p);
+        Objects.requireNonNull(hsMode);
+//        if (!p.isEmpty() && p.getBeatRange().from < cSeqBeatRange.from)
+//        {
+//            throw new IllegalArgumentException("hsMode=" + hsMode + " p=" + p);   //NOI18N
+//        }
 
         LOGGER.log(Level.FINE, "processHoldShotMono() -- hsMode={0}", hsMode);
 
@@ -402,13 +409,13 @@ public class AccentProcessor
 
 
         // Prepare the grid
-        Grid grid = new Grid(p, cSeqBeatRange, nbCellsPerBeat, null);
+        Grid grid = new Grid(p, cSeqBeatRange, nbCellsPerBeat, null, preCellBeatWindow);
 
 
-        for (CLI_ChordSymbol cliCs : chordSequence)
+        for (CLI_ChordSymbol cliCs : simpleChordSequence)
         {
 
-            GridChordContext gct = new GridChordContext(cliCs, chordSequence, cSeqBeatRange.from, grid);
+            GridChordContext gct = new GridChordContext(cliCs, simpleChordSequence, grid);
             ChordRenderingInfo cri = cliCs.getData().getRenderingInfo();
 
 
@@ -480,10 +487,12 @@ public class AccentProcessor
      */
     public void processHoldShotChord(Phrase p, HoldShotMode hsMode)
     {
-        if (p == null || hsMode == null || (!p.isEmpty() && p.getBeatRange().from < cSeqBeatRange.from))
-        {
-            throw new IllegalArgumentException("hsMode=" + hsMode + " p=" + p);   //NOI18N
-        }
+        Objects.requireNonNull(p);
+        Objects.requireNonNull(p);
+//        if (!p.isEmpty() && p.getBeatRange().from < cSeqBeatRange.from)
+//        {
+//            throw new IllegalArgumentException("hsMode=" + hsMode + " p=" + p);   //NOI18N
+//        }
 
 
         LOGGER.log(Level.FINE, "processHoldShotChord() -- ");
@@ -496,13 +505,13 @@ public class AccentProcessor
         }
 
         // Prepare the grid
-        Grid grid = new Grid(p, cSeqBeatRange, nbCellsPerBeat, null);
+        Grid grid = new Grid(p, cSeqBeatRange, nbCellsPerBeat, null, preCellBeatWindow);
 
 
-        for (CLI_ChordSymbol cliCs : chordSequence)
+        for (CLI_ChordSymbol cliCs : simpleChordSequence)
         {
 
-            GridChordContext gct = new GridChordContext(cliCs, chordSequence, cSeqBeatRange.from, grid);
+            GridChordContext gct = new GridChordContext(cliCs, simpleChordSequence, grid);
             ChordRenderingInfo cri = cliCs.getData().getRenderingInfo();
 
             if (!isProcessHoldShot(cri, hsMode))
@@ -587,13 +596,13 @@ public class AccentProcessor
 
 
         // Prepare the grids
-        Grid grid = new Grid(p, cSeqBeatRange, nbCellsPerBeat, null);
+        Grid grid = new Grid(p, cSeqBeatRange, nbCellsPerBeat, null, preCellBeatWindow);
 
 
-        for (CLI_ChordSymbol cliCs : chordSequence)
+        for (CLI_ChordSymbol cliCs : simpleChordSequence)
         {
 
-            GridChordContext gct = new GridChordContext(cliCs, chordSequence, cSeqBeatRange.from, grid);
+            GridChordContext gct = new GridChordContext(cliCs, simpleChordSequence, grid);
             ChordRenderingInfo cri = cliCs.getData().getRenderingInfo();
 
             if (cri.getAccentFeature() == null)
@@ -735,6 +744,7 @@ public class AccentProcessor
      * @param grid
      * @param cellIndex
      * @param cri
+     * @return
      */
     private int computeNewNoteVelocity(Grid grid, int cellIndex, ChordRenderingInfo cri)
     {
@@ -797,7 +807,7 @@ public class AccentProcessor
      * <p>
      * Use the most used pitch in the cells around.
      *
-     * @param grid A grid limited to DRUMS_ACCENT_PITCHES.
+     * @param grid      A grid limited to DRUMS_ACCENT_PITCHES.
      * @param cellIndex
      * @return One of the DRUMS_ACCENT_PITCHES pitches
      * @see DRUMS_ACCENT_PITCHES
@@ -840,7 +850,8 @@ public class AccentProcessor
      * @param pitch
      * @param grid
      * @param cellIndex
-     * @param level
+     * @param cri
+     * @return
      */
     private int computeNewDrumAccentNoteVelocity(int pitch, Grid grid, int cellIndex, ChordRenderingInfo cri)
     {
@@ -867,6 +878,7 @@ public class AccentProcessor
      *
      * @param cliCs
      * @param accentNote
+     * @return
      */
     private int computeExistingDrumAccentNoteVelocity(CLI_ChordSymbol cliCs, NoteEvent accentNote)
     {
@@ -898,8 +910,8 @@ public class AccentProcessor
     {
         // We need a copy : we'll modify the list for the calculations
         velocities = new ArrayList<>(velocities);
-        
-        
+
+
 //        final float MEDIUM_VEL_FACTOR = 1f;
 //        final float STRONG_VEL_FACTOR = 1.3f;
         final int MEDIUM_VEL_OFFSET = 14;
@@ -1053,8 +1065,7 @@ public class AccentProcessor
     /**
      * Get the cell range from specified beatRange without taking into account pre-cell beat window for the 'to' bound.
      * <p>
-     * If we want to remove notes, with 4 cells per beat, if beatRange stops at 0.22, no need to clear cell 1 [0.25-0.5], only
-     * cell 0 is enough.
+     * If we want to remove notes, with 4 cells per beat, if beatRange stops at 0.22, no need to clear cell 1 [0.25-0.5], only cell 0 is enough.
      *
      * @param gct
      * @param beatRange
@@ -1113,14 +1124,14 @@ public class AccentProcessor
 
             accentPitches = kit.getKeyMap().getKeys(DrumKit.Subset.ACCENT);
             Predicate<NoteEvent> filterAccents = ne -> accentPitches.contains(ne.getPitch()) && ne.getVelocity() >= ACCENT_THRESHOLD_VEL_MIN;
-            gridAccents = new Grid(p, cSeqBeatRange, nbCellsPerBeat, filterAccents);
+            gridAccents = new Grid(p, cSeqBeatRange, nbCellsPerBeat, filterAccents, preCellBeatWindow);
             refGridAccents = gridAccents.clone(); // Preserved grid for velocity/pitch calculations        
 
             openHiHatPitches = kit.getKeyMap().getKeys(DrumKit.Subset.HI_HAT_OPEN);
-            gridOpenHiHats = new Grid(p, cSeqBeatRange, nbCellsPerBeat, ne -> openHiHatPitches.contains(ne.getPitch()));
+            gridOpenHiHats = new Grid(p, cSeqBeatRange, nbCellsPerBeat, ne -> openHiHatPitches.contains(ne.getPitch()), preCellBeatWindow);
 
             crashPitches = kit.getKeyMap().getKeys(DrumKit.Subset.CRASH);
-            gridCrashes = new Grid(p, cSeqBeatRange, nbCellsPerBeat, ne -> crashPitches.contains(ne.getPitch()));
+            gridCrashes = new Grid(p, cSeqBeatRange, nbCellsPerBeat, ne -> crashPitches.contains(ne.getPitch()), preCellBeatWindow);
             refGridCrashes = gridCrashes.clone();
         }
 
@@ -1128,7 +1139,7 @@ public class AccentProcessor
          * Should we insert a crash at specified cellIndex ?
          *
          * @param cellIndex
-         * @param cri A Strong accent has higher chances to use a crash.
+         * @param cri       A Strong accent has higher chances to use a crash.
          * @return
          */
         public boolean needCrash(int cellIndex, ChordRenderingInfo cri)
@@ -1183,7 +1194,7 @@ public class AccentProcessor
         /**
          * If not already present add a splash or a crash at specified cell.
          *
-         * @param cellIndex The cell where to add the cymbal
+         * @param cellIndex  The cell where to add the cymbal
          * @param posInBeats The position of the crash
          * @param cri
          */

@@ -127,9 +127,9 @@ public class SongMusicGenerationListener implements PropertyChangeListener
      * Black list some source PROP_MUSIC_GENERATION events by their property name or actionId: those source events won't trigger a
      * ChangeEvent from this instance.
      * <p>
-     * Property names or actionId of Song, ChordLeadSheet, SongStructure, MidiMix, or PlaybackSettings.
+     * 
      *
-     * @param blackList Can be null
+     * @param blackList Can be null. If not null use property names or actionId of Song, ChordLeadSheet, SongStructure, MidiMix, or PlaybackSettings.
      */
     public void setBlackList(Set<String> blackList)
     {

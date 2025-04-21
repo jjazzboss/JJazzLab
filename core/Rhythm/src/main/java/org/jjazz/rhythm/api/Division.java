@@ -29,7 +29,13 @@ package org.jjazz.rhythm.api;
 public enum Division
 {
     BINARY,
-    EIGHTH_SHUFFLE,     // jazz swing with triplet division
+    /**
+     * jazz swing with triplet division
+     */
+    EIGHTH_SHUFFLE,
+    /**
+     * Similar to 12/8 signature.
+     */
     EIGHTH_TRIPLET,
     UNKNOWN;
 

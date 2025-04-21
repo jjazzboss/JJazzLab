@@ -113,10 +113,16 @@ public enum Degree
     private final Natural natural;
     private final int accidental;
 
-    private Degree(Natural n, int alt)
+    /**
+     *
+     * @param n
+     * @param defaultAccidental
+     * @param incompatibleDegrees Degrees usually "musically incompatible" with this Degree.
+     */
+    private Degree(Natural n, int defaultAccidental, Degree... incompatibleDegrees)
     {
         this.natural = n;
-        this.accidental = alt;
+        this.accidental = defaultAccidental;
     }
 
     /**
@@ -168,7 +174,7 @@ public enum Degree
     {
         if (alt < -1 || alt > 1)
         {
-            throw new IllegalArgumentException("n=" + n + " alt=" + alt);   
+            throw new IllegalArgumentException("n=" + n + " alt=" + alt);
         }
         for (Degree d : Degree.values())
         {
@@ -190,7 +196,7 @@ public enum Degree
     {
         if (relPitch < 0 || relPitch > 11)
         {
-            throw new IllegalArgumentException("relPitch=" + relPitch);   
+            throw new IllegalArgumentException("relPitch=" + relPitch);
         }
         ArrayList<Degree> res = new ArrayList<>();
         for (Degree d : Degree.values())
@@ -215,7 +221,7 @@ public enum Degree
     {
         if (relPitch < 0 || relPitch > 11)
         {
-            throw new IllegalArgumentException("relPitch=" + relPitch);   
+            throw new IllegalArgumentException("relPitch=" + relPitch);
         }
         Degree d = ROOT;
         switch (relPitch)
@@ -254,8 +260,21 @@ public enum Degree
                 d = SEVENTH;
                 break;
             default:
-                throw new IllegalArgumentException("d=" + d);   
+                throw new IllegalArgumentException("d=" + d);
         }
         return d;
+    }
+
+
+    /**
+     * A special equals() which considers SIXTH_OR_THIRTEENTH and SEVENTH equal.
+     *
+     * @param d
+     * @return
+     */
+    public boolean equalsSixthMajorSeventh(Degree d)
+    {
+        boolean b = this == d || (this == SIXTH_OR_THIRTEENTH && d == SEVENTH) || (d == SIXTH_OR_THIRTEENTH && this == SEVENTH);
+        return b;
     }
 }

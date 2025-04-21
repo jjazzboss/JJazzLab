@@ -43,7 +43,7 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
-import org.jjazz.midi.api.MidiUtilities;
+import org.jjazz.midi.api.MidiConst;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.pianoroll.api.NoteView;
 import org.jjazz.pianoroll.api.PianoRollEditor;
@@ -472,7 +472,7 @@ public class VelocityPanel extends EditorPanel implements PropertyChangeListener
         private int getVelocity(Point p)
         {
             int v = Math.round((127 * (getHeight() - 1f - p.y)) / (getHeight() - TOP_PADDING));
-            return MidiUtilities.limit(v);
+            return MidiConst.clamp(v);
         }
 
         /**

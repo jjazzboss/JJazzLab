@@ -36,7 +36,6 @@ import org.jjazz.humanizer.api.Humanizer.State;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.pianoroll.actions.PlayLoopZone;
-import org.jjazz.pianoroll.api.NoteView;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.pianoroll.api.PianoRollEditorTopComponent;
 import org.jjazz.uiutilities.api.UIUtilities;

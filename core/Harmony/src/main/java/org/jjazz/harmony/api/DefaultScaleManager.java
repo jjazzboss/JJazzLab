@@ -55,33 +55,33 @@ public class DefaultScaleManager implements ScaleManager
     static public final StandardScale LOCRIAN = new StandardScale("Locrian",
             Degree.ROOT, Degree.NINTH_FLAT, Degree.THIRD_FLAT, Degree.FOURTH_OR_ELEVENTH, Degree.FIFTH_FLAT, Degree.THIRTEENTH_FLAT, Degree.SEVENTH_FLAT
     );
-    static public final StandardScale MINOR_HARMONIC = new StandardScale("Minor harmornic",
+    static public final StandardScale MINOR_HARMONIC = new StandardScale("Minor_harmornic",
             Degree.ROOT, Degree.NINTH, Degree.THIRD_FLAT, Degree.FOURTH_OR_ELEVENTH, Degree.FIFTH, Degree.THIRTEENTH_FLAT, Degree.SEVENTH
     );
-    static public final StandardScale MINOR_MELODIC = new StandardScale("Minor melodic",
+    static public final StandardScale MINOR_MELODIC = new StandardScale("Minor_melodic",
             Degree.ROOT, Degree.NINTH, Degree.THIRD_FLAT, Degree.FOURTH_OR_ELEVENTH, Degree.FIFTH, Degree.SIXTH_OR_THIRTEENTH, Degree.SEVENTH
     );
     static public final StandardScale ALTERED = new StandardScale("Altered",
             Degree.ROOT, Degree.NINTH_FLAT, Degree.NINTH_SHARP, Degree.THIRD, Degree.FIFTH_FLAT, Degree.THIRTEENTH_FLAT, Degree.SEVENTH_FLAT
     );
-    static public final StandardScale LYDIAN_b7 = new StandardScale("Lydian b7",
+    static public final StandardScale LYDIAN_b7 = new StandardScale("Lydian_b7",
             Degree.ROOT, Degree.NINTH, Degree.THIRD, Degree.ELEVENTH_SHARP, Degree.FIFTH, Degree.SIXTH_OR_THIRTEENTH, Degree.SEVENTH_FLAT
     );
-    static public final StandardScale DIMINISHED_WHOLE_HALF = new StandardScale("Diminished whole-half",
+    static public final StandardScale DIMINISHED_WHOLE_HALF = new StandardScale("Diminished_whole-half",
             Degree.ROOT, Degree.NINTH, Degree.THIRD_FLAT, Degree.FOURTH_OR_ELEVENTH, Degree.FIFTH_FLAT, Degree.FIFTH_SHARP, Degree.SIXTH_OR_THIRTEENTH,
             Degree.SEVENTH
     );
-    static public final StandardScale DIMINISHED_HALF_WHOLE = new StandardScale("Diminished half-whole",
+    static public final StandardScale DIMINISHED_HALF_WHOLE = new StandardScale("Diminished_half-whole",
             Degree.ROOT, Degree.NINTH_FLAT, Degree.THIRD_FLAT, Degree.THIRD, Degree.ELEVENTH_SHARP, Degree.FIFTH, Degree.SIXTH_OR_THIRTEENTH,
             Degree.SEVENTH_FLAT
     );
-    static public final StandardScale WHOLE_TONE = new StandardScale("Whole tone",
+    static public final StandardScale WHOLE_TONE = new StandardScale("Whole_tone",
             Degree.ROOT, Degree.NINTH, Degree.THIRD, Degree.FIFTH_FLAT, Degree.THIRTEENTH_FLAT, Degree.SEVENTH_FLAT
     );
-    static public final StandardScale PENTATONIC_MAJOR = new StandardScale("Pentatonic major",
+    static public final StandardScale PENTATONIC_MAJOR = new StandardScale("Pentatonic_major",
             Degree.ROOT, Degree.NINTH, Degree.THIRD, Degree.FIFTH, Degree.SIXTH_OR_THIRTEENTH
     );
-    static public final StandardScale PENTATONIC_MINOR = new StandardScale("Pentatonic minor",
+    static public final StandardScale PENTATONIC_MINOR = new StandardScale("Pentatonic_minor",
             Degree.ROOT, Degree.NINTH, Degree.THIRD_FLAT, Degree.FOURTH_OR_ELEVENTH, Degree.FIFTH, Degree.SEVENTH_FLAT
     );
     static public final StandardScale BLUES = new StandardScale("Blues",
@@ -134,6 +134,7 @@ public class DefaultScaleManager implements ScaleManager
      *
      * @return
      */
+    @Override
     public List<StandardScale> getStandardScales()
     {
         return new ArrayList<>(stdScales);
@@ -149,6 +150,7 @@ public class DefaultScaleManager implements ScaleManager
      * @param cs
      * @return
      */
+    @Override
     public List<StandardScaleInstance> getMatchingScales(ChordSymbol cs)
     {
         ArrayList<StandardScaleInstance> ssis = new ArrayList<>();

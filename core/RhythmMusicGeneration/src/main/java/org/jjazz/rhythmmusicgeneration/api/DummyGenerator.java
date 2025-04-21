@@ -22,11 +22,13 @@
  */
 package org.jjazz.rhythmmusicgeneration.api;
 
+import com.google.common.base.Preconditions;
 import java.util.Collections;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.songcontext.api.SongContext;
 import java.util.HashMap;
+import java.util.Objects;
 import java.util.logging.Level;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import java.util.logging.Logger;
@@ -37,6 +39,7 @@ import org.jjazz.midi.api.synths.InstrumentFamily;
 import org.jjazz.phrase.api.PhraseSamples;
 import org.jjazz.rhythm.api.*;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
 
 /**
@@ -77,8 +80,8 @@ public class DummyGenerator implements MusicGenerator
             float sptPosInBeats = sgContext.getSong().getSongStructure().toPositionInNaturalBeats(sptRange.from);
 
             // Get the SimpleChordSequence corresponding to the song part
-            SongChordSequence scSeq = new SongChordSequence(sgContext.getSong(), sptRange);     // throw UserErrorGenerationException
-            SimpleChordSequence cSeq = new SimpleChordSequence(scSeq, ts);
+            SongChordSequence scSeq = new SongChordSequence(sgContext.getSong(), sptRange);     // throws UserErrorGenerationException, process alternate chord symbols
+            SimpleChordSequence cSeq = new SimpleChordSequence(scSeq, sptPosInBeats, ts);
 
 
             for (RhythmVoice rv : rhythm.getRhythmVoices())
@@ -101,12 +104,12 @@ public class DummyGenerator implements MusicGenerator
                     if (rv.getPreferredInstrument().getSubstitute().getFamily().equals(InstrumentFamily.Bass))
                     {
                         LOGGER.log(Level.FINE, "generateMusic() generate dummy bass track for RhythmVoice: {0}", rv.getName());
-                        Phrase p = getBasicBassPhrase(sptPosInBeats, cSeq, destChannel);
+                        Phrase p = getBasicBassPhrase(cSeq, new IntRange(48, 68), destChannel);
                         pRes.add(p);
                     } else
                     {
                         LOGGER.log(Level.FINE, "generateMusic() generate dummy melodic track for RhythmVoice: {0}", rv.getName());
-                        Phrase p = getBasicMelodicPhrase(sptPosInBeats, cSeq, destChannel);
+                        Phrase p = getBasicMelodicPhrase(cSeq, destChannel);
                         pRes.add(p);
                     }
                 }
@@ -118,39 +121,46 @@ public class DummyGenerator implements MusicGenerator
 
     /**
      * Get a basic bass phrase.
+     * <p>
+     * For each chord play its bass note for the chord duration with random velocity.
      *
-     * @param startPosInBeats
      * @param cSeq
-     * @param channel         The channel of the returned phrase
+     * @param velocityRange Use random notes velocity in this range
+     * @param channel       The channel of the returned phrase
      * @return
      */
-    static public Phrase getBasicBassPhrase(float startPosInBeats, SimpleChordSequence cSeq, int channel)
+    static public Phrase getBasicBassPhrase(SimpleChordSequence cSeq, IntRange velocityRange, int channel)
     {
-        if (cSeq == null || !MidiConst.checkMidiChannel(channel))
-        {
-            throw new IllegalArgumentException("cSeq=" + cSeq + " channel=" + channel);
-        }
+        Objects.requireNonNull(cSeq);
+        Objects.requireNonNull(velocityRange);
+        Preconditions.checkArgument(!velocityRange.isEmpty());
+        Preconditions.checkArgument(MidiConst.checkMidiChannel(channel), "channel=%s", channel);
+
         Phrase p = new Phrase(channel, false);
         for (var cliCs : cSeq)
         {
-            int bassPitch = 3 * 12 + cliCs.getData().getBassNote().getRelativePitch(); // stay on the 3rd octave            
-            float duration = cSeq.getChordDuration(cliCs);
-            float posInBeats = cSeq.toPositionInBeats(cliCs.getPosition(), startPosInBeats);
-            NoteEvent ne = new NoteEvent(bassPitch, duration, 80, posInBeats);
+            int relPitch = cliCs.getData().getBassNote().getRelativePitch();
+            int bassPitch = InstrumentFamily.Bass.toAbsolutePitch(relPitch);
+            FloatRange brCliCs = cSeq.getBeatRange(cliCs);
+            float beatPos = brCliCs.from;
+            float duration = brCliCs.size() - 0.1f;
+            int velocity = velocityRange.from + (int) Math.round(Math.random() * (velocityRange.size() - 1));
+            velocity = MidiConst.clamp(velocity);
+            NoteEvent ne = new NoteEvent(bassPitch, duration, velocity, beatPos);
             p.add(ne);
         }
         return p;
     }
 
+
     /**
      * Get a basic random phrase for a melodic instrument (use chord notes).
      *
-     * @param startPosInBeats
      * @param cSeq
-     * @param channel         The channel of the returned phrase
+     * @param channel The channel of the returned phrase
      * @return
      */
-    static public Phrase getBasicMelodicPhrase(float startPosInBeats, SimpleChordSequence cSeq, int channel)
+    static public Phrase getBasicMelodicPhrase(SimpleChordSequence cSeq, int channel)
     {
         if (cSeq == null || !MidiConst.checkMidiChannel(channel))
         {
@@ -159,11 +169,11 @@ public class DummyGenerator implements MusicGenerator
         Phrase p = new Phrase(channel, false);
         for (var cliCs : cSeq)
         {
-            float chordDuration = cSeq.getChordDuration(cliCs);
+            FloatRange brCliCs = cSeq.getBeatRange(cliCs);
+            float posInBeats = brCliCs.from;
             Chord c = cliCs.getData().getChord();
-            float noteDuration = (chordDuration / c.size()) - 0.001f;
-            float posInBeats = cSeq.toPositionInBeats(cliCs.getPosition(), startPosInBeats);
-            
+            float noteDuration = (brCliCs.size() / c.size()) - 0.01f;
+
             var notes = c.getNotes();
             Collections.shuffle(notes);
             for (var n : notes)

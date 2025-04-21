@@ -30,6 +30,7 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javax.swing.FocusManager;
 import static org.jjazz.harmony.api.Degree.*;
 import org.jjazz.harmony.spi.ChordTypeDatabase;
 
@@ -63,9 +64,9 @@ final public class ChordType
      */
     public enum DegreeIndex
     {
-        ROOT,
-        THIRD_OR_FOURTH, // Can't have both in the same time
-        FIFTH,
+        ROOT, // Always defined
+        THIRD_OR_FOURTH, // Always defined EXCEPT for the "C2" which chord has neither 3rd nor 4th
+        FIFTH, // Always defined
         SIXTH_OR_SEVENTH,
         EXTENSION1, // 9, 11, or 13
         EXTENSION2, // 11 or 13
@@ -214,16 +215,23 @@ final public class ChordType
     }
 
     /**
-     * The ordered list of DegreeIndexes starting from NINTH.
+     * The ordered list of DegreeIndexes used by this chord type starting from NINTH.
      *
      * @return
      */
     public List<DegreeIndex> getExtensionDegreeIndexes()
     {
         ArrayList<DegreeIndex> res = new ArrayList<>();
-        for (int i = DegreeIndex.EXTENSION1.ordinal(); i < degrees.size(); i++)
+        int start = DegreeIndex.EXTENSION1.ordinal();
+        if (isSpecial2Chord())
+        {            
+            res.add(DegreeIndex.EXTENSION1);
+        }else
+        {
+        for (int i = start; i < degrees.size(); i++)
         {
             res.add(DegreeIndex.values()[i]);
+        }
         }
         return res;
     }
@@ -241,11 +249,28 @@ final public class ChordType
             throw new NullPointerException("d");
         }
         int index = degrees.indexOf(d);
-        if (index == -1)
+
+        if (index != -1 && isSpecial2Chord())
         {
-            return null;
+            // Exception no third, no sixth nor seventh !
+            index = switch (d)
+            {
+                case ROOT ->
+                    index;
+                case FIFTH ->   
+                    index + 1;
+                case NINTH ->
+                    index + 2;
+                default -> throw new IllegalStateException("d=" + d);
+            };
         }
-        return DegreeIndex.values()[index];
+
+        DegreeIndex res = null;
+        if (index != -1)
+        {
+            res = DegreeIndex.values()[index];
+        }
+        return res;
     }
 
     /**
@@ -257,14 +282,33 @@ final public class ChordType
      * Ex: C6 EXTENSION1=null<br>
      *
      * @param di
-     * @return The degree corresponding to specified index. Can be null.
+     * @return The degree corresponding to specified index. Can be null (even if di==THIRD_OR_FOURTH, see the C2 chord type)
      */
     public Degree getDegree(DegreeIndex di)
     {
-        Degree d = null;
-        if (di.ordinal() < degrees.size())
+        int ordinal = di.ordinal();
+
+
+        if (isSpecial2Chord())
         {
-            d = degrees.get(di.ordinal());
+            // Special case, no third, no six or seventh!
+            ordinal = switch (di)
+            {
+                case ROOT ->
+                    ordinal;
+                case FIFTH ->
+                    ordinal - 1;
+                case EXTENSION1 ->
+                    ordinal - 2;
+                default ->
+                    1000;   // so we return null
+            };
+        }
+
+        Degree d = null;
+        if (ordinal < degrees.size())
+        {
+            d = degrees.get(ordinal);
         }
         return d;
     }
@@ -311,11 +355,11 @@ final public class ChordType
      * <p>
      * Order is ROOT, THIRD or FOURTH, FIFTH, [SIXTH_OR_THIRTEENTH(if==sixth)], [SEVENTH], [NINTH], [ELEVENTH], [SIXTH_OR_THIRTEENTH(if==extension)].
      *
-     * @return
+     * @return An unmodifiable list
      */
     public List<Degree> getDegrees()
     {
-        return new ArrayList<>(degrees);
+        return Collections.unmodifiableList(degrees);
     }
 
     /**
@@ -373,6 +417,32 @@ final public class ChordType
     }
 
     /**
+     * Count how many initial degrees are identical between 2 chord types.
+     * <p>
+     * Examples:<br>
+     * C and Cm: 1, Cm and Cm7: 3, Cm7#9 and Cm9: 4
+     *
+     * @param ct
+     * @param sixthMajorSeventhEqual if true we consider 6 and 7M degrees identical.
+     * @return Minimum value is 1 (root always matches).
+     */
+    public int getNbCommonDegrees(ChordType ct, boolean sixthMajorSeventhEqual)
+    {
+        int res;
+        for (res = 0; res < Math.min(degrees.size(), ct.degrees.size()); res++)
+        {
+            var d = degrees.get(res);
+            var dCt = ct.degrees.get(res);
+            if (sixthMajorSeventhEqual ? !d.equalsSixthMajorSeventh(dCt) : d != dCt)
+            {
+                assert res > 0;    // root must always match
+                break;
+            }
+        }
+        return res;
+    }
+
+    /**
      * Find the most probable degree corresponding to relative pitch for this chordtype.
      * <p>
      * First try to use getDegree(relPitch). If it returns null, make some assumptions based on the chord type to find the most probable degree.<br>
@@ -402,7 +472,7 @@ final public class ChordType
                 case 2 ->
                     NINTH;
                 case 3 ->
-                    isMinor() ? THIRD_FLAT : NINTH_SHARP;
+                    isMajor() ? NINTH_SHARP : THIRD_FLAT;
                 case 4 ->
                     THIRD;
                 case 5 ->
@@ -419,7 +489,8 @@ final public class ChordType
                     SEVENTH_FLAT;
                 case 11 ->
                     SEVENTH;
-                default -> throw new IllegalArgumentException("relPitch=" + relPitch);
+                default ->
+                    throw new IllegalArgumentException("relPitch=" + relPitch);
             };
         }
         return d;
@@ -442,45 +513,48 @@ final public class ChordType
     {
         if (mostImportantDegrees == null)
         {
-            mostImportantDegrees = new ArrayList<>();
-            mostImportantDegrees.add(DegreeIndex.THIRD_OR_FOURTH);
+            List<DegreeIndex> dis = new ArrayList<>();
+            if (!isSpecial2Chord())
+            {
+                dis.add(DegreeIndex.THIRD_OR_FOURTH);
+            }
             if (!getDegree(DegreeIndex.FIFTH).equals(Degree.FIFTH))         // If altered 5 it's important
             {
-                mostImportantDegrees.add(DegreeIndex.FIFTH);
+                dis.add(DegreeIndex.FIFTH);
             }
             if (getDegree(DegreeIndex.SIXTH_OR_SEVENTH) != null)
             {
-                mostImportantDegrees.add(DegreeIndex.SIXTH_OR_SEVENTH);
+                dis.add(DegreeIndex.SIXTH_OR_SEVENTH);
             }
             if (getDegree(DegreeIndex.EXTENSION1) != null)
             {
-                mostImportantDegrees.add(DegreeIndex.EXTENSION1);
+                dis.add(DegreeIndex.EXTENSION1);
             }
             if (base.contains("6"))
             {
-                mostImportantDegrees.add(DegreeIndex.ROOT);
+                dis.add(DegreeIndex.ROOT);
                 if (getDegree(DegreeIndex.FIFTH).equals(Degree.FIFTH))
                 {
-                    mostImportantDegrees.add(DegreeIndex.FIFTH);
+                    dis.add(DegreeIndex.FIFTH);
                 }
             } else
             {
                 if (getDegree(DegreeIndex.FIFTH).equals(Degree.FIFTH))
                 {
-                    mostImportantDegrees.add(DegreeIndex.FIFTH);
+                    dis.add(DegreeIndex.FIFTH);
                 }
-                mostImportantDegrees.add(DegreeIndex.ROOT);
+                dis.add(DegreeIndex.ROOT);
             }
             if (getDegree(DegreeIndex.EXTENSION2) != null)
             {
-                mostImportantDegrees.add(DegreeIndex.EXTENSION2);
+                dis.add(DegreeIndex.EXTENSION2);
             }
             if (getDegree(DegreeIndex.EXTENSION3) != null)
             {
-                mostImportantDegrees.add(DegreeIndex.EXTENSION3);
+                dis.add(DegreeIndex.EXTENSION3);
             }
 
-            mostImportantDegrees = Collections.unmodifiableList(mostImportantDegrees);
+            mostImportantDegrees = Collections.unmodifiableList(dis);
         }
         LOGGER.log(Level.FINE, "getMostImportantDegreeIndexes() this={0} result={1}", new Object[]
         {
@@ -677,7 +751,8 @@ final public class ChordType
                         destDegree = getDegree(9) != null ? Degree.SIXTH_OR_THIRTEENTH : Degree.SEVENTH_FLAT;
                     }
                 }
-                default -> throw new IllegalStateException("d=" + d + " this=" + this + " scales=" + optScale);
+                default ->
+                    throw new IllegalStateException("d=" + d + " this=" + this + " scales=" + optScale);
             }
         }
 
@@ -691,7 +766,7 @@ final public class ChordType
      * Rely on fitDegreeAdvanced(Degree d, optScales).
      * <p>
      * If di does not directly correspond to one of these ChordType degrees, make some assumptions, e.g. if di==DegreeIndex.SIXTH_OR_SEVENTH then try to fit to
-     * th seventh degree of this ChordType.
+     * the seventh degree of this ChordType.
      *
      * @param di
      * @param optScale Optional, can be null.
@@ -704,15 +779,24 @@ final public class ChordType
         {
             d = switch (di)
             {
-                case ROOT, THIRD_OR_FOURTH, FIFTH -> // We should not be here because all chords must have those degrees defined 
+                case ROOT, FIFTH -> // We should not be here because all chords must have those degrees defined 
                     throw new IllegalStateException("di=" + di);
+                case THIRD_OR_FOURTH ->  // It can only be a "2" chord
+                {
+                    if (!isSpecial2Chord())
+                    {
+                        throw new IllegalArgumentException("this=" + this + " di=" + di + " d=" + d);
+                    }
+                    yield fitDegreeAdvanced(Degree.FOURTH_OR_ELEVENTH, optScale);
+                }
                 case SIXTH_OR_SEVENTH ->
                     fitDegreeAdvanced(Degree.SEVENTH, optScale);       // 7 suits most chords...
                 case EXTENSION1 ->
                     fitDegreeAdvanced(Degree.NINTH, optScale);         // 9 suits most chords
                 case EXTENSION2, EXTENSION3 ->
                     fitDegreeAdvanced(Degree.SIXTH_OR_THIRTEENTH, optScale);
-                default -> throw new IllegalStateException("di=" + di);
+                default ->
+                    throw new IllegalStateException("di=" + di);
             };
         }
         return d;
@@ -736,7 +820,14 @@ final public class ChordType
                     .limit(nbMaxDegrees)
                     .toList();
             res = ChordTypeDatabase.getDefault().getChordType(resDegrees);
-            assert res != null : "this=" + this + " resDegrees=" + resDegrees;
+            if (res == null)
+            {
+                LOGGER.log(Level.FINE, "getSimplified() ChordType {0} can not be simplified with only {1} degrees", new Object[]
+                {
+                    this, nbMaxDegrees
+                });
+                res = this;
+            }
         }
 
         return res;
@@ -745,61 +836,64 @@ final public class ChordType
     /**
      * Compute how much "similar" is the specified ChordType with this object.
      * <p>
-     * Equal ChordTypes have a score of 63. Score is reduced when a ChordType Degree differs, according to the table below:
+     * Equal ChordTypes have a score of 63. Score is reduced when ChordType Degrees differ, according to the table below:
      * <p>
-     * DegreeIndex.THIRD: -32 (a score &gt;=32 means third matches)<br>
+     * DegreeIndex.THIRD_OR_FOURTH: -32 (a score &gt;=32 means third or fourth matches)<br>
      * DegreeIndex.FIFTH: -16 (a score &gt;=48 means third+fifth match) <br>
      * DegreeIndex.SIXTH_SEVENTH: -8 (a score &gt;=56 means third+fifth+six_seventh match)<br>
      * DegreeIndex.EXTENSION1: -4 (a score &gt;=60 means third+fifth+six_seventh match+ext1 match)<br>
      * DegreeIndex.EXTENSION2: -2 (a score &gt;=62 means third+fifth+six_seventh match+ext1+ext2 match)<br>
      * DegreeIndex.EXTENSION3: -1 (a score ==63 means equal ChordTypes)<br>
      * <p>
-     * If acceptAbsentDegrees is true, we do not reduce the score if one of the ChordType uses a specific Degree but not the other (e.g C and C7 are considered
-     * equal).
+     * If acceptAbsentDegrees is true and chord types do not have the same number of Degrees (e.g. C and C69), score is reduced by 1 for each "extra" Degree.
+     * This way C and F6 (1 extra degree) are a bit less similar than C and F, and a bit more similar than C and F69 (2 extra degrees).
+     * <p>
      * <p>
      * Special handling: 6 and 7M are considered similar.
+     * <p>
      * <p>
      * Examples:<br>
      * - C and E, Fm69 and Ebm69 = 63. This is the max value for identical ChordTypes.<br>
      * - C7 and Cm6 = 63-32-8 = 23 <br>
-     * - C7 and Cm69 = 63-32-8 = 23 if acceptAbsentDegrees==true , or 63-32-8-4 = 19 if acceptAbsentDegrees==false<br>
-     * - C7 and C9 = 63 if acceptAbsentDegrees==true , or 63-4 = 59 if acceptAbsentDegrees==false<br>
-     * - C and F13b9 = 63 if acceptAbsentDegrees==true, or 63-8-4-2 = 49 if acceptAbsentDegrees==false <br>
+     * - C7 and Cm69 = 63-32-8-1 = 22 if acceptAbsentDegrees==true , or 63-32-8-4 = 19 if acceptAbsentDegrees==false<br>
+     * - C7 and C9 = 63-1=62 if acceptAbsentDegrees==true , or 63-4 = 59 if acceptAbsentDegrees==false<br>
+     * - C and F13b9 = 63-3=60 if acceptAbsentDegrees==true, or 63-8-4-2 = 49 if acceptAbsentDegrees==false <br>
      * - Cm6 and Cm7m = 63<br>
      * - Cm6 and Cm7 = 55<br>
      *
      *
      * @param ct
-     * @param acceptAbsentDegrees If true C and C9 will have same similarity score than C9 and C9 = 63. If false C and C9 will have a score of 48 (32+16).
-     * @return
+     * @param acceptAbsentDegrees If true absent degrees in one of the ChordType only have a minor impact on the similarity score
+     * @return [0-63]
      */
-    public int getSimilarityScore(ChordType ct, boolean acceptAbsentDegrees)
-    {
-        int res = 63;
-        int weight = 32;
-
-        for (int i = 1; i <= 6; i++)
-        {
-            Degree d = i < degrees.size() ? degrees.get(i) : null;
-            Degree dct = i < ct.degrees.size() ? ct.degrees.get(i) : null;
-            if (!Objects.equals(d, dct))
-            {
-                if (((d == null || dct == null) && acceptAbsentDegrees)
-                        || (d == Degree.SIXTH_OR_THIRTEENTH && dct == Degree.SEVENTH)
-                        || (dct == Degree.SIXTH_OR_THIRTEENTH && d == Degree.SEVENTH))
-                {
-                    // Do nothing
-                } else
-                {
-                    res -= weight;
-                }
-            }
-            weight /= 2;
-        }
-
-        return res;
-    }
-
+//    public int getSimilarityScore(ChordType ct, boolean acceptAbsentDegrees)
+//    {
+//        int res = 63;
+//        int weight = 32;
+//
+//        for (int i = 1; i <= 6; i++)
+//        {
+//            Degree d = i < degrees.size() ? degrees.get(i) : null;
+//            Degree dct = i < ct.degrees.size() ? ct.degrees.get(i) : null;
+//            if (!Objects.equals(d, dct))
+//            {
+//                if ((d == null || dct == null) && acceptAbsentDegrees)
+//                {
+//                    res -= 1;   // This way C and F6 will be 62, C and F69 will be 61
+//                } else if ((d == Degree.SIXTH_OR_THIRTEENTH && dct == Degree.SEVENTH)
+//                        || (dct == Degree.SIXTH_OR_THIRTEENTH && d == Degree.SEVENTH))
+//                {
+//                    // Do nothing
+//                } else
+//                {
+//                    res -= weight;
+//                }
+//            }
+//            weight /= 2;
+//        }
+//
+//        return res;
+//    }
     /**
      * Calculate the pitch of degree nd if chord's root=rootPitch and chord's type=this.
      *
@@ -816,6 +910,18 @@ final public class ChordType
             pitch = rootPitch + d.getPitch();
         }
         return pitch;
+    }
+
+    /**
+     * The special C2 chord which has no third no fourth no 6/7, but has a ninth.
+     * <p>
+     * E.g. true for a "C2" chord.
+     *
+     * @return
+     */
+    public boolean isSpecial2Chord()
+    {
+        return getName().equals("2");
     }
 
     /**
@@ -889,7 +995,6 @@ final public class ChordType
         return Degree.FIFTH_FLAT.equals(getDegree(Natural.FIFTH));
     }
 
-
     /**
      *
      * @return True if a eleventh (natural or altered) is present.
@@ -918,11 +1023,10 @@ final public class ChordType
         return Degree.ELEVENTH_SHARP.equals(getDegree(Natural.ELEVENTH));
     }
 
-
     /**
      * True if family is Family.SUS (no third degree).
      *
-     * @return True for e.g. Csus, C7sus
+     * @return True for e.g. Csus, C7sus, C2, ...
      */
     public boolean isSus()
     {
@@ -983,7 +1087,6 @@ final public class ChordType
         return Degree.NINTH_FLAT.equals(getDegree(Natural.NINTH));
     }
 
-
     @Override
     public String toString()
     {
@@ -1004,6 +1107,34 @@ final public class ChordType
     public Chord getChord()
     {
         return chord.clone();
+    }
+
+    /**
+     * Same than equals() except that we consider 6th and 7M identical degrees.
+     *
+     * @param o
+     * @return
+     */
+    public boolean equalsSixthMajorSeventh(Object o)
+    {
+        boolean b = false;
+        if (o instanceof ChordType ct)
+        {
+            var ctDegrees = ct.getDegrees();
+            if (ctDegrees.size() == degrees.size())
+            {
+                b = true;
+                for (int i = 0; i < degrees.size(); i++)
+                {
+                    if (!ctDegrees.get(i).equalsSixthMajorSeventh(degrees.get(i)))
+                    {
+                        b = false;
+                        break;
+                    }
+                }
+            }
+        }
+        return b;
     }
 
     @Override

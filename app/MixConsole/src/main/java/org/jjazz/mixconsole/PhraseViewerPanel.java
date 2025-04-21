@@ -37,10 +37,9 @@ import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.coreuicomponents.api.PhraseBirdsEyeViewComponent;
+import org.jjazz.musiccontrol.api.MusicGenerationQueue.Result;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.rhythmmusicgeneration.api.MusicGenerationQueue;
 import org.jjazz.song.api.Song;
-import org.jjazz.songcontext.api.SongContextCopy;
 import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.uiutilities.api.CornerLayout;
 import org.jjazz.utilities.api.ResUtil;
@@ -97,9 +96,9 @@ public class PhraseViewerPanel extends PhraseBirdsEyeViewComponent implements Ch
         setToolTipText(text);
 
 
-        // Refresh content if ActiveSongMusicBuilder has already a result for us (happens when user switches between songs)
+        // Refresh content if ActiveSongMusicBuilder has already a result for us (useful when user switches between songs)
         var result = asbmb.getLastResult();
-        if (result != null && result.songContext() instanceof SongContextCopy scc && scc.getOriginalSong() == song)
+        if (asbmb.isLastResultUpToDate() && result.songContext().getSong() == song)
         {
             musicGenerationResultReceived(result);
         }
@@ -195,9 +194,9 @@ public class PhraseViewerPanel extends PhraseBirdsEyeViewComponent implements Ch
         }
     }
 
-    private void musicGenerationResultReceived(MusicGenerationQueue.Result result)
+    private void musicGenerationResultReceived(Result result)
     {
-        if (result.throwable() != null)
+        if (result == null || result.throwable() != null)
         {
             return;
         }

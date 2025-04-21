@@ -22,9 +22,11 @@
  */
 package org.jjazz.activesong;
 
+import org.jjazz.musiccontrol.api.MusicGenerationQueue;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.EnumSet;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -34,14 +36,13 @@ import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.MusicController.State;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
 import org.jjazz.musiccontrol.spi.ActiveSongBackgroundMusicBuilder;
-import org.jjazz.rhythmmusicgeneration.api.MusicGenerationQueue;
 import org.jjazz.song.api.Song;
 import org.jjazz.songcontext.api.SongContext;
 import org.openide.util.ChangeSupport;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
- * Service implementation.
+ * A service provider which provides the musical phrases of the active song, which are built in a background task.
  * <p>
  * When the active song is not playing, we use a SongMusicBuilderTask to get new Phrases each time the song changes. When song is playing, we listen to the
  * current UpdatableSongSession to get the updated phrases (which are provided as long as there is no structural change).
@@ -87,27 +88,19 @@ public class ActiveSongBackgroundMusicBuilderImpl implements PropertyChangeListe
         LOGGER.info("ActiveSongBackgroundMusicBuilderImpl() Started");
     }
 
-    /**
-     * Get the last music generation result available.
-     * <p>
-     *
-     * @return Can be null.
-     */
     @Override
     public MusicGenerationQueue.Result getLastResult()
     {
         return lastResult;
     }
 
-    /**
-     * Check if ActiveSongMusicBuilder is directly being generating music that will produce a new Result.
-     *
-     * @return True if song is not playing and music is being generated because there was a song change.
-     */
     @Override
-    public boolean isDirectlyGeneratingMusic()
+    public boolean isLastResultUpToDate()
     {
-        return songMusicBuilderTask != null && songMusicBuilderTask.isGeneratingMusic();
+        boolean outdated = lastResult == null
+                || (songMusicBuilderTask != null  && songMusicBuilderTask.isGeneratingMusic())
+                || (updatableSongSession != null && updatableSongSession.isDirty());
+        return !outdated;
     }
 
     /**
@@ -136,7 +129,7 @@ public class ActiveSongBackgroundMusicBuilderImpl implements PropertyChangeListe
             return;
         }
         enabled = b;
-        LOGGER.info("setEnabled() b=" + b);
+        LOGGER.log(Level.INFO, "setEnabled() b={0}", b);
         if (!enabled)
         {
             setState(Mode.OFF, null, null, null);
@@ -222,7 +215,7 @@ public class ActiveSongBackgroundMusicBuilderImpl implements PropertyChangeListe
                 var newState = (MusicController.State) evt.getNewValue();
 
 
-                if ((oldState == State.PAUSED && newState== State.PLAYING)
+                if ((oldState == State.PAUSED && newState == State.PLAYING)
                         || (oldState == State.PLAYING && newState == State.PAUSED))
                 {
                     // Do nothing
@@ -308,7 +301,7 @@ public class ActiveSongBackgroundMusicBuilderImpl implements PropertyChangeListe
             {
                 assert activeSong != null;
                 assert activeMidiMix != null;
-                songMusicBuilderTask = new SongMusicBuilderTask(activeSong, activeMidiMix);
+                songMusicBuilderTask = new SongMusicBuilderTask(activeSong, activeMidiMix, null);
                 songMusicBuilderTask.addChangeListener(this);
                 songMusicBuilderTask.start();
             }
@@ -334,7 +327,7 @@ public class ActiveSongBackgroundMusicBuilderImpl implements PropertyChangeListe
             LOGGER.fine("stopListeningToNonPlayingSong()");
             songMusicBuilderTask.removeChangeListener(this);
             songMusicBuilderTask.stop();
-            
+
         }
         songMusicBuilderTask = null;
     }

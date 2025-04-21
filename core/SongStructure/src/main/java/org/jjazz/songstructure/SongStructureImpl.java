@@ -1029,7 +1029,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
                     // Have the adapted rhythm created and made available in the database
                     if (rdb.getAdaptedRhythmInstance(r, ts) == null)
                     {
-                        LOGGER.log(Level.INFO, "generateAllAdaptedRhythms() Can''t get a {0}-adapted rhythm for r={1}", new Object[]
+                        LOGGER.log(Level.FINE, "generateAllAdaptedRhythms() no {0}-adapted rhythm for r={1}", new Object[]
                         {
                             ts, r
                         });

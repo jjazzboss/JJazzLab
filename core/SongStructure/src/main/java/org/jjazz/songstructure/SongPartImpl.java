@@ -22,6 +22,7 @@
  */
 package org.jjazz.songstructure;
 
+import com.google.common.base.Preconditions;
 import com.thoughtworks.xstream.XStream;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -32,6 +33,7 @@ import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -179,11 +181,10 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
     @Override
     public <T> T getRPValue(RhythmParameter<T> rp)
     {
-        if (rp == null || !rhythm.getRhythmParameters().contains(rp))
-        {
-            throw new IllegalArgumentException("this=" + this + " rp=" + rp);
-        }
+        Objects.requireNonNull(rp);
+        Preconditions.checkArgument(rhythm.getRhythmParameters().contains(rp), "rp=%s", rp);
         @SuppressWarnings("unchecked")
+                
         T value;
         synchronized (this)
         {

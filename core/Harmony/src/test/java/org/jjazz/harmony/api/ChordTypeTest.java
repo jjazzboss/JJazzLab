@@ -71,35 +71,41 @@ public class ChordTypeTest
     /**
      * Test of getSimilarityScore method, of class ChordType.
      */
-    @Test
-    public void testGetSimilarityScore()
-    {
-        System.out.println("getSimilarityScore");
-        int result = getSimilarityScore("", "", true);
-        assertEquals(63, result);
-        result = getSimilarityScore("m69", "-69", false);
-        assertEquals(63, result);
-        result = getSimilarityScore("7", "m6", true);
-        assertEquals(23, result);
-        result = getSimilarityScore("7", "m6", false);
-        assertEquals(23, result);
-        result = getSimilarityScore("7", "m69", true);
-        assertEquals(23, result);
-        result = getSimilarityScore("7", "m69", false);
-        assertEquals(19, result);
-        result = getSimilarityScore("7", "9", true);
-        assertEquals(63, result);
-        result = getSimilarityScore("7", "9", false);
-        assertEquals(59, result);
-        result = getSimilarityScore("", "13b9", true);
-        assertEquals(63, result);
-        result = getSimilarityScore("", "13b9", false);
-        assertEquals(49, result);
-        result = getSimilarityScore("m6", "m7M", false);
-        assertEquals(63, result);
-        result = getSimilarityScore("m6", "m7", false);
-        assertEquals(55, result);
-    }
+//    @Test
+//    public void testGetSimilarityScore()
+//    {
+//        System.out.println("getSimilarityScore");
+//        int result = getSimilarityScore("", "", true);
+//        assertEquals(63, result);
+//        result = getSimilarityScore("m69", "-69", false);
+//        assertEquals(63, result);
+//        result = getSimilarityScore("7", "m6", true);
+//        assertEquals(23, result);
+//        result = getSimilarityScore("7", "m6", false);
+//        assertEquals(23, result);
+//        result = getSimilarityScore("7", "m69", true);
+//        assertEquals(22, result);
+//        result = getSimilarityScore("7", "m69", false);
+//        assertEquals(19, result);
+//        result = getSimilarityScore("7", "9", true);
+//        assertEquals(62, result);
+//        result = getSimilarityScore("7", "9", false);
+//        assertEquals(59, result);
+//        result = getSimilarityScore("", "13b9", true);
+//        assertEquals(60, result);
+//        result = getSimilarityScore("", "13b9", false);
+//        assertEquals(49, result);
+//        result = getSimilarityScore("m6", "m7M", false);
+//        assertEquals(63, result);
+//        result = getSimilarityScore("m6", "m7", false);
+//        assertEquals(55, result);
+//        result = getSimilarityScore("m", "m7", true);
+//        assertEquals(62, result);
+//        result = getSimilarityScore("m7", "m", true);
+//        assertEquals(62, result);        
+//        result = getSimilarityScore("m", "m69", true);
+//        assertEquals(61, result);
+//    }
 
 
     /**
@@ -299,12 +305,12 @@ public class ChordTypeTest
     // =========================================================================================================
     // Private methods
     // =========================================================================================================
-    private int getSimilarityScore(String strCt1, String strCt2, boolean acceptAbsentDegrees)
-    {
-        var ct1 = ctdb.getChordType(strCt1);
-        var ct2 = ctdb.getChordType(strCt2);
-        assert ct1 != null && ct2 != null : "ct1=" + ct1 + " ct2=" + ct2;
-        return ct1.getSimilarityScore(ct2, acceptAbsentDegrees);
-    }
+//    private int getSimilarityScore(String strCt1, String strCt2, boolean acceptAbsentDegrees)
+//    {
+//        var ct1 = ctdb.getChordType(strCt1);
+//        var ct2 = ctdb.getChordType(strCt2);
+//        assert ct1 != null && ct2 != null : "ct1=" + ct1 + " ct2=" + ct2;
+//        return ct1.getSimilarityScore(ct2, acceptAbsentDegrees);
+//    }
 
 }

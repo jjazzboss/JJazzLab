@@ -30,6 +30,7 @@ import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
+import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,7 +55,6 @@ import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.UndoableEdit;
 import org.jjazz.midi.api.MidiConst;
-import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.undomanager.api.SimpleEdit;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.xstream.spi.XStreamConfigurator;
@@ -182,6 +182,58 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
         }
         return b;
     }
+
+
+    /**
+     * Check if p represents the same musical phrase than this phrase, indenpendantly of the key.
+     * <p>
+     * Compare the intervals and the note positions.
+     *
+     * @param p
+     * @param checkNoteDuration If true check also that notes durations are equal +/- 2*nearWindow.
+     * @param nearWindow        Accept note-to-note position difference of +/- nearWindow. Use 0 for a strict position comparison, or Float.MAX_VALUE to ignore
+     *                          position (and possibly duration) differences.
+     * @return
+     * @see NoteEvent#equalsAsNoteNearPosition(org.jjazz.phrase.api.NoteEvent, float)
+     */
+    public boolean equalsAsIntervals(Phrase p, boolean checkNoteDuration, float nearWindow)
+    {
+        boolean b = false;
+        if (p.size() == size())
+        {
+            b = true;
+            NoteEvent lastNe = null, lastPNe = null;
+            var pIt = p.iterator();
+            for (var ne : this)
+            {
+                var pNe = pIt.next();
+                if (!ne.isNear(pNe.getPositionInBeats(), nearWindow))
+                {
+                    b = false;
+                    break;
+                }
+                if (checkNoteDuration && Math.abs(ne.getDurationInBeats() - pNe.getDurationInBeats()) > 2 * nearWindow)
+                {
+                    b = false;
+                    break;
+                }
+                if (lastNe != null)
+                {
+                    if ((ne.getPitch() - lastNe.getPitch()) != (pNe.getPitch() - lastPNe.getPitch()))
+                    {
+                        b = false;
+                        break;
+                    }
+
+                }
+                lastNe = ne;
+                lastPNe = pNe;
+            }
+        }
+
+        return b;
+    }
+
 
     /**
      * Check if the phrase is for non-melodic instruments.
@@ -486,7 +538,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
     {
         return getProcessedPhrase(ne -> true, ne -> 
         {
-            int v = MidiUtilities.limit(f.apply(ne.getVelocity()));
+            int v = MidiConst.clamp(f.apply(ne.getVelocity()));
             NoteEvent newNe = ne.setVelocity(v);
             return newNe;
         });
@@ -503,7 +555,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
     {
         processNotes(ne -> true, ne -> 
         {
-            int v = MidiUtilities.limit(f.apply(ne.getVelocity()));
+            int v = MidiConst.clamp(f.apply(ne.getVelocity()));
             NoteEvent newNe = ne.setVelocity(v);
             return newNe;
         });
@@ -523,7 +575,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
     {
         return getProcessedPhrase(ne -> true, ne -> 
         {
-            int p = MidiUtilities.limit(f.apply(ne.getPitch()));
+            int p = MidiConst.clamp(f.apply(ne.getPitch()));
             NoteEvent newNe = ne.setPitch(p);
             return newNe;
         });
@@ -540,7 +592,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
     {
         processNotes(ne -> true, ne -> 
         {
-            int p = MidiUtilities.limit(f.apply(ne.getPitch()));
+            int p = MidiConst.clamp(f.apply(ne.getPitch()));
             NoteEvent newNe = ne.setPitch(p);
             return newNe;
         });
@@ -561,6 +613,24 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
         StringBuilder sb = new StringBuilder();
         sb.append("Phrase[ch=").append(channel).append("] size=").append(size()).append(" notes=").append(getNotes().toString());
         return sb.toString();
+    }
+
+    /**
+     * A String like "A3 Bb3 C4".
+     *
+     * @param showPos Show notes with beat position, e.g. "A3[2.3]"
+     * @return
+     */
+    public String toStringSimple(boolean showPos)
+    {
+        StringJoiner joiner = new StringJoiner("  ");
+        DecimalFormat df = new DecimalFormat("#.##");
+        for (var n : this)
+        {
+            String s = n.toPianoOctaveString() + (showPos ? "[" + df.format(n.getPositionInBeats()) + "]" : "");
+            joiner.add(s);
+        }
+        return joiner.toString();
     }
 
     public void dump()
@@ -1082,6 +1152,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
     }
 
     /**
+     * A subset of all notes starting between the specified notes.
      *
      * @return Return value is unmodifiable.
      */
@@ -1092,7 +1163,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
     }
 
     /**
-     * A subset of all notes in the specified range.
+     * A subset of all notes starting in the specified range.
      *
      * @param range
      * @param excludeUpperBound

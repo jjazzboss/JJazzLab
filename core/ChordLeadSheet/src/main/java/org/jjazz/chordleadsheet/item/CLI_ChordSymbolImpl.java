@@ -46,6 +46,12 @@ import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_LOAD;
 import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_SAVE;
 import org.openide.util.lookup.ServiceProvider;
 
+/**
+ * CLI_ChordSymbol implementation.
+ *
+ * Note that equals() and hashCode() are NOT defined because they can be used as Map keys and can change while being in the map
+ * (InstanceContent for selected items in the CL_Editor, or ChordLeadSheet.moveSection()).
+ */
 public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtChordSymbol>, Serializable
 {
 
@@ -61,8 +67,8 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
     /**
      * The container of this item.
      * <p>
-     * Need to be transient otherwise this introduces circularities in the objects graph that prevent ChordLeadSheetImpl's proxy serialization to work. This
-     * field must be restored by its container at deserialization.
+     * Need to be transient otherwise this introduces circularities in the objects graph that prevent ChordLeadSheetImpl's proxy
+     * serialization to work. This field must be restored by its container at deserialization.
      */
     private transient ChordLeadSheet container = null;
     /**
@@ -70,7 +76,6 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
      */
     private transient SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(CLI_ChordSymbolImpl.class.getSimpleName());
-
 
     /**
      * Create an object from the specified arguments.
@@ -285,7 +290,8 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
     }
 
     /**
-     * This enables XStream instance configuration even for private classes or classes from non-public packages of Netbeans modules.
+     * This enables XStream instance configuration even for private classes or classes from non-public packages of Netbeans
+     * modules.
      */
     @ServiceProvider(service = XStreamConfigurator.class)
     public static class XStreamConfig implements XStreamConfigurator
@@ -312,7 +318,8 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
                 {
                     // Nothing
                 }
-                default -> throw new AssertionError(instanceId.name());
+                default ->
+                    throw new AssertionError(instanceId.name());
             }
         }
     }
@@ -334,7 +341,8 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
      * Serialization proxy.
      * <p>
      * spVERSION 2 changes some saved fields, see below.<br>
-     * spVERSION 3 (JJazzLab 4.1.0) introduces several aliases to get rid of hard-coded qualified class names (XStreamConfig class introduction).
+     * spVERSION 3 (JJazzLab 4.1.0) introduces several aliases to get rid of hard-coded qualified class names (XStreamConfig class
+     * introduction).
      */
     private static class SerializationProxy implements Serializable
     {
@@ -363,7 +371,7 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
                 } else
                 {
                     LOGGER.log(Level.WARNING, "SerializationProxy.readResolve() Unexpected null value for spClientProperties. spChord={0}",
-                            spChord);
+                        spChord);
                 }
             }
             return cli;

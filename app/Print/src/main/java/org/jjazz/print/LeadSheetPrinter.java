@@ -338,7 +338,7 @@ public class LeadSheetPrinter implements Printable, Pageable
 
     private void fireChanged()
     {
-        listeners.stream().forEach(l -> l.stateChanged(new ChangeEvent(this)));
+        listeners.forEach(l -> l.stateChanged(new ChangeEvent(this)));
     }
     // =============================================================================
     // Private classes

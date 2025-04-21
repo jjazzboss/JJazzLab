@@ -82,8 +82,18 @@ public interface YamJJazzRhythm extends Rhythm, MusicGenerator
      */
     boolean isExtendedRhythm();
 
+    /**
+     * The current MusicGenerator.
+     *
+     * @return Can not be null
+     */
     MusicGenerator getMusicGenerator();
 
+    /**
+     * Set the current MusicGenerator.
+     *
+     * @param mg Can not be null
+     */
     void setMusicGenerator(MusicGenerator mg);
 
 

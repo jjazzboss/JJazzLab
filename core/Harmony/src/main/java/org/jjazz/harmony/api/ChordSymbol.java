@@ -79,17 +79,20 @@ public class ChordSymbol implements Cloneable
     /**
      *
      * @param rootDg
-     * @param bassDg If null reuse rootDg
+     * @param bassDg If null or it represents the same note, reuse rootDg
      * @param ct
      */
     public ChordSymbol(Note rootDg, Note bassDg, ChordType ct)
     {
-        if ((rootDg == null) || (ct == null))
-        {
-            throw new IllegalArgumentException("rootDg=" + rootDg + " bassDg=" + bassDg + " ct=" + ct);
-        }
+        Objects.requireNonNull(rootDg);
+        Objects.requireNonNull(ct);
+
         rootNote = buildStdNote(rootDg);
         bassNote = (bassDg != null) ? buildStdNote(bassDg) : rootNote;
+        if (bassNote != rootNote && bassNote.equalsRelativePitch(rootNote))
+        {
+            bassNote = rootNote;
+        }
         chordType = ct;
         name = computeName();
         originalName = name;
@@ -145,7 +148,7 @@ public class ChordSymbol implements Cloneable
             {
                 throw new ParseException(errorInvalidCs + ": " + originalName, slashIndex);
             }
-            originalName = str.substring(0, 1).toUpperCase() + str.substring(1, slashIndex) 
+            originalName = str.substring(0, 1).toUpperCase() + str.substring(1, slashIndex)
                     + "/"
                     + strBass.substring(0, 1).toUpperCase() + strBass.substring(1);
         } else
@@ -189,7 +192,7 @@ public class ChordSymbol implements Cloneable
         }
 
         // if no bass specified, bass degree = root degree
-        if (bassNote == null)
+        if (bassNote == null || bassNote.equalsRelativePitch(rootNote))
         {
             bassNote = rootNote;
         }
@@ -226,20 +229,34 @@ public class ChordSymbol implements Cloneable
         return s;
     }
 
+    /**
+     *
+     * @return Can not be null
+     */
     public Note getRootNote()
     {
         return rootNote;        // Clone() not needed, immutable class
     }
 
     /**
-     * If no bass note defined return getRootNote().
      *
-     * @return
+     * @return Can not be null. Can be the root note if no different bass note was specified at construction.
      */
     public Note getBassNote()
     {
         return bassNote;        // Clone() not needed, immutable class
     }
+
+    /**
+     * Check if chord sympbol has a bass note different from the root note.
+     *
+     * @return
+     */
+    public boolean isSlashChord()
+    {
+        return bassNote != rootNote;
+    }
+
 
     public ChordType getChordType()
     {
@@ -270,21 +287,21 @@ public class ChordSymbol implements Cloneable
     {
         return originalName;
     }
-    
-    
+
+
     /**
      * Return the most probable accidental to use when representing black key notes based on this chord symbol.
-     * 
-     * @return 
+     *
+     * @return
      */
     public Note.Accidental getDefaultAccidental()
     {
-            Accidental res = getChord().getNotes().stream()
-                    .filter(n -> !Note.isWhiteKey(n.getPitch()))
-                    .findFirst()
-                    .map(n -> n.getAccidental())
-                    .orElse(Accidental.FLAT);
-            return res;
+        Accidental res = getChord().getNotes().stream()
+                .filter(n -> !Note.isWhiteKey(n.getPitch()))
+                .findFirst()
+                .map(n -> n.getAccidental())
+                .orElse(Accidental.FLAT);
+        return res;
     }
 
     @Override
@@ -575,6 +592,8 @@ public class ChordSymbol implements Cloneable
      * Return the relative pitch corresponding to the specified degree index for this chord symbol.
      * <p>
      * Ex: this=E7, degreeIndex=THIRD_OR_FOURTH, return G#=8.
+     * <p>
+     * Note that it may return -1 even for degreeIndex=THIRD_OR_FOURTH when applied to a C2 chord.
      *
      * @param di
      * @return -1 if no such degreeIndex.
@@ -591,7 +610,7 @@ public class ChordSymbol implements Cloneable
     }
 
     /**
-     * Return the relative pitch corresponding to the specified degree of this chord symbol.
+     * Return the relative pitch corresponding to the specified degree based on this chord symbol root note.
      * <p>
      * Ex: this=E7, degree=THIRT_FLAT, return G
      *
@@ -600,10 +619,7 @@ public class ChordSymbol implements Cloneable
      */
     public int getRelativePitch(Degree d)
     {
-        if (d == null)
-        {
-            throw new NullPointerException("d");
-        }
+        Objects.requireNonNull(d);
         int relPitch = Note.getNormalizedRelPitch(rootNote.getRelativePitch() + d.getPitch());
         return relPitch;
     }
@@ -693,5 +709,5 @@ public class ChordSymbol implements Cloneable
         return new Note(n.getRelativePitch(), 1, 64, n.getAccidental());
     }
 
-  
+
 }

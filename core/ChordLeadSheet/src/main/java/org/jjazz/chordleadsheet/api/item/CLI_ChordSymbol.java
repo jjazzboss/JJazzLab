@@ -32,8 +32,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.harmony.api.ChordSymbol;
 import org.jjazz.harmony.api.Position;
+import org.jjazz.harmony.api.StandardScaleInstance;
 import org.jjazz.harmony.api.TimeSignature;
+import org.jjazz.harmony.spi.ScaleManager;
 import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.quantizer.api.Quantizer;
 import org.jjazz.utilities.api.ResUtil;
@@ -46,8 +49,8 @@ import org.jjazz.utilities.api.StringProperties;
 public interface CLI_ChordSymbol extends ChordLeadSheetItem<ExtChordSymbol>
 {
 
-    public static final int POSITION_ORDER = 1000;    
-    
+    public static final int POSITION_ORDER = 1000;
+
     public enum PositionDisplay
     {
         NO, // C7
@@ -59,13 +62,19 @@ public interface CLI_ChordSymbol extends ChordLeadSheetItem<ExtChordSymbol>
 
 
     /**
-     * Return a new CLI_ChordSymbol built from specified string.
+     * Return a new CLI_ChordSymbol built from a string.
      * <p>
      * Recognized strings:<br>
      * "C7" =&gt; C7 at pos=defaultPos<br>
+     * "C7$lydian_b7" =&gt; same with lydian_b7 scale<br>
      * "C7[2]" =&gt; C7 at pos=defaultPos.getBar()/beat 2<br>
-     * "C7[1:2]" =&gt; C7 at pos=bar 1/beat 2
+     * "Cm7[1:2]" =&gt; Cm7 at pos=bar 1/beat 2<br>
+     * "Cm7[1:2]$phrygian" =&gt; same with phrygian scale<p>
+     * NOTES:<br>
+     * - bar and beat in string position string [bar:beat] must be 1-based.<br>
+     * - scale name case does not matter. Scale must be compatible with the chord symbol, otherwise it is ignored.<br>
      * <p>
+     *
      * @param str        As produced by ChordSymboInput.toString(CLI_ChordSymbol).
      * @param defaultPos Used when position data is missing in str.
      * @param cls        The container for this CLI_ChordSymbol. Can be null.
@@ -81,11 +90,24 @@ public interface CLI_ChordSymbol extends ChordLeadSheetItem<ExtChordSymbol>
 
         Position newPos;
 
-        String s = str.trim();
+        String s = str.strip();
         if (s.isEmpty())
         {
             throw new IllegalArgumentException("str=" + str + " defaultPos=" + defaultPos + " cls=" + cls);
         }
+
+        // Check scale         
+        final char SCALE_CHAR = '$';
+        String scaleName = null;
+        int scaleIndex = s.indexOf(SCALE_CHAR);
+        if (scaleIndex != -1)
+        {
+            scaleName = s.substring(scaleIndex + 1).toLowerCase();
+            s = s.substring(0, scaleIndex);
+        }
+
+
+        // Check position
         int openIndex = s.indexOf(Position.START_CHAR);
         int closeIndex = s.indexOf(Position.END_CHAR);
 
@@ -103,16 +125,51 @@ public interface CLI_ChordSymbol extends ChordLeadSheetItem<ExtChordSymbol>
                 throw new ParseException(str + " : " + ResUtil.getString(CLI_ChordSymbol.class, "MissingClosingBracket"), 0);
             }
             newPos = new Position();
-            newPos.setFromString(s.substring(openIndex, closeIndex + 1), defaultPos.getBar());
+            newPos.setFromString(s.substring(openIndex, closeIndex + 1), defaultPos.getBar(), true);
 
         }
 
         // Chord Symbol
         String csStr = s.substring(0, openIndex);
-        ExtChordSymbol ecs = ExtChordSymbol.get(csStr);
+        ChordSymbol cs = new ChordSymbol(csStr);
+
+
+        // Check scale         
+        StandardScaleInstance stdScaleInstance = null;
+        if (scaleName != null && !scaleName.isBlank())
+        {
+            var sm = ScaleManager.getDefault();
+            var stdScaleInstances = sm.getMatchingScales(cs);
+            var scaleNameLc = scaleName.toLowerCase();
+            stdScaleInstance = stdScaleInstances.stream()
+                    .filter(sc -> sc.getScale().getName().toLowerCase().startsWith(scaleNameLc))
+                    .findAny()
+                    .orElse(null);
+
+            if (stdScaleInstance == null)
+            {
+                var stdScale = sm.getStandardScale(scaleNameLc);
+                if (stdScale == null)
+                {
+                    // It 's a wrong scale name
+                    String validScaleNames = sm.getStandardScales().stream()
+                            .map(sc -> sc.getName())
+                            .collect(Collectors.joining(", "))
+                            .toLowerCase();
+                    throw new ParseException(str + " : " + ResUtil.getString(CLI_ChordSymbol.class, "InvalidModeOrScale", scaleNameLc, validScaleNames), 0);
+                } else
+                {
+                    // Scale is incompatible with chord symbol
+                    throw new ParseException(str + " : " + ResUtil.getString(CLI_ChordSymbol.class, "IncompatibleModeOrScale", stdScale.getName().toLowerCase(),
+                            csStr), 0);
+                }
+            }
+        }
 
 
         // Build the CLI_ChordSymbol
+        ChordRenderingInfo cri = new ChordRenderingInfo(stdScaleInstance);
+        ExtChordSymbol ecs = new ExtChordSymbol(cs, cri, null, null);
         CLI_ChordSymbol cli = CLI_Factory.getDefault().createChordSymbol(ecs, newPos);
         return cli;
     }
@@ -133,6 +190,7 @@ public interface CLI_ChordSymbol extends ChordLeadSheetItem<ExtChordSymbol>
      * @param swing    If true for example for 3/4 time signature place half-beat chord symbols at 1.666 (5/3) instead of 1.5
      * @return
      * @throws ParseException When thrown, GetErrorOffset() represents the faulty chord symbol index.
+     * @see #toCLI_ChordSymbol(java.lang.String, org.jjazz.harmony.api.Position, org.jjazz.chordleadsheet.api.ChordLeadSheet)
      */
     public static List<CLI_ChordSymbol> toCLI_ChordSymbolsNoPosition(String str, TimeSignature ts, ChordLeadSheet cls, int barIndex, boolean swing) throws ParseException
     {

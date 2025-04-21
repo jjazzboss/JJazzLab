@@ -37,7 +37,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.SpinnerNumberModel;
 import org.jjazz.flatcomponents.api.FlatComponentsGlobalSettings;
-import org.jjazz.midi.api.MidiUtilities;
+import org.jjazz.midi.api.MidiConst;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.pianoroll.actions.HearSelection;
 import org.jjazz.pianoroll.actions.PlayLoopZone;
@@ -368,7 +368,7 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
                     .map(nv -> nv.getModel())
                     .forEach(ne -> 
                     {
-                        int newVel = MidiUtilities.limit(ne.getVelocity() + delta);
+                        int newVel = MidiConst.clamp(ne.getVelocity() + delta);
                         mapOldNew.put(ne, ne.setVelocity(newVel));
                     });
         }

@@ -22,18 +22,20 @@
  */
 package org.jjazz.phrase.api;
 
+import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.midi.api.MidiUtilities;
+import org.jjazz.midi.api.MidiConst;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
 import org.openide.util.Exceptions;
@@ -43,7 +45,7 @@ import org.openide.util.Exceptions;
  * <p>
  * The class assigns notes in fixed-sized "cells" (eg 4 cells per beats=1/16) which can then be directly accessed or modified using the cell index.
  * <p>
- * To accomodate real time playing, notes starting just before a cell are included in that cell, see PRE_CELL_BEAT_WINDOW.
+ * To accomodate real time playing, notes starting just before a cell are included in that cell, see PRE_CELL_BEAT_WINDOW_DEFAULT.
  * <p>
  * The refresh() method must be called whenever the phrase is modified outside this Grid object.
  */
@@ -51,48 +53,49 @@ public class Grid implements Cloneable
 {
 
     /**
-     * Notes whose relative position is &gt; -PRE_CELL_BEAT_WINDOW will be included in the current cell.
+     * Notes whose relative position is &gt; -PRE_CELL_BEAT_WINDOW_DEFAULT will be included in the current cell.
+     * <p>
+     * 0.15 seems to be a good value most of the time (from stats computed on walking bass Midi files recorded in real-time), except maybe when playing at a
+     * fast tempo (&gt;220?)
      */
-    public static float PRE_CELL_BEAT_WINDOW = 0.1f;     // This is just below 1/8=0.125f
-    private float preCellBeatWindow;
-    private Phrase phrase;
-    private FloatRange originalBeatRange;
+    public static float PRE_CELL_BEAT_WINDOW_DEFAULT = 0.15f;
+    private final float preCellBeatWindow;
+    private final Phrase phrase;
+    private final FloatRange originalBeatRange;
     private FloatRange adjustedBeatRange;
     private IntRange cellRange;
-    private int cellsPerBeat;
-    private float cellDuration;
+    private final int cellsPerBeat;
+    private final float cellDuration;
     private Predicate<NoteEvent> predicate;
     private HashMap<Integer, List<NoteEvent>> mapCellNotes = new HashMap<>();
     protected static final Logger LOGGER = Logger.getLogger(Grid.class.getSimpleName());
 
-    private Grid()
-    {
-
-    }
 
     /**
      * Obtain a grid for the specified Phrase p.
      * <p>
-     * The first cell starts at range.from (range bounds must be integer values). <>
-     * The filter parameter can be used to accept only specific Phrase notes.<p>
+     * The first cell starts at range.from (range bounds must be integer values). The filter parameter can be used to accept only specific Phrase notes.<p>
      * If the caller modifies p outside of this grid it must then call Grid.refresh() to keep it up to date.
      *
-     * @param p              Time signature must not change in the phrase.
-     * @param beatRange      Grid will contain notes from this beat range, excluding upper bound. Bounds must be integer values.
-     * @param nbCellsPerBeat Must be &gt; 0.
-     * @param filter         If null this grid will contain all Phrase notes
+     * @param p                 Time signature must not change in the phrase.
+     * @param beatRange         Grid will contain notes from this beat range, excluding upper bound. Bounds must be integer values.
+     * @param nbCellsPerBeat    A value in the range [1;6]
+     * @param filter            If null this grid will contain all Phrase notes
+     * @param preCellBeatWindow A value in the range [0;1/nbCellsPerBeat[. Used to accomodate for non-quantized notes: notes whose relative position is &gt;
+     *                          -preCellBeatWindow will be included in the current cell.
      */
-    public Grid(Phrase p, FloatRange beatRange, int nbCellsPerBeat, Predicate<NoteEvent> filter)
+    public Grid(Phrase p, FloatRange beatRange, int nbCellsPerBeat, Predicate<NoteEvent> filter, float preCellBeatWindow)
     {
-        if (p == null || beatRange == null || beatRange.from < 0 || nbCellsPerBeat < 1 || beatRange.from % 1 != 0 || beatRange.to % 1 != 0)
-        {
-            throw new IllegalArgumentException(
-                    "p=" + p + " beatRange=" + beatRange + " nbCellsPerBeat=" + nbCellsPerBeat + " filter=" + filter);
-        }
+        Objects.requireNonNull(p);
+        Objects.requireNonNull(beatRange);
+        Preconditions.checkArgument(beatRange.from % 1 == 0 && beatRange.to % 1 == 0, "beatRange=%s", beatRange);
+        Preconditions.checkArgument(nbCellsPerBeat > 0 && nbCellsPerBeat <= 6, "nbCellsPerBeat=%s", nbCellsPerBeat);
+        Preconditions.checkArgument(preCellBeatWindow >= 0 && preCellBeatWindow < (1f / nbCellsPerBeat), "nbCellsPerBeat=%s, preCellBeatWindow=%s", (Integer)nbCellsPerBeat, (Float)preCellBeatWindow);
+
         this.phrase = p;
         this.cellsPerBeat = nbCellsPerBeat;
         this.cellDuration = 1f / this.cellsPerBeat;
-        this.preCellBeatWindow = Math.min(PRE_CELL_BEAT_WINDOW, cellDuration);
+        this.preCellBeatWindow = preCellBeatWindow;
         this.originalBeatRange = beatRange;
         if (this.originalBeatRange.size() < cellDuration)
         {
@@ -102,6 +105,7 @@ public class Grid implements Cloneable
                 -preCellBeatWindow);
         this.cellRange = new IntRange(0, (int) (this.originalBeatRange.size() * this.cellsPerBeat) - 1);
         this.predicate = (filter != null) ? filter : ne -> true;
+        
         refresh();
     }
 
@@ -366,7 +370,7 @@ public class Grid implements Cloneable
         Map<NoteEvent, NoteEvent> mapOldNew = new HashMap<>();
         for (NoteEvent ne : nes)
         {
-            int newVelocity = MidiUtilities.limit(f.apply(ne.getVelocity()));
+            int newVelocity = MidiConst.clamp(f.apply(ne.getVelocity()));
             NoteEvent newNe = ne.setVelocity(newVelocity);
             mapOldNew.put(ne, newNe);
         }
@@ -665,7 +669,7 @@ public class Grid implements Cloneable
                 // Extend the duration
                 durationInBeats = ne.getPositionInBeats() + ne.getDurationInBeats() - newPosInBeats;
             }
-            NoteEvent movedNe = ne.setAll(-1, durationInBeats, -1, newPosInBeats, true);            
+            NoteEvent movedNe = ne.setAll(-1, durationInBeats, -1, newPosInBeats, true);
             phrase.remove(ne);
             phrase.add(movedNe);
             refresh();

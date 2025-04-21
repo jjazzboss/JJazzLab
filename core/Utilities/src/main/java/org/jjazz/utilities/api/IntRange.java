@@ -25,7 +25,10 @@ package org.jjazz.utilities.api;
 
 import com.google.common.base.Preconditions;
 import java.awt.Rectangle;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.IntStream;
 
 /**
@@ -40,6 +43,7 @@ public class IntRange implements Iterable<Integer>
      * The special shared instance for the empty range.
      */
     public static final IntRange EMPTY_RANGE = new VoidRange();
+
     public final int from, to;
 
     /**
@@ -86,6 +90,39 @@ public class IntRange implements Iterable<Integer>
         if (r.y >= 0 && r.height > 0)
         {
             res = new IntRange(r.y, r.y + r.height - 1);
+        }
+        return res;
+    }
+
+    /**
+     * Merge adjacent IntRanges from a list.
+     *
+     * @param rhythmSectionRanges
+     * @return
+     */
+    public static List<IntRange> merge(List<IntRange> rhythmSectionRanges)
+    {
+        Objects.requireNonNull(rhythmSectionRanges);
+        List<IntRange> res = new ArrayList<>();
+
+        if (rhythmSectionRanges.size() <= 1)
+        {
+            res.addAll(rhythmSectionRanges);
+        } else
+        {
+            res.add(rhythmSectionRanges.get(0));
+            for (int i = 1; i < rhythmSectionRanges.size(); i++)
+            {
+                var rLast = res.getLast();
+                var r = rhythmSectionRanges.get(i);
+                if (rLast.isAdjacent(r))
+                {
+                    res.set(res.size() - 1, rLast.getUnion(r));
+                } else
+                {
+                    res.add(r);
+                }
+            }
         }
         return res;
     }
@@ -355,7 +392,7 @@ public class IntRange implements Iterable<Integer>
     private class MyIterator implements Iterator<Integer>
     {
 
-        private int index = from;
+        private int index = from - 1;
 
         @Override
         public boolean hasNext()
@@ -366,7 +403,8 @@ public class IntRange implements Iterable<Integer>
         @Override
         public Integer next()
         {
-            return index++;
+            index++;
+            return index;
         }
 
         @Override

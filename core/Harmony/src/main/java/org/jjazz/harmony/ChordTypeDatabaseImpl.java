@@ -76,7 +76,6 @@ public class ChordTypeDatabaseImpl implements ChordTypeDatabase
 
         // MAJOR
         addBuiltin("", "", MAJ, ":M:maj:MAJ:Maj:bass:Bass:BASS:1+8:1+5:5:", NP, 0, NP, 0, NP, NP);
-        addBuiltin("2", "", MAJ, ":add9:1+2+5:sus2:add2:", 0, NP, NP, 0, NP, NP);
         addBuiltin("+", "", MAJ, ":maj#5:maj+5:M#5:ma#5:ma+5:aug:", NP, 0, NP, 1, NP, NP);
         addBuiltin("6", "", MAJ, ":maj6:MAJ6:Maj6:M6:", NP, 0, NP, 0, 0, NP);
         addBuiltin("6", "9", MAJ, ":M69:ma69:maj69:MAJ69:Maj6(9):", 0, 0, NP, 0, 0, NP);
@@ -131,7 +130,7 @@ public class ChordTypeDatabaseImpl implements ChordTypeDatabase
         addBuiltin("m11", "", MIN, ":m711:mi711:min711:-11:-711:min7(11):m7add11:m7add4:madd4:", NP, -1, 0, 0, NP, -1);
         addBuiltin("m13", "", MIN, ":mi13:min13:-13:m913:m9add13:", 0, -1, NP, 0, 0, -1);
         addBuiltin("m", "7M", MIN, ":-maj7:min7M:minMaj7:-7M:mM7:mMaj7:", NP, -1, NP, 0, NP, 0);
-        addBuiltin("m9", "7M", MIN, ":mi9M:min9M:minMaj7(9):-9M:mM9:", 0, -1, NP, 0, NP, 0);
+        addBuiltin("m9", "7M", MIN, ":mi9M:min9M:minMaj7(9):-9M:mM9:m7M9", 0, -1, NP, 0, NP, 0);
 
 
         // DIMINISHED
@@ -142,7 +141,9 @@ public class ChordTypeDatabaseImpl implements ChordTypeDatabase
         addBuiltin("m9", "b5", DIM, ":m9-5:mi9b5:mi9-5:min9b5:min9-5:-9b5:", 0, -1, NP, -1, NP, -1);
         addBuiltin("m11", "b5", DIM, ":m11(b5):min11(b5):-11b5:-11(b5):", NP, -1, 0, -1, NP, -1);
 
-        // SUS4
+        
+        // SUS
+        addBuiltin("2", "", SUS, ":add9:1+2+5:sus2:add2:", 0, NP, NP, 0, NP, NP);           
         addBuiltin("", "sus", SUS, ":sus4:4:", NP, NP, 0, 0, NP, NP);
         addBuiltin("7", "sus", SUS, ":sus7:7sus4:74:11:", NP, NP, 0, 0, NP, -1);
         addBuiltin("9", "sus", SUS, ":79sus:sus79:sus9:9sus4:94:", 0, NP, 0, 0, NP, -1);
@@ -153,7 +154,7 @@ public class ChordTypeDatabaseImpl implements ChordTypeDatabase
 
         buildAliasMap();
         // LOGGER.severe("DEBUG DUMP AliasMap=============");
-        // mapAliasCt.keySet().stream().forEach(s -> LOGGER.severe(s + " -> " + mapAliasCt.get(s)));
+        // mapAliasCt.keySet().forEach(s -> LOGGER.severe(s + " -> " + mapAliasCt.get(s)));
 
         buildExtensionMap();
 

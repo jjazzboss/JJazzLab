@@ -33,7 +33,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.IntSummaryStatistics;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -177,6 +176,86 @@ public class Phrases
         return p.stream().max(Comparator.comparing(NoteEvent::getVelocity)).orElse(null);
     }
 
+    /**
+     * Update spDest notes so that they match the position/duration/velocity of spSrc notes.
+     * <p>
+     * This is typically used to "unquantize" spDest using a spSrc phrase which corresponds to a real-time playing.
+     * <p>
+     *
+     * @param spSrc
+     * @param spDest         Start bar might be different than spSrc, but nb of bars must be the same
+     * @param nearBeatWindow Notes start position must not differ more thatn nearBeatWindow
+     * @return True if spDest was changed
+     * @throws IllegalArgumentException If nb of bars/notes/time signature is different, or if notes do not start approximately at the same position.
+     */
+    static public boolean applyGroove(SizedPhrase spSrc, SizedPhrase spDest, float nearBeatWindow)
+    {
+        Preconditions.checkArgument(
+                spSrc.size() == spDest.size() && spSrc.getSizeInBars() == spDest.getSizeInBars() && spSrc.getTimeSignature() == spDest.getTimeSignature(),
+                "spSrc=%s spDest=%s", spSrc, spDest);
+
+
+        boolean b = false;
+        float srcBeat0 = spSrc.getBeatRange().from;
+        float destBeat0 = spDest.getBeatRange().from;
+
+
+        var destNotes = new ArrayList<>(spDest);
+        int i = 0;
+        for (var neSrc : spSrc)
+        {
+            var neDest = destNotes.get(i);
+            var newDestPos = neSrc.getPositionInBeats() - srcBeat0 + destBeat0;
+            if (Math.abs(newDestPos - neDest.getPositionInBeats()) > nearBeatWindow)
+            {
+                throw new IllegalArgumentException("Notes position differ too much: neSrc=" + neSrc + " neDest=" + neDest + " newDestPos=" + newDestPos);
+            }
+            b = b || (newDestPos != neDest.getPositionInBeats() || neSrc.getDurationInBeats() != neDest.getDurationInBeats() || neSrc.getVelocity() != neDest.getVelocity());
+            var newNeDest = neDest.setAll(neDest.getPitch(), neSrc.getDurationInBeats(), neSrc.getVelocity(), newDestPos, false);
+            spDest.replace(neDest, newNeDest);
+
+            i++;
+        }
+
+        return b;
+    }
+
+    /**
+     * Check if both phrases have the same number of notes with approximatly the same note start positions, and optionnaly the same note durations.
+     *
+     * @param sp1
+     * @param sp2               Start beat range might be different from sp1, but size in bars and time signature must be equal.
+     * @param sameNoteDurations If true also check if note durations are approximatively the same.
+     * @param nearBeatWindow
+     * @return
+     */
+    static public boolean isSameNotePositions(SizedPhrase sp1, SizedPhrase sp2, boolean sameNoteDurations, float nearBeatWindow)
+    {
+        boolean b = false;
+
+        if (sp1.size() == sp2.size() && sp1.getSizeInBars() == sp2.getSizeInBars() && sp1.getTimeSignature() == sp2.getTimeSignature())
+        {
+            var it2 = sp2.iterator();
+            b = true;
+            for (var ne1 : sp1)
+            {
+                var dur1 = ne1.getDurationInBeats();
+                var relPos1 = ne1.getPositionInBeats() - sp1.getBeatRange().from;
+                
+                var ne2 = it2.next();
+                var dur2 = ne2.getDurationInBeats();
+                var relPos2 =  ne2.getPositionInBeats() - sp2.getBeatRange().from;
+                
+                if (Math.abs(relPos2 - relPos1) > nearBeatWindow
+                        || (sameNoteDurations && Math.abs(dur2 - dur1) > (2 * nearBeatWindow)))
+                {
+                    b = false;
+                    break;
+                }
+            }
+        }
+        return b;
+    }
 
     /**
      * Get the phrase notes as MidiEvents.
@@ -587,7 +666,7 @@ public class Phrases
 
 
         List<NoteEvent> noteOnBuffer = new ArrayList<>();
-        for (Integer pitch : mapPitchNotes.keySet())
+        for (int pitch : mapPitchNotes.keySet())
         {
             List<NoteEvent> notes = mapPitchNotes.get(pitch);       // Ordered by position
             if (notes.size() == 1)
@@ -799,4 +878,5 @@ public class Phrases
         }
         return res;
     }
+
 }

@@ -41,7 +41,7 @@ import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.SwingUtilities;
-import org.jjazz.midi.api.MidiUtilities;
+import org.jjazz.midi.api.MidiConst;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.pianoroll.api.EditTool;
 import org.jjazz.pianoroll.api.NoteView;
@@ -335,7 +335,7 @@ public class SelectionTool implements EditTool
                         {
                             newDragPos = Math.max(0, editor.getPhraseBeatRange().to - 0.001f - dragNe.getDurationInBeats());
                         }
-                        newDragPitch = isConstantPitchModifier(e) ? sne.getPitch() : MidiUtilities.limit(sne.getPitch() + dPitch);
+                        newDragPitch = isConstantPitchModifier(e) ? sne.getPitch() : MidiConst.clamp(sne.getPitch() + dPitch);
 
 
                         if (dragNe.getPitch() == newDragPitch && Float.compare(dragNe.getPositionInBeats(), newDragPos) == 0)
@@ -545,7 +545,7 @@ public class SelectionTool implements EditTool
             {
                 var ne = snv.getModel();
                 int delta = (e.getWheelRotation() < 0) ? STEP : -STEP;
-                int newVel = MidiUtilities.limit(ne.getVelocity() + delta);
+                int newVel = MidiConst.clamp(ne.getVelocity() + delta);
                 var newNe = ne.setVelocity(newVel);
                 mapOldNew.put(ne, newNe);
             }

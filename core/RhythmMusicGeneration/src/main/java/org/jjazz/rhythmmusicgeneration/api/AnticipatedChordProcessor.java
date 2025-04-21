@@ -22,9 +22,12 @@
  */
 package org.jjazz.rhythmmusicgeneration.api;
 
+import com.google.common.base.Preconditions;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.TimeSignature;
@@ -35,7 +38,6 @@ import org.jjazz.midi.api.DrumKit;
 import org.jjazz.phrase.api.Grid;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
-import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
 
@@ -45,35 +47,39 @@ import org.jjazz.utilities.api.IntRange;
 public class AnticipatedChordProcessor
 {
 
-    private SimpleChordSequence simpleChordSequence;
-    private FloatRange cSeqBeatRange;
+    private final SimpleChordSequence simpleChordSequence;
+    private final FloatRange beatRange;
     private int nbCellsPerBeat;
     private int lastCellIndex;
     private float cellDuration;
-    private TimeSignature timeSignature;
-    private final List<CLI_ChordSymbol> anticipatableChords = new ArrayList<>();
+    private final float preCellBeatWindow;
+    private final TimeSignature timeSignature;
+    private final List<CLI_ChordSymbol> anticipatableChords;
 
     protected static final Logger LOGGER = Logger.getLogger(AnticipatedChordProcessor.class.getSimpleName());
 
+
     /**
-     * Construct an object to anticipated phrases corresponding to the specified parameters.
+     * Construct the processor of a chord sequence.
      *
-     * @param cSeq                Can't be empty
-     * @param cSeqStartPosInBeats The start position in beats of cSeq. Must be an integer.
-     * @param nbCellsPerBeat      4 or 3. 3 should be used for ternary feel rhythm or 3/8 or 6/8 or 12/8 time signatures.
+     * @param cSeq              Can't be empty. Start beat position must be an arithmetic integer.
+     * @param nbCellsPerBeat    4 or 3. 3 should be used for ternary feel rhythm or 3/8 or 6/8 or 12/8 time signatures.
+     * @param preCellBeatWindow A value in the range [0;1/nbCellsPerBeat[. Used to accomodate for non-quantized notes: notes whose relative position is &gt;
+     *                          -preCellBeatWindow will be included in the current cell.
      */
-    public AnticipatedChordProcessor(SimpleChordSequence cSeq, float cSeqStartPosInBeats, int nbCellsPerBeat)
+    public AnticipatedChordProcessor(SimpleChordSequence cSeq, int nbCellsPerBeat, float preCellBeatWindow)
     {
-        if (cSeq == null || cSeq.isEmpty() || cSeqStartPosInBeats < 0
-                || cSeqStartPosInBeats != Math.floor(cSeqStartPosInBeats)
-                || nbCellsPerBeat < 3 || nbCellsPerBeat > 4)
-        {
-            throw new IllegalArgumentException( //NOI18N
-                    "cSeq=" + cSeq + " cSeqStartPosInBeats=" + cSeqStartPosInBeats + " nbCellsPerBeat=" + nbCellsPerBeat);
-        }
+        Objects.requireNonNull(cSeq);
+        Preconditions.checkArgument(!cSeq.isEmpty());
+        Preconditions.checkArgument(nbCellsPerBeat >= 3 && nbCellsPerBeat <= 4, "nbCellsPerBeat=%s", nbCellsPerBeat);
+        Preconditions.checkArgument(cSeq.getBeatRange().from >= 0 && cSeq.getBeatRange().from == Math.floor(cSeq.getBeatRange().from),
+                "cSeq.getBeatRange()=%s", cSeq.getBeatRange());
+
 
         this.simpleChordSequence = cSeq;
+        this.beatRange = cSeq.getBeatRange();
         this.timeSignature = simpleChordSequence.getTimeSignature();
+        this.preCellBeatWindow = preCellBeatWindow;
 
 
         float nbNaturalBeats = this.timeSignature.getNbNaturalBeats();
@@ -86,16 +92,20 @@ public class AnticipatedChordProcessor
         this.nbCellsPerBeat = nbCellsPerBeat;
         lastCellIndex = ((int) nbNaturalBeats * nbCellsPerBeat * simpleChordSequence.getBarRange().size()) - 1;
         cellDuration = 1f / nbCellsPerBeat;
-        cSeqBeatRange = new FloatRange(cSeqStartPosInBeats, cSeqStartPosInBeats + cSeq.getBarRange().size() * nbNaturalBeats);
 
-        identifyAnticipatableChords();
 
-        LOGGER.log(Level.FINE, "AnticipatedChordProcessor -- cSeqStartPosInBeats={0} nbCellsPerBeat={1} ={2}", new Object[]
+        anticipatableChords = identifyAnticipatableChords(simpleChordSequence);
+
+        LOGGER.log(Level.FINE, "AnticipatedChordProcessor -- beatRange={0} nbCellsPerBeat={1} ={2}", new Object[]
         {
-            cSeqStartPosInBeats, nbCellsPerBeat, anticipatableChords
+            beatRange, nbCellsPerBeat, anticipatableChords
         });
     }
 
+    public List<CLI_ChordSymbol> getAnticipatableChords()
+    {
+        return Collections.unmodifiableList(anticipatableChords);
+    }
 
     /**
      * Process the anticipatable chords for a monophonic phrase p (eg a bass phrase).
@@ -106,19 +116,17 @@ public class AnticipatedChordProcessor
      */
     public void anticipateChords_Mono(Phrase p)
     {
-        if (p == null)
-        {
-            throw new IllegalArgumentException("p=" + p);   //NOI18N
-        }
+        Objects.requireNonNull(p);
+
 
         int nonGhostVelLimit = getGhostNoteVelocityLimitBass(p);
-        Grid gridHighPass = new Grid(p, cSeqBeatRange, nbCellsPerBeat, ne -> ne.getVelocity() >= nonGhostVelLimit);
-        Grid grid = new Grid(p, cSeqBeatRange, nbCellsPerBeat, null);
+        Grid gridHighPass = new Grid(p, beatRange, nbCellsPerBeat, ne -> ne.getVelocity() >= nonGhostVelLimit, preCellBeatWindow);
+        Grid grid = new Grid(p, beatRange, nbCellsPerBeat, null, preCellBeatWindow);
 
 
         for (CLI_ChordSymbol cliCs : anticipatableChords)
         {
-            int chordCell = grid.getCell(getChordPositionInBeats(cliCs), true);
+            int chordCell = grid.getCell(simpleChordSequence.getPositionInBeats(cliCs), true);
             if (chordCell == lastCellIndex)
             {
                 continue;
@@ -155,15 +163,12 @@ public class AnticipatedChordProcessor
      */
     public void anticipateChords_Poly(Phrase p)
     {
-        if (p == null)
-        {
-            throw new IllegalArgumentException("p=" + p);   //NOI18N
-        }
-        Grid grid = new Grid(p, cSeqBeatRange, nbCellsPerBeat, null);
+        Objects.requireNonNull(p);
+        Grid grid = new Grid(p, beatRange, nbCellsPerBeat, null, preCellBeatWindow);
 
         for (CLI_ChordSymbol cliCs : anticipatableChords)
         {
-            int chordCell = grid.getCell(getChordPositionInBeats(cliCs), true);
+            int chordCell = grid.getCell(simpleChordSequence.getPositionInBeats(cliCs), true);
             int inBeatChordCell = chordCell % nbCellsPerBeat;
             int nextBeatChordCell = Math.min(lastCellIndex, chordCell + (nbCellsPerBeat - inBeatChordCell));
             LOGGER.log(Level.FINE, "anticipateChords_Poly() cliCs={0} chordCell={1} nextBeatChordCell={2}", new Object[]
@@ -181,7 +186,7 @@ public class AnticipatedChordProcessor
                 int pitch = ne.getPitch();
                 if (mapPitchGrid.get(pitch) == null)
                 {
-                    Grid pitchGrid = new Grid(p, cSeqBeatRange, nbCellsPerBeat, n -> n.getPitch() == pitch);
+                    Grid pitchGrid = new Grid(p, beatRange, nbCellsPerBeat, n -> n.getPitch() == pitch, preCellBeatWindow);
                     mapPitchGrid.put(pitch, pitchGrid);
                 }
             }
@@ -219,13 +224,14 @@ public class AnticipatedChordProcessor
         }
         int nonGhostVelLimit = getGhostNoteVelocityLimitDrums(p);
         List<Integer> accentPitches = kit.getKeyMap().getKeys(DrumKit.Subset.ACCENT);
-        Grid gridHighPass = new Grid(p, cSeqBeatRange, nbCellsPerBeat, ne -> ne.getVelocity() >= nonGhostVelLimit && accentPitches.contains(
-                ne.getPitch()));
-        Grid grid = new Grid(p, cSeqBeatRange, nbCellsPerBeat, ne -> accentPitches.contains(ne.getPitch()));
+        Grid gridHighPass = new Grid(p, beatRange, nbCellsPerBeat,
+                ne -> ne.getVelocity() >= nonGhostVelLimit && accentPitches.contains(ne.getPitch()),
+                preCellBeatWindow);
+        Grid grid = new Grid(p, beatRange, nbCellsPerBeat, ne -> accentPitches.contains(ne.getPitch()), preCellBeatWindow);
 
         for (CLI_ChordSymbol cliCs : anticipatableChords)
         {
-            int chordCell = grid.getCell(getChordPositionInBeats(cliCs), true);
+            int chordCell = grid.getCell(simpleChordSequence.getPositionInBeats(cliCs), true);
             int inBeatChordCell = chordCell % nbCellsPerBeat;
             int nextBeatChordCell = Math.min(lastCellIndex, chordCell + (nbCellsPerBeat - inBeatChordCell));
             int anticipatedCell = (chordCell == lastCellIndex) ? -1 : gridHighPass.getLastNoteCell(new IntRange(chordCell + 1,
@@ -245,33 +251,42 @@ public class AnticipatedChordProcessor
 
     }
 
-
     // ==============================================================================================================
     // Private methods
     // ==============================================================================================================
     /**
-     * Identify the anticipatable chords in anticipatableChords.
+     * Identify the anticipatable chords in scs.
+     * <p>
+     * Conditions to be an anticipatable chord:<br>
+     * - latest offbeat chord of a given beat<br>
+     * - not followed by a different chord on the next beat (or by the same chord but with a special interpretation)<br>
+     * - not in the latest beat of scs<br>
+     *
+     * @param scs
+     * @return
      */
-    private void identifyAnticipatableChords()
+    private List<CLI_ChordSymbol> identifyAnticipatableChords(SimpleChordSequence scs)
     {
-        int lastBar = simpleChordSequence.getBarRange().to;
+        List<CLI_ChordSymbol> res = new ArrayList<>();
+        int lastBar = scs.getBarRange().to;
 
-        for (var cliCs : simpleChordSequence)
+        for (var cliCs : scs)
         {
             Position pos = cliCs.getPosition();
+            int bar = pos.getBar();
+            float beat = pos.getBeat();
             ChordRenderingInfo cri = cliCs.getData().getRenderingInfo();
 
 
             // Check if we can anticipate on next chord
             if (cri.hasOneFeature(ChordRenderingInfo.Feature.NO_ANTICIPATION) || !pos.isOffBeat())
             {
-                // Chord is OnBeat
                 continue;
             }
 
 
-            int anticipatedBar = pos.getBar();
-            int anticipatedBeat = (int) Math.ceil(pos.getBeat());
+            int anticipatedBar = bar;
+            int anticipatedBeat = (int) Math.ceil(beat);
             if (pos.isLastBarBeat(timeSignature))
             {
                 // If we fall over next bar
@@ -279,14 +294,18 @@ public class AnticipatedChordProcessor
                 anticipatedBeat = 0;
             }
 
-            CLI_ChordSymbol cliCsNext = simpleChordSequence.higher(cliCs);
+            CLI_ChordSymbol cliCsNext = scs.higher(cliCs);
             if (cliCsNext != null)
             {
-                // Not the last chord 
                 ChordRenderingInfo criNext = cliCsNext.getData().getRenderingInfo();
                 int barNext = cliCsNext.getPosition().getBar();
                 float beatNext = cliCsNext.getPosition().getBeat();
 
+                if (barNext == bar && Math.floor(beat) == Math.floor(beatNext))
+                {
+                    // This is not the last off-beat chord of the same beat
+                    continue;
+                }
 
                 if (barNext > anticipatedBar
                         || beatNext >= (anticipatedBeat + cellDuration)
@@ -294,18 +313,17 @@ public class AnticipatedChordProcessor
                         ChordRenderingInfo.Feature.HOLD, ChordRenderingInfo.Feature.SHOT)))
                 {
                     // There is no problematic chord symbol on start of next beat, cliCs is anticipatable
-                    anticipatableChords.add(cliCs);
+                    res.add(cliCs);
                 }
 
-            } else
+            } else if (anticipatedBar <= lastBar)
             {
-                // Last chord, don't need to check next chord
-                if (anticipatedBar <= lastBar)
-                {
-                    anticipatableChords.add(cliCs);
-                }
+                // Last offbeat chord but not last beat of the chord sequence
+                res.add(cliCs);
             }
         }
+
+        return res;
     }
 
     private int getGhostNoteVelocityLimitBass(Phrase p)
@@ -317,10 +335,5 @@ public class AnticipatedChordProcessor
     {
         return 30;
     }
-
-    private float getChordPositionInBeats(CLI_ChordSymbol cliCs)
-    {
-        return simpleChordSequence.toPositionInBeats(cliCs.getPosition(), cSeqBeatRange.from);
-    }
-
+  
 }

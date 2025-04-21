@@ -22,20 +22,20 @@
  */
 package org.jjazz.activesong;
 
+import org.jjazz.musiccontrol.api.MusicGenerationQueue;
 import com.google.common.base.Preconditions;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import org.jjazz.chordleadsheet.api.ClsUtilities;
 import org.jjazz.midimix.api.MidiMix;
-import org.jjazz.musiccontrol.api.PlaybackSettings;
+import org.jjazz.musiccontrol.api.MusicGenerationQueue.Result;
 import org.jjazz.musiccontrol.api.SongMusicGenerationListener;
-import org.jjazz.rhythmmusicgeneration.api.MusicGenerationQueue;
 import org.jjazz.song.api.Song;
-import org.jjazz.songcontext.api.SongContextCopy;
+import org.jjazz.songcontext.api.SongContext;
 import org.openide.util.ChangeSupport;
 
 /**
@@ -52,31 +52,39 @@ public class SongMusicBuilderTask implements ChangeListener, PropertyChangeListe
     /**
      * @see SongMusicGenerationListener
      */
-    private static final int PRE_CHANGE_EVENT_DELAY_MS = 200;
+    public static final int PRE_CHANGE_EVENT_DELAY_MS = 200;
     /**
      * @see MusicGenerationQueue
      */
-    private static final int PRE_UPDATE_BUFFER_TIME_MS = 500;
+    public static final int PRE_UPDATE_BUFFER_TIME_MS = 500;
     /**
      * @see MusicGenerationQueue
      */
-    private static final int POST_UPDATE_SLEEP_TIME_MS = 500;
+    public static final int POST_UPDATE_SLEEP_TIME_MS = 500;
 
 
-    private MusicGenerationQueue.Result lastResult;
+    private Result lastResult;
     private MusicGenerationQueue musicGenerationQueue;
     private SongMusicGenerationListener songMusicGenerationListener;
     private final Song song;
     private final MidiMix midiMix;
     private final int preUpdateBufferTimeMs;
     private final int postUpdateSleepTimeMs;
-    private ChangeSupport cs = new ChangeSupport(this);
+    private final Set<String> ignoredSongChanges;
+    private final ChangeSupport cs = new ChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(SongMusicBuilderTask.class.getSimpleName());
 
 
-    public SongMusicBuilderTask(Song song, MidiMix midiMix)
+    /**
+     * Create the task.
+     *
+     * @param song
+     * @param midiMix
+     * @param ignoredSongChanges Specify song changes which should not trigger a new music generation. Value is passed to the internal {@link SongMusicGenerationListener#setBlackList(java.util.Set)
+     */
+    public SongMusicBuilderTask(Song song, MidiMix midiMix, Set<String> ignoredSongChanges)
     {
-        this(song, midiMix, PRE_UPDATE_BUFFER_TIME_MS, POST_UPDATE_SLEEP_TIME_MS);
+        this(song, midiMix, ignoredSongChanges, PRE_UPDATE_BUFFER_TIME_MS, POST_UPDATE_SLEEP_TIME_MS);
     }
 
     /**
@@ -84,12 +92,14 @@ public class SongMusicBuilderTask implements ChangeListener, PropertyChangeListe
      *
      * @param song
      * @param midiMix
+     * @param ignoredSongChanges    Specify song changes which should not trigger a new music generation. Value is passed to the internal {@link SongMusicGenerationListener#setBlackList(java.util.Set)
+     *                              }.
      * @param preUpdateBufferTimeMs
      * @param postUpdateSleepTimeMs
      * @see MusicGenerationQueue#getPreUpdateBufferTimeMs()
      * @see MusicGenerationQueue#getPostUpdateSleepTimeMs()
      */
-    public SongMusicBuilderTask(Song song, MidiMix midiMix, int preUpdateBufferTimeMs, int postUpdateSleepTimeMs)
+    public SongMusicBuilderTask(Song song, MidiMix midiMix, Set<String> ignoredSongChanges, int preUpdateBufferTimeMs, int postUpdateSleepTimeMs)
     {
         Preconditions.checkNotNull(song);
         Preconditions.checkNotNull(midiMix);
@@ -97,6 +107,7 @@ public class SongMusicBuilderTask implements ChangeListener, PropertyChangeListe
         this.midiMix = midiMix;
         this.preUpdateBufferTimeMs = preUpdateBufferTimeMs;
         this.postUpdateSleepTimeMs = postUpdateSleepTimeMs;
+        this.ignoredSongChanges = ignoredSongChanges;
     }
 
     public Song getSong()
@@ -128,6 +139,7 @@ public class SongMusicBuilderTask implements ChangeListener, PropertyChangeListe
             musicGenerationQueue.start();
 
             songMusicGenerationListener = new SongMusicGenerationListener(song, midiMix, PRE_CHANGE_EVENT_DELAY_MS);
+            songMusicGenerationListener.setBlackList(ignoredSongChanges);
             songMusicGenerationListener.addPropertyChangeListener(this);
 
             // Force the 1st generation
@@ -145,7 +157,7 @@ public class SongMusicBuilderTask implements ChangeListener, PropertyChangeListe
      *
      * @return Can be null. The SongContext field will be a SongContextCopy instance.
      */
-    public MusicGenerationQueue.Result getLastResult()
+    public Result getLastResult()
     {
         return lastResult;
     }
@@ -215,7 +227,6 @@ public class SongMusicBuilderTask implements ChangeListener, PropertyChangeListe
     //=============================================================================
     private void postMusicGenerationRequest()
     {
-        // Prepare a copy of the song context
         // Can't use a thread here because this might lead to concurrent modification (eg of a user phrase) while copy is being made                
         LOGGER.log(Level.FINE, "stateChanged() -- posting music generation request for {0}", song.getName());
         if (song.getChordLeadSheet().getSection(0) == null)
@@ -225,13 +236,11 @@ public class SongMusicBuilderTask implements ChangeListener, PropertyChangeListe
                     song.getChordLeadSheet().toDebugString());
             return;
         }
-        SongContextCopy sgContextCopy = new SongContextCopy(song, midiMix, false);
-        ClsUtilities.transpose(sgContextCopy.getSong().getChordLeadSheet(),
-                PlaybackSettings.getInstance().getPlaybackKeyTransposition());
+        SongContext sgContext = new SongContext(song, midiMix);
 
 
         // Request music generation
-        musicGenerationQueue.add(sgContextCopy);
+        musicGenerationQueue.add(sgContext);
     }
 
 

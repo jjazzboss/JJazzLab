@@ -48,6 +48,7 @@ import javax.sound.midi.SysexMessage;
 import javax.sound.midi.Track;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.chordleadsheet.api.ClsUtilities;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.NCExtChordSymbol;
@@ -96,7 +97,10 @@ public class SongSequenceBuilder
     public static final int TEMPO_FACTOR_META_EVENT_TYPE = 12;
 
     /**
-     * The return value of the buildSongSequence() methods.
+     * The return value of some of the buildXXX() methods.
+     *
+     * @see #buildSongSequence(java.util.Map)
+     * @see #buildAll(boolean)
      */
     static public class SongSequence
     {
@@ -106,21 +110,25 @@ public class SongSequenceBuilder
         public Map<RhythmVoice, Phrase> mapRvPhrase;
     }
 
-
-    private SongContext songContext;
+    private final SongContext songContextOriginal;
+    private final SongContext songContextWork;
 
     private static final Logger LOGGER = Logger.getLogger(SongSequenceBuilder.class.getSimpleName());
 
     /**
-     * @param context The songContext to build the sequence.
+     * Create an instance to generate music for the specified SongContext.
+     * <p>
+     * Note that sgContext is not modified, the instance works on a deep copy of sgContext.
+     *
+     * @param sgContext
+     * @param playbackKeyTranspose Optional chord symbols transposition (use 0 for no transposition)
      */
-    public SongSequenceBuilder(SongContext context)
+    public SongSequenceBuilder(SongContext sgContext, int playbackKeyTranspose)
     {
-        if (context == null)
-        {
-            throw new NullPointerException("context");
-        }
-        this.songContext = context;
+        Objects.requireNonNull(sgContext);
+        this.songContextOriginal = sgContext;
+        this.songContextWork = songContextOriginal.deepClone(false);
+        ClsUtilities.transpose(songContextWork.getSong().getChordLeadSheet(), playbackKeyTranspose);
     }
 
 
@@ -209,6 +217,7 @@ public class SongSequenceBuilder
      */
     public SongSequence buildSongSequence(Map<RhythmVoice, Phrase> rvPhrases)
     {
+        Objects.requireNonNull(rvPhrases);
         SongSequence res = new SongSequence();
         res.mapRvPhrase = new HashMap<>(rvPhrases);
 
@@ -224,9 +233,9 @@ public class SongSequenceBuilder
         // First track is really useful only when exporting to Midi file type 1            
         // Contain song name, tempo factor changes, time signatures
         Track track0 = res.sequence.createTrack();
-        MidiUtilities.addTrackNameEvent(track0, songContext.getSong().getName() + " (JJazzLab song)");
-        addTimeSignatureChanges(songContext, track0);
-        addTempoFactorChanges(songContext, track0);
+        MidiUtilities.addTrackNameEvent(track0, songContextWork.getSong().getName() + " (JJazzLab song)");
+        addTimeSignatureChanges(songContextWork, track0);
+        addTempoFactorChanges(songContextWork, track0);
 
 
         // Other tracks : create one per RhythmVoice
@@ -235,7 +244,7 @@ public class SongSequenceBuilder
 
 
         // Normally process only normal rhythms, but if context does not use a source rhythm of an adapted rhythm, we need to process it too
-        var contextRhythms = songContext.getUniqueRhythms();      // Contains AdaptedRhythms
+        var contextRhythms = songContextWork.getUniqueRhythms();      // Contains AdaptedRhythms
         Set<Rhythm> targetRhythms = new HashSet<>();
         for (Rhythm r : contextRhythms)
         {
@@ -267,7 +276,7 @@ public class SongSequenceBuilder
         {
 
             Track track = res.sequence.createTrack();
-            int channel = songContext.getMidiMix().getChannel(rv);
+            int channel = songContextWork.getMidiMix().getChannel(rv);
 
             String name = buildTrackName(rv, channel);
             MidiUtilities.addTrackNameEvent(track, name);
@@ -281,7 +290,7 @@ public class SongSequenceBuilder
             trackId++;
         }
 
-        fixEndOfTracks(songContext, res.sequence);
+        fixEndOfTracks(songContextWork, res.sequence);
 
         return res;
     }
@@ -308,7 +317,7 @@ public class SongSequenceBuilder
         Preconditions.checkNotNull(songSequence);
 
         Sequence sequence = songSequence.sequence;
-        MidiMix midiMix = songContext.getMidiMix();
+        MidiMix midiMix = songContextWork.getMidiMix();
         Track[] tracks = sequence.getTracks();
         Track track0 = tracks[0];
 
@@ -345,15 +354,15 @@ public class SongSequenceBuilder
 
 
         // Add markers at each chord symbol position
-        SongStructure ss = songContext.getSong().getSongStructure();
-        for (SongPart spt : songContext.getSongParts())
+        SongStructure ss = songContextWork.getSong().getSongStructure();
+        for (SongPart spt : songContextWork.getSongParts())
         {
             CLI_Section section = spt.getParentSection();
-            for (var cliCs : songContext.getSong().getChordLeadSheet().getItems(section, CLI_ChordSymbol.class))
+            for (var cliCs : songContextWork.getSong().getChordLeadSheet().getItems(section, CLI_ChordSymbol.class))
             {
 
                 Position absPos = ss.getSptItemPosition(spt, cliCs);
-                long tickPos = songContext.toRelativeTick(absPos);
+                long tickPos = songContextWork.toRelativeTick(absPos);
                 me = new MidiEvent(MidiUtilities.getMarkerMetaMessage(cliCs.getData().getName()), tickPos);
                 track0.add(me);
             }
@@ -361,8 +370,8 @@ public class SongSequenceBuilder
 
 
         // Add initial tempo event
-        int tempo = songContext.getSong().getTempo();
-        SongPart spt0 = songContext.getSongParts().get(0);
+        int tempo = songContextWork.getSong().getTempo();
+        SongPart spt0 = songContextWork.getSongParts().get(0);
         RP_SYS_TempoFactor rp = RP_SYS_TempoFactor.getTempoFactorRp(spt0.getRhythm());
         int tempoFactor = -1;
         if (rp != null)
@@ -376,7 +385,7 @@ public class SongSequenceBuilder
 
         // Add additional song part tempo changes
         int lastTempoFactor = tempoFactor;
-        var spts = songContext.getSongParts();
+        var spts = songContextWork.getSongParts();
         for (i = 1; i < spts.size(); i++)
         {
             SongPart spt = spts.get(i);
@@ -386,8 +395,8 @@ public class SongSequenceBuilder
                 tempoFactor = spt.getRPValue(rp);
                 if (tempoFactor != lastTempoFactor)
                 {
-                    tempo = Math.round(tempoFactor / 100f * songContext.getSong().getTempo());
-                    float beatPos = songContext.getSptBeatRange(spt).from - songContext.getBeatRange().from;
+                    tempo = Math.round(tempoFactor / 100f * songContextWork.getSong().getTempo());
+                    float beatPos = songContextWork.getSptBeatRange(spt).from - songContextWork.getBeatRange().from;
                     long tickPos = Math.round(beatPos * MidiConst.PPQ_RESOLUTION);
                     me = new MidiEvent(MidiUtilities.getTempoMessage(0, tempo), tickPos);
                     track0.add(me);
@@ -467,19 +476,17 @@ public class SongSequenceBuilder
 
         }
 
-
     }
-
 
     public SongContext getSongContext()
     {
-        return songContext;
+        return songContextOriginal;
     }
 
     @Override
     public String toString()
     {
-        return "MidiSequenceBuilder context=" + songContext.toString();
+        return "SongSequenceBuilder songContextWork=" + songContextWork.toString();
     }
 
 
@@ -529,24 +536,24 @@ public class SongSequenceBuilder
     {
         Map<RhythmVoice, Phrase> res = new HashMap<>();
 
-        checkEmptyRange(songContext);       // throws MusicGenerationException
+        checkEmptyRange(songContextWork);       // throws MusicGenerationException
 
         // Check that there is a valid starting chord at the beginning on each section
-        checkStartChordPresence(songContext);      // throws UserErrorGenerationException
+        checkStartChordPresence(songContextWork);      // throws UserErrorGenerationException
 
         // Check there is no 2 chords at same position
-        checkChordsAtSamePosition(songContext);            // throws MusicGenerationException        
+        checkChordsAtSamePosition(songContextWork);            // throws MusicGenerationException        
 
 
-        for (Rhythm r : songContext.getUniqueRhythms())
+        for (Rhythm r : songContextWork.getUniqueRhythms())
         {
 
             // Generate the phrase
             Map<RhythmVoice, Phrase> rMap = generateRhythmPhrases(r);                       // Possible MusicGenerationException here
 
-            if (songContext.getUniqueRhythms().size() > 1)
+            if (songContextWork.getUniqueRhythms().size() > 1)
             {
-                checkRhythmPhrasesScope(songContext, r, rMap);                              // Possible MusicGenerationException here
+                checkRhythmPhrasesScope(songContextWork, r, rMap);                              // Possible MusicGenerationException here
             }
 
             // Merge into the final result
@@ -556,38 +563,38 @@ public class SongSequenceBuilder
 
 
         // Handle the RP_SYS_CustomPhrase changes
-        processCustomPhrases(songContext, res);
+        processCustomPhrases(songContextWork, res);
 
         // Handle the RP_SYS_DrumsTransform changes
-        processDrumsTransforms(songContext, res);
+        processDrumsTransforms(songContextWork, res);
 
         // Handle the NC chord symbols 
-        processNoChords(songContext, res);
+        processNoChords(songContextWork, res);
 
         // Add the user track phrases
         addUserTrackPhrases(res);
 
         // Handle the RP_SYS_Mute parameter (user track phrases must be in res)
-        processMutedInstruments(songContext, res);
+        processMutedInstruments(songContextWork, res);
 
         // Handle the AdaptedRhythm's RhythmVoiceDelegates
         // IMPORTANT: after that res will NOT contain RhythmVoiceDelegates anymore
         processAdaptedRhythms(res);
 
         // Handle the RP_SYS_Fill with value fade_out
-        processFadeOut(songContext, res);
+        processFadeOut(songContextWork, res);
 
         // Handle instrument settings which impact the phrases: transposition, velocity shift, ...
-        processInstrumentsSettings(songContext, res);
+        processInstrumentsSettings(songContextWork, res);
 
         // Process drums rerouting
-        processDrumsRerouting(songContext, res);
+        processDrumsRerouting(songContextWork, res);
 
 
         // Shift phrases to start at position 0
         for (Phrase p : res.values())
         {
-            p.shiftAllEvents(-songContext.getBeatRange().from);
+            p.shiftAllEvents(-songContextWork.getBeatRange().from);
         }
 
 
@@ -633,17 +640,17 @@ public class SongSequenceBuilder
     private void addUserTrackPhrases(Map<RhythmVoice, Phrase> res)
     {
 
-        var br = songContext.getBeatRange();
-        for (String userPhraseName : songContext.getSong().getUserPhraseNames())
+        var br = songContextWork.getBeatRange();
+        for (String userPhraseName : songContextWork.getSong().getUserPhraseNames())
         {
-            UserRhythmVoice urv = songContext.getMidiMix().getUserRhythmVoice(userPhraseName);
-            assert urv != null : "userPhraseName=" + userPhraseName + " songContext.getMidiMix()=" + songContext.getMidiMix();
+            UserRhythmVoice urv = songContextWork.getMidiMix().getUserRhythmVoice(userPhraseName);
+            assert urv != null : "userPhraseName=" + userPhraseName + " songContext.getMidiMix()=" + songContextWork.getMidiMix();
 
 
             // Create the phrase 
-            int channel = songContext.getMidiMix().getChannel(urv);
+            int channel = songContextWork.getMidiMix().getChannel(urv);
             Phrase p = new Phrase(channel, urv.isDrums());
-            p.add(songContext.getSong().getUserPhrase(userPhraseName));
+            p.add(songContextWork.getSong().getUserPhrase(userPhraseName));
 
 
             // Adapt to the current context
@@ -677,7 +684,7 @@ public class SongSequenceBuilder
                 r.getName(), Objects.hashCode(r)
             });
             r.loadResources();
-            return mg.generateMusic(songContext);
+            return mg.generateMusic(songContextWork);
         } else
         {
             LOGGER.log(Level.WARNING, "generateRhythmPhrases() r={0} is not a MusicGenerator instance", r);
@@ -900,6 +907,7 @@ public class SongSequenceBuilder
             RP_SYS_DrumsTransform rpDrumsTransform = RP_SYS_DrumsTransform.getDrumsTransformRp(r);
             if (rpDrumsTransform == null)
             {
+                // Happens if no drums RhythmVoice in the rhythm, or if rhythm does not propose this RhythmParameter
                 continue;
             }
 
@@ -1097,21 +1105,14 @@ public class SongSequenceBuilder
             Phrase p = rvPhrases.get(rv);
             for (NoteEvent ne : p)
             {
-                boolean inRange = false;
-                for (FloatRange rg : sptRanges)
-                {
-                    if (rg.contains(ne.getPositionInBeats(), true))
-                    {
-                        inRange = true;
-                        break;
-                    }
-                }
+                boolean inRange = sptRanges.stream()
+                        .anyMatch(rg -> rg.contains(ne.getPositionInBeats(), true));
                 if (!inRange)
                 {
                     // songContext.toPosition(0)
-                    String msg = ResUtil.getString(getClass(), "ERR_InvalidNotePosition", ne.toString(), r.getName());
-                    LOGGER.log(Level.INFO, "checkRhythmPhrasesScope() {0}", msg);
-                    LOGGER.log(Level.FINE, "DEBUG!  rv={0} ne={1} p={2}", new Object[]
+                    String msg = ResUtil.getString(getClass(), "ERR_InvalidNotePosition", ne.toString(), rv.getName(), r.getName());
+                    LOGGER.log(Level.WARNING, "checkRhythmPhrasesScope() {0}", msg);
+                    LOGGER.log(Level.WARNING, "checkRhythmPhrasesScope() => rv={0} ne={1} p={2}", new Object[]
                     {
                         rv.getName(), ne, p
                     });
@@ -1182,7 +1183,7 @@ public class SongSequenceBuilder
             TimeSignature ts = spt.getRhythm().getTimeSignature();
             if (!ts.equals(prevTs))
             {
-                float beatPos = songContext.getSptBeatRange(spt).from - beatOffset;
+                float beatPos = songContextWork.getSptBeatRange(spt).from - beatOffset;
                 long tickPos = Math.round(beatPos * MidiConst.PPQ_RESOLUTION);
                 MidiEvent me = new MidiEvent(MidiUtilities.getTimeSignatureMessage(ts), tickPos);
                 track.add(me);

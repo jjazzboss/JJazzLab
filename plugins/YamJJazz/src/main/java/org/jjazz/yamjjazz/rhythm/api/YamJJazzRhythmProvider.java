@@ -229,7 +229,7 @@ public class YamJJazzRhythmProvider implements RhythmProvider
     }
 
     @Override
-    public AdaptedRhythm getAdaptedRhythm(Rhythm r, TimeSignature ts)
+    public YamJJazzAdaptedRhythm getAdaptedRhythm(Rhythm r, TimeSignature ts)
     {
         if (r == null || ts == null || r.getTimeSignature().equals(ts))
         {

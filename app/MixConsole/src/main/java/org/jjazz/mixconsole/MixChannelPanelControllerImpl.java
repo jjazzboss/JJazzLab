@@ -169,11 +169,21 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
 
         // Retrieve the phrase
         var asmb = ActiveSongBackgroundMusicBuilder.getDefault();
-        var result = asmb.getLastResult();
-        Phrase p = result.mapRvPhrases().get(rv);
+        var lastResult = asmb.getLastResult();
+        if (!asmb.isLastResultUpToDate())
+        {
+            String msg = ResUtil.getString(getClass(), "MixChannelPanelControllerImpl.ErrorCloneRhythmTrack");
+            NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
+            DialogDisplayer.getDefault().notify(d);
+            return;
+        }
+
+        
+        Phrase p = lastResult.mapRvPhrases().get(rv);
         if (p == null)
         {
-            String msg = "Unexpected error: no phrase found for " + rv.getName() + ". Maybe retry later?";
+            String msg = "Unexpected error: no phrase found for " + rv.getName();
+            LOGGER.log(Level.SEVERE, "cloneRhythmTrackAsUserTrack() {0}", msg);
             NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
             return;
