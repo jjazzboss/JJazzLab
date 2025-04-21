@@ -41,7 +41,8 @@ import org.jjazz.harmony.api.Position;
 import org.jjazz.utilities.api.IntRange;
 
 /**
- * A convenience class to analyze and manipulate a suite of chord symbols extracted from a ChordLeadSheet, possibly with different TimeSignatures.
+ * A convenience class to analyze and manipulate a suite of chord symbols extracted from a ChordLeadSheet, possibly with different
+ * TimeSignatures.
  * <p>
  */
 public class ChordSequence extends TreeSet<CLI_ChordSymbol> implements Comparable<ChordSequence>, Cloneable
@@ -93,7 +94,6 @@ public class ChordSequence extends TreeSet<CLI_ChordSymbol> implements Comparabl
         return res;
     }
 
-
     public final IntRange getBarRange()
     {
         return barRange;
@@ -114,7 +114,11 @@ public class ChordSequence extends TreeSet<CLI_ChordSymbol> implements Comparabl
         {
             return true;
         }
-        if (!getClass().isInstance(obj))
+        if (obj == null)
+        {
+            return false;
+        }
+        if (getClass() != obj.getClass())
         {
             return false;
         }
@@ -125,7 +129,6 @@ public class ChordSequence extends TreeSet<CLI_ChordSymbol> implements Comparabl
         }
         return super.equals(other);
     }
-
 
     /**
      * Get the CLI_ChordSymbol from this ChordSequence which is active at the specified position.
@@ -139,13 +142,12 @@ public class ChordSequence extends TreeSet<CLI_ChordSymbol> implements Comparabl
         return floor(item);
     }
 
-
     /**
      * A new sub-sequence from this sequence.
      *
-     * @param subRange           The range of the sub-sequence.
-     * @param addInitChordSymbol If true, try to add an init chordsymbol if the resulting subsequence does not have one: reuse the last chord symbol before
-     *                           subRange.from if any
+     * @param subRange The range of the sub-sequence.
+     * @param addInitChordSymbol If true, try to add an init chordsymbol if the resulting subsequence does not have one: reuse the
+     * last chord symbol before subRange.from if any
      * @return
      * @throws IllegalArgumentException If subRange is not contained in this ChordSequence bar range
      */
@@ -155,7 +157,6 @@ public class ChordSequence extends TreeSet<CLI_ChordSymbol> implements Comparabl
 
         ChordSequence cSeq = new ChordSequence(subRange);
         cSeq.addAll(subSet(CLI_ChordSymbol.createItemFrom(subRange.from), CLI_ChordSymbol.createItemTo(subRange.to)));
-
 
         if (addInitChordSymbol && !cSeq.hasChordAtBeginning())
         {
@@ -184,11 +185,11 @@ public class ChordSequence extends TreeSet<CLI_ChordSymbol> implements Comparabl
         Preconditions.checkNotNull(tester);
 
         var headSet = headSet(CLI_ChordSymbol.createItemFrom(posFrom, inclusive),
-                false);   // useless because of createItemFrom
+            false);   // useless because of createItemFrom
         var res = headSet.stream().
-                filter(cliCs -> tester.test(cliCs))
-                .findFirst()
-                .orElse(null);
+            filter(cliCs -> tester.test(cliCs))
+            .findFirst()
+            .orElse(null);
 
         return res;
     }
@@ -208,7 +209,7 @@ public class ChordSequence extends TreeSet<CLI_ChordSymbol> implements Comparabl
         CLI_ChordSymbol res = null;
 
         var headSet = headSet(CLI_ChordSymbol.createItemTo(posTo, inclusive),
-                false);   // useless because of createItemFrom
+            false);   // useless because of createItemFrom
         var it = headSet.descendingIterator();
         while (it.hasNext())
         {
@@ -222,7 +223,6 @@ public class ChordSequence extends TreeSet<CLI_ChordSymbol> implements Comparabl
 
         return res;
     }
-
 
     /**
      *
