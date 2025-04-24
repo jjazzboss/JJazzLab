@@ -32,6 +32,7 @@ import org.jjazz.chordleadsheet.api.ChordLeadSheet;
  */
 final public class SelectedBar implements Comparable<SelectedBar>
 {
+
     /**
      * The modelBarIndex to use for a selectedBar after the end of the leadsheet.
      */
@@ -44,7 +45,7 @@ final public class SelectedBar implements Comparable<SelectedBar>
     {
         if (barBoxIndex < 0)
         {
-            throw new IllegalArgumentException("barBoxIndex=" + barBoxIndex);   
+            throw new IllegalArgumentException("barBoxIndex=" + barBoxIndex);
         }
         this.barBoxIndex = barBoxIndex;
         container = cls;
@@ -83,7 +84,7 @@ final public class SelectedBar implements Comparable<SelectedBar>
     @Override
     public boolean equals(Object o)
     {
-        if (o == null || !(o instanceof SelectedBar))
+        if (o == null || getClass() != o.getClass())
         {
             return false;
         }
@@ -101,7 +102,7 @@ final public class SelectedBar implements Comparable<SelectedBar>
     {
         int hash = 3;
         hash = 19 * hash + this.barBoxIndex;
-        hash = 19 * hash + Objects.hashCode(this.container);
+        hash = 19 * hash + System.identityHashCode(this.container);
         return hash;
     }
 
@@ -120,14 +121,6 @@ final public class SelectedBar implements Comparable<SelectedBar>
     @Override
     public int compareTo(SelectedBar t)
     {
-        int res = 0;
-        if (barBoxIndex < t.barBoxIndex)
-        {
-            res = -1;
-        } else if (barBoxIndex > t.barBoxIndex)
-        {
-            res = 1;
-        }
-        return res;
+        return Integer.compare(barBoxIndex, t.barBoxIndex);
     }
 }

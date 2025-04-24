@@ -81,6 +81,7 @@ import org.jjazz.song.api.Song;
 import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.quantizer.api.Quantizer;
 import org.jjazz.cl_editor.api.SelectedBar;
+import org.jjazz.cl_editor.api.SelectedCLI;
 import org.jjazz.cl_editor.spi.BarRendererFactory;
 import org.jjazz.cl_editor.spi.BarRendererProvider;
 import org.jjazz.rhythm.api.Division;
@@ -95,7 +96,6 @@ import org.jjazz.uisettings.api.ColorSetManager;
 public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, ClsChangeListener, Scrollable, MouseListener, MouseWheelListener, MouseMotionListener
 {
 
-
     private static final int NB_EXTRA_LINES = 4;
 
     /**
@@ -108,7 +108,6 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         BarRendererFactory.BR_SECTION,
         BarRendererFactory.BR_ANNOTATION
     };
-
 
     // GUI variables
     /**
@@ -141,7 +140,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
      */
     private InstanceContent selectionLookupContent;
     /**
-     * Last snapshot of objects in selectionLookupContent: assume it's faster to check than checking the lookup (?)
+     * Last snapshot of objects in selectionLookupContent: we assume it's faster to check than checking the lookup (?)
      */
     private List<Object> selectionLastContent;
     /**
@@ -260,15 +259,12 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         generalLookupContent.add(clsModel);
         generalLookupContent.add(songModel);
 
-
         // Add or remove barboxes at the end if required
         int newSizeInBars = computeNbBarBoxes(NB_EXTRA_LINES);
         setNbBarBoxes(newSizeInBars);  // This will update our songModel via getDisplayQuantizationValue() then Song.putClientProperty()
 
-
         // Used to zoom in / zoom out
         addMouseWheelListener(this);
-
 
     }
 
@@ -379,7 +375,6 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             throw new IllegalArgumentException("section=" + cliSection + " not found in clsModel=" + clsModel);
         }
 
-
         Quantization q = songSpecificProperties.loadSectionQuantization(cliSection);
         if (q == null)
         {
@@ -446,7 +441,6 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             activeBrs.remove(BarRendererFactory.BR_ANNOTATION);
         }
 
-
         // Save selection
         CL_SelectionUtilities selection = new CL_SelectionUtilities(getLookup());
         int bar = 0;
@@ -459,21 +453,17 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         }
         selection.unselectAll(this);
 
-
         // Change state
         songSpecificProperties.storeBarAnnotationVisible(b);
         setBarBoxConfig(bbConfig.getUpdatedConfig(activeBrs.toArray(String[]::new)));
-
 
         // Restore selection (at least 1 bar) so that the the "toggle BR_Annotation visibility" keyboard shortcut can be directly reused
         selectBars(bar, bar, true);
         setFocusOnBar(bar);
 
-
         // Fire event
         firePropertyChange(CL_Editor.PROP_BAR_ANNOTATION_VISIBLE, !b, b);
     }
-
 
     @Override
     public int getBarAnnotationNbLines()
@@ -505,7 +495,6 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         songSpecificProperties.storeBarAnnotationNbLines(n);
         firePropertyChange(CL_Editor.PROP_BAR_ANNOTATION_NB_LINES, nOld, n);
     }
-
 
     @Override
     public SelectedBar getFocusedBar(boolean includeFocusedItem)
@@ -558,7 +547,6 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             firePropertyChange(CL_Editor.PROP_SECTION_COLOR, cliSection, c);        // BR_Sections will catch this
         }
     }
-
 
     @Override
     public Color getSectionColor(CLI_Section cliSection)
@@ -653,8 +641,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     }
 
     /**
-     * Return the position (bar, beat) which corresponds to a given point in the editor. If point is in the BarBox which does not have a valid modelBar (eg
-     * after the end), barIndex is set but beat is set to 0.
+     * Return the position (bar, beat) which corresponds to a given point in the editor. If point is in the BarBox which does not
+     * have a valid modelBar (eg after the end), barIndex is set but beat is set to 0.
      *
      * @param editorPoint A point in the editor's coordinates.
      * @return Null if point does not correspond to a valid bar.
@@ -692,11 +680,9 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             throw new IllegalArgumentException("barIndex=" + barIndex + " getNbBars()=" + getNbBarBoxes());
         }
 
-
         // Check how many rows are visible
         float nbVisibleRows = (float) getVisibleRect().height / getBarBox(0).getHeight();
         int row = getRowIndex(barIndex);
-
 
         if (nbVisibleRows < 1.8f || row == getNbRows() - 1 || row == 0)
         {
@@ -708,7 +694,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             // Make sure row+1 is visible, because it's better to always have next row also visible
             int compIndex = getComponentIndex(barIndex);
             assert compIndex + getNbColumns() < getComponentCount() :
-                    "compIndex=" + compIndex + " getNbColumns()=" + getNbColumns() + " getComponentCount()=" + getComponentCount();
+                "compIndex=" + compIndex + " getNbColumns()=" + getNbColumns() + " getComponentCount()=" + getComponentCount();
             Component c = getComponent(compIndex + getNbColumns());
             scrollRectToVisible(c.getBounds());
         }
@@ -736,15 +722,15 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         if (bbIndexFrom < 0 || bbIndexTo >= getNbBarBoxes() || bbIndexFrom > bbIndexTo)
         {
             throw new IllegalArgumentException(
-                    "bbIndexFrom=" + bbIndexFrom + " bbIndexTo=" + bbIndexTo + " getNbBarBoxes()=" + getNbBarBoxes());
+                "bbIndexFrom=" + bbIndexFrom + " bbIndexTo=" + bbIndexTo + " getNbBarBoxes()=" + getNbBarBoxes());
         }
         LOGGER.log(Level.FINE, "Before selectBar() b={0} bbIndexFrom={1} selectionLookup={2}", new Object[]
         {
             b, bbIndexFrom, selectionLookup
         });
-        Collection<? extends Object> result = selectionLookup.lookupAll(Object.class);
-        selectionLastContent.clear();
-        selectionLastContent.addAll(result);
+//        selectionLastContent.clear();
+//        selectionLookup.lookupAll(Object.class).forEach(o -> selectionLastContent.add(o));
+
         for (int i = bbIndexFrom; i <= bbIndexTo; i++)
         {
             SelectedBar sb = new SelectedBar(i, clsModel);
@@ -778,9 +764,13 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     @Override
     public void selectBarsExcept(int bbIndexFrom, int bbIndexTo, boolean b)
     {
-        Collection<? extends Object> result = selectionLookup.lookupAll(Object.class);
-        selectionLastContent.clear();
-        selectionLastContent.addAll(result);
+        if (bbIndexFrom < 0 || bbIndexTo >= getNbBarBoxes() || bbIndexFrom > bbIndexTo)
+        {
+            throw new IllegalArgumentException(
+                "bbIndexFrom=" + bbIndexFrom + " bbIndexTo=" + bbIndexTo + " getNbBarBoxes()=" + getNbBarBoxes());
+        }
+//        selectionLastContent.clear();
+//        selectionLookup.lookupAll(Object.class).forEach(o -> selectionLastContent.add(o));
         int barMax = Math.min(bbIndexFrom - 1, getNbBarBoxes() - 1);
         for (int i = 0; i <= barMax; i++)
         {
@@ -798,6 +788,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
                 }
             }
         }
+
         int barMin = Math.max(bbIndexTo + 1, 0);
         for (int i = barMin; i < getNbBarBoxes(); i++)
         {
@@ -840,13 +831,11 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         bb.selectItem(item, b);
         if (b)
         {
-            // Warning ! If item is mutable, make sure item uses Object's equals() and hashCode() !
-            selectionLookupContent.add(item);
+            selectionLookupContent.add(new SelectedCLI(item));  // Warning, hash used inside, don't use objects which can mutate while being selected!
             selectionLastContent.add(item);
         } else
         {
-            // Warning ! Might not work if item was mutated with equals()/hashCode() defined !
-            selectionLookupContent.remove(item);
+            selectionLookupContent.remove(new SelectedCLI(item));  // Warning, hash used inside, don't use objects which can mutate while being selected!
             selectionLastContent.remove(item);
         }
         LOGGER.log(Level.FINE, "After selectItem() b={0} item={1} lkp={2}", new Object[]
@@ -858,9 +847,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     @Override
     public void selectItems(List<? extends ChordLeadSheetItem> items, boolean b)
     {
-        Collection<? extends Object> result = selectionLookup.lookupAll(Object.class);
-        selectionLastContent.clear();
-        selectionLastContent.addAll(result);
+//        selectionLastContent.clear();
+//        selectionLookup.lookupAll(Object.class).forEach(o -> selectionLastContent.add(o));
         for (ChordLeadSheetItem<?> item : items)
         {
             if (b != selectionLastContent.contains(item))
@@ -881,7 +869,10 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         // see why here : https://forums.oracle.com/forums/thread.jspa?threadID=2330727&tstart=0                
         repaint();
         // Finally update our lookup
-        selectionLookupContent.set(selectionLastContent, null);
+        var selItems = selectionLastContent.stream()
+            .map(o -> new SelectedCLI((ChordLeadSheetItem<?>) o))    
+            .toList();
+        selectionLookupContent.set(selItems, null);  // Warning, hash used inside, don't use objects which can mutate while being selected!
     }
 
     @Override
@@ -906,8 +897,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         if (barIndexes.length == 0)
         {
             barIndexes = IntStream.range(0, getNbBarBoxes())
-                    .boxed()
-                    .collect(Collectors.toList()).toArray(Integer[]::new);
+                .boxed()
+                .collect(Collectors.toList()).toArray(Integer[]::new);
         }
         for (int barIndex : barIndexes)
         {
@@ -924,7 +915,6 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         BarBox bb = getBarBox(barIndex);
         return bb.getConfig();
     }
-
 
     @Override
     public void showInsertionPoint(boolean show, ChordLeadSheetItem<?> item, Position pos, boolean copyMode)
@@ -1045,7 +1035,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     public void propertyChange(final PropertyChangeEvent evt)
     {
         // Changes can be generated outside the EDT
-        org.jjazz.uiutilities.api.UIUtilities.invokeLaterIfNeeded(() -> 
+        org.jjazz.uiutilities.api.UIUtilities.invokeLaterIfNeeded(() ->
         {
             if (evt.getSource() == settings)
             {
@@ -1188,7 +1178,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     )
     {
         // Model changes can be generated outside the EDT
-        Runnable run = () -> 
+        Runnable run = () ->
         {
 
             // Save focus state
@@ -1358,8 +1348,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 
     @Override
     public int getScrollableUnitIncrement(Rectangle visibleRect,
-            int orientation,
-            int direction
+        int orientation,
+        int direction
     )
     {
         int unit;
@@ -1377,8 +1367,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 
     @Override
     public int getScrollableBlockIncrement(Rectangle visibleRect,
-            int orientation,
-            int direction
+        int orientation,
+        int direction
     )
     {
         return getScrollableUnitIncrement(visibleRect, orientation, direction);
@@ -1394,7 +1384,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     }
 
     /**
-     * We do NOT want the height of the Panel match the height of the viewport : panel height is calculated only function of the nb of rows and row height.
+     * We do NOT want the height of the Panel match the height of the viewport : panel height is calculated only function of the
+     * nb of rows and row height.
      */
     @Override
     public boolean getScrollableTracksViewportHeight()
@@ -1472,7 +1463,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     /**
      * Insert a new BarBox at specified location.
      *
-     * @param bbIndex       A value between [0, getNbBarBoxes()] (the latter will append the BarBox at the end).
+     * @param bbIndex A value between [0, getNbBarBoxes()] (the latter will append the BarBox at the end).
      * @param modelBarIndex Use a negative value if BarBox does not represent a model's bar.
      * @param config
      * @return The created BarBox
@@ -1482,7 +1473,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         if (bbIndex < 0 || bbIndex > getNbBarBoxes() || modelBarIndex > clsModel.getSizeInBars() - 1)
         {
             throw new IllegalArgumentException(
-                    "bbIndex=" + bbIndex + " getNbBarBoxes()=" + getNbBarBoxes() + " modelBarIndex=" + modelBarIndex + " config=" + config + " clsModel=" + clsModel);
+                "bbIndex=" + bbIndex + " getNbBarBoxes()=" + getNbBarBoxes() + " modelBarIndex=" + modelBarIndex + " config=" + config + " clsModel=" + clsModel);
         }
         BarBox bb = new BarBox(this, bbIndex, modelBarIndex, clsModel, config, settings.getBarBoxSettings(), barRendererFactory, this);
         if (modelBarIndex >= 0)
@@ -1511,7 +1502,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     /**
      * Return the Component index corresponding to specified BarBox index.
      * <p>
-     * This takes into account PaddingBoxes or other non-BarBox components present in the editor. BarBox is inserted after non-BarBox components.
+     * This takes into account PaddingBoxes or other non-BarBox components present in the editor. BarBox is inserted after
+     * non-BarBox components.
      *
      * @param barBoxIndex In the range [0,getBarBoxes().size()], the latter to append the BarBox at the end
      * @return
@@ -1650,8 +1642,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     /**
      * Remove the ChordLeadSheetItem from the specified bar.
      * <p>
-     * If item is a section do some cleaning: update the previous section, remove the associated UI settings (quantization, start on newline), possibly update
-     * padding boxes
+     * If item is a section do some cleaning: update the previous section, remove the associated UI settings (quantization, start
+     * on newline), possibly update padding boxes
      *
      * @param barIndex
      * @param item
@@ -1663,7 +1655,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         // We can not call SelectItem(false), because item
         // might have been already moved, so item.toPosition().getBar() is 
         // different from barIndex.
-        selectionLookupContent.remove(item);
+        selectionLookupContent.remove(new SelectedCLI(item));
         selectionLastContent.remove(item);
 
         for (ItemRenderer ir : getBarBox(barIndex).removeItem(item))
@@ -1713,13 +1705,11 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         Collections.addAll(allTypes, DEFAULT_BAR_RENDERER_TYPES);
         Collections.addAll(activeTypes, DEFAULT_BAR_RENDERER_TYPES);
 
-
         // Activation of BR_Annotation depends on Song property
         if (!isBarAnnotationVisible())
         {
             activeTypes.remove(BarRendererFactory.BR_ANNOTATION);
         }
-
 
         var brProviders = Lookup.getDefault().lookupAll(BarRendererProvider.class);
         for (var brProvider : brProviders)
@@ -1738,10 +1728,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             }
         }
 
-
         var res = new BarBoxConfig(allTypes.toArray(String[]::new));
         res = res.getUpdatedConfig(activeTypes.toArray(String[]::new));
-
 
         return res;
     }
@@ -1762,7 +1750,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
      * Save the quantization value and update the last quantization used per TimeSignature.
      *
      * @param cliSection
-     * @param q          Can be null: this will remove the entry for the specified section.
+     * @param q Can be null: this will remove the entry for the specified section.
      */
     private void updateSectionQuantization(CLI_Section cliSection, Quantization q)
     {
@@ -1773,7 +1761,6 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             mapTsQuantization.put(cliSection.getData().getTimeSignature(), q);
         }
     }
-
 
     /**
      * The total number of rows taking into account BarBoxes (within chord leadhseet and after) and the PaddingBoxes.
@@ -1845,7 +1832,6 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             revalidate();
         }
     }
-
 
     //===========================================================================
     // Inner classes

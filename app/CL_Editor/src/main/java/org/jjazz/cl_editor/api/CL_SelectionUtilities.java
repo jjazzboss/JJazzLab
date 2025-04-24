@@ -27,6 +27,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
@@ -54,10 +55,10 @@ final public class CL_SelectionUtilities
      * @throws IllegalStateException If lookup contains both SelectedBars and ChordLeadSheetItems
      */
     @SuppressWarnings(
-            {
-                "rawtypes",
-                "unchecked"
-            })
+        {
+            "rawtypes",
+            "unchecked"
+        })
     public CL_SelectionUtilities(Lookup lookup)
     {
         if (lookup == null)
@@ -65,7 +66,9 @@ final public class CL_SelectionUtilities
             throw new IllegalArgumentException("lookup=" + lookup);
         }
 
-        items = new ArrayList<>(lookup.lookupAll(ChordLeadSheetItem.class));
+        items = lookup.lookupAll(SelectedCLI.class).stream()
+            .map(selCli -> selCli.getItem())
+            .collect(Collectors.toList());  // to get a mutable list
         selectedBars = new ArrayList<>((Collection<SelectedBar>) lookup.lookupAll(SelectedBar.class));
 
         if (!items.isEmpty() && !selectedBars.isEmpty())

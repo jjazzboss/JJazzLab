@@ -51,7 +51,7 @@ public class CL_ContextActionSupport implements ClsChangeListener
     private Lookup.Result<SelectedBar> selectedBarLkpResult;
     private LookupListener barLkpListener;
     @SuppressWarnings("rawtypes")
-    private Lookup.Result<ChordLeadSheetItem> itemLkpResult;
+    private Lookup.Result<SelectedCLI> itemLkpResult;
     private LookupListener itemLkpListener;
     private Lookup.Result<ChordLeadSheet> clsLkpResult;
     private LookupListener clsLkpListener;
@@ -133,7 +133,7 @@ public class CL_ContextActionSupport implements ClsChangeListener
         // See http://forums.netbeans.org/viewtopic.php?t=35921
         selectedBarLkpResult.addLookupListener(WeakListeners.create(LookupListener.class, barLkpListener, selectedBarLkpResult));
 
-        itemLkpResult = context.lookupResult(ChordLeadSheetItem.class);
+        itemLkpResult = context.lookupResult(SelectedCLI.class);
         itemLkpResult.addLookupListener(WeakListeners.create(LookupListener.class, itemLkpListener, itemLkpResult));
 
         // Initialize the selection

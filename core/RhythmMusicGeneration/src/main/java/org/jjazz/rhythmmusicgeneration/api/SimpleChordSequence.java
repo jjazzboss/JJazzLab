@@ -24,7 +24,9 @@ package org.jjazz.rhythmmusicgeneration.api;
 
 import com.google.common.base.Preconditions;
 import static com.google.common.base.Preconditions.checkArgument;
+import java.util.Iterator;
 import java.util.Objects;
+import java.util.TreeSet;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
@@ -116,14 +118,26 @@ public class SimpleChordSequence extends ChordSequence
         return hash;
     }
 
+    /**
+     * WARNING: this equals() makes assumptions on ChordSequence implementation.
+     *
+     * To be updated if ChordSequence state code is updated -which is unlikely to happen.
+     *
+     * @param obj
+     * @return
+     */
     @Override
     public boolean equals(Object obj)
     {
-        if (!super.equals(obj))
+        if (this == obj)
+        {
+            return true;
+        }
+        if (obj == null)
         {
             return false;
         }
-        if (!getClass().isInstance(obj))
+        if (getClass() != obj.getClass())
         {
             return false;
         }
@@ -132,7 +146,30 @@ public class SimpleChordSequence extends ChordSequence
         {
             return false;
         }
-        return this.timeSignature == other.timeSignature;
+        if (this.timeSignature != other.timeSignature)
+        {
+            return false;
+        }
+        
+        // !! Code below depends on ChordSequence implementation !!
+        if (!getBarRange().equals(other.getBarRange()))
+        {
+            return false;
+        }
+        if (size() != other.size())
+        {
+            return false;
+        }
+        Iterator it = this.iterator();
+        Iterator itOther = other.iterator();
+        while (it.hasNext())
+        {
+            if (!it.next().equals(itOther.next()))
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**

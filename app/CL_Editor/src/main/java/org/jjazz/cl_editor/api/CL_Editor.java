@@ -313,7 +313,7 @@ public abstract class CL_Editor extends JPanel implements Lookup.Provider
     abstract public void selectItem(ChordLeadSheetItem<?> item, boolean b);
 
     /**
-     * Replace the current selection with the specified items.
+     * Select all the ItemRenderer(s) whose models are items.
      *
      * @param items
      * @param b     True to select, False to unselect.
