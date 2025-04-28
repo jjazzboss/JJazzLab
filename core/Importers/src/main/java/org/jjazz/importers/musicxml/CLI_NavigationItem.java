@@ -90,7 +90,7 @@ public class CLI_NavigationItem implements ChordLeadSheetItem<NavItem>, Writable
     }
 
     @Override
-    public ChordLeadSheetItem<NavItem> getCopy(Position newPos)
+    public ChordLeadSheetItem<NavItem> getCopy(NavItem newData, Position newPos)
     {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }

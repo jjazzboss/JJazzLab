@@ -30,7 +30,6 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import javax.swing.FocusManager;
 import static org.jjazz.harmony.api.Degree.*;
 import org.jjazz.harmony.spi.ChordTypeDatabase;
 
@@ -1137,24 +1136,6 @@ final public class ChordType
         return b;
     }
 
-    @Override
-    public boolean equals(Object o)
-    {
-        boolean b = false;
-        if (o instanceof ChordType ct)
-        {
-            b = getDegrees().equals(ct.getDegrees());
-        }
-        return b;
-    }
-
-    @Override
-    public int hashCode()
-    {
-        int hash = 3;
-        hash = 23 * hash + Objects.hashCode(this.degrees);
-        return hash;
-    }
 
     // =============================================================================================
     // Private methods

@@ -59,7 +59,7 @@ import org.openide.NotifyDescriptor;
 import org.openide.util.Exceptions;
 
 /**
- * Enable ItemRenderers dragging within a chord leadsheet, and open/import song feature by dragging a file in.
+ * Enable ItemRenderer dragging within a chord leadsheet, and open/import song feature by dragging a file in.
  * <p>
  */
 public class CL_EditorTransferHandler extends TransferHandler
@@ -355,7 +355,7 @@ public class CL_EditorTransferHandler extends TransferHandler
             } else
             {
                 // Add a new annotation
-                CLI_BarAnnotation cliCopy = (CLI_BarAnnotation) cliBa.getCopy(newPos);
+                CLI_BarAnnotation cliCopy = (CLI_BarAnnotation) cliBa.getCopy(null, newPos);
                 cls.addItem(cliCopy);
                 editor.setFocusOnItem(cliCopy, irType);
                 editor.selectItem(cliCopy, true);
@@ -378,7 +378,7 @@ public class CL_EditorTransferHandler extends TransferHandler
                 CL_SelectionUtilities selection = new CL_SelectionUtilities(editor.getLookup());
                 selection.unselectAll(editor);
                 um.startCEdit(editName);
-                ChordLeadSheetItem<?> itemCopy = sourceItem.getCopy(newPos);
+                ChordLeadSheetItem<?> itemCopy = sourceItem.getCopy(null, newPos);
                 cls.addItem(itemCopy);
                 editor.setFocusOnItem(itemCopy, IR_Type.ChordSymbol);
                 editor.selectItem(itemCopy, true);

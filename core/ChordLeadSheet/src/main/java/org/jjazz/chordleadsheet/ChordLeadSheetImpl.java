@@ -68,7 +68,9 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable, Propert
 {
 
     /**
-     * The main data structure: store the items sorted.
+     * The main data structure: keep the items sorted.
+     * 
+     * We can safely use a TreeSet because methods to add/move/change prevent having 2 equal ChordLeadSheetItems.
      */
     private final TreeSet<ChordLeadSheetItem> items = new TreeSet<>();
     /**
@@ -117,9 +119,9 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable, Propert
     }
 
     @Override
-    public final void addItem(ChordLeadSheetItem<?> item)
+    public boolean addItem(ChordLeadSheetItem<?> item)
     {
-        addItem(item, true);
+        return addItem(item, true);
     }
 
 
@@ -177,16 +179,16 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable, Propert
 
 
     @Override
-    public void moveItem(ChordLeadSheetItem<?> item, Position newPos)
+    public boolean moveItem(ChordLeadSheetItem<?> item, Position newPos)
     {
-        moveItem(item, newPos, true);
+        return moveItem(item, newPos, true);
     }
 
 
     @Override
-    public <T> void changeItem(ChordLeadSheetItem<T> item, final T newData)
+    public <T> boolean changeItem(ChordLeadSheetItem<T> item, final T newData)
     {
-        changeItem(item, newData, true);
+        return changeItem(item, newData, true);
     }
 
 
@@ -491,7 +493,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable, Propert
         fireActionEvent(enableActionEvent, "setSize", true, oldSize);
     }
 
-    private <T> void addItem(ChordLeadSheetItem<T> item, boolean enableActionEvent)
+    private <T> boolean addItem(ChordLeadSheetItem<T> item, boolean enableActionEvent)
     {
         if (item == null || (item instanceof CLI_Section) || !(item instanceof WritableItem))
         {
@@ -500,12 +502,19 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable, Propert
 
         LOGGER.log(Level.FINE, "addItem() -- item={0}", item);
 
+
+        if (items.contains(item))
+        {
+            return false;
+        }
+
         final WritableItem<?> wItem = (WritableItem<?>) item;
         int barIndex = wItem.getPosition().getBar();
         if (barIndex >= getSizeInBars())
         {
             throw new IllegalArgumentException("item=" + item + " size=" + getSizeInBars());
         }
+
 
         fireActionEvent(enableActionEvent, "addItem", false, item);
 
@@ -560,6 +569,8 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable, Propert
         fireAuthorizedChangeEvent(new ItemAddedEvent(ChordLeadSheetImpl.this, wItem));
 
         fireActionEvent(enableActionEvent, "addItem", true, item);
+
+        return true;
     }
 
 
@@ -831,7 +842,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable, Propert
         fireActionEvent(enableActionEvent, "removeItem", true, item);
     }
 
-    private <T> void moveItem(ChordLeadSheetItem<T> item, Position newPos, boolean enableActionEvent)
+    private <T> boolean moveItem(ChordLeadSheetItem<T> item, Position newPos, boolean enableActionEvent)
     {
         if (item == null || newPos == null || !(item instanceof WritableItem) || (item instanceof CLI_Section))
         {
@@ -845,9 +856,9 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable, Propert
 
         final Position oldPos = item.getPosition();
         final Position newAdjustedPos = newPos.getAdjusted(getSection(newPos.getBar()).getData().getTimeSignature());
-        if (oldPos.equals(newAdjustedPos))
+        if (oldPos.equals(newAdjustedPos) || items.contains(item.getCopy(null, newPos)))
         {
-            return;
+            return false;
         }
 
         fireActionEvent(enableActionEvent, "moveItem", false, item);
@@ -890,9 +901,11 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable, Propert
         fireAuthorizedChangeEvent(new ItemMovedEvent(ChordLeadSheetImpl.this, item, oldPos, newAdjustedPos));
 
         fireActionEvent(enableActionEvent, "moveItem", true, item);
+
+        return true;
     }
 
-    private <T> void changeItem(ChordLeadSheetItem<T> item, final T newData, boolean enableActionEvent)
+    private <T> boolean changeItem(ChordLeadSheetItem<T> item, final T newData, boolean enableActionEvent)
     {
         if (item == null || !(item instanceof WritableItem) || (item instanceof CLI_Section))
         {
@@ -905,9 +918,9 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable, Propert
         });
 
         final T oldData = item.getData();
-        if (oldData.equals(newData))
+        if (oldData.equals(newData) || items.contains(item.getCopy(newData, null)))
         {
-            return;
+            return false;
         }
 
         fireActionEvent(enableActionEvent, "changeItem", false, item);
@@ -952,6 +965,8 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable, Propert
         fireAuthorizedChangeEvent(new ItemChangedEvent(ChordLeadSheetImpl.this, item, oldData, newData));
 
         fireActionEvent(enableActionEvent, "changeItem", true, item);
+
+        return true;
     }
 
     private void insertBars(final int barIndex, final int nbBars, boolean enableActionEvent)

@@ -173,7 +173,7 @@ public class ChordLeadSheetFactoryImpl implements ChordLeadSheetFactory
             {
                 continue;
             }
-            var itemCopy = item.getCopy(null);
+            var itemCopy = item.getCopy(null, null);
             if (itemCopy instanceof CLI_Section cliSectionCopy)
             {
                 try

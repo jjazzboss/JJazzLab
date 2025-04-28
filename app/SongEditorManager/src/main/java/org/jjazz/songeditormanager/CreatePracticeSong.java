@@ -376,7 +376,7 @@ public final class CreatePracticeSong extends AbstractAction implements ContextA
         for (var cliCs : cliChordSymbols)
         {
             Position newPos = cliCs.getPosition().getMoved(-startBar, 0);
-            var cliCsNew = cliCs.getCopy(newPos);
+            var cliCsNew = cliCs.getCopy(null, newPos);
             newCls.addItem(cliCsNew);
         }
 
@@ -389,7 +389,7 @@ public final class CreatePracticeSong extends AbstractAction implements ContextA
             // var cliCs = cls.getLastItem(0, startBar - 1, CLI_ChordSymbol.class);
             var cliCs = cls.getLastItemBefore(new Position(startBar), false, CLI_ChordSymbol.class, cli -> true);
             assert cliCs != null : "startBar=" + startBar + " cls=" + cls;
-            var cliCsNew = cliCs.getCopy(new Position(0));
+            var cliCsNew = cliCs.getCopy(null, new Position(0));
             newCls.addItem(cliCsNew);
         }
 

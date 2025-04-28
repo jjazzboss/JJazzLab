@@ -152,7 +152,7 @@ public class CLI_Ending implements ChordLeadSheetItem<Ending>, WritableItem<Endi
     }
 
     @Override
-    public ChordLeadSheetItem<Ending> getCopy(Position newPos)
+    public ChordLeadSheetItem<Ending> getCopy(Ending newData,Position newPos)
     {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }

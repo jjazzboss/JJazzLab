@@ -142,7 +142,7 @@ public class ChordLeadSheetImplTest
     @Test
     public void testChordLeadSheetItemCreate() throws ParseException
     {
-        System.out.println("=== testGetItemsCustom() ");
+        System.out.println("=== testChordLeadSheetItemCreate() ");
         TreeSet<ChordLeadSheetItem> items = new TreeSet<>();
         CLI_Section initSection = new CLI_SectionImpl("NewSection34", TimeSignature.THREE_FOUR, 0);
         var chord0 = new CLI_ChordSymbolImpl(ExtChordSymbol.get("Dm7"), new Position(0));
@@ -256,7 +256,13 @@ public class ChordLeadSheetImplTest
         System.out.println("=== addItem ChordSymbol");
         cls1.addItem(cliChordSymbolG_b6_0);
         assertTrue(cls1.getItems(6, 6, ChordLeadSheetItem.class).get(0) == cliChordSymbolG_b6_0);
+
+        // Add a clone at same position: do nothing
+        var cli = cls1.getItems(1, 1, CLI_ChordSymbol.class).get(0);
+        var cliClone = cli.getCopy(null, null);
+        assertFalse(cls1.addItem(cliClone));
     }
+
 
     @Test
     public void testAddItemOutOfTimeSignature()
@@ -278,6 +284,24 @@ public class ChordLeadSheetImplTest
     {
         System.out.println("=== addItem as Section");
         cls1.addItem(cliSection34_b3);
+    }
+
+    // changeItem() --------------------------------------------------
+    @Test
+    public void testChangeItem()
+    {
+        System.out.println("=== changeItem ChordSymbol");
+        var cli1 = cls1.getItems(1, 1, CLI_ChordSymbol.class).get(0);
+        var newData1 = cliChordSymbolF_b3_3.getData();
+        assertTrue(cls1.changeItem(cli1, newData1));
+        assertTrue(cli1.getData() == newData1);
+
+        // Can not change an item if an equal one (with new data) is already there
+        var newData2 = cliChordSymbolG_b6_0.getData();
+        var cli2 = cli1.getCopy(newData2, null);
+        assertTrue(cls1.addItem(cli2));
+        assertFalse(cls1.changeItem(cli2, newData1));
+        assertTrue(cli2.getData() == newData2);
     }
 
     // AddSection() --------------------------------------------------
@@ -304,7 +328,7 @@ public class ChordLeadSheetImplTest
         try
         {
             var cli = cls1.addSection(cliSection54_b5);
-            assertNotEquals(cli, cliSection54_b5);
+            assertTrue(cli.equals(cliSection54_b5) && cli != cliSection54_b5);
         } catch (UnsupportedEditException ex)
         {
             Exceptions.printStackTrace(ex);
@@ -360,6 +384,21 @@ public class ChordLeadSheetImplTest
     }
 
     // MoveItem() --------------------------------------------------
+
+    @Test
+    public void testMoveItem()
+    {
+        System.out.println("=== MoveItem chord symbol");
+        var cli1 = cls1.getItems(1, 1, ChordLeadSheetItem.class).get(1);
+        var cli2 = cli1.getCopy(null, new Position(1, 1));
+        assertTrue(cls1.addItem(cli2));
+        assertTrue(cls1.moveItem(cli1, new Position(1, 0.5f)));
+        assertEquals(cli1.getPosition(), new Position(1, 0.5f));
+
+        // Can not move over equal item cli2
+        assertFalse(cls1.moveItem(cli1, new Position(1, 1)));
+    }
+
     @Test
     public void testMoveItemAndAdjustPosition()
     {

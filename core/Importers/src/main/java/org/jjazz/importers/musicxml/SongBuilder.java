@@ -502,7 +502,7 @@ public class SongBuilder implements MusicXmlParserListener
                     {
                         Position pos = item.getPosition();
                         var newPos = new Position(clsBarIndex, pos.getBeat());
-                        cls.addItem(item.getCopy(newPos));
+                        cls.addItem(item.getCopy(null, newPos));
                     }
                     clsBarIndex++;
                 }

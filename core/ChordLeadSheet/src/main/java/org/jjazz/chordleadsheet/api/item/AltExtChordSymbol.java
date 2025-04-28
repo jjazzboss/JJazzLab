@@ -33,7 +33,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.ChordSymbol;
 import org.jjazz.harmony.api.Note;
-import org.jjazz.harmony.api.StandardScaleInstance;
 import org.jjazz.xstream.spi.XStreamConfigurator;
 import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_LOAD;
 import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_SAVE;

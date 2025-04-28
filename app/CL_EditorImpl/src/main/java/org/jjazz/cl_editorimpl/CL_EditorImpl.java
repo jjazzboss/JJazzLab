@@ -724,10 +724,10 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             throw new IllegalArgumentException(
                 "bbIndexFrom=" + bbIndexFrom + " bbIndexTo=" + bbIndexTo + " getNbBarBoxes()=" + getNbBarBoxes());
         }
-        LOGGER.log(Level.FINE, "Before selectBar() b={0} bbIndexFrom={1} selectionLookup={2}", new Object[]
-        {
-            b, bbIndexFrom, selectionLookup
-        });
+//        LOGGER.log(Level.FINE, "Before selectBar() b={0} bbIndexFrom={1} selectionLookup={2}", new Object[]
+//        {
+//            b, bbIndexFrom, selectionLookup
+//        });
 //        selectionLastContent.clear();
 //        selectionLookup.lookupAll(Object.class).forEach(o -> selectionLastContent.add(o));
 
@@ -755,10 +755,10 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         // not required but seems to perform better because it does a single repaint of the entire frame
         // instead of trying to skip repainting the borders
         repaint();
-        LOGGER.log(Level.FINE, "After selectBar() b={0} bbIndexFrom={1} selectionLookup={2}", new Object[]
-        {
-            b, bbIndexFrom, selectionLookup
-        });
+//        LOGGER.log(Level.FINE, "After selectBar() b={0} bbIndexFrom={1} selectionLookup={2}", new Object[]
+//        {
+//            b, bbIndexFrom, selectionLookup
+//        });
     }
 
     @Override
@@ -814,10 +814,10 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         // not required but seems to perform better because it does a single repaint of the entire frame
         // instead of trying to skip repainting the borders
         repaint();
-        LOGGER.log(Level.FINE, "After selectBarsExcept() b={0} bbIndexFrom={1} selectionLookup={2}", new Object[]
-        {
-            b, bbIndexFrom, selectionLookup
-        });
+//        LOGGER.log(Level.FINE, "After selectBarsExcept() b={0} bbIndexFrom={1} selectionLookup={2}", new Object[]
+//        {
+//            b, bbIndexFrom, selectionLookup
+//        });
     }
 
     @Override
@@ -838,10 +838,10 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             selectionLookupContent.remove(new SelectedCLI(item));  // Warning, hash used inside, don't use objects which can mutate while being selected!
             selectionLastContent.remove(item);
         }
-        LOGGER.log(Level.FINE, "After selectItem() b={0} item={1} lkp={2}", new Object[]
-        {
-            b, item, lookup
-        });
+//        LOGGER.log(Level.FINE, "After selectItem() b={0} item={1} lkp={2}", new Object[]
+//        {
+//            b, item, lookup
+//        });
     }
 
     @Override

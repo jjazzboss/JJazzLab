@@ -27,6 +27,7 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
@@ -90,14 +91,15 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
     int getPositionOrder();
 
     /**
-     * Get a copy of this item at a specified position.
+     * Get a copy of this item using the specified parameters.
      * <p>
      * Client properties are also copied. Returned copy has its ChordLeadSheet container set to null.
      *
-     * @param newPos If null, the copy will have the same position that this object.
+     * @param newData If null, the copy will have the same data than this object.
+     * @param newPos If null, the copy will have the same position than this object.
      * @return
      */
-    ChordLeadSheetItem<T> getCopy(Position newPos);
+    ChordLeadSheetItem<T> getCopy(T newData, Position newPos);
 
 
     /**
@@ -120,13 +122,13 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
      * <p>
      *
      * @param other
-     * @return 0 only if this == other, so that comparison is consistent with equals().
+     * @return 0 only if this.equals(other), so that comparison is consistent with equals().
      * @see #getPositionOrder()
      */
     @Override
     default int compareTo(ChordLeadSheetItem<?> other)
     {
-        if (this == other)
+        if (this.equals(other))
         {
             return 0;
         }
@@ -152,6 +154,38 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
 
     void removePropertyChangeListener(PropertyChangeListener listener);
 
+    /**
+     * Generic equals method relying only on data and position.
+     *
+     * @param item1 Can not be null
+     * @param o
+     * @return
+     */
+    static public boolean equals(ChordLeadSheetItem<?> item1, Object o)
+    {
+        Objects.requireNonNull(item1);
+        if (o == null || o.getClass() != item1.getClass())
+        {
+            return false;
+        }
+        var item2 = (ChordLeadSheetItem<?>) o;
+        return item1.getData().equals(item2.getData())
+                && item1.getPosition().equals(item2.getPosition());
+    }
+
+    /**
+     * Generic hashCode method relying on data and position.
+     *
+     * @param item
+     * @return
+     */
+    static public int hashCode(ChordLeadSheetItem<?> item)
+    {
+        int hash = 7;
+        hash = 37 * hash + item.getPosition().hashCode();
+        hash = 37 * hash + item.getData().hashCode();
+        return hash;
+    }
 
     /**
      * Create an item right after the specified position for comparison purposes.
@@ -249,7 +283,7 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
         }
 
         @Override
-        public ChordLeadSheetItem<Object> getCopy(Position newPos)
+        public ChordLeadSheetItem<Object> getCopy(Object data, Position newPos)
         {
             throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
         }

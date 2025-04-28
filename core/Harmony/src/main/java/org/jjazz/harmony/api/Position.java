@@ -181,10 +181,9 @@ public final class Position implements Comparable<Position>, Serializable
     @Override
     public boolean equals(Object o)
     {
-        if (o instanceof Position)
+        if (o != null && o.getClass() == this.getClass())
         {
             Position p = (Position) o;
-
             return (bar == p.bar) && (beat == p.beat);
         } else
         {

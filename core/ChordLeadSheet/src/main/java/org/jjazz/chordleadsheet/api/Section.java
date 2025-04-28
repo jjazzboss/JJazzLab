@@ -67,7 +67,7 @@ public final class Section implements Cloneable
     @Override
     public boolean equals(Object o)
     {
-        if (!(o instanceof Section))
+        if (o==null || o.getClass() != this.getClass())
         {
             return false;
         }

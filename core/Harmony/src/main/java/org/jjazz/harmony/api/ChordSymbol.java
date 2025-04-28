@@ -651,15 +651,15 @@ public class ChordSymbol implements Cloneable
         {
             return false;
         }
-        if (!Objects.equals(this.rootNote, other.rootNote))
+        if (!this.rootNote.equalsRelativePitch(other.rootNote))
         {
             return false;
         }
-        if (!Objects.equals(this.bassNote, other.bassNote))
+        if (!this.bassNote.equalsRelativePitch(other.bassNote))
         {
             return false;
         }
-        return Objects.equals(this.chordType, other.chordType);
+        return this.chordType == other.chordType;
     }
 
     @Override

@@ -118,26 +118,10 @@ public class SimpleChordSequence extends ChordSequence
         return hash;
     }
 
-    /**
-     * WARNING: this equals() makes assumptions on ChordSequence implementation.
-     *
-     * To be updated if ChordSequence state code is updated -which is unlikely to happen.
-     *
-     * @param obj
-     * @return
-     */
     @Override
     public boolean equals(Object obj)
     {
-        if (this == obj)
-        {
-            return true;
-        }
-        if (obj == null)
-        {
-            return false;
-        }
-        if (getClass() != obj.getClass())
+        if (!super.equals(obj))
         {
             return false;
         }
@@ -146,31 +130,64 @@ public class SimpleChordSequence extends ChordSequence
         {
             return false;
         }
-        if (this.timeSignature != other.timeSignature)
-        {
-            return false;
-        }
-        
-        // !! Code below depends on ChordSequence implementation !!
-        if (!getBarRange().equals(other.getBarRange()))
-        {
-            return false;
-        }
-        if (size() != other.size())
-        {
-            return false;
-        }
-        Iterator it = this.iterator();
-        Iterator itOther = other.iterator();
-        while (it.hasNext())
-        {
-            if (!it.next().equals(itOther.next()))
-            {
-                return false;
-            }
-        }
-        return true;
+        return this.timeSignature == other.timeSignature;
     }
+
+    
+    
+//    /**
+//     * WARNING: this equals() makes assumptions on ChordSequence implementation.
+//     *
+//     * To be updated if ChordSequence state code is updated -which is unlikely to happen.
+//     *
+//     * @param obj
+//     * @return
+//     */
+//    @Override
+//    public boolean equals(Object obj)
+//    {
+//        if (this == obj)
+//        {
+//            return true;
+//        }
+//        if (obj == null)
+//        {
+//            return false;
+//        }
+//        if (getClass() != obj.getClass())
+//        {
+//            return false;
+//        }
+//        final SimpleChordSequence other = (SimpleChordSequence) obj;
+//        if (Float.floatToIntBits(this.startBeatPosition) != Float.floatToIntBits(other.startBeatPosition))
+//        {
+//            return false;
+//        }
+//        if (this.timeSignature != other.timeSignature)
+//        {
+//            return false;
+//        }
+//        
+//        // !! Code below depends on ChordSequence implementation !!
+//        if (!getBarRange().equals(other.getBarRange()))
+//        {
+//            return false;
+//        }
+//        if (size() != other.size())
+//        {
+//            return false;
+//        }
+//        Iterator it = this.iterator();
+//        Iterator itOther = other.iterator();
+//        while (it.hasNext())
+//        {
+//            if (!it.next().equals(itOther.next()))
+//            {
+//                return false;
+//            }
+//        }
+//        return true;
+//    }
 
     /**
      * The start position in beats of the chord sequence.
@@ -209,7 +226,7 @@ public class SimpleChordSequence extends ChordSequence
         for (var cliCs : this)
         {
             Position pos = cliCs.getPosition();
-            var newCliCs = (CLI_ChordSymbol) cliCs.getCopy(new Position(pos.getBar() + barOffset, pos.getBeat()));
+            var newCliCs = (CLI_ChordSymbol) cliCs.getCopy(null, new Position(pos.getBar() + barOffset, pos.getBeat()));
             res.add(newCliCs);
         }
         return res;

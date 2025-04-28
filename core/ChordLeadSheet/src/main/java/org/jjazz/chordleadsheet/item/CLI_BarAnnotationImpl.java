@@ -36,6 +36,7 @@ import java.util.logging.Logger;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.CLI_BarAnnotation;
+import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.utilities.api.StringProperties;
 import org.jjazz.xstream.spi.XStreamConfigurator;
@@ -50,7 +51,7 @@ import org.openide.util.lookup.ServiceProvider;
  */
 public class CLI_BarAnnotationImpl implements CLI_BarAnnotation, WritableItem<String>, Serializable
 {
-    
+
     /**
      * Position of the item.
      */
@@ -62,8 +63,8 @@ public class CLI_BarAnnotationImpl implements CLI_BarAnnotation, WritableItem<St
 
     private final StringProperties clientProperties;
     /**
-     * The container of this item. Need to be transient otherwise this introduces circularities in the objects graph that prevent
-     * ChordLeadSheetImpl's proxyserialization to work. This field must be restored by its container at deserialization.
+     * The container of this item. Need to be transient otherwise this introduces circularities in the objects graph that prevent ChordLeadSheetImpl's
+     * proxyserialization to work. This field must be restored by its container at deserialization.
      */
     private transient ChordLeadSheet container = null;
 
@@ -129,41 +130,26 @@ public class CLI_BarAnnotationImpl implements CLI_BarAnnotation, WritableItem<St
     }
 
     @Override
-    public synchronized CLI_BarAnnotation getCopy(Position newPos)
+    public synchronized CLI_BarAnnotation getCopy(String newData, Position newPos)
     {
         int barIndex = (newPos != null) ? newPos.getBar() : position.getBar();
-        CLI_BarAnnotationImpl cli = new CLI_BarAnnotationImpl(data, barIndex);
+        CLI_BarAnnotationImpl cli = new CLI_BarAnnotationImpl(newData == null ? data : newData, barIndex);
         cli.getClientProperties().set(clientProperties);
         return cli;
     }
 
-    /*
-     * equals() and hashCode() are NOT defined because they can be used as Map keys and can change while being
-     * in the map (InstanceContent for selected items in the CL_Editor, or ChordLeadSheet.moveSection())
-     */
-//    @Override
-//    public boolean equals(Object o)
-//    {
-//        if (o instanceof CLI_Section)
-//        {
-//            CLI_Section cli = (CLI_Section) o;
-//            return container == cli.getContainer() && data.equals(cli.getData()) && position.equals(cli.getPosition());
-//        }
-//        else
-//        {
-//            return false;
-//        }
-//    }
-//
-//    @Override
-//    public int hashCode()
-//    {
-//        int hash = 3;
-//        hash = 37 * hash + (this.container != null ? this.container.hashCode() : 0);
-//        hash = 37 * hash + (this.position != null ? this.position.hashCode() : 0);
-//        hash = 37 * hash + (this.data != null ? this.data.hashCode() : 0);
-//        return hash;
-//    }
+    @Override
+    public boolean equals(Object o)
+    {
+        return ChordLeadSheetItem.equals(this, o);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return ChordLeadSheetItem.hashCode(this);
+    }
+
     @Override
     public String toString()
     {
@@ -268,7 +254,7 @@ public class CLI_BarAnnotationImpl implements CLI_BarAnnotation, WritableItem<St
         return POSITION_ORDER;
     }
 
-  /**
+    /**
      * This enables XStream instance configuration even for private classes or classes from non-public packages of Netbeans modules.
      */
     @ServiceProvider(service = XStreamConfigurator.class)
@@ -301,8 +287,8 @@ public class CLI_BarAnnotationImpl implements CLI_BarAnnotation, WritableItem<St
                 default -> throw new AssertionError(instanceId.name());
             }
         }
-    }    
-    
+    }
+
     /* ---------------------------------------------------------------------
      * Serialization
      * --------------------------------------------------------------------- */
@@ -320,19 +306,19 @@ public class CLI_BarAnnotationImpl implements CLI_BarAnnotation, WritableItem<St
      * Serialization proxy.
      * <p>
      * spVERSION 2 (JJazzLab 4.1.0) introduces several aliases to get rid of hard-coded qualified class names (XStreamConfig class introduction).
-     */    
+     */
     private static class SerializationProxy implements Serializable
     {
 
         private static final long serialVersionUID = -9872601287001L;
         private int spVERSION = 2;      // Do not make final!
-        private String spAnnotation;    
+        private String spAnnotation;
         private int spBarIndex;
         private StringProperties spClientProperties;
 
         private SerializationProxy(CLI_BarAnnotationImpl cliBa)
         {
-            spAnnotation = cliBa.getData(); 
+            spAnnotation = cliBa.getData();
             spBarIndex = cliBa.getPosition().getBar();
             spClientProperties = cliBa.getClientProperties();
         }

@@ -249,7 +249,7 @@ public class SongUtilities
             {
                 var pos = cliCs.getPosition();
                 int resBar = barIndex + pos.getBar() - parentCliSection.getPosition().getBar();
-                var cliCsCopy = cliCs.getCopy(new Position(resBar, pos.getBeat()));
+                var cliCsCopy = cliCs.getCopy(null, new Position(resBar, pos.getBeat()));
                 newCls.addItem(cliCsCopy);
             }
 

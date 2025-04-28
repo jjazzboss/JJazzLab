@@ -36,6 +36,7 @@ import java.util.logging.Logger;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.utilities.api.StringProperties;
@@ -48,9 +49,6 @@ import org.openide.util.lookup.ServiceProvider;
 
 /**
  * CLI_ChordSymbol implementation.
- *
- * Note that equals() and hashCode() are NOT defined because they can be used as Map keys and can change while being in the map
- * (InstanceContent for selected items in the CL_Editor, or ChordLeadSheet.moveSection()). 
  */
 public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtChordSymbol>, Serializable
 {
@@ -67,8 +65,8 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
     /**
      * The container of this item.
      * <p>
-     * Need to be transient otherwise this introduces circularities in the objects graph that prevent ChordLeadSheetImpl's proxy
-     * serialization to work. This field must be restored by its container at deserialization.
+     * Need to be transient otherwise this introduces circularities in the objects graph that prevent ChordLeadSheetImpl's proxy serialization to work. This
+     * field must be restored by its container at deserialization.
      */
     private transient ChordLeadSheet container = null;
     /**
@@ -173,40 +171,25 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
      * @return
      */
     @Override
-    public synchronized CLI_ChordSymbol getCopy(Position newPos)
+    public synchronized CLI_ChordSymbol getCopy(ExtChordSymbol newData, Position newPos)
     {
-        CLI_ChordSymbolImpl cli = new CLI_ChordSymbolImpl(data, (newPos != null) ? newPos : position);
+        CLI_ChordSymbolImpl cli = new CLI_ChordSymbolImpl(newData == null ? data : newData, (newPos != null) ? newPos : position);
         cli.getClientProperties().set(clientProperties);
         return cli;
     }
 
-    /*
-    * equals() and hashCode() are NOT defined because they can be used as Map keys and can change while being in the map (InstanceContent
-    * for selected items in the CL_Editor, or ChordLeadSheet.moveSection())
-     */
-//    @Override
-//    public boolean equals(Object o)
-//    {
-//        if (o instanceof CLI_ChordSymbol)
-//        {
-//            CLI_ChordSymbol cle = (CLI_ChordSymbol) o;
-//            return container == cle.getContainer() && data.equals(cle.getData()) && position.equals(cle.getPosition());
-//        }
-//        else
-//        {
-//            return false;
-//        }
-//    }
-//
-//    @Override
-//    public int hashCode()
-//    {
-//        int hash = 7;
-//        hash = 37 * hash + (this.container != null ? this.container.hashCode() : 0);
-//        hash = 37 * hash + (this.position != null ? this.position.hashCode() : 0);
-//        hash = 37 * hash + (this.data != null ? this.data.hashCode() : 0);
-//        return hash;
-//    }
+    @Override
+    public boolean equals(Object o)
+    {
+        return ChordLeadSheetItem.equals(this, o);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return ChordLeadSheetItem.hashCode(this);
+    }
+
     @Override
     public String toString()
     {
@@ -290,8 +273,7 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
     }
 
     /**
-     * This enables XStream instance configuration even for private classes or classes from non-public packages of Netbeans
-     * modules.
+     * This enables XStream instance configuration even for private classes or classes from non-public packages of Netbeans modules.
      */
     @ServiceProvider(service = XStreamConfigurator.class)
     public static class XStreamConfig implements XStreamConfigurator
@@ -341,8 +323,7 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
      * Serialization proxy.
      * <p>
      * spVERSION 2 changes some saved fields, see below.<br>
-     * spVERSION 3 (JJazzLab 4.1.0) introduces several aliases to get rid of hard-coded qualified class names (XStreamConfig class
-     * introduction).
+     * spVERSION 3 (JJazzLab 4.1.0) introduces several aliases to get rid of hard-coded qualified class names (XStreamConfig class introduction).
      */
     private static class SerializationProxy implements Serializable
     {
@@ -371,7 +352,7 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
                 } else
                 {
                     LOGGER.log(Level.WARNING, "SerializationProxy.readResolve() Unexpected null value for spClientProperties. spChord={0}",
-                        spChord);
+                            spChord);
                 }
             }
             return cli;

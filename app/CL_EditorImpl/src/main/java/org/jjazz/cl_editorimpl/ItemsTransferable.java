@@ -153,7 +153,7 @@ public class ItemsTransferable implements Transferable
             {
                 throw new IllegalArgumentException("items=" + items);
             }
-            items.stream().forEach(item -> this.items.add(item.getCopy(null)));
+            items.stream().forEach(item -> this.items.add(item.getCopy(null, null)));
         }
 
         /**
@@ -180,7 +180,7 @@ public class ItemsTransferable implements Transferable
             for (ChordLeadSheetItem<?> item : items)
             {
                 Position newPos = item.getPosition().getMoved(barShift, 0);
-                ChordLeadSheetItem<?> newItem = item.getCopy(newPos);
+                ChordLeadSheetItem<?> newItem = item.getCopy(null, newPos);
                 res.add(newItem);
             }
 

@@ -301,7 +301,7 @@ public class TextReader
                         curBarChords = new ArrayList<>();
                         for (var cliCs : lastBarChords)
                         {
-                            var newCliCs = (CLI_ChordSymbol) cliCs.getCopy(cliCs.getPosition().getMoved(1, 0));
+                            var newCliCs = (CLI_ChordSymbol) cliCs.getCopy(null, cliCs.getPosition().getMoved(1, 0));
                             curBarChords.add(newCliCs);
                             cliChordSymbols.add(newCliCs);
                         }

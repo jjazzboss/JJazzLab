@@ -179,7 +179,7 @@ public class Paste extends AbstractAction implements ContextAwareAction, CL_Cont
                 var cls = song.getChordLeadSheet();
                 for (var item : cls.getItems())
                 {
-                    items.add(item.getCopy(item.getPosition().getMoved(targetBarIndex, 0)));
+                    items.add(item.getCopy(null, item.getPosition().getMoved(targetBarIndex, 0)));
                 }
                 nbInsertBars = cls.getSizeInBars();
             }

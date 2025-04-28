@@ -637,7 +637,7 @@ public class JJSwingBassMusicGenerator implements MusicGenerator
      */
     private void moveChordSymbol(ChordSequence scs, CLI_ChordSymbol cliCs, Position newPos)
     {
-        var movedCliCs = (CLI_ChordSymbol) cliCs.getCopy(newPos);
+        var movedCliCs = (CLI_ChordSymbol) cliCs.getCopy(null, newPos);
         assert scs.remove(cliCs) : "cliCs" + cliCs + " scs=" + scs;
         scs.add(movedCliCs);
     }

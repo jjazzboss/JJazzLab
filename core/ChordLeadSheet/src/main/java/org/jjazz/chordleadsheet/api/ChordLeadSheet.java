@@ -50,18 +50,22 @@ public interface ChordLeadSheet
     /**
      * Add an item to the leadsheet.
      * <p>
-     * Item position might be adjusted to the bar's TimeSignature. This will set the item's container to this ChordLeadSheet.
+     * Item position might be adjusted to the bar's TimeSignature. This will set the item's container to this ChordLeadSheet. Nothing is done if an equal item
+     * is already in the ChordLeadSheet.
      *
-     * @param item The ChordLeadSheetItem to add. Must be a WritableItem.
-     * @throws IllegalArgumentException If item's position out of leadsheet bounds or item is a section.
+     * @param item The ChordLeadSheetItem to add. Must be a WritableItem. Can not be a CLI_Section.
+     * @return True is item was added
+     * @throws IllegalArgumentException If item's position out of leadsheet bounds or item is a CLI_Section.
+     * @see #addSection(org.jjazz.chordleadsheet.api.item.CLI_Section)
      */
-    void addItem(ChordLeadSheetItem<?> item);
+    boolean addItem(ChordLeadSheetItem<?> item);
 
     /**
      * Remove an item from the leadsheet.
      *
      * @param item The item to be removed.
      * @throws IllegalArgumentException If no such item or item is a section.
+     * @see #removeSection(org.jjazz.chordleadsheet.api.item.CLI_Section)
      */
     void removeItem(ChordLeadSheetItem<?> item);
 
@@ -123,13 +127,30 @@ public interface ChordLeadSheet
     /**
      * Move an item to a new position.
      * <p>
-     * Can not be used on a Section. Item position might be adjusted to the bar's TimeSignature.
+     * Item position might be adjusted to the bar's TimeSignature. Nothing is done if an equal item is already at the target position.
      *
-     * @param item The item to be moved. Must be a WritableItem.
+     * @param item The item to be moved. Must be a WritableItem. Can not be used on a Section.
      * @param pos  The new position.
-     * @throws IllegalArgumentException If new position is not valid.
+     * @return True if the item was moved.
+     * @throws IllegalArgumentException If new position is not valid of if item is a CLI_Section
+     * @see #moveSection(org.jjazz.chordleadsheet.api.item.CLI_Section, int)
      */
-    void moveItem(ChordLeadSheetItem<?> item, Position pos);
+    boolean moveItem(ChordLeadSheetItem<?> item, Position pos);
+
+
+    /**
+     * Change the data of a specific item.
+     * <p>
+     * Nothing is done if an equal item (using data) is already in the chord leadsheet.
+     *
+     * @param <T>
+     * @param item Must be a WritableItem. Can not be a section.
+     * @param data
+     * @return True if item was changed
+     * @see #setSectionName(org.jjazz.chordleadsheet.api.item.CLI_Section, java.lang.String)
+     * @see #setSectionTimeSignature(org.jjazz.chordleadsheet.api.item.CLI_Section, org.jjazz.harmony.api.TimeSignature)
+     */
+    <T> boolean changeItem(ChordLeadSheetItem<T> item, T data);
 
     /**
      * Test if specified item belongs to this object.
@@ -138,17 +159,6 @@ public interface ChordLeadSheet
      * @return
      */
     boolean contains(ChordLeadSheetItem<?> item);
-
-    /**
-     * Change the data of a specific item.
-     * <p>
-     * Can not be used on Section, use setSectionName() or setSectionTimeSignature() instead.
-     *
-     * @param <T>
-     * @param item Must be a WritableItem.
-     * @param data
-     */
-    <T> void changeItem(ChordLeadSheetItem<T> item, T data);
 
     /**
      * Insert bars from a specific position.

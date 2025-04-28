@@ -30,6 +30,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.chordleadsheet.api.Section;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
@@ -96,7 +97,7 @@ public class SongPartCopyBuffer
 
             // Prepare parentsection copy
             CLI_Section parentSection = spt.getParentSection();
-            CLI_Section sectionClone = (parentSection != null) ? (CLI_Section) parentSection.getCopy(null) : null;
+            CLI_Section sectionClone = (parentSection != null) ? (CLI_Section) parentSection.getCopy((Section)null, null) : null;
 
             // Add a copy of the song part with a copy of the parent section
             sptBuffer.add(spt.clone(spt.getRhythm(), spt.getStartBarIndex(), spt.getNbBars(), sectionClone));

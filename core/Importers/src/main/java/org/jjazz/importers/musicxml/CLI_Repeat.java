@@ -91,7 +91,7 @@ public class CLI_Repeat implements ChordLeadSheetItem<Repeat>, WritableItem<Repe
 
 
     @Override
-    public ChordLeadSheetItem<Repeat> getCopy(Position newPos)
+    public ChordLeadSheetItem<Repeat> getCopy(Repeat newData, Position newPos)
     {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }

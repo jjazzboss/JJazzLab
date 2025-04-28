@@ -38,6 +38,7 @@ import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.chordleadsheet.api.Section;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.utilities.api.StringProperties;
 import org.jjazz.xstream.spi.XStreamConfigurator;
@@ -142,9 +143,13 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
     }
 
     @Override
-    public synchronized CLI_Section getCopy(Position newPos)
+    public synchronized CLI_Section getCopy(Section newData, Position newPos)
     {
-        return getCopy(newPos, null);
+        int barIndex = (newPos != null) ? newPos.getBar() : position.getBar();
+        newData = newData == null ? data : newData;
+        CLI_SectionImpl cli = new CLI_SectionImpl(newData.getName(), newData.getTimeSignature(), barIndex);
+        cli.getClientProperties().set(clientProperties);
+        return cli;
     }
 
     @Override
@@ -157,33 +162,18 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
         return cli;
     }
 
-    /*
-     * equals() and hashCode() are NOT defined because they can be used as Map keys and can change while being
-     * in the map (InstanceContent for selected items in the CL_Editor, or ChordLeadSheet.moveSection())
-     */
-//    @Override
-//    public boolean equals(Object o)
-//    {
-//        if (o instanceof CLI_Section)
-//        {
-//            CLI_Section cli = (CLI_Section) o;
-//            return container == cli.getContainer() && data.equals(cli.getData()) && position.equals(cli.getPosition());
-//        }
-//        else
-//        {
-//            return false;
-//        }
-//    }
-//
-//    @Override
-//    public int hashCode()
-//    {
-//        int hash = 3;
-//        hash = 37 * hash + (this.container != null ? this.container.hashCode() : 0);
-//        hash = 37 * hash + (this.position != null ? this.position.hashCode() : 0);
-//        hash = 37 * hash + (this.data != null ? this.data.hashCode() : 0);
-//        return hash;
-//    }
+    @Override
+    public boolean equals(Object o)
+    {
+        return ChordLeadSheetItem.equals(this, o);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return ChordLeadSheetItem.hashCode(this);
+    }
+
     @Override
     public String toString()
     {

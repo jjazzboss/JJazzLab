@@ -158,7 +158,7 @@ public class BarsTransferable implements Transferable
             Objects.requireNonNull(firstBarSection);
             Objects.requireNonNull(barRange);
             Objects.requireNonNull(items);
-            items.stream().forEach(item -> this.items.add(item.getCopy(null)));
+            items.stream().forEach(item -> this.items.add(item.getCopy(null, null)));
             this.barRange = barRange;
             this.firstBarSection = firstBarSection;
         }
@@ -200,7 +200,7 @@ public class BarsTransferable implements Transferable
                 for (ChordLeadSheetItem<?> item : items)
                 {
                     Position newPos = item.getPosition().getMoved(barShift, 0);
-                    ChordLeadSheetItem<?> newItem = item.getCopy(newPos);
+                    ChordLeadSheetItem<?> newItem = item.getCopy(null, newPos);
                     res.add(newItem);
                 }
             }
