@@ -311,7 +311,15 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
     public void undo() throws CannotUndoException
     {
         undoRedoInProgress = true;
-        super.undo();
+        try
+        {
+            super.undo();
+        } catch (CannotUndoException ex)
+        {
+            LOGGER.severe("undo() ex="+ex.getMessage());
+            undoRedoInProgress = false;
+            throw ex;
+        }
         updateTask();
         undoRedoInProgress = false;
     }
@@ -320,7 +328,15 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
     public void redo() throws CannotRedoException
     {
         undoRedoInProgress = true;
-        super.redo();
+        try
+        {
+            super.redo();
+        } catch (CannotUndoException ex)
+        {
+            LOGGER.severe("redo() ex="+ex.getMessage());
+            undoRedoInProgress = false;
+            throw ex;
+        }
         updateTask();
         undoRedoInProgress = false;
     }
@@ -329,7 +345,15 @@ public class JJazzUndoManager extends UndoManager implements UndoRedo
     public void undoOrRedo() throws CannotRedoException, CannotUndoException
     {
         undoRedoInProgress = true;
-        super.undoOrRedo();
+        try
+        {
+            super.undoOrRedo();
+        } catch (CannotUndoException ex)
+        {
+            LOGGER.severe("undoOrRedo() ex="+ex.getMessage());
+            undoRedoInProgress = false;
+            throw ex;
+        }
         updateTask();
         undoRedoInProgress = false;
     }

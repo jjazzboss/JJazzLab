@@ -69,7 +69,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable, Propert
 
     /**
      * The main data structure: keep the items sorted.
-     * 
+     * <p>
      * We can safely use a TreeSet because methods to add/move/change prevent having 2 equal ChordLeadSheetItems.
      */
     private final TreeSet<ChordLeadSheetItem> items = new TreeSet<>();
@@ -375,6 +375,30 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable, Propert
     public String toString()
     {
         return "ChordLeadSheet section0=" + getSection(0).getData().getName() + " size=" + getSizeInBars();
+    }
+
+    
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (this == obj)
+        {
+            return true;
+        }
+        if (obj == null)
+        {
+            return false;
+        }
+        if (getClass() != obj.getClass())
+        {
+            return false;
+        }
+        final ChordLeadSheetImpl other = (ChordLeadSheetImpl) obj;
+        if (this.size != other.size)
+        {
+            return false;
+        }
+        return Objects.equals(this.items, other.items);
     }
 
 
@@ -1303,7 +1327,11 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable, Propert
             Position newPos = oldPos.getConverted(oldTs, newTs);
             if (!newPos.equals(oldPos))
             {
-                moveItem(item, newPos, false);
+                if (!moveItem(item, newPos, false))
+                {
+                    // Special case, eg in 4/4: 2 identical chords are on beats 3 and 3.5, when switching to 3/4, the move from 3.5 to 3 will do nothing
+                    removeItem(item, false);
+                }
             }
         }
     }

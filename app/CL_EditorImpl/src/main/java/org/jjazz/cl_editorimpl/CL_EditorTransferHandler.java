@@ -379,15 +379,15 @@ public class CL_EditorTransferHandler extends TransferHandler
                 selection.unselectAll(editor);
                 um.startCEdit(editName);
                 ChordLeadSheetItem<?> itemCopy = sourceItem.getCopy(null, newPos);
-                cls.addItem(itemCopy);
-                editor.setFocusOnItem(itemCopy, IR_Type.ChordSymbol);
-                editor.selectItem(itemCopy, true);
+                var itemToSelect = cls.addItem(itemCopy) ? itemCopy : sourceItem;        // addItem might return false if copying over an equal item
+                editor.setFocusOnItem(itemToSelect, IR_Type.ChordSymbol);
+                editor.selectItem(itemToSelect, true);
                 um.endCEdit(editName);
             } else
             {
                 String editName = ResUtil.getString(getClass(), "MOVE_ITEM");
                 um.startCEdit(editName);
-                cls.moveItem(sourceItem, newPos);  // The editor will take care about the selection
+                cls.moveItem(sourceItem, newPos);  // might return false when moving over an equal item. In other cases the editor will take care about the selection
                 um.endCEdit(editName);
             }
         }

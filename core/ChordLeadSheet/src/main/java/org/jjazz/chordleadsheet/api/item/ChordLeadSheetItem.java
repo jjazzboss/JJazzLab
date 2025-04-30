@@ -96,7 +96,7 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
      * Client properties are also copied. Returned copy has its ChordLeadSheet container set to null.
      *
      * @param newData If null, the copy will have the same data than this object.
-     * @param newPos If null, the copy will have the same position than this object.
+     * @param newPos  If null, the copy will have the same position than this object.
      * @return
      */
     ChordLeadSheetItem<T> getCopy(T newData, Position newPos);
@@ -156,7 +156,7 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
 
     /**
      * Generic equals method relying only on data and position.
-     *
+     * <p>
      * @param item1 Can not be null
      * @param o
      * @return
@@ -164,7 +164,7 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
     static public boolean equals(ChordLeadSheetItem<?> item1, Object o)
     {
         Objects.requireNonNull(item1);
-        if (o == null || o.getClass() != item1.getClass())
+        if (o == null || item1.getClass() != o.getClass())
         {
             return false;
         }

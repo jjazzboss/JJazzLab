@@ -97,15 +97,14 @@ public class SongPartCopyBuffer
 
             // Prepare parentsection copy
             CLI_Section parentSection = spt.getParentSection();
-            CLI_Section sectionClone = (parentSection != null) ? (CLI_Section) parentSection.getCopy((Section)null, null) : null;
+            CLI_Section sectionClone = (parentSection != null) ? (CLI_Section) parentSection.getCopy((Section) null, null) : null;
 
             // Add a copy of the song part with a copy of the parent section
             sptBuffer.add(spt.clone(spt.getRhythm(), spt.getStartBarIndex(), spt.getNbBars(), sectionClone));
         }
-        
+
         // Sort our buffer
-        Collections.sort(sptBuffer,
-                new Comparator<SongPart>()
+        Collections.sort(sptBuffer, new Comparator<SongPart>()
         {
             @Override
             public int compare(SongPart spt1, SongPart spt2

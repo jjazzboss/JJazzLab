@@ -25,8 +25,9 @@
 package org.jjazz.chordleadsheet;
 
 import java.text.ParseException;
-import java.util.List;
 import java.util.TreeSet;
+import org.jjazz.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.chordleadsheet.api.ChordLeadSheetFactory;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
@@ -50,7 +51,7 @@ public class ChordLeadSheetImplTest
 
     JJazzUndoManager undoManager;
     ChordLeadSheetImpl cls1;
-    ChordLeadSheetImpl cls2;
+    ChordLeadSheet cls2;
     CLI_SectionImpl cliSection34_b3;
     CLI_SectionImpl cliSection44_b4;
     CLI_SectionImpl cliSection54_b5;
@@ -78,7 +79,7 @@ public class ChordLeadSheetImplTest
         undoManager = new JJazzUndoManager();
 
         cls1 = new ChordLeadSheetImpl("Section1", TimeSignature.FOUR_FOUR, 8);
-        cls2 = new ChordLeadSheetImpl("Section1", TimeSignature.FOUR_FOUR, 8);
+
         try
         {
             // Test leadsheet init
@@ -95,17 +96,8 @@ public class ChordLeadSheetImplTest
 
             cls1.addUndoableEditListener(undoManager);
 
-            // COPY
-            cls2.setSizeInBars(8);
-            cls2.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("Dm7"), new Position(0)));
-            cls2.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("F#7"), new Position(1)));
-            cls2.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("Bbmaj7#5"), new Position(1, 3)));
-            cls2.addSection(new CLI_SectionImpl("Section2", TimeSignature.THREE_FOUR, 2));
-            cls2.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("D7b9b5"), new Position(2)));
-            cls2.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("FM7#11"), new Position(4, 1)));
-            cls2.addSection(new CLI_SectionImpl("Section3", TimeSignature.FOUR_FOUR, 5));
-            cls2.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("Eb7b9#5"), new Position(5, 0.75f)));
-            cls2.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("Db"), new Position(7, 3f)));
+            // cls2 = deep copy to make the comparison after a undo/redo/undo cycle
+            cls2 = ChordLeadSheetFactory.getDefault().getCopy(cls1);
 
             // Items to play with
             cliSection34_b3 = new CLI_SectionImpl("NewSection34", TimeSignature.THREE_FOUR, 3);
@@ -131,11 +123,14 @@ public class ChordLeadSheetImplTest
     public void tearDown()
     {
         undoManager.endCEdit("UT-edit");
-        System.out.println(cls1.toDebugString() + '\n');
+        System.out.println(cls1.toDebugString());
         undoAll();
         redoAll();
         undoAll();
-        assertTrue(diffCls(cls1, cls2));
+        System.out.println("--");
+        System.out.println(cls1.toDebugString());
+        System.out.println("");
+        assertTrue(cls1.equals(cls2));
     }
 
     // getItems() --------------------------------------------------
@@ -212,40 +207,34 @@ public class ChordLeadSheetImplTest
         assertEquals(res.size(), 4);
         assertSame(res.get(0), cls1.getSection(0));
         assertEquals(res.get(3).getPosition(), new Position(1, 3));
+    }
 
+    @Test
+    public void testGetFirstLastItems()
+    {
+        System.out.println("=== testGetFirstLastItems() ");
+        var items = cls1.getItems();
 
-        res = cls1.getItems(new Position(0),
-                true,
-                new Position(2),
-                true,
-                ChordLeadSheetItem.class,
-                cli -> true);
-        assertEquals(res.size(), 6);
-        assertSame(res.get(0), cls1.getSection(0));
-        assertSame(res.get(4), cls1.getSection(2));
+        var cli = cls1.getFirstItemAfter(items.get(3), CLI_ChordSymbol.class, c -> true);
+        assertSame(cli, items.get(5));
 
+        cli = cls1.getFirstItemAfter(new Position(2), true, CLI_ChordSymbol.class, c -> true);
+        assertSame(cli, items.get(5));
 
-        res = cls1.getItems(new Position(0),
-                false,
-                new Position(2),
-                true,
-                ChordLeadSheetItem.class,
-                cli -> true);
-        assertEquals(res.size(), 4);
-        assertTrue(res.get(0) != cls1.getSection(0));
-        assertEquals(res.get(0).getPosition(), new Position(1));
-        assertSame(res.get(2), cls1.getSection(2));
+        cli = cls1.getFirstItemAfter(new Position(2), false, CLI_ChordSymbol.class, c -> true);
+        assertSame(cli, items.get(6));
 
+        cli = cls1.getLastItemBefore(items.get(7), CLI_ChordSymbol.class, c -> true);
+        assertSame(cli, items.get(6));
 
-        res = cls1.getItems(new Position(4, 1),
-                false,
-                new Position(7, 3f),
-                false,
-                ChordLeadSheetItem.class,
-                cli -> true);
-        assertEquals(res.size(), 2);
-        assertSame(res.get(0), cls1.getSection(5));
-        assertEquals(res.get(1).getPosition(), new Position(5, 0.75f));
+        cli = cls1.getLastItemBefore(new Position(2), true, CLI_ChordSymbol.class, c -> true);
+        assertSame(cli, items.get(5));
+
+        cli = cls1.getLastItemBefore(new Position(2), false, CLI_ChordSymbol.class, c -> true);
+        assertSame(cli, items.get(3));
+
+        cli = cls1.getLastItemBefore(new Position(0), false, CLI_ChordSymbol.class, c -> true);
+        assertNull(cli);
 
     }
 
@@ -474,7 +463,7 @@ public class ChordLeadSheetImplTest
     @Test
     public void testInsertBars0()
     {
-        System.out.println("insertBars start of leadsheet bar=0  nbBars=3");
+        System.out.println("=== insertBars start of leadsheet bar=0  nbBars=3");
         cls1.insertBars(0, 3);
         assertEquals(11, cls1.getSizeInBars());
         assertEquals(0, cls1.getSection(0).getPosition().getBar());
@@ -484,7 +473,7 @@ public class ChordLeadSheetImplTest
     @Test
     public void testInsertBars2()
     {
-        System.out.println("insertBars end of section bar=2  nbBars=2");
+        System.out.println("=== insertBars end of section bar=2  nbBars=2");
         cls1.insertBars(2, 2);
         assertEquals(10, cls1.getSizeInBars());
         assertEquals("Section2", cls1.getSection(5).getData().getName());
@@ -493,7 +482,7 @@ public class ChordLeadSheetImplTest
     @Test
     public void testInsertBars6()
     {
-        System.out.println("insertBars middle of section bar=6  nbBars=2");
+        System.out.println("=== insertBars middle of section bar=6  nbBars=2");
         cls1.insertBars(6, 2);
         assertEquals(10, cls1.getSizeInBars());
     }
@@ -501,7 +490,7 @@ public class ChordLeadSheetImplTest
     @Test
     public void testInsertBars8()
     {
-        System.out.println("insertBars end of leadsheet last bar=8  nbBars=5");
+        System.out.println("=== insertBars end of leadsheet last bar=8  nbBars=5");
         cls1.insertBars(8, 5);
         assertEquals(13, cls1.getSizeInBars());
     }
@@ -510,7 +499,7 @@ public class ChordLeadSheetImplTest
     @Test
     public void testDeleteBarsFromStartUntilEndOfSection()
     {
-        System.out.println("deleteBars from start until end of section barFrom=0  barTo=1");
+        System.out.println("=== deleteBars from start until end of section barFrom=0  barTo=1");
         try
         {
             cls1.deleteBars(0, 1);
@@ -526,7 +515,7 @@ public class ChordLeadSheetImplTest
     @Test
     public void testDeleteBarsFromStartUntilMiddleOfSection()
     {
-        System.out.println("deleteBars from start middle of section barFrom=0  barTo=3");
+        System.out.println("=== deleteBars from start middle of section barFrom=0  barTo=3");
         try
         {
             cls1.deleteBars(0, 3);
@@ -543,7 +532,7 @@ public class ChordLeadSheetImplTest
     @Test
     public void testDeleteInitialBarWithSectionOnBar1()
     {
-        System.out.println("deleteBars on initial bar 0 with a section on bar 1");
+        System.out.println("=== deleteBars on initial bar 0 with a section on bar 1");
         CLI_Section newSection = new CLI_SectionImpl("SectionBar1", TimeSignature.FIVE_FOUR, 1);
         try
         {
@@ -560,7 +549,7 @@ public class ChordLeadSheetImplTest
     @Test
     public void testDeleteBarsToEnd()
     {
-        System.out.println("deleteBars until end barFrom=4  barTo=7");
+        System.out.println("=== deleteBars until end barFrom=4  barTo=7");
         try
         {
             cls1.deleteBars(4, 7);
@@ -574,7 +563,7 @@ public class ChordLeadSheetImplTest
     @Test
     public void testDeleteBarsMiddle()
     {
-        System.out.println("deleteBars multi sections barFrom=1  barTo=5");
+        System.out.println("=== deleteBars multi sections barFrom=1  barTo=5");
         try
         {
             cls1.deleteBars(1, 5);
@@ -588,9 +577,9 @@ public class ChordLeadSheetImplTest
 
     // SetSection() --------------------------------------------------
     @Test
-    public void testSetSectionTimeSignature()
+    public void testSetTimeSignature()
     {
-        System.out.println("setSectionTimeSignature section 0 => 3/4");
+        System.out.println("=== setTimeSignature section 0 => 3/4");
         CLI_Section cliSection0 = cls1.getSection(0);
         try
         {
@@ -599,14 +588,41 @@ public class ChordLeadSheetImplTest
         {
             Exceptions.printStackTrace(ex);
         }
-        var res = cls1.getItems(1, 1, ChordLeadSheetItem.class, cli -> true);
-        assertEquals(new Position(1, 2f), res.get(1).getPosition());
+        var cli = cls1.getItems(1, 1, ChordLeadSheetItem.class, c -> true).get(1);
+        assertEquals(new Position(1, 2f), cli.getPosition());
+    }
+
+
+    /**
+     * 2 equal clis (but different positions) are adjusted with time signature change, and end up at same position => one is removed.
+     */
+    @Test
+    public void testSetTimeSignatureSpecialCase()
+    {
+        System.out.println("=== SetTimeSignatureSpecialCase section 0 => 3/4");
+
+        var cli1 = cls1.getItems(1, 1, ChordLeadSheetItem.class, c -> true).get(1); // beat 3
+        var cli2 = cli1.getCopy(null, cli1.getPosition().setBeat(3.5f));
+        cls1.addItem(cli2);
+
+        CLI_Section cliSection0 = cls1.getSection(0);
+        try
+        {
+            cls1.setSectionTimeSignature(cliSection0, TimeSignature.THREE_FOUR); // removes cli2
+        } catch (UnsupportedEditException ex)
+        {
+            Exceptions.printStackTrace(ex);
+        }
+
+        var clis = cls1.getItems(1, 1, ChordLeadSheetItem.class, c -> true);
+        assertEquals(2, clis.size());
+        assertEquals(new Position(1, 2f), cli1.getPosition());
     }
 
     @Test
     public void testSetSectionNameOK()
     {
-        System.out.println("setSectionName Yeaaaah section 0");
+        System.out.println("=== setSectionName Yeaaaah section 0");
         CLI_Section cliSection0 = cls1.getSection(0);
         cls1.setSectionName(cliSection0, "Yeaaah");
         assertEquals("Yeaaah", cliSection0.getData().getName());
@@ -615,7 +631,7 @@ public class ChordLeadSheetImplTest
     @Test(expected = IllegalArgumentException.class)
     public void testSetSectionNameAlreadyExist()
     {
-        System.out.println("setSectionName name already exist");
+        System.out.println("=== setSectionName name already exist");
         CLI_Section cliSection0 = cls1.getSection(0);
         cls1.setSectionName(cliSection0, "Section3");
     }
@@ -624,7 +640,7 @@ public class ChordLeadSheetImplTest
     @Test
     public void testSetSize()
     {
-        System.out.println("setSize() new size = 3");
+        System.out.println("=== setSize() new size = 3");
         try
         {
             cls1.setSizeInBars(3);
@@ -653,56 +669,4 @@ public class ChordLeadSheetImplTest
         }
     }
 
-    private boolean diffCls(ChordLeadSheetImpl ls1, ChordLeadSheetImpl ls2)
-    {
-        if (ls1.getSizeInBars() != ls2.getSizeInBars())
-        {
-            System.out.println("DIFF difference size ls1=" + ls1.toDebugString() + '\n');
-            return false;
-        }
-        List<? extends ChordLeadSheetItem> items1 = ls1.getItems(ChordLeadSheetItem.class);
-        List<? extends ChordLeadSheetItem> items2 = ls2.getItems(ChordLeadSheetItem.class);
-        if (items1.size() != items2.size())
-        {
-            System.out.println("DIFF difference items1 items2 size ls1=" + ls1.toDebugString() + '\n');
-            return false;
-        }
-        int index = 0;
-        for (ChordLeadSheetItem<?> item : items1)
-        {
-            if (!itemEquals(item, items2.get(index)))
-            {
-                System.out.println("DIFF difference " + item + "/" + items2.get(index) + " ls1=" + ls1.toDebugString() + '\n');
-                return false;
-            }
-            index++;
-        }
-        return true;
-    }
-
-    private boolean itemEquals(ChordLeadSheetItem<?> item1, ChordLeadSheetItem<?> item2)
-    {
-        if (item1 instanceof CLI_ChordSymbol)
-        {
-            if (!(item2 instanceof CLI_ChordSymbol))
-            {
-                return false;
-            }
-            CLI_ChordSymbol cs1 = (CLI_ChordSymbol) item1;
-            CLI_ChordSymbol cs2 = (CLI_ChordSymbol) item2;
-            return cs1.getData().equals(cs2.getData()) && cs1.getPosition().equals(cs2.getPosition());
-        } else if (item1 instanceof CLI_Section)
-        {
-            if (!(item2 instanceof CLI_Section))
-            {
-                return false;
-            }
-            CLI_Section b1 = (CLI_Section) item1;
-            CLI_Section b2 = (CLI_Section) item2;
-            return b1.getData().equals(b2.getData()) && b1.getPosition().equals(b2.getPosition());
-        } else
-        {
-            return false;
-        }
-    }
 }
