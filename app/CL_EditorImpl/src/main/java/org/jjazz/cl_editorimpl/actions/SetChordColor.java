@@ -70,7 +70,7 @@ public final class SetChordColor extends AbstractAction implements Presenter.Pop
     {
         IR_ChordSymbolSettings.getDefault().addPropertyChangeListener(this);
     }
-    
+
     @Override
     public void actionPerformed(ActionEvent e)
     {
@@ -92,7 +92,6 @@ public final class SetChordColor extends AbstractAction implements Presenter.Pop
     }
 
 
-
     // ============================================================================================= 
     // PropertyChangeListener interface
     // =============================================================================================    
@@ -108,6 +107,7 @@ public final class SetChordColor extends AbstractAction implements Presenter.Pop
             }
         }
     }
+
     // ============================================================================================= 
     // Private class
     // =============================================================================================    
@@ -141,8 +141,7 @@ public final class SetChordColor extends AbstractAction implements Presenter.Pop
                         if (item instanceof CLI_ChordSymbol cliCs)
                         {
                             Color cc = c == IR_ChordSymbolSettings.getDefault().getColor() ? null : c;
-                            cliCs.getClientProperties().putColor(
-                                    IR_ChordSymbolSettings.SONG_CLIENT_PROPERTY_USER_FONT_COLOR, cc);
+                            cliCs.getClientProperties().putColor(IR_ChordSymbolSettings.SONG_CLIENT_PROPERTY_USER_FONT_COLOR, cc);
                         }
                     }
                     Analytics.logEvent("Set chord color");

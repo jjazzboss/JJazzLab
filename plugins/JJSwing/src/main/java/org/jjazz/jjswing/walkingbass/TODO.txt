@@ -10,7 +10,7 @@
 * rule that if one dimension of a Score is 0 then overall Score is 0.
 * Profile music generation for optimization
 * Discard 1-bar (and 2-bar?) WbpSources which are natively too off transposition: ex RedsHead#fr=45#sz=1 (at least 1 octave too high)
-* TEST ROUNDMIDNIGHT many untiled bars on whole songs, but disappear when song is made smaller ??
+* TEST ROUNDMIDNIGHT many untiled bars on whole songs, but disappear when song is made smaller ?? bug chordsequence equals need chordleadsheet to support equals normally
 
 
 MAYBE LATER

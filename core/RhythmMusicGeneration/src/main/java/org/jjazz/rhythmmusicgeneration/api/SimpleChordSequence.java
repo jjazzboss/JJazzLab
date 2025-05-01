@@ -24,9 +24,7 @@ package org.jjazz.rhythmmusicgeneration.api;
 
 import com.google.common.base.Preconditions;
 import static com.google.common.base.Preconditions.checkArgument;
-import java.util.Iterator;
 import java.util.Objects;
-import java.util.TreeSet;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
