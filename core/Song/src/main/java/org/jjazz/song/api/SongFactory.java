@@ -203,7 +203,7 @@ public class SongFactory implements PropertyChangeListener
         {
             throw new IllegalArgumentException("name=" + name + " cls=" + cls + " sgs=" + sgs);
         }
-        Song song = new Song(name, cls, sgs);
+        Song song = new Song(name, cls, sgs, false);
         registerSong(song);
         return song;
     }
@@ -370,10 +370,10 @@ public class SongFactory implements PropertyChangeListener
     }
 
     /**
-     * Return a copy of the song where the SongStructure does NOT listen to the ChordLeadsheet changes.
+     * Return a copy of the song where the SongStructure and the ChordLeadsheet are not linked (updating one does not update the other).
      * <p>
-     * WARNING: Because SongStructure and ChordLeadsheet are not linked, changing them might result in inconsistent states. This should be used only in special
-     * cases.<p>
+     * WARNING: changes might result in Song inconsistent states. This should be used only in special cases.
+     * <p>
      * Copy the following variables: chordleadsheet, songStructure, name, tempo, comments, tags, user phrases. Listeners or file are NOT copied.
      *
      * @param song
@@ -394,7 +394,7 @@ public class SongFactory implements PropertyChangeListener
         SongStructure ss = null;
         try
         {
-            ss = SongStructureFactory.getDefault().createSgs(cls, false);     // Don't link sgs to cls.  Can raise UnsupportedEditException
+            ss = SongStructureFactory.getDefault().createSgs(cls);     // Can raise UnsupportedEditException
             ss.removeSongParts(ss.getSongParts());
 
 
@@ -417,7 +417,7 @@ public class SongFactory implements PropertyChangeListener
         }
 
         // Now create the song copy
-        Song s = new Song(song.getName(), cls, ss);
+        Song s = new Song(song.getName(), cls, ss, true);       // unlinked
         s.setComments(song.getComments());
         s.setTempo(song.getTempo());
         s.setTags(song.getTags());

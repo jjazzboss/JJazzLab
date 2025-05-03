@@ -39,6 +39,10 @@ public enum Division
     EIGHTH_TRIPLET,
     UNKNOWN;
 
+    public boolean isBinary()
+    {
+        return this == BINARY;
+    }
 
     public boolean isSwing()
     {

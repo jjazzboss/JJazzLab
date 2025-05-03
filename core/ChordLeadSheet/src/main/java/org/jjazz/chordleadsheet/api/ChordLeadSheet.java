@@ -35,12 +35,14 @@ import org.jjazz.utilities.api.IntRange;
 /**
  * The model for a chord leadsheet.
  * <p>
- * The leadsheet is made of sections (a name + a time signature) and items like chord symbols. Implementation must fire the relevant ClsChangeEvents when a
- * method mutates the chord leadsheet.
+ * The leadsheet is made of sections (a name + a time signature) and items like chord symbols or bar annotations.
  * <p>
- * Regarding sections:<br>
+ * Implementation must fire the relevant ClsChangeEvents: start and complete ClsActionEvents for an API method, with the related
+ * low-level ClsChangeEvents. If API method1 calls API method2, ClsActionEvents are only fired for API method1 (ClsActionEvents are not nested).
+ * <p>
  * - The first bar must always contain a section <br>
- * - 2 sections can't have the same name
+ * - 2 sections can't have the same name<br>
+ * - All ChordLeadSheetItems belonging to a chord leadsheet must be unique (2 ChordLeadSheetItems can not be equal)<br>
  */
 public interface ChordLeadSheet
 {

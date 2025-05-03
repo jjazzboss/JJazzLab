@@ -487,7 +487,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
             }
         } else if (!waitForSgsClsActionEventComplete && e instanceof SgsActionEvent evt && evt.isActionComplete())
         {
-            if (!evt.getActionId().startsWith("setRhythmParameterValue"))  // No impact on structure change
+            if (!evt.getApiId().startsWith("setRhythmParameterValue"))  // No impact on structure change
             {
                 doUpdate = true;
             }

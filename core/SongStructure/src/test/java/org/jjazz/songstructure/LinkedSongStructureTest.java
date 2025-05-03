@@ -86,7 +86,6 @@ public class LinkedSongStructureTest
     @Before
     public void setUp()
     {
-
         cls1 = new ChordLeadSheetImpl("Section1", TimeSignature.FOUR_FOUR, 8);
         section1 = (CLI_SectionImpl) cls1.getSection(0);
         undoManager = new JJazzUndoManager();
@@ -113,7 +112,7 @@ public class LinkedSongStructureTest
             cls1.addUndoableEditListener(undoManager);
             JJazzUndoManagerFinder.getDefault().put(cls1, undoManager);
 
-            SongStructureFactory sgsf = SongStructureFactory.getDefault();
+            SongFactory sf = songFactory.
 
             sgs = sgsf.createSgs(cls1, true);
             Rhythm r = null;

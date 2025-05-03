@@ -20,13 +20,16 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.songstructure;
+package org.jjazz.song;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.TimeSignature;
@@ -45,41 +48,56 @@ import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.chordleadsheet.api.ClsChangeListener;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.event.ClsActionEvent;
-import org.jjazz.chordleadsheet.api.event.ItemClientPropertyChangedEvent;
 import org.jjazz.chordleadsheet.api.event.SizeChangedEvent;
+import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.quantizer.api.Quantization;
+import org.jjazz.quantizer.api.Quantizer;
+import org.jjazz.rhythm.api.Division;
+import static org.jjazz.rhythm.api.Division.EIGHTH_SHUFFLE;
+import static org.jjazz.rhythm.api.Division.EIGHTH_TRIPLET;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
+import org.jjazz.song.api.Song;
+import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.songstructure.api.SongStructure;
+import org.jjazz.songstructure.api.event.SgsChangeEvent;
+import org.jjazz.songstructure.api.event.SptReplacedEvent;
 import org.openide.util.Exceptions;
 
 /**
- * Responsible for listening to sgs parentChordLeadSheet changes and update sgs accordingly.
+ * Responsible for maintaining consistency between the ChordLeadSheet and the SongStructure of a Song.
+ * <p>
+ * For example if ChordLeadSheet size is shortened, some SongParts will be probably need to be removed or resized. Inversely, switching a SongPart to a
+ * swing-feel rhythm might require adjusting some CLI_ChordSymbols position.
  */
-public class SgsUpdater implements ClsChangeListener
+public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
 {
 
     private enum State
     {
         DEFAULT, INSERT_INIT_BARS
     };
+    private final Song song;
     private State state;
-    private SongStructureImpl songStructure;
-    private ChordLeadSheet parentCls;
-    private static final Logger LOGGER = Logger.getLogger(SgsUpdater.class.getSimpleName());
+    private SongStructure songStructure;
+    private ChordLeadSheet chordLeadSheet;
+    private static final Logger LOGGER = Logger.getLogger(ClsSgsUpdater.class.getSimpleName());
 
-    protected SgsUpdater(SongStructureImpl sgs)
+    public ClsSgsUpdater(Song song)
     {
-        if (sgs == null)
-        {
-            throw new IllegalArgumentException("sgs=" + sgs);
-        }
+        Objects.requireNonNull(song);
         state = State.DEFAULT;
-        this.songStructure = sgs;
-        parentCls = sgs.getParentChordLeadSheet();
-        if (parentCls != null)
-        {
-            parentCls.addClsChangeListener(this);
-        }
+        this.song = song;
+        this.songStructure = song.getSongStructure();
+        this.chordLeadSheet = song.getChordLeadSheet();
+        this.chordLeadSheet.addClsChangeListener(this);
+        this.songStructure.addSgsChangeListener(this);
+    }
+
+    public Song getSong()
+    {
+        return song;
     }
 
     // ============================================================================================= 
@@ -89,15 +107,25 @@ public class SgsUpdater implements ClsChangeListener
     @Override
     public void authorizeChange(ClsChangeEvent evt) throws UnsupportedEditException
     {
-        processChangeEvent(evt, true);
+        processClsChangeEvent(evt, true);
     }
 
     @Override
     public void chordLeadSheetChanged(ClsChangeEvent evt)
     {
+        JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(songStructure);
+        if (um != null && um.isUndoRedoInProgress())
+        {
+            // IMPORTANT : SongStructure generates his own undoableEdits,
+            // so we must not listen to chordleadsheet changes if undo/redo in progress, otherwise 
+            // the "undo/redo" restore operations will be performed twice !
+            LOGGER.log(Level.FINE, "chordLeadSheetChanged() undo is in progress, exiting");
+            return;
+        }
+
         try
         {
-            processChangeEvent(evt, false);
+            processClsChangeEvent(evt, false);
         } catch (UnsupportedEditException ex)
         {
             // Should never happen if it has been authorized first
@@ -105,24 +133,53 @@ public class SgsUpdater implements ClsChangeListener
             throw new IllegalStateException();
         }
     }
+    // ============================================================================================= 
+    // SgsChangeListener implementation
+    // =============================================================================================    
 
-    private void processChangeEvent(ClsChangeEvent evt, boolean authorizeOnly) throws UnsupportedEditException
+    @Override
+    public void authorizeChange(SgsChangeEvent e) throws UnsupportedEditException
+    {
+        // Nothing: no SongStructure change can be vetoed by a ChordLeadSheet
+    }
+
+    @Override
+    public void songStructureChanged(SgsChangeEvent e)
+    {
+        JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(songStructure);
+        if (um != null && um.isUndoRedoInProgress())
+        {
+            // IMPORTANT : ChordLeadSheet generates his own undoableEdits,
+            // so we must not listen to SongStructure changes if undo/redo in progress, otherwise 
+            // the "undo/redo" restore operations will be performed twice !
+            LOGGER.log(Level.FINE, "songStructureChanged() undo is in progress, exiting");
+            return;
+        }
+
+
+        switch (e)
+        {
+            case SptReplacedEvent sre ->
+            {
+                processRhythmChanged(sre);
+            }
+            default ->
+            {
+                // Nothing
+            }
+        }
+
+    }
+
+    // ============================================================================================= 
+    // Private methods
+    // =============================================================================================      
+    private void processClsChangeEvent(ClsChangeEvent evt, boolean authorizeOnly) throws UnsupportedEditException
     {
         LOGGER.log(Level.FINE, "processChangeEvent() evt={0} authorizeOnly={1}", new Object[]
         {
             evt, authorizeOnly
         });
-
-
-        JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(songStructure);
-        if (um != null && um.isUndoRedoInProgress())
-        {
-            // IMPORTANT : SongStructure generates his own undoableEdits,
-            // so we must not listen to chordleadsheet changes if undo/redo in progress, otherwise 
-            // the "undo/redo" restore operations will be performed twice !
-            LOGGER.log(Level.FINE, "processChangeEvent() undo is in progress, exiting");
-            return;
-        }
 
 
         // Get the sections in the event's items
@@ -136,19 +193,15 @@ public class SgsUpdater implements ClsChangeListener
         {
             case DEFAULT ->
             {
-                if (evt instanceof ClsActionEvent cae)
+                if (evt instanceof ClsActionEvent cae
+                        && cae.getApiId() == ClsActionEvent.API_ID.InsertBars
+                        && !cae.isComplete()
+                        && cae.getData().equals(Integer.valueOf(0)))
                 {
-                    if (cae.getActionId().equals("insertBars") && cae.isActionStarted() && cae.getData().equals(Integer.valueOf(0)))
-                    {
-                        // When inserting initial bars ("before" bar 0), ChordLeadSheet produces an unusual change event sequence because of the special init section. 
-                        // This leads to song structure not updated as the user would expect (see Issue #459).
-                        // So it's better to wait for the "insert initial bars ClsActionEvent" to be completed then update song structure properly.                    
-                        state = State.INSERT_INIT_BARS;
-                    } else
-                    {
-                        // Make SongStructure fire the corresponding SgsClsActionEvent with undo support
-                        songStructure.fireUndoableSgsClsActionEvent(cae);
-                    }
+                    // When inserting initial bars ("before" bar 0), ChordLeadSheet produces an unusual change event sequence because of the special init section. 
+                    // This leads to song structure not updated as the user would expect (see Issue #459).
+                    // So it's better to wait for the "insert initial bars ClsActionEvent" to be completed then update song structure properly.                    
+                    state = State.INSERT_INIT_BARS;
                 } else if (evt instanceof SizeChangedEvent)
                 {
                     processSizeChanged(authorizeOnly);
@@ -179,9 +232,6 @@ public class SgsUpdater implements ClsChangeListener
                         processSectionMoved(sme, cliSections.get(0));
                     }
 
-                } else if (evt instanceof ItemClientPropertyChangedEvent e)
-                {
-                    // Nothing
                 } else
                 {
                     LOGGER.fine("processChangeEvent() -> evt not handled");
@@ -191,15 +241,15 @@ public class SgsUpdater implements ClsChangeListener
             case INSERT_INIT_BARS ->
             {
                 if (evt instanceof ClsActionEvent cae
-                        && cae.getActionId().equals("insertBars")
-                        && cae.isActionComplete())
+                        && cae.getApiId().equals("insertBars")
+                        && cae.isComplete())
                 {
                     // Now we can update the song structure
 
 
                     // Reaffect the parent section of the song parts that were assigned to the initial section (before the insert bars action)
-                    var initSection = parentCls.getSection(0);
-                    var secondSection = (CLI_Section) parentCls.getNextItem(initSection);
+                    var initSection = chordLeadSheet.getSection(0);
+                    var secondSection = (CLI_Section) chordLeadSheet.getNextItem(initSection);
                     assert secondSection != null : "initSection=" + initSection;
                     var oldSpts = songStructure.getSongParts(spt -> spt.getParentSection() == initSection);
                     var newSpts = oldSpts.stream()
@@ -258,8 +308,8 @@ public class SgsUpdater implements ClsChangeListener
     {
         int newBarIndex = cliSection.getPosition().getBar();
         assert newBarIndex > 0 : "cliSection=" + cliSection;
-        CLI_Section prevSection = parentCls.getSection(newBarIndex - 1);
-        CLI_Section sectionPrevBar = parentCls.getSection(evt.getOldBar());
+        CLI_Section prevSection = chordLeadSheet.getSection(newBarIndex - 1);
+        CLI_Section sectionPrevBar = chordLeadSheet.getSection(evt.getOldBar());
         Map<SongPart, Integer> mapSptSize = new HashMap<>();
 
         if (sectionPrevBar == prevSection || sectionPrevBar == cliSection)
@@ -275,7 +325,7 @@ public class SgsUpdater implements ClsChangeListener
 
             // We remove and re-add
             songStructure.removeSongParts(getSongParts(cliSection));
-            SongPart spt = createSptAfterSection(cliSection, parentCls.getBarRange(cliSection).size(), prevSection);
+            SongPart spt = createSptAfterSection(cliSection, chordLeadSheet.getBarRange(cliSection).size(), prevSection);
             songStructure.addSongParts(Arrays.asList(spt));
 
             // Resize impacted SongParts 
@@ -304,10 +354,10 @@ public class SgsUpdater implements ClsChangeListener
         if (newBarIndex == oldBarIndex)
         {
             return;
-        } else if (newBarIndex > oldBarIndex && parentCls.getSection(newBarIndex) == cliSection)
+        } else if (newBarIndex > oldBarIndex && chordLeadSheet.getSection(newBarIndex) == cliSection)
         {
             return;
-        } else if (newBarIndex < oldBarIndex && parentCls.getSection(newBarIndex) == parentCls.getSection(oldBarIndex - 1))
+        } else if (newBarIndex < oldBarIndex && chordLeadSheet.getSection(newBarIndex) == chordLeadSheet.getSection(oldBarIndex - 1))
         {
             return;
         }
@@ -315,7 +365,7 @@ public class SgsUpdater implements ClsChangeListener
         // It's a "big move", which crosses at least another section
 
         // We remove and re-add
-        CLI_Section prevSection = parentCls.getSection(newBarIndex - 1);
+        CLI_Section prevSection = chordLeadSheet.getSection(newBarIndex - 1);
         songStructure.authorizeRemoveSongParts(getSongParts(cliSection));
         SongPart spt = createSptAfterSection(cliSection, getVirtualSectionSize(newBarIndex), prevSection);
         songStructure.authorizeAddSongParts(Arrays.asList(spt));
@@ -340,7 +390,7 @@ public class SgsUpdater implements ClsChangeListener
             if (barIndex > 0 && !authorizeOnly)
             {
                 Map<SongPart, Integer> mapSptSize = new HashMap<>();
-                CLI_Section prevSection = parentCls.getSection(barIndex - 1);
+                CLI_Section prevSection = chordLeadSheet.getSection(barIndex - 1);
                 fillMapSptSize(mapSptSize, prevSection);
                 songStructure.resizeSongParts(mapSptSize);
             }
@@ -353,7 +403,7 @@ public class SgsUpdater implements ClsChangeListener
         for (CLI_Section cliSection : cliSections)
         {
             int barIndex = cliSection.getPosition().getBar();
-            CLI_Section prevSection = (barIndex > 0) ? parentCls.getSection(barIndex - 1) : null;
+            CLI_Section prevSection = (barIndex > 0) ? chordLeadSheet.getSection(barIndex - 1) : null;
 
             if (authorizeOnly)
             {
@@ -362,7 +412,7 @@ public class SgsUpdater implements ClsChangeListener
             } else
             {
                 // Possible exception here !
-                SongPart spt = createSptAfterSection(cliSection, parentCls.getBarRange(cliSection).size(), prevSection);
+                SongPart spt = createSptAfterSection(cliSection, chordLeadSheet.getBarRange(cliSection).size(), prevSection);
                 songStructure.addSongParts(Arrays.asList(spt));
             }
             if (prevSection != null && !authorizeOnly)
@@ -450,13 +500,13 @@ public class SgsUpdater implements ClsChangeListener
         int firstBarIndex = cliSections.get(0).getPosition().getBar();
         if (firstBarIndex > 0)
         {
-            CLI_Section prevSection = parentCls.getSection(firstBarIndex - 1);
+            CLI_Section prevSection = chordLeadSheet.getSection(firstBarIndex - 1);
             fillMapSptSize(mapSptSize, prevSection);
         }
 
         // Size of the last section of the shifted items has changed too
         int lastBarIndex = evt.getItems().get(evt.getItems().size() - 1).getPosition().getBar();
-        CLI_Section lastSection = parentCls.getSection(lastBarIndex);
+        CLI_Section lastSection = chordLeadSheet.getSection(lastBarIndex);
         fillMapSptSize(mapSptSize, lastSection);
         songStructure.resizeSongParts(mapSptSize);
     }
@@ -470,10 +520,63 @@ public class SgsUpdater implements ClsChangeListener
 
         // Need to update size of impacted SongParts
         Map<SongPart, Integer> mapSptSize = new HashMap<>();
-        CLI_Section lastSection = parentCls.getSection(parentCls.getSizeInBars() - 1);
+        CLI_Section lastSection = chordLeadSheet.getSection(chordLeadSheet.getSizeInBars() - 1);
         fillMapSptSize(mapSptSize, lastSection);
         songStructure.resizeSongParts(mapSptSize);
     }
+
+    /**
+     * Update ChordLeadSheet off-beat chord symbols position if a SongPart's rhythm switches between ternary and binary feel.
+     *
+     * @param sre
+     */
+    private void processRhythmChanged(SptReplacedEvent sre)
+    {
+        Set<CLI_Section> processedSections = new HashSet<>();
+
+        
+        for (int i = 0; i < sre.getSongParts().size(); i++)
+        {
+            var oldSpt = sre.getSongParts().get(i);
+            var newSpt = sre.getNewSpts().get(i);
+            var cliSection = oldSpt.getParentSection();
+
+            if (processedSections.contains(cliSection))
+            {
+                continue;
+            }
+            processedSections.add(cliSection);
+
+            var oldDivision = oldSpt.getRhythm().getFeatures().division();
+            var newDivision = newSpt.getRhythm().getFeatures().division();
+
+            if ((oldDivision.isBinary() && (newDivision.isSwing() || newDivision == Division.EIGHTH_TRIPLET))
+                    || (newDivision.isBinary() && (oldDivision.isSwing() || oldDivision == Division.EIGHTH_TRIPLET)))
+            {
+                // There is a rhythm change with a binary/ternary feel switch
+                Quantization q = switch (newDivision)
+                {
+                    case EIGHTH_SHUFFLE, EIGHTH_TRIPLET ->
+                        Quantization.ONE_THIRD_BEAT;
+                    default ->
+                        Quantization.ONE_QUARTER_BEAT;
+                };
+
+                // Update off-beat chord symbols position
+                for (var cliCs : chordLeadSheet.getItems(cliSection, CLI_ChordSymbol.class))
+                {
+                    var pos = cliCs.getPosition();
+                    if (!pos.isOffBeat())
+                    {
+                        continue;
+                    }
+                    var newPos = Quantizer.getQuantized(q, pos, oldSpt.getRhythm().getTimeSignature(), 1, pos.getBar());
+                    chordLeadSheet.moveItem(cliCs, newPos);
+                }
+            }
+        }
+    }
+
 
     /**
      * Get all the songParts associated to specified parent section.
@@ -502,7 +605,7 @@ public class SgsUpdater implements ClsChangeListener
      */
     private void fillMapSptSize(Map<SongPart, Integer> mapSptSize, CLI_Section parentSection)
     {
-        int size = parentCls.getBarRange(parentSection).size();
+        int size = chordLeadSheet.getBarRange(parentSection).size();
         for (SongPart spt : getSongParts(parentSection))
         {
             mapSptSize.put(spt, size);
@@ -573,7 +676,7 @@ public class SgsUpdater implements ClsChangeListener
      */
     private int getVirtualSectionSize(int sectionBar)
     {
-        CLI_Section curSection = parentCls.getSection(sectionBar);
-        return parentCls.getBarRange(curSection).to - sectionBar + 1;
+        CLI_Section curSection = chordLeadSheet.getSection(sectionBar);
+        return chordLeadSheet.getBarRange(curSection).to - sectionBar + 1;
     }
 }

@@ -59,14 +59,14 @@ public class SongStructureFactoryImpl extends SongStructureFactory
     }
 
     @Override
-    public SongStructure createSgs(ChordLeadSheet cls, boolean keepSgsUpdated) throws UnsupportedEditException
+    public SongStructure createSgs(ChordLeadSheet cls) throws UnsupportedEditException
     {
         if (cls == null)
         {
             throw new IllegalArgumentException("cls=" + cls);   
         }
 
-        SongStructureImpl sgs = new SongStructureImpl(cls, keepSgsUpdated);
+        SongStructureImpl sgs = new SongStructureImpl(cls);
 
         var rdb = RhythmDatabase.getDefault();
 

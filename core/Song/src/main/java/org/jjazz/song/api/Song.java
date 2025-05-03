@@ -58,21 +58,15 @@ import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.UndoableEdit;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.chordleadsheet.api.ClsChangeListener;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
-import org.jjazz.chordleadsheet.api.event.ClsActionEvent;
-import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.TempoRange;
+import org.jjazz.song.ClsSgsUpdater;
 import org.jjazz.songstructure.api.SongStructureFactory;
-import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.jjazz.songstructure.api.SongStructure;
-import org.jjazz.songstructure.api.SgsChangeListener;
-import org.jjazz.songstructure.api.event.SgsActionEvent;
-import org.jjazz.songstructure.api.event.SgsClsActionEvent;
 import org.jjazz.undomanager.api.SimpleEdit;
 import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.utilities.api.StringProperties;
@@ -89,7 +83,7 @@ import org.openide.util.lookup.ServiceProvider;
  * Contents are a chord leadsheet, the related song structure, some parameters and some optional client properties.<br>
  * Songs can be created using the SongFactory methods.
  */
-public class Song implements Serializable, ClsChangeListener, SgsChangeListener, PropertyChangeListener
+public class Song implements Serializable, PropertyChangeListener
 {
 
     public static final String SONG_EXTENSION = "sng";
@@ -97,18 +91,31 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
     public static final String PROP_COMMENTS = "PROP_COMMENTS";
     public static final String PROP_TAGS = "PROP_TAGS";
     public static final String PROP_TEMPO = "PROP_TEMPO";
-    public static final String PROP_VETOABLE_PHRASE_NAME = "PROP_PHRASE_NAME";
     /**
      * newValue = new size in bars. OldValue=old size in bars
      */
     public static final String PROP_SIZE_IN_BARS = "PROP_SIZE_IN_BARS";
+
+    //
+    // All user phrase related PROP_ Song events are vetoableProperties for consistency, but actually only PROP_VETOABLE_USER_PHRASE when adding a new phrase can be vetoed.
+    //
+    /**
+     * Phrase name was changed.
+     * <p>
+     * oldValue=old name, newValue=new name
+     */
+    public static final String PROP_VETOABLE_PHRASE_NAME = "PROP_PHRASE_NAME";
     /**
      * If a user phrase is removed: oldValue=name_of_removed_phrase and newValue=removed_phrase.<br>
      * If a user phrase is added, oldValue=null and newValue=name_of_new_phrase<br>
+     * <p>
+     * This can be vetoed when a new phrase is added if MidiMix does not have a Midi channel available.
      */
     public static final String PROP_VETOABLE_USER_PHRASE = "PROP_VETOABLE_USER_PHRASE";
     /**
-     * An existing phrase was replaced by another. oldValue=old_phrase, newValue=name_of_phrase.
+     * An existing phrase was replaced by another.
+     * <p>
+     * oldValue=old_phrase, newValue=name_of_phrase.
      */
     public static final String PROP_VETOABLE_USER_PHRASE_CONTENT = "PROP_VETOABLE_USER_PHRASE_CONTENT";
     /**
@@ -116,20 +123,13 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
      */
     public static final String PROP_CLOSED = "PROP_CLOSED";
     /**
-     * This property changes each time the song is modified (oldValue=false, newValue=true), or saved (oldValue=true, newValue=false) or
-     * Song.setSaveNeeded(false) is called (oldValue=null, newValue=false)
+     * Fired each time the song is modified (oldValue=false, newValue=true), or saved (oldValue=true, newValue=false), or Song.setSaveNeeded(false) is called
+     * (oldValue=null, newValue=false).
+     * <p>
+     * For modification tracking see also ClsChangeEvent/ClsActionEvent, Sgs/ChangeEvent/SgsActionEvent, SongEvents.
      */
     public static final String PROP_MODIFIED_OR_SAVED_OR_RESET = "PROP_MODIFIED_OR_SAVED_OR_RESET";
-    /**
-     * Fired each time the "musical content" of the song is modified.
-     * <p>
-     * OldValue=the Song property name or ClsActionEvent/SgsActionEvent actionId that triggered the musical change.<br>
-     * NewValue=the optional associated data
-     * <p>
-     * Because a rhythm might adjust the generated music to the tempo, a PROP_TEMPO change can also trigger a PROP_MUSIC_GENERATION change event.<p>
-     * Use PROP_MODIFIED_OR_SAVED_OR_RESET to get notified of any song change, including non-musical ones like phrase name change, etc.
-     */
-    public static final String PROP_MUSIC_GENERATION = "PROP_MUSIC_GENERATION";
+
     private SongStructure songStructure;
     private ChordLeadSheet chordLeadSheet;
     private String name;
@@ -138,6 +138,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
     private List<String> tags = new ArrayList<>();
     private Map<String, Phrase> mapUserPhrases = new HashMap<>();
     private final StringProperties clientProperties = new StringProperties(this);
+    private final transient ClsSgsUpdater clsSgsUpdater;
     private transient File file;
     private transient boolean saveNeeded = false;
     private boolean closed;
@@ -153,7 +154,9 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
     /**
      * Create a song object.
      * <p>
-     * The songStructure will be automatically created from the chordleadsheet. Use SongFactory to create song instances.
+     * The songStructure will be automatically created from the chordleadsheet, and they will be linked so that updating one can impact the other.
+     * <p>
+     * This is a protected method: use the SongFactory to create song instances.
      *
      * @param name A non-empty string.
      * @param cls
@@ -161,19 +164,19 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
      */
     protected Song(String name, ChordLeadSheet cls) throws UnsupportedEditException
     {
-        this(name, cls, SongStructureFactory.getDefault().createSgs(cls, true));
+        this(name, cls, SongStructureFactory.getDefault().createSgs(cls), false);
     }
 
     /**
      * Constructor for the SerializationProxy only.
      * <p>
-     * Use SongFactory to create song instances.
      *
      * @param name
      * @param cls
-     * @param sgs  Must be kept consistent with cls changes (sgs.getParentChordLeadSheet() must return cls)
+     * @param sgs               sgs.getParentChordLeadSheet() must return cls
+     * @param disableClsSgsLink If true SongStructure and ChordLeadSheet are not linked
      */
-    protected Song(String name, ChordLeadSheet cls, SongStructure sgs)
+    protected Song(String name, ChordLeadSheet cls, SongStructure sgs, boolean disableClsSgsLink)
     {
         if (name == null || name.trim().isEmpty() || cls == null || sgs == null || sgs.getParentChordLeadSheet() != cls)
         {
@@ -183,10 +186,13 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
         setName(name);
         chordLeadSheet = cls;
         songStructure = sgs;
-        chordLeadSheet.addClsChangeListener(this);
-        songStructure.addSgsChangeListener(this);
+
+        
+        clsSgsUpdater = disableClsSgsLink ? null : new ClsSgsUpdater(this);
+
 
         lastSize = songStructure.getSizeInBars();
+
 
         // Mark song as modified if client properties are changed
         clientProperties.addPropertyChangeListener(e -> fireIsModified());
@@ -279,14 +285,13 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
      * PROP_VETOABLE_USER_PHRASE_CONTENT. Actually the possibility of a veto is only when a new phrase is added (e.g. if MidiMix does not have an available Midi
      * channel). Other user phrase PROP_ events for simplicity only (one listener required).
      * <p>
-     * This song will listen to p's changes and fire a PROP_MODIFIED_OR_SAVED_OR_RESET change event when a non-adjusting change is made.
+     * This song will listen to Phrase p's changes and fire a PROP_MODIFIED_OR_SAVED_OR_RESET change event when a non-adjusting change is made.
      * <p>
      * @param name Can't be blank.
      * @param p    Can't be null. No defensive copy is done, p is directly reused. No control is done on the phrase consistency Vs the song.
      * @throws PropertyVetoException If no Midi channel available for the user phrase
      * @see Song#PROP_VETOABLE_USER_PHRASE
      * @see Song#PROP_VETOABLE_USER_PHRASE_CONTENT
-     * @see Song#PROP_MUSIC_GENERATION
      */
     public void setUserPhrase(String name, Phrase p) throws PropertyVetoException
     {
@@ -341,7 +346,6 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
                         // Should never happen
                         Exceptions.printStackTrace(ex);
                     }
-                    fireIsMusicallyModified(PROP_VETOABLE_USER_PHRASE, name);
                     fireIsModified();
                 }
 
@@ -361,7 +365,6 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
                         // Should never happen
                         Exceptions.printStackTrace(ex);
                     }
-                    fireIsMusicallyModified(PROP_VETOABLE_USER_PHRASE, name);
                     fireIsModified();
                 }
             };
@@ -393,7 +396,6 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
                         // Should never happen
                         Exceptions.printStackTrace(ex);
                     }
-                    fireIsMusicallyModified(PROP_VETOABLE_USER_PHRASE_CONTENT, name);
                     fireIsModified();
                 }
 
@@ -414,7 +416,6 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
                         // Should never happen
                         Exceptions.printStackTrace(ex);
                     }
-                    fireIsMusicallyModified(PROP_VETOABLE_USER_PHRASE_CONTENT, name);
                     fireIsModified();
                 }
             };
@@ -424,7 +425,6 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
 
         }
 
-        fireIsMusicallyModified(oldPhrase == null ? PROP_VETOABLE_USER_PHRASE : PROP_VETOABLE_USER_PHRASE_CONTENT, name);
         fireIsModified();
 
     }
@@ -479,7 +479,6 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
                     // Should never happen
                     Exceptions.printStackTrace(ex);
                 }
-                fireIsMusicallyModified(PROP_VETOABLE_USER_PHRASE, name);
                 fireIsModified();
             }
 
@@ -499,7 +498,6 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
                     // Should never happen
                     Exceptions.printStackTrace(ex);
                 }
-                fireIsMusicallyModified(PROP_VETOABLE_USER_PHRASE, name);
                 fireIsModified();
             }
         };
@@ -514,7 +512,6 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
             // Should never happen
             Exceptions.printStackTrace(ex);
         }
-        fireIsMusicallyModified(PROP_VETOABLE_USER_PHRASE, name);
         fireIsModified();
 
         return p;
@@ -596,7 +593,6 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
         {
             tempo = newTempo;
             pcs.firePropertyChange(PROP_TEMPO, oldTempo, newTempo);
-            fireIsMusicallyModified(PROP_TEMPO, tempo);
             fireIsModified();
         }
     }
@@ -681,8 +677,6 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
      */
     public void close(boolean releaseRhythmResources)
     {
-        chordLeadSheet.removeClsChangeListener(this);
-        songStructure.removeSgsChangeListener(this);
         if (releaseRhythmResources)
         {
             for (Rhythm r : songStructure.getUniqueRhythms(false, false))
@@ -1014,71 +1008,11 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
             {
                 String phraseName = getPhraseName(p);
                 assert phraseName != null;
-                fireIsMusicallyModified(PROP_VETOABLE_USER_PHRASE_CONTENT, phraseName);
                 fireIsModified();
             }
         }
     }
 
-
-    // ============================================================================================= 
-    // ClsChangeListener implementation
-    // =============================================================================================      
-    @Override
-    public void authorizeChange(ClsChangeEvent e) throws UnsupportedEditException
-    {
-        // Nothing
-    }
-
-    @Override
-    public void chordLeadSheetChanged(ClsChangeEvent event)
-    {
-        if (event instanceof ClsActionEvent ae && ae.isActionComplete())
-        {
-            String actionId = ae.getActionId();
-            if (!actionId.equals("setSectionName") && !actionId.equals("itemClientPropertyChange"))
-            {
-                fireIsMusicallyModified(actionId, ae.getData());
-            }
-            fireIsModified();
-        }
-    }
-
-    //------------------------------------------------------------------------------
-    // SgsChangeListener interface
-    //------------------------------------------------------------------------------
-    @Override
-    public void authorizeChange(SgsChangeEvent e) throws UnsupportedEditException
-    {
-        // Nothing
-    }
-
-    @Override
-    public void songStructureChanged(SgsChangeEvent e)
-    {
-        if (e instanceof SgsActionEvent ae && !(ae instanceof SgsClsActionEvent) && ae.isActionComplete())
-        {
-            String actionId = ae.getActionId();
-            switch (actionId)
-            {
-                case "addSongParts", "removeSongParts", "resizeSongParts" ->
-                {
-                    int newSize = getSize();
-                    pcs.firePropertyChange(PROP_SIZE_IN_BARS, lastSize, newSize);
-                    lastSize = newSize;
-                }
-                default ->
-                {
-                }
-            }
-
-            if (!actionId.equals("setSongPartsName"))
-            {
-                fireIsMusicallyModified(actionId, ae.getData());
-            }
-            fireIsModified();
-        }
-    }
     // ----------------------------------------------------------------------------
     // Private methods 
     // ----------------------------------------------------------------------------
@@ -1090,17 +1024,6 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
     {
         saveNeeded = true;
         pcs.firePropertyChange(PROP_MODIFIED_OR_SAVED_OR_RESET, false, true);
-    }
-
-    /**
-     * Fire a PROP_MUSIC_GENERATION property change event with oldValue=id and the specified newValue.
-     *
-     * @param id
-     * @param data
-     */
-    private void fireIsMusicallyModified(String id, Object data)
-    {
-        pcs.firePropertyChange(PROP_MUSIC_GENERATION, id, data);
     }
 
     /**
@@ -1226,7 +1149,7 @@ public class Song implements Serializable, ClsChangeListener, SgsChangeListener,
 
         private Object readResolve() throws ObjectStreamException
         {
-            Song newSong = new Song(spName, spChordLeadSheet, spSongStructure);
+            Song newSong = new Song(spName, spChordLeadSheet, spSongStructure, false);
             newSong.setComments(spComments);
             newSong.setTags(spTags);
             newSong.setTempo(spTempo);

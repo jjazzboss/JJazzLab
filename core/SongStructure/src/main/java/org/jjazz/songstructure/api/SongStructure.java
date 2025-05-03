@@ -43,9 +43,10 @@ import org.jjazz.utilities.api.IntRange;
 /**
  * A SongStructure manages SongParts.
  * <p>
- * Implementation must fire the relevant SgsChangeEvents when a method mutates the song structure. If a RhythmParameter uses a value class
- * which is mutable (implements MutableRpValue), the SongStructure will listen to value changes and propagate the change event via
- * SgsChangeEvents.
+ * Implementation must fire the relevant SgsChangeEvents (including RpValueChangedEvents for mutable RP value changes, see
+ * {@link org.jjazz.rhythm.api.MutableRpValue}): start and complete SgsActionEvents for an API method, with the related low-level SgsChangeEvents. If API
+ * method1 calls API method2, SgsActionEvents are only fired for API method1 (SgsActionEvents are not nested).
+ * <p>
  */
 public interface SongStructure
 {
@@ -55,12 +56,12 @@ public interface SongStructure
      * <p>
      * Parameters can be used to exclude from the return list AdaptedRhythm and "implicit source rhythm" instances.
      * <p>
-     * An "implicit source rhythm" is the source rhythm of an AdaptedRhythm in a song which does not directly use the source rhythm. For
-     * example if song contains only spt1=bossa[3/4], then bossa(4/4) is the implicit source rhythm of the AdaptedRhythm bossa[3/4]. If song
-     * contains spt1=bossa and spt2=bossa[3/4], then bossa(4/4) is a source rhythm but is not an "implicit source rhythm".
+     * An "implicit source rhythm" is the source rhythm of an AdaptedRhythm in a song which does not directly use the source rhythm. For example if song
+     * contains only spt1=bossa[3/4], then bossa(4/4) is the implicit source rhythm of the AdaptedRhythm bossa[3/4]. If song contains spt1=bossa and
+     * spt2=bossa[3/4], then bossa(4/4) is a source rhythm but is not an "implicit source rhythm".
      * <p>
-     * If both excludeAdaptedRhythms and excludeImplicitSourceRhythms parameters are false and there is an implicit source rhythm, then the
-     * return list will contain the AdaptedRhythm instance juste before the implicit rhythm instance.
+     * If both excludeAdaptedRhythms and excludeImplicitSourceRhythms parameters are false and there is an implicit source rhythm, then the return list will
+     * contain the AdaptedRhythm instance juste before the implicit rhythm instance.
      *
      * @param excludeAdaptedRhythms        If true, don't return AdaptedRhythm instances
      * @param excludeImplicitSourceRhythms If true don't return "implicit source rhythms" instances
@@ -72,24 +73,24 @@ public interface SongStructure
         var allRhythms = getSongParts().stream()
                 .map(spt -> spt.getRhythm())
                 .toList();
-        
-        
+
+
         for (SongPart spt : getSongParts())
         {
             Rhythm r = spt.getRhythm();
-            
+
             if (res.contains(r))
             {
                 continue;
             }
-            
+
             if (r instanceof AdaptedRhythm)
             {
                 if (!excludeAdaptedRhythms)
                 {
                     res.add(spt.getRhythm());
                 }
-                
+
                 var sr = ((AdaptedRhythm) r).getSourceRhythm();
                 if (!excludeImplicitSourceRhythms && !allRhythms.contains(sr) && !res.contains(sr))
                 {
@@ -99,7 +100,7 @@ public interface SongStructure
             {
                 res.add(r);
             }
-            
+
         }
         return res;
     }
@@ -236,8 +237,7 @@ public interface SongStructure
     public FloatRange toBeatRange(IntRange barRange);
 
     /**
-     * Converts the position of the specified bar in natural beats: take into account the possible different time signatures before
-     * specified bar.
+     * Converts the position of the specified bar in natural beats: take into account the possible different time signatures before specified bar.
      *
      * @param absoluteBarIndex A value in the range [0; getSizeInBars()].
      * @return
@@ -364,8 +364,8 @@ public interface SongStructure
     /**
      * Replace SongParts by other SongParts.
      * <p>
-     * Typically used to changed rhythm. The size and startBarIndex of new SongParts must be the same than the replaced ones. The container
-     * of newSpt will be set to this object.
+     * Typically used to changed rhythm. The size and startBarIndex of new SongParts must be the same than the replaced ones. The container of newSpt will be
+     * set to this object.
      *
      * @param oldSpts
      * @param newSpts size must match oldSpts

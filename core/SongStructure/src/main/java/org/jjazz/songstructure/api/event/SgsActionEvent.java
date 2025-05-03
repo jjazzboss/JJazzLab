@@ -22,56 +22,132 @@
  */
 package org.jjazz.songstructure.api.event;
 
+import com.google.common.base.Preconditions;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import org.jjazz.songstructure.api.SongStructure;
 
 /**
- * An event to indicate that a high-level SongStructure action that changes the song structure has started or is complete.
+ * An event to indicate that a high-level action, i.e. a call to a public API method that mutates the song structure, has started or is complete.
  * <p>
- * All other SgsChangeEvents are always preceded and followed by one SgsActionEvent. This can be used by listener to group lower-level
- * change events by actionId. The actionId must be the corresponding method name from the SongStructure interface, e.g. "addSongParts". The
- * "setRhythmParameterValueContent" actionId is used when SongStructure propagates a MutableRpValue change event.
+ * All low-level SgsChangeEvents fired by a SongStructure are always preceded and followed by start and complete SgsActionEvents. The complete SgsActionEvent
+ * contains the low-level SgsChangeEvents.
  * <p>
- * There is the guarantee that if a start SgsActionEvent is received, the complete sgsActionEvent will be received on the same actionId.
- * It's possible that no lower-level change event occurs between 2 started/complete action events on the same actionId.
+ *
+ * @see SongStructure
  */
 public class SgsActionEvent extends SgsChangeEvent
 {
 
-    private final boolean startedOrComplete;      // false = started
-    private final boolean isUndo;      // false = started
-    private final String actionId;
+    /**
+     * This corresponds to public API methods that can mutate a SongStructure.
+     */
+    public enum API_ID
+    {
+        /**
+         * data=List&lt;SongPart&gt;
+         */
+        AddSongParts,
+        /**
+         * data=List&lt;SongPart&gt;
+         */
+        RemoveSongParts,
+        /**
+         * data=List&lt;SongPart&gt;
+         */
+        ReplaceSongParts,
+        /**
+         * data=Map&lt;SongPart, Integer&gt;
+         */
+        ResizeSongParts,
+        /**
+         * data=rp
+         */
+        SetRhythmParameterValue,
+        /**
+         * Used for a mutable RP value change.
+         * <p>
+         * data=rp
+         */
+        SetRhythmParameterMutableValue,
+        /**
+         * data=List&lt;SongPart&gt;
+         */
+        setSongPartsName,
+    };
+
+    private boolean complete;
+    private final List<SgsChangeEvent> subEvents;
+    private final API_ID apiId;
     private final Object data;
 
 
     /**
+     * Create a SgsActionEvent in started state, with no subEvents.
      *
-     * @param sgs
-     * @param actionId   For example the corresponding method name from the SongStructure interface which performs the change, e.g. "addSongParts".
-     * @param isComplete False means action has started, true action is complete
-     * @param undo       True if we're actually undoing the action
-     * @param data       Optional data associated to the event
+     * @param src
+     * @param apiId
+     * @param data  An optional data associated to the event
      */
-    public SgsActionEvent(SongStructure sgs, String actionId, boolean isComplete, boolean undo, Object data)
+    public SgsActionEvent(SongStructure src, API_ID apiId, Object data)
     {
-        super(sgs);
-        if (actionId == null)
-        {
-            throw new IllegalArgumentException("sgs=" + sgs + " actionId=" + actionId + " isComplete=" + isComplete + " undo=" + undo);
-        }
-        this.startedOrComplete = isComplete;
-        this.actionId = actionId;
-        this.isUndo = undo;
+        super(src);
+        Objects.requireNonNull(apiId);
+
+        this.complete = false;
+        this.apiId = apiId;
         this.data = data;
+        this.subEvents = new ArrayList<>();
     }
 
-    public boolean isActionStarted()
+    public API_ID getApiId()
     {
-        return !startedOrComplete;
+        return apiId;
     }
 
-    public boolean isActionComplete()
+    /**
+     * Check if complete() was called.
+     *
+     * @return
+     * @see #complete()
+     */
+    public boolean isComplete()
     {
-        return startedOrComplete;
+        return complete;
+    }
+
+    /**
+     * Mark this SgsActionEvent as complete.
+     *
+     * @see #isComplete()
+     */
+    public void complete()
+    {
+        complete = true;
+    }
+
+    /**
+     * Add a SgsChangeEvent to this SgsActionEvent.
+     *
+     * @param e Can not be a SgsActionEvent
+     */
+    public void addSubEvent(SgsChangeEvent e)
+    {
+        Objects.requireNonNull(e);
+        Preconditions.checkArgument(!(e instanceof SgsActionEvent), "e=%s", e);
+        subEvents.add(e);
+    }
+
+    /**
+     * The lower-level SgsChangeEvents added to this instance.
+     *
+     * @return An unmodifiable list. Can be empty.
+     */
+    public List<SgsChangeEvent> getSubEvents()
+    {
+        return Collections.unmodifiableList(subEvents);
     }
 
     /**
@@ -86,19 +162,10 @@ public class SgsActionEvent extends SgsChangeEvent
         return data;
     }
 
-    public String getActionId()
-    {
-        return actionId;
-    }
-
-    public boolean isUndo()
-    {
-        return isUndo;
-    }
 
     @Override
     public String toString()
     {
-        return "SgsActionEvent(" + actionId + ", complete=" + startedOrComplete + ", isUndo=" + isUndo + " data=" + data + ")";
+        return "SgsActionEvent(" + apiId + ", complete=" + complete + ", subEvents=" + subEvents + ")";
     }
 }

@@ -105,7 +105,6 @@ import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.song.api.Song;
 import org.jjazz.instrumentcomponents.keyboard.api.KeyboardComponent;
 import org.jjazz.instrumentcomponents.keyboard.api.KeyboardRange;
-import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.pianoroll.BottomControlPanel;
 import org.jjazz.pianoroll.EditorPanel;
 import org.jjazz.pianoroll.ScorePanel;
@@ -1154,14 +1153,18 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
     @Override
     public void chordLeadSheetChanged(ClsChangeEvent e)
     {
-        if (e instanceof ClsActionEvent ae && ae.isActionComplete())
+        if (e instanceof ClsActionEvent ae && ae.isComplete())
         {
             // Listen to all user actions which do not trigger a song structure change
-            switch (ae.getActionId())
+            switch (ae.getApiId())
             {
-                case "addItem", "changeItem", "removeItem", "moveItem", "setSectionName" ->
+                case AddItem, ChangeItem, RemoveItem, MoveItem, SetSectionName ->
                 {
                     updateChordSequence();
+                }
+                default ->
+                {
+                    // Nothing
                 }
             }
         }

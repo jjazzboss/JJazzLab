@@ -31,8 +31,9 @@ import java.util.List;
  * RpViewerRendererFactory, etc.
  * <p>
  *
- * @param <E> The type of value of this RhythmParameter. E.toString() should return a short (max ~30 characters) user-readable string. Prefer an immutable
- *            class, but if value class is mutable, it must implement the MutableRpValue interface.
+ * @param <E> The type of value of this RhythmParameter. E.toString() should return a short (max ~30 characters) user-readable string. Always prefer an
+ *            immutable value class, but if it's not possible E must implement the MutableRpValue interface.
+ * @see MutableRpValue
  */
 public interface RhythmParameter<E>
 {

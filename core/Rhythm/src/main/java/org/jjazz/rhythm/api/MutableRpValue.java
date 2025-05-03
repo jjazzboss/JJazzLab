@@ -27,16 +27,17 @@ import javax.swing.event.ChangeListener;
 /**
  * A tagging interface for RhythmParameter value classes which are mutable.
  * <p>
- * RP value class must notify listeners when its state has changed.
+ * Instance must notify listeners when its state has changed.
+ * <p>
+ * Immutable value classes should be preferred, but it might not always be possible like for RP_SYS_CustomPhraseValue, which contains editable Phrases.
  */
 public interface MutableRpValue
 {
-
     /**
-     * Be notified of value mutations (state changes).
+     * Be notified of RP value changes.
      * <p>
-     * Note that listeners won't be notified if a new RhythmParameter value instance is replaced by another one. Use SongStructure
-     * RpChangedEvent to get all types of RP value changes.
+     * Note that listeners won't be notified if a new RhythmParameter value instance is replaced by another one. Use SongStructure RpChangedEvent to get all
+     * types of RP value changes.
      *
      * @param listener
      */

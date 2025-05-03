@@ -1329,10 +1329,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
                     }
                 }
 
-            } else if ((event instanceof ItemClientPropertyChangedEvent e))
-            {
-                // Nothing
-            }
+            } 
         };
         org.jjazz.uiutilities.api.UIUtilities.invokeLaterIfNeeded(run);
     }

@@ -22,45 +22,100 @@
  */
 package org.jjazz.chordleadsheet.api.event;
 
+import com.google.common.base.Preconditions;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 
 /**
- * An event to indicate that a high-level ChordLeadSheet action that changes the leadsheet has started or is complete.
+ * An event to indicate that a high-level action, i.e. a call to a public API method that mutates the chord leadsheet, has started or is complete.
  * <p>
- * All other ClsChangeEvents are always preceded and followed by one ClsActionEvent. This can be used by listener to group lower-level
- * change events by actionId. The actionId must be the corresponding method name from the ChordLeadSheet interface, e.g. "addItem".
+ * All lowl-level ClsChangeEvents fired by a ChordLeadSheet are always preceded and followed by start and complete ClsActionEvents. The complete ClsActionEvent
+ * contains the low-level ClsChangeEvents.
  * <p>
- * There is the guarantee that if a start ClsActionEvent is received, the complete ClsActionEvent will be received on the same actionId.
- * It's possible that no lower-level change event occur between 2 started/complete action events on the same actionId.
+ *
+ * @see ChordLeadSheet
  */
 public class ClsActionEvent extends ClsChangeEvent
 {
 
-    private final boolean startedOrComplete;      // false = started
-    private final String actionId;
-    private final boolean isUndo;
+    /**
+     * This corresponds to public API methods that can mutate a ChordLeadSheet.
+     */
+    public enum API_ID
+    {
+        /**
+         * data=cli
+         */
+        AddItem,
+        /**
+         * data=cli
+         */
+        RemoveItem,
+        /**
+         * data=cli
+         */
+        MoveItem,
+        /**
+         * data=cli
+         */
+        ChangeItem,
+        /**
+         * data=cliSection
+         */
+        AddSection,
+        /**
+         * data=cliSection
+         */
+        RemoveSection,
+        /**
+         * data=cliSection
+         */
+        MoveSection,
+        /**
+         * data=cliSection
+         */
+        SetSectionName,
+        /**
+         * data=cliSection
+         */
+        SetSectionTimeSignature,
+        /**
+         * data=barIndex
+         */
+        DeleteBars,
+        /**
+         * data=barIndex
+         */
+        InsertBars,
+        /**
+         * data=oldSize
+         */
+        SetSizeInBars
+    };
+    private boolean complete;
+    private final List<ClsChangeEvent> subEvents;
+    private final API_ID apiId;
     private final Object data;
 
     /**
+     * Create a ClsActionEvent in started state, with no subEvents.
      *
      * @param src
-     * @param actionId          The corresponding method name from the ChordLeadSheet interface which performs the change, e.g. "addItem".
-     * @param startedOrComplete False means action has started, true action is complete
-     * @param undo              If true this action is part of an undo operation
-     * @param data              An optional data associated to the event
+     * @param apiId
+     * @param data     An optional data associated to the event
      */
-    public ClsActionEvent(ChordLeadSheet src, String actionId, boolean startedOrComplete, boolean undo, Object data)
+    public ClsActionEvent(ChordLeadSheet src, API_ID apiId, Object data)
     {
         super(src);
-        if (actionId == null)
-        {
-            throw new IllegalArgumentException("src=" + src + " actionId=" + actionId
-                    + " startedOrComplete=" + startedOrComplete + " undo=" + undo);
-        }
-        this.startedOrComplete = startedOrComplete;
-        this.actionId = actionId;
-        this.isUndo = undo;
+        Objects.requireNonNull(apiId);
+
+        this.complete = false;
+        this.apiId = apiId;
         this.data = data;
+        this.subEvents = new ArrayList<>();
     }
 
     /**
@@ -75,29 +130,57 @@ public class ClsActionEvent extends ClsChangeEvent
         return data;
     }
 
-    public boolean isActionStarted()
+    /**
+     * Check if complete() was called.
+     *
+     * @return
+     * @see #complete()
+     */
+    public boolean isComplete()
     {
-        return !startedOrComplete;
+        return complete;
     }
 
-    public boolean isActionComplete()
+    /**
+     * Mark this ClsActionEvent as complete.
+     *
+     * @see #isComplete()
+     */
+    public void complete()
     {
-        return startedOrComplete;
+        complete = true;
     }
 
-    public String getActionId()
+    /**
+     * Add a ClsChangeEvent to this ClsActionEvent.
+     *
+     * @param e Can not be a ClsActionEvent
+     */
+    public void addSubEvent(ClsChangeEvent e)
     {
-        return actionId;
+        Objects.requireNonNull(e);
+        Preconditions.checkArgument(!(e instanceof ClsActionEvent), "e=%s", e);
+        subEvents.add(e);
     }
 
-    public boolean isUndo()
+    /**
+     * The lower-level ClsChangeEvents added to this instance.
+     *
+     * @return An unmodifiable list. Can be empty.
+     */
+    public List<ClsChangeEvent> getSubEvents()
     {
-        return isUndo;
+        return Collections.unmodifiableList(subEvents);
+    }
+
+    public API_ID getApiId()
+    {
+        return apiId;
     }
 
     @Override
     public String toString()
     {
-        return "ClsActionEvent(" + actionId + ", complete=" + startedOrComplete + ", isUndo=" + isUndo + ")";
+        return "ClsActionEvent(" + apiId + ", complete=" + complete + ", subEvents=" + subEvents + ")";
     }
 }

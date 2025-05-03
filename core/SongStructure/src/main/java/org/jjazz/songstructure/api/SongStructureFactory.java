@@ -51,12 +51,10 @@ public abstract class SongStructureFactory
      * Create a SongStructure with cls as parentChordLeadSheet.
      * <p>
      * One SongPart is created for each cls section. <br>
-     * SongStructure can listen to cls changes (sections add/remove/move, resize) to remain updated.
      *
-     * @param cls The model to rely on to build the SongParts.
-     * @param keepSgsUpdated If true sgs will remain in sync with cls changes.
+     * @param cls 
      * @return
      * @throws org.jjazz.chordleadsheet.api.UnsupportedEditException
      */
-    abstract public SongStructure createSgs(ChordLeadSheet cls, boolean keepSgsUpdated) throws UnsupportedEditException;
+    abstract public SongStructure createSgs(ChordLeadSheet cls) throws UnsupportedEditException;
 }

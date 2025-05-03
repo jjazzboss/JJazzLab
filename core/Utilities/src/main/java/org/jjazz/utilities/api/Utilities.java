@@ -891,16 +891,6 @@ public class Utilities
         return joiner.toString();
     }
 
-    /**
-     * Get each element toString() called, one per line.
-     *
-     * @param array
-     * @return
-     */
-    public static <T> String toMultilineString(T array[])
-    {
-        return toMultilineString(Arrays.asList(array));
-    }
 
     /**
      * A debug string for a PropertyChangeEvent.
@@ -917,6 +907,7 @@ public class Utilities
                 + "   e.old=" + (e.getOldValue() == null ? "null" : truncateWithDots(e.getOldValue().toString(), max))
                 + "   e.new=" + (e.getNewValue() == null ? "null" : truncateWithDots(e.getNewValue().toString(), max));
     }
+
 
     /**
      * Gets the base location of the given class. Manage all OS variations and possible problems in characters...
