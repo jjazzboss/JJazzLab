@@ -139,7 +139,6 @@ public abstract class CL_Editor extends JPanel implements Lookup.Provider
      *
      * @param q
      * @param section If null, set the quantization display for all sections.
-     * @see #getSectionQuantizationPropertyName(org.jjazz.chordleadsheet.api.Section)
      */
     abstract public void setDisplayQuantizationValue(CLI_Section section, Quantization q);
 

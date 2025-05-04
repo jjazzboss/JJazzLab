@@ -76,6 +76,7 @@ import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_LOAD;
 import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_SAVE;
 import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_LOAD;
 import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_SAVE;
+import org.openide.util.Exceptions;
 import org.openide.util.lookup.ServiceProvider;
 
 public class SongStructureImpl implements SongStructure, Serializable, PropertyChangeListener
@@ -104,7 +105,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
     private final transient List<UndoableEditListener> undoListeners;
     private static final Logger LOGGER = Logger.getLogger(SongStructureImpl.class.getSimpleName());
 
-    
+
     public SongStructureImpl()
     {
         this(null);
@@ -1428,6 +1429,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
      */
     private static class SerializationProxy implements Serializable
     {
+
         private static final long serialVersionUID = -76876542017265L;
         private final int spVERSION = 3;
         private final ArrayList<SongPart> spSpts;
@@ -1449,17 +1451,13 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
             }
 
             SongStructureImpl sgs = new SongStructureImpl(spParentCls);
-            for (SongPart spt : spSpts)
+            try
             {
-                try
-                {
-                    // This will set again the container of the songparts
-                    sgs.addSongPartImpl(spt);
-                } catch (Exception ex)
-                {
-                    // Translate to an ObjectStreamException
-                    throw new InvalidObjectException(ex.getMessage());
-                }
+                sgs.addSongParts(spSpts);
+            } catch (UnsupportedEditException ex)
+            {
+                // Translate to an ObjectStreamException
+                throw new InvalidObjectException(ex.getMessage());
             }
             return sgs;
         }

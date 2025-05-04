@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.songstructure;
+package org.jjazz.song.api;
 
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -39,7 +39,7 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythmdatabase.api.DefaultRhythmDatabase;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
-import org.jjazz.songstructure.api.SongStructureFactory;
+import org.jjazz.songstructure.SongPartImpl;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.junit.*;
@@ -47,11 +47,13 @@ import static org.junit.Assert.assertTrue;
 import org.openide.util.Exceptions;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.songstructure.api.SongStructureFactory;
 import org.jjazz.utilities.api.Utilities;
 
-public class LinkedSongStructureTest
+public class ClsSgsLinkTest
 {
 
+    Song song;
     ChordLeadSheetImpl cls1;
     CLI_ChordSymbolImpl newChord;
     CLI_SectionImpl newSection1, newSection2, newSection3;
@@ -65,7 +67,7 @@ public class LinkedSongStructureTest
     SongPart u_spt1, u_spt2, u_spt3, u_spt4;
     JJazzUndoManager undoManager;
 
-    public LinkedSongStructureTest()
+    public ClsSgsLinkTest()
     {
 
     }
@@ -112,9 +114,9 @@ public class LinkedSongStructureTest
             cls1.addUndoableEditListener(undoManager);
             JJazzUndoManagerFinder.getDefault().put(cls1, undoManager);
 
-            SongFactory sf = songFactory.
+            song = SongFactory.getInstance().createSong("testSong", cls1);
+            sgs = song.getSongStructure();
 
-            sgs = sgsf.createSgs(cls1, true);
             Rhythm r = null;
             try
             {
@@ -127,7 +129,7 @@ public class LinkedSongStructureTest
             sgs.addSongParts(Arrays.asList(spt0));
 
             // To compare after undo all
-            u_sgs = sgsf.createSgs(cls1, false);        // Must be false to be the unchanged reference
+            u_sgs = SongStructureFactory.getDefault().createSgs(cls1);
             u_spt0 = new SongPartImpl(r, 8, 3, section2);
             u_sgs.addSongParts(Arrays.asList(u_spt0));
         } catch (ParseException ex)
@@ -433,7 +435,7 @@ public class LinkedSongStructureTest
         assertTrue(sgs.getSongParts().get(2).getNbBars() == 1);
     }
 
-  
+
     private void redoAll()
     {
         while (undoManager.canRedo())

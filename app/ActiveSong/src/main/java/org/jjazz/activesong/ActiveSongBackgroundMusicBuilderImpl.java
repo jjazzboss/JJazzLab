@@ -26,6 +26,7 @@ import org.jjazz.musiccontrol.api.MusicGenerationQueue;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.event.ChangeEvent;
@@ -301,7 +302,7 @@ public class ActiveSongBackgroundMusicBuilderImpl implements PropertyChangeListe
             {
                 assert activeSong != null;
                 assert activeMidiMix != null;
-                songMusicBuilderTask = new SongMusicBuilderTask(activeSong, activeMidiMix, null);
+                songMusicBuilderTask = new SongMusicBuilderTask(activeSong, activeMidiMix, new HashSet<>());
                 songMusicBuilderTask.addChangeListener(this);
                 songMusicBuilderTask.start();
             }

@@ -26,36 +26,47 @@ import com.google.common.base.Preconditions;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import javax.swing.Timer;
+import org.jjazz.chordleadsheet.api.event.ClsActionEvent;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.song.api.Song;
+import org.jjazz.song.api.SongMetaEvents;
+import org.jjazz.song.api.SongMetaEvents.ClsSourceActionEvent;
+import org.jjazz.song.api.SongMetaEvents.SgsSourceActionEvent;
+import org.jjazz.songstructure.api.event.SgsActionEvent;
 
 /**
- * A helper class to be notified when a song and other elements have changed in a way that will impact music generation for that song.
+ * Notify listeners via the PROP_MUSIC_GENERATION_COMBINED change event when a Song or its MidiMix or PlaybackSettings have changed in a way that impacts the
+ * music generation for that song.
  * <p>
- * The class fires a PROP_CHANGED change event when it receives a PROP_MUSIC_GENERATION property change from Song, MidiMix, and
- * PlaybackSettings.
+ * Relies on SongMetaEvents.PROP_MUSIC_GENERATION, MidiMix.PROP_MUSIC_GENERATION and PlaybackSettings.PROP_MUSIC_GENERATION.
  * <p>
- * A black-list mechanism can be used to filter out some PROP_MUSIC_GENERATION source events. A delay can be set before firing the
- * ChangeEvent, in order to automatically filter out rapid successive changes.
+ * A black-list mechanism can be used to filter out some PROP_MUSIC_GENERATION source events. A delay can be set before firing the ChangeEvent, in order to
+ * automatically filter out rapid successive changes.
+ * <p>
  */
 public class SongMusicGenerationListener implements PropertyChangeListener
 {
 
     /**
-     * oldValue = the name of the Song/MidiMix/PlaybackSettings source property change event (PROP_MUSIC_GENERATION).<br>
-     * newValue = optional data associated to the source property change event (PROP_MUSIC_GENERATION).
+     * Song or MidiMix or PlaybackSettings have changed in a way that impacts music generation.
+     * <p>
+     * oldValue = the source change event. It can be a ClsSourceActionEvent, a SgsSourceActionEvent or a Song/MidiMix/PlaybackSettings property name.<br>
+     * newValue = optional data associated to the source change event.
      */
-    public static final String PROP_CHANGED = "PropChanged";
-    private Set<String> blackList;
-
+    public static final String PROP_MUSIC_GENERATION_COMBINED = "PropMusicGenerationCombined";
+    private Set<Object> blackList;
     private final Song song;
     private final MidiMix midiMix;
     private final int preFireChangeEventDelayMs;
     private final Timer timer;
-    private String lastSourcePropName;
+    private Object lastSourceEvent;
     private Object lastData;
+    private final SongMetaEvents songMetaEvents;
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
 
@@ -64,18 +75,24 @@ public class SongMusicGenerationListener implements PropertyChangeListener
      *
      * @param song
      * @param midiMix
-     * @param preFireChangeEventDelayMs The delay in ms before firing a PROP_CHANGED event.
+     * @param preFireChangeEventDelayMs The delay in ms before firing a PROP_MUSIC_GENERATION_COMBINED event.
      * @see #getPreFireChangeEventDelayMs()
      */
     public SongMusicGenerationListener(Song song, MidiMix midiMix, int preFireChangeEventDelayMs)
     {
         Preconditions.checkArgument(preFireChangeEventDelayMs >= 0, "preFireChangeEventDelayMs=%s", preFireChangeEventDelayMs);
+        this.blackList = new HashSet<>();
         this.song = song;
         this.midiMix = midiMix;
         this.preFireChangeEventDelayMs = preFireChangeEventDelayMs;
-        this.song.addPropertyChangeListener(Song.PROP_MUSIC_GENERATION, this);
+
+
+        // Listen to changes
+        this.songMetaEvents = SongMetaEvents.getInstance(song);
+        this.songMetaEvents.addPropertyChangeListener(SongMetaEvents.PROP_MUSIC_GENERATION, this);
         this.midiMix.addPropertyChangeListener(MidiMix.PROP_MUSIC_GENERATION, this);
         PlaybackSettings.getInstance().addPropertyChangeListener(PlaybackSettings.PROP_MUSIC_GENERATION, this);
+
 
         if (preFireChangeEventDelayMs > 0)
         {
@@ -99,16 +116,16 @@ public class SongMusicGenerationListener implements PropertyChangeListener
 
     public void cleanup()
     {
-        this.song.removePropertyChangeListener(Song.PROP_MUSIC_GENERATION, this);
+        this.songMetaEvents.removePropertyChangeListener(SongMetaEvents.PROP_MUSIC_GENERATION, this);
         this.midiMix.removePropertyChangeListener(MidiMix.PROP_MUSIC_GENERATION, this);
         PlaybackSettings.getInstance().removePropertyChangeListener(PlaybackSettings.PROP_MUSIC_GENERATION, this);
     }
 
 
     /**
-     * The delay to wait before firing a PROP_CHANGED event.
+     * The delay to wait before firing a PROP_MUSIC_GENERATION_COMBINED event.
      * <p>
-     * Delay is activated when receiving a PROP_MUSIC_GENERATION event. When the delay expires a PROP_CHANGED event is fired using the last
+     * Delay is activated when receiving a PROP_MUSIC_GENERATION event. When the delay expires a PROP_MUSIC_GENERATION_COMBINED event is fired using the last
      * PROP_MUSIC_GENERATION received while the delay was running.
      *
      * @return A value in milliseconds.
@@ -118,21 +135,30 @@ public class SongMusicGenerationListener implements PropertyChangeListener
         return preFireChangeEventDelayMs;
     }
 
-    public Set<String> getBlackList()
+    /**
+     * The blacklisted source PROP_MUSIC_GENERATION event types.
+     *
+     * @return Can not be null.
+     * @see #setBlackList(java.util.Set)
+     */
+    public Set<Object> getBlackList()
     {
-        return blackList;
+        return Collections.unmodifiableSet(blackList);
     }
 
     /**
-     * Black list some source PROP_MUSIC_GENERATION events by their property name or actionId: those source events won't trigger a
-     * ChangeEvent from this instance.
+     * Black list some source PROP_MUSIC_GENERATION event types.
      * <p>
-     * 
      *
-     * @param blackList Can be null. If not null use property names or actionId of Song, ChordLeadSheet, SongStructure, MidiMix, or PlaybackSettings.
+     * @param blackList Can not be null. If not empty must contain Song/MidiMix/PlaybackSettings property names or ClsActionEvent.API_IDs or
+     *                  SgsActionEvent.API_IDs
      */
-    public void setBlackList(Set<String> blackList)
+    public void setBlackList(Set<Object> blackList)
     {
+        Objects.requireNonNull(blackList);
+        Preconditions.checkArgument(blackList.stream().allMatch(o
+                -> o instanceof String || o instanceof ClsActionEvent.API_ID || o instanceof SgsActionEvent.API_ID),
+                "blackList=%s", blackList);
         this.blackList = blackList;
     }
 
@@ -157,24 +183,35 @@ public class SongMusicGenerationListener implements PropertyChangeListener
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        // evt is a PROP_MUSIC_GENERATION event: oldValue = source property name or actionId, newValue=optional data
-        if (blackList != null && blackList.contains(evt.getOldValue().toString()))
+        // evt is a PROP_MUSIC_GENERATION event from SongMetaEvents, MidiMix or PlaybackListener
+        Object srcEvent = evt.getOldValue();
+        Object key = switch (srcEvent)
+        {
+            case String s ->
+                s;
+            case ClsSourceActionEvent csae ->
+                csae.getApiId();
+            case SgsSourceActionEvent ssae ->
+                ssae.getApiId();
+            default -> throw new IllegalStateException("srcEvent=" + srcEvent);
+        };
+        if (blackList.contains(key))
         {
             return;
         }
 
-        fireChangeEventMaybe(evt.getOldValue().toString(), evt.getNewValue());
+        fireChangeEventMaybe(srcEvent, evt.getNewValue());
     }
 
     // =================================================================================================================
     // Private methods
     // =================================================================================================================
 
-    private void fireChangeEventMaybe(String sourcePropName, Object data)
+    private void fireChangeEventMaybe(Object sourceEvent, Object data)
     {
         if (timer == null)
         {
-            fireChangeEvent(sourcePropName, data);
+            fireChangeEvent(sourceEvent, data);
             return;
         }
 
@@ -185,27 +222,27 @@ public class SongMusicGenerationListener implements PropertyChangeListener
                 timer.start();
             }
 
-            lastSourcePropName = sourcePropName;
+            lastSourceEvent = sourceEvent;
             lastData = data;
         }
     }
 
-    private void fireChangeEvent(String sourcePropName, Object data)
+    private void fireChangeEvent(Object sourceEvent, Object data)
     {
-        pcs.firePropertyChange(PROP_CHANGED, sourcePropName, data);
+        pcs.firePropertyChange(PROP_MUSIC_GENERATION_COMBINED, sourceEvent, data);
     }
 
     private void timerElapsed()
     {
-        assert lastSourcePropName != null;
-        String prop;
+        assert lastSourceEvent != null;
+        Object sourceEvent;
         Object data;
         synchronized (this)
         {
-            prop = lastSourcePropName;
+            sourceEvent = lastSourceEvent;
             data = lastData;
         }
-        fireChangeEvent(prop, data);
+        fireChangeEvent(sourceEvent, data);
     }
 
 }

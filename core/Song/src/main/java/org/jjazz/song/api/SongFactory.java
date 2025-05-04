@@ -27,8 +27,9 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyVetoException;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Collections;
 import java.util.Objects;
+import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.TimeSignature;
@@ -77,23 +78,22 @@ public class SongFactory implements PropertyChangeListener
     }
 
     /**
-     * All songs created by this object are automatically registered.
      *
-     *
-     * @return A list of the songs registered by this object.
+     * @return An unmodifiable set of the songs registered by this factory.
      */
-    public List<Song> getRegisteredSongs()
+    public Set<Song> getRegisteredSongs()
     {
-        return new ArrayList<>(songs.keySet());
+        return Collections.unmodifiableSet(songs.keySet());
     }
 
     /**
-     * Register a song if it was not created by the SongManager.
+     * Register a song if it was not created by this SongFactory.
      *
      * @param sg
      */
     public void registerSong(Song sg)
     {
+        Objects.requireNonNull(sg);
         if (songs.put(sg, 0) == null)
         {
             sg.addPropertyChangeListener(this);
@@ -108,7 +108,8 @@ public class SongFactory implements PropertyChangeListener
      */
     public String getNewSongName(String baseName)
     {
-        Preconditions.checkArgument(baseName != null && !baseName.isBlank(), "baseName=%s", baseName);
+        Objects.requireNonNull(baseName);
+        Preconditions.checkArgument(!baseName.isBlank(), "baseName=%s", baseName);
         String name = baseName + counter;
         while (!isSongNameUsed(name))
         {
@@ -125,6 +126,7 @@ public class SongFactory implements PropertyChangeListener
      */
     public void unregisterSong(Song song)
     {
+        Objects.requireNonNull(song);
         songs.remove(song);
         song.removePropertyChangeListener(this);
     }
@@ -189,21 +191,37 @@ public class SongFactory implements PropertyChangeListener
     }
 
     /**
-     * Create a Song from the specified chordleadsheet.
+     * Create a Song from a SongStructure and its parent ChordLeadSheet.
      *
      * @param name
-     * @param cls
-     * @param sgs  Must be kept consistent with cls changes (sgs.getParentChordLeadSheet() must be non null)
+     * @param sgs  sgs.getParentChordLeadSheet() must be non null
      * @return
      * @throws UnsupportedEditException Can happen if too many timesignature changes resulting in not enough Midi channels for the various rhythms.
      */
-    public Song createSong(String name, ChordLeadSheet cls, SongStructure sgs) throws UnsupportedEditException
+    public Song createSong(String name, SongStructure sgs) throws UnsupportedEditException
     {
-        if (name == null || name.isEmpty() || cls == null || sgs == null)
+        return createSong(name, sgs, false);
+    }
+
+    /**
+     * Create a Song from a SongStructure and its parent ChordLeadSheet, possibly unlinked.
+     *
+     * @param name
+     * @param sgs          sgs.getParentChordLeadSheet() must be non null
+     * @param noClsSgsLink If true, there will be no automatic update between the ChordLeadSheet and the SongStructure. To be used with care only for special purposes (e.g. unit tests), as
+     *                     the Song might be in an inconsistent state.
+     * @return
+     * @throws UnsupportedEditException Can happen if too many timesignature changes resulting in not enough Midi channels for the various rhythms.
+     */
+    public Song createSong(String name, SongStructure sgs, boolean noClsSgsLink) throws UnsupportedEditException
+    {
+        Objects.requireNonNull(name);
+        Objects.requireNonNull(sgs);
+        if (name.isEmpty() || sgs.getParentChordLeadSheet() == null)
         {
-            throw new IllegalArgumentException("name=" + name + " cls=" + cls + " sgs=" + sgs);
+            throw new IllegalArgumentException("name=" + name + " sgs=" + sgs + " sgs.getParentChordLeadSheet()=" + sgs.getParentChordLeadSheet());
         }
-        Song song = new Song(name, cls, sgs, false);
+        Song song = new Song(name, sgs, noClsSgsLink);
         registerSong(song);
         return song;
     }
@@ -391,11 +409,11 @@ public class SongFactory implements PropertyChangeListener
             throw new IllegalArgumentException("song");
         }
         ChordLeadSheet cls = ChordLeadSheetFactory.getDefault().getCopy(song.getChordLeadSheet());
-        SongStructure ss = null;
+        SongStructure sgs = null;
         try
         {
-            ss = SongStructureFactory.getDefault().createSgs(cls);     // Can raise UnsupportedEditException
-            ss.removeSongParts(ss.getSongParts());
+            sgs = SongStructureFactory.getDefault().createSgs(cls);     // Can raise UnsupportedEditException
+            sgs.removeSongParts(sgs.getSongParts());
 
 
             // Get a copy for each SongPart
@@ -410,14 +428,15 @@ public class SongFactory implements PropertyChangeListener
 
 
             // Add new song parts in one shot to avoid issue if an AdaptedRhythm is used      
-            ss.addSongParts(newSpts);            // Can raise UnsupportedEditException     
+            sgs.addSongParts(newSpts);            // Can raise UnsupportedEditException    
+
         } catch (UnsupportedEditException ex)
         {
-            throw new IllegalArgumentException("getCopyUnlinked() failed. Song's name=" + song.getName() + " ss=" + ss, ex);
+            throw new IllegalArgumentException("getCopyUnlinked() failed. Song's name=" + song.getName() + " ss=" + sgs, ex);
         }
 
         // Now create the song copy
-        Song s = new Song(song.getName(), cls, ss, true);       // unlinked
+        Song s = new Song(song.getName(), sgs, true);       // unlinked
         s.setComments(song.getComments());
         s.setTempo(song.getTempo());
         s.setTags(song.getTags());

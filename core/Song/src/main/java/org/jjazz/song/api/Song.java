@@ -22,6 +22,7 @@
  */
 package org.jjazz.song.api;
 
+import com.google.common.base.Preconditions;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import com.thoughtworks.xstream.XStream;
@@ -50,6 +51,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Level;
@@ -80,7 +82,7 @@ import org.openide.util.lookup.ServiceProvider;
 /**
  * The song object.
  * <p>
- * Contents are a chord leadsheet, the related song structure, some parameters and some optional client properties.<br>
+ * Contains a chord leadsheet, a song structure, some parameters, optional user phrases and client properties.<br>
  * Songs can be created using the SongFactory methods.
  */
 public class Song implements Serializable, PropertyChangeListener
@@ -113,9 +115,10 @@ public class Song implements Serializable, PropertyChangeListener
      */
     public static final String PROP_VETOABLE_USER_PHRASE = "PROP_VETOABLE_USER_PHRASE";
     /**
-     * An existing phrase was replaced by another.
+     * A user phrase was modified (notes changes) or replaced by another one.
      * <p>
-     * oldValue=old_phrase, newValue=name_of_phrase.
+     * oldValue=old_phrase if phrase was replaced, or null if it was modified<br>
+     * newValue=name_of_phrase
      */
     public static final String PROP_VETOABLE_USER_PHRASE_CONTENT = "PROP_VETOABLE_USER_PHRASE_CONTENT";
     /**
@@ -142,7 +145,6 @@ public class Song implements Serializable, PropertyChangeListener
     private transient File file;
     private transient boolean saveNeeded = false;
     private boolean closed;
-    private transient int lastSize;
     /**
      * The listeners for undoable edits in this LeadSheet.
      */
@@ -164,34 +166,30 @@ public class Song implements Serializable, PropertyChangeListener
      */
     protected Song(String name, ChordLeadSheet cls) throws UnsupportedEditException
     {
-        this(name, cls, SongStructureFactory.getDefault().createSgs(cls), false);
+        this(name, SongStructureFactory.getDefault().createSgs(cls), false);
     }
 
     /**
-     * Constructor for the SerializationProxy only.
+     * This is a protected method: use the SongFactory to create song instances.
      * <p>
      *
      * @param name
-     * @param cls
-     * @param sgs               sgs.getParentChordLeadSheet() must return cls
-     * @param disableClsSgsLink If true SongStructure and ChordLeadSheet are not linked
+     * @param sgs          sgs.getParentChordLeadSheet() must be non-null
+     * @param noClsSgsLink If true SongStructure and ChordLeadSheet are not linked (to be used only in special cases, Song might end up in an inconsistent
+     *                     state)
      */
-    protected Song(String name, ChordLeadSheet cls, SongStructure sgs, boolean disableClsSgsLink)
+    protected Song(String name, SongStructure sgs, boolean noClsSgsLink)
     {
-        if (name == null || name.trim().isEmpty() || cls == null || sgs == null || sgs.getParentChordLeadSheet() != cls)
-        {
-            throw new IllegalArgumentException("name=" + name + " cls=" + cls + " sgs=" + sgs
-                    + " sgs.getParentChordLeadSheet()=" + sgs.getParentChordLeadSheet());
-        }
+        Preconditions.checkArgument(name != null && !name.isBlank(), "name=%s", name);
+        Objects.requireNonNull(sgs);
+        Objects.requireNonNull(sgs.getParentChordLeadSheet());
+
         setName(name);
-        chordLeadSheet = cls;
+        chordLeadSheet = sgs.getParentChordLeadSheet();
         songStructure = sgs;
 
-        
-        clsSgsUpdater = disableClsSgsLink ? null : new ClsSgsUpdater(this);
 
-
-        lastSize = songStructure.getSizeInBars();
+        clsSgsUpdater = noClsSgsLink ? null : new ClsSgsUpdater(this);
 
 
         // Mark song as modified if client properties are changed
@@ -281,7 +279,7 @@ public class Song implements Serializable, PropertyChangeListener
     /**
      * Set the user phrase for the specified name.
      * <p>
-     * If a user phrase was already associated to name, it's replaced. Fire a VeotableChange PROP_VETOABLE_USER_PHRASE if no phrase is replaced, otherwise use
+     * If a user phrase was already associated to name, it's replaced. Fire a VetoableChange PROP_VETOABLE_USER_PHRASE if no phrase is replaced, otherwise use
      * PROP_VETOABLE_USER_PHRASE_CONTENT. Actually the possibility of a veto is only when a new phrase is added (e.g. if MidiMix does not have an available Midi
      * channel). Other user phrase PROP_ events for simplicity only (one listener required).
      * <p>
@@ -1003,11 +1001,19 @@ public class Song implements Serializable, PropertyChangeListener
 
         if (e.getSource() instanceof Phrase p)
         {
-            // Listen to User phrases significant changes to mark the song as modified 
+            // Listen to User phrases changes 
             if (!Phrase.isAdjustingEvent(e.getPropertyName()))
             {
                 String phraseName = getPhraseName(p);
                 assert phraseName != null;
+                try
+                {
+                    vcs.fireVetoableChange(PROP_VETOABLE_USER_PHRASE_CONTENT, null, phraseName);
+                } catch (PropertyVetoException ex)
+                {
+                    // Should never happen
+                    Exceptions.printStackTrace(ex);
+                }
                 fireIsModified();
             }
         }
@@ -1149,7 +1155,8 @@ public class Song implements Serializable, PropertyChangeListener
 
         private Object readResolve() throws ObjectStreamException
         {
-            Song newSong = new Song(spName, spChordLeadSheet, spSongStructure, false);
+            assert spChordLeadSheet == spSongStructure.getParentChordLeadSheet();
+            Song newSong = new Song(spName, spSongStructure, false);
             newSong.setComments(spComments);
             newSong.setTags(spTags);
             newSong.setTempo(spTempo);

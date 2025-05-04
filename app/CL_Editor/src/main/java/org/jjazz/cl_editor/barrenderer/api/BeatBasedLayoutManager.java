@@ -22,8 +22,6 @@
  */
 package org.jjazz.cl_editor.barrenderer.api;
 
-import org.jjazz.cl_editor.barrenderer.api.BeatBasedBarRenderer;
-import org.jjazz.cl_editor.barrenderer.api.BarRenderer;
 import java.awt.*;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.TimeSignature;
@@ -46,6 +44,7 @@ public class BeatBasedLayoutManager implements LayoutManager
     /**
      * Return the Position that corresponds to the X-coordinate xPos in the BarRenderer.
      *
+     * @param br
      * @param xPos int The x position in the BarRenderer coordinates.
      * @return Position
      */

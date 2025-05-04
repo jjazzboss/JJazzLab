@@ -23,6 +23,7 @@
 package org.jjazz.improvisionsupport;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,17 +43,17 @@ import org.jjazz.harmony.api.Position;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackListener;
 import org.jjazz.song.api.Song;
-import org.jjazz.song.api.StructuralChangeListener;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.barbox.api.BarBoxConfig;
 import org.jjazz.cl_editor.spi.BarRendererFactory;
+import org.jjazz.song.api.SongMetaEvents;
 import org.jjazz.utilities.api.ResUtil;
 
 /**
  * A class to manage improvisation support for one CL_Editor.
  */
-public class ImproSupport
+public class ImproSupport implements PropertyChangeListener
 {
 
     public final static String PROP_MODE = "PropMode";
@@ -68,7 +69,7 @@ public class ImproSupport
     private boolean chordPositionsHidden;
     private boolean updateDuringPlayback;
     private ImproSupportPlaybackListener playbackListener;
-    private final StructuralChangeListener songListener;
+    private final SongMetaEvents songMetaEvents;
     private boolean dirty;
 
     private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
@@ -88,7 +89,8 @@ public class ImproSupport
         MusicController.getInstance().addPlaybackListener(playbackListener);
 
 
-        songListener = new StructuralChangeListener(clEditor.getSongModel(), ae -> songStructurallyChanged());
+        songMetaEvents = SongMetaEvents.getInstance(clEditor.getSongModel());
+        songMetaEvents.addPropertyChangeListener(SongMetaEvents.PROP_BAR_BEAT_SEQUENCE, this);
 
     }
 
@@ -99,7 +101,7 @@ public class ImproSupport
 
     public void cleanup()
     {
-        songListener.cleanup();
+        songMetaEvents.removePropertyChangeListener(SongMetaEvents.PROP_BAR_BEAT_SEQUENCE, this);
         MusicController.getInstance().removePlaybackListener(playbackListener);
     }
 
@@ -227,8 +229,19 @@ public class ImproSupport
     {
         pcs.removePropertyChangeListener(l);
     }
+    //================================================================================================
+    // PropertyChangeListener interface
+    //================================================================================================
 
-
+    @Override
+    public void propertyChange(PropertyChangeEvent evt)
+    {
+        if (evt.getSource() == songMetaEvents && evt.getPropertyName().equals(SongMetaEvents.PROP_BAR_BEAT_SEQUENCE))
+        {
+            songStructurallyChanged();
+        }
+        
+    }
     //================================================================================================
     // Private methods
     //================================================================================================
@@ -249,6 +262,7 @@ public class ImproSupport
      * @param level
      * @param oldScenario Can be null
      * @param addDenseSparse
+     * @return 
      */
     private PlayRestScenario generatePlayRestScenario(PlayRestScenario.Level level, PlayRestScenario oldScenario, boolean addDenseSparse)
     {
@@ -387,6 +401,7 @@ public class ImproSupport
             spt = sptIndex == spts.size() ? null : spts.get(sptIndex);
         }
     }
+
 
     // ===================================================================================
     // Inner classes

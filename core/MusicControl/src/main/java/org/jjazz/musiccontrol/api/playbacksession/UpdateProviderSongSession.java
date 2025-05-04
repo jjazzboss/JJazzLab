@@ -30,6 +30,7 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.chordleadsheet.api.event.ClsActionEvent;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.UserRhythmVoice;
@@ -45,7 +46,15 @@ import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.UserErrorGenerationException;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_TempoFactor;
 import org.jjazz.song.api.Song;
+import org.jjazz.song.api.SongMetaEvents.ClsSourceActionEvent;
+import org.jjazz.song.api.SongMetaEvents.SgsSourceActionEvent;
 import org.jjazz.songcontext.api.SongContext;
+import org.jjazz.songstructure.api.event.SgsActionEvent;
+import static org.jjazz.songstructure.api.event.SgsActionEvent.API_ID.AddSongParts;
+import static org.jjazz.songstructure.api.event.SgsActionEvent.API_ID.RemoveSongParts;
+import static org.jjazz.songstructure.api.event.SgsActionEvent.API_ID.ReplaceSongParts;
+import static org.jjazz.songstructure.api.event.SgsActionEvent.API_ID.ResizeSongParts;
+import static org.jjazz.songstructure.api.event.SgsActionEvent.API_ID.SetRhythmParameterValue;
 import org.openide.awt.StatusDisplayer;
 import org.openide.util.*;
 
@@ -129,7 +138,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
                     enableUpdateControl,
                     loopCount,
                     endOfPlaybackAction);
-            
+
             sessions.add(newSession);
             LOGGER.fine("getSession() create new session");
             return newSession;
@@ -151,8 +160,8 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
     {
         return getSession(sgContext, true, true, true, true, true, PLAYBACK_SETTINGS_LOOP_COUNT, null);
     }
-    
-    
+
+
     private UpdateProviderSongSession(SongContext sgContext,
             boolean enablePlaybackTransposition,
             boolean includeClickTrack, boolean includePrecountTrack, boolean includeControlTrack,
@@ -163,11 +172,11 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
                 enablePlaybackTransposition,
                 includeClickTrack, includePrecountTrack, includeControlTrack,
                 loopCount, endOfPlaybackAction, true);
-        
+
         isUpdateControlEnabled = enableUpdateControl;
         userErrorExceptionHandler = e -> StatusDisplayer.getDefault().setStatusText(e.getLocalizedMessage());
     }
-    
+
     @Override
     public UpdateProviderSongSession getFreshCopy(SongContext sgContext)
     {
@@ -180,9 +189,9 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
                 isUpdateControlEnabled,
                 getLoopCount(),
                 getEndOfPlaybackAction());
-        
+
         sessions.add(newSession);
-        
+
         return newSession;
     }
 
@@ -196,12 +205,12 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
     public void generate(boolean silent) throws MusicGenerationException
     {
         super.generate(silent);
-        
+
         var song = getSongContext().getSong();
         songMusicGenerationListener = new SongMusicGenerationListener(song, getSongContext().getMidiMix(), 0);  // 0ms because we can't miss an event which might disable updates
         songMusicGenerationListener.addPropertyChangeListener(this);
     }
-    
+
     @Override
     public void close()
     {
@@ -297,8 +306,8 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
         {
             return;
         }
-        
-        if (e.getSource() != songMusicGenerationListener || !e.getPropertyName().equals(SongMusicGenerationListener.PROP_CHANGED))
+
+        if (e.getSource() != songMusicGenerationListener || !e.getPropertyName().equals(SongMusicGenerationListener.PROP_MUSIC_GENERATION_COMBINED))
         {
             return;
         }
@@ -309,126 +318,150 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
         // - song has changed in a way that impacts music generation
         // - state==GENERATED
         //
-        // LOGGER.fine("propertyChange() e=" + e);
         boolean dirty = false;
         boolean doUpdate = false;
         boolean doDisableUpdates = false;
 
 
-        // Analyze the PROP_CHANGED change event origin
-        String id = (String) e.getOldValue();
+        // Analyze the PROP_MUSIC_GENERATION_COMBINED change event origin
+        Object sourceEvent = e.getOldValue();
         Object data = e.getNewValue();
-        
-        
-        LOGGER.log(Level.FINE, "propertyChange() -- id={0} data={1}", new Object[]
+
+
+        LOGGER.log(Level.FINE, "propertyChange() -- sourceEvent={0} data={1}", new Object[]
         {
-            id, data
+            sourceEvent, data
         });
-        
-        
-        switch (id)
+
+        switch (sourceEvent)
         {
-            //
-            // MidiMix source events
-            //                
-
-            case MidiMix.PROP_RHYTHM_VOICE_CHANNEL, MidiMix.PROP_RHYTHM_VOICE ->
+            case ClsSourceActionEvent csae ->
             {
-                doDisableUpdates = true;
-            }
-            case MidiMix.PROP_CHANNEL_INSTRUMENT_MIX ->
-            {
-                if (data instanceof UserRhythmVoice)
+                switch (csae.getApiId())
                 {
-                    // We can accept user channel removal                    
-                    doUpdate = true;
-                } else
-                {
-                    doDisableUpdates = true;
+                    case SetSizeInBars, AddSection, RemoveSection, MoveSection, InsertBars, DeleteBars, SetSectionTimeSignature ->
+                    {
+                        doDisableUpdates = true;
+                    }
+                    case AddItem, RemoveItem, MoveItem, ChangeItem ->
+                    {
+                        doUpdate = true;
+                    }
+                    case SetSectionName ->
+                    {
+                        // Nothing
+                    }
+                    default ->
+                    {
+                        throw new IllegalArgumentException("cae=" + csae);
+                    }
                 }
             }
-            case MidiMix.PROP_CHANNEL_DRUMS_REROUTED, MidiMix.PROP_DRUMS_INSTRUMENT_KEYMAP, MidiMix.PROP_INSTRUMENT_TRANSPOSITION, MidiMix.PROP_INSTRUMENT_VELOCITY_SHIFT ->
+            case SgsSourceActionEvent ssae ->
             {
-                doUpdate = true;
-            }
-
-
-            //
-            // PlaybackSettings source events
-            //       
-            case PlaybackSettings.PROP_CLICK_PITCH_HIGH, PlaybackSettings.PROP_CLICK_PITCH_LOW, PlaybackSettings.PROP_CLICK_PREFERRED_CHANNEL, PlaybackSettings.PROP_CLICK_VELOCITY_HIGH, PlaybackSettings.PROP_CLICK_VELOCITY_LOW, PlaybackSettings.PROP_CLICK_PRECOUNT_MODE, PlaybackSettings.PROP_CLICK_PRECOUNT_ENABLED ->
-            {
-                dirty = true;
-            }
-            case PlaybackSettings.PROP_PLAYBACK_KEY_TRANSPOSITION, PlaybackSettings.PROP_PLAYBACK_CLICK_ENABLED ->
-            {
-                doUpdate = true;
-            }
-
-
-            //
-            // Song source events
-            //                                
-            case Song.PROP_VETOABLE_USER_PHRASE ->
-            {
-                String phraseName = (String) data;
-                if (getSongContext().getSong().getUserPhrase(phraseName) == null)
+                switch (ssae.getApiId())
                 {
-                    // A user phrase was removed: this is supported by the UpdatableSongSession
-                    doUpdate = true;
-                } else
-                {
-                    // A user phrase was added
-                    doDisableUpdates = true;
+                    case AddSongParts, RemoveSongParts, ResizeSongParts, ReplaceSongParts ->
+                    {
+                        doDisableUpdates = true;
+                    }
+                    case SetRhythmParameterValue, SetRhythmParameterMutableValue ->
+                    {
+                        if (data instanceof RP_SYS_TempoFactor)
+                        {
+                            // UpdatableSongSession can't update this in realtime                      
+                            dirty = true;
+                        } else
+                        {
+                            doUpdate = true;
+                        }
+                    }
+                    case setSongPartsName ->
+                    {
+                        // Nothing
+                    }
+                    default ->
+                    {
+                        throw new IllegalArgumentException("sae=" + ssae);
+                    }
                 }
             }
-            case Song.PROP_VETOABLE_USER_PHRASE_CONTENT, Song.PROP_TEMPO ->
+            case String s ->
             {
-                doUpdate = true;
-            }
-
-            //
-            // ChordLeadSheet source events
-            //   
-            case "setSize", "addSection", "removeSection", "moveSection", "insertBars", "deleteBars", "setSectionTimeSignature" ->
-            {
-                doDisableUpdates = true;
-            }
-            case "addItem", "removeItem", "moveItem", "changeItem" ->
-            {
-                doUpdate = true;
-            }
-
-
-            //
-            // SongStructure source events
-            //   
-            case "addSongParts", "removeSongParts", "resizeSongParts", "replaceSongParts" ->
-            {
-                doDisableUpdates = true;
-            }
-            case "setRhythmParameterValue", "setRhythmParameterValueContent" ->
-            {
-                if (data instanceof RP_SYS_TempoFactor)
+                switch (s)
                 {
-                    // UpdatableSongSession can't update this in realtime                      
-                    dirty = true;
-                } else
-                {
-                    doUpdate = true;
+                    //
+                    // MidiMix source events
+                    //                
+
+                    case MidiMix.PROP_RHYTHM_VOICE_CHANNEL, MidiMix.PROP_RHYTHM_VOICE ->
+                    {
+                        doDisableUpdates = true;
+                    }
+                    case MidiMix.PROP_CHANNEL_INSTRUMENT_MIX ->
+                    {
+                        if (data instanceof UserRhythmVoice)
+                        {
+                            // We can accept user channel removal                    
+                            doUpdate = true;
+                        } else
+                        {
+                            doDisableUpdates = true;
+                        }
+                    }
+                    case MidiMix.PROP_CHANNEL_DRUMS_REROUTED, MidiMix.PROP_DRUMS_INSTRUMENT_KEYMAP, MidiMix.PROP_INSTRUMENT_TRANSPOSITION, MidiMix.PROP_INSTRUMENT_VELOCITY_SHIFT ->
+                    {
+                        doUpdate = true;
+                    }
+
+
+                    //
+                    // PlaybackSettings source events
+                    //       
+                    case PlaybackSettings.PROP_CLICK_PITCH_HIGH, PlaybackSettings.PROP_CLICK_PITCH_LOW, PlaybackSettings.PROP_CLICK_PREFERRED_CHANNEL, PlaybackSettings.PROP_CLICK_VELOCITY_HIGH, PlaybackSettings.PROP_CLICK_VELOCITY_LOW, PlaybackSettings.PROP_CLICK_PRECOUNT_MODE, PlaybackSettings.PROP_CLICK_PRECOUNT_ENABLED ->
+                    {
+                        dirty = true;
+                    }
+                    case PlaybackSettings.PROP_PLAYBACK_KEY_TRANSPOSITION, PlaybackSettings.PROP_PLAYBACK_CLICK_ENABLED ->
+                    {
+                        doUpdate = true;
+                    }
+
+
+                    //
+                    // Song property events
+                    //                                
+                    case Song.PROP_VETOABLE_USER_PHRASE ->
+                    {
+                        String phraseName = (String) data;
+                        if (getSongContext().getSong().getUserPhrase(phraseName) == null)
+                        {
+                            // A user phrase was removed: this is supported by the UpdatableSongSession
+                            doUpdate = true;
+                        } else
+                        {
+                            // A user phrase was added
+                            doDisableUpdates = true;
+                        }
+                    }
+                    case Song.PROP_VETOABLE_USER_PHRASE_CONTENT, Song.PROP_TEMPO ->
+                    {
+                        doUpdate = true;
+                    }
+
+
+                    default ->
+                    {
+                        throw new IllegalArgumentException("s=" + s);
+                    }
                 }
             }
-            
-            
             default ->
             {
-                LOGGER.log(Level.WARNING, "propertyChange() Ignoring unrecognized event id={0} data={1}", new Object[]
-                {
-                    id, data
-                });
+                throw new IllegalArgumentException("sourceEvent=" + sourceEvent);
             }
         }
-        
+
         
         LOGGER.log(Level.FINE,
                 "propertyChange() output: dirty={0} doUpdate={1} doDisableUpdates={2}", new Object[]
@@ -436,7 +469,8 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
                     dirty, doUpdate, doDisableUpdates
                 }
         );
-        
+
+
         if (doDisableUpdates)
         {
             disableUpdates();
@@ -455,7 +489,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
                 }
             }
         }
-        
+
     }
 
 
@@ -467,7 +501,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
     {
         return update;
     }
-    
+
     @Override
     public boolean isUpdateProvisionEnabled()
     {
@@ -528,7 +562,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
                     musicGenerationQueue.getLastAddedSongContext());
             Exceptions.printStackTrace(e);
         }
-        
+
     }
 
 
@@ -609,7 +643,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
 
         // Create a new control track
         ControlTrack cTrack = null;
-        
+
         if (isControlTrackEnabled && isControlTrackIncluded())
         {
             var sessionCtrack = getControlTrack();      // Might be null if session was closed in the meantime (usually we're NOT on the Swing EDT!)
@@ -683,5 +717,5 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
         }
         return sb.toString();
     }
-    
+
 }

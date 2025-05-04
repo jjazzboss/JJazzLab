@@ -35,14 +35,14 @@ import org.jjazz.rhythm.api.Rhythm;
  */
 public class RP_BassStyle extends RP_State
 {
-    
+
     public static final String AUTO_MODE_VALUE = "auto";
     public static final ImmutableBiMap<BassStyle, String> BIMAP_STYLE_RPVALUE = ImmutableBiMap.of(
             BassStyle.TWO_FEEL, "2-feel",
             BassStyle.WALKING, "walking",
             BassStyle.WALKING_DOUBLE, "walking-double"
     );
-    
+
     public RP_BassStyle(boolean isPrimary)
     {
         super("BassStyleId", "Bass style", "Adjust bass style", isPrimary, AUTO_MODE_VALUE,
@@ -93,13 +93,12 @@ public class RP_BassStyle extends RP_State
                 BassStyle.WALKING_DOUBLE;
             case "Main D-1", "Main D-2" ->
                 BassStyle.WALKING;
-            case "Intro A", "Intro B", "Intro C", "Ending A", "Ending B", "Ending C", "Fill In AA","Fill In BB","Fill In CC","Fill In DD","Fill In BA" ->
+            default ->
                 BassStyle.WALKING;
-            default -> throw new IllegalArgumentException("rpVariationValue=" + rpVariationValue);
         };
         return toRpValue(style);
     }
-    
+
     static public RP_BassStyle get(Rhythm r)
     {
         return r.getRhythmParameters().stream()
@@ -108,5 +107,5 @@ public class RP_BassStyle extends RP_State
                 .findFirst()
                 .orElse(null);
     }
-    
+
 }

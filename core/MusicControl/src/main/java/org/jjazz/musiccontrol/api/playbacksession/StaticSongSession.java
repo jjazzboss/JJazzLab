@@ -28,6 +28,8 @@ import java.util.ArrayList;
 import java.util.List;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
+import org.jjazz.musiccontrol.api.SongMusicGenerationListener;
+import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.Song;
 import org.jjazz.songcontext.api.SongContext;
 
@@ -39,24 +41,22 @@ public class StaticSongSession extends BaseSongSession
 {
 
     private static final List<StaticSongSession> sessions = new ArrayList<>();
-
+    private SongMusicGenerationListener songMusicGenerationListener;
 
     /**
      * Create or reuse a session for the specified parameters.
      * <p>
      * <p>
-     * Sessions are cached: if a non-dirty session in the NEW or GENERATED state already exists for the same parameters then
-     * return it, otherwise a new session is created.
+     * Sessions are cached: if a non-dirty session in the NEW or GENERATED state already exists for the same parameters then return it, otherwise a new session
+     * is created.
      * <p>
      *
      * @param sgContext
      * @param enablePlaybackTransposition If true apply the playback transposition
-     * @param includeClickTrack           If true add the click track, and its muted/unmuted state will depend on the
-     *                                    PlaybackSettings
+     * @param includeClickTrack           If true add the click track, and its muted/unmuted state will depend on the PlaybackSettings
      * @param includePrecountTrack        If true add the precount track, and loopStartTick will depend on the PlaybackSettings
      * @param includeControlTrack         if true add a control track (beat positions + chord symbol markers)
-     * @param loopCount                   See Sequencer.setLoopCount(). Use PLAYBACK_SETTINGS_LOOP_COUNT to rely on the
-     *                                    PlaybackSettings instance value.
+     * @param loopCount                   See Sequencer.setLoopCount(). Use PLAYBACK_SETTINGS_LOOP_COUNT to rely on the PlaybackSettings instance value.
      * @param endOfPlaybackAction         Action executed when playback is stopped. Can be null.
      * @return A session in the NEW or GENERATED state.
      */
@@ -101,10 +101,27 @@ public class StaticSongSession extends BaseSongSession
         return getSession(sgContext, true, true, true, true, PLAYBACK_SETTINGS_LOOP_COUNT, null);
     }
 
+
     private StaticSongSession(SongContext sgContext, boolean enablePlaybackTransposition, boolean enableClickTrack,
             boolean enablePrecountTrack, boolean enableControlTrack, int loopCount, ActionListener endOfPlaybackAction)
     {
         super(sgContext, enablePlaybackTransposition, enableClickTrack, enablePrecountTrack, enableControlTrack, loopCount, endOfPlaybackAction, true);
+    }
+
+    /**
+     * Overridden to add our songMusicGenerationListener.
+     *
+     * @param silent
+     * @throws MusicGenerationException
+     */
+    @Override
+    public void generate(boolean silent) throws MusicGenerationException
+    {
+        super.generate(silent);
+
+        var song = getSongContext().getSong();
+        songMusicGenerationListener = new SongMusicGenerationListener(song, getSongContext().getMidiMix(), 0);  // 0ms because we can't miss an event which might disable updates
+        songMusicGenerationListener.addPropertyChangeListener(this);
     }
 
     @Override
@@ -112,6 +129,8 @@ public class StaticSongSession extends BaseSongSession
     {
         super.close();
         sessions.remove(this);
+        songMusicGenerationListener.removePropertyChangeListener(this);
+        songMusicGenerationListener.cleanup();
     }
 
     // ============================================================================================
@@ -128,30 +147,7 @@ public class StaticSongSession extends BaseSongSession
         }
 
         //LOGGER.fine("propertyChange() e=" + e);
-
-        boolean dirty = false;
-        if (e.getSource() == getSongContext().getSong())
-        {
-            if (e.getPropertyName().equals(Song.PROP_MUSIC_GENERATION))
-            {
-                dirty = true;
-            }
-        } else if (e.getSource() == getSongContext().getMidiMix())
-        {
-            if (e.getPropertyName().equals(MidiMix.PROP_MUSIC_GENERATION))
-            {
-                dirty = true;
-            }
-
-        } else if (e.getSource() == PlaybackSettings.getInstance())
-        {
-            if (e.getPropertyName().equals(PlaybackSettings.PROP_MUSIC_GENERATION))
-            {
-                dirty = true;
-            }
-        }
-
-        if (dirty)
+        if (e.getSource() == songMusicGenerationListener && e.getPropertyName().equals(SongMusicGenerationListener.PROP_MUSIC_GENERATION_COMBINED))
         {
             setDirty();
         }

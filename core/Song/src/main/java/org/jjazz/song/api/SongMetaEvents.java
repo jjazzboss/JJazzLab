@@ -30,6 +30,7 @@ import java.beans.PropertyChangeSupport;
 import java.beans.PropertyVetoException;
 import java.beans.VetoableChangeListener;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,8 +45,10 @@ import static org.jjazz.chordleadsheet.api.event.ClsActionEvent.API_ID.MoveSecti
 import static org.jjazz.chordleadsheet.api.event.ClsActionEvent.API_ID.RemoveSection;
 import static org.jjazz.chordleadsheet.api.event.ClsActionEvent.API_ID.SetSectionTimeSignature;
 import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
+import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.event.SgsActionEvent;
+import static org.jjazz.songstructure.api.event.SgsActionEvent.API_ID.SetRhythmParameterMutableValue;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
 
 /**
@@ -57,44 +60,72 @@ public class SongMetaEvents implements ClsChangeListener, SgsChangeListener, Pro
 {
 
     /**
-     * Combine one source ClsActionEvent and its related SgsActionEvent sub-events.
+     * A special ClsActionEvent which stores its related SgsActionEvent sub-events.
      * <p>
      * Using a ChordLeadSheet API method will often impact the SongStructure as well, possibly with several sub-changes: e.g. reducing ChordLeadSheet size in
-     * bars might remove and resize SongParts in the SongStructure.
+     * bars might remove and resize SongParts in the SongStructure. This class allows to save most of this information (other possible source is
+     * JJazzUndoManager).
      */
-    public record ClsSourceActionEvent(ClsActionEvent clsSourceEvent, List<SgsActionEvent> sgsSubEvents)
-            {
+    public static class ClsSourceActionEvent extends ClsActionEvent
+    {
 
-        public ClsSourceActionEvent 
+        private final List<SgsActionEvent> sgsSubEvents = new ArrayList<>();
+
+        public ClsSourceActionEvent(ClsActionEvent cae)
         {
-            Objects.requireNonNull(clsSourceEvent);
-            Objects.requireNonNull(sgsSubEvents);
+            super(cae.getSource(), cae.getApiId(), cae.getData());
+            cae.getSubEvents().forEach(e -> addSubEvent(e));
+        }
+
+        public void addSgsSubEvent(SgsActionEvent sae)
+        {
+            Objects.requireNonNull(sae);
+            sgsSubEvents.add(sae);
+        }
+
+        public List<SgsActionEvent> getSgsSubEvents()
+        {
+            return Collections.unmodifiableList(sgsSubEvents);
         }
     }
 
     /**
-     * Combine one source SgsActionEvent and its related ClsActionEvent sub-events.
+     * A special SgsActionEvent which stores its related ClsActionEvent sub-events.
      * <p>
      * Using a SongStructure API might impact in rare cases the ChordLeadSheet as well, possibly with several sub-changes: e.g. switching to a swing-feel rhythm
-     * in the SongStructure might change the position of chords in the ChordLeadSheet.
+     * in the SongStructure might change the position of chords in the ChordLeadSheet. This class allows to save most of this information (other possible source
+     * is JJazzUndoManager).
      */
-    public record SgsSourceActionEvent(SgsActionEvent sgsSourceEvent, List<ClsActionEvent> clsSubEvents)
-            {
+    public static class SgsSourceActionEvent extends SgsActionEvent
+    {
 
-        public SgsSourceActionEvent 
+        private final List<ClsActionEvent> clsSubEvents = new ArrayList<>();
+
+        public SgsSourceActionEvent(SgsActionEvent sae)
         {
-            Objects.requireNonNull(sgsSourceEvent);
-            Objects.requireNonNull(clsSubEvents);
+            super(sae.getSource(), sae.getApiId(), sae.getData());
+            sae.getSubEvents().forEach(e -> addSubEvent(e));
+        }
+
+        public void addClsSubEvent(ClsActionEvent sae)
+        {
+            Objects.requireNonNull(sae);
+            clsSubEvents.add(sae);
+        }
+
+        public List<ClsActionEvent> getClsSubEvents()
+        {
+            return Collections.unmodifiableList(clsSubEvents);
         }
     }
 
     /**
-     * Fired when the song modification initiated by a ChordLeadSheet or SongStructure or Song API method is complete.
+     * Fired when the song modification initiated by a ChordLeadSheet/SongStructure API method is complete.
      * <p>
-     * oldValue=the Song property name at the origin of the change, or null<br>
-     * newValue=a ClsSourceActionEvent or SgsSourceActionEvent, or null if it was a song property change<br>
+     * OldValue=tthe source ClsSourceActionEvent/SgsSourceActionEvent that initially triggered the change.<br>
+     * NewValue=the optional associated data
      */
-    public static final String PROP_SONG_API_CHANGE_COMPLETE = "PropSongAPIChangeComplete";
+    public static final String PROP_CLS_SGS_API_CHANGE_COMPLETE = "PropClsSgsAPIChangeComplete";
 
     /**
      * Fired when the "musical content" of the song is modified, i.e. any related music generation process should be updated or restarted.
@@ -102,15 +133,15 @@ public class SongMetaEvents implements ClsChangeListener, SgsChangeListener, Pro
      * Source changes might contain e.g. chord symbol changes, inserted bars, rhythm parameter value changes -but not a section name change. Because a rhythm
      * generation engine might adjust the generated music to the tempo, a song tempo change is considered as a musical content change.<p>
      * <p>
-     * OldValue=the Song property name or the source ClsActionEvent/SgsActionEvent that initially triggered the musical change.<br>
+     * OldValue=the Song property name or the source ClsSourceActionEvent/SgsSourceActionEvent that initially triggered the musical change.<br>
      * NewValue=the optional associated data
      */
-    public static final String PROP_MUSICAL_CONTENT = "PropMusicalContent";
+    public static final String PROP_MUSIC_GENERATION = "PropMusicGeneration";
 
     /**
      * Fired when at least one song bar was added/removed/moved, or a time signature was changed.
      * <p>
-     * OldValue=the source ClsActionEvent or SgsActionEvent that initially triggered the change.<br>
+     * OldValue=the source ClsSourceActionEvent/SgsSourceActionEvent that initially triggered the change.<br>
      * NewValue=the optional associated data
      */
     public static final String PROP_BAR_BEAT_SEQUENCE = "PropBarBeatSequence";
@@ -139,6 +170,8 @@ public class SongMetaEvents implements ClsChangeListener, SgsChangeListener, Pro
         this.song = song;
         this.song.addPropertyChangeListener(this);
         this.song.addVetoableChangeListener(this);
+        this.song.getChordLeadSheet().addClsChangeListener(this);
+        this.song.getSongStructure().addSgsChangeListener(this);
     }
 
     public void addPropertyChangeListener(PropertyChangeListener l)
@@ -183,7 +216,6 @@ public class SongMetaEvents implements ClsChangeListener, SgsChangeListener, Pro
                 }
                 case Song.PROP_TEMPO ->
                 {
-                    fireSongAPIChangeComplete(Song.PROP_TEMPO);
                     fireMusicalContentChanged(Song.PROP_TEMPO, e.getOldValue());
                 }
                 default ->
@@ -210,14 +242,13 @@ public class SongMetaEvents implements ClsChangeListener, SgsChangeListener, Pro
         {
             case Song.PROP_VETOABLE_USER_PHRASE ->
             {
-                fireSongAPIChangeComplete(Song.PROP_VETOABLE_USER_PHRASE);
                 String addedOrRemovedPhraseName = e.getOldValue() == null ? e.getNewValue().toString() : e.getOldValue().toString();
                 fireMusicalContentChanged(Song.PROP_VETOABLE_USER_PHRASE, addedOrRemovedPhraseName);
             }
             case Song.PROP_VETOABLE_USER_PHRASE_CONTENT ->
             {
-                fireSongAPIChangeComplete(Song.PROP_VETOABLE_USER_PHRASE_CONTENT);
-                fireMusicalContentChanged(Song.PROP_VETOABLE_USER_PHRASE_CONTENT, e.getNewValue().toString());
+                String phraseName = e.getNewValue().toString();
+                fireMusicalContentChanged(Song.PROP_VETOABLE_USER_PHRASE_CONTENT, phraseName);
             }
             default ->
             {
@@ -250,14 +281,14 @@ public class SongMetaEvents implements ClsChangeListener, SgsChangeListener, Pro
             // Save sub-events of the active SgsSourceActionEvent
             if (cae.isComplete())
             {
-                activeSgsSourceActionEvent.clsSubEvents().add(cae);
+                activeSgsSourceActionEvent.addClsSubEvent(cae);
             }
         } else if (activeClsSourceActionEvent == null)
         {
             // No active SourceActionEvent
             if (!cae.isComplete())
             {
-                activeClsSourceActionEvent = new ClsSourceActionEvent(cae, new ArrayList<>());
+                activeClsSourceActionEvent = new ClsSourceActionEvent(cae);
             }
         } else if (!cae.isComplete())
         {
@@ -265,7 +296,7 @@ public class SongMetaEvents implements ClsChangeListener, SgsChangeListener, Pro
         } else
         {
             // cae is complete, this is the end of our ClsSourceActionEvent
-            assert activeClsSourceActionEvent.clsSourceEvent().getApiId() == cae.getApiId() :
+            assert activeClsSourceActionEvent.getApiId() == cae.getApiId() :
                     "activeClsSourceActionEvent=" + activeClsSourceActionEvent + " cae=" + cae;
             fireSongAPIChangeComplete(activeClsSourceActionEvent);
         }
@@ -296,14 +327,14 @@ public class SongMetaEvents implements ClsChangeListener, SgsChangeListener, Pro
             // Save sub-events of the active ClsSourceActionEvent
             if (sae.isComplete())
             {
-                activeClsSourceActionEvent.sgsSubEvents().add(sae);
+                activeClsSourceActionEvent.addSgsSubEvent(sae);
             }
         } else if (activeSgsSourceActionEvent == null)
         {
             // No active SourceActionEvent
             if (!sae.isComplete())
             {
-                activeSgsSourceActionEvent = new SgsSourceActionEvent(sae, new ArrayList<>());
+                activeSgsSourceActionEvent = new SgsSourceActionEvent(sae);
             }
         } else if (!sae.isComplete())
         {
@@ -311,7 +342,7 @@ public class SongMetaEvents implements ClsChangeListener, SgsChangeListener, Pro
         } else
         {
             // sae is complete, this is the end of our SgsSourceActionEvent
-            assert activeSgsSourceActionEvent.sgsSourceEvent().getApiId() == sae.getApiId() :
+            assert activeSgsSourceActionEvent.getApiId() == sae.getApiId() :
                     "activeSgsSourceActionEvent=" + activeSgsSourceActionEvent + " sae=" + sae;
             fireSongAPIChangeComplete(activeSgsSourceActionEvent);
         }
@@ -320,47 +351,29 @@ public class SongMetaEvents implements ClsChangeListener, SgsChangeListener, Pro
     // Private methods
     // ===================================================================================================================    
 
-    /**
-     * Fire a PROP_MUSICAL_CONTENT property change event.
-     *
-     * @param songPropOrClsOrSgsActionEvent
-     * @param data
-     */
-    private void fireMusicalContentChanged(Object songPropOrClsOrSgsActionEvent, Object data)
+    private void fireMusicalContentChanged(Object src, Object data)
     {
-        pcs.firePropertyChange(PROP_MUSICAL_CONTENT, songPropOrClsOrSgsActionEvent, data);
+        assert src instanceof String || src instanceof ClsSourceActionEvent || src instanceof SgsSourceActionEvent;
+        pcs.firePropertyChange(PROP_MUSIC_GENERATION, src, data);
     }
 
-    /**
-     * Fire a PROP_BAR_BEAT_SEQUENCE property change event.
-     *
-     * @param songPropOrClsOrSgsActionEvent
-     * @param data
-     */
-    private void fireBarBeatSequenceChanged(Object songPropOrClsOrSgsActionEvent, Object data)
+    private void fireBarBeatSequenceChanged(Object src, Object data)
     {
-        pcs.firePropertyChange(PROP_BAR_BEAT_SEQUENCE, songPropOrClsOrSgsActionEvent, data);
+        assert src instanceof ClsSourceActionEvent || src instanceof SgsSourceActionEvent;
+        pcs.firePropertyChange(PROP_BAR_BEAT_SEQUENCE, src, data);
     }
 
-    private void fireSongAPIChangeComplete(String songPropertyName)
-    {
-        Objects.requireNonNull(songPropertyName);
-        assert activeClsSourceActionEvent == null;
-        assert activeSgsSourceActionEvent == null;
-        pcs.firePropertyChange(PROP_SONG_API_CHANGE_COMPLETE, songPropertyName, null);
-    }
-
-    private void fireSongAPIChangeComplete(ClsSourceActionEvent csae)
+     private void fireSongAPIChangeComplete(ClsSourceActionEvent csae)
     {
         Objects.requireNonNull(csae);
-        pcs.firePropertyChange(PROP_SONG_API_CHANGE_COMPLETE, null, csae);
+        pcs.firePropertyChange(PROP_CLS_SGS_API_CHANGE_COMPLETE, csae, csae.getData());
         activeClsSourceActionEvent = null;
 
 
         // We can fire other events
         boolean musicalContentChanged = false;
         boolean barBeatSequenceChanged = false;
-        switch (csae.clsSourceEvent().getApiId())
+        switch (csae.getApiId())
         {
             case SetSectionName ->
             {
@@ -370,12 +383,24 @@ public class SongMetaEvents implements ClsChangeListener, SgsChangeListener, Pro
                 musicalContentChanged = true;
                 barBeatSequenceChanged = true;
             }
-            case AddSection, RemoveSection, MoveSection ->
+            case AddSection, RemoveSection ->
             {
-                musicalContentChanged = true;       // actually could be false in specific cases, depends on time signature changes and how songparts are impacted
-                barBeatSequenceChanged = true;      // idem
+                musicalContentChanged = !csae.sgsSubEvents.isEmpty();       // Change if SongStructure was impacted
+                barBeatSequenceChanged = musicalContentChanged;
             }
-            case AddItem, RemoveItem, ChangeItem, MoveItem ->
+            case MoveSection ->
+            {
+                musicalContentChanged = true;
+                barBeatSequenceChanged = true;
+            }
+            case AddItem, RemoveItem, ChangeItem ->
+            {
+                // There is a music change only if a SongPart is impacted
+                ChordLeadSheetItem<?> item = (ChordLeadSheetItem<?>) csae.getData();
+                var cliSection = song.getChordLeadSheet().getSection(item.getPosition().getBar());
+                musicalContentChanged = song.getSongStructure().getSongParts().stream().anyMatch(spt -> spt.getParentSection() == cliSection);
+            }
+            case MoveItem ->
             {
                 musicalContentChanged = true;
             }
@@ -384,17 +409,17 @@ public class SongMetaEvents implements ClsChangeListener, SgsChangeListener, Pro
                 musicalContentChanged = true;
                 barBeatSequenceChanged = true;
             }
-            default -> throw new AssertionError(csae.clsSourceEvent().getApiId());
+            default -> throw new AssertionError(csae.getApiId());
         }
 
         if (musicalContentChanged)
         {
-            fireMusicalContentChanged(csae, csae.clsSourceEvent().getData());
+            fireMusicalContentChanged(csae, csae.getData());
         }
 
         if (barBeatSequenceChanged)
         {
-            fireBarBeatSequenceChanged(csae, csae.clsSourceEvent().getData());
+            fireBarBeatSequenceChanged(csae, csae.getData());
         }
 
     }
@@ -402,48 +427,37 @@ public class SongMetaEvents implements ClsChangeListener, SgsChangeListener, Pro
     private void fireSongAPIChangeComplete(SgsSourceActionEvent ssae)
     {
         Objects.requireNonNull(ssae);
-        pcs.firePropertyChange(PROP_SONG_API_CHANGE_COMPLETE, null, ssae);
+        pcs.firePropertyChange(PROP_CLS_SGS_API_CHANGE_COMPLETE, ssae, ssae.getData());
         activeSgsSourceActionEvent = null;
 
 
         // We can fire other events
         boolean musicalContentChanged = false;
         boolean barBeatSequenceChanged = false;
-        switch (ssae.sgsSourceEvent().getApiId())
+        switch (ssae.getApiId())
         {
-
-            case SetSectionName ->
-            {
-            }
-            case SetSectionTimeSignature ->
+            case AddSongParts, RemoveSongParts, ReplaceSongParts, ResizeSongParts ->
             {
                 musicalContentChanged = true;
                 barBeatSequenceChanged = true;
             }
-            case AddSection, RemoveSection, MoveSection ->
-            {
-                musicalContentChanged = true;       // actually could be false in specific cases, depends on time signature changes and how songparts are impacted
-                barBeatSequenceChanged = true;      // idem
-            }
-            case AddItem, RemoveItem, ChangeItem, MoveItem ->
+            case SetRhythmParameterValue, SetRhythmParameterMutableValue ->
             {
                 musicalContentChanged = true;
             }
-            case DeleteBars, InsertBars, SetSizeInBars ->
+            case setSongPartsName ->
             {
-                musicalContentChanged = true;
-                barBeatSequenceChanged = true;
             }
-            default -> throw new AssertionError(ssae.sgsSourceEvent().getApiId());
+            default -> throw new AssertionError(ssae.getApiId());
         }
 
         if (musicalContentChanged)
         {
-            fireMusicalContentChanged(ssae, ssae.sgsSourceEvent().getData());
+            fireMusicalContentChanged(ssae, ssae.getData());
         }
         if (barBeatSequenceChanged)
         {
-            fireBarBeatSequenceChanged(ssae, ssae.sgsSourceEvent().getData());
+            fireBarBeatSequenceChanged(ssae, ssae.getData());
         }
     }
 
@@ -451,6 +465,8 @@ public class SongMetaEvents implements ClsChangeListener, SgsChangeListener, Pro
     {
         song.removePropertyChangeListener(this);
         song.removeVetoableChangeListener(this);
+        song.getChordLeadSheet().removeClsChangeListener(this);
+        song.getSongStructure().removeSgsChangeListener(this);
     }
 
 }

@@ -34,7 +34,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.spi.MidiMixManager;
@@ -45,11 +44,8 @@ import org.jjazz.pianoroll.actions.PasteNotes;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.song.api.Song;
-import org.jjazz.songstructure.api.SgsChangeListener;
+import org.jjazz.song.api.SongMetaEvents;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.songstructure.api.event.SgsActionEvent;
-import org.jjazz.songstructure.api.event.SgsChangeEvent;
-import org.jjazz.songstructure.api.event.SgsClsActionEvent;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
 import org.jjazz.utilities.api.ResUtil;
@@ -64,9 +60,9 @@ import org.openide.windows.WindowManager;
 /**
  * A TopComponent to use a PianoRollEditor for a song phrase.
  * <p>
- * The TopComponent closes itself when song is closed and listen to SongStructure changes to update the edited range.
+ * The TopComponent closes itself when song is closed. 
  */
-public final class PianoRollEditorTopComponent extends TopComponent implements PropertyChangeListener, SgsChangeListener
+public final class PianoRollEditorTopComponent extends TopComponent implements PropertyChangeListener
 {
 
     // public static final String MODE = "midieditor";  // WindowManager mode
@@ -81,7 +77,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     private final MidiMix midiMix;
     private SongPart songPart;
     private String titleBase;
-    private boolean waitForSgsClsActionEventComplete;
+    private final SongMetaEvents songMetaEvents;
 
     private static final Logger LOGGER = Logger.getLogger(PianoRollEditorTopComponent.class.getSimpleName());
 
@@ -149,8 +145,9 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         song.addPropertyChangeListener(this);
 
 
-        // Listen to song structure changes: editor bounds can be impacted
-        song.getSongStructure().addSgsChangeListener(this);
+        // Listen to edited phrase bounds changes
+        songMetaEvents = SongMetaEvents.getInstance(song);
+        songMetaEvents.addPropertyChangeListener(SongMetaEvents.PROP_BAR_BEAT_SEQUENCE, this);
 
 
         refreshToolbarTitle();
@@ -387,7 +384,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     {
         LOGGER.fine("componentClosed() -- ");
         song.removePropertyChangeListener(this);
-        song.getSongStructure().removeSgsChangeListener(this);
+        songMetaEvents.removePropertyChangeListener(SongMetaEvents.PROP_BAR_BEAT_SEQUENCE, this);
         sidePanel.cleanup();
         editor.cleanup();
         toolbarPanel.cleanup();
@@ -452,71 +449,36 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
                     setDisplayName(getDefaultTabName(song));
                 }
             }
-        }
-    }
-
-    //=============================================================================
-    // SgsChangeListener interface
-    //=============================================================================
-    @Override
-    public void authorizeChange(SgsChangeEvent e) throws UnsupportedEditException
-    {
-        // Nothing
-    }
-
-    @Override
-    public void songStructureChanged(SgsChangeEvent e)
-    {
-        LOGGER.log(Level.FINE, "songStructureChanged() e={0}", e);
-
-        boolean doUpdate = false;
-
-
-        // We're only interested to update the editor when all song structure changes are complete, so we only listen to SgsActionEvents 
-        // to not be polluted by intermediate SgsChangeEvents.
-        // We can also ignore the SgsActionEvents from SgsUpdater which are enclosed in SgsClsActionEvents (fix Issue #508).
-        if (e instanceof SgsClsActionEvent scae)
+        } else if (evt.getSource() == songMetaEvents)
         {
-            if (waitForSgsClsActionEventComplete && scae.isActionComplete())
-            {
-                doUpdate = true;
-                waitForSgsClsActionEventComplete = false;
-            } else if (!waitForSgsClsActionEventComplete && scae.isActionStarted())
-            {
-                waitForSgsClsActionEventComplete = true;
-            }
-        } else if (!waitForSgsClsActionEventComplete && e instanceof SgsActionEvent evt && evt.isActionComplete())
-        {
-            if (!evt.getApiId().startsWith("setRhythmParameterValue"))  // No impact on structure change
-            {
-                doUpdate = true;
-            }
-        }
-
-        if (doUpdate)
-        {
-            // Check if the underlying model is gone
-            var allSpts = getSong().getSongStructure().getSongParts();
-            if (allSpts.isEmpty() || (isRP_SYS_CustomPhraseMode() && !allSpts.contains(songPart)))
-            {
-                close();
-                return;
-            }
-
-            // Refresh the editor 
-            if (!isRP_SYS_CustomPhraseMode())
-            {
-                setModelForUserPhrase(editor.getModel(), editor.getChannel(), editor.getDrumKeyMap());
-            } else
-            {
-                setModelForSongPartCustomPhrase(songPart, editor.getModel(), editor.getChannel(), editor.getDrumKeyMap());
-            }
+            // SongMetaEvents.PROP_BAR_BEAT_SEQUENCE
+            phraseBoundsChanged();
         }
     }
 
 // ============================================================================================
 // Private methods
 // ============================================================================================
+
+    private void phraseBoundsChanged()
+    {
+        // Special case, check if our model is gone
+        var spts = getSong().getSongStructure().getSongParts();
+        if (spts.isEmpty() || (isRP_SYS_CustomPhraseMode() && !spts.contains(songPart)))
+        {
+            close();
+            return;
+        }
+
+        // Refresh the editor with the new bounds
+        if (!isRP_SYS_CustomPhraseMode())
+        {
+            setModelForUserPhrase(editor.getModel(), editor.getChannel(), editor.getDrumKeyMap());
+        } else
+        {
+            setModelForSongPartCustomPhrase(songPart, editor.getModel(), editor.getChannel(), editor.getDrumKeyMap());
+        }
+    }
 
     private void refreshToolbarTitle()
     {
