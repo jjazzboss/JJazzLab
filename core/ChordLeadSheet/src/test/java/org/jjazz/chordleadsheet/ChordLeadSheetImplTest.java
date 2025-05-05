@@ -244,7 +244,7 @@ public class ChordLeadSheetImplTest
     {
         System.out.println("=== addItem ChordSymbol");
         cls1.addItem(cliChordSymbolG_b6_0);
-        assertTrue(cls1.getItems(6, 6, ChordLeadSheetItem.class).get(0) == cliChordSymbolG_b6_0);
+        assertSame(cliChordSymbolG_b6_0, cls1.getItems(6, 6, ChordLeadSheetItem.class).get(0));
 
         // Add a clone at same position: do nothing
         var cli = cls1.getItems(1, 1, CLI_ChordSymbol.class).get(0);
@@ -283,14 +283,14 @@ public class ChordLeadSheetImplTest
         var cli1 = cls1.getItems(1, 1, CLI_ChordSymbol.class).get(0);
         var newData1 = cliChordSymbolF_b3_3.getData();
         assertTrue(cls1.changeItem(cli1, newData1));
-        assertTrue(cli1.getData() == newData1);
+        assertSame(newData1, cli1.getData());
 
         // Can not change an item if an equal one (with new data) is already there
         var newData2 = cliChordSymbolG_b6_0.getData();
         var cli2 = cli1.getCopy(newData2, null);
         assertTrue(cls1.addItem(cli2));
         assertFalse(cls1.changeItem(cli2, newData1));
-        assertTrue(cli2.getData() == newData2);
+        assertSame(newData2, cli2.getData());
     }
 
     // AddSection() --------------------------------------------------
@@ -382,7 +382,7 @@ public class ChordLeadSheetImplTest
         var cli2 = cli1.getCopy(null, new Position(1, 1));
         assertTrue(cls1.addItem(cli2));
         assertTrue(cls1.moveItem(cli1, new Position(1, 0.5f)));
-        assertEquals(cli1.getPosition(), new Position(1, 0.5f));
+        assertEquals(new Position(1, 0.5f), cli1.getPosition());
 
         // Can not move over equal item cli2
         assertFalse(cls1.moveItem(cli1, new Position(1, 1)));
@@ -439,7 +439,7 @@ public class ChordLeadSheetImplTest
         {
             Exceptions.printStackTrace(ex);
         }
-        assertTrue(cls1.getItems(1, 1, CLI_ChordSymbol.class).get(1).getPosition().equals(new Position(1, 2)));
+        assertEquals(new Position(1, 2), cls1.getItems(1, 1, CLI_ChordSymbol.class).get(1).getPosition());
         assertEquals(1, cls1.getSection(1).getPosition().getBar());
     }
 
@@ -455,7 +455,7 @@ public class ChordLeadSheetImplTest
         {
             Exceptions.printStackTrace(ex);
         }
-        assertTrue(cls1.getItems(7, 7, ChordLeadSheetItem.class, cli -> true).get(0).getPosition().equals(new Position(7, 2)));
+        assertEquals(new Position(7, 2), cls1.getItems(7, 7, ChordLeadSheetItem.class, cli -> true).get(0).getPosition());
         assertSame(cliSection0, cls1.getSection(1));
     }
 

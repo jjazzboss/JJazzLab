@@ -14,7 +14,7 @@
     <packaging>nbm</packaging>
     
     <properties>
-        <!--<jjazzlab.surefire.skipTests>false</jjazzlab.surefire.skipTests>-->
+        <jjazzlab.surefire.skipTests>false</jjazzlab.surefire.skipTests>
     </properties>     
     
     <build>

@@ -34,11 +34,12 @@ import org.jjazz.utilities.api.StringProperties;
 /**
  * A song part defines how a rhythm is played for a number of bars starting at startBarIndex.
  * <p>
- * Rhythm generation is controlled by the RhythmParameters values. Rhythm can not be changed but a SongPart can be cloned using a new
- * rhythm.
+ * Rhythm generation is controlled by the RhythmParameters values. Rhythm can not be changed but a SongPart can be cloned using a new rhythm.
+ * <p>
  */
 public interface SongPart extends Transferable
 {
+
     /**
      * Fired when a rhythm parameter value has changed.
      * <p>
@@ -60,21 +61,27 @@ public interface SongPart extends Transferable
     public static final String PROP_NAME = "SptName";
     public static final DataFlavor DATA_FLAVOR = new DataFlavor(SongPart.class, "Song Part");
 
-    public int getStartBarIndex();
+
+    /**
+     * The start barIndex of this song part.
+     *
+     * @return
+     */
+    int getStartBarIndex();
 
     /**
      * The size of the song part in bars (same as the parentSection size).
      *
      * @return
      */
-    public int getNbBars();
+    int getNbBars();
 
     /**
      * Convenience method.
      *
      * @return The range [getStartBarIndex(); getStartBarIndex()+getNbBars()-1]
      */
-    default public IntRange getBarRange()
+    default IntRange getBarRange()
     {
         return new IntRange(getStartBarIndex(), getStartBarIndex() + getNbBars() - 1);
     }
@@ -84,14 +91,14 @@ public interface SongPart extends Transferable
      *
      * @return
      */
-    public String getName();
+    String getName();
 
     /**
      * An optional CLI_Section associated to this SongPart.
      *
      * @return
      */
-    public CLI_Section getParentSection();
+    CLI_Section getParentSection();
 
     /**
      * Get the RhythmParameter value.
@@ -101,16 +108,16 @@ public interface SongPart extends Transferable
      * @return Can not be null
      * @throws IllegalArgumentException If rp is not a valid RhythmParameter for this SongPart
      */
-    public <T> T getRPValue(RhythmParameter<T> rp);
-
-    public Rhythm getRhythm();
+    <T> T getRPValue(RhythmParameter<T> rp);
+    
+    Rhythm getRhythm();
 
     /**
      * @return The SongStructure this object belong to. Set by SongStructure when the SongPart is added.
      */
-    public SongStructure getContainer();
+    SongStructure getContainer();
     
-    public StringProperties getClientProperties();
+    StringProperties getClientProperties();
 
     /**
      * Create a new SongPart with same name based on this object.
@@ -124,9 +131,30 @@ public interface SongPart extends Transferable
      * @param parentSection The parentSection of the new SongPart. TimeSignature must match the specified rhythm. Can be null.
      * @return A new SongPart.
      */
-    public SongPart clone(Rhythm r, int startBarIndex, int nbBars, CLI_Section parentSection);
+    SongPart clone(Rhythm r, int startBarIndex, int nbBars, CLI_Section parentSection);
+    
+    void addPropertyChangeListener(PropertyChangeListener l);
+    
+    void removePropertyChangeListener(PropertyChangeListener l);
 
-    public void addPropertyChangeListener(PropertyChangeListener l);
-
-    public void removePropertyChangeListener(PropertyChangeListener l);
+    /**
+     * Return true if name, startBarIndex, nbBars, rhythm, parent section and all rp values match.
+     *
+     * @param spt
+     * @return
+     */
+    default boolean isEqual(SongPart spt)
+    {
+        boolean b = false;
+        if (getStartBarIndex() == spt.getStartBarIndex()
+                && getNbBars() == spt.getNbBars()
+                && getName().equals(spt.getName())
+                && getRhythm() == spt.getRhythm()
+                && getParentSection().equals(spt.getParentSection()))
+        {
+            b = getRhythm().getRhythmParameters().stream()
+                    .allMatch(rp -> getRPValue(rp).equals(spt.getRPValue(rp)));
+        }
+        return b;
+    }
 }

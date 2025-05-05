@@ -392,9 +392,9 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     @Override
     public void removeSection(final CLI_Section cliSection) throws UnsupportedEditException
     {
-        if (cliSection == null || cliSection.getPosition().getBar() == 0)
+        if (cliSection == null || cliSection.getPosition().getBar() == 0 || !items.contains(cliSection))
         {
-            throw new IllegalArgumentException("cliSection=" + cliSection);
+            throw new IllegalArgumentException("cliSection=" + cliSection + " items=" + items);
         }
 
         LOGGER.log(Level.FINE, "removeSection() -- cliSection={0}", cliSection);
@@ -457,9 +457,9 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     @Override
     public void moveSection(final CLI_Section cliSection, final int newBarIndex) throws UnsupportedEditException
     {
-        if (cliSection == null || newBarIndex <= 0 || newBarIndex >= getSizeInBars() || !(cliSection instanceof WritableItem))
+        if (cliSection == null || newBarIndex <= 0 || newBarIndex >= getSizeInBars() || !(cliSection instanceof WritableItem) || !items.contains(cliSection))
         {
-            throw new IllegalArgumentException("cliSection=" + cliSection + " newBarIndex=" + newBarIndex);
+            throw new IllegalArgumentException("cliSection=" + cliSection + " newBarIndex=" + newBarIndex + " items=" + items);
         }
 
         LOGGER.log(Level.FINE, "moveSection() -- cliSection={0} newBarIndex={1}", new Object[]
@@ -552,9 +552,9 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     @Override
     public void removeItem(final ChordLeadSheetItem<?> item)
     {
-        if (item == null || (item instanceof CLI_Section))
+        if (item == null || (item instanceof CLI_Section) || !items.contains(item))
         {
-            throw new IllegalArgumentException("item=" + item);
+            throw new IllegalArgumentException("item=" + item + " items=" + items);
         }
 
         LOGGER.log(Level.FINE, "removeItem() -- item={0}", item);
@@ -597,9 +597,9 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     @Override
     public boolean moveItem(ChordLeadSheetItem<?> item, Position newPos)
     {
-        if (item == null || newPos == null || !(item instanceof WritableItem) || (item instanceof CLI_Section))
+        if (item == null || newPos == null || !(item instanceof WritableItem) || (item instanceof CLI_Section) || !items.contains(item))
         {
-            throw new IllegalArgumentException("item=" + item + " newPos=" + newPos);
+            throw new IllegalArgumentException("item=" + item + " newPos=" + newPos + " items=" + items);
         }
 
         LOGGER.log(Level.FINE, "moveItem() -- item={0} newPos={1}", new Object[]
@@ -662,7 +662,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     @Override
     public <T> boolean changeItem(ChordLeadSheetItem<T> item, final T newData)
     {
-        if (item == null || !(item instanceof WritableItem) || (item instanceof CLI_Section))
+        if (item == null || !(item instanceof WritableItem) || (item instanceof CLI_Section) || !items.contains(item))
         {
             throw new IllegalArgumentException("item=" + item + " newData=" + newData + " items=" + items);
         }
@@ -902,7 +902,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             return;
         }
 
-        if (!(cliSection instanceof WritableItem) || !items.contains(cliSection) || getSection(name) != null)
+        if (!(cliSection instanceof WritableItem) || !items.contains(cliSection) || getSection(name) != null || !items.contains(cliSection))
         {
             throw new IllegalArgumentException("section=" + cliSection + " name=" + name + " items=" + items);
         }
@@ -925,9 +925,9 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     @Override
     public void setSectionTimeSignature(CLI_Section cliSection, TimeSignature ts) throws UnsupportedEditException
     {
-        if (cliSection == null || ts == null || !items.contains(cliSection) || !(cliSection instanceof WritableItem))
+        if (cliSection == null || ts == null || !items.contains(cliSection) || !(cliSection instanceof WritableItem) || !items.contains(cliSection))
         {
-            throw new IllegalArgumentException("section=" + cliSection + " ts=" + ts);
+            throw new IllegalArgumentException("section=" + cliSection + " ts=" + ts + " items=" + items);
         }
 
         LOGGER.log(Level.FINE, "setSectionTimeSignature() -- cliSection={0} ts={1}", new Object[]

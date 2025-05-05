@@ -76,7 +76,6 @@ import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_LOAD;
 import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_SAVE;
 import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_LOAD;
 import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_SAVE;
-import org.openide.util.Exceptions;
 import org.openide.util.lookup.ServiceProvider;
 
 public class SongStructureImpl implements SongStructure, Serializable, PropertyChangeListener
@@ -892,6 +891,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
         Position res = new Position(spt.getStartBarIndex() + relBar, pos.getBeat());
         return res;
     }
+    
 
     @Override
     public String toString()
