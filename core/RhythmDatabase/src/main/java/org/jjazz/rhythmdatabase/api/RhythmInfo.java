@@ -44,8 +44,8 @@ import org.jjazz.rhythm.spi.RhythmProvider;
 /**
  * A descriptor for a rhythm.
  * <p>
- * Note: tried to make this class a record, but then a strange bug occured when deserializing the object (I guess linked to the List&lt;&gt; parameters), finally
- * back to a standard class.
+ * Note: tried to make this class a record, but then a strange bug occured when deserializing the object (I guess linked to the List&lt;&gt; parameters),
+ * finally back to a standard class.
  */
 public class RhythmInfo implements Serializable
 {
@@ -268,13 +268,18 @@ public class RhythmInfo implements Serializable
     }
 
 
+    /**
+     * Does not rely on file.
+     *
+     * @return
+     */
     @Override
     public int hashCode()
     {
         int hash = 7;
         hash = 83 * hash + Objects.hashCode(this.rhythmProviderId);
         hash = 83 * hash + Objects.hashCode(this.rhythmUniqueId);
-        hash = 83 * hash + Objects.hashCode(this.file);
+        // hash = 83 * hash + Objects.hashCode(this.file);               // Fix issue #548
         hash = 83 * hash + Objects.hashCode(this.name);
         hash = 83 * hash + Arrays.deepHashCode(this.tags);
         hash = 83 * hash + Objects.hashCode(this.description);
@@ -289,6 +294,11 @@ public class RhythmInfo implements Serializable
         return hash;
     }
 
+    /**
+     * Does not rely on file.
+     *
+     * @return
+     */
     @Override
     public boolean equals(Object obj)
     {
@@ -337,10 +347,10 @@ public class RhythmInfo implements Serializable
         {
             return false;
         }
-        if (!Objects.equals(this.file, other.file))
-        {
-            return false;
-        }
+//        if (!Objects.equals(this.file, other.file))           // Fix issue #548
+//        {
+//            return false;
+//        }
         if (!Arrays.deepEquals(this.tags, other.tags))
         {
             return false;

@@ -22,10 +22,13 @@
  */
 package org.jjazz.rhythmdatabase.api;
 
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.MultimapBuilder;
 import org.jjazz.rhythmdatabase.spi.RhythmDatabaseFactory;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,17 +64,17 @@ public class DefaultRhythmDatabase implements RhythmDatabase
     /**
      * Main data structure
      */
-    private final Map<RhythmProvider, List<RhythmInfo>> mapRpRhythms = new HashMap<>();
+    private final ListMultimap<RhythmProvider, RhythmInfo> mmapRpRinfos;
     /**
      * Save the created Rhythm instances.
      */
-    private final Map<RhythmInfo, Rhythm> mapInfoInstance = new HashMap<>();
+    private final Map<RhythmInfo, Rhythm> mapRinfoInstance;
     /**
      * Keep the AdaptedRhythms instances created on-demand.
      * <p>
      * Map key=originalRhythmId-TimeSignature
      */
-    private final Map<String, AdaptedRhythm> mapAdaptedRhythms = new HashMap<>();
+    private final Map<String, AdaptedRhythm> mapAdaptedRhythms;
     /**
      * Stores the default rhythms per time signature
      */
@@ -118,6 +121,10 @@ public class DefaultRhythmDatabase implements RhythmDatabase
     {
         Objects.requireNonNull(prefs);
         this.prefs = prefs;
+
+        this.mapAdaptedRhythms = new HashMap<>();
+        this.mapRinfoInstance = new HashMap<>();
+        this.mmapRpRinfos = MultimapBuilder.hashKeys().arrayListValues().build();
     }
 
     @Override
@@ -125,7 +132,7 @@ public class DefaultRhythmDatabase implements RhythmDatabase
     {
         Objects.requireNonNull(ri);
 
-        Rhythm r = mapInfoInstance.get(ri);
+        Rhythm r = mapRinfoInstance.get(ri);
         if (r != null)
         {
             return r;
@@ -133,6 +140,7 @@ public class DefaultRhythmDatabase implements RhythmDatabase
 
         // Builtin rhythms should not be there, they must have a RhythmInfo defined
         assert !ri.file().getName().equals("") : "ri=" + ri + " ri.file()=" + ri.file().getName();
+
 
         // Get the instance from provider
         RhythmProvider rp = getRhythmProvider(ri);
@@ -154,7 +162,7 @@ public class DefaultRhythmDatabase implements RhythmDatabase
         }
 
         // Save the instance
-        mapInfoInstance.put(ri, r);
+        mapRinfoInstance.put(ri, r);
 
         return r;
     }
@@ -162,9 +170,9 @@ public class DefaultRhythmDatabase implements RhythmDatabase
     @Override
     public RhythmInfo getRhythm(String rhythmId)
     {
-        for (RhythmProvider rp : mapRpRhythms.keySet())
+        for (RhythmProvider rp : mmapRpRinfos.keySet())
         {
-            for (RhythmInfo ri : mapRpRhythms.get(rp))
+            for (RhythmInfo ri : mmapRpRinfos.get(rp))
             {
                 if (ri.rhythmUniqueId().equals(rhythmId))
                 {
@@ -183,9 +191,9 @@ public class DefaultRhythmDatabase implements RhythmDatabase
             throw new NullPointerException("tester");
         }
         List<RhythmInfo> res = new ArrayList<>();
-        for (RhythmProvider rp : mapRpRhythms.keySet())
+        for (RhythmProvider rp : mmapRpRinfos.keySet())
         {
-            for (RhythmInfo ri : mapRpRhythms.get(rp))
+            for (RhythmInfo ri : mmapRpRinfos.get(rp))
             {
                 if (tester.test(ri))
                 {
@@ -199,7 +207,7 @@ public class DefaultRhythmDatabase implements RhythmDatabase
     @Override
     public List<RhythmProvider> getRhythmProviders()
     {
-        var res = new ArrayList<>(mapRpRhythms.keySet());
+        var res = new ArrayList<>(mmapRpRinfos.keySet());
         return res;
     }
 
@@ -281,19 +289,10 @@ public class DefaultRhythmDatabase implements RhythmDatabase
     @Override
     public List<RhythmInfo> getRhythms(RhythmProvider rp)
     {
-        if (rp == null)
-        {
-            throw new IllegalArgumentException("rp=" + rp);
-        }
-        List<RhythmInfo> rpRhythms = mapRpRhythms.get(rp);
-        if (rpRhythms == null)
-        {
-            throw new IllegalArgumentException("RhythmProvider not found rp=" + rp.getInfo().getName() + '@' + Integer.toHexString(rp.hashCode()));
-        }
-        List<RhythmInfo> rhythms = new ArrayList<>(rpRhythms);
-        return rhythms;
+        Objects.requireNonNull(rp);
+        var res = Collections.unmodifiableList(mmapRpRinfos.get(rp));
+        return res;
     }
-
 
     @Override
     public RhythmInfo getDefaultRhythm(TimeSignature ts)
@@ -318,7 +317,7 @@ public class DefaultRhythmDatabase implements RhythmDatabase
                 .filter(ri -> !ri.isAdaptedRhythm())
                 .toList();
 
-        assert rhythms.size() > 0 : " mapRpRhythms=" + this.mapRpRhythms;
+        assert rhythms.size() > 0 : " mapRpRhythms=" + this.mmapRpRinfos;
 
         // Take first rhythm which does not come from a StubRhythmProvider
         for (RhythmInfo ri : rhythms)
@@ -357,9 +356,9 @@ public class DefaultRhythmDatabase implements RhythmDatabase
     public List<TimeSignature> getTimeSignatures()
     {
         List<TimeSignature> res = new ArrayList<>();
-        for (RhythmProvider rp : mapRpRhythms.keySet())
+        for (RhythmProvider rp : mmapRpRinfos.keySet())
         {
-            for (RhythmInfo ri : mapRpRhythms.get(rp))
+            for (RhythmInfo ri : mmapRpRinfos.get(rp))
             {
                 TimeSignature ts = ri.timeSignature();
                 if (!res.contains(ts))
@@ -377,9 +376,9 @@ public class DefaultRhythmDatabase implements RhythmDatabase
     {
         RhythmProvider resRp = null;
         RhythmInfo ri = getRhythm(r.getUniqueId());
-        for (RhythmProvider rp : mapRpRhythms.keySet())
+        for (RhythmProvider rp : mmapRpRinfos.keySet())
         {
-            if (mapRpRhythms.get(rp).contains(ri))
+            if (mmapRpRinfos.get(rp).contains(ri))
             {
                 resRp = rp;
                 break;
@@ -395,9 +394,9 @@ public class DefaultRhythmDatabase implements RhythmDatabase
         {
             throw new IllegalArgumentException("ri=" + ri);
         }
-        for (RhythmProvider rp : mapRpRhythms.keySet())
+        for (RhythmProvider rp : mmapRpRinfos.keySet())
         {
-            for (RhythmInfo rInfo : mapRpRhythms.get(rp))
+            for (RhythmInfo rInfo : mmapRpRinfos.get(rp))
             {
                 if (rInfo.equals(ri))
                 {
@@ -411,21 +410,24 @@ public class DefaultRhythmDatabase implements RhythmDatabase
     @Override
     public boolean addRhythm(RhythmProvider rp, RhythmInfo ri)
     {
-        List<RhythmInfo> rhythms = mapRpRhythms.get(rp);
-        if (rhythms == null)
+        boolean b = false;
+        
+        List<RhythmInfo> rhythmInfos = mmapRpRinfos.get(rp);        
+        if (!rhythmInfos.contains(ri))
         {
-            rhythms = new ArrayList<>();
-            mapRpRhythms.put(rp, rhythms);
-        }
-
-        if (!rhythms.contains(ri))
-        {
-            rhythms.add(ri);
+            rhythmInfos.add(ri);
             fireChanged();
-            return true;
+            b = true;
+        } else
+        {
+            String filePath = ri.file() == null ? "null" : ri.file().getAbsolutePath();
+            LOGGER.log(Level.WARNING, "addRhythm() Duplicate RhythmInfo ignored {0} (file={1})", new Object[]
+            {
+                ri, filePath
+            });
         }
 
-        return false;
+        return b;
     }
 
     @Override
@@ -433,7 +435,10 @@ public class DefaultRhythmDatabase implements RhythmDatabase
     {
         RhythmInfo ri = new RhythmInfo(r, rp);
         boolean added = addRhythm(rp, ri);
-        mapInfoInstance.put(ri, r);
+        if (added)
+        {
+            mapRinfoInstance.put(ri, r);
+        }
         return added;
     }
 
@@ -447,13 +452,7 @@ public class DefaultRhythmDatabase implements RhythmDatabase
     @Override
     public int size()
     {
-        int size = 0;
-        for (RhythmProvider rp : mapRpRhythms.keySet())
-        {
-            List<RhythmInfo> rhythms = mapRpRhythms.get(rp);
-            size += rhythms.size();
-        }
-        return size;
+        return mmapRpRinfos.size();
     }
 
     @Override
@@ -526,7 +525,6 @@ public class DefaultRhythmDatabase implements RhythmDatabase
         return errReport;
     }
 
-  
 
     // ---------------------------------------------------------------------
     // Private 
@@ -551,7 +549,6 @@ public class DefaultRhythmDatabase implements RhythmDatabase
         return rId + "-" + ts.name();
 
     }
-
 
 
     // ================================================================================================

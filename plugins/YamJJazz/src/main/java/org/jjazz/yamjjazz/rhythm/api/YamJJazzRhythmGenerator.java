@@ -387,7 +387,6 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
             throw new IllegalArgumentException("stylePart=" + stylePart + " sps=" + sps + " at=" + at + " cSeq=" + shortcSeq);   //NOI18N
         }
 
-        SongStructure ss = contextWork.getSong().getSongStructure();
         RhythmVoice rv = rhythm.getRhythmVoice(at);
         if (rv == null)
         {
