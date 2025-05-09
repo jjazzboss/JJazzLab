@@ -78,12 +78,11 @@ public interface BarRendererFactory
      * @param editor   Can be null
      * @param brType
      * @param barIndex The barIndex and the modelBarIndex (unless barIndex is beyond ChordLeadSheet size, then modelBarIndex is set to -1)
-     * @param groupKey
      * @return
      */
-    default BarRenderer createBarRenderer(CL_Editor editor, String brType, int barIndex, Object groupKey)
+    default BarRenderer createBarRenderer(CL_Editor editor, String brType, int barIndex)
     {
-        return createBarRenderer(editor, brType, barIndex, BarRendererSettings.getDefault(), getItemRendererFactory(), groupKey);
+        return createBarRenderer(editor, brType, barIndex, BarRendererSettings.getDefault(), getItemRendererFactory());
     }
 
     /**
@@ -94,9 +93,8 @@ public interface BarRendererFactory
      * @param barIndex The barIndex and the modelBarIndex (unless barIndex is beyond ChordLeadSheet size, then modelBarIndex is set to -1)
      * @param settings
      * @param irf
-     * @param groupKey 
      * @return
      */
-    BarRenderer createBarRenderer(CL_Editor editor, String brType, int barIndex, BarRendererSettings settings, ItemRendererFactory irf, Object groupKey);
+    BarRenderer createBarRenderer(CL_Editor editor, String brType, int barIndex, BarRendererSettings settings, ItemRendererFactory irf);
 
 }

@@ -58,71 +58,12 @@ import org.jjazz.songstructure.api.event.SgsChangeEvent;
  */
 public class SongMetaEvents implements ClsChangeListener, SgsChangeListener, PropertyChangeListener, VetoableChangeListener
 {
-
-    /**
-     * A special ClsActionEvent which stores its related SgsActionEvent sub-events.
-     * <p>
-     * Using a ChordLeadSheet API method will often impact the SongStructure as well, possibly with several sub-changes: e.g. reducing ChordLeadSheet size in
-     * bars might remove and resize SongParts in the SongStructure. This class allows to save most of this information (other possible source is
-     * JJazzUndoManager).
-     */
-    public static class ClsSourceActionEvent extends ClsActionEvent
-    {
-
-        private final List<SgsActionEvent> sgsSubEvents = new ArrayList<>();
-
-        public ClsSourceActionEvent(ClsActionEvent cae)
-        {
-            super(cae.getSource(), cae.getApiId(), cae.getData());
-            cae.getSubEvents().forEach(e -> addSubEvent(e));
-        }
-
-        public void addSgsSubEvent(SgsActionEvent sae)
-        {
-            Objects.requireNonNull(sae);
-            sgsSubEvents.add(sae);
-        }
-
-        public List<SgsActionEvent> getSgsSubEvents()
-        {
-            return Collections.unmodifiableList(sgsSubEvents);
-        }
-    }
-
-    /**
-     * A special SgsActionEvent which stores its related ClsActionEvent sub-events.
-     * <p>
-     * Using a SongStructure API might impact in rare cases the ChordLeadSheet as well, possibly with several sub-changes: e.g. switching to a swing-feel rhythm
-     * in the SongStructure might change the position of chords in the ChordLeadSheet. This class allows to save most of this information (other possible source
-     * is JJazzUndoManager).
-     */
-    public static class SgsSourceActionEvent extends SgsActionEvent
-    {
-
-        private final List<ClsActionEvent> clsSubEvents = new ArrayList<>();
-
-        public SgsSourceActionEvent(SgsActionEvent sae)
-        {
-            super(sae.getSource(), sae.getApiId(), sae.getData());
-            sae.getSubEvents().forEach(e -> addSubEvent(e));
-        }
-
-        public void addClsSubEvent(ClsActionEvent sae)
-        {
-            Objects.requireNonNull(sae);
-            clsSubEvents.add(sae);
-        }
-
-        public List<ClsActionEvent> getClsSubEvents()
-        {
-            return Collections.unmodifiableList(clsSubEvents);
-        }
-    }
+ 
 
     /**
      * Fired when the song modification initiated by a ChordLeadSheet/SongStructure API method is complete.
      * <p>
-     * OldValue=tthe source ClsSourceActionEvent/SgsSourceActionEvent that initially triggered the change.<br>
+     * OldValue=the source ClsSourceActionEvent/SgsSourceActionEvent that initially triggered the change.<br>
      * NewValue=the optional associated data
      */
     public static final String PROP_CLS_SGS_API_CHANGE_COMPLETE = "PropClsSgsAPIChangeComplete";
@@ -172,6 +113,11 @@ public class SongMetaEvents implements ClsChangeListener, SgsChangeListener, Pro
         this.song.addVetoableChangeListener(this);
         this.song.getChordLeadSheet().addClsChangeListener(this);
         this.song.getSongStructure().addSgsChangeListener(this);
+    }
+
+    public Song getSong()
+    {
+        return song;
     }
 
     public void addPropertyChangeListener(PropertyChangeListener l)
@@ -363,7 +309,7 @@ public class SongMetaEvents implements ClsChangeListener, SgsChangeListener, Pro
         pcs.firePropertyChange(PROP_BAR_BEAT_SEQUENCE, src, data);
     }
 
-     private void fireSongAPIChangeComplete(ClsSourceActionEvent csae)
+    private void fireSongAPIChangeComplete(ClsSourceActionEvent csae)
     {
         Objects.requireNonNull(csae);
         pcs.firePropertyChange(PROP_CLS_SGS_API_CHANGE_COMPLETE, csae, csae.getData());
@@ -469,4 +415,67 @@ public class SongMetaEvents implements ClsChangeListener, SgsChangeListener, Pro
         song.getSongStructure().removeSgsChangeListener(this);
     }
 
+    // ========================================================================================================
+    // Inner classes
+    // ========================================================================================================
+
+    /**
+     * A special ClsActionEvent which stores its related SgsActionEvent sub-events.
+     * <p>
+     * Using a ChordLeadSheet API method will often impact the SongStructure as well, possibly with several sub-changes: e.g. reducing ChordLeadSheet size in
+     * bars might remove and resize SongParts in the SongStructure. This class allows to save most of this information (other possible source is
+     * JJazzUndoManager).
+     */
+    public static class ClsSourceActionEvent extends ClsActionEvent
+    {
+
+        private final List<SgsActionEvent> sgsSubEvents = new ArrayList<>();
+
+        public ClsSourceActionEvent(ClsActionEvent cae)
+        {
+            super(cae.getSource(), cae.getApiId(), cae.getData());
+            cae.getSubEvents().forEach(e -> addSubEvent(e));
+        }
+
+        public void addSgsSubEvent(SgsActionEvent sae)
+        {
+            Objects.requireNonNull(sae);
+            sgsSubEvents.add(sae);
+        }
+
+        public List<SgsActionEvent> getSgsSubEvents()
+        {
+            return Collections.unmodifiableList(sgsSubEvents);
+        }
+    }
+
+    /**
+     * A special SgsActionEvent which stores its related ClsActionEvent sub-events.
+     * <p>
+     * Using a SongStructure API might impact in rare cases the ChordLeadSheet as well, possibly with several sub-changes: e.g. switching to a swing-feel rhythm
+     * in the SongStructure might change the position of chords in the ChordLeadSheet. This class allows to save most of this information (other possible source
+     * is JJazzUndoManager).
+     */
+    public static class SgsSourceActionEvent extends SgsActionEvent
+    {
+
+        private final List<ClsActionEvent> clsSubEvents = new ArrayList<>();
+
+        public SgsSourceActionEvent(SgsActionEvent sae)
+        {
+            super(sae.getSource(), sae.getApiId(), sae.getData());
+            sae.getSubEvents().forEach(e -> addSubEvent(e));
+        }
+
+        public void addClsSubEvent(ClsActionEvent sae)
+        {
+            Objects.requireNonNull(sae);
+            clsSubEvents.add(sae);
+        }
+
+        public List<ClsActionEvent> getClsSubEvents()
+        {
+            return Collections.unmodifiableList(clsSubEvents);
+        }
+    }
 }

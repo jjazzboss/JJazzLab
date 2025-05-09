@@ -71,10 +71,11 @@ import org.jjazz.cl_editor.api.CL_EditorMouseListener;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.cl_editorimpl.actions.InsertBar;
+import org.jjazz.cl_editorimpl.actions.MoveItemLeft;
+import org.jjazz.cl_editorimpl.actions.MoveItemRight;
 import org.jjazz.flatcomponents.api.FlatComponentsGlobalSettings;
 import org.jjazz.itemrenderer.api.IR_Type;
 import org.jjazz.itemrenderer.api.ItemRenderer;
-import org.jjazz.uisettings.api.GeneralUISettings;
 import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
 import org.jjazz.uiutilities.api.Zoomable;
 import org.openide.awt.Actions;
@@ -104,7 +105,7 @@ public class CL_EditorController implements CL_EditorMouseListener
     /**
      * The graphical editor we control.
      */
-    private CL_EditorImpl editor;
+    private final CL_EditorImpl editor;
     /**
      * The barIndex on which a bar drag has been started.
      */
@@ -129,9 +130,9 @@ public class CL_EditorController implements CL_EditorMouseListener
         editor.getActionMap().put("TransposeUp", transposeUpAction);
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(RemoveBar.KEYSTROKE, "RemoveBar");
         editor.getActionMap().put("RemoveBar", Actions.forID("JJazz", "org.jjazz.cl_editor.actions.removebar"));
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(getGenericControlKeyStroke(KeyEvent.VK_LEFT), "MoveItemLeft");
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(MoveItemLeft.KEYSTROKE, "MoveItemLeft");
         editor.getActionMap().put("MoveItemLeft", Actions.forID("JJazz", "org.jjazz.cl_editor.actions.moveitemleft"));
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(getGenericControlKeyStroke(KeyEvent.VK_RIGHT), "MoveItemRight");
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(MoveItemRight.KEYSTROKE, "MoveItemRight");
         editor.getActionMap().put("MoveItemRight", Actions.forID("JJazz", "org.jjazz.cl_editor.actions.moveitemright"));
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(SetEndBar.KEYSTROKE, "SetEndBar");
         editor.getActionMap().put("SetEndBar", Actions.forID("JJazz", "org.jjazz.cl_editor.actions.setendbar"));

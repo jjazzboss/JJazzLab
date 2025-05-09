@@ -327,13 +327,14 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
      * Serialization proxy.
      * <p>
      * spVERSION 2 changes saved fields, see below.<br>
-     * spVERSION 3 (JJazzLab 4.1.0) introduces several aliases to get rid of hard-coded qualified class names (XStreamConfig class introduction).
+     * spVERSION 3 (JJazzLab 4.1.0) introduces several aliases to get rid of hard-coded qualified class names (XStreamConfig class introduction). <br>
+     * spVERSION 4 (JJazzLab 5) changed CL_Editor quantization system, simpler now, mainly relies on rhythm division
      */
     private static class SerializationProxy implements Serializable
     {
 
         private static final long serialVersionUID = 5519610279173982L;
-        private int spVERSION = 3;      // Do not make final!
+        private int spVERSION = 4;      // Do not make final!
         private String spName;
         private TimeSignature spTs;
         private int spBarIndex;
@@ -355,6 +356,12 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
                 if (spClientProperties != null)
                 {
                     cli.getClientProperties().set(spClientProperties);
+                    if (spVERSION < 4)
+                    {
+                        // For spVERSION 2 and 3 a quantization setting was always saved with the section
+                        // Don't reload it, so we benefit from the "auto-mode" by default (JJazzLab 5: move-quantization is based on rhythm division, unless explicitly set by user)
+                        cli.getClientProperties().put("PropSectionQuantization", null);
+                    }
                 } else
                 {
                     LOGGER.log(Level.WARNING, "SerializationProxy.readResolve() Unexpected null value for spClientProperties. spName={0}",

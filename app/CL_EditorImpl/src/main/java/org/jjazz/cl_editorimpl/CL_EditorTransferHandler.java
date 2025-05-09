@@ -30,6 +30,7 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JComponent;
@@ -45,8 +46,12 @@ import org.jjazz.harmony.api.Position;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.cl_editor.barbox.api.BarBox;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.itemrenderer.api.IR_Type;
 import org.jjazz.itemrenderer.api.ItemRenderer;
+import org.jjazz.quantizer.api.Quantization;
+import org.jjazz.quantizer.api.Quantizer;
+import org.jjazz.rhythm.api.Division;
 import org.jjazz.song.api.SongCreationException;
 import org.jjazz.song.spi.SongImporter;
 import org.jjazz.songeditormanager.spi.SongEditorManager;
@@ -65,17 +70,14 @@ import org.openide.util.Exceptions;
 public class CL_EditorTransferHandler extends TransferHandler
 {
 
-    private CL_Editor editor;
+    private CL_EditorImpl editorImpl;
     private final Collection<String> dragInFileExtensions;
     private static final Logger LOGGER = Logger.getLogger(CL_EditorTransferHandler.class.getSimpleName());
 
-    public CL_EditorTransferHandler(CL_Editor ed)
+    public CL_EditorTransferHandler(CL_EditorImpl ed)
     {
-        if (ed == null)
-        {
-            throw new NullPointerException("ed");
-        }
-        editor = ed;
+        Objects.requireNonNull(ed);
+        editorImpl = ed;
 
         // Initialize the supported file extensions
         dragInFileExtensions = SongImporter.getAllSupportedFileExtensions();
@@ -134,7 +136,7 @@ public class CL_EditorTransferHandler extends TransferHandler
         {
             c, data, action
         });
-        editor.showInsertionPoint(false, getTransferredItem(data), null, true);
+        editorImpl.showInsertionPoint(false, getTransferredItem(data), null, true);
     }
 
     /**
@@ -246,149 +248,155 @@ public class CL_EditorTransferHandler extends TransferHandler
 
         int sourceBarIndex = sourceItem.getPosition().getBar();
         int newBarIndex = newPos.getBar();
-        ChordLeadSheet cls = editor.getModel();
+        ChordLeadSheet cls = editorImpl.getModel();
 
 
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(cls);
 
 
-        if (sourceItem instanceof CLI_Section cliSection)
+        switch (sourceItem)
         {
-            if (sourceBarIndex == newBarIndex)
+            case CLI_Section cliSection ->
             {
-                LOGGER.log(Level.FINE, "importData() sourceBarIndex={0}=newBarIndex", sourceBarIndex);
-                return false;
-            }
-
-            // Unselect everything: we will select the target item
-            CL_SelectionUtilities selection = new CL_SelectionUtilities(editor.getLookup());
-            selection.unselectAll(editor);
-
-            CLI_Section curSection = cls.getSection(newBarIndex);
-            if (info.getDropAction() == COPY)
-            {
-                String editName = ResUtil.getString(getClass(), "COPY_SECTION");
-                um.startCEdit(editName);
-
-                CLI_Section sectionCopy = cliSection.getCopy(newPos, cls);  // Adjust section name if required
-
-                String errMsg = ResUtil.getString(getClass(), "IMPOSSIBLE_TO_COPY_SECTION", cliSection.getData());
-                try
+                if (sourceBarIndex == newBarIndex)
                 {
-                    sectionCopy = cls.addSection(sectionCopy);
-                } catch (UnsupportedEditException ex)
-                {
-                    errMsg += "\n" + ex.getLocalizedMessage();
-                    um.abortCEdit(editName, errMsg);
+                    LOGGER.log(Level.FINE, "importData() sourceBarIndex={0}=newBarIndex", sourceBarIndex);
                     return false;
                 }
-                editor.selectItem(sectionCopy, true);
-                editor.setFocusOnItem(sectionCopy, IR_Type.Section);
-                um.endCEdit(editName);
-            } else
-            {
-                // Move mode
-                String editName = ResUtil.getString(getClass(), "MOVE_SECTION");
-                String errMsg = ResUtil.getString(getClass(), "IMPOSSIBLE_TO_MOVE_SECTION", cliSection.getData());
 
-                um.startCEdit(editName);
+                // Unselect everything: we will select the target item
+                CL_SelectionUtilities selection = new CL_SelectionUtilities(editorImpl.getLookup());
+                selection.unselectAll(editorImpl);
 
-                if (curSection.getPosition().getBar() == newBarIndex)
+                CLI_Section curSection = cls.getSection(newBarIndex);
+                if (info.getDropAction() == COPY)
                 {
-                    // There is already a section there, just update the content                          
+                    String editName = ResUtil.getString(getClass(), "COPY_SECTION");
+                    um.startCEdit(editName);
+
+                    CLI_Section sectionCopy = cliSection.getCopy(newPos, cls);  // Adjust section name if required
+
+                    String errMsg = ResUtil.getString(getClass(), "IMPOSSIBLE_TO_COPY_SECTION", cliSection.getData());
                     try
                     {
-                        cls.removeSection(cliSection);
-                        cls.setSectionName(curSection, cliSection.getData().getName());
-                        cls.setSectionTimeSignature(curSection, cliSection.getData().getTimeSignature());
+                        sectionCopy = cls.addSection(sectionCopy);
                     } catch (UnsupportedEditException ex)
                     {
-                        // Section is just moved, it was OK before and it should be OK after the move.
                         errMsg += "\n" + ex.getLocalizedMessage();
                         um.abortCEdit(editName, errMsg);
                         return false;
                     }
-                    editor.selectItem(curSection, true);
-                    editor.setFocusOnItem(curSection, IR_Type.Section);
+                    editorImpl.selectItem(sectionCopy, true);
+                    editorImpl.setFocusOnItem(sectionCopy, IR_Type.Section);
+                    um.endCEdit(editName);
                 } else
                 {
-                    try
+                    // Move mode
+                    String editName = ResUtil.getString(getClass(), "MOVE_SECTION");
+                    String errMsg = ResUtil.getString(getClass(), "IMPOSSIBLE_TO_MOVE_SECTION", cliSection.getData());
+
+                    um.startCEdit(editName);
+
+                    if (curSection.getPosition().getBar() == newBarIndex)
                     {
-                        // No section there, we can move
-                        cls.moveSection(cliSection, newBarIndex);
-                    } catch (UnsupportedEditException ex)
+                        // There is already a section there, just update the content
+                        try
+                        {
+                            cls.removeSection(cliSection);
+                            cls.setSectionName(curSection, cliSection.getData().getName());
+                            cls.setSectionTimeSignature(curSection, cliSection.getData().getTimeSignature());
+                        } catch (UnsupportedEditException ex)
+                        {
+                            // Section is just moved, it was OK before and it should be OK after the move.
+                            errMsg += "\n" + ex.getLocalizedMessage();
+                            um.abortCEdit(editName, errMsg);
+                            return false;
+                        }
+                        editorImpl.selectItem(curSection, true);
+                        editorImpl.setFocusOnItem(curSection, IR_Type.Section);
+                    } else
                     {
-                        errMsg += "\n" + ex.getLocalizedMessage();
-                        um.abortCEdit(editName, errMsg);
-                        return false;
+                        try
+                        {
+                            // No section there, we can move
+                            cls.moveSection(cliSection, newBarIndex);
+                        } catch (UnsupportedEditException ex)
+                        {
+                            errMsg += "\n" + ex.getLocalizedMessage();
+                            um.abortCEdit(editName, errMsg);
+                            return false;
+                        }
+                        editorImpl.selectItem(cliSection, true);
+                        editorImpl.setFocusOnItem(cliSection, IR_Type.Section);
                     }
-                    editor.selectItem(cliSection, true);
-                    editor.setFocusOnItem(cliSection, IR_Type.Section);
+                    um.endCEdit(editName);
                 }
-                um.endCEdit(editName);
             }
-        } else if (sourceItem instanceof CLI_BarAnnotation cliBa)
-        {
-            if (sourceBarIndex == newBarIndex)
+            case CLI_BarAnnotation cliBa ->
             {
-                LOGGER.log(Level.FINE, "importData() sourceBarIndex==newBarIndex=={0}", sourceBarIndex);
-                return false;
-            }
+                if (sourceBarIndex == newBarIndex)
+                {
+                    LOGGER.log(Level.FINE, "importData() sourceBarIndex==newBarIndex=={0}", sourceBarIndex);
+                    return false;
+                }
 
-            // Unselect everything: we will select the target item
-            CL_SelectionUtilities selection = new CL_SelectionUtilities(editor.getLookup());
-            selection.unselectAll(editor);
-
-
-            String editName = ResUtil.getString(getClass(), "MoveBarAnnotation");
-            um.startCEdit(editName);
+                // Unselect everything: we will select the target item
+                CL_SelectionUtilities selection = new CL_SelectionUtilities(editorImpl.getLookup());
+                selection.unselectAll(editorImpl);
 
 
-            CLI_BarAnnotation curAnnotation = cls.getBarFirstItem(newBarIndex, CLI_BarAnnotation.class, cli -> true);
-            IR_Type irType = editor.isBarAnnotationVisible() ? IR_Type.BarAnnotationText : IR_Type.BarAnnotationPaperNote;
-            if (curAnnotation != null)
-            {
-                // There is already an annotation there, just update its content
-                cls.changeItem(curAnnotation, cliBa.getData());
-                editor.setFocusOnItem(curAnnotation, irType);
-                editor.selectItem(curAnnotation, true);
-            } else
-            {
-                // Add a new annotation
-                CLI_BarAnnotation cliCopy = (CLI_BarAnnotation) cliBa.getCopy(null, newPos);
-                cls.addItem(cliCopy);
-                editor.setFocusOnItem(cliCopy, irType);
-                editor.selectItem(cliCopy, true);
-            }
-
-            if (info.getDropAction() == MOVE)
-            {
-                // Move annotation
-                cls.removeItem(sourceItem);
-            }
-
-            um.endCEdit(editName);
-
-
-        } else // ChordSymbols
-        {
-            if (info.getDropAction() == COPY)
-            {
-                String editName = ResUtil.getString(getClass(), "COPY_ITEM");
-                CL_SelectionUtilities selection = new CL_SelectionUtilities(editor.getLookup());
-                selection.unselectAll(editor);
+                String editName = ResUtil.getString(getClass(), "MoveBarAnnotation");
                 um.startCEdit(editName);
-                ChordLeadSheetItem<?> itemCopy = sourceItem.getCopy(null, newPos);
-                var itemToSelect = cls.addItem(itemCopy) ? itemCopy : sourceItem;        // addItem might return false if copying over an equal item
-                editor.setFocusOnItem(itemToSelect, IR_Type.ChordSymbol);
-                editor.selectItem(itemToSelect, true);
+
+
+                CLI_BarAnnotation curAnnotation = cls.getBarFirstItem(newBarIndex, CLI_BarAnnotation.class, cli -> true);
+                IR_Type irType = editorImpl.isBarAnnotationVisible() ? IR_Type.BarAnnotationText : IR_Type.BarAnnotationPaperNote;
+                if (curAnnotation != null)
+                {
+                    // There is already an annotation there, just update its content
+                    cls.changeItem(curAnnotation, cliBa.getData());
+                    editorImpl.setFocusOnItem(curAnnotation, irType);
+                    editorImpl.selectItem(curAnnotation, true);
+                } else
+                {
+                    // Add a new annotation
+                    CLI_BarAnnotation cliCopy = (CLI_BarAnnotation) cliBa.getCopy(null, newPos);
+                    cls.addItem(cliCopy);
+                    editorImpl.setFocusOnItem(cliCopy, irType);
+                    editorImpl.selectItem(cliCopy, true);
+                }
+
+                if (info.getDropAction() == MOVE)
+                {
+                    // Move annotation
+                    cls.removeItem(sourceItem);
+                }
+
                 um.endCEdit(editName);
-            } else
+
+
+            }
+            default ->
             {
-                String editName = ResUtil.getString(getClass(), "MOVE_ITEM");
-                um.startCEdit(editName);
-                cls.moveItem(sourceItem, newPos);  // might return false when moving over an equal item. In other cases the editor will take care about the selection
-                um.endCEdit(editName);
+                // ChordSymbols
+                if (info.getDropAction() == COPY)
+                {
+                    String editName = ResUtil.getString(getClass(), "COPY_ITEM");
+                    CL_SelectionUtilities selection = new CL_SelectionUtilities(editorImpl.getLookup());
+                    selection.unselectAll(editorImpl);
+                    um.startCEdit(editName);
+                    ChordLeadSheetItem<?> itemCopy = sourceItem.getCopy(null, newPos);
+                    var itemToSelect = cls.addItem(itemCopy) ? itemCopy : sourceItem;        // addItem might return false if copying over an equal item
+                    editorImpl.setFocusOnItem(itemToSelect, IR_Type.ChordSymbol);
+                    editorImpl.selectItem(itemToSelect, true);
+                    um.endCEdit(editName);
+                } else
+                {
+                    String editName = ResUtil.getString(getClass(), "MOVE_ITEM");
+                    um.startCEdit(editName);
+                    cls.moveItem(sourceItem, newPos);  // might return false when moving over an equal item. In other cases the editor will take care about the selection
+                    um.endCEdit(editName);
+                }
             }
         }
 
@@ -448,7 +456,7 @@ public class CL_EditorTransferHandler extends TransferHandler
         // Don't allow cross-chordleadsheet import
         ChordLeadSheetItem<?> sourceItem = getTransferredItem(info.getTransferable());
         assert sourceItem != null;
-        if (sourceItem.getContainer() != editor.getModel())
+        if (sourceItem.getContainer() != editorImpl.getModel())
         {
             LOGGER.fine("canImport() return false: cross-chordleadsheet drag n drop not managed");
             return false;
@@ -476,7 +484,7 @@ public class CL_EditorTransferHandler extends TransferHandler
         LOGGER.log(Level.FINE, "canImport() getDropAction()={0}", info.getDropAction());
 
         // Show the insertion point
-        editor.showInsertionPoint(true, sourceItem, newPos, (info.getDropAction() & COPY) == COPY);
+        editorImpl.showInsertionPoint(true, sourceItem, newPos, (info.getDropAction() & COPY) == COPY);
 
 
         return true;
@@ -521,6 +529,8 @@ public class CL_EditorTransferHandler extends TransferHandler
     }
 
     /**
+     * Use Section's quantization.
+     *
      * @param info
      * @return The position of the drag operation. Can be null if not in a barbox.
      */
@@ -539,8 +549,33 @@ public class CL_EditorTransferHandler extends TransferHandler
             // Need to transpose coordinates
             p = SwingUtilities.convertPoint(info.getComponent(), p, bb);
         }
-        Position newPos = bb.getPositionFromPoint(p);
-        return newPos;
+        Position pos = bb.getPositionFromPoint(p);
+        if (pos==null)
+        {
+            return pos;
+        }
+
+
+        // Quantize
+        int barIndex = bb.getModelBarIndex();
+        if (barIndex==-1)
+        {
+            return null;
+        }
+        var cls = editorImpl.getModel();
+        var cliSection = cls.getSection(barIndex);
+        var q = editorImpl.getSongSpecificEditorProperties().loadSectionUserQuantization(cliSection);
+        if (q == null)
+        {
+            // No user defined quantization, rely on division of first corresponding rhythm's division            
+            var d = BR_ChordPositions.getDivision(editorImpl.getSongModel(), cliSection);
+            q = d.isTernary() ? Quantization.ONE_THIRD_BEAT : Quantization.ONE_QUARTER_BEAT;
+        }
+
+        pos = Quantizer.getQuantized(q, pos, cliSection.getData().getTimeSignature(), 1f, cls.getSizeInBars() - 1);
+
+
+        return pos;
     }
 
 

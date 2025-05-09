@@ -49,8 +49,7 @@ public interface BarRendererProvider
      * @param barIndex
      * @param settings
      * @param irf
-     * @param groupKey
      * @return Can be null if brType is not supported by this provider.
      */
-    BarRenderer createBarRenderer(CL_Editor editor, String brType, int barIndex, BarRendererSettings settings, ItemRendererFactory irf, Object groupKey);
+    BarRenderer createBarRenderer(CL_Editor editor, String brType, int barIndex, BarRendererSettings settings, ItemRendererFactory irf);
 }

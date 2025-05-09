@@ -36,22 +36,22 @@ public class BarRendererFactoryImpl implements BarRendererFactory
 {
  
     @Override
-    public BarRenderer createBarRenderer(CL_Editor editor, String brType, int barIndex, BarRendererSettings settings, ItemRendererFactory irf, Object groupKey)
+    public BarRenderer createBarRenderer(CL_Editor editor, String brType, int barIndex, BarRendererSettings settings, ItemRendererFactory irf)
     {
         BarRenderer br = null;
         switch (brType)
         {
-            case BarRendererFactory.BR_CHORD_SYMBOL -> br = new BR_Chords(editor, barIndex, settings, irf, groupKey);
-            case BarRendererFactory.BR_CHORD_POSITION -> br = new BR_ChordPositions(editor, barIndex, settings, irf, groupKey);
-            case BarRendererFactory.BR_SECTION -> br = new BR_Sections(editor, barIndex, settings, irf, groupKey);
-            case BarRendererFactory.BR_ANNOTATION -> br = new BR_Annotation(editor, barIndex, settings, irf, groupKey);
+            case BarRendererFactory.BR_CHORD_SYMBOL -> br = new BR_Chords(editor, barIndex, settings, irf);
+            case BarRendererFactory.BR_CHORD_POSITION -> br = new BR_ChordPositions(editor, barIndex, settings,irf);
+            case BarRendererFactory.BR_SECTION -> br = new BR_Sections(editor, barIndex, settings, irf);
+            case BarRendererFactory.BR_ANNOTATION -> br = new BR_Annotation(editor, barIndex, settings, irf);
             default ->
             {
                 // Search a provider in the global lookup
                 var brProviders = Lookup.getDefault().lookupAll(BarRendererProvider.class);
                 for (var brProvider : brProviders)
                 {
-                    br = brProvider.createBarRenderer(editor, brType, barIndex, settings, irf, groupKey);
+                    br = brProvider.createBarRenderer(editor, brType, barIndex, settings, irf);
                     if (br != null)
                     {
                         break;

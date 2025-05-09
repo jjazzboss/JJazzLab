@@ -42,7 +42,6 @@ import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.harmony.api.Position;
-import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.barrenderer.api.BarRenderer;
 import org.jjazz.cl_editor.spi.BarRendererSettings;
@@ -59,9 +58,9 @@ import org.jjazz.itemrenderer.api.ItemRendererFactory;
 public class BR_Annotation extends BarRenderer implements ComponentListener
 {
     /**
-     * Special shared JPanel instances per groupKey, used to calculate the preferred size for a BarRenderer subclass.
+     * Special shared JPanel instances per editor, used to calculate the preferred size for a BarRenderer subclass.
      */
-    private static final Map<Integer, PrefSizePanel> mapGroupKeyPrefSizePanel = new HashMap<>();
+    private static final Map<Integer, PrefSizePanel> mapEditorPrefSizePanel = new HashMap<>();
 
     private static final Dimension MIN_SIZE = new Dimension(10, 4);
 
@@ -74,9 +73,9 @@ public class BR_Annotation extends BarRenderer implements ComponentListener
     private static final Logger LOGGER = Logger.getLogger(BR_Annotation.class.getSimpleName());
 
     @SuppressWarnings("LeakingThisInConstructor")
-    public BR_Annotation(CL_Editor editor, int barIndex, BarRendererSettings settings, ItemRendererFactory irf, Object groupKey)
+    public BR_Annotation(CL_Editor editor, int barIndex, BarRendererSettings settings, ItemRendererFactory irf)
     {
-        super(editor, barIndex, settings, irf, groupKey);
+        super(editor, barIndex, settings, irf);
 
 
         // Our layout manager
@@ -115,9 +114,9 @@ public class BR_Annotation extends BarRenderer implements ComponentListener
         // Remove only if it's the last bar of the editor
         if (getEditor().getNbBarBoxes() == 1)
         {
-            JDialog dlg = getFontMetricsDialog();
+            JDialog dlg = getFontMetricsDialog(getEditor());
             dlg.remove(getPrefSizePanelSharedInstance());
-            mapGroupKeyPrefSizePanel.remove(System.identityHashCode(getGroupKey()));
+            mapEditorPrefSizePanel.remove(System.identityHashCode(getEditor()));
             getPrefSizePanelSharedInstance().cleanup();
         }
     }
@@ -281,18 +280,6 @@ public class BR_Annotation extends BarRenderer implements ComponentListener
     // ---------------------------------------------------------------
     // Private functions
     // ---------------------------------------------------------------
-    @Override
-    public void setDisplayQuantizationValue(Quantization q)
-    {
-        // Do nothing
-    }
-
-    @Override
-    public Quantization getDisplayQuantizationValue()
-    {
-        // Do nothing
-        return null;
-    }
 
 
     // ---------------------------------------------------------------
@@ -305,11 +292,11 @@ public class BR_Annotation extends BarRenderer implements ComponentListener
      */
     private PrefSizePanel getPrefSizePanelSharedInstance()
     {
-        PrefSizePanel panel = mapGroupKeyPrefSizePanel.get(System.identityHashCode(getGroupKey()));
+        PrefSizePanel panel = mapEditorPrefSizePanel.get(System.identityHashCode(getEditor()));
         if (panel == null)
         {
             panel = new PrefSizePanel(this);
-            mapGroupKeyPrefSizePanel.put(System.identityHashCode(getGroupKey()), panel);
+            mapEditorPrefSizePanel.put(System.identityHashCode(getEditor()), panel);
         }
         return panel;
     }
@@ -356,7 +343,7 @@ public class BR_Annotation extends BarRenderer implements ComponentListener
 
             // Add the panel to a hidden dialog so it can be made displayable (getGraphics() will return a non-null value, so font-based sizes
             // can be calculated
-            JDialog dlg = brAnnotation.getFontMetricsDialog();
+            JDialog dlg = brAnnotation.getFontMetricsDialog(brAnnotation.getEditor());
             dlg.add(this);
             dlg.pack();    // Force all components to be displayable
         }
@@ -432,7 +419,7 @@ public class BR_Annotation extends BarRenderer implements ComponentListener
          */
         private void forceRevalidate()
         {
-            brAnnotation.getFontMetricsDialog().pack();
+            brAnnotation.getFontMetricsDialog(brAnnotation.getEditor()).pack();
         }
 
     }

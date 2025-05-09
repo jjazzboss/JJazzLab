@@ -22,92 +22,95 @@
  */
 package org.jjazz.cl_editorimpl.actions;
 
+import org.jjazz.cl_editor.api.CL_ContextActionListener;
+import org.jjazz.cl_editor.api.CL_ContextActionSupport;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.awt.event.KeyEvent;
 import java.util.List;
 import java.util.logging.Logger;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.KeyStroke;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
-import org.jjazz.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.chordleadsheet.api.item.CLI_BarAnnotation;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
+import org.jjazz.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.cl_editor.api.CL_SelectionUtilities;
+import static org.jjazz.cl_editorimpl.actions.MoveItemRight.performMove;
 import org.jjazz.harmony.api.Position;
+import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.ActionID;
+import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
+import org.openide.util.ContextAwareAction;
 import org.openide.util.Exceptions;
+import org.openide.util.Lookup;
+import org.openide.util.Utilities;
 
+/**
+ * Move selected items left.
+ */
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.moveitemleft")
-@ActionRegistration(displayName = "#CTL_MoveItemLeft")
-public final class MoveItemLeft implements ActionListener
+@ActionRegistration(displayName = "not_used", lazy = false)
+@ActionReferences(
+        {
+            // Only via keyboard shortcut
+        })
+public class MoveItemLeft extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
 {
 
-    private final List<ChordLeadSheetItem> context;
-    private final List<ChordLeadSheetItem> sortedClis;
+    public static final KeyStroke KEYSTROKE = getGenericControlKeyStroke(KeyEvent.VK_LEFT);
+    private Lookup context;
+    private CL_ContextActionSupport cap;
     private final String undoText = ResUtil.getString(getClass(), "CTL_MoveItemLeft");
     private static final Logger LOGGER = Logger.getLogger(MoveItemLeft.class.getSimpleName());
 
-    public MoveItemLeft(List<ChordLeadSheetItem> context)
+    public MoveItemLeft()
+    {
+        this(Utilities.actionsGlobalContext());
+    }
+
+    private MoveItemLeft(Lookup context)
     {
         this.context = context;
-        this.sortedClis = new ArrayList<>(context);
-        Collections.sort(sortedClis);
+        cap = CL_ContextActionSupport.getInstance(this.context);
+        cap.addListener(this);
+        putValue(NAME, undoText);
+//        Icon icon = SystemAction.get(DeleteAction.class).getIcon();
+//        putValue(SMALL_ICON, icon);
+        putValue(ACCELERATOR_KEY, KEYSTROKE);
+        selectionChange(cap.getSelection());
+    }
+
+    @Override
+    public Action createContextAwareInstance(Lookup context)
+    {
+        return new MoveItemLeft(context);
     }
 
     @Override
     public void actionPerformed(ActionEvent ev)
     {
-        assert !context.isEmpty() : "context=" + context;
-        ChordLeadSheet cls = context.get(0).getContainer();
-        JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(undoText);
-        if (context.get(0) instanceof CLI_Section)
-        {
-            moveSections();
-        } else if (context.get(0) instanceof CLI_ChordSymbol)
-        {
-            moveChordSymbols();
-        } else
-        {
-            // Nothing
-        }
-        JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(undoText);
+        MoveItemRight.performMove(cap.getSelection(), undoText, false);
     }
 
-    private void moveSections()
+
+    // ===========================================================================================================
+    // CL_ContextActionListener interface
+    // ===========================================================================================================    
+    @Override
+    public void selectionChange(CL_SelectionUtilities selection)
     {
-        for (ChordLeadSheetItem<?> cli : sortedClis)
-        {
-            ChordLeadSheet model = cli.getContainer();
-            int barIndex = cli.getPosition().getBar();
-            if (barIndex > 1 && model.getSection(barIndex - 1).getPosition().getBar() < (barIndex - 1))
-            {
-                try
-                {
-                    // No section on the previous bar, move ok
-                    model.moveSection((CLI_Section) cli, barIndex - 1);
-                } catch (UnsupportedEditException ex)
-                {
-                    // Should never happen
-                    Exceptions.printStackTrace(ex);
-                }
-            }
-        }
+        boolean b = selection.isItemSelected();
+        setEnabled(b);
     }
 
-    private void moveChordSymbols()
+    @Override
+    public void sizeChanged(int oldSize, int newSize)
     {
-        for (ChordLeadSheetItem<?> cli : sortedClis)
-        {
-            ChordLeadSheet model = cli.getContainer();
-            Position pos = cli.getPosition();
-            if (pos.getBar() > 0)
-            {
-                // No section on the previous bar, move ok   
-                model.moveItem(cli, new Position(pos.getBar() - 1, pos.getBeat()));
-            }
-        }
+        selectionChange(cap.getSelection());
     }
 }

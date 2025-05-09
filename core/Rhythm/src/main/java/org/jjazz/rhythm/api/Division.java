@@ -39,11 +39,31 @@ public enum Division
     EIGHTH_TRIPLET,
     UNKNOWN;
 
+    /**
+     * True if BINARY.
+     *
+     * @return
+     */
     public boolean isBinary()
     {
         return this == BINARY;
     }
 
+    /**
+     * True if EIGHTH_SHUFFLE or EIGHTH_TRIPLET.
+     *
+     * @return
+     */
+    public boolean isTernary()
+    {
+        return this == EIGHTH_SHUFFLE || this == EIGHTH_TRIPLET;
+    }
+
+    /**
+     * True if EIGHTH_SHUFFLE.
+     *
+     * @return
+     */
     public boolean isSwing()
     {
         return this == EIGHTH_SHUFFLE;

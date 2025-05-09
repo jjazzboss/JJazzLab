@@ -40,19 +40,15 @@ import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.harmony.api.Position;
-import org.jjazz.quantizer.api.Quantizer;
-import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.itemrenderer.api.ItemRenderer;
 
 /**
  * The LayoutManager for the BR_Chords BarRenderer : chords and a possible time signature.
  * <p>
- * A display quantization can be set.
  */
 class BR_ChordsLayoutManager implements LayoutManager
 {
 
-    private Quantization displayQuantization = Quantization.OFF;
     private static final Logger LOGGER = Logger.getLogger(BR_ChordsLayoutManager.class.getSimpleName());
 
     /**
@@ -60,6 +56,7 @@ class BR_ChordsLayoutManager implements LayoutManager
      *
      * @param beat     A float representing the beat position.
      * @param barWidth An integer for the width of the bar.
+     * @param ts
      *
      * @return An integer representing the X position of pos.
      */
@@ -88,7 +85,7 @@ class BR_ChordsLayoutManager implements LayoutManager
         xPos = Math.min(r.x + r.width - 1, xPos);
         float beat = (xPos - r.x) * (ts.getNbNaturalBeats() / (float) r.width);
         Position pos = new Position(br.getBarIndex(), beat);
-        return quantize(pos, ts);
+        return pos;
     }
 
     /**
@@ -159,7 +156,7 @@ class BR_ChordsLayoutManager implements LayoutManager
             ItemRenderer ir = irs.get(i);
             ChordLeadSheetItem<?> item = ir.getModel();
             assert (item instanceof CLI_ChordSymbol) : "item=" + item + " irs=" + irs;
-            Position pos = quantize(item.getPosition(), ts);
+            Position pos = item.getPosition();
             int itemWidth = ir.getWidth();
             int itemHeight = ir.getHeight();
             int x;
@@ -316,22 +313,6 @@ class BR_ChordsLayoutManager implements LayoutManager
     public void removeLayoutComponent(Component comp)
     {
         // Nothing
-    }
-
-    public Quantization getDisplayQuantization()
-    {
-        return displayQuantization;
-    }
-
-    public void setDisplayQuantization(Quantization displayQuantization)
-    {
-        this.displayQuantization = displayQuantization;
-    }
-
-    private Position quantize(Position pos, TimeSignature ts)
-    {
-        Position newPos = Quantizer.getQuantized(displayQuantization, pos, ts, 1f, pos.getBar());
-        return newPos;
     }
 
 }

@@ -48,13 +48,13 @@ import org.jjazz.improvisionsupport.PlayRestScenario.PlayRestValue;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.harmony.api.Position;
-import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.song.api.Song;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.barrenderer.api.BarRenderer;
 import org.jjazz.cl_editor.spi.BarRendererSettings;
 import org.jjazz.itemrenderer.api.ItemRenderer;
 import org.jjazz.itemrenderer.api.ItemRendererFactory;
+import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.uiutilities.api.HSLColor;
 import org.jjazz.uiutilities.api.StringMetrics;
 import org.jjazz.uisettings.api.GeneralUISettings;
@@ -85,7 +85,6 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
     private PlayRestScenario scenario;
     private boolean playbackPointEnabled;
     private Position playbackPosition;
-    private Quantization quantization;
     private int songBarIndex;
     private int saveModelBarIndex;
 
@@ -107,9 +106,9 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
      * @param irf
      */
     @SuppressWarnings("LeakingThisInConstructor")
-    public BR_ImproSupport(CL_Editor editor, int barIndex, BarRendererSettings settings, ItemRendererFactory irf, Object groupKey)
+    public BR_ImproSupport(CL_Editor editor, int barIndex, BarRendererSettings settings, ItemRendererFactory irf)
     {
-        super(editor, barIndex, settings, irf, groupKey);
+        super(editor, barIndex, settings, irf);
         setPreferredSize(new Dimension(10, PREF_HEIGHT));      // Width ignored because of the containers layout
 
         playbackPointEnabled = false;
@@ -151,22 +150,22 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
      * @param barIndex
      */
     @Override
-    public void setModelBarIndex(int barIndex)
+    public int setModelBarIndex(int barIndex)
     {
-        super.setModelBarIndex(barIndex);
+        int res = super.setModelBarIndex(barIndex);
 
         if (barIndex != saveModelBarIndex)
         {
             // LOGGER.log(Level.INFO, "setModelBarIndex() -- barIndex=" + barIndex + "  saveModelBarIndex=" + saveModelBarIndex);
             setSongBarIndex(-1);
         }
-
+        return res;
     }
 
     /**
      * The barIndex in the whole song.
      *
-     * @param songBarIndex
+     * @return
      */
     public int getSongBarIndex()
     {
@@ -221,10 +220,10 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
     @Override
     public void paintComponent(Graphics g)
     {
-        if (getBarIndex() == 0)
-        {
-            // LOGGER.info("paintComponent() barIndex=" + getBarIndex() + "  songBarIndex=" + songBarIndex);
-        }
+//        if (getBarIndex() == 0)
+//        {
+//            LOGGER.info("paintComponent() barIndex=" + getBarIndex() + "  songBarIndex=" + songBarIndex);
+//        }
 
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -239,18 +238,18 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
 
 
         // Do nothing if model not ready yet or no model data available
-        var ss = getEditor().getSongModel().getSongStructure();
+        var sgs = getEditor().getSongModel().getSongStructure();
         if (scenario == null
                 || songBarIndex == -1
-                || songBarIndex >= ss.getSizeInBars()
+                || songBarIndex >= sgs.getSizeInBars()
                 || !scenario.isPlayRestDataAvailable(songBarIndex))
         {
             drawTopBottomLines(g2);
             return;
         }
 
-
-        TimeSignature ts = getEditor().getSongModel().getSongStructure().getSongPart(songBarIndex).getRhythm().getTimeSignature();
+        SongPart spt = sgs.getSongPart(songBarIndex);
+        TimeSignature ts = spt.getRhythm().getTimeSignature();
         final float wBeat = (float) Math.ceil(w / ts.getNbNaturalBeats());
 
 
@@ -280,8 +279,7 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
 
         // Get the first values of next bar
         PlayRestValue nextBarPlayRestValue = null;
-        Song song = getEditor().getSongModel();
-        if (songBarIndex < song.getSongStructure().getSizeInBars() - 1 && scenario.isPlayRestDataAvailable(songBarIndex + 1))
+        if (songBarIndex < sgs.getSizeInBars() - 1 && scenario.isPlayRestDataAvailable(songBarIndex + 1))
         {
             var nextValues = scenario.getPlayRestValues(songBarIndex + 1);
             nextBarPlayRestValue = nextValues.get(0);
@@ -291,7 +289,7 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
         // Draw the Play rectangle(s) and Play/Rest strings
         final int PLAY_RECT_RADIUS = 12;
         final int STR_PADDING = PLAY_RECT_RADIUS / 2;
-        float halfBeat = getTimeSignature().getHalfBarBeat(quantization.isTernary());
+        float halfBeat = ts.getHalfBarBeat(spt.getRhythm().getFeatures().division().isTernary());
         PlayRestValue playRestValue0 = playRestValues.get(0);
         PlayRestValue playRestValue1 = playRestValues.get(1);
         DenseSparseValue denseSparseValue0 = denseSparseValues.isEmpty() ? null : denseSparseValues.get(0);
@@ -523,18 +521,6 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
         repaint();
     }
 
-    @Override
-    public void setDisplayQuantizationValue(Quantization q)
-    {
-        quantization = q;
-        repaint();
-    }
-
-    @Override
-    public Quantization getDisplayQuantizationValue()
-    {
-        return quantization;
-    }
 
     /**
      * Get all the BR_ImproSupport instances ordered by bar index for the specified editor.
@@ -637,12 +623,6 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
         }
         return REST_STRING_BOUNDS;
     }
-
-    private TimeSignature getTimeSignature()
-    {
-        return getModel().getSection(getModelBarIndex()).getData().getTimeSignature();
-    }
-
 
     private int getSongKey()
     {

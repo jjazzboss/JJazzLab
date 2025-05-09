@@ -37,6 +37,8 @@ public interface CL_ContextActionListener
 
     /**
      * The size of the active ChordLeadSheet (present in the lookup) has changed.
+     * @param oldSize
+     * @param newSize
      */
     public void sizeChanged(int oldSize, int newSize);
 }

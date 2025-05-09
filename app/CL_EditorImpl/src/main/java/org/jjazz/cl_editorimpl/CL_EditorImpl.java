@@ -39,11 +39,9 @@ import java.awt.event.MouseWheelListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -52,8 +50,6 @@ import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.event.SwingPropertyChangeSupport;
-import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.chordleadsheet.api.Section;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.event.*;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
@@ -76,18 +72,15 @@ import org.openide.util.lookup.AbstractLookup;
 import org.openide.util.lookup.InstanceContent;
 import org.openide.util.lookup.ProxyLookup;
 import org.jjazz.chordleadsheet.api.ClsChangeListener;
+import org.jjazz.chordleadsheet.api.Section;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.song.api.Song;
 import org.jjazz.quantizer.api.Quantization;
-import org.jjazz.quantizer.api.Quantizer;
 import org.jjazz.cl_editor.api.SelectedBar;
 import org.jjazz.cl_editor.api.SelectedCLI;
 import org.jjazz.cl_editor.spi.BarRendererFactory;
 import org.jjazz.cl_editor.spi.BarRendererProvider;
-import org.jjazz.rhythm.api.Division;
 import org.openide.awt.UndoRedo;
-import org.jjazz.songstructure.api.SongStructure;
-import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.uisettings.api.ColorSetManager;
 
 /**
@@ -181,13 +174,10 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
      * Our Drag and Drop handler.
      */
     private CL_EditorTransferHandler transferHandler;
-    /**
-     * Store the last Quantization used for each time signature.
-     */
-    private final HashMap<TimeSignature, Quantization> mapTsQuantization = new HashMap<>();
     private final SongSpecificCL_EditorProperties songSpecificProperties;
     private final CL_EditorZoomable editorZoomable;
     private static final Logger LOGGER = Logger.getLogger(CL_EditorImpl.class.getSimpleName());
+
 
     @SuppressWarnings("LeakingThisInConstructor")
     public CL_EditorImpl(Song song, CL_EditorSettings settings, BarRendererFactory brf)
@@ -347,67 +337,23 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     }
 
     @Override
-    public void setDisplayQuantizationValue(CLI_Section cliSection, Quantization q)
+    public void setUserQuantization(CLI_Section cliSection, Quantization q)
     {
-        Preconditions.checkNotNull(cliSection);
-        Preconditions.checkNotNull(q);
-        int sectionBar = cliSection.getPosition().getBar();
-        if (clsModel.getSection(sectionBar) != cliSection)
+        var qOld = getUserQuantization(cliSection);
+        songSpecificProperties.storeSectionUserQuantization(cliSection, q);
+        if (!Objects.equals(q, qOld))
         {
-            throw new IllegalArgumentException("cliSection=" + cliSection + " not found in clsModel=" + clsModel);
-        }
-
-        var old = getDisplayQuantizationValue(cliSection);
-        if (!old.equals(q))
-        {
-            updateSectionQuantization(cliSection, q);
-            propagateSectionChange(cliSection);
-            firePropertyChange(CL_Editor.PROP_SECTION_QUANTIZATION, cliSection, q);
+            firePropertyChange(CL_Editor.PROP_SECTION_USER_QUANTIZATION, cliSection, q);
+            songModel.setSaveNeeded(true);
         }
     }
 
     @Override
-    public Quantization getDisplayQuantizationValue(CLI_Section cliSection)
+    public Quantization getUserQuantization(CLI_Section cliSection)
     {
-        int sectionBar = cliSection.getPosition().getBar();
-        if (clsModel.getSection(sectionBar) != cliSection)
-        {
-            throw new IllegalArgumentException("section=" + cliSection + " not found in clsModel=" + clsModel);
-        }
-
-        Quantization q = songSpecificProperties.loadSectionQuantization(cliSection);
-        if (q == null)
-        {
-            // Nothing defined yet
-
-            // Try to get the quantization from the 1st associated rhythm (if we can find it)
-            SongStructure sgs = this.songModel.getSongStructure();
-            for (SongPart spt : sgs.getSongParts())
-            {
-                if (spt.getParentSection().equals(cliSection))
-                {
-                    var d = spt.getRhythm().getFeatures().division();
-                    q = !EnumSet.of(Division.EIGHTH_SHUFFLE, Division.EIGHTH_TRIPLET).contains(d) ? Quantization.ONE_QUARTER_BEAT : Quantization.ONE_THIRD_BEAT;
-                    break;
-                }
-            }
-
-            if (q == null)
-            {
-                // Nothing found using the rhythm, choose the last Quantization used for this TimeSignature
-                TimeSignature ts = cliSection.getData().getTimeSignature();
-                q = mapTsQuantization.get(ts);
-                if (q == null)
-                {
-                    // TimeSignature was never used, use default
-                    q = Quantizer.getInstance().getDefaultQuantizationValue(ts);
-                }
-            }
-
-            // Now that we got something, save it
-            songSpecificProperties.storeSectionQuantization(cliSection, q);
-        }
-
+        Objects.requireNonNull(cliSection);
+        Preconditions.checkArgument(clsModel.getSection(cliSection.getData().getName()) == cliSection, "cliSection=%s", cliSection);
+        Quantization q = songSpecificProperties.loadSectionUserQuantization(cliSection);
         return q;
     }
 
@@ -463,6 +409,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 
         // Fire event
         firePropertyChange(CL_Editor.PROP_BAR_ANNOTATION_VISIBLE, !b, b);
+        songModel.setSaveNeeded(true);
     }
 
     @Override
@@ -494,6 +441,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         // Save value
         songSpecificProperties.storeBarAnnotationNbLines(n);
         firePropertyChange(CL_Editor.PROP_BAR_ANNOTATION_NB_LINES, nOld, n);
+        songModel.setSaveNeeded(true);
     }
 
     @Override
@@ -525,6 +473,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         updatePaddingBoxes();
 
         firePropertyChange(CL_Editor.PROP_SECTION_START_ON_NEW_LINE, cliSection, b);
+        songModel.setSaveNeeded(true);
     }
 
     @Override
@@ -545,6 +494,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         {
             songSpecificProperties.storeSectionColor(cliSection, c);
             firePropertyChange(CL_Editor.PROP_SECTION_COLOR, cliSection, c);        // BR_Sections will catch this
+            songModel.setSaveNeeded(true);
         }
     }
 
@@ -601,7 +551,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         firePropertyChange(PROP_NB_COLUMNS, oldNbColumns, nbColumns);
 
         // Save the zoom factor with the song as a client property        
-        songSpecificProperties.storeZoomXFactor(newFactor);
+        songSpecificProperties.storeZoomXFactor(newFactor);     
+        songModel.setSaveNeeded(true);
 
     }
 
@@ -632,6 +583,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 
         // Save the zoom factor with the song as a client property
         songSpecificProperties.storeZoomYFactor(zoomVFactor);
+        songModel.setSaveNeeded(true);
     }
 
     @Override
@@ -641,8 +593,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     }
 
     /**
-     * Return the position (bar, beat) which corresponds to a given point in the editor. If point is in the BarBox which does not
-     * have a valid modelBar (eg after the end), barIndex is set but beat is set to 0.
+     * Return the position (bar, beat) which corresponds to a given point in the editor. If point is in the BarBox which does not have a valid modelBar (eg
+     * after the end), barIndex is set but beat is set to 0.
      *
      * @param editorPoint A point in the editor's coordinates.
      * @return Null if point does not correspond to a valid bar.
@@ -694,7 +646,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             // Make sure row+1 is visible, because it's better to always have next row also visible
             int compIndex = getComponentIndex(barIndex);
             assert compIndex + getNbColumns() < getComponentCount() :
-                "compIndex=" + compIndex + " getNbColumns()=" + getNbColumns() + " getComponentCount()=" + getComponentCount();
+                    "compIndex=" + compIndex + " getNbColumns()=" + getNbColumns() + " getComponentCount()=" + getComponentCount();
             Component c = getComponent(compIndex + getNbColumns());
             scrollRectToVisible(c.getBounds());
         }
@@ -722,7 +674,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         if (bbIndexFrom < 0 || bbIndexTo >= getNbBarBoxes() || bbIndexFrom > bbIndexTo)
         {
             throw new IllegalArgumentException(
-                "bbIndexFrom=" + bbIndexFrom + " bbIndexTo=" + bbIndexTo + " getNbBarBoxes()=" + getNbBarBoxes());
+                    "bbIndexFrom=" + bbIndexFrom + " bbIndexTo=" + bbIndexTo + " getNbBarBoxes()=" + getNbBarBoxes());
         }
 //        LOGGER.log(Level.FINE, "Before selectBar() b={0} bbIndexFrom={1} selectionLookup={2}", new Object[]
 //        {
@@ -767,7 +719,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         if (bbIndexFrom < 0 || bbIndexTo >= getNbBarBoxes() || bbIndexFrom > bbIndexTo)
         {
             throw new IllegalArgumentException(
-                "bbIndexFrom=" + bbIndexFrom + " bbIndexTo=" + bbIndexTo + " getNbBarBoxes()=" + getNbBarBoxes());
+                    "bbIndexFrom=" + bbIndexFrom + " bbIndexTo=" + bbIndexTo + " getNbBarBoxes()=" + getNbBarBoxes());
         }
 //        selectionLastContent.clear();
 //        selectionLookup.lookupAll(Object.class).forEach(o -> selectionLastContent.add(o));
@@ -870,8 +822,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         repaint();
         // Finally update our lookup
         var selItems = selectionLastContent.stream()
-            .map(o -> new SelectedCLI((ChordLeadSheetItem<?>) o))    
-            .toList();
+                .map(o -> new SelectedCLI((ChordLeadSheetItem<?>) o))
+                .toList();
         selectionLookupContent.set(selItems, null);  // Warning, hash used inside, don't use objects which can mutate while being selected!
     }
 
@@ -897,8 +849,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         if (barIndexes.length == 0)
         {
             barIndexes = IntStream.range(0, getNbBarBoxes())
-                .boxed()
-                .collect(Collectors.toList()).toArray(Integer[]::new);
+                    .boxed()
+                    .collect(Collectors.toList()).toArray(Integer[]::new);
         }
         for (int barIndex : barIndexes)
         {
@@ -1035,7 +987,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     public void propertyChange(final PropertyChangeEvent evt)
     {
         // Changes can be generated outside the EDT
-        org.jjazz.uiutilities.api.UIUtilities.invokeLaterIfNeeded(() ->
+        org.jjazz.uiutilities.api.UIUtilities.invokeLaterIfNeeded(() -> 
         {
             if (evt.getSource() == settings)
             {
@@ -1174,11 +1126,10 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     }
 
     @Override
-    public void chordLeadSheetChanged(final ClsChangeEvent event
-    )
+    public void chordLeadSheetChanged(final ClsChangeEvent event)
     {
         // Model changes can be generated outside the EDT
-        Runnable run = () ->
+        Runnable run = () -> 
         {
 
             // Save focus state
@@ -1200,17 +1151,12 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
                 int minLastBar = Math.min(oldSize - 1, newSize - 1);
                 int maxLastBar = Math.max(oldSize - 1, newSize - 1);
                 maxLastBar = Math.min(maxLastBar, getNbBarBoxes() - 1);
-                Quantization q = getDisplayQuantizationValue(clsModel.getSection(newSize - 1));
+                Quantization q = getUserQuantization(clsModel.getSection(newSize - 1));
                 for (int i = minLastBar + 1; i <= maxLastBar; i++)
                 {
                     int bar = (i < newSize) ? i : -1;
                     BarBox bb = getBarBox(i);
                     bb.setModelBarIndex(bar);
-                    if (bar != -1)
-                    {
-                        // Update quantization if size got bigger
-                        bb.setDisplayQuantizationValue(q);
-                    }
                 }
             } else if (event instanceof ItemAddedEvent e)
             {
@@ -1228,7 +1174,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
                 }
             } else if (event instanceof ItemChangedEvent e)
             {
-                ChordLeadSheetItem<?> item = e.getItem();
+                var item = e.getItem();
                 if (item instanceof CLI_Section cliSection)
                 {
                     Section oldSection = (Section) e.getOldData();
@@ -1236,13 +1182,9 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 
                     if (!oldSection.getTimeSignature().equals(newSection.getTimeSignature()))
                     {
-                        // TimeSignature has changed, the quantization setting is not valid anymore
-                        // Remove it. A new one will be restored just after in propagateSectionChange()
-                        updateSectionQuantization(cliSection, null);
+                        // TimeSignature has changed, 
+                        propagateSectionChange(cliSection);
                     }
-
-                    propagateSectionChange(cliSection);
-
                 }
             } else if (event instanceof ItemMovedEvent e)
             {
@@ -1329,7 +1271,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
                     }
                 }
 
-            } 
+            }
         };
         org.jjazz.uiutilities.api.UIUtilities.invokeLaterIfNeeded(run);
     }
@@ -1345,8 +1287,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 
     @Override
     public int getScrollableUnitIncrement(Rectangle visibleRect,
-        int orientation,
-        int direction
+            int orientation,
+            int direction
     )
     {
         int unit;
@@ -1364,9 +1306,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 
     @Override
     public int getScrollableBlockIncrement(Rectangle visibleRect,
-        int orientation,
-        int direction
-    )
+            int orientation,
+            int direction)
     {
         return getScrollableUnitIncrement(visibleRect, orientation, direction);
     }
@@ -1381,8 +1322,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     }
 
     /**
-     * We do NOT want the height of the Panel match the height of the viewport : panel height is calculated only function of the
-     * nb of rows and row height.
+     * We do NOT want the height of the Panel match the height of the viewport : panel height is calculated only function of the nb of rows and row height.
      */
     @Override
     public boolean getScrollableTracksViewportHeight()
@@ -1460,7 +1400,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     /**
      * Insert a new BarBox at specified location.
      *
-     * @param bbIndex A value between [0, getNbBarBoxes()] (the latter will append the BarBox at the end).
+     * @param bbIndex       A value between [0, getNbBarBoxes()] (the latter will append the BarBox at the end).
      * @param modelBarIndex Use a negative value if BarBox does not represent a model's bar.
      * @param config
      * @return The created BarBox
@@ -1470,16 +1410,9 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         if (bbIndex < 0 || bbIndex > getNbBarBoxes() || modelBarIndex > clsModel.getSizeInBars() - 1)
         {
             throw new IllegalArgumentException(
-                "bbIndex=" + bbIndex + " getNbBarBoxes()=" + getNbBarBoxes() + " modelBarIndex=" + modelBarIndex + " config=" + config + " clsModel=" + clsModel);
+                    "bbIndex=" + bbIndex + " getNbBarBoxes()=" + getNbBarBoxes() + " modelBarIndex=" + modelBarIndex + " config=" + config + " clsModel=" + clsModel);
         }
-        BarBox bb = new BarBox(this, bbIndex, modelBarIndex, clsModel, config, settings.getBarBoxSettings(), barRendererFactory, this);
-        if (modelBarIndex >= 0)
-        {
-            // If bar represents the model set quantization value
-            CLI_Section section = clsModel.getSection(modelBarIndex);
-            Quantization q = getDisplayQuantizationValue(section);
-            bb.setDisplayQuantizationValue(q);
-        }
+        BarBox bb = new BarBox(this, bbIndex, modelBarIndex, clsModel, config, settings.getBarBoxSettings(), barRendererFactory);
 
         registerBarBox(bb);
 
@@ -1499,8 +1432,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     /**
      * Return the Component index corresponding to specified BarBox index.
      * <p>
-     * This takes into account PaddingBoxes or other non-BarBox components present in the editor. BarBox is inserted after
-     * non-BarBox components.
+     * This takes into account PaddingBoxes or other non-BarBox components present in the editor. BarBox is inserted after non-BarBox components.
      *
      * @param barBoxIndex In the range [0,getBarBoxes().size()], the latter to append the BarBox at the end
      * @return
@@ -1639,8 +1571,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     /**
      * Remove the ChordLeadSheetItem from the specified bar.
      * <p>
-     * If item is a section do some cleaning: update the previous section, remove the associated UI settings (quantization, start
-     * on newline), possibly update padding boxes
+     * If item is a section do some cleaning: update the previous section, remove the associated UI settings (quantization, start on newline), possibly update
+     * padding boxes
      *
      * @param barIndex
      * @param item
@@ -1669,7 +1601,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     }
 
     /**
-     * Update the bars following the specified section that their parent section has changed.
+     * Update the bars of the specified section that section has changed.
      *
      * @param cliSection If null does nothing
      */
@@ -1680,19 +1612,13 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             // This can happen in ChordLeadSheet intermediate states where initial section is temporarily removed
             return;
         }
-        int sectionSize = clsModel.getBarRange(cliSection).size();
-        int barIndex = cliSection.getPosition().getBar();
-        Quantization q = getDisplayQuantizationValue(cliSection);
-        for (int i = barIndex; i < barIndex + sectionSize; i++)
-        {
-            BarBox bb = getBarBox(i);
-            bb.setSection(cliSection);
-            bb.setDisplayQuantizationValue(q);
-        }
+        clsModel.getBarRange(cliSection).forEach(bar -> getBarBox(bar).setSection(cliSection));
     }
 
     /**
      * Build the default BarBoxConfig from DEFAULT_BARBOX_CONFIG + optional data from BarRendererProviders
+     *
+     * @return
      */
     private BarBoxConfig getDefaultBarBoxConfig()
     {
@@ -1741,22 +1667,6 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     {
         int nbCols = 16 - (int) Math.round(15.0 * xFactor / 100.0);
         return nbCols;
-    }
-
-    /**
-     * Save the quantization value and update the last quantization used per TimeSignature.
-     *
-     * @param cliSection
-     * @param q Can be null: this will remove the entry for the specified section.
-     */
-    private void updateSectionQuantization(CLI_Section cliSection, Quantization q)
-    {
-        songSpecificProperties.storeSectionQuantization(cliSection, q);
-        if (q != null)
-        {
-            // Store the last quantization use per TimeSignature.
-            mapTsQuantization.put(cliSection.getData().getTimeSignature(), q);
-        }
     }
 
     /**
@@ -1829,6 +1739,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             revalidate();
         }
     }
+
 
     //===========================================================================
     // Inner classes

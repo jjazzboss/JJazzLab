@@ -41,12 +41,12 @@ public class ImproSupportBrProvider implements BarRendererProvider
     public static final String BR_IMPRO_SUPPORT = "BrImproSupport";
 
     @Override
-    public BarRenderer createBarRenderer(CL_Editor editor, String brType, int barIndex, BarRendererSettings settings, ItemRendererFactory irf, Object groupKey)
+    public BarRenderer createBarRenderer(CL_Editor editor, String brType, int barIndex, BarRendererSettings settings, ItemRendererFactory irf)
     {
         BarRenderer res = null;
         if (brType.equals(BR_IMPRO_SUPPORT))
         {
-            res = new BR_ImproSupport(editor, barIndex, settings, irf, groupKey);
+            res = new BR_ImproSupport(editor, barIndex, settings, irf);
         }
         return res;
     }

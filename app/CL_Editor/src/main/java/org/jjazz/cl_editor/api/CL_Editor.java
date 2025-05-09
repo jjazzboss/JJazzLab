@@ -67,9 +67,9 @@ public abstract class CL_Editor extends JPanel implements Lookup.Provider
     /**
      * oldvalue=CLI_Section, newValue=new quantization value.
      * <p>
-     * Don't change the String value, it's also used as client property name during CLI_Section serialization since JJazzLab 4.
+     * IMPORTANT: don't change the String value "PropSectionQuantization", it is also used as client property name during CLI_Section serialization from JJazzLab 4
      */
-    static public final String PROP_SECTION_QUANTIZATION = "PropSectionQuantization";
+    static public final String PROP_SECTION_USER_QUANTIZATION = "PropSectionQuantization";
     /**
      * oldvalue=CLI_Section, newValue=new color.
      * <p>
@@ -133,20 +133,22 @@ public abstract class CL_Editor extends JPanel implements Lookup.Provider
     abstract public BarRendererFactory getBarRendererFactory();
 
     /**
-     * Set how chords positions are quantized for display.
+     * Set the quantization used when moving chord symbols for a specific section.
      * <p>
      * Fires a property change event.
      *
-     * @param q
-     * @param section If null, set the quantization display for all sections.
+     * @param q Can be null (auto-mode)
+     * @param section If null, set the quantization for all sections.
      */
-    abstract public void setDisplayQuantizationValue(CLI_Section section, Quantization q);
+    abstract public void setUserQuantization(CLI_Section section, Quantization q);
 
     /**
+     * Get the quantization used when moving chord symbols for a specific section.
+     * 
      * @param section
-     * @return The quantization used to display the specified section.
+     * @return Can be null (auto-mode)
      */
-    abstract public Quantization getDisplayQuantizationValue(CLI_Section section);
+    abstract public Quantization getUserQuantization(CLI_Section section);
 
     /**
      * Get the focused SelectedBar, if any.

@@ -22,6 +22,7 @@
  */
 package org.jjazz.cl_editor.barrenderer.api;
 
+import com.google.common.base.Preconditions;
 import org.jjazz.cl_editor.spi.BarRendererSettings;
 import java.awt.*;
 import java.beans.*;
@@ -34,7 +35,6 @@ import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.harmony.api.Position;
-import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.itemrenderer.api.ItemRenderer;
 import org.jjazz.itemrenderer.api.ItemRendererFactory;
@@ -42,16 +42,16 @@ import org.jjazz.itemrenderer.api.ItemRendererFactory;
 /**
  * Base class for BarRenderer.
  * <p>
- * A BarRenderer is a container for ItemRenderers. A BarRenderer has a barIndex and a modelBarIndex (the barIndex within the model). Both
- * values are equal when showing bars within the model, but if showing a bar past the end of the model, modelBarIndex = -1.
+ * A BarRenderer is a container for ItemRenderers. A BarRenderer has a barIndex and a modelBarIndex (the barIndex within the model). Both values are equal when
+ * showing bars within the model, but if showing a bar past the end of the model, modelBarIndex = -1.
  */
 abstract public class BarRenderer extends JPanel implements PropertyChangeListener
 {
 
     /**
-     * Store the font rendering hidden dialogs.
+     * Store the font rendering hidden dialogs instances per editor.
      */
-    private static final Map<Integer, JDialog> mapGroupKeyFontMetricsDialog = new HashMap<>();
+    private static final Map<Integer, JDialog> mapEditorFontMetricsDialog = new HashMap<>();
 
 
     // GUI settings
@@ -59,9 +59,8 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
     /**
      * Graphical settings.
      */
-    private CL_Editor editor;
-    private BarRendererSettings settings;
-    private Object groupKey;
+    private final CL_Editor editor;
+    private final BarRendererSettings settings;
     // APPLICATION variables
     /**
      * The bar index.
@@ -89,18 +88,16 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
      * @param barIndex The barIndex of this BarRenderer.
      * @param settings
      * @param irf
-     * @param groupKey A key object that allow several BarRenderer instances to share common objects
      */
     @SuppressWarnings("LeakingThisInConstructor")
-    public BarRenderer(CL_Editor editor, int barIndex, BarRendererSettings settings, ItemRendererFactory irf, Object groupKey)
+    public BarRenderer(CL_Editor editor, int barIndex, BarRendererSettings settings, ItemRendererFactory irf)
     {
-        if (settings == null || irf == null || groupKey == null)
-        {
-            throw new IllegalArgumentException("barIndex=" + barIndex + " settings=" + settings + " irf=" + irf + " groupKey=" + groupKey);
-        }
+        Objects.requireNonNull(settings);
+        Objects.requireNonNull(irf);
+        Preconditions.checkArgument(barIndex >= 0, "barIndex=%s", barIndex);
+
         this.editor = editor;
         this.barIndex = barIndex;
-        this.groupKey = groupKey;
 
         // Register settings changes
         this.settings = settings;
@@ -270,10 +267,6 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
         }
     }
 
-    abstract public void setDisplayQuantizationValue(Quantization q);
-
-    abstract public Quantization getDisplayQuantizationValue();
-
     /**
      * Vertical zoom factor.
      *
@@ -304,11 +297,11 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
      * <p>
      * All items shown in this BarRenderer will belong to this bar.
      *
-     * @param bar If &lt; 0, it means information from model is not available (for example because the barIndex is past the end of the
-     *            leadsheet.)
+     * @param bar If &lt; 0, it means information from model is not available (for example because the barIndex is past the end of the leadsheet.)
+     * @return The previous modelBarIndex value
      * @throws IllegalArgumentException If bar is &gt; or equals to model's size.
      */
-    public void setModelBarIndex(int bar)
+    public int setModelBarIndex(int bar)
     {
         if (bar >= model.getSizeInBars())
         {
@@ -317,9 +310,10 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
 
         if (bar == modelBarIndex)
         {
-            return;
+            return bar;
         }
 
+        int old = modelBarIndex;
         modelBarIndex = bar;
 
         // Remove all item renderers
@@ -344,6 +338,8 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
                 addItemRenderer(item);
             }
         }
+
+        return old;
     }
 
     /**
@@ -411,12 +407,12 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
         for (ItemRenderer ir : getItemRenderers())
         {
             removeItemRenderer(ir);
-        }        
-        
-         // Remove only if it's the last bar of the editor
+        }
+
+        // Remove only if it's the last bar of the editor
         if (getEditor().getNbBarBoxes() == 1)
         {
-            mapGroupKeyFontMetricsDialog.remove(System.identityHashCode(groupKey));
+            mapEditorFontMetricsDialog.remove(System.identityHashCode(getEditor()));
         }
     }
 
@@ -480,19 +476,6 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
         return editor;
     }
 
-    /**
-     * Get the group key to which this BarRenderer is linked.
-     * <p>
-     * The groupKey can be used by BarRenderer instances to share objects between BarRenderer that belong to a same groupKey. It is used for
-     * example by getFontMetricsDialog() and BR_Chords.getPrefSizePanelSharedInstance().
-     * <p>
-     *
-     * @return @see #getFontMetricsDialog()
-     */
-    public Object getGroupKey()
-    {
-        return groupKey;
-    }
 
     @Override
     public String toString()
@@ -502,20 +485,20 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
 
 
     /**
-     * Return a shared instance of a hidden JDialog used to get dimensions of Font-based objects.
+     * Return a editor-level shared instance of a hidden JDialog used to get dimensions of Font-based objects.
      * <p>
-     * JDialog instances are shared between BarRenderers which have the same groupKey.
      *
+     * @param editor
      * @return
      */
-    public JDialog getFontMetricsDialog()
+    static public JDialog getFontMetricsDialog(CL_Editor editor)
     {
-        JDialog dlg = mapGroupKeyFontMetricsDialog.get(System.identityHashCode(groupKey));
+        JDialog dlg = mapEditorFontMetricsDialog.get(System.identityHashCode(editor));
         if (dlg == null)
         {
             dlg = new JDialog();
             dlg.getContentPane().setLayout(new FlowLayout(FlowLayout.LEFT, 2, 2));
-            mapGroupKeyFontMetricsDialog.put(System.identityHashCode(groupKey), dlg);
+            mapEditorFontMetricsDialog.put(System.identityHashCode(editor), dlg);
         }
         return dlg;
     }
@@ -551,7 +534,7 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
     }
 
     /**
-     * @return The List of the model items registered by this BarRenderer. List will be empty if modelBarIndex is < 0.
+     * @return The List of the model items registered by this BarRenderer. List will be empty if modelBarIndex is &lt; 0.
      */
     private java.util.List<ChordLeadSheetItem> getRegisteredModelItems()
     {

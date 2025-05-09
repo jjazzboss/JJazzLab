@@ -539,8 +539,8 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
 
         barBox = new BarBox(clEditor, 0, modelBarIndex, cls,
                 new BarBoxConfig(BarRendererFactory.BR_CHORD_SYMBOL, BarRendererFactory.BR_CHORD_POSITION, BarRendererFactory.BR_SECTION),
-                BarBoxSettings.getDefault(), BarRendererFactory.getDefault(), this);
-        barBox.setDisplayQuantizationValue(Quantization.OFF);
+                BarBoxSettings.getDefault(), 
+                BarRendererFactory.getDefault());
         pnl_barBox.add(barBox);
 
 
@@ -549,9 +549,8 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
 
         nextBarBox = new BarBox(clEditor, 1, modelBarIndex, cls,
                 new BarBoxConfig(BarRendererFactory.BR_CHORD_SYMBOL, BarRendererFactory.BR_CHORD_POSITION, BarRendererFactory.BR_SECTION),
-                BarBoxSettings.getDefault(), BarRendererFactory.getDefault(), this);
+                BarBoxSettings.getDefault(), BarRendererFactory.getDefault());
         pnl_barBox.add(nextBarBox);
-        nextBarBox.setDisplayQuantizationValue(Quantization.OFF);
 
         setZoomY(prefs.getInt(PREF_ZOOM_Y, 50));
     }

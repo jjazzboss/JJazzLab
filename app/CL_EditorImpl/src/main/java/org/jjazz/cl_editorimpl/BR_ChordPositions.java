@@ -22,15 +22,27 @@
  */
 package org.jjazz.cl_editorimpl;
 
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Insets;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import org.jjazz.cl_editor.barrenderer.api.BeatBasedLayoutManager;
-import java.awt.*;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.geom.Path2D;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JDialog;
@@ -41,7 +53,6 @@ import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.harmony.api.Position;
-import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.barrenderer.api.BarRenderer;
 import org.jjazz.cl_editor.barrenderer.api.BeatBasedBarRenderer;
@@ -50,6 +61,10 @@ import org.jjazz.itemrenderer.api.IR_Copiable;
 import org.jjazz.itemrenderer.api.IR_Type;
 import org.jjazz.itemrenderer.api.ItemRenderer;
 import org.jjazz.itemrenderer.api.ItemRendererFactory;
+import org.jjazz.rhythm.api.Division;
+import org.jjazz.song.api.Song;
+import org.jjazz.song.api.SongMetaEvents;
+import org.jjazz.songstructure.api.event.SgsActionEvent;
 import org.openide.util.Exceptions;
 
 /**
@@ -59,9 +74,10 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
 {
 
     /**
-     * Special shared JPanel instances per GroupKey, used to calculate the preferred size for a BarRenderer subclass..
+     * Special shared JPanel instances per editor, used to calculate the preferred size for a BarRenderer subclass..
      */
-    private static final Map<Integer, PrefSizePanel> mapGroupKeyPrefSizePanel = new HashMap<>();
+    private static final Map<Integer, PrefSizePanel> mapEditorPrefSizePanel = new HashMap<>();
+    private static final Map<Integer, RhythmDivisionListener> mapEditorRhythmDivisionListener = new HashMap<>();
 
     private static final Dimension MIN_SIZE = new Dimension(10, 4);
     /**
@@ -80,17 +96,19 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
      * If not null, represent the playback position in this bar.
      */
     private Position playbackPosition;
-    private BeatBasedLayoutManager layoutManager;
+    private Division division;
+    private final BeatBasedLayoutManager layoutManager;
     private int zoomVFactor = 50;
     private static final Logger LOGGER = Logger.getLogger(BR_ChordPositions.class.getSimpleName());
 
     @SuppressWarnings("LeakingThisInConstructor")
-    public BR_ChordPositions(CL_Editor editor, int barIndex, BarRendererSettings settings, ItemRendererFactory irf, Object groupKey)
+    public BR_ChordPositions(CL_Editor editor, int barIndex, BarRendererSettings settings, ItemRendererFactory irf)
     {
-        super(editor, barIndex, settings, irf, groupKey);
+        super(editor, barIndex, settings, irf);
 
-        // Default value
+        // Default values
         lastTimeSignature = TimeSignature.FOUR_FOUR;
+        division = Division.BINARY;
 
         // Set Layout
         layoutManager = new BeatBasedLayoutManager();
@@ -113,16 +131,19 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
     {
         super.cleanup();
         getPrefSizePanelSharedInstance().removeComponentListener(this);
+        getRhythmDivisionListenerSharedInstance().cleanup();
+
 
         // Remove only if it's the last bar of the editor
         if (getEditor().getNbBarBoxes() == 1)
         {
-            JDialog dlg = getFontMetricsDialog();
+            JDialog dlg = getFontMetricsDialog(getEditor());
             dlg.remove(getPrefSizePanelSharedInstance());
-            mapGroupKeyPrefSizePanel.remove(System.identityHashCode(getGroupKey()));
+            mapEditorPrefSizePanel.remove(System.identityHashCode(getEditor()));
             getPrefSizePanelSharedInstance().cleanup();
         }
     }
+
 
     @Override
     public void moveItemRenderer(ChordLeadSheetItem<?> item)
@@ -130,8 +151,41 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
         revalidate();
     }
 
+    public Division getDivision()
+    {
+        return division;
+    }
+
+    public void setDivision(Division newDivision)
+    {
+        Objects.requireNonNull(newDivision);
+        if (division == newDivision)
+        {
+            return;
+        }
+        this.division = newDivision;
+        repaint();  // required to update graduations
+    }
+
+    @Override
+    public int setModelBarIndex(int bar)
+    {
+        int res = super.setModelBarIndex(bar);
+        if (res != bar)
+        {
+            if (bar < 0)
+            {
+                getRhythmDivisionListenerSharedInstance().unregister(this);
+            } else
+            {
+                getRhythmDivisionListenerSharedInstance().register(this);
+            }
+        }
+        return res;
+    }
+
     /**
-     * Update the TimeSignature if it has changed.
+     * TimeSignature and Division might have changed.
      *
      * @param section
      */
@@ -139,12 +193,15 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
     public void setSection(CLI_Section section)
     {
         TimeSignature newTs = section.getData().getTimeSignature();
-        if (!newTs.equals(this.lastTimeSignature))
+        var newDiv = getDivision(getEditor().getSongModel(), section);
+        if (newTs == lastTimeSignature && newDiv == division)
         {
-            lastTimeSignature = newTs;
-            revalidate();
-            repaint();  // required to update graduations
+            return;
         }
+        lastTimeSignature = newTs;
+        division = newDiv;
+        revalidate();
+        repaint();
     }
 
     /**
@@ -204,7 +261,7 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
         // Default 4/4, 3/4 etc. => 4 small graduations per beat
         float step = .25f;
         int perBeatGrad = 4;
-        if (lastTimeSignature.getLower() == 8)
+        if (lastTimeSignature.getLower() == 8 || division.isTernary())
         {
             // 6/8 12/8 => 3 small graduations per beat
             step = .33333f;
@@ -291,7 +348,8 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
     {
         LOGGER.log(Level.FINE, "showInsertionPoint() b={0} item={1} pos={2} copyMode={3}", new Object[]
         {
-            b, item, pos, copyMode});
+            b, item, pos, copyMode
+        });
         if (!b)
         {
             // Remove the insertion point
@@ -357,21 +415,6 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
     }
 
     @Override
-    public void setDisplayQuantizationValue(Quantization q)
-    {
-        LOGGER.log(Level.FINE, "setDisplayQuantizationValue() q={0}", q);
-        layoutManager.setDisplayQuantization(q);
-        revalidate();  // Reposition items
-        repaint(); // Update graduations
-    }
-
-    @Override
-    public Quantization getDisplayQuantizationValue()
-    {
-        return layoutManager.getDisplayQuantization();
-    }
-
-    @Override
     public boolean isRegisteredItemClass(ChordLeadSheetItem<?> item)
     {
         return item instanceof CLI_ChordSymbol;
@@ -431,9 +474,35 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
         return lastTimeSignature;
     }
 
-// ---------------------------------------------------------------
+    // ---------------------------------------------------------------
     // Private methods
     // ---------------------------------------------------------------
+
+    /**
+     * Get the division from the rhythm of the first SongPart related to cliSection.
+     *
+     * @param song
+     * @param cliSection
+     * @return
+     */
+    static protected Division getDivision(Song song, CLI_Section cliSection)
+    {
+        Objects.requireNonNull(song);
+        Objects.requireNonNull(cliSection);
+        var spts = song.getSongStructure().getSongParts();
+        var spt = spts.stream()
+                .filter(s -> s.getParentSection() == cliSection)
+                .findFirst()
+                .orElse(null);
+        if (spt == null && !spts.isEmpty())
+        {
+            // No SongPart use our section! take another one
+            spt = spts.get(0);
+        }
+        var d = spt == null ? Division.BINARY : spt.getRhythm().getFeatures().division();
+        return d;
+    }
+
     /**
      * Get the PrefSizePanel shared instance for our CL_Editor.
      *
@@ -441,14 +510,31 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
      */
     private PrefSizePanel getPrefSizePanelSharedInstance()
     {
-        PrefSizePanel panel = mapGroupKeyPrefSizePanel.get(System.identityHashCode(getGroupKey()));
+        PrefSizePanel panel = mapEditorPrefSizePanel.get(System.identityHashCode(getEditor()));
         if (panel == null)
         {
             panel = new PrefSizePanel();
-            mapGroupKeyPrefSizePanel.put(System.identityHashCode(getGroupKey()), panel);
+            mapEditorPrefSizePanel.put(System.identityHashCode(getEditor()), panel);
         }
         return panel;
     }
+
+    /**
+     * Get the RhythmDivisionListener shared instance for our CL_Editor.
+     *
+     * @return
+     */
+    private RhythmDivisionListener getRhythmDivisionListenerSharedInstance()
+    {
+        RhythmDivisionListener rdl = mapEditorRhythmDivisionListener.get(System.identityHashCode(getEditor()));
+        if (rdl == null)
+        {
+            rdl = new RhythmDivisionListener(getEditor().getSongModel());
+            mapEditorRhythmDivisionListener.put(System.identityHashCode(getEditor()), rdl);
+        }
+        return rdl;
+    }
+
 
     // ---------------------------------------------------------------
     // Private classes
@@ -456,8 +542,8 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
     /**
      * A special shared JPanel instance used to calculate the preferred size for all BR_ChordPositions.
      * <p>
-     * Add ItemRenderers with the tallest size. Panel is added to the "hidden" BarRenderer's JDialog to be displayable so that FontMetrics
-     * can be calculated with a Graphics object.
+     * Add ItemRenderers with the tallest size. Panel is added to the "hidden" BarRenderer's JDialog to be displayable so that FontMetrics can be calculated
+     * with a Graphics object.
      * <p>
      */
     private class PrefSizePanel extends JPanel
@@ -476,27 +562,26 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
             ChordLeadSheetItem<?> item = null;
             try
             {
-                item = clif.createChordSymbol("C7#9", 0,0);
+                item = clif.createChordSymbol("C7#9", 0, 0);
             } catch (ParseException ex)
             {
                 Exceptions.printStackTrace(ex);
             }
 
-            ItemRenderer ir = getItemRendererFactory().createItemRenderer(IR_Type.ChordPosition, item,
-                    getSettings().getItemRendererSettings());
+            ItemRenderer ir = getItemRendererFactory().createItemRenderer(IR_Type.ChordPosition, item, getSettings().getItemRendererSettings());
             irs.add(ir);
             add(ir);
 
             // Add the panel to a hidden dialog so it can be made displayable (getGraphics() will return a non-null value, so font-based sizes
             // can be calculated
-            JDialog dlg = getFontMetricsDialog();
+            JDialog dlg = getFontMetricsDialog(getEditor());
             dlg.add(this);
             dlg.pack();    // Force all components to be displayable
         }
-        
+
         public void cleanup()
         {
-            
+
         }
 
         /**
@@ -555,7 +640,81 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
          */
         private void forceRevalidate()
         {
-            getFontMetricsDialog().pack();
+            getFontMetricsDialog(getEditor()).pack();
+        }
+
+    }
+
+
+    /**
+     * Listen to song model rhythms changes to update BR_ChordPositions division.
+     */
+    static private class RhythmDivisionListener implements PropertyChangeListener
+    {
+
+        private final SongMetaEvents songMetaEvents;
+        private final Set<BR_ChordPositions> brChordPositions;
+
+        public RhythmDivisionListener(Song song)
+        {
+            brChordPositions = new HashSet<>();
+            this.songMetaEvents = SongMetaEvents.getInstance(song);
+            this.songMetaEvents.addPropertyChangeListener(SongMetaEvents.PROP_CLS_SGS_API_CHANGE_COMPLETE, this);
+        }
+
+        /**
+         * Register BR_ChordPositions to be updated (via setDivision()) if its related rhythm division changes.
+         *
+         * @param br
+         */
+        public void register(BR_ChordPositions br)
+        {
+            Objects.requireNonNull(br);
+            brChordPositions.add(br);
+        }
+
+        public void unregister(BR_ChordPositions br)
+        {
+            Objects.requireNonNull(br);
+            brChordPositions.remove(br);
+        }
+
+        public void cleanup()
+        {
+            songMetaEvents.removePropertyChangeListener(SongMetaEvents.PROP_CLS_SGS_API_CHANGE_COMPLETE, this);
+        }
+
+        // ---------------------------------------------------------------
+        //  PropertyChangeListener interface
+        // ---------------------------------------------------------------
+        @Override
+        public void propertyChange(PropertyChangeEvent evt)
+        {
+            // SongMetaEvents.PROP_CLS_SGS_API_CHANGE_COMPLETE
+            if (evt.getOldValue() instanceof SgsActionEvent sae && sae.getApiId() == SgsActionEvent.API_ID.ReplaceSongParts)
+            {
+                updateSectionsDivision();
+            }
+        }
+
+        private void updateSectionsDivision()
+        {
+            var song = songMetaEvents.getSong();
+
+            Set<CLI_Section> processed = new HashSet<>();
+            for (var spt : song.getSongStructure().getSongParts())
+            {
+                var d = spt.getRhythm().getFeatures().division();
+                var cliSection = spt.getParentSection();
+                if (!processed.contains(cliSection))
+                {
+                    processed.add(cliSection);
+                    var brSection = song.getChordLeadSheet().getBarRange(cliSection);
+                    brChordPositions.stream()
+                            .filter(br -> brSection.contains(br.getModelBarIndex()))
+                            .forEach(br -> br.setDivision(d));
+                }
+            }
         }
 
     }

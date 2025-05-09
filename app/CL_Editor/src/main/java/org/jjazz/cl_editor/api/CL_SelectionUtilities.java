@@ -26,9 +26,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.chordleadsheet.api.item.CLI_BarAnnotation;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
@@ -55,10 +57,10 @@ final public class CL_SelectionUtilities
      * @throws IllegalStateException If lookup contains both SelectedBars and ChordLeadSheetItems
      */
     @SuppressWarnings(
-        {
-            "rawtypes",
-            "unchecked"
-        })
+            {
+                "rawtypes",
+                "unchecked"
+            })
     public CL_SelectionUtilities(Lookup lookup)
     {
         if (lookup == null)
@@ -67,8 +69,8 @@ final public class CL_SelectionUtilities
         }
 
         items = lookup.lookupAll(SelectedCLI.class).stream()
-            .map(selCli -> selCli.getItem())
-            .collect(Collectors.toList());  // to get a mutable list
+                .map(selCli -> selCli.getItem())
+                .collect(Collectors.toList());  // to get a mutable list
         selectedBars = new ArrayList<>((Collection<SelectedBar>) lookup.lookupAll(SelectedBar.class));
 
         if (!items.isEmpty() && !selectedBars.isEmpty())
@@ -162,6 +164,11 @@ final public class CL_SelectionUtilities
     public boolean isSectionSelected()
     {
         return !items.isEmpty() && items.get(0) instanceof CLI_Section;
+    }
+
+    public boolean isBarAnnotationSelected()
+    {
+        return !items.isEmpty() && items.get(0) instanceof CLI_BarAnnotation;
     }
 
     public boolean isItemSelected()
@@ -343,7 +350,7 @@ final public class CL_SelectionUtilities
     }
 
     /**
-     * Get all the selected items sections, chord symbols, sorted by position.
+     * Get all the selected items sections, chord symbols, etc. sorted by position.
      *
      * @return Can be empty.
      */
@@ -353,21 +360,48 @@ final public class CL_SelectionUtilities
     }
 
     /**
+     * Get the selected items from specified class sorted by position.
+     *
+     * @param <T>
+     * @param itemClass
+     * @return An unmodifable list. Can be empty.
+     */
+    <T extends ChordLeadSheetItem> List<T> getSelectedItems(Class<T> itemClass)
+    {
+        return items.stream()
+                .filter(i -> itemClass.isAssignableFrom(i.getClass()))
+                .map(i -> (T) i)
+                .toList();
+    }
+
+    /**
+     * Get only the selected sections sorted by position.
+     *
+     * @return Can be empty.
+     */
+    public List<CLI_Section> getSelectedSections()
+    {
+        return getSelectedItems(CLI_Section.class);
+    }
+
+    /**
      * Get only the selected chord symbols sorted by position.
      *
      * @return Can be empty.
      */
     public List<CLI_ChordSymbol> getSelectedChordSymbols()
     {
-        ArrayList<CLI_ChordSymbol> res = new ArrayList<>();
-        for (ChordLeadSheetItem<?> item : items)
-        {
-            if (item instanceof CLI_ChordSymbol)
-            {
-                res.add((CLI_ChordSymbol) item);
-            }
-        }
-        return res;
+        return getSelectedItems(CLI_ChordSymbol.class);
+    }
+
+    /**
+     * Get only the selected chord symbols sorted by position.
+     *
+     * @return Can be empty.
+     */
+    public List<CLI_BarAnnotation> getSelectedBarAnnotations()
+    {
+        return getSelectedItems(CLI_BarAnnotation.class);
     }
 
     /**
@@ -442,23 +476,6 @@ final public class CL_SelectionUtilities
         return res;
     }
 
-    /**
-     * Get only the selected sections sorted by position.
-     *
-     * @return Can be empty.
-     */
-    public List<CLI_Section> getSelectedSections()
-    {
-        ArrayList<CLI_Section> res = new ArrayList<>();
-        for (ChordLeadSheetItem<?> item : items)
-        {
-            if (item instanceof CLI_Section)
-            {
-                res.add((CLI_Section) item);
-            }
-        }
-        return res;
-    }
 
     @Override
     public String toString()

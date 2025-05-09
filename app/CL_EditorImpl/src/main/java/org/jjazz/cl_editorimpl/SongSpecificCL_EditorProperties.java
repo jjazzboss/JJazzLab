@@ -55,9 +55,9 @@ public class SongSpecificCL_EditorProperties
      * @param cliSection
      * @param q          Can be null to remove this client property
      */
-    public void storeSectionQuantization(CLI_Section cliSection, Quantization q)
+    public void storeSectionUserQuantization(CLI_Section cliSection, Quantization q)
     {
-        cliSection.getClientProperties().put(CL_Editor.PROP_SECTION_QUANTIZATION, q == null ? null : q.name());
+        cliSection.getClientProperties().put(CL_Editor.PROP_SECTION_USER_QUANTIZATION, q == null ? null : q.name());
     }
 
     /**
@@ -66,9 +66,9 @@ public class SongSpecificCL_EditorProperties
      * @param cliSection
      * @return Can be null
      */
-    public Quantization loadSectionQuantization(CLI_Section cliSection)
+    public Quantization loadSectionUserQuantization(CLI_Section cliSection)
     {
-        String qString = cliSection.getClientProperties().get(CL_Editor.PROP_SECTION_QUANTIZATION, null);
+        String qString = cliSection.getClientProperties().get(CL_Editor.PROP_SECTION_USER_QUANTIZATION, null);
         return Quantization.isValidStringValue(qString) ? Quantization.valueOf(qString) : null;
     }
 

@@ -93,8 +93,11 @@ public class ChangeQuantization extends AbstractAction implements ContextAwareAc
 
         // Selection must contain bars belonging to one section
         CLI_Section section = cls.getSection(selection.getMinBarIndexWithinCls());
-        Quantization q = editor.getDisplayQuantizationValue(section);
-        LOGGER.log(Level.FINE, "actionPerformed() initialize dialog with section={0} q={1}", new Object[]{section, q});
+        Quantization q = editor.getUserQuantization(section);
+        LOGGER.log(Level.FINE, "actionPerformed() initialize dialog with section={0} q={1}", new Object[]
+        {
+            section, q
+        });
 
 
         // Prepare and show quantization dialog
@@ -108,7 +111,7 @@ public class ChangeQuantization extends AbstractAction implements ContextAwareAc
         if (dialog.getExitStatus().equals(ChangeQuantizationDialog.ExitStatus.OK_CURRENT_SECTION))
         {
             q = dialog.getQuantization();
-            editor.setDisplayQuantizationValue(section, q);
+            editor.setUserQuantization(section, q);
             LOGGER.log(Level.FINE, "actionPerformed() apply q={0} for section={1}", new Object[]
             {
                 q, section
@@ -120,14 +123,14 @@ public class ChangeQuantization extends AbstractAction implements ContextAwareAc
             LOGGER.log(Level.FINE, "actionPerformed() apply q={0} for all sections", q);
             for (CLI_Section aSection : cls.getItems(CLI_Section.class))
             {
-                editor.setDisplayQuantizationValue(aSection, q);
+                editor.setUserQuantization(aSection, q);
             }
         }
 
 
         if (!dialog.getExitStatus().equals(ChangeQuantizationDialog.ExitStatus.CANCEL))
         {
-            Analytics.logEvent("Quantization Change", Analytics.buildMap("Value", q.toString()));
+            Analytics.logEvent("Quantization Change", Analytics.buildMap("Value", q == null ? "null" : q.toString()));
         }
 
 

@@ -41,7 +41,6 @@ import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.harmony.api.Position;
-import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.barrenderer.api.BarRenderer;
 import org.jjazz.cl_editor.spi.BarRendererFactory;
@@ -76,7 +75,6 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
      * The bar index within the model.
      */
     private int modelBarIndex;
-    private final Object groupKey;
     /**
      * True if the BarBox is selected.
      */
@@ -85,9 +83,8 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
      * True if the playback position is on this bar.
      */
     private boolean showPlaybackPoint;
-    private Quantization displayQuantization;
     private int zoomVFactor = 50;
-    private BarRendererFactory barRendererFactory;
+    private final BarRendererFactory barRendererFactory;
 
     /**
      * Construct a BarBox.
@@ -99,29 +96,24 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
      * @param config
      * @param settings
      * @param brf
-     * @param groupKey
      */
     @SuppressWarnings("LeakingThisInConstructor")
     public BarBox(CL_Editor editor, int bbIndex, int modelBarIndex,
             ChordLeadSheet model,
             BarBoxConfig config,
             BarBoxSettings settings,
-            BarRendererFactory brf,
-            Object groupKey)
+            BarRendererFactory brf)
     {
         Preconditions.checkNotNull(model);
         Preconditions.checkNotNull(config);
         Preconditions.checkNotNull(settings);
         Preconditions.checkNotNull(brf);
-        Preconditions.checkNotNull(groupKey);
         Preconditions.checkArgument(bbIndex >= 0);
 
         this.barIndex = bbIndex;
         this.modelBarIndex = modelBarIndex;
         this.model = model;
         this.editor = editor;
-        displayQuantization = Quantization.BEAT;
-        this.groupKey = groupKey;
 
         // Pile up BarRenderers
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -149,8 +141,8 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
 
         // Disable focus keys on BarBox : must be managed at a higher level
         setFocusTraversalKeysEnabled(false);
-        
-        
+
+
         refreshBackground();
     }
 
@@ -338,25 +330,6 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
         return zoomVFactor;
     }
 
-    public Quantization getDisplayQuantizationValue()
-    {
-        return displayQuantization;
-    }
-
-    /**
-     * Set how chords positions are quantized for display.
-     *
-     * @param q
-     */
-    public void setDisplayQuantizationValue(Quantization q)
-    {
-        displayQuantization = q;
-        for (BarRenderer br : getBarRenderers())
-        {
-            br.setDisplayQuantizationValue(q);
-        }
-    }
-
     /**
      * The bar index in the chordleadsheet model.
      *
@@ -401,8 +374,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     /**
      * Set the barIndex within the model. Forward to BarRenderers.
      *
-     * @param bar If &lt; 0, it means information from model is not available (for example because the barIndex is past the end of the
-     *            model.)
+     * @param bar If &lt; 0, it means information from model is not available (for example because the barIndex is past the end of the model.)
      * @throws IllegalArgumentException If bar is &gt; or equals to model's size.
      */
     public void setModelBarIndex(int bar)
@@ -540,10 +512,9 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
         for (String brType : barBoxConfig.getActiveBarRenderers())
         {
             BarRenderer br = barRendererFactory.createBarRenderer(editor, brType, barIndex, bbSettings.getBarRendererSettings(),
-                    barRendererFactory.getItemRendererFactory(), groupKey);
+                    barRendererFactory.getItemRendererFactory());
             br.setModelBarIndex(modelBarIndex);
             br.setZoomVFactor(zoomVFactor);
-            br.setDisplayQuantizationValue(displayQuantization);
             br.setEnabled(isEnabled());
             add(br);
         }
@@ -577,7 +548,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
         }
         if (b && pos.getBar() != getModelBarIndex())
         {
-            throw new IllegalArgumentException("b=" + b + " pos=" + pos+" getModelBarIndex()="+getModelBarIndex());
+            throw new IllegalArgumentException("b=" + b + " pos=" + pos + " getModelBarIndex()=" + getModelBarIndex());
         }
         showPlaybackPoint = b;
         refreshBackground();

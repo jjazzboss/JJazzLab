@@ -83,7 +83,7 @@ import org.openide.util.lookup.ServiceProvider;
  * The song object.
  * <p>
  * Contains a chord leadsheet, a song structure, some parameters, optional user phrases and client properties.<br>
- * Songs can be created using the SongFactory methods.
+ * Songs can be created using the SongFactory.
  */
 public class Song implements Serializable, PropertyChangeListener
 {
@@ -126,7 +126,7 @@ public class Song implements Serializable, PropertyChangeListener
      */
     public static final String PROP_CLOSED = "PROP_CLOSED";
     /**
-     * Fired each time the song is modified (oldValue=false, newValue=true), or saved (oldValue=true, newValue=false), or Song.setSaveNeeded(false) is called
+     * Fired after the song is modified (oldValue=false, newValue=true), or saved (oldValue=true, newValue=false), or Song.setSaveNeeded(false) is called
      * (oldValue=null, newValue=false).
      * <p>
      * For modification tracking see also ClsChangeEvent/ClsActionEvent, Sgs/ChangeEvent/SgsActionEvent, SongEvents.
@@ -145,6 +145,7 @@ public class Song implements Serializable, PropertyChangeListener
     private transient File file;
     private transient boolean saveNeeded = false;
     private boolean closed;
+    private SongMetaEvents songMetaEvents;
     /**
      * The listeners for undoable edits in this LeadSheet.
      */
@@ -192,7 +193,9 @@ public class Song implements Serializable, PropertyChangeListener
         clsSgsUpdater = noClsSgsLink ? null : new ClsSgsUpdater(this);
 
 
-        // Mark song as modified if client properties are changed
+        // Mark song as modified if cls/sgs change, or if client properties are changed
+        songMetaEvents = SongMetaEvents.getInstance(this);
+        songMetaEvents.addPropertyChangeListener(SongMetaEvents.PROP_CLS_SGS_API_CHANGE_COMPLETE, this);
         clientProperties.addPropertyChangeListener(e -> fireIsModified());
     }
 
@@ -688,6 +691,8 @@ public class Song implements Serializable, PropertyChangeListener
         }
         closed = true;
         pcs.firePropertyChange(PROP_CLOSED, false, true);
+
+        songMetaEvents.removePropertyChangeListener(SongMetaEvents.PROP_CLS_SGS_API_CHANGE_COMPLETE, this);
     }
 
     /**
@@ -897,9 +902,9 @@ public class Song implements Serializable, PropertyChangeListener
     }
 
     /**
-     * Set the value of the saveNeeded property.
+     * Set or reset the "save needed" status, i.e if song has some unsaved changes or not.
      * <p>
-     * Fire a PROP_MODIFIED_OR_SAVED_OR_RESET change event.
+     * Fires a PROP_MODIFIED_OR_SAVED_OR_RESET change event with the relevant values.
      *
      * @param b
      */
@@ -909,12 +914,12 @@ public class Song implements Serializable, PropertyChangeListener
         {
             return;
         }
-        saveNeeded = b;
-        if (saveNeeded)
+        if (b)
         {
-            pcs.firePropertyChange(PROP_MODIFIED_OR_SAVED_OR_RESET, false, true);
+            fireIsModified();
         } else
         {
+            saveNeeded = false;
             pcs.firePropertyChange(PROP_MODIFIED_OR_SAVED_OR_RESET, null, false);
         }
     }
@@ -1016,6 +1021,10 @@ public class Song implements Serializable, PropertyChangeListener
                 }
                 fireIsModified();
             }
+        } else if (e.getSource() == songMetaEvents)
+        {
+            assert e.getPropertyName().equals(SongMetaEvents.PROP_CLS_SGS_API_CHANGE_COMPLETE);
+            fireIsModified();
         }
     }
 

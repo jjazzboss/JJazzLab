@@ -42,7 +42,6 @@ import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.harmony.api.Position;
-import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.barrenderer.api.BarRenderer;
 import org.jjazz.cl_editor.barrenderer.api.BeatBasedBarRenderer;
@@ -63,9 +62,9 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
 {
 
     /**
-     * Special shared JPanel instances per GroupKey, used to calculate the preferred size for a BarRenderer subclass..
+     * Special shared JPanel instances per editor, used to calculate the preferred size for a BarRenderer subclass..
      */
-    private static final Map<Integer, PrefSizePanel> mapGroupKeyPrefSizePanel = new HashMap<>();
+    private static final Map<Integer, PrefSizePanel> mapEditorPrefSizePanel = new HashMap<>();
 
     private static final Dimension MIN_SIZE = new Dimension(10, 4);
     /**
@@ -85,9 +84,9 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
     private static final Logger LOGGER = Logger.getLogger(BR_Chords.class.getSimpleName());
 
     @SuppressWarnings("LeakingThisInConstructor")
-    public BR_Chords(CL_Editor editor, int barIndex, BarRendererSettings settings, ItemRendererFactory irf, Object groupKey)
+    public BR_Chords(CL_Editor editor, int barIndex, BarRendererSettings settings, ItemRendererFactory irf)
     {
-        super(editor, barIndex, settings, irf, groupKey);
+        super(editor, barIndex, settings, irf);
 
         // Default value
         lastTimeSignature = TimeSignature.FOUR_FOUR;
@@ -117,9 +116,9 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
         // Remove only if it's the last bar of the editor
         if (getEditor().getNbBarBoxes() == 1)
         {
-            JDialog dlg = getFontMetricsDialog();
+            JDialog dlg = getFontMetricsDialog(getEditor());
             dlg.remove(getPrefSizePanelSharedInstance());
-            mapGroupKeyPrefSizePanel.remove(System.identityHashCode(getGroupKey()));
+            mapEditorPrefSizePanel.remove(System.identityHashCode(getEditor()));
             getPrefSizePanelSharedInstance().cleanup();
         }
     }
@@ -212,19 +211,6 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
     public void showPlaybackPoint(boolean b, Position pos)
     {
         // Do nothing
-    }
-
-    @Override
-    public void setDisplayQuantizationValue(Quantization q)
-    {
-        layoutManager.setDisplayQuantization(q);
-        revalidate();
-    }
-
-    @Override
-    public Quantization getDisplayQuantizationValue()
-    {
-        return layoutManager.getDisplayQuantization();
     }
 
     /**
@@ -352,11 +338,11 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
      */
     private PrefSizePanel getPrefSizePanelSharedInstance()
     {
-        PrefSizePanel panel = mapGroupKeyPrefSizePanel.get(System.identityHashCode(getGroupKey()));
+        PrefSizePanel panel = mapEditorPrefSizePanel.get(System.identityHashCode(getEditor()));
         if (panel == null)
         {
             panel = new PrefSizePanel();
-            mapGroupKeyPrefSizePanel.put(System.identityHashCode(getGroupKey()), panel);
+            mapEditorPrefSizePanel.put(System.identityHashCode(getEditor()), panel);
         }
         return panel;
     }
@@ -413,7 +399,7 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
 
             // Add the panel to a hidden dialog so it can be made displayable (getGraphics() will return a non-null value, so font-based sizes
             // can be calculated
-            JDialog dlg = getFontMetricsDialog();
+            JDialog dlg = getFontMetricsDialog(getEditor());
             dlg.add(this);
             dlg.pack();    // Force all components to be displayable
         }
@@ -484,7 +470,7 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
          */
         private void forceRevalidate()
         {
-            getFontMetricsDialog().pack();
+            getFontMetricsDialog(getEditor()).pack();
         }
 
         //-----------------------------------------------------------------------

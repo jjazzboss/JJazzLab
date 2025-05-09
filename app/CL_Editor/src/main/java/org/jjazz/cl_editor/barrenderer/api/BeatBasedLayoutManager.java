@@ -26,19 +26,16 @@ import java.awt.*;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.harmony.api.Position;
-import org.jjazz.quantizer.api.Quantizer;
-import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.itemrenderer.api.ItemRenderer;
 
 /**
- * This LayoutManager places ItemRenderers at their corresponding beat position, depending on the DisplayQuantization setting.
+ * This LayoutManager places ItemRenderers at their corresponding beat position.
  * <p>
  * ItemRenderers are set to their preferredSize.
  */
 public class BeatBasedLayoutManager implements LayoutManager
 {
 
-    private Quantization displayQuantization = Quantization.OFF;
     private static final Logger LOGGER = Logger.getLogger(BeatBasedLayoutManager.class.getSimpleName());
 
     /**
@@ -60,7 +57,7 @@ public class BeatBasedLayoutManager implements LayoutManager
         xPos = Math.min(r.x + r.width - 1, xPos);
         float beat = (xPos - r.x) * (ts.getNbNaturalBeats() / (float) r.width);
         Position pos = new Position(br.getBarIndex(), beat);
-        return quantize(pos, ts);
+        return pos;
     }
 
     /**
@@ -106,7 +103,7 @@ public class BeatBasedLayoutManager implements LayoutManager
         for (ItemRenderer ir : br.getItemRenderers())
         {
             ir.setSize(ir.getPreferredSize());
-            Position pos = quantize(ir.getModel().getPosition(), ts);
+            Position pos = ir.getModel().getPosition();
             int irWidth = ir.getWidth();
             int irHeight = ir.getHeight();
             int x = getBeatXPosition(pos.getBeat(), barWidth, ts);
@@ -138,22 +135,6 @@ public class BeatBasedLayoutManager implements LayoutManager
     public void removeLayoutComponent(Component comp)
     {
         // Nothing
-    }
-
-    public Quantization getDisplayQuantization()
-    {
-        return displayQuantization;
-    }
-
-    public void setDisplayQuantization(Quantization displayQuantization)
-    {
-        this.displayQuantization = displayQuantization;
-    }
-
-    private Position quantize(Position pos, TimeSignature ts)
-    {
-        Position newPos = Quantizer.getQuantized(displayQuantization, pos, ts, 1f, pos.getBar());
-        return newPos;
     }
 
 }
