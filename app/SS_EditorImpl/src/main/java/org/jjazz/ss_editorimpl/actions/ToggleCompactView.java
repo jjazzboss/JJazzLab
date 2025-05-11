@@ -37,6 +37,9 @@ import javax.swing.ImageIcon;
 import javax.swing.KeyStroke;
 import org.jjazz.song.api.Song;
 import org.jjazz.ss_editor.api.SS_Editor;
+import org.jjazz.ss_editor.api.SS_EditorClientProperties;
+import static org.jjazz.ss_editor.api.SS_EditorClientProperties.getViewMode;
+import static org.jjazz.ss_editor.api.SS_EditorClientProperties.setViewMode;
 import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.utilities.api.ToggleAction;
 
@@ -47,11 +50,13 @@ import org.jjazz.utilities.api.ToggleAction;
  */
 public class ToggleCompactView extends ToggleAction implements PropertyChangeListener
 {
+
     public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("V");
     private final SS_Editor editor;
+    private final Song song;
     private static final Logger LOGGER = Logger.getLogger(ToggleCompactView.class.getSimpleName());
 
-    private static Map<SS_Editor, ToggleCompactView> MAP_EDITOR_INSTANCES = new HashMap<>();
+    private static final Map<SS_Editor, ToggleCompactView> MAP_EDITOR_INSTANCES = new HashMap<>();
 
     /**
      * Get the ToggleCompactView instance associated to a given editor.
@@ -76,6 +81,7 @@ public class ToggleCompactView extends ToggleAction implements PropertyChangeLis
     private ToggleCompactView(SS_Editor editor)
     {
         this.editor = editor;
+        this.song = editor.getSongModel();
         putValue(NAME, "not_used");
         putValue(SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_ToggleCompactViewTooltip"));
         putValue(ACCELERATOR_KEY, KEYSTROKE);     // Useful only if action is used to create a menu entry
@@ -84,20 +90,21 @@ public class ToggleCompactView extends ToggleAction implements PropertyChangeLis
         putValue("hideActionText", true);
 
 
-        setSelected(editor.getViewMode().equals(SS_Editor.ViewMode.COMPACT));
-        
-        
-        editor.addPropertyChangeListener(SS_Editor.PROP_EDITOR_VIEW_MODE, this);
-        editor.getSongModel().addPropertyChangeListener(Song.PROP_CLOSED, this);
+        setSelected(getViewMode(song).equals(SS_EditorClientProperties.ViewMode.COMPACT));
+
+        song.addPropertyChangeListener(Song.PROP_CLOSED, this);
+        song.getClientProperties().addPropertyChangeListener(SS_EditorClientProperties.PROP_VIEW_MODE, this);
     }
 
 
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        var oldMode = editor.getViewMode();
-        var newMode = oldMode.equals(SS_Editor.ViewMode.NORMAL) ? SS_Editor.ViewMode.COMPACT : SS_Editor.ViewMode.NORMAL;
-        editor.setViewMode(newMode);
+        var oldMode = getViewMode(song);
+        var newMode = oldMode.equals(SS_EditorClientProperties.ViewMode.NORMAL) ? SS_EditorClientProperties.ViewMode.COMPACT
+                : SS_EditorClientProperties.ViewMode.NORMAL;
+        setViewMode(song, newMode);
+        editor.getSongModel().setSaveNeeded(true);
     }
 
 
@@ -107,20 +114,16 @@ public class ToggleCompactView extends ToggleAction implements PropertyChangeLis
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        if (evt.getSource() == editor.getSongModel())
+        if (evt.getSource() == song)
         {
-            if (evt.getPropertyName().equals(Song.PROP_CLOSED))
-            {
-                editor.removePropertyChangeListener(this);
-                editor.getSongModel().removePropertyChangeListener(this);
-                MAP_EDITOR_INSTANCES.remove(editor);
-            }
-        } else if (evt.getSource() == editor)
+            assert evt.getPropertyName().equals(Song.PROP_CLOSED) : " evt.getPropertyName()=" + evt.getPropertyName();
+            song.removePropertyChangeListener(Song.PROP_CLOSED, this);
+            song.getClientProperties().removePropertyChangeListener(SS_EditorClientProperties.PROP_VIEW_MODE, this);
+            MAP_EDITOR_INSTANCES.remove(editor);
+        } else if (evt.getSource() == song.getClientProperties())
         {
-            if (evt.getPropertyName().equals(SS_Editor.PROP_EDITOR_VIEW_MODE))
-            {
-                setSelected(editor.getViewMode().equals(SS_Editor.ViewMode.COMPACT));
-            }
+            assert evt.getPropertyName().equals(SS_EditorClientProperties.PROP_VIEW_MODE) : " evt.getPropertyName()=" + evt.getPropertyName();
+            setSelected(getViewMode(song).equals(SS_EditorClientProperties.ViewMode.COMPACT));
         }
     }
 

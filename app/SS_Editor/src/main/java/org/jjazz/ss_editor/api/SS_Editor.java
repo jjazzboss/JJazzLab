@@ -47,25 +47,15 @@ import org.jjazz.ss_editor.sptviewer.spi.SptViewerFactory;
  * - edited SongStructure<br>
  * - edited Song (container of the SongStructure if there is one) <br>
  * - the selected SongParts or RhythmParameters.<br>
+ * <p>
+ * The editor also uses Song client properties via {@link SS_EditorClientProperties}.
  */
 public abstract class SS_Editor extends JPanel implements Lookup.Provider
 {
 
-    public enum ViewMode
-    {
-        NORMAL, COMPACT;
-    }
-
-    // List of property change events
     /**
-     * oldValue=old mode, newValue=new mode.
-     */
-    static public final String PROP_EDITOR_VIEW_MODE = "PropSsEditorViewMode";
-    /**
-     * oldValue=rhythm, newValue=list of visible RPs in compact view mode
-     */
-    static public final String PROP_COMPACT_VIEW_MODE_VISIBLE_RPS = "PropCompactViewModeVisibleRps";
-    /**
+     * Property change event fired when list of visible RPs change for a given rhythm.
+     * <p>
      * oldValue=rhythm, newValue=list of currently visible RPs
      */
     static public final String PROP_RHYHM_VISIBLE_RPS = "PropRhythmVisibleRps";
@@ -95,29 +85,11 @@ public abstract class SS_Editor extends JPanel implements Lookup.Provider
     abstract public void cleanup();
 
     /**
-     * Set the horizontal zoom factor.
-     *
-     * @param hfactor An int value between 0 and 100.
-     */
-    abstract public void setZoomHFactor(int hfactor);
-
-    abstract public int getZoomHFactor();
-
-    /**
      * Adjust the horizontal zoom factor to try to fit all the SongParts in the specified width.
      *
      * @param width
      */
     abstract public void setZoomHFactorToFitWidth(int width);
-
-    /**
-     * Set the vertical zoom factor.
-     *
-     * @param vfactor An int value between 0 and 100.
-     */
-    abstract public void setZoomVFactor(int vfactor);
-
-    abstract public int getZoomVFactor();
 
     /**
      * Select a songpart.
@@ -203,42 +175,6 @@ public abstract class SS_Editor extends JPanel implements Lookup.Provider
      * @param spt
      */
     abstract public void makeSptViewerVisible(SongPart spt);
-
-    /**
-     * Get the view mode.
-     *
-     * @return Can't be null
-     */
-    abstract public ViewMode getViewMode();
-
-    /**
-     * Set view mode.
-     * <p>
-     * Fire a PROP_EDITOR_VIEW_MODE change event.
-     *
-     * @param mode
-     */
-    abstract public void setViewMode(ViewMode mode);
-
-    /**
-     * Get visible RPs in compact view mode for the specified rhythm.
-     * <p>
-     * Fire a PROP_VISIBLE_RPS change event.
-     *
-     * @param r
-     * @return
-     */
-    abstract public List<RhythmParameter<?>> getCompactViewRPs(Rhythm r);
-
-    /**
-     * Set visible RPs in compact view mode for the specified rhythm.
-     * <p>
-     * Fire a PROP_COMPACT_VISIBLE_RPS change event.
-     *
-     * @param r
-     * @param rps
-     */
-    abstract public void setCompactViewRPs(Rhythm r, List<RhythmParameter<?>> rps);
 
     /**
      * The rhythm parameters effectively displayed in the editor for a specific rhythm.

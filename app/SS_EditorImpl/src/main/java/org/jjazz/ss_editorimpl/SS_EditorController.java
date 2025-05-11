@@ -62,6 +62,7 @@ import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ss_editor.api.SS_EditorMouseListener;
 import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.rhythm.api.RpEnumerable;
+import org.jjazz.ss_editor.api.SS_EditorClientProperties;
 import org.jjazz.ss_editorimpl.actions.AppendSpt;
 import org.jjazz.ss_editorimpl.actions.DuplicateSpt;
 import org.jjazz.ss_editorimpl.api.EditRhythm;
@@ -421,7 +422,7 @@ public class SS_EditorController implements SS_EditorMouseListener
         SS_EditorTopComponent ssTc = SS_EditorTopComponent.get(sgs);
         ssTc.requestActive();
 
-        int factor = e.isShiftDown() ? editor.getZoomVFactor() : editor.getZoomHFactor();
+        int factor = e.isShiftDown() ? SS_EditorClientProperties.getZoomYFactor(editor.getSongModel()) : SS_EditorClientProperties.getZoomYFactor(editor.getSongModel());
         if (e.getWheelRotation() < 0)
         {
             factor = Math.min(100, factor + STEP);
@@ -436,10 +437,10 @@ public class SS_EditorController implements SS_EditorMouseListener
             // Give time for TopComponent to become active
             if (e.isShiftDown())
             {
-                editor.setZoomVFactor(factor2);
+                SS_EditorClientProperties.setZoomYFactor(editor.getSongModel(), factor2);
             } else
             {
-                editor.setZoomHFactor(factor2);
+                SS_EditorClientProperties.setZoomXFactor(editor.getSongModel(), factor2);
             }
         }
         );

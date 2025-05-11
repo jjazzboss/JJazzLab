@@ -29,6 +29,7 @@ import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.rhythm.api.Rhythm;
+import org.jjazz.ss_editor.api.SS_EditorClientProperties;
 import org.openide.windows.WindowManager;
 import org.jjazz.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.utilities.api.ResUtil;
@@ -50,18 +51,18 @@ import org.openide.awt.ActionRegistration;
         })
 public class CompactRpViewSettings extends AbstractAction
 {
-
+    
     private static final Logger LOGGER = Logger.getLogger(CompactRpViewSettings.class.getSimpleName());
     private static final ImageIcon ICON = new ImageIcon(
             CompactRpViewSettings.class.getResource("resources/CompactViewSettings.png"));
-
+    
     public CompactRpViewSettings()
     {
         putValue("hideActionText", true);
         putValue(SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_CompactRpViewSettings"));
         putValue(SMALL_ICON, ICON);
     }
-
+    
     @Override
     public void actionPerformed(ActionEvent e)
     {
@@ -71,34 +72,41 @@ public class CompactRpViewSettings extends AbstractAction
         {
             return;
         }
-
+        
         var editor = ssTc.getEditor();
         var song = editor.getSongModel();
         if (song.getSongStructure().getSongParts().isEmpty())
         {
             return;
         }
-
-
+        
+        
         CompactRpViewSettingsDialog dlg = CompactRpViewSettingsDialog.getInstance();
         dlg.setModel(editor);
         dlg.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
         dlg.setVisible(true);
-
-
+        
+        
         if (dlg.isExitOk())
         {
             var res = dlg.getResult();
+            boolean changed = false;
             for (Rhythm r : res.keySet())
             {
-                editor.setCompactViewRPs(r, res.get(r));
+                SS_EditorClientProperties.setCompactViewModeVisibleRPs(song, r, res.get(r));
+                changed = true;
             }
-
+            
+            if (changed)
+            {
+                song.setSaveNeeded(true);
+            }
+            
             // Only the first rhythm visible parameter
             Analytics.logEvent("Compact View Settings", Analytics.buildMap("Visible Rps", Analytics.toStrList(res.values().iterator().next())));
-
+            
         }
     }
-
-
+    
+    
 }

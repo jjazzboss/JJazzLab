@@ -40,6 +40,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jjazz.song.api.Song;
 import org.jjazz.ss_editor.api.SS_Editor;
+import org.jjazz.ss_editor.api.SS_EditorClientProperties;
 
 /**
  * A printer for a SongStructure editor.
@@ -115,7 +116,7 @@ public class SongStructurePrinter implements Printable, Pageable
      */
     public int getEditorZoomFactor()
     {
-        return ssEditor.getZoomVFactor();
+        return SS_EditorClientProperties.getZoomYFactor(ssEditor.getSongModel());
     }
 
     /**

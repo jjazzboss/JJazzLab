@@ -43,11 +43,12 @@ public class CL_EditorClientProperties
 {
 
     public static final int BAR_ANNOTATION_MAX_NB_LINES = 6;
-    
+
     //==========================================================================================================================================
     // Note: do not modify the property values below (e.g. "PropBarAnnotationsVisible"), they are used in Song or ChordLeadSheetItem serialization
     //==========================================================================================================================================
 
+    // All old and new values are encoded as String since Song and ChordLeadSheetItem client properties are StringProperties.
     /**
      * Song client (String) property: zoom X factor (impacting nb of columns)
      * <p>
