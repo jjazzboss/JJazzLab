@@ -32,13 +32,15 @@ import org.jjazz.cl_editor.itemrenderer.api.IR_Type;
 import org.jjazz.cl_editor.itemrenderer.api.ItemRenderer;
 import org.jjazz.cl_editor.itemrenderer.api.ItemRendererFactory;
 import org.jjazz.cl_editor.itemrenderer.api.ItemRendererSettings;
+import org.openide.util.Lookup;
 import org.openide.util.lookup.ServiceProvider;
 
 
-@ServiceProvider(service=ItemRendererFactory.class)
+@ServiceProvider(service = ItemRendererFactory.class)
 public class ItemRendererFactoryImpl implements ItemRendererFactory
 {
 
+    private static ItemRendererFactoryImpl INSTANCE;
     private static IR_ChordSymbol SAMPLE_CHORD_SYMBOL_RENDERER;
     private static IR_Section SAMPLE_SECTION_RENDERER;
     private static IR_ChordPosition SAMPLE_CHORD_POSITION_RENDERER;
@@ -48,9 +50,32 @@ public class ItemRendererFactoryImpl implements ItemRendererFactory
     private static IR_AnnotationText SAMPLE_ANNOTATION_TEXT_RENDERER;
     private static final Logger LOGGER = Logger.getLogger(ItemRendererFactoryImpl.class.getName());
 
+    static public final ItemRendererFactoryImpl getInstance()
+    {
+        if (INSTANCE == null)
+        {
+            var res = Lookup.getDefault().lookup(ItemRendererFactoryImpl.class);
+            if (res == null)
+            {
+                throw new IllegalStateException("No ItemRendererFactory instance found");
+            }
+            assert INSTANCE != null;
+        }
+        return INSTANCE;
+    }
 
+    /**
+     * Reserved, do not use : use getInstance() instead.
+     * <p>
+     * (constructor must be made public because of @ServiceProvider)
+     */
     public ItemRendererFactoryImpl()
     {
+        if (INSTANCE != null)
+        {
+            throw new IllegalStateException("This is the 2nd call of the constructor, this should never happen for this singleton class");
+        }
+        INSTANCE = this;
     }
 
     @Override

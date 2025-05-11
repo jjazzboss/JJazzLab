@@ -26,6 +26,7 @@ import java.awt.Component;
 import java.awt.event.InputEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Collection;
 import java.util.logging.Logger;
 import javax.swing.SwingConstants;
 import org.jjazz.uiutilities.api.Zoomable;
@@ -53,20 +54,13 @@ public class ZoomYWidget extends javax.swing.JPanel implements StatusLineElement
         // Listen to Zoomable object in the lookup
         context = org.openide.util.Utilities.actionsGlobalContext();
         lkpResult = context.lookupResult(Zoomable.class);
-        // For WeakReferences to work, we need to keep a strong reference on the listeners (see WeakListeners java doc).
-        lkpListener = new LookupListener()
-        {
-            @Override
-            public void resultChanged(LookupEvent le)
-            {
-                zoomableUpdated();
-            }
-        };
+        // For WeakReferences to work, we need to keep a strong reference on the listener (see WeakListeners java doc).
+        lkpListener = le -> zoomablePresenceChanged();
         // Need to use WeakListeners so than action can be GC'ed
         // See http://forums.netbeans.org/viewtopic.php?t=35921
         lkpResult.addLookupListener(WeakListeners.create(LookupListener.class, lkpListener, lkpResult));
 
-        setEnabled(false);
+        zoomablePresenceChanged();
     }
 
     @Override
@@ -83,13 +77,15 @@ public class ZoomYWidget extends javax.swing.JPanel implements StatusLineElement
         return this;
     }
 
-    private void zoomableUpdated()
+    private void zoomablePresenceChanged()
     {
         if (currentZoomable != null)
         {
             currentZoomable.removePropertyListener(this);
         }
-        currentZoomable = context.lookup(Zoomable.class);
+        Collection<? extends Zoomable> zoomables = lkpResult.allInstances();
+        assert zoomables.isEmpty() || zoomables.size() == 1 : " zoomables=" + zoomables;
+        currentZoomable = zoomables.isEmpty() ? null : zoomables.iterator().next();
         if (currentZoomable != null && currentZoomable.getZoomCapabilities().equals(Zoomable.Capabilities.X_ONLY))
         {
             currentZoomable = null;
@@ -112,7 +108,7 @@ public class ZoomYWidget extends javax.swing.JPanel implements StatusLineElement
             int newFactor = (int) evt.getNewValue();
             if (newFactor < 0 || newFactor > 100)
             {
-                throw new IllegalStateException("factor=" + newFactor);   
+                throw new IllegalStateException("factor=" + newFactor);
             }
             slider.setValue(newFactor);
             slider.setToolTipText(String.valueOf(newFactor));

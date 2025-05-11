@@ -26,6 +26,7 @@ import java.awt.Component;
 import java.awt.event.InputEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Collection;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.SwingConstants;
@@ -57,22 +58,14 @@ public class ZoomXWidget extends javax.swing.JPanel implements StatusLineElement
         context = org.openide.util.Utilities.actionsGlobalContext();
         lkpResult = context.lookupResult(Zoomable.class);
         // For WeakReferences to work, we need to keep a strong reference on the listeners (see WeakListeners java doc).
-        lkpListener = new LookupListener()
-        {
-            @Override
-            public void resultChanged(LookupEvent le)
-            {
-                zoomableUpdated();
-            }
-        };
+        lkpListener = le -> zoomablePresenceChanged();
         // Need to use WeakListeners so than action can be GC'ed
         // See http://forums.netbeans.org/viewtopic.php?t=35921
         lkpResult.addLookupListener(WeakListeners.create(LookupListener.class, lkpListener, lkpResult));
 
-        setEnabled(false);
+        zoomablePresenceChanged();
     }
 
-  
 
     @Override
     public void setEnabled(boolean b)
@@ -88,13 +81,15 @@ public class ZoomXWidget extends javax.swing.JPanel implements StatusLineElement
         return this;
     }
 
-    private void zoomableUpdated()
+    private void zoomablePresenceChanged()
     {
         if (currentZoomable != null)
         {
             currentZoomable.removePropertyListener(this);
         }
-        currentZoomable = context.lookup(Zoomable.class);
+        Collection<? extends Zoomable> zoomables = lkpResult.allInstances();
+        assert zoomables.isEmpty() || zoomables.size() == 1 : " zoomables=" + zoomables;
+        currentZoomable = zoomables.isEmpty() ? null : zoomables.iterator().next();
         if (currentZoomable != null && currentZoomable.getZoomCapabilities().equals(Zoomable.Capabilities.Y_ONLY))
         {
             currentZoomable = null;
@@ -117,7 +112,7 @@ public class ZoomXWidget extends javax.swing.JPanel implements StatusLineElement
             int newFactor = (int) evt.getNewValue();
             if (newFactor < 0 || newFactor > 100)
             {
-                throw new IllegalStateException("factor=" + newFactor);   
+                throw new IllegalStateException("factor=" + newFactor);
             }
             slider.setValue(newFactor);
             slider.setToolTipText(String.valueOf(newFactor));
@@ -177,10 +172,10 @@ public class ZoomXWidget extends javax.swing.JPanel implements StatusLineElement
                 || (evt.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) == InputEvent.SHIFT_DOWN_MASK))
         {
             // Simple CTRL-CLICK
-            Action a = Actions.forID("JJazz", "org.jjazz.zoomablesliders.zoomfitwidth");   
+            Action a = Actions.forID("JJazz", "org.jjazz.zoomablesliders.zoomfitwidth");
             if (a == null)
             {
-                LOGGER.warning("Can't find the ZoomFitWidth action: org.jjazz.zoomablesliders.zoomfitwidth");   
+                LOGGER.warning("Can't find the ZoomFitWidth action: org.jjazz.zoomablesliders.zoomfitwidth");
             } else
             {
                 a.actionPerformed(null);

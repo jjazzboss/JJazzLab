@@ -369,7 +369,7 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
             {
                 final List<String> strFiles = Arrays.asList(s.split(","));
                 final int max = Math.min(strFiles.size(), MAX_FILES);         // Robustness
-                Runnable run = () -> 
+                SwingUtilities.invokeLater(() -> 
                 {
                     for (int i = 0; i < max; i++)
                     {
@@ -387,8 +387,7 @@ public class StartupShutdownSongManager extends OptionProcessor implements Calla
                             });
                         }
                     }
-                };
-                SwingUtilities.invokeLater(run);
+                });
             }
         }
 

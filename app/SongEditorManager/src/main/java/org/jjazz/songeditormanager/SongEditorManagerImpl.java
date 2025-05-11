@@ -199,8 +199,7 @@ public class SongEditorManagerImpl implements SongEditorManager, PropertyChangeL
             var asm = ActiveSongManager.getDefault();
             if (makeActive && asm.isActivable(song) == null)
             {
-                // To avoid problem (Issue #109 Tempo sometimes not right after 1st song auto-loaded), make sure activation
-                // comes AFTER the clTc.requestActive() above.
+                // To avoid problem (Issue #109 Tempo sometimes not right after 1st song auto-loaded), use invokeLater() to make sure setActive() comes after enough the clTc.requestActive() above.
                 SwingUtilities.invokeLater(() -> asm.setActive(song, midiMix));
             }
 
