@@ -72,7 +72,7 @@ public final class MixConsoleTopComponent extends TopComponent
     public MixConsoleTopComponent()
     {
         putClientProperty(TopComponent.PROP_MAXIMIZATION_DISABLED, Boolean.TRUE);
-        putClientProperty(TopComponent.PROP_CLOSING_DISABLED, Boolean.TRUE);
+        putClientProperty(TopComponent.PROP_CLOSING_DISABLED, Boolean.TRUE);        // Not enough ! see canClose() below
         putClientProperty(TopComponent.PROP_KEEP_PREFERRED_SIZE_WHEN_SLIDED_IN, Boolean.TRUE);
         putClientProperty(TopComponent.PROP_DND_COPY_DISABLED, Boolean.TRUE);
         putClientProperty(TopComponent.PROP_DRAGGING_DISABLED, Boolean.TRUE);
@@ -186,6 +186,18 @@ public final class MixConsoleTopComponent extends TopComponent
         // TODO add custom code on component closing
     }
 
+    
+  @Override
+    public boolean canClose()
+    {
+        // fix Issue #549  MixConsoleTopComponent and SptEditorTopComponent can be closed by middle-click      
+        return false;
+        // We have putClientProperty(TopComponent.PROP_CLOSING_DISABLED, Boolean.TRUE) but it actually just removes the close button from the tab and the close command from the popup menu.
+        // Tried adding putClientProperty(TabbedPaneFactory.NO_CLOSE_BUTTON, Boolean.TRUE) but still not enough to prevend middle-click closing.        
+        // Note1: in branding we have View.TopComponent.Closing.Enabled=true (applies to non-editor windows) because we want tools like ChordInspector TopComponents to be closable.
+        // Note2: another approach would have been to try manging user events on TopComponent tabs using https://bits.netbeans.org/dev/javadoc/org-netbeans-swing-tabcontrol/org/netbeans/swing/tabcontrol/TabbedContainer.html
+    }
+    
     void writeProperties(java.util.Properties p)
     {
         // better to version settings since initial version as advocated at
