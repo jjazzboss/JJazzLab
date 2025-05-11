@@ -34,6 +34,7 @@ import org.jjazz.analytics.api.Analytics;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.cl_editor.api.CL_Editor;
+import org.jjazz.cl_editor.api.CL_EditorClientProperties;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.itemrenderer.api.IR_ChordSymbolSettings;
 import org.jjazz.utilities.api.ResUtil;
@@ -141,9 +142,10 @@ public final class SetChordColor extends AbstractAction implements Presenter.Pop
                         if (item instanceof CLI_ChordSymbol cliCs)
                         {
                             Color cc = c == IR_ChordSymbolSettings.getDefault().getColor() ? null : c;
-                            cliCs.getClientProperties().putColor(IR_ChordSymbolSettings.SONG_CLIENT_PROPERTY_USER_FONT_COLOR, cc);
+                            CL_EditorClientProperties.setChordSymbolColor(cliCs, cc);
                         }
                     }
+                    editor.getSongModel().setSaveNeeded(true);
                     Analytics.logEvent("Set chord color");
                 });
                 add(mi);

@@ -44,8 +44,7 @@ import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
 import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.cl_editor.api.CL_Editor;
-import org.jjazz.cl_editor.api.CL_EditorTopComponent;
+import org.jjazz.cl_editor.api.CL_EditorClientProperties;
 import org.jjazz.uisettings.api.ColorSetManager;
 import org.jjazz.ss_editor.api.SS_ContextActionListener;
 import org.jjazz.utilities.api.ResUtil;
@@ -121,11 +120,10 @@ public class SetParentSectionColor extends AbstractAction implements ContextAwar
     {
         SS_SelectionUtilities selection = cap.getSelection();
         List<SongPart> spts = selection.getIndirectlySelectedSongParts();
-        CL_Editor clEditor = CL_EditorTopComponent.get(selection.getModel().getParentChordLeadSheet()).getEditor();
         for (var spt : spts)
         {
             var parentSection = spt.getParentSection();
-            clEditor.setSectionColor(parentSection, c);
+            CL_EditorClientProperties.setSectionColor(parentSection, c);
         }
     }
 

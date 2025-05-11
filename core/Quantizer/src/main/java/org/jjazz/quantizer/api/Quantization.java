@@ -45,7 +45,7 @@ public enum Quantization
     private final float[] beats;
     private final List<Float> beatsAsList;
     private final TreeSet<Float> beatsAsTreeSet;
-    private SymbolicDuration symbolicDuration;
+    private final SymbolicDuration symbolicDuration;
 
     private Quantization(SymbolicDuration sd)
     {

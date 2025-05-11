@@ -22,15 +22,12 @@
  */
 package org.jjazz.cl_editor.api;
 
-import java.awt.Color;
 import org.jjazz.cl_editor.spi.CL_EditorSettings;
-import org.jjazz.quantizer.api.Quantization;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.List;
 import javax.swing.JPanel;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.song.api.Song;
@@ -48,59 +45,16 @@ import org.openide.util.Lookup;
  * - edited ChordLeadSheet<br>
  * - edited Song (container of the ChordLeadSheet if there is one)<br>
  * - editor's Zoomable instances<br>
- * - selected items or bars<p>
+ * - selected items or bars
  * <p>
  * The editor creates BarBoxes using a BarBoxConfig based on the editor's default config, and on the BarRenderer types obtained from the BarRendererProvider
  * instances found in the global lookup.
  * <p>
+ * The editor also uses Song and Song's ChordLeadSheetItems client properties via {@link CL_EditorClientProperties}.
  */
 public abstract class CL_Editor extends JPanel implements Lookup.Provider
 {
 
-    // Property change events fired by this class
-    /**
-     * oldvalue=old nbCols, newValue=new nbCols.
-     * <p>
-     * Note that the NbColumns setting is serialized via the ZoomHFactor.
-     */
-    static public final String PROP_NB_COLUMNS = "PropNbColumns";
-    /**
-     * oldvalue=CLI_Section, newValue=new quantization value.
-     * <p>
-     * IMPORTANT: don't change the String value "PropSectionQuantization", it is also used as client property name during CLI_Section serialization from JJazzLab 4
-     */
-    static public final String PROP_SECTION_USER_QUANTIZATION = "PropSectionQuantization";
-    /**
-     * oldvalue=CLI_Section, newValue=new color.
-     * <p>
-     * Don't change the String value, it's also used as client property name during CLI_Section serialization since JJazzLab 4.
-     */
-    static public final String PROP_SECTION_COLOR = "PropSectionColor";
-    /**
-     * oldvalue=CLI_Section, newValue=new boolean.
-     * <p>
-     * Don't change the String value, it's also used as client property name during CLI_Section serialization since JJazzLab 4.
-     */
-    static public final String PROP_SECTION_START_ON_NEW_LINE = "PropSectionStartOnNewLine";
-    /**
-     * oldValue=old boolean, newValue=new boolean
-     * <p>
-     * Don't change the String value, it's also used as a client property name during Song serialization since JJazzLab 4.
-     * <p>
-     */
-    static public final String PROP_BAR_ANNOTATION_VISIBLE = "PropBarAnnotationsVisible";
-    /**
-     * oldValue=old number of liens, newValue=new number of lines
-     * <p>
-     * Don't change the String value, it's also used as a client property name during Song serialization since JJazzLab 4.
-     * <p>
-     */
-    static public final String PROP_BAR_ANNOTATION_NB_LINES = "PropBarAnnotationsNbLines";
-
-
-    // =====================================================================================================    
-    // Methods
-    // =====================================================================================================    
     abstract public void setEditorMouseListener(CL_EditorMouseListener brm);
 
     /**
@@ -133,66 +87,12 @@ public abstract class CL_Editor extends JPanel implements Lookup.Provider
     abstract public BarRendererFactory getBarRendererFactory();
 
     /**
-     * Set the quantization used when moving chord symbols for a specific section.
-     * <p>
-     * Fires a property change event.
-     *
-     * @param q Can be null (auto-mode)
-     * @param section If null, set the quantization for all sections.
-     */
-    abstract public void setUserQuantization(CLI_Section section, Quantization q);
-
-    /**
-     * Get the quantization used when moving chord symbols for a specific section.
-     * 
-     * @param section
-     * @return Can be null (auto-mode)
-     */
-    abstract public Quantization getUserQuantization(CLI_Section section);
-
-    /**
      * Get the focused SelectedBar, if any.
      *
      * @param includeFocusedItem If true and focus is on a ChordLeadSheetItem, return the SelectedBar for this item.
      * @return Can be null.
      */
     abstract public SelectedBar getFocusedBar(boolean includeFocusedItem);
-
-    /**
-     * Set if the bar corresponding to specified section should start on a new line.
-     * <p>
-     * Fires a property change event.
-     *
-     * @param section
-     * @param b
-     * @see #getSectionOnNewLinePropertyName(org.jjazz.chordleadsheet.api.Section)
-     */
-    abstract public void setSectionStartOnNewLine(CLI_Section section, boolean b);
-
-    /**
-     * @param section
-     * @return True if section bar should start on new line.
-     */
-    abstract public boolean isSectionStartOnNewLine(CLI_Section section);
-
-    /**
-     * Set the color associated to a section.
-     * <p>
-     * Fires a property change event.
-     *
-     * @param section Must be one of the ColorSetManager reference colors.
-     * @param c
-     * @see #getSectionColorPropertyName(org.jjazz.chordleadsheet.api.Section)
-     */
-    abstract public void setSectionColor(CLI_Section section, Color c);
-
-    /**
-     * Get the color associated to a section.
-     *
-     * @param section
-     * @return
-     */
-    abstract public Color getSectionColor(CLI_Section section);
 
     /**
      * Set the BarBoxConfig for specified bars.
@@ -209,39 +109,6 @@ public abstract class CL_Editor extends JPanel implements Lookup.Provider
      * @return
      */
     abstract public BarBoxConfig getBarBoxConfig(int barIndex);
-
-    /**
-     * Check if bar annotations are visible.
-     *
-     * @return
-     */
-    abstract public boolean isBarAnnotationVisible();
-
-    /**
-     * Set bar annotations visible or not.
-     * <p>
-     * Fire a PROP_BAR_ANNOTATIONS_VISIBLE change event.
-     *
-     * @param b
-     */
-    abstract public void setBarAnnotationVisible(boolean b);
-
-
-    /**
-     * Get the number of lines of a bar annotation.
-     *
-     * @return
-     */
-    abstract public int getBarAnnotationNbLines();
-
-    /**
-     * Set the number of lines of a bar annotation.
-     * <p>
-     * Fire a PROP_BAR_ANNOTATIONS_NB_LINES change event.
-     *
-     * @param n A value between 1 and 10
-     */
-    abstract public void setBarAnnotationNbLines(int n);
 
     abstract public void setNbColumns(int nbCols);
 
@@ -272,20 +139,6 @@ public abstract class CL_Editor extends JPanel implements Lookup.Provider
      * @param barIndex int The index of the bar to be made visible
      */
     abstract public void makeBarVisible(int barIndex);
-
-    /**
-     * Set the zoom vertical factor.
-     *
-     * @param factor A value between 0 and 100 included.
-     */
-    abstract public void setZoomVFactor(int factor);
-
-    /**
-     * Get the zoom vertical factor.
-     *
-     * @return A value between 0 and 100 included.
-     */
-    abstract public int getZoomVFactor();
 
     /**
      * Select the bars in the specified barIndex range.

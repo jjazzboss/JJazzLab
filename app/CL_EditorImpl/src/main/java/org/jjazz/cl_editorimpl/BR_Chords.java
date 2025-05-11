@@ -43,6 +43,7 @@ import org.jjazz.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.cl_editor.api.CL_Editor;
+import org.jjazz.cl_editor.api.CL_EditorClientProperties;
 import org.jjazz.cl_editor.barrenderer.api.BarRenderer;
 import org.jjazz.cl_editor.barrenderer.api.BeatBasedBarRenderer;
 import org.jjazz.cl_editor.spi.BarRendererSettings;
@@ -255,7 +256,7 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
     {
         boolean b = item instanceof CLI_ChordSymbol
                 || item instanceof CLI_Section
-                || (item instanceof CLI_BarAnnotation && !getEditor().isBarAnnotationVisible());
+                || (item instanceof CLI_BarAnnotation && !CL_EditorClientProperties.isBarAnnotationVisible(getEditor().getSongModel()));
         return b;
     }
 
@@ -380,7 +381,7 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
             ChordLeadSheetItem<?> item1 = null, item2;
             try
             {
-                item1 = clif.createChordSymbol("C#7#9b5", 0,0);
+                item1 = clif.createChordSymbol("C#7#9b5", 0, 0);
             } catch (ParseException ex)
             {
                 Exceptions.printStackTrace(ex);

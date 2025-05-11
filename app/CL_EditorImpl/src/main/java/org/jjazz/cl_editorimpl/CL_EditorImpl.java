@@ -22,7 +22,6 @@
  */
 package org.jjazz.cl_editorimpl;
 
-import com.google.common.base.Preconditions;
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.awt.Color;
 import java.awt.Component;
@@ -41,7 +40,6 @@ import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -74,14 +72,15 @@ import org.openide.util.lookup.ProxyLookup;
 import org.jjazz.chordleadsheet.api.ClsChangeListener;
 import org.jjazz.chordleadsheet.api.Section;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.cl_editor.api.CL_EditorClientProperties;
 import org.jjazz.song.api.Song;
-import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.cl_editor.api.SelectedBar;
 import org.jjazz.cl_editor.api.SelectedCLI;
 import org.jjazz.cl_editor.spi.BarRendererFactory;
 import org.jjazz.cl_editor.spi.BarRendererProvider;
 import org.openide.awt.UndoRedo;
 import org.jjazz.uisettings.api.ColorSetManager;
+import org.jjazz.utilities.api.StringProperties;
 
 /**
  * A chordleadsheet editor using BarBox objects to render bars.
@@ -156,7 +155,6 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
      * The number of columns.
      */
     private int nbColumns;
-    private int zoomVFactor;
     /**
      * The last position insertion point.
      */
@@ -174,7 +172,6 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
      * Our Drag and Drop handler.
      */
     private CL_EditorTransferHandler transferHandler;
-    private final SongSpecificCL_EditorProperties songSpecificProperties;
     private final CL_EditorZoomable editorZoomable;
     private static final Logger LOGGER = Logger.getLogger(CL_EditorImpl.class.getSimpleName());
 
@@ -187,9 +184,10 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             throw new IllegalArgumentException("song=" + song + " settings=" + settings + " brf=" + brf);
         }
         songModel = song;
+        songModel.getClientProperties().addPropertyChangeListener(this);     // Listen to CL_Editor client properties changes
+
 
         this.barRendererFactory = brf;
-        this.songSpecificProperties = new SongSpecificCL_EditorProperties(songModel);
 
         // Listen to settings changes
         this.settings = settings;
@@ -199,10 +197,9 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         ColorSetManager.getDefault().addPropertyChangeListener(this);
 
         // Graphical stuff
-        int zxf = songSpecificProperties.loadZoomXFactor();
+        int zxf = CL_EditorClientProperties.getZoomXFactor(songModel);
         nbColumns = zxf > -1 ? computeNbColsFromXZoomFactor(zxf) : 4;
-        int zyf = songSpecificProperties.loadZoomYFactor();
-        zoomVFactor = zyf > -1 ? zyf : 50;
+        
         gridLayout = new GridLayout(0, nbColumns);   // Nb of lines adjusted to number of bars
         setLayout(gridLayout);
         setBackground(settings.getBackgroundColor());
@@ -258,11 +255,6 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 
     }
 
-    public SongSpecificCL_EditorProperties getSongSpecificEditorProperties()
-    {
-        return songSpecificProperties;
-    }
-
     @Override
     public UndoRedo getUndoManager()
     {
@@ -306,7 +298,9 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         CL_SelectionUtilities selection = new CL_SelectionUtilities(selectionLookup);
         selection.unselectAll(this);
 
+
         // Unregister the objects we were listening to
+        songModel.getClientProperties().removePropertyChangeListener(this);
         clsModel.removeClsChangeListener(this);
         if (undoManager != null)
         {
@@ -336,113 +330,6 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         insertionPointLastPos = null;
     }
 
-    @Override
-    public void setUserQuantization(CLI_Section cliSection, Quantization q)
-    {
-        var qOld = getUserQuantization(cliSection);
-        songSpecificProperties.storeSectionUserQuantization(cliSection, q);
-        if (!Objects.equals(q, qOld))
-        {
-            firePropertyChange(CL_Editor.PROP_SECTION_USER_QUANTIZATION, cliSection, q);
-            songModel.setSaveNeeded(true);
-        }
-    }
-
-    @Override
-    public Quantization getUserQuantization(CLI_Section cliSection)
-    {
-        Objects.requireNonNull(cliSection);
-        Preconditions.checkArgument(clsModel.getSection(cliSection.getData().getName()) == cliSection, "cliSection=%s", cliSection);
-        Quantization q = songSpecificProperties.loadSectionUserQuantization(cliSection);
-        return q;
-    }
-
-    /**
-     * Check if bar annotations are visible.
-     *
-     * @return
-     */
-    @Override
-    public boolean isBarAnnotationVisible()
-    {
-        return songSpecificProperties.loadBarAnnotationVisible();
-    }
-
-    @Override
-    public void setBarAnnotationVisible(boolean b)
-    {
-        if (b == isBarAnnotationVisible())
-        {
-            return;
-        }
-
-        var bbConfig = getBarBoxConfig(0);            // All BarBoxes share the same config
-        var activeBrs = bbConfig.getActiveBarRenderers();
-        assert b == !activeBrs.contains(BarRendererFactory.BR_ANNOTATION) : "b=" + b + " activeBrs)" + activeBrs;
-        if (b)
-        {
-            activeBrs.add(BarRendererFactory.BR_ANNOTATION);
-        } else
-        {
-            activeBrs.remove(BarRendererFactory.BR_ANNOTATION);
-        }
-
-        // Save selection
-        CL_SelectionUtilities selection = new CL_SelectionUtilities(getLookup());
-        int bar = 0;
-        if (selection.isBarSelected())
-        {
-            bar = selection.getMinBarIndex();
-        } else if (selection.isItemSelected())
-        {
-            bar = selection.getSelectedItems().get(0).getPosition().getBar();
-        }
-        selection.unselectAll(this);
-
-        // Change state
-        songSpecificProperties.storeBarAnnotationVisible(b);
-        setBarBoxConfig(bbConfig.getUpdatedConfig(activeBrs.toArray(String[]::new)));
-
-        // Restore selection (at least 1 bar) so that the the "toggle BR_Annotation visibility" keyboard shortcut can be directly reused
-        selectBars(bar, bar, true);
-        setFocusOnBar(bar);
-
-        // Fire event
-        firePropertyChange(CL_Editor.PROP_BAR_ANNOTATION_VISIBLE, !b, b);
-        songModel.setSaveNeeded(true);
-    }
-
-    @Override
-    public int getBarAnnotationNbLines()
-    {
-        return songSpecificProperties.loadBarAnnotationNbLines();
-    }
-
-    @Override
-    public void setBarAnnotationNbLines(int n)
-    {
-        int nOld = getBarAnnotationNbLines();
-        if (n == nOld)
-        {
-            return;
-        }
-
-        for (var bb : getBarBoxes())
-        {
-            for (var br : bb.getBarRenderers())
-            {
-                if (br instanceof BR_Annotation bra)
-                {
-                    bra.setNbLines(n);
-                }
-            }
-        }
-
-        // Save value
-        songSpecificProperties.storeBarAnnotationNbLines(n);
-        firePropertyChange(CL_Editor.PROP_BAR_ANNOTATION_NB_LINES, nOld, n);
-        songModel.setSaveNeeded(true);
-    }
 
     @Override
     public SelectedBar getFocusedBar(boolean includeFocusedItem)
@@ -459,55 +346,6 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         return sb;
     }
 
-    @Override
-    public void setSectionStartOnNewLine(CLI_Section cliSection, boolean b)
-    {
-        Preconditions.checkNotNull(cliSection);
-
-        int barIndex = cliSection.getPosition().getBar();
-        if (isSectionStartOnNewLine(cliSection) == b || barIndex == 0)
-        {
-            return;
-        }
-        songSpecificProperties.storeSectionIsOnNewLine(cliSection, b);
-        updatePaddingBoxes();
-
-        firePropertyChange(CL_Editor.PROP_SECTION_START_ON_NEW_LINE, cliSection, b);
-        songModel.setSaveNeeded(true);
-    }
-
-    @Override
-    public boolean isSectionStartOnNewLine(CLI_Section cliSection)
-    {
-        return songSpecificProperties.loadSectionIsOnNewLine(cliSection);
-    }
-
-    @Override
-    public void setSectionColor(CLI_Section cliSection, Color c)
-    {
-        Preconditions.checkNotNull(cliSection);
-        Preconditions.checkNotNull(c);
-        Preconditions.checkArgument(ColorSetManager.getDefault().isReferenceColor(c), "c=%s", c);
-
-        var old = getSectionColor(cliSection);
-        if (!c.equals(old))
-        {
-            songSpecificProperties.storeSectionColor(cliSection, c);
-            firePropertyChange(CL_Editor.PROP_SECTION_COLOR, cliSection, c);        // BR_Sections will catch this
-            songModel.setSaveNeeded(true);
-        }
-    }
-
-    @Override
-    public Color getSectionColor(CLI_Section cliSection)
-    {
-        Color c = songSpecificProperties.loadSectionColor(cliSection);
-        if (c == null)
-        {
-            c = ColorSetManager.getDefault().getColor(cliSection);
-        }
-        return c;
-    }
 
     @Override
     public void setEnabled(boolean b)
@@ -548,10 +386,9 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             oldFactor, newFactor
         });
         editorZoomable.pcs.firePropertyChange(Zoomable.PROPERTY_ZOOM_X, oldFactor, newFactor);
-        firePropertyChange(PROP_NB_COLUMNS, oldNbColumns, nbColumns);
 
         // Save the zoom factor with the song as a client property        
-        songSpecificProperties.storeZoomXFactor(newFactor);     
+        CL_EditorClientProperties.setZoomXFactor(songModel, newFactor);
         songModel.setSaveNeeded(true);
 
     }
@@ -566,30 +403,6 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     public int getNbBarBoxes()
     {
         return barBoxes.size();
-    }
-
-    @Override
-    public void setZoomVFactor(int factor)
-    {
-        if (factor < 0 || factor > 100)
-        {
-            throw new IllegalArgumentException("factor=" + factor);
-        }
-        zoomVFactor = factor;
-        for (BarBox bb : getBarBoxes())
-        {
-            bb.setZoomVFactor(zoomVFactor);
-        }
-
-        // Save the zoom factor with the song as a client property
-        songSpecificProperties.storeZoomYFactor(zoomVFactor);
-        songModel.setSaveNeeded(true);
-    }
-
-    @Override
-    public int getZoomVFactor()
-    {
-        return zoomVFactor;
     }
 
     /**
@@ -995,6 +808,39 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
                 {
                     setBackground(settings.getBackgroundColor());
                 }
+            } else if (evt.getSource() == songModel.getClientProperties())
+            {
+                switch (evt.getPropertyName())
+                {
+                    case CL_EditorClientProperties.PROP_BAR_ANNOTATION_VISIBLE ->
+                    {
+                        setBarAnnotationVisible(CL_EditorClientProperties.isBarAnnotationVisible(songModel));
+                    }
+                    case CL_EditorClientProperties.PROP_BAR_ANNOTATION_NB_LINES ->
+                    {
+                        setBarAnnotationNbLines(CL_EditorClientProperties.getBarAnnotationNbLines(songModel));
+                    }
+                    case CL_EditorClientProperties.PROP_ZOOM_FACTOR_Y ->
+                    {
+                        var zoomY = CL_EditorClientProperties.getZoomYFactor(songModel);
+                        for (BarBox bb : getBarBoxes())
+                        {
+                            bb.setZoomVFactor(zoomY);
+                        }
+                    }
+                }
+            } else if (evt.getSource() instanceof StringProperties sp && sp.getOwner() instanceof CLI_Section cliSection)
+            {
+                switch (evt.getPropertyName())
+                {
+                    case CL_EditorClientProperties.PROP_SECTION_START_ON_NEW_LINE ->
+                    {
+                        if (cliSection != clsModel.getSection(0))
+                        {
+                            updatePaddingBoxes();
+                        }
+                    }
+                }
             } else if (evt.getSource() == ColorSetManager.getDefault())
             {
                 if (evt.getPropertyName().equals(ColorSetManager.PROP_REF_COLOR_CHANGED))
@@ -1002,12 +848,18 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
                     Color oldColor = (Color) evt.getOldValue();
                     Color newColor = (Color) evt.getOldValue();
                     // Check if some section colors are impacted
+                    boolean changed = false;
                     for (var cliSection : songModel.getChordLeadSheet().getItems(CLI_Section.class))
                     {
-                        if (getSectionColor(cliSection).equals(oldColor))
+                        if (CL_EditorClientProperties.getSectionColor(cliSection).equals(oldColor))
                         {
-                            setSectionColor(cliSection, newColor);
+                            CL_EditorClientProperties.setSectionColor(cliSection, newColor);
+                            changed = true;
                         }
+                    }
+                    if (changed)
+                    {
+                        songModel.setSaveNeeded(true);
                     }
                 }
             }
@@ -1141,136 +993,147 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
                 fItem = ir.getModel();
                 fIrType = ir.getIR_Type();
             }
-            if (event instanceof SizeChangedEvent e)
+            switch (event)
             {
-                int newSize = e.getNewSize();
-                int oldSize = e.getOldSize();
-                // Create or delete BarBoxes as appropriate
-                setNbBarBoxes(computeNbBarBoxes(NB_EXTRA_LINES));
-                // Refresh bars impacted by the resize
-                int minLastBar = Math.min(oldSize - 1, newSize - 1);
-                int maxLastBar = Math.max(oldSize - 1, newSize - 1);
-                maxLastBar = Math.min(maxLastBar, getNbBarBoxes() - 1);
-                Quantization q = getUserQuantization(clsModel.getSection(newSize - 1));
-                for (int i = minLastBar + 1; i <= maxLastBar; i++)
+                case SizeChangedEvent e ->
                 {
-                    int bar = (i < newSize) ? i : -1;
-                    BarBox bb = getBarBox(i);
-                    bb.setModelBarIndex(bar);
+                    int newSize = e.getNewSize();
+                    int oldSize = e.getOldSize();
+                    // Create or delete BarBoxes as appropriate
+                    setNbBarBoxes(computeNbBarBoxes(NB_EXTRA_LINES));
+                    // Refresh bars impacted by the resize
+                    int minLastBar = Math.min(oldSize - 1, newSize - 1);
+                    int maxLastBar = Math.max(oldSize - 1, newSize - 1);
+                    maxLastBar = Math.min(maxLastBar, getNbBarBoxes() - 1);
+                    for (int i = minLastBar + 1; i <= maxLastBar; i++)
+                    {
+                        int bar = (i < newSize) ? i : -1;
+                        BarBox bb = getBarBox(i);
+                        bb.setModelBarIndex(bar);
+                    }
                 }
-            } else if (event instanceof ItemAddedEvent e)
-            {
-                for (ChordLeadSheetItem<?> item : e.getItems())
+                case ItemAddedEvent e ->
                 {
-                    int modelBarIndex = item.getPosition().getBar();
-                    addItem(modelBarIndex, item);
+                    for (ChordLeadSheetItem<?> item : e.getItems())
+                    {
+                        int modelBarIndex = item.getPosition().getBar();
+                        addItem(modelBarIndex, item);
+                    }
                 }
-            } else if (event instanceof ItemRemovedEvent e)
-            {
-                for (ChordLeadSheetItem<?> item : e.getItems())
+                case ItemRemovedEvent e ->
                 {
+                    for (ChordLeadSheetItem<?> item : e.getItems())
+                    {
+                        int barIndex = item.getPosition().getBar();
+                        removeItem(barIndex, item, false);
+                    }
+                }
+                case ItemChangedEvent e ->
+                {
+                    var item = e.getItem();
+                    if (item instanceof CLI_Section cliSection)
+                    {
+                        Section oldSection = (Section) e.getOldData();
+                        Section newSection = cliSection.getData();
+
+                        if (!oldSection.getTimeSignature().equals(newSection.getTimeSignature()))
+                        {
+                            // TimeSignature has changed,
+                            propagateSectionChange(cliSection);
+                        }
+                    }
+                }
+                case ItemMovedEvent e ->
+                {
+                    // A moved ChordSymbol or other, but NOT a section
+                    ChordLeadSheetItem<?> item = e.getItem();
                     int barIndex = item.getPosition().getBar();
-                    removeItem(barIndex, item, false);
-                }
-            } else if (event instanceof ItemChangedEvent e)
-            {
-                var item = e.getItem();
-                if (item instanceof CLI_Section cliSection)
-                {
-                    Section oldSection = (Section) e.getOldData();
-                    Section newSection = cliSection.getData();
-
-                    if (!oldSection.getTimeSignature().equals(newSection.getTimeSignature()))
+                    int oldBarIndex = e.getOldPosition().getBar();
+                    boolean selected = isSelected(item);
+                    if (barIndex == oldBarIndex)
                     {
-                        // TimeSignature has changed, 
-                        propagateSectionChange(cliSection);
-                    }
-                }
-            } else if (event instanceof ItemMovedEvent e)
-            {
-                // A moved ChordSymbol or other, but NOT a section
-                ChordLeadSheetItem<?> item = e.getItem();
-                int barIndex = item.getPosition().getBar();
-                int oldBarIndex = e.getOldPosition().getBar();
-                boolean selected = isSelected(item);
-                if (barIndex == oldBarIndex)
-                {
-                    // Simple, just update one bar
-                    selectItem(item, false); // Important to not corrupt the lookup
-                    getBarBox(barIndex).moveItem(item);
-                } else
-                {
-                    // Remove on one bar and add on another bar
-                    removeItem(oldBarIndex, item, false);
-                    addItem(barIndex, item);
-                    if (item == fItem)
+                        // Simple, just update one bar
+                        selectItem(item, false); // Important to not corrupt the lookup
+                        getBarBox(barIndex).moveItem(item);
+                    } else
                     {
-                        getBarBox(barIndex).setFocusOnItem(item, fIrType);
-                    }
-                }
-                selectItem(item, selected);
-            } else if (event instanceof SectionMovedEvent e)
-            {
-                CLI_Section section = e.getSection();
-                setSectionStartOnNewLine(section, false);
-                int barIndex = section.getPosition().getBar();
-                int prevBarIndex = e.getOldBar();
-                boolean selected = isSelected(section);
-                removeItem(prevBarIndex, section, true);
-                addItem(barIndex, section);       // This will updatePaddingBoxes if needed
-                propagateSectionChange(clsModel.getSection(e.getOldBar()));
-                selectItem(section, selected);
-                if (section == fItem)
-                {
-                    getBarBox(barIndex).setFocusOnItem(section, fIrType);
-                }
-            } else if (event instanceof ItemBarShiftedEvent e)
-            {
-                int barDiff = e.getBarDiff();
-                assert barDiff != 0;
-                List<ChordLeadSheetItem> items = e.getItems();
-                int last = items.size() - 1;
-                if (barDiff > 0)
-                {
-                    // Shift on the right
-                    for (int i = last; i >= 0; i--)
-                    {
-                        // Start from the end, so moved item remain in same section automatically
-                        ChordLeadSheetItem<?> item = items.get(i);
-                        int barIndex = item.getPosition().getBar();
-                        boolean selected = isSelected(item);
-                        removeItem(barIndex - barDiff, item, true);
+                        // Remove on one bar and add on another bar
+                        removeItem(oldBarIndex, item, false);
                         addItem(barIndex, item);
-                        if (item instanceof CLI_Section)
-                        {
-                            // Need to also update the bars from previous position to before new position
-                            propagateSectionChange(clsModel.getSection(barIndex - 1));  // CLI_Section parameter might be null in special cases
-                        }
-                        selectItem(item, selected);
                         if (item == fItem)
                         {
                             getBarBox(barIndex).setFocusOnItem(item, fIrType);
                         }
                     }
-                } else
+                    selectItem(item, selected);
+                }
+                case SectionMovedEvent e ->
                 {
-                    // Shift to the left
-                    for (int i = 0; i <= last; i++)
+                    CLI_Section section = e.getSection();
+                    CL_EditorClientProperties.setSectionIsOnNewLine(section, false);
+                    int barIndex = section.getPosition().getBar();
+                    int prevBarIndex = e.getOldBar();
+                    boolean selected = isSelected(section);
+                    removeItem(prevBarIndex, section, true);
+                    addItem(barIndex, section);       // This will updatePaddingBoxes if needed
+                    propagateSectionChange(clsModel.getSection(e.getOldBar()));
+                    selectItem(section, selected);
+                    if (section == fItem)
                     {
-                        // Start from the end, so moved item remain in same section automatically
-                        ChordLeadSheetItem<?> item = items.get(i);
-                        int barIndex = item.getPosition().getBar();
-                        boolean selected = isSelected(item);
-                        removeItem(barIndex - barDiff, item, true);
-                        addItem(barIndex, item);
-                        selectItem(item, selected);
-                        if (item == fItem)
-                        {
-                            getBarBox(barIndex).setFocusOnItem(item, fIrType);
-                        }
+                        getBarBox(barIndex).setFocusOnItem(section, fIrType);
                     }
                 }
+                case ItemBarShiftedEvent e ->
+                {
+                    int barDiff = e.getBarDiff();
+                    assert barDiff != 0;
+                    List<ChordLeadSheetItem> items = e.getItems();
+                    int last = items.size() - 1;
+                    if (barDiff > 0)
+                    {
+                        // Shift on the right
+                        for (int i = last; i >= 0; i--)
+                        {
+                            // Start from the end, so moved item remain in same section automatically
+                            ChordLeadSheetItem<?> item = items.get(i);
+                            int barIndex = item.getPosition().getBar();
+                            boolean selected = isSelected(item);
+                            removeItem(barIndex - barDiff, item, true);
+                            addItem(barIndex, item);
+                            if (item instanceof CLI_Section)
+                            {
+                                // Need to also update the bars from previous position to before new position
+                                propagateSectionChange(clsModel.getSection(barIndex - 1));  // CLI_Section parameter might be null in special cases
+                            }
+                            selectItem(item, selected);
+                            if (item == fItem)
+                            {
+                                getBarBox(barIndex).setFocusOnItem(item, fIrType);
+                            }
+                        }
+                    } else
+                    {
+                        // Shift to the left
+                        for (int i = 0; i <= last; i++)
+                        {
+                            // Start from the end, so moved item remain in same section automatically
+                            ChordLeadSheetItem<?> item = items.get(i);
+                            int barIndex = item.getPosition().getBar();
+                            boolean selected = isSelected(item);
+                            removeItem(barIndex - barDiff, item, true);
+                            addItem(barIndex, item);
+                            selectItem(item, selected);
+                            if (item == fItem)
+                            {
+                                getBarBox(barIndex).setFocusOnItem(item, fIrType);
+                            }
+                        }
+                    }
 
+                }
+                default ->
+                {
+                }
             }
         };
         org.jjazz.uiutilities.api.UIUtilities.invokeLaterIfNeeded(run);
@@ -1353,6 +1216,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 
     /**
      * Delete/create trailing BarBoxes as required.
+     *
+     * @param newNbBarBoxes
      */
     private void setNbBarBoxes(int newNbBarBoxes)
     {
@@ -1561,10 +1426,12 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         if (item instanceof CLI_Section cliSection)
         {
             propagateSectionChange(cliSection);
-            if (isSectionStartOnNewLine(cliSection))
+            if (CL_EditorClientProperties.isSectionIsOnNewLine(cliSection))
             {
                 updatePaddingBoxes();
             }
+            // Listen to sectionOnNewLine changes
+            cliSection.getClientProperties().addPropertyChangeListener(this);
         }
     }
 
@@ -1592,11 +1459,18 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             unregisterItemRenderer(ir);
         }
 
-        if (!skipSectionRemovalCleaning && (item instanceof CLI_Section cliSection))
+        if (item instanceof CLI_Section cliSection)
         {
-
-            // Update the previous section
-            propagateSectionChange(clsModel.getSection(barIndex));      // CLI_Section parameter might be null in special cases (ChordLeadSheet temporary intermediate state)
+            cliSection.getClientProperties().removePropertyChangeListener(this);
+            if (CL_EditorClientProperties.isSectionIsOnNewLine(cliSection))
+            {
+                updatePaddingBoxes();
+            }
+            if (!skipSectionRemovalCleaning)
+            {
+                // Update the previous section
+                propagateSectionChange(clsModel.getSection(barIndex));      // CLI_Section parameter might be null in special cases (ChordLeadSheet temporary intermediate state)
+            }
         }
     }
 
@@ -1629,7 +1503,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         Collections.addAll(activeTypes, DEFAULT_BAR_RENDERER_TYPES);
 
         // Activation of BR_Annotation depends on Song property
-        if (!isBarAnnotationVisible())
+        if (!CL_EditorClientProperties.isBarAnnotationVisible(songModel))
         {
             activeTypes.remove(BarRendererFactory.BR_ANNOTATION);
         }
@@ -1655,6 +1529,55 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         res = res.getUpdatedConfig(activeTypes.toArray(String[]::new));
 
         return res;
+    }
+
+    private void setBarAnnotationNbLines(int n)
+    {
+        for (var bb : getBarBoxes())
+        {
+            for (var br : bb.getBarRenderers())
+            {
+                if (br instanceof BR_Annotation bra)
+                {
+                    bra.setNbLines(n);
+                }
+            }
+        }
+    }
+
+    private void setBarAnnotationVisible(boolean b)
+    {
+        var bbConfig = getBarBoxConfig(0);            // All BarBoxes share the same config
+        var activeBrs = bbConfig.getActiveBarRenderers();
+        assert b == !activeBrs.contains(BarRendererFactory.BR_ANNOTATION) : "b=" + b + " activeBrs)" + activeBrs;
+        if (b)
+        {
+            activeBrs.add(BarRendererFactory.BR_ANNOTATION);
+        } else
+        {
+            activeBrs.remove(BarRendererFactory.BR_ANNOTATION);
+        }
+
+        // Save selection
+        CL_SelectionUtilities selection = new CL_SelectionUtilities(getLookup());
+        int bar = 0;
+        if (selection.isBarSelected())
+        {
+            bar = selection.getMinBarIndex();
+        } else if (selection.isItemSelected())
+        {
+            bar = selection.getSelectedItems().get(0).getPosition().getBar();
+        }
+        selection.unselectAll(this);
+
+
+        // Update BarBoxes
+        setBarBoxConfig(bbConfig.getUpdatedConfig(activeBrs.toArray(String[]::new)));
+
+
+        // Restore selection (at least 1 bar) so that the the "toggle BR_Annotation visibility" keyboard shortcut can be directly reused
+        selectBars(bar, bar, true);
+        setFocusOnBar(bar);
     }
 
     private int computeXZoomFactorFromNbCols(int nbCols)
@@ -1722,7 +1645,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         {
             int sectionCompIndex = cliSection.getPosition().getBar() + offset;
             int remainder = sectionCompIndex % nbColumns;
-            if (isSectionStartOnNewLine(cliSection) && remainder != 0)
+            if (CL_EditorClientProperties.isSectionIsOnNewLine(cliSection) && remainder != 0)
             {
                 int padding = nbColumns - remainder;
                 for (int j = 0; j < padding; j++)
@@ -1761,14 +1684,14 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         @Override
         public int getZoomYFactor()
         {
-            return getZoomVFactor();
+            return CL_EditorClientProperties.getZoomYFactor(songModel);
         }
 
         @Override
         public void setZoomYFactor(int newFactor, boolean valueIsAdjusting)
         {
             int oldFactor = getZoomYFactor();
-            setZoomVFactor(newFactor);
+            CL_EditorClientProperties.setZoomYFactor(songModel, newFactor);
             pcs.firePropertyChange(Zoomable.PROPERTY_ZOOM_Y, oldFactor, newFactor);
         }
 

@@ -493,9 +493,9 @@ public class CL_EditorController implements CL_EditorMouseListener
     public void editorWheelMoved(MouseWheelEvent e)
     {
         final int STEP = 5;
-        if ((e.getModifiersEx() & (InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK)) != InputEvent.CTRL_DOWN_MASK)
+        if (!e.isControlDown())
         {
-            // We manage only ctrl-wheel
+            // We manage only ctrl-wheel and ctrl-shift-wheel
             // Don't want to lose the event, need to be processed by the above hierarchy, i.e. enclosing JScrollPane
             Container source = (Container) e.getSource();
             Container parent = source.getParent();
@@ -516,7 +516,7 @@ public class CL_EditorController implements CL_EditorMouseListener
         CL_EditorTopComponent clTc = CL_EditorTopComponent.get(cls);
         clTc.requestActive();
 
-        int factor = zoomable.getZoomXFactor();
+        int factor = e.isShiftDown() ? zoomable.getZoomYFactor() : zoomable.getZoomXFactor();
         if (e.getWheelRotation() < 0)
         {
             factor = Math.min(100, factor + STEP);
@@ -524,9 +524,18 @@ public class CL_EditorController implements CL_EditorMouseListener
         {
             factor = Math.max(0, factor - STEP);
         }
-        LOGGER.log(Level.FINE, "editorWheelMoved() factor={0}", factor);
+        LOGGER.log(Level.FINE, "editorWheelMoved() X or Y factor={0}", factor);
         var factor2 = factor;
-        SwingUtilities.invokeLater(() -> zoomable.setZoomXFactor(factor2, false));      // Give time to TopComponent to become active
+        SwingUtilities.invokeLater(() -> 
+        {
+            if (e.isShiftDown())
+            {
+                zoomable.setZoomYFactor(factor2, false);
+            } else
+            {
+                zoomable.setZoomXFactor(factor2, false);
+            }
+        });      // Give time to TopComponent to become active
 
 
     }

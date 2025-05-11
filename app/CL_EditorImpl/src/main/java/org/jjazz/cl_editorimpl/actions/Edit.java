@@ -45,15 +45,16 @@ import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.harmony.api.Position;
-import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.cl_editor.spi.CL_BarEditorDialog;
 import org.jjazz.cl_editor.spi.Preset;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.cl_editor.api.CL_Editor;
+import org.jjazz.cl_editor.api.CL_EditorClientProperties;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.cl_editor.spi.SectionEditorDialog;
 import org.jjazz.cl_editor.spi.ChordSymbolEditorDialog;
 import org.jjazz.cl_editorimpl.BR_Annotation;
+import org.jjazz.song.api.Song;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.utilities.api.ResUtil;
@@ -85,6 +86,7 @@ import org.openide.windows.WindowManager;
         })
 public class Edit extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
 {
+
 
     private Lookup context;
     private CL_ContextActionSupport cap;
@@ -209,7 +211,8 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
         selectionChange(cap.getSelection());
     }
 
-    static protected void editSectionWithDialog(final SectionEditorDialog dialog, final CLI_Section sectionItem, final char key, final ChordLeadSheet cls, String undoText)
+    static protected void editSectionWithDialog(final SectionEditorDialog dialog, final CLI_Section sectionItem, final char key, final ChordLeadSheet cls,
+            String undoText)
     {
         // Use specific editor if service is provided
         Runnable run = () -> 
@@ -242,7 +245,8 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
         SwingUtilities.invokeLater(run);
     }
 
-    static protected void editCSWithDialog(final ChordSymbolEditorDialog dialog, final CLI_ChordSymbol csItem, final char key, final ChordLeadSheet cls, String undoText)
+    static protected void editCSWithDialog(final ChordSymbolEditorDialog dialog, final CLI_ChordSymbol csItem, final char key, final ChordLeadSheet cls,
+            String undoText)
     {
         Runnable run = () -> 
         {
@@ -273,12 +277,14 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
     static protected void editBarWithDialog(final CL_Editor editor, final int barIndex, final Preset preset, final ChordLeadSheet cls, String undoText)
     {
         int preNbAnnotations = editor.getSongModel().getChordLeadSheet().getItems(CLI_BarAnnotation.class).size();
+        Song song = editor.getSongModel();
 
         Runnable run = () -> 
         {
             // Prepare dialog
             final CL_BarEditorDialog dialog = CL_BarEditorDialog.getDefault();
-            dialog.preset(preset, editor.getModel(), barIndex, editor.getUserQuantization(cls.getSection(barIndex)).equals(Quantization.ONE_THIRD_BEAT));
+            boolean swing = isSwing(song, barIndex);
+            dialog.preset(preset, editor.getModel(), barIndex, swing);
             adjustDialogPosition(dialog, barIndex);
             dialog.setVisible(true);
             LOGGER.fine("editBarWithDialog() right after setVisible(true)");
@@ -357,10 +363,10 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
 
 
             // Automatically make bar annotations visible if first annotation
-            int postNbAnnotations = editor.getSongModel().getChordLeadSheet().getItems(CLI_BarAnnotation.class).size();
-            if (!editor.isBarAnnotationVisible() && preNbAnnotations == 0 && postNbAnnotations == 1)
+            int postNbAnnotations = song.getChordLeadSheet().getItems(CLI_BarAnnotation.class).size();
+            if (!CL_EditorClientProperties.isBarAnnotationVisible(song) && preNbAnnotations == 0 && postNbAnnotations == 1)
             {
-                editor.setBarAnnotationVisible(true);
+                CL_EditorClientProperties.setBarAnnotationVisible(song, true);
             }
             if (preNbAnnotations == 0 && postNbAnnotations == 1)
             {
@@ -377,6 +383,30 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
         SwingUtilities.invokeLater(run);
     }
 
+    static public boolean isSwing(Song song, int clsBarIndex)
+    {
+        boolean b = false;
+        var cliSection = song.getChordLeadSheet().getSection(clsBarIndex);
+        var q = CL_EditorClientProperties.getSectionUserQuantization(cliSection);
+        if (q == null)
+        {
+            // Rely on division of rhythm of first SongPart whose parent section is cliSection
+            var d = song.getSongStructure().getSongParts().stream()
+                    .filter(spt -> spt.getParentSection() == cliSection)
+                    .map(spt -> spt.getRhythm().getFeatures().division())
+                    .findFirst()
+                    .orElse(null);
+            if (d != null)
+            {
+                b = d.isTernary();
+            }
+        } else
+        {
+            b = q.isTernary();
+        }
+        return b;
+    }
+
     static private void adjustDialogPosition(JDialog dialog, int barIndex)
     {
         CL_Editor editor = CL_EditorTopComponent.getActive().getEditor();
@@ -387,4 +417,6 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
         int y = p.y - dialog.getHeight();
         dialog.setLocation(Math.max(x, 0), Math.max(y, 0));
     }
+
+
 }

@@ -404,9 +404,9 @@ public class SS_EditorController implements SS_EditorMouseListener
     public void editorWheelMoved(MouseWheelEvent e)
     {
         final int STEP = 5;
-        if ((e.getModifiersEx() & (InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK)) != InputEvent.CTRL_DOWN_MASK)
+        if (!e.isControlDown())
         {
-            // We manage only ctrl-wheel
+            // We manage only ctrl-wheel and ctrl-shift-wheel
             // Don't want to lose the event, need to be processed by the above hierarchy, i.e. enclosing JScrollPane
             Container source = (Container) e.getSource();
             Container parent = source.getParent();
@@ -421,7 +421,7 @@ public class SS_EditorController implements SS_EditorMouseListener
         SS_EditorTopComponent ssTc = SS_EditorTopComponent.get(sgs);
         ssTc.requestActive();
 
-        int factor = editor.getZoomHFactor();
+        int factor = e.isShiftDown() ? editor.getZoomVFactor() : editor.getZoomHFactor();
         if (e.getWheelRotation() < 0)
         {
             factor = Math.min(100, factor + STEP);
@@ -431,7 +431,18 @@ public class SS_EditorController implements SS_EditorMouseListener
         }
         LOGGER.log(Level.FINE, "editorWheelMoved() factor={0}", factor);
         var factor2 = factor;
-        SwingUtilities.invokeLater(() -> editor.setZoomHFactor(factor2));   // Give time for TopComponent to become active
+        SwingUtilities.invokeLater(() -> 
+        {
+            // Give time for TopComponent to become active
+            if (e.isShiftDown())
+            {
+                editor.setZoomVFactor(factor2);
+            } else
+            {
+                editor.setZoomHFactor(factor2);
+            }
+        }
+        );
     }
 
     @Override

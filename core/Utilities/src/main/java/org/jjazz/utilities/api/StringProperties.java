@@ -45,13 +45,13 @@ public class StringProperties extends ObservableProperties<String> implements Se
         super(owner, sp);
     }
 
-    public boolean getBoolean(String prop, boolean defaultValue)
+    public Boolean getBoolean(String prop, Boolean defaultValue)
     {
         String s = get(prop);
-        boolean res = defaultValue;
+        Boolean res = defaultValue;
         try
         {
-            res = Boolean.parseBoolean(s);
+            res = Boolean.valueOf(s);
         } catch (NumberFormatException ex)
         {
             // Nothing
@@ -64,13 +64,13 @@ public class StringProperties extends ObservableProperties<String> implements Se
         put(prop, String.valueOf(value));
     }
 
-    public int getInt(String prop, int defaultValue)
+    public int getInt(String prop, Integer defaultValue)
     {
         String s = get(prop);
-        int res = defaultValue;
+        Integer res = defaultValue;
         try
         {
-            res = Integer.parseInt(s);
+            res = Integer.valueOf(s);
         } catch (NumberFormatException ex)
         {
             // Nothing
@@ -103,8 +103,17 @@ public class StringProperties extends ObservableProperties<String> implements Se
 
     public Color getColor(String prop, Color defaultValue)
     {
-        Integer rgb = getInt(prop, defaultValue != null ? defaultValue.getRGB() : null);
-        return rgb != null ? new Color(rgb) : null;
+        String s = get(prop);
+        Color res = defaultValue;
+        try
+        {
+            int rgb = Integer.valueOf(s);
+            res = new Color(rgb);
+        } catch (NumberFormatException ex)
+        {
+            // Nothing
+        }
+        return res;
     }
 
     public void putColor(String prop, Color value)

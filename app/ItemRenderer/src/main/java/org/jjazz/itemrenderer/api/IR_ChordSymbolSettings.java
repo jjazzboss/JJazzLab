@@ -29,11 +29,16 @@ import org.openide.util.Lookup;
 
 public interface IR_ChordSymbolSettings
 {
-
-    /**
-     * This is the Song client property used by ItemRenderer to let user adjust the font color.
+        /**
+     * The CLI_ChordSymbol client property used to store a user-defined color.
+     * <p>
+     * Do not change the value string "SongPropUserFontColor" as it was used in CLI_ChordSymbol serialization since JJazzLab 4.
+     * <p>
+     * TODO: should be in IR_ChordSymbol. To be moved once ItemRenderer module deleted and content transfer to CL_EditorImpl.
      */
-    public static String SONG_CLIENT_PROPERTY_USER_FONT_COLOR = "SongPropUserFontColor";
+    public static final String PROP_CHORD_SYMBOL_USER_FONT_COLOR = "SongPropUserFontColor";
+    
+    
     public static String PROP_FONT = "ItemFont";
     public static String PROP_FONT_COLOR = "ItemFontColor";
 

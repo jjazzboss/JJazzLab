@@ -37,6 +37,7 @@ import org.jjazz.analytics.api.Analytics;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongUtilities;
 import org.jjazz.cl_editor.api.CL_Editor;
+import org.jjazz.cl_editor.api.CL_EditorClientProperties;
 import org.jjazz.songeditormanager.spi.SongEditorManager;
 import org.jjazz.ss_editor.api.SS_Editor;
 import org.jjazz.uiutilities.api.SingleComponentAspectRatioKeeperLayout;
@@ -117,7 +118,7 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
         var res = SongEditorManager.getDefault().getSongEditorSet(refSong);
         actualClEditor = res.getCL_EditorTc().getEditor();
         actualSsEditor = res.getSS_EditorTc().getEditor();
-        int zoomVFactor = actualClEditor.getZoomVFactor();
+        int zoomVFactor = CL_EditorClientProperties.getZoomYFactor(refSong);
         int nbColumns = actualClEditor.getNbColumns();
 
         // Update UI

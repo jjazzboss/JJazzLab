@@ -43,15 +43,13 @@ import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.harmony.api.Position;
-import org.jjazz.cl_editor.api.CL_Editor;
+import org.jjazz.cl_editor.api.CL_EditorClientProperties;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.cl_editor.barbox.api.BarBox;
-import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.itemrenderer.api.IR_Type;
 import org.jjazz.itemrenderer.api.ItemRenderer;
 import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.quantizer.api.Quantizer;
-import org.jjazz.rhythm.api.Division;
 import org.jjazz.song.api.SongCreationException;
 import org.jjazz.song.spi.SongImporter;
 import org.jjazz.songeditormanager.spi.SongEditorManager;
@@ -275,6 +273,7 @@ public class CL_EditorTransferHandler extends TransferHandler
                     um.startCEdit(editName);
 
                     CLI_Section sectionCopy = cliSection.getCopy(newPos, cls);  // Adjust section name if required
+                    CL_EditorClientProperties.setSectionIsOnNewLine(sectionCopy, false);        // Disable section on new line
 
                     String errMsg = ResUtil.getString(getClass(), "IMPOSSIBLE_TO_COPY_SECTION", cliSection.getData());
                     try
@@ -350,7 +349,8 @@ public class CL_EditorTransferHandler extends TransferHandler
 
 
                 CLI_BarAnnotation curAnnotation = cls.getBarFirstItem(newBarIndex, CLI_BarAnnotation.class, cli -> true);
-                IR_Type irType = editorImpl.isBarAnnotationVisible() ? IR_Type.BarAnnotationText : IR_Type.BarAnnotationPaperNote;
+                IR_Type irType = CL_EditorClientProperties.isBarAnnotationVisible(editorImpl.getSongModel()) ? IR_Type.BarAnnotationText
+                        : IR_Type.BarAnnotationPaperNote;
                 if (curAnnotation != null)
                 {
                     // There is already an annotation there, just update its content
@@ -550,7 +550,7 @@ public class CL_EditorTransferHandler extends TransferHandler
             p = SwingUtilities.convertPoint(info.getComponent(), p, bb);
         }
         Position pos = bb.getPositionFromPoint(p);
-        if (pos==null)
+        if (pos == null)
         {
             return pos;
         }
@@ -558,13 +558,13 @@ public class CL_EditorTransferHandler extends TransferHandler
 
         // Quantize
         int barIndex = bb.getModelBarIndex();
-        if (barIndex==-1)
+        if (barIndex == -1)
         {
             return null;
         }
         var cls = editorImpl.getModel();
         var cliSection = cls.getSection(barIndex);
-        var q = editorImpl.getSongSpecificEditorProperties().loadSectionUserQuantization(cliSection);
+        var q = CL_EditorClientProperties.getSectionUserQuantization(cliSection);
         if (q == null)
         {
             // No user defined quantization, rely on division of first corresponding rhythm's division            

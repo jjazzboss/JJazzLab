@@ -447,7 +447,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
             }
         } else if (e.getSource() == getModel().getClientProperties())
         {
-            if (e.getPropertyName().equals(IR_ChordSymbolSettings.SONG_CLIENT_PROPERTY_USER_FONT_COLOR))
+            if (e.getPropertyName().equals(IR_ChordSymbolSettings.PROP_CHORD_SYMBOL_USER_FONT_COLOR))
             {
                 updateForegroundColor();
             }
@@ -469,7 +469,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
 
     private boolean needOptionMark(ExtChordSymbol extCs, ChordRenderingInfo cri)
     {
-        return (cri.getAccentFeature()!=null && cri.hasOneFeature(Feature.ACCENT_STRONGER, Feature.CRASH, Feature.EXTENDED_HOLD_SHOT, Feature.NO_CRASH)
+        return (cri.getAccentFeature() != null && cri.hasOneFeature(Feature.ACCENT_STRONGER, Feature.CRASH, Feature.EXTENDED_HOLD_SHOT, Feature.NO_CRASH)
                 || cri.getScaleInstance() != null
                 || extCs.getAlternateChordSymbol() != null
                 || cri.hasOneFeature(Feature.PEDAL_BASS));
@@ -480,7 +480,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
      */
     private void updateForegroundColor()
     {
-        Color c = getModel().getClientProperties().getColor(IR_ChordSymbolSettings.SONG_CLIENT_PROPERTY_USER_FONT_COLOR, settings.getColor());
+        Color c = getModel().getClientProperties().getColor(IR_ChordSymbolSettings.PROP_CHORD_SYMBOL_USER_FONT_COLOR, settings.getColor());
         optionLineColor = c;
         setForeground(c);
     }

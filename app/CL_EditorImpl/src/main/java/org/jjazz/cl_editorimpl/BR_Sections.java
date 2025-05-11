@@ -43,6 +43,7 @@ import org.jjazz.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.cl_editor.api.CL_Editor;
+import org.jjazz.cl_editor.api.CL_EditorClientProperties;
 import org.jjazz.cl_editor.barrenderer.api.BarRenderer;
 import org.jjazz.cl_editor.spi.BarRendererSettings;
 import org.jjazz.itemrenderer.api.IR_SectionSettings;
@@ -51,18 +52,21 @@ import org.jjazz.itemrenderer.api.IR_Section;
 import org.jjazz.itemrenderer.api.IR_Type;
 import org.jjazz.itemrenderer.api.ItemRenderer;
 import org.jjazz.itemrenderer.api.ItemRendererFactory;
+import org.jjazz.uisettings.api.ColorSetManager;
 
 /**
  * A BarRenderer to show section names.
  */
 public class BR_Sections extends BarRenderer implements ComponentListener, PropertyChangeListener
 {
+
     /**
      * Special shared JPanel instances per editor, used to calculate the preferred size for a BarRenderer subclass..
      */
     private static final Map<Integer, PrefSizePanel> mapEditorPrefSizePanel = new HashMap<>();
 
     private static final Dimension MIN_SIZE = new Dimension(10, 4);
+    private CLI_Section cliSection;
     /**
      * The last color we used to paint this BarRenderer.
      */
@@ -85,10 +89,6 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
         sectionColor = null;
 
 
-        // Listen to section colors changes
-        getEditor().addPropertyChangeListener(this);
-
-
         // Our layout manager
         setLayout(new SeqLayoutManager());
 
@@ -101,19 +101,6 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
 
     }
 
-
-    @Override
-    public int setModelBarIndex(int modelBarIndex)
-    {
-        int res = super.setModelBarIndex(modelBarIndex);
-
-        CLI_Section cliSection = getCLI_Section();
-        setSection(cliSection);
-        
-        return res;
-    }
-
-
     /**
      * Overridden to unregister the pref size panel shared instance.
      */
@@ -122,7 +109,10 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
     {
         super.cleanup();
         getPrefSizePanelSharedInstance().removeComponentListener(this);
-        getEditor().removePropertyChangeListener(this);
+        if (cliSection != null)
+        {
+            cliSection.getClientProperties().removePropertyChangeListener(this);
+        }
 
         // Remove only if it's the last bar of the editor
         if (getEditor().getNbBarBoxes() == 1)
@@ -141,14 +131,23 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
     }
 
     /**
+     * Set the current CLI_Section and possibly update the current color.
      *
-     * @param cliSection Can be null
+     * @param newCliSection Can be null
      */
     @Override
-    public void setSection(CLI_Section cliSection)
+    public void setSection(CLI_Section newCliSection)
     {
-        Color c = cliSection == null ? null : getSectionColor(cliSection);
-        setSectionColor(c);
+        if (cliSection != null)
+        {
+            cliSection.getClientProperties().removePropertyChangeListener(this);
+        }
+        cliSection = newCliSection;
+        if (cliSection != null)
+        {
+            cliSection.getClientProperties().addPropertyChangeListener(this);
+        }
+        updateSectionColor();
     }
 
     @Override
@@ -258,11 +257,10 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
         {
             throw new IllegalArgumentException("item=" + item);
         }
-        CLI_Section cliSection = (CLI_Section) item;
         ItemRenderer ir = getItemRendererFactory().createItemRenderer(IR_Type.Section, item, getSettings().getItemRendererSettings());
-        if (ir instanceof IR_Section irs)
+        if (ir instanceof IR_Section irs && sectionColor != null)
         {
-            irs.setSectionColor(getSectionColor(cliSection));
+            irs.setSectionColor(sectionColor);
         }
         return ir;
     }
@@ -307,17 +305,11 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
     @Override
     public void propertyChange(final PropertyChangeEvent evt)
     {
-        if (evt.getSource() == getEditor())
+        if (evt.getSource() == cliSection.getClientProperties())
         {
-            if (CL_Editor.PROP_SECTION_COLOR.equals(evt.getPropertyName()))
+            if (CL_EditorClientProperties.PROP_SECTION_COLOR.equals(evt.getPropertyName()))
             {
-                // Check if we are impacted
-                CLI_Section changedSection = (CLI_Section) evt.getOldValue();
-                CLI_Section cliSection = getCLI_Section();
-                if (changedSection == cliSection)
-                {
-                    setSectionColor(getSectionColor(cliSection));
-                }
+                updateSectionColor();
             }
         }
     }
@@ -325,8 +317,18 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
     // ---------------------------------------------------------------
     // Private functions
     // ---------------------------------------------------------------
-    private void setSectionColor(Color newColor)
+    private void updateSectionColor()
     {
+        Color newColor = null;
+        if (cliSection != null)
+        {
+            newColor = CL_EditorClientProperties.getSectionColor(cliSection);
+            if (newColor == null)
+            {
+                newColor = ColorSetManager.getDefault().getColor(cliSection);
+            }
+        }
+
         if (sectionColor == null)
         {
             if (newColor != null)
@@ -347,11 +349,6 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
         }
     }
 
-    private Color getSectionColor(CLI_Section cliSection)
-    {
-        return getEditor().getSectionColor(cliSection);
-    }
-
     /**
      * Retrieve our IR_Section renderer if there is one on this bar.
      *
@@ -360,7 +357,6 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
     private IR_Section getIR_Section()
     {
         IR_Section res = null;
-        var cliSection = getCLI_Section();
         if (cliSection != null && cliSection.getPosition().getBar() == getModelBarIndex())
         {
             res = (IR_Section) getItemRenderer(cliSection);
@@ -393,8 +389,8 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
     /**
      * A special shared JPanel instance used to calculate the preferred size for all BR_Sections.
      * <p>
-     * Add ItemRenderers with the tallest size. Panel is added to the "hidden" BarRenderer's JDialog to be displayable so that FontMetrics
-     * can be calculated with a Graphics object.
+     * Add ItemRenderers with the tallest size. Panel is added to the "hidden" BarRenderer's JDialog to be displayable so that FontMetrics can be calculated
+     * with a Graphics object.
      * <p>
      */
     private class PrefSizePanel extends JPanel implements PropertyChangeListener
@@ -435,7 +431,7 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
         {
             settings.removePropertyChangeListener(this);
         }
-        
+
         /**
          * Overridden to use our own calculation instead of using FlowLayout's preferredLayoutSize().
          *

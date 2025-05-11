@@ -33,6 +33,7 @@ import javax.swing.JMenuItem;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.cl_editor.api.CL_Editor;
+import org.jjazz.cl_editor.api.CL_EditorClientProperties;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.uisettings.api.ColorSetManager;
 import org.jjazz.utilities.api.ResUtil;
@@ -127,8 +128,9 @@ public final class SetSectionColor extends AbstractAction implements Presenter.P
                     CL_SelectionUtilities selection = new CL_SelectionUtilities(editor.getLookup());
                     for (var cliSection: selection.getSelectedSections())
                     {
-                        editor.setSectionColor(cliSection, c);
+                        CL_EditorClientProperties.setSectionColor(cliSection, c);
                     }
+                    editor.getSongModel().setSaveNeeded(true);
                      Analytics.logEvent("Set section color");
                 });
                 add(mi);

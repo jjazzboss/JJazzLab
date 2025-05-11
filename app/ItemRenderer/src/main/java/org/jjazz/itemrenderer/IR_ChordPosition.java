@@ -218,7 +218,7 @@ public class IR_ChordPosition extends ItemRenderer
             }
         } else if (e.getSource() == getModel().getClientProperties())
         {
-            if (e.getPropertyName().equals(IR_ChordSymbolSettings.SONG_CLIENT_PROPERTY_USER_FONT_COLOR))
+            if (e.getPropertyName().equals(IR_ChordSymbolSettings.PROP_CHORD_SYMBOL_USER_FONT_COLOR))
             {
                 setForeground(getColor());
             }
@@ -239,7 +239,7 @@ public class IR_ChordPosition extends ItemRenderer
 
     private Color getColor()
     {
-        Color c = getModel().getClientProperties().getColor(IR_ChordSymbolSettings.SONG_CLIENT_PROPERTY_USER_FONT_COLOR, settings.getColor());
+        Color c = getModel().getClientProperties().getColor(IR_ChordSymbolSettings.PROP_CHORD_SYMBOL_USER_FONT_COLOR, settings.getColor());
         return c;
     }
 

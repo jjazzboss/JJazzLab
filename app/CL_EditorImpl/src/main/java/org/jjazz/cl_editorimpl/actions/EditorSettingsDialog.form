@@ -121,7 +121,7 @@
     <Component class="org.jjazz.flatcomponents.api.WheelSpinner" name="spn_nbAnnotationLines">
       <Properties>
         <Property name="model" type="javax.swing.SpinnerModel" editor="org.netbeans.modules.form.editors2.SpinnerModelEditor">
-          <SpinnerModel initial="2" maximum="4" minimum="1" numberType="java.lang.Integer" stepSize="1" type="number"/>
+          <SpinnerModel initial="2" maximum="6" minimum="1" numberType="java.lang.Integer" stepSize="1" type="number"/>
         </Property>
         <Property name="columns" type="int" value="1"/>
         <Property name="ctrlWheelStep" type="int" value="2"/>

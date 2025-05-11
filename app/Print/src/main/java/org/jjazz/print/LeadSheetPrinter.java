@@ -46,6 +46,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jjazz.song.api.Song;
 import org.jjazz.cl_editor.api.CL_Editor;
+import org.jjazz.cl_editor.api.CL_EditorClientProperties;
 import org.jjazz.cl_editor.spi.CL_EditorFactory;
 import org.jjazz.flatcomponents.api.FixedPreferredWidthPanel;
 
@@ -95,7 +96,7 @@ public class LeadSheetPrinter implements Printable, Pageable
         var ourEditorSettings = new PrintCL_EditorSettings(actualEditor.getSettings());
         clEditor = CL_EditorFactory.getDefault().createEditor(song, ourEditorSettings, actualEditor.getBarRendererFactory());
         clEditor.setNbColumns(nbColumns);
-        clEditor.setZoomVFactor(zoomVFactor);
+        CL_EditorClientProperties.setZoomYFactor(song, zoomVFactor);
 
 
         // Add the editor to the rendering dialog
@@ -147,7 +148,7 @@ public class LeadSheetPrinter implements Printable, Pageable
      */
     public int getEditorZoomFactor()
     {
-        return clEditor.getZoomVFactor();
+        return CL_EditorClientProperties.getZoomYFactor(clEditor.getSongModel());
     }
 
     /**
@@ -158,9 +159,9 @@ public class LeadSheetPrinter implements Printable, Pageable
      */
     public final void setEditorZoomVFactor(int factor)
     {
-        if (factor != clEditor.getZoomVFactor())
+        if (factor != getEditorZoomFactor())
         {
-            clEditor.setZoomVFactor(factor);
+            CL_EditorClientProperties.setZoomYFactor(clEditor.getSongModel(), factor);
             renderingDialog.pack();
             computeDimensions();
             fireChanged();

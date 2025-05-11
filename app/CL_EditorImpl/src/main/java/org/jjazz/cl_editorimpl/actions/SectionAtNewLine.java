@@ -33,6 +33,7 @@ import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.cl_editor.api.CL_ContextActionListener;
 import org.jjazz.cl_editor.api.CL_ContextActionSupport;
 import org.jjazz.cl_editor.api.CL_Editor;
+import org.jjazz.cl_editor.api.CL_EditorClientProperties;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.utilities.api.ResUtil;
@@ -45,7 +46,7 @@ import org.openide.util.Lookup;
 import org.openide.util.Utilities;
 import org.openide.util.actions.Presenter;
 
-@ActionRegistration(displayName = "#CTL_SectionAtNewLine", lazy = false)       // lazy can't be true because of Presenter.Popup implementation
+@ActionRegistration(displayName = "#CTL_SectionAtNewLine", lazy = false) // lazy can't be true because of Presenter.Popup implementation
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.sectionatnewline")
 @ActionReferences(
         {
@@ -74,6 +75,8 @@ public final class SectionAtNewLine extends AbstractAction implements ContextAwa
         cap.addListener(this);
         putValue(NAME, ResUtil.getString(getClass(), "CTL_SectionAtNewLine"));
         selectionChange(cap.getSelection());
+        
+        // Ideally should listen to CLI_Section client property changes...
     }
 
     @Override
@@ -85,9 +88,10 @@ public final class SectionAtNewLine extends AbstractAction implements ContextAwa
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        assert cliSection != null && editor != null :   
+        assert cliSection != null && editor != null :
                 "cliSection=" + cliSection + " editor=" + editor + " cap.getSelection()=" + cap.getSelection();
-        editor.setSectionStartOnNewLine(cliSection, checkBoxMenuItem.isSelected());
+        CL_EditorClientProperties.setSectionIsOnNewLine(cliSection, checkBoxMenuItem.isSelected());
+        editor.getSongModel().setSaveNeeded(true);
     }
 
     @Override
@@ -113,19 +117,17 @@ public final class SectionAtNewLine extends AbstractAction implements ContextAwa
 
         // Update enabled and selected status
         boolean e = (cliSection != null) && cliSection.getPosition().getBar() != 0;
-        boolean s = false;
+        boolean selected = false;
         if (e)
         {
             CL_EditorTopComponent tc = CL_EditorTopComponent.get(selection.getChordLeadSheet());
-            if (tc != null)
-            {
-                editor = tc.getEditor();
-                s = editor.isSectionStartOnNewLine(cliSection);
-            }
+            assert tc != null : "cls=" + selection.getChordLeadSheet();
+            editor = tc.getEditor();
+            selected = CL_EditorClientProperties.isSectionIsOnNewLine(cliSection);
         }
 
         setEnabled(e);
-        getPopupPresenter().setSelected(s);  // Only update UI, actionPerformed() is not called
+        getPopupPresenter().setSelected(selected);  // Only update UI, actionPerformed() is not called
     }
 
     @Override

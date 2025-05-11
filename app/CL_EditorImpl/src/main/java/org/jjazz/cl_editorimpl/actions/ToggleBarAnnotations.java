@@ -33,6 +33,7 @@ import java.util.logging.Logger;
 import javax.swing.ImageIcon;
 import javax.swing.KeyStroke;
 import org.jjazz.cl_editor.api.CL_Editor;
+import org.jjazz.cl_editor.api.CL_EditorClientProperties;
 import org.jjazz.song.api.Song;
 import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
 import org.jjazz.utilities.api.ResUtil;
@@ -46,10 +47,11 @@ import org.jjazz.utilities.api.ToggleAction;
  */
 public class ToggleBarAnnotations extends ToggleAction implements PropertyChangeListener
 {
+
     public static final KeyStroke KEYSTROKE = getGenericControlKeyStroke(KeyEvent.VK_L);
     private static final Logger LOGGER = Logger.getLogger(ToggleBarAnnotations.class.getSimpleName());
     private final CL_Editor editor;
-    private static Map<CL_Editor, ToggleBarAnnotations> MAP_EDITOR_INSTANCES = new HashMap<>();
+    private static final Map<CL_Editor, ToggleBarAnnotations> MAP_EDITOR_INSTANCES = new HashMap<>();
 
     /**
      * Get the ToggleBarAnnotations instance associated to a given editor.
@@ -82,12 +84,10 @@ public class ToggleBarAnnotations extends ToggleAction implements PropertyChange
         putValue(LARGE_ICON_KEY, new ImageIcon(getClass().getResource("resources/ShowBarAnnotations-ON.png")));
         putValue("hideActionText", true);
 
+        setSelected(CL_EditorClientProperties.isBarAnnotationVisible(editor.getSongModel()));
 
-        setSelected(editor.isBarAnnotationVisible());
-
-
-        editor.addPropertyChangeListener(CL_Editor.PROP_BAR_ANNOTATION_VISIBLE, this);
-        editor.getSongModel().addPropertyChangeListener(Song.PROP_CLOSED, this);
+        editor.getSongModel().addPropertyChangeListener(this);
+        editor.getSongModel().getClientProperties().addPropertyChangeListener(this);
 
 
     }
@@ -96,8 +96,9 @@ public class ToggleBarAnnotations extends ToggleAction implements PropertyChange
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        boolean b = editor.isBarAnnotationVisible();
-        editor.setBarAnnotationVisible(!b);
+        boolean b = CL_EditorClientProperties.isBarAnnotationVisible(editor.getSongModel());
+        CL_EditorClientProperties.setBarAnnotationVisible(editor.getSongModel(), !b);
+        editor.getSongModel().setSaveNeeded(true);
     }
 
 
@@ -111,15 +112,15 @@ public class ToggleBarAnnotations extends ToggleAction implements PropertyChange
         {
             if (evt.getPropertyName().equals(Song.PROP_CLOSED))
             {
-                editor.removePropertyChangeListener(this);
                 editor.getSongModel().removePropertyChangeListener(this);
+                editor.getSongModel().getClientProperties().removePropertyChangeListener(this);
                 MAP_EDITOR_INSTANCES.remove(editor);
             }
-        } else if (evt.getSource() == editor)
+        } else if (evt.getSource() == editor.getSongModel().getClientProperties())
         {
-            if (evt.getPropertyName().equals(CL_Editor.PROP_BAR_ANNOTATION_VISIBLE))
+            if (evt.getPropertyName().equals(CL_EditorClientProperties.PROP_BAR_ANNOTATION_VISIBLE))
             {
-                setSelected(editor.isBarAnnotationVisible());
+                setSelected(CL_EditorClientProperties.isBarAnnotationVisible(editor.getSongModel()));
             }
         }
     }

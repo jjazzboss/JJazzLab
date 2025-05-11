@@ -43,6 +43,7 @@ import org.jjazz.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.cl_editor.api.CL_Editor;
+import org.jjazz.cl_editor.api.CL_EditorClientProperties;
 import org.jjazz.cl_editor.barrenderer.api.BarRenderer;
 import org.jjazz.cl_editor.spi.BarRendererSettings;
 import org.jjazz.itemrenderer.api.IR_AnnotationText;
@@ -57,6 +58,7 @@ import org.jjazz.itemrenderer.api.ItemRendererFactory;
  */
 public class BR_Annotation extends BarRenderer implements ComponentListener
 {
+
     /**
      * Special shared JPanel instances per editor, used to calculate the preferred size for a BarRenderer subclass.
      */
@@ -220,9 +222,11 @@ public class BR_Annotation extends BarRenderer implements ComponentListener
             throw new IllegalArgumentException("item=" + item);
         }
         assert item instanceof CLI_BarAnnotation;
-        IR_AnnotationText irAt = (IR_AnnotationText) getItemRendererFactory()
-                .createItemRenderer(IR_Type.BarAnnotationText, item, getSettings().getItemRendererSettings());
-        irAt.setNbLines(getEditor().getBarAnnotationNbLines());
+        IR_AnnotationText irAt = (IR_AnnotationText) getItemRendererFactory().createItemRenderer(IR_Type.BarAnnotationText,
+                item,
+                getSettings().getItemRendererSettings());
+        int nbLines = CL_EditorClientProperties.getBarAnnotationNbLines(getEditor().getSongModel());
+        irAt.setNbLines(nbLines);
         return irAt;
     }
 
@@ -280,8 +284,6 @@ public class BR_Annotation extends BarRenderer implements ComponentListener
     // ---------------------------------------------------------------
     // Private functions
     // ---------------------------------------------------------------
-
-
     // ---------------------------------------------------------------
     // Private methods
     // ---------------------------------------------------------------
@@ -337,13 +339,14 @@ public class BR_Annotation extends BarRenderer implements ComponentListener
             ChordLeadSheetItem<?> item = clif.createBarAnnotation("LYRICS ALALOLALALA\nLINE2\nLINE3\nLINE4", 0);
             ItemRendererFactory irf = brAnnotation.getItemRendererFactory();
             ir = (IR_AnnotationText) irf.createItemRenderer(IR_Type.BarAnnotationText, item, brAnnotation.getSettings().getItemRendererSettings());
-            ir.setNbLines(brAnnotation.getEditor().getBarAnnotationNbLines());
+            int nbLines = CL_EditorClientProperties.getBarAnnotationNbLines(brAnnotation.getEditor().getSongModel());
+            ir.setNbLines(nbLines);
             add(ir);
 
 
             // Add the panel to a hidden dialog so it can be made displayable (getGraphics() will return a non-null value, so font-based sizes
             // can be calculated
-            JDialog dlg = brAnnotation.getFontMetricsDialog(brAnnotation.getEditor());
+            JDialog dlg = BarRenderer.getFontMetricsDialog(brAnnotation.getEditor());
             dlg.add(this);
             dlg.pack();    // Force all components to be displayable
         }
@@ -419,7 +422,7 @@ public class BR_Annotation extends BarRenderer implements ComponentListener
          */
         private void forceRevalidate()
         {
-            brAnnotation.getFontMetricsDialog(brAnnotation.getEditor()).pack();
+            BarRenderer.getFontMetricsDialog(brAnnotation.getEditor()).pack();
         }
 
     }

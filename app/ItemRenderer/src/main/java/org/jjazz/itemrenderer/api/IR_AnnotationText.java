@@ -28,7 +28,6 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.RenderingHints;
 import java.beans.PropertyChangeEvent;
 import java.util.logging.Logger;
 import javax.swing.JScrollPane;
@@ -42,7 +41,7 @@ import org.jjazz.uiutilities.api.RedispatchingMouseAdapter;
 public class IR_AnnotationText extends ItemRenderer implements IR_Copiable
 {
 
-    public static final int MAX_NB_LINES = 4;
+    public static final int MAX_NB_LINES = 6;
     /**
      * Border size between text and edge.
      */

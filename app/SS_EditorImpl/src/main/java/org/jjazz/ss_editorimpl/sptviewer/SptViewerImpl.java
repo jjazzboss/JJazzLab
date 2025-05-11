@@ -57,22 +57,21 @@ import org.jjazz.ss_editor.sptviewer.api.SptViewerMouseListener;
 import org.jjazz.ss_editor.sptviewer.spi.SptViewerSettings;
 import org.jjazz.ss_editor.rpviewer.api.RpViewer;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.cl_editor.api.CL_Editor;
-import org.jjazz.cl_editor.api.CL_EditorTopComponent;
+import org.jjazz.cl_editor.api.CL_EditorClientProperties;
 import org.jjazz.flatcomponents.api.FlatComponentsGlobalSettings;
 import org.jjazz.ss_editor.rpviewer.api.RpViewerEditableRenderer;
-import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.ss_editor.rpviewer.api.RpViewerRenderer;
 import org.jjazz.ss_editor.rpviewer.spi.RpViewerRendererFactory;
 import org.jjazz.ss_editor.rpviewer.spi.DefaultRpViewerRendererFactory;
+import org.jjazz.uisettings.api.ColorSetManager;
 
 /**
  * An implementation of a SptViewer.
  */
 public class SptViewerImpl extends SptViewer implements FocusListener, PropertyChangeListener, MouseListener, MouseMotionListener, MouseWheelListener
 {
-
+    
     private static final int ONE_BAR_EXTRA_SIZE = 60;
     private static final int MIN_WIDTH = 40;
 
@@ -96,15 +95,14 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
     private int zoomVFactor;
     private boolean isPlaybackOn;
     private Color sptColor;
-    private CL_Editor clEditor;
     /**
      * Our graphical settings.
      */
     private SptViewerSettings settings;
     private DefaultRpViewerRendererFactory defaultRpRendererFactory;
     private static final Logger LOGGER = Logger.getLogger(SptViewerImpl.class.getSimpleName());
-
-
+    
+    
     public SptViewerImpl(Song song, SongPart spt, SptViewerSettings settings, DefaultRpViewerRendererFactory factory)
     {
         if (spt == null || settings == null || factory == null)
@@ -114,23 +112,31 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
         songModel = song;
         sptModel = spt;
         sptModel.addPropertyChangeListener(this);
-        sptModel.getParentSection().addPropertyChangeListener(this);
 
 
         // Register settings changes
         this.settings = settings;
         settings.addPropertyChangeListener(this);
-
-
+        
+        
         defaultRpRendererFactory = factory;
 
 
         // Keep track if section colors change
-        this.clEditor = CL_EditorTopComponent.get(songModel.getChordLeadSheet()).getEditor();
-        this.clEditor.addPropertyChangeListener(this);
-        sptColor = clEditor.getSectionColor(getModel().getParentSection());
-
-
+        var cliSection = sptModel.getParentSection();
+        sptColor = Color.LIGHT_GRAY.brighter().brighter();
+        if (cliSection != null)
+        {
+            cliSection.addPropertyChangeListener(this);
+            cliSection.getClientProperties().addPropertyChangeListener(this);
+            sptColor = CL_EditorClientProperties.getSectionColor(sptModel.getParentSection());
+            if (sptColor == null)
+            {
+                sptColor = ColorSetManager.getDefault().getColor(cliSection);
+            }
+        }
+        
+        
         addFocusListener(this);
         zoomHFactor = 50;
         zoomVFactor = 50;
@@ -150,39 +156,39 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
         // Create the RpViewers as required        
         setVisibleRps(sptModel.getRhythm().getRhythmParameters());
     }
-
+    
     @Override
     public void setController(SptViewerMouseListener controller)
     {
         this.controller = controller;
         getRpViewers().forEach(rpv -> rpv.setController(controller));
     }
-
+    
     @Override
     public SptViewerSettings getSettings()
     {
         return settings;
     }
-
+    
     @Override
     public DefaultRpViewerRendererFactory getDefaultRpRendererFactory()
     {
         return defaultRpRendererFactory;
     }
-
+    
     @Override
     public SongPart getModel()
     {
         return sptModel;
     }
-
+    
     @Override
     public void setSelected(boolean b)
     {
         isSelected = b;
         refreshBackground();
     }
-
+    
     @Override
     public void setZoomHFactor(int factor)
     {
@@ -194,13 +200,13 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
         revalidate();
         repaint();
     }
-
+    
     @Override
     public int getZoomHFactor()
     {
         return zoomHFactor;
     }
-
+    
     @Override
     public void setZoomVFactor(int factor)
     {
@@ -215,7 +221,7 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
             rpv.setZoomVFactor(factor);
         }
     }
-
+    
     @Override
     public int getZoomVFactor()
     {
@@ -259,7 +265,7 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
         Dimension pd = getLayout().preferredLayoutSize(this);
         return new Dimension((int) width, pd.height);
     }
-
+    
     @Override
     public void setRhythmVisible(boolean b)
     {
@@ -270,7 +276,7 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
         showRhythm = b;
         updateUIComponents();
     }
-
+    
     @Override
     public void setMultiSelectMode(boolean b, boolean first)
     {
@@ -278,7 +284,7 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
         multiSelectFirst = first;
         updateUIComponents();
     }
-
+    
     @Override
     public void setNameVisible(boolean b)
     {
@@ -289,7 +295,7 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
         showName = b;
         updateUIComponents();
     }
-
+    
     @Override
     public void setTimeSignatureVisible(boolean b)
     {
@@ -300,7 +306,7 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
         showTimeSignature = b;
         updateUIComponents();
     }
-
+    
     @Override
     public void setSelected(RhythmParameter<?> rp, boolean b)
     {
@@ -310,7 +316,7 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
             rpv.setSelected(b);
         }
     }
-
+    
     @Override
     public void setFocusOnRpViewer(RhythmParameter<?> rp)
     {
@@ -320,7 +326,7 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
             rpv.requestFocusInWindow();
         }
     }
-
+    
     @Override
     public void setVisibleRps(List<RhythmParameter<?>> rps)
     {
@@ -330,8 +336,8 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
             rpv.cleanup();
         }
         pnl_RpEditors.removeAll();
-
-
+        
+        
         for (RhythmParameter<?> rp : rps)
         {
             if (sptModel.getRhythm().getRhythmParameters().contains(rp))
@@ -347,8 +353,8 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
                 RpViewer rpv = new RpViewer(sptModel, rp, settings.getRpViewerSettings(), renderer);
                 rpv.setController(controller);
                 renderer.setRpViewer(rpv);
-
-
+                
+                
                 registerRpViewer(rpv);
                 rpv.setZoomVFactor(zoomVFactor);
                 pnl_RpEditors.add((Component) rpv);
@@ -362,7 +368,7 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
         pnl_RpEditors.revalidate();
         pnl_RpEditors.repaint();
     }
-
+    
     @Override
     public void showPlaybackPoint(boolean show, Position pos)
     {
@@ -383,10 +389,10 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
                         show, pos.getBar(), getModel().getStartBarIndex(), getModel().getNbBars()
                     });
         }
-
+        
         updateUIComponents();
     }
-
+    
     @Override
     public Rectangle getRpViewerRectangle(RhythmParameter<?> rp)
     {
@@ -397,32 +403,36 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
         r.height = rpv.getHeight();
         return r;
     }
-
+    
     public Color getSptColor()
     {
         return this.sptColor;
     }
-
+    
     public void setSptColor(Color c)
     {
         this.sptColor = c;
         refreshBackground();
     }
-
+    
     @Override
     @SuppressWarnings("unchecked")
     public void cleanup()
     {
         setVisibleRps(Collections.EMPTY_LIST);            // Unchecked warning
-        clEditor.removePropertyChangeListener(this);
+        var cliSection = sptModel.getParentSection();
+        if (cliSection != null)
+        {
+            cliSection.getClientProperties().removePropertyChangeListener(this);
+            cliSection.removePropertyChangeListener(this);
+        }
         sptModel.removePropertyChangeListener(this);
         settings.removePropertyChangeListener(this);
-        sptModel.getParentSection().removePropertyChangeListener(this);
         removeFocusListener(this);
         sptModel = null;
         controller = null;
     }
-
+    
     @Override
     public String toString()
     {
@@ -436,17 +446,17 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
     public void mouseClicked(MouseEvent e)
     {
     }
-
+    
     @Override
     public void mouseEntered(MouseEvent e)
     {
     }
-
+    
     @Override
     public void mouseExited(MouseEvent e)
     {
     }
-
+    
     @Override
     public void mousePressed(MouseEvent e)
     {
@@ -467,7 +477,7 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
             controller.rhythmParameterClicked(e, rpv.getSptModel(), rpv.getRpModel());
         }
     }
-
+    
     @Override
     public void mouseReleased(MouseEvent e)
     {
@@ -510,7 +520,7 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
             controller.rhythmParameterDragged(e, rpv.getSptModel(), rpv.getRpModel());
         }
     }
-
+    
     @Override
     public void mouseMoved(MouseEvent e)
     {
@@ -543,18 +553,6 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
         if (e.getSource() == settings)
         {
             updateUIComponents();
-        } else if (e.getSource() == clEditor)
-        {
-            // Check if our parent section color has changed in CL_Editor
-            if (CL_Editor.PROP_SECTION_COLOR.equals(e.getPropertyName()))
-            {
-                var changedSection = (CLI_Section) e.getOldValue();
-                var parentSection = getModel().getParentSection();
-                if (parentSection == changedSection)
-                {
-                    setSptColor(clEditor.getSectionColor(parentSection));
-                }
-            }
         } else if (e.getSource() == sptModel)
         {
             if (e.getPropertyName().equals(SongPart.PROP_NAME))
@@ -569,6 +567,13 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
             if (e.getPropertyName().equals(CLI_Section.PROP_ITEM_DATA))
             {
                 updateUIComponents();
+            }
+        } else if (e.getSource() == sptModel.getParentSection().getClientProperties())
+        {
+            // Check if our parent section color has changed in CL_Editor
+            if (CL_EditorClientProperties.PROP_SECTION_COLOR.equals(e.getPropertyName()))
+            {
+                setSptColor(CL_EditorClientProperties.getSectionColor(getModel().getParentSection()));
             }
         }
     }
@@ -586,7 +591,7 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
             setBorder(border);
         }
     }
-
+    
     @Override
     public void focusLost(FocusEvent e
     )
@@ -599,8 +604,8 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
     }
 
     /**
-     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of this
-     * method is always regenerated by the Form Editor.
+     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
      */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -755,10 +760,10 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
         lbl_Parent.setToolTipText(strTooltip);
         lbl_Parent.setFont(settings.getParentSectionFont());
         lbl_Parent.setForeground(settings.getParentSectionFontColor());
-
+        
         multiSelectBar.setOn(multiSelectMode);
         multiSelectBar.setMultiSelectFirst(multiSelectFirst);
-
+        
         if (hasFocus())
         {
             setBorder(settings.getFocusedBorder());
@@ -766,11 +771,11 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
         {
             setBorder(settings.getDefaultBorder());
         }
-
+        
         refreshBackground();
     }
-
-
+    
+    
     private List<RpViewer> getRpViewers()
     {
         ArrayList<RpViewer> rpvs = new ArrayList<>();
@@ -783,7 +788,7 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
         }
         return rpvs;
     }
-
+    
     private RpViewer getRpViewer(RhythmParameter<?> rp)
     {
         for (Component c : pnl_RpEditors.getComponents())
@@ -798,7 +803,7 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
         }
         return null;
     }
-
+    
     private void registerRpViewer(RpViewer rpv)
     {
         rpv.addMouseListener(this);
@@ -811,14 +816,14 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
             FlatComponentsGlobalSettings.getInstance().installChangeValueWithMouseWheelSupport(rpv, this);
         }
     }
-
+    
     private void unregisterRpViewer(RpViewer rpv)
     {
         rpv.removeMouseListener(this);
         rpv.removeMouseMotionListener(this);
         rpv.removeMouseWheelListener(this);         // Sometimes useless but it's ok
     }
-
+    
     private void refreshBackground()
     {
         if (isSelected)
@@ -829,12 +834,12 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
             setBackground(sptColor);
         }
     }
-
+    
     private void redispatchEvent(java.awt.event.MouseEvent evt)
     {
         Container source = (Container) evt.getSource();
         MouseEvent parentEvent = SwingUtilities.convertMouseEvent(source, evt, this);
         this.dispatchEvent(parentEvent);
     }
-
+    
 }

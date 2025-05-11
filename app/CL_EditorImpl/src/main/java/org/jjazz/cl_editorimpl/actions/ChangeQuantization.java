@@ -35,6 +35,7 @@ import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.cl_editor.api.CL_Editor;
+import org.jjazz.cl_editor.api.CL_EditorClientProperties;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.utilities.api.ResUtil;
@@ -93,7 +94,7 @@ public class ChangeQuantization extends AbstractAction implements ContextAwareAc
 
         // Selection must contain bars belonging to one section
         CLI_Section section = cls.getSection(selection.getMinBarIndexWithinCls());
-        Quantization q = editor.getUserQuantization(section);
+        Quantization q = CL_EditorClientProperties.getSectionUserQuantization(section);
         LOGGER.log(Level.FINE, "actionPerformed() initialize dialog with section={0} q={1}", new Object[]
         {
             section, q
@@ -111,7 +112,7 @@ public class ChangeQuantization extends AbstractAction implements ContextAwareAc
         if (dialog.getExitStatus().equals(ChangeQuantizationDialog.ExitStatus.OK_CURRENT_SECTION))
         {
             q = dialog.getQuantization();
-            editor.setUserQuantization(section, q);
+            CL_EditorClientProperties.setSectionUserQuantization(section, q);
             LOGGER.log(Level.FINE, "actionPerformed() apply q={0} for section={1}", new Object[]
             {
                 q, section
@@ -123,7 +124,7 @@ public class ChangeQuantization extends AbstractAction implements ContextAwareAc
             LOGGER.log(Level.FINE, "actionPerformed() apply q={0} for all sections", q);
             for (CLI_Section aSection : cls.getItems(CLI_Section.class))
             {
-                editor.setUserQuantization(aSection, q);
+                CL_EditorClientProperties.setSectionUserQuantization(section, q);
             }
         }
 
@@ -131,6 +132,7 @@ public class ChangeQuantization extends AbstractAction implements ContextAwareAc
         if (!dialog.getExitStatus().equals(ChangeQuantizationDialog.ExitStatus.CANCEL))
         {
             Analytics.logEvent("Quantization Change", Analytics.buildMap("Value", q == null ? "null" : q.toString()));
+            editor.getSongModel().setSaveNeeded(true);
         }
 
 
