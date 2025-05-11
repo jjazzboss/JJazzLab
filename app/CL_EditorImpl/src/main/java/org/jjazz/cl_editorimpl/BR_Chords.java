@@ -47,12 +47,12 @@ import org.jjazz.cl_editor.api.CL_EditorClientProperties;
 import org.jjazz.cl_editor.barrenderer.api.BarRenderer;
 import org.jjazz.cl_editor.barrenderer.api.BeatBasedBarRenderer;
 import org.jjazz.cl_editor.spi.BarRendererSettings;
-import org.jjazz.itemrenderer.api.IR_ChordSymbolSettings;
-import org.jjazz.itemrenderer.api.IR_Copiable;
-import org.jjazz.itemrenderer.api.IR_TimeSignatureSettings;
-import org.jjazz.itemrenderer.api.IR_Type;
-import org.jjazz.itemrenderer.api.ItemRenderer;
-import org.jjazz.itemrenderer.api.ItemRendererFactory;
+import org.jjazz.cl_editor.itemrenderer.api.IR_ChordSymbolSettings;
+import org.jjazz.cl_editor.itemrenderer.api.IR_Copiable;
+import org.jjazz.cl_editor.itemrenderer.api.IR_TimeSignatureSettings;
+import org.jjazz.cl_editor.itemrenderer.api.IR_Type;
+import org.jjazz.cl_editor.itemrenderer.api.ItemRenderer;
+import org.jjazz.cl_editor.itemrenderer.api.ItemRendererFactory;
 import org.openide.util.Exceptions;
 
 /**

@@ -20,19 +20,23 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.cl_editor.spi;
+package org.jjazz.cl_editor.itemrenderer.api;
 
+import java.awt.Color;
+import java.awt.Font;
 import java.beans.PropertyChangeListener;
-import javax.swing.border.Border;
-import org.jjazz.cl_editor.itemrenderer.api.ItemRendererSettings;
 import org.openide.util.Lookup;
 
-public interface BarRendererSettings
+
+public interface IR_SectionSettings
 {
 
-    public static BarRendererSettings getDefault()
+    public static String PROP_FONT = "SectionFont";
+    public static String PROP_FONT_COLOR = "SectionFontColor";
+
+    public static IR_SectionSettings getDefault()
     {
-        BarRendererSettings result = Lookup.getDefault().lookup(BarRendererSettings.class);
+        IR_SectionSettings result = Lookup.getDefault().lookup(IR_SectionSettings.class);
         if (result == null)
         {
             throw new NullPointerException("result=" + result);   
@@ -40,17 +44,33 @@ public interface BarRendererSettings
         return result;
     }
 
-    default ItemRendererSettings getItemRendererSettings()
-    {
-        return ItemRendererSettings.getDefault();
-    }
+    /**
+     *
+     * @param font If null this will restore default value.
+     */
+     void setFont(Font font);
 
     /**
-     * @return Can be null.
+     * The font used to represent the name of the section.
+     *
+     * @return
      */
-    Border getDefaultBorder();
+     Font getFont();
 
-    void addPropertyChangeListener(PropertyChangeListener listener);
+    /**
+     *
+     * @param color If null this will restore the default value.
+     */
+     void setColor(Color color);
 
-    void removePropertyChangeListener(PropertyChangeListener listener);
+    /**
+     * The color used to represent the name of the section.
+     *
+     * @return
+     */
+     Color getColor();
+
+     void addPropertyChangeListener(PropertyChangeListener listener);
+
+     void removePropertyChangeListener(PropertyChangeListener listener);
 }

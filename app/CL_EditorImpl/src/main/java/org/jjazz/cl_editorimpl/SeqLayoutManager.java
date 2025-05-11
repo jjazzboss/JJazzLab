@@ -24,7 +24,7 @@ package org.jjazz.cl_editorimpl;
 
 import org.jjazz.cl_editor.barrenderer.api.BarRenderer;
 import java.awt.*;
-import org.jjazz.itemrenderer.api.ItemRenderer;
+import org.jjazz.cl_editor.itemrenderer.api.ItemRenderer;
 
 /**
  * This layoutmanager simply puts the children one after the other at their preferredSize.

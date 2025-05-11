@@ -46,12 +46,12 @@ import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.api.CL_EditorClientProperties;
 import org.jjazz.cl_editor.barrenderer.api.BarRenderer;
 import org.jjazz.cl_editor.spi.BarRendererSettings;
-import org.jjazz.itemrenderer.api.IR_SectionSettings;
-import org.jjazz.itemrenderer.api.IR_Copiable;
-import org.jjazz.itemrenderer.api.IR_Section;
-import org.jjazz.itemrenderer.api.IR_Type;
-import org.jjazz.itemrenderer.api.ItemRenderer;
-import org.jjazz.itemrenderer.api.ItemRendererFactory;
+import org.jjazz.cl_editor.itemrenderer.api.IR_SectionSettings;
+import org.jjazz.cl_editor.itemrenderer.api.IR_Copiable;
+import org.jjazz.cl_editorimpl.itemrenderer.IR_Section;
+import org.jjazz.cl_editor.itemrenderer.api.IR_Type;
+import org.jjazz.cl_editor.itemrenderer.api.ItemRenderer;
+import org.jjazz.cl_editor.itemrenderer.api.ItemRendererFactory;
 import org.jjazz.uisettings.api.ColorSetManager;
 
 /**

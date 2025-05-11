@@ -29,7 +29,7 @@ import javax.swing.AbstractAction;
 import org.jjazz.cl_editor.barbox.api.BarBox;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.cl_editor.api.CL_Editor;
-import org.jjazz.itemrenderer.api.ItemRenderer;
+import org.jjazz.cl_editor.itemrenderer.api.ItemRenderer;
 
 public class ExtendSelectionRight extends AbstractAction
 {

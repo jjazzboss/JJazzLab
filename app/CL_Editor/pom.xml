@@ -17,11 +17,12 @@
                 <groupId>org.apache.netbeans.utilities</groupId>
                 <artifactId>nbm-maven-plugin</artifactId>
                 <configuration>
-                    <publicPackages>                      
+                    <publicPackages>
                         <publicPackage>org.jjazz.cl_editor.api</publicPackage>
                         <publicPackage>org.jjazz.cl_editor.barbox.api</publicPackage>
                         <publicPackage>org.jjazz.cl_editor.barrenderer.api</publicPackage>
                         <publicPackage>org.jjazz.cl_editor.barrenderer.spi</publicPackage>
+                        <publicPackage>org.jjazz.cl_editor.itemrenderer.api</publicPackage>
                         <publicPackage>org.jjazz.cl_editor.spi</publicPackage>
                     </publicPackages>
                 </configuration>
@@ -36,18 +37,28 @@
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
+            <groupId>org.jjazzlab.app</groupId> 
+            <artifactId>uisettings</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>flatcomponents</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
+        <dependency> 
             <groupId>org.jjazzlab.core</groupId>
             <artifactId>guava</artifactId>
             <version>${project.version}</version>
         </dependency>  
         <dependency> 
-            <groupId>org.jjazzlab.core</groupId> 
-            <artifactId>harmony</artifactId> 
-            <version>${project.version}</version>  
+            <groupId>org.jjazzlab.core</groupId>
+            <artifactId>uiutilities</artifactId>
+            <version>${project.version}</version>
         </dependency>  
         <dependency> 
-            <groupId>org.jjazzlab.app</groupId> 
-            <artifactId>itemrenderer</artifactId> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>harmony</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 

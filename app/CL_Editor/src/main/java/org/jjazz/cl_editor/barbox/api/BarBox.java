@@ -45,8 +45,8 @@ import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.barrenderer.api.BarRenderer;
 import org.jjazz.cl_editor.spi.BarRendererFactory;
 import org.jjazz.cl_editor.barrenderer.api.BeatBasedBarRenderer;
-import org.jjazz.itemrenderer.api.IR_Type;
-import org.jjazz.itemrenderer.api.ItemRenderer;
+import org.jjazz.cl_editor.itemrenderer.api.IR_Type;
+import org.jjazz.cl_editor.itemrenderer.api.ItemRenderer;
 
 /**
  * This object groups several BarRenderers in a "stack view" that represent one leadSheet bar.

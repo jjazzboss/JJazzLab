@@ -20,19 +20,22 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.cl_editor.spi;
+package org.jjazz.cl_editor.itemrenderer.api;
 
+import java.awt.Color;
+import java.awt.Font;
 import java.beans.PropertyChangeListener;
-import javax.swing.border.Border;
-import org.jjazz.cl_editor.itemrenderer.api.ItemRendererSettings;
 import org.openide.util.Lookup;
 
-public interface BarRendererSettings
+public interface IR_TimeSignatureSettings
 {
 
-    public static BarRendererSettings getDefault()
+    public static String PROP_FONT = "TimeSignatureFont";
+    public static String PROP_FONT_COLOR = "TimeSignatureFontColor";
+
+    public static IR_TimeSignatureSettings getDefault()
     {
-        BarRendererSettings result = Lookup.getDefault().lookup(BarRendererSettings.class);
+        IR_TimeSignatureSettings result = Lookup.getDefault().lookup(IR_TimeSignatureSettings.class);
         if (result == null)
         {
             throw new NullPointerException("result=" + result);   
@@ -40,17 +43,23 @@ public interface BarRendererSettings
         return result;
     }
 
-    default ItemRendererSettings getItemRendererSettings()
-    {
-        return ItemRendererSettings.getDefault();
-    }
+    /**
+     *
+     * @param font If null restore the default value.
+     */
+     void setFont(Font font);
+
+     Font getFont();
 
     /**
-     * @return Can be null.
+     *
+     * @param color If null restore the default value.
      */
-    Border getDefaultBorder();
+     void setColor(Color color);
 
-    void addPropertyChangeListener(PropertyChangeListener listener);
+     Color getColor();
 
-    void removePropertyChangeListener(PropertyChangeListener listener);
+     void addPropertyChangeListener(PropertyChangeListener listener);
+
+     void removePropertyChangeListener(PropertyChangeListener listener);
 }

@@ -20,37 +20,12 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.cl_editor.spi;
+package org.jjazz.cl_editor.itemrenderer.api;
 
-import java.beans.PropertyChangeListener;
-import javax.swing.border.Border;
-import org.jjazz.cl_editor.itemrenderer.api.ItemRendererSettings;
-import org.openide.util.Lookup;
-
-public interface BarRendererSettings
+/**
+ * The various types of ItemRenderers.
+ */
+public enum IR_Type
 {
-
-    public static BarRendererSettings getDefault()
-    {
-        BarRendererSettings result = Lookup.getDefault().lookup(BarRendererSettings.class);
-        if (result == null)
-        {
-            throw new NullPointerException("result=" + result);   
-        }
-        return result;
-    }
-
-    default ItemRendererSettings getItemRendererSettings()
-    {
-        return ItemRendererSettings.getDefault();
-    }
-
-    /**
-     * @return Can be null.
-     */
-    Border getDefaultBorder();
-
-    void addPropertyChangeListener(PropertyChangeListener listener);
-
-    void removePropertyChangeListener(PropertyChangeListener listener);
+    ChordSymbol, ChordPosition, Section, TimeSignature, PositionMark, BarAnnotationPaperNote, BarAnnotationText
 }

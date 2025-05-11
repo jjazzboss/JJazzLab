@@ -24,7 +24,7 @@ package org.jjazz.cl_editor.spi;
 
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.barrenderer.api.BarRenderer;
-import org.jjazz.itemrenderer.api.ItemRendererFactory;
+import org.jjazz.cl_editor.itemrenderer.api.ItemRendererFactory;
 import org.openide.util.Lookup;
 
 /**

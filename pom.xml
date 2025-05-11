@@ -281,7 +281,6 @@
         <module>app/ImprovisationSupport</module>
         <module>app/InstrumentChooser</module>
         <module>app/InstrumentComponents</module>
-        <module>app/ItemRenderer</module>		
         <module>app/MixConsole</module>
         <module>app/MusicControlActions</module>
         <module>app/Options</module>

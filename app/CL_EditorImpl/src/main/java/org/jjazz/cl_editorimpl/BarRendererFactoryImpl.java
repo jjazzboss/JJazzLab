@@ -27,7 +27,7 @@ import org.jjazz.cl_editor.barrenderer.api.BarRenderer;
 import org.jjazz.cl_editor.spi.BarRendererFactory;
 import org.jjazz.cl_editor.spi.BarRendererProvider;
 import org.jjazz.cl_editor.spi.BarRendererSettings;
-import org.jjazz.itemrenderer.api.ItemRendererFactory;
+import org.jjazz.cl_editor.itemrenderer.api.ItemRendererFactory;
 import org.openide.util.Lookup;
 import org.openide.util.lookup.ServiceProvider;
 

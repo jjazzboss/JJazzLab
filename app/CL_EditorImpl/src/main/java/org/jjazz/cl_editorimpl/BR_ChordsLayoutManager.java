@@ -40,7 +40,7 @@ import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.harmony.api.Position;
-import org.jjazz.itemrenderer.api.ItemRenderer;
+import org.jjazz.cl_editor.itemrenderer.api.ItemRenderer;
 
 /**
  * The LayoutManager for the BR_Chords BarRenderer : chords and a possible time signature.

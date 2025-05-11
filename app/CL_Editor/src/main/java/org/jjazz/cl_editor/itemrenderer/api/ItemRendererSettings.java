@@ -20,35 +20,59 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.cl_editor.spi;
+package org.jjazz.cl_editor.itemrenderer.api;
 
+import java.awt.Color;
 import java.beans.PropertyChangeListener;
 import javax.swing.border.Border;
-import org.jjazz.cl_editor.itemrenderer.api.ItemRendererSettings;
 import org.openide.util.Lookup;
 
-public interface BarRendererSettings
+/**
+ * Generic UI settings for any ItemRenderer.
+ */
+public interface ItemRendererSettings
 {
 
-    public static BarRendererSettings getDefault()
+    public static String PROP_ITEM_SELECTED_COLOR = "ItemSelectedColor";
+    public static String PROP_ITEM_FOCUSED_BORDER_COLOR = "ItemFocusedBorderColor";
+
+    public static ItemRendererSettings getDefault()
     {
-        BarRendererSettings result = Lookup.getDefault().lookup(BarRendererSettings.class);
+        ItemRendererSettings result = Lookup.getDefault().lookup(ItemRendererSettings.class);
         if (result == null)
         {
-            throw new NullPointerException("result=" + result);   
+            throw new NullPointerException("result=" + result);
         }
         return result;
     }
 
-    default ItemRendererSettings getItemRendererSettings()
+    default IR_ChordSymbolSettings getIR_ChordSymbolSettings()
     {
-        return ItemRendererSettings.getDefault();
+        return IR_ChordSymbolSettings.getDefault();
     }
 
-    /**
-     * @return Can be null.
-     */
-    Border getDefaultBorder();
+    default IR_SectionSettings getIR_SectionSettings()
+    {
+        return IR_SectionSettings.getDefault();
+    }
+
+    default IR_AnnotationTextSettings getIR_AnnotationTextSettings()
+    {
+        return IR_AnnotationTextSettings.getDefault();
+    }
+
+    default IR_TimeSignatureSettings getIR_TimeSignatureSettings()
+    {
+        return IR_TimeSignatureSettings.getDefault();
+    }
+
+    void setSelectedBackgroundColor(Color color);
+
+    Color getSelectedBackgroundColor();
+
+    Border getFocusedBorder();
+
+    Border getNonFocusedBorder();
 
     void addPropertyChangeListener(PropertyChangeListener listener);
 

@@ -26,7 +26,7 @@ import java.awt.*;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.harmony.api.Position;
-import org.jjazz.itemrenderer.api.ItemRenderer;
+import org.jjazz.cl_editor.itemrenderer.api.ItemRenderer;
 
 /**
  * This LayoutManager places ItemRenderers at their corresponding beat position.

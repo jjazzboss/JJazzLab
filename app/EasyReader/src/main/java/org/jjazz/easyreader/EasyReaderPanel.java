@@ -55,7 +55,6 @@ import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackListener;
-import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.song.api.Song;
 import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.SongPart;
@@ -72,7 +71,7 @@ import org.jjazz.cl_editor.barbox.api.BarBox;
 import org.jjazz.cl_editor.barbox.api.BarBoxConfig;
 import org.jjazz.cl_editor.spi.BarBoxSettings;
 import org.jjazz.cl_editor.spi.BarRendererFactory;
-import org.jjazz.itemrenderer.api.IR_ChordSymbolSettings;
+import org.jjazz.cl_editor.itemrenderer.api.IR_ChordSymbolSettings;
 import org.jjazz.uiutilities.api.UIUtilities;
 import org.openide.util.NbPreferences;
 

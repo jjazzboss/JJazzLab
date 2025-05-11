@@ -36,8 +36,8 @@ import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.cl_editor.api.CL_Editor;
-import org.jjazz.itemrenderer.api.ItemRenderer;
-import org.jjazz.itemrenderer.api.ItemRendererFactory;
+import org.jjazz.cl_editor.itemrenderer.api.ItemRenderer;
+import org.jjazz.cl_editor.itemrenderer.api.ItemRendererFactory;
 
 /**
  * Base class for BarRenderer.

@@ -36,7 +36,7 @@ import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.api.CL_EditorClientProperties;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
-import org.jjazz.itemrenderer.api.IR_ChordSymbolSettings;
+import org.jjazz.cl_editor.itemrenderer.api.IR_ChordSymbolSettings;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;

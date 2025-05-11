@@ -27,8 +27,7 @@ package org.jjazz.cl_editor.api;
 import java.awt.Color;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.itemrenderer.api.IR_AnnotationText;
-import org.jjazz.itemrenderer.api.IR_ChordSymbolSettings;
+import org.jjazz.cl_editor.itemrenderer.api.IR_ChordSymbolSettings;
 import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.song.api.Song;
 
@@ -43,8 +42,10 @@ import org.jjazz.song.api.Song;
 public class CL_EditorClientProperties
 {
 
+    public static final int BAR_ANNOTATION_MAX_NB_LINES = 6;
+    
     //==========================================================================================================================================
-    // Note: do not modify the property values (e.g. "PropBarAnnotationsVisible"), they are used in Song or ChordLeadSheetItem serialization
+    // Note: do not modify the property values below (e.g. "PropBarAnnotationsVisible"), they are used in Song or ChordLeadSheetItem serialization
     //==========================================================================================================================================
 
     /**
@@ -123,11 +124,11 @@ public class CL_EditorClientProperties
      * @param song
      * @return 1 by default
      * @see #PROP_BAR_ANNOTATION_NB_LINES
-     * @see org.jjazz.itemrenderer.api.IR_AnnotationText#MAX_NB_LINES
+     * @see #BAR_ANNOTATION_MAX_NB_LINES
      */
     public static int getBarAnnotationNbLines(Song song)
     {
-        return Math.clamp(song.getClientProperties().getInt(PROP_BAR_ANNOTATION_NB_LINES, 1), 1, IR_AnnotationText.MAX_NB_LINES);
+        return Math.clamp(song.getClientProperties().getInt(PROP_BAR_ANNOTATION_NB_LINES, 1), 1, BAR_ANNOTATION_MAX_NB_LINES);
     }
 
     /**
@@ -139,7 +140,7 @@ public class CL_EditorClientProperties
      */
     public static void setBarAnnotationNbLines(Song song, int n)
     {
-        song.getClientProperties().putInt(PROP_BAR_ANNOTATION_NB_LINES, Math.clamp(n, 1, IR_AnnotationText.MAX_NB_LINES));
+        song.getClientProperties().putInt(PROP_BAR_ANNOTATION_NB_LINES, Math.clamp(n, 1, BAR_ANNOTATION_MAX_NB_LINES));
     }
 
     /**

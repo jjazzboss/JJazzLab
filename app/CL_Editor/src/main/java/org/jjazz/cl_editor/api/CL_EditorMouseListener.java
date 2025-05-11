@@ -25,7 +25,7 @@ package org.jjazz.cl_editor.api;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
-import org.jjazz.itemrenderer.api.IR_Type;
+import org.jjazz.cl_editor.itemrenderer.api.IR_Type;
 
 /**
  * A listener for mouse events of interest.

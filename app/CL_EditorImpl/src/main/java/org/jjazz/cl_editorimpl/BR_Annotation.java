@@ -46,12 +46,12 @@ import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.api.CL_EditorClientProperties;
 import org.jjazz.cl_editor.barrenderer.api.BarRenderer;
 import org.jjazz.cl_editor.spi.BarRendererSettings;
-import org.jjazz.itemrenderer.api.IR_AnnotationText;
-import org.jjazz.itemrenderer.api.IR_AnnotationTextSettings;
-import org.jjazz.itemrenderer.api.IR_Copiable;
-import org.jjazz.itemrenderer.api.IR_Type;
-import org.jjazz.itemrenderer.api.ItemRenderer;
-import org.jjazz.itemrenderer.api.ItemRendererFactory;
+import org.jjazz.cl_editorimpl.itemrenderer.IR_AnnotationText;
+import org.jjazz.cl_editor.itemrenderer.api.IR_AnnotationTextSettings;
+import org.jjazz.cl_editor.itemrenderer.api.IR_Copiable;
+import org.jjazz.cl_editor.itemrenderer.api.IR_Type;
+import org.jjazz.cl_editor.itemrenderer.api.ItemRenderer;
+import org.jjazz.cl_editor.itemrenderer.api.ItemRendererFactory;
 
 /**
  * A BarRenderer to show an annotation.
