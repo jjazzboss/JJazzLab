@@ -22,7 +22,6 @@
  */
 package org.jjazz.ss_editorimpl;
 
-import com.google.common.base.Preconditions;
 import static com.google.common.base.Preconditions.checkNotNull;
 import org.jjazz.ss_editor.api.SS_SelectionUtilities;
 import java.awt.Component;
