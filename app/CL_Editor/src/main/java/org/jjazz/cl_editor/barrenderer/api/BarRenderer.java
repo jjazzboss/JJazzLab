@@ -327,6 +327,7 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
             this, modelBarIndex
         });
 
+        
         if (modelBarIndex >= 0)
         {
             // Possibly update section            
@@ -337,6 +338,9 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
                 LOGGER.log(Level.FINE, "   item={0}", item);
                 addItemRenderer(item);
             }
+        } else
+        {
+            setSection(null);
         }
 
         return old;
@@ -354,7 +358,7 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
     /**
      * Set the section for this bar.
      *
-     * @param section
+     * @param section Can be null
      */
     abstract public void setSection(CLI_Section section);
 

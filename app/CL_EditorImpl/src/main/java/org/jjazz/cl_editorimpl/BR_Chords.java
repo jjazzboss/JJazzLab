@@ -133,6 +133,10 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
     @Override
     public void setSection(CLI_Section section)
     {
+        if (section == null)
+        {
+            return;
+        }
         TimeSignature newTs = section.getData().getTimeSignature();
         if (!newTs.equals(this.lastTimeSignature))
         {

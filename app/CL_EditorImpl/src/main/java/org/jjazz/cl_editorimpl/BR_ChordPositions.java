@@ -192,6 +192,10 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
     @Override
     public void setSection(CLI_Section section)
     {
+        if (section == null)
+        {
+            return;
+        }
         TimeSignature newTs = section.getData().getTimeSignature();
         var newDiv = getDivision(getEditor().getSongModel(), section);
         if (newTs == lastTimeSignature && newDiv == division)
