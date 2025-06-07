@@ -40,6 +40,7 @@ import org.jjazz.jjswing.api.BassStyle;
 import static org.jjazz.jjswing.walkingbass.JJSwingBassMusicGenerator.DURATION_BEAT_MARGIN;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.utilities.api.FloatRange;
+import org.jjazz.utilities.api.Utilities;
 
 /**
  * A factory for BassStyle.TWO_FEEL.
@@ -56,7 +57,7 @@ public class TwoFeelPhraseBuilder implements BassPhraseBuilder
     {
         LOGGER.log(BassPhraseBuilderLogLevel, "build() -- tempo={0} scsList={1}", new Object[]
         {
-            tempo, scsList
+            tempo, Utilities.toMultilineString(scsList, " ")
         });
 
 
@@ -73,6 +74,7 @@ public class TwoFeelPhraseBuilder implements BassPhraseBuilder
         var tilerLongestPremium = new TilerLongestFirstNoRepeat(scorerPremium, settings.getWbpsaStoreWidth());
         tilerLongestPremium.tile(tiling);
         LOGGER.log(BassPhraseBuilderLogLevel, tiling.toMultiLineString());
+        int nbTiledBars = tiling.getTiledBars().size();
 
 
         var untiled = !tiling.isFullyTiled();
@@ -82,7 +84,8 @@ public class TwoFeelPhraseBuilder implements BassPhraseBuilder
             LOGGER.log(BassPhraseBuilderLogLevel, "build() ================  tiling PREMIUM MaxDistance");
             var tilerMaxDistancePremium = new TilerMaxDistance(scorerPremium, settings.getWbpsaStoreWidth());
             tilerMaxDistancePremium.tile(tiling);
-            LOGGER.log(BassPhraseBuilderLogLevel, tiling.toMultiLineString());
+            nbTiledBars = logTilingIfChanged(tiling, nbTiledBars);
+
         }
 
 
@@ -96,7 +99,8 @@ public class TwoFeelPhraseBuilder implements BassPhraseBuilder
 
             var tilerLongestStandard = new TilerLongestFirstNoRepeat(scorerStandard, settings.getWbpsaStoreWidth());
             tilerLongestStandard.tile(tiling);
-            LOGGER.log(BassPhraseBuilderLogLevel, tiling.toMultiLineString());
+            nbTiledBars = logTilingIfChanged(tiling, nbTiledBars);
+
 
             untiled = !tiling.isFullyTiled();
             if (untiled)
@@ -105,7 +109,7 @@ public class TwoFeelPhraseBuilder implements BassPhraseBuilder
                 LOGGER.log(BassPhraseBuilderLogLevel, "build() ================  tiling STANDARD MaxDistance");
                 var tilerMaxDistanceStandard = new TilerMaxDistance(scorerStandard, settings.getWbpsaStoreWidth());
                 tilerMaxDistanceStandard.tile(tiling);
-                LOGGER.log(BassPhraseBuilderLogLevel, tiling.toMultiLineString());
+                nbTiledBars = logTilingIfChanged(tiling, nbTiledBars);
             }
         }
 
@@ -119,7 +123,7 @@ public class TwoFeelPhraseBuilder implements BassPhraseBuilder
             LOGGER.log(BassPhraseBuilderLogLevel, "\n");
             LOGGER.log(BassPhraseBuilderLogLevel, "build() ================  tiling EXISTING CUSTOM MaxDistance");
             tilerMaxDistanceCustomStandard.tile(tiling);
-            LOGGER.log(BassPhraseBuilderLogLevel, tiling.toMultiLineString());
+            nbTiledBars = logTilingIfChanged(tiling, nbTiledBars);
         }
 
 
@@ -148,7 +152,7 @@ public class TwoFeelPhraseBuilder implements BassPhraseBuilder
 
             // Redo a tiling
             tilerMaxDistanceCustomStandard.tile(tiling);
-            LOGGER.log(BassPhraseBuilderLogLevel, tiling.toMultiLineString());
+            nbTiledBars = logTilingIfChanged(tiling, nbTiledBars);
         }
 
 
@@ -160,11 +164,10 @@ public class TwoFeelPhraseBuilder implements BassPhraseBuilder
 
 
         LOGGER.log(BassPhraseBuilderLogLevel, "\n");
-        LOGGER.log(BassPhraseBuilderLogLevel, "build() ===============   Tiling stats  usableBars={0} \n{1}", new Object[]
-        {
-            tiling.getUsableBars().size(),
-            tiling.toStatsString()
-        });
+        LOGGER.log(BassPhraseBuilderLogLevel, "\n");
+        LOGGER.log(BassPhraseBuilderLogLevel, "build() ######################      Tiling STATS       ######################");
+        LOGGER.log(BassPhraseBuilderLogLevel, tiling.toStatsString());
+        LOGGER.log(BassPhraseBuilderLogLevel, "\n");
 
 
         var p = tiling.buildPhrase(phraseAdapter);
@@ -310,6 +313,15 @@ public class TwoFeelPhraseBuilder implements BassPhraseBuilder
         }
 
         return List.of(sp);
+    }
+
+
+    private int logTilingIfChanged(WbpTiling tiling, int oldNbTiledBars)
+    {
+        int newNbTiledBars = tiling.getTiledBars().size();
+        String txt = oldNbTiledBars != newNbTiledBars ? tiling.toMultiLineString() : "tiling unchanged";
+        LOGGER.log(BassPhraseBuilderLogLevel, txt);
+        return newNbTiledBars;
     }
 
 }

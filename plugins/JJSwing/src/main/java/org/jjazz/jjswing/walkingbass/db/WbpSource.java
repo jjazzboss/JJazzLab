@@ -51,23 +51,23 @@ public class WbpSource extends Wbp
     /**
      * Create a source bass phrase.
      * <p>
-     * NOTE: all parameters are expected to represent immutable values.
      *
      * @param sessionId          The session id from which this source phrase comes.
      * @param sessionBarFrom     The bar index in the session phrase from which this source phrase comes
      * @param bassStyle          The bass style of this WbpSource
-     * @param cSeq               Must start at bar 0. Chord simplification will be applied on the passed SimpleChordSequence.
+     * @param cSeq               Must start at bar 0. The source chord sequence. A copy is made which is chord-simplified based on phrase.
      * @param phrase             Size must be between 1 and 4 bars, must start at beat 0. Ghost notes will be removed on the passed phrase.
      * @param firstNoteBeatShift A 0 or negative beat value. Any phrase note at bar=0 beat=0 should be shifted with this value.
      * @param targetNote         Can be null
      * @param tags
-     * @see #setOriginalChordSequence(org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence)
+     * @see #getOriginalChordSequence()
+     * @see #getSimpleChordSequence()
      */
     public WbpSource(String sessionId, int sessionBarFrom, BassStyle bassStyle, SimpleChordSequence cSeq, SizedPhrase phrase, float firstNoteBeatShift,
             Note targetNote,
             String... tags)
     {
-        super(cSeq, phrase, targetNote);
+        super(cSeq.deepClone(), phrase, targetNote);
         Objects.requireNonNull(bassStyle);
         checkArgument(sessionId != null && !sessionId.isBlank());
         checkArgument(sessionBarFrom >= 0, "sessionBarFrom=%s", sessionBarFrom);
@@ -77,7 +77,7 @@ public class WbpSource extends Wbp
 
         this.mapDestChordRootTransposibility = new HashMap<>();
         this.mapCsSlice = new HashMap<>();
-        this.originalChordSequence = cSeq.clone();
+        this.originalChordSequence = cSeq.deepClone();
         this.sessionId = sessionId;
         this.id = sessionId + "#fr=" + sessionBarFrom + "#sz=" + phrase.getSizeInBars();
         this.sessionBarOffset = sessionBarFrom;
@@ -88,7 +88,12 @@ public class WbpSource extends Wbp
 
 
         // Session slicing might have produced remaining short notes at the beginning of the phrase
-        JJSwingBassMusicGenerator.removeGhostNotes(getSizedPhrase());
+        getSizedPhrase().removeIf(ne -> 
+        {
+            float pos = ne.getPositionInBeats();
+            float dur = ne.getDurationInBeats();
+            return (pos % cSeq.getTimeSignature().getNaturalBeat()) == 0 && dur <= JJSwingBassMusicGenerator.GHOST_NOTE_MAX_DURATION;
+        });
 
 
         // Must be called last because WbpSource must be fully initialized
@@ -235,6 +240,17 @@ public class WbpSource extends Wbp
     public BassStyle getBassStyle()
     {
         return bassStyle;
+    }
+
+    /**
+     * Return a chord-simplified copy of the SimpleChordSequence submitted in the constructor.
+     *
+     * @return
+     */
+    @Override
+    public SimpleChordSequence getSimpleChordSequence()
+    {
+        return chordSequence;
     }
 
     /**

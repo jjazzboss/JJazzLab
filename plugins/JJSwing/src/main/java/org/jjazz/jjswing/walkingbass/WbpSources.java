@@ -48,7 +48,7 @@ public class WbpSources
 
 
     /**
-     * Try to add position/velocity humanization to a (computer generated) custom WbpSource.
+     * Try to add position/velocity humanization to a (computer generated) custom WbpSource phrase.
      *
      * @param wbpSource
      * @return If wbpSource phrase was modified by this call

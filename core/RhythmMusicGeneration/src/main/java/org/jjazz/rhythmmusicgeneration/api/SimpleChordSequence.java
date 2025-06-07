@@ -36,8 +36,8 @@ import org.jjazz.utilities.api.IntRange;
 /**
  * A ChordSequence which has only one TimeSignature and a start position in beats.
  * <p>
- * User is responsible to ensure CLI_ChordSymbols are added in the right position order, in the startBar/nbBars range, and are
- * compatible with the TimeSignature.
+ * User is responsible to ensure CLI_ChordSymbols are added in the right position order, in the startBar/nbBars range, and are compatible with the
+ * TimeSignature.
  */
 public class SimpleChordSequence extends ChordSequence
 {
@@ -64,7 +64,7 @@ public class SimpleChordSequence extends ChordSequence
     /**
      * Construct a SimpleChordSequence from a standard ChordSequence.
      *
-     * @param cSeq All ChordSymbols are checked to be compatible with the specified TimeSignature.
+     * @param cSeq              All ChordSymbols are checked to be compatible with the specified TimeSignature.
      * @param startBeatPosition The beat start position of the created SimpleChordSequence
      * @param ts
      */
@@ -87,6 +87,20 @@ public class SimpleChordSequence extends ChordSequence
     public SimpleChordSequence clone()
     {
         SimpleChordSequence scs = new SimpleChordSequence(this, this.startBeatPosition, this.timeSignature);
+        scs.addAll(this);
+        return scs;
+    }
+
+    /**
+     * @return A deep copy with each CLI_ChordSymbol cloned.
+     */
+    public SimpleChordSequence deepClone()
+    {
+        SimpleChordSequence scs = new SimpleChordSequence(this, this.startBeatPosition, this.timeSignature);
+        for (var cliCs : this)
+        {
+            scs.add((CLI_ChordSymbol) cliCs.getCopy(null, null));
+        }
         return scs;
     }
 
@@ -131,8 +145,7 @@ public class SimpleChordSequence extends ChordSequence
         return this.timeSignature == other.timeSignature;
     }
 
-    
-    
+
 //    /**
 //     * WARNING: this equals() makes assumptions on ChordSequence implementation.
 //     *
@@ -186,7 +199,6 @@ public class SimpleChordSequence extends ChordSequence
 //        }
 //        return true;
 //    }
-
     /**
      * The start position in beats of the chord sequence.
      *
@@ -321,9 +333,9 @@ public class SimpleChordSequence extends ChordSequence
         for (var bar : getBarRange())
         {
             var chordBeatPositions = subSequence(new IntRange(bar, bar), false)
-                .stream()
-                .map(cliCs -> cliCs.getPosition().getBeat())
-                .toList();
+                    .stream()
+                    .map(cliCs -> cliCs.getPosition().getBeat())
+                    .toList();
 
             if (chordBeatPositions.isEmpty() && acceptEmptyBars)
             {

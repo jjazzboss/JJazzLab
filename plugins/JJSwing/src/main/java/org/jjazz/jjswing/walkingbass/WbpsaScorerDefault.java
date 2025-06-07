@@ -344,7 +344,7 @@ public class WbpsaScorerDefault implements WbpsaScorer
      * <p>
      *
      * @param wbpsa
-     * @return An empty list (if 2 incompatible chords types are found) or a list of float values in the [0;100] range
+     * @return An empty list (if 2 incompatible chords types are found) or a list of float values in the [1;100] range
      */
     private List<Float> getHarmonicCompatibilityScores(WbpSourceAdaptation wbpsa)
     {

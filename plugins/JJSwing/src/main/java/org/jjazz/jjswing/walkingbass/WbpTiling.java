@@ -409,7 +409,7 @@ public class WbpTiling
     }
 
     /**
-     * Get the SimpleChordSequence corresponding to barRange.
+     * Get a new SimpleChordSequence corresponding to barRange.
      *
      * @param barRange
      * @param addInitChordSympol
@@ -523,7 +523,10 @@ public class WbpTiling
     public String toMultiLineString()
     {
         StringBuilder sb = new StringBuilder();
-        for (int bar : getUsableBars())
+        var usableBars = getUsableBars();
+        sb.append("TILING ").append(String.valueOf(getTiledBars().size())).append("/").append(String.valueOf(usableBars.size())).append(" :\n");
+
+        for (int bar : usableBars)
         {
             String s = "";
             var wbpsaStart = getWbpSourceAdaptationStartingAt(bar);

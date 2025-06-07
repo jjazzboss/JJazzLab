@@ -1,7 +1,7 @@
 * Variations: Walking double notes (C C Bb Bb etc. reuse walking bass line to get contour), Drums shuffle with walking bass "a la" Twisted/Joni Mitchel 
 * Variations: 2-feel but walking ? listent to swan lake hubert laws 3:30
 * Scorer, reject wbpsources with out of scale long notes at slow tempos
-* Database: harmonize phrases velocity
+* Database: harmonize phrases velocity (typically when one bar is stronger than the bar before and after, but can also be some individual notes)
 * FInalize rhythm dialog settings
 * Automate rhythm tests on 2000 sngs
 * Do tests with multiple rhythms/time signatures, play from start, middle, loop selection
@@ -10,7 +10,16 @@
 * rule that if one dimension of a Score is 0 then overall Score is 0.
 * Profile music generation for optimization
 * Discard 1-bar (and 2-bar?) WbpSources which are natively too off transposition: ex RedsHead#fr=45#sz=1 (at least 1 octave too high)
+* Review all Midi notes to make sure note length is long enough (spotted too short notes in walking)
+* add another variation for Pedal bass in additino to 1-2-4
+
+
+
+BUGS
+* Exception when using play loop zone in some cases
 * TEST ROUNDMIDNIGHT many untiled bars on whole songs, but disappear when song is made smaller ?? bug chordsequence equals need chordleadsheet to support equals normally
+* RoundMidgnight :
+walk in 2 mesure 65 start note missing (Cm7b5 F7b9) using  2FB_diane#fr=9#sz=1, <[0;0]-[Dm7b5[0:0], G[0:2]]>} note0BeatShift=0.0
 
 
 MAYBE LATER
@@ -23,7 +32,3 @@ MAYBE LATER
 * Post-process to avoid same note from bar x == first note from bar x+1. Already managed at WbpSource scoring level, but still 
 it can happen, and  it can also happen after tiling because of pedal bass handling
 * Do not directly disable duplicates: they provide velocity/timing variety. Check should be done by Scorer vs Tiling ? 
-
-
-BUGS
-* Exception when using play loop zone in some cases

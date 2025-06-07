@@ -33,6 +33,7 @@ import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.harmony.spi.ChordTypeDatabase;
+import org.jjazz.jjswing.walkingbass.JJSwingBassMusicGenerator;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.phrase.api.Phrase;
@@ -80,7 +81,7 @@ public class WbpSourceDatabase
 
     private final Map<String, String> mapSessionIdResource;
     private final ListMultimap<String, WbpSource> mmapSessionIdWbpSources;
-    private final ListMultimap<BsRp, WbpSource> mmapBsrpWbpSources;
+    private final ListMultimap<StyleAndProfile, WbpSource> mmapSapWbpSources;
     private final Map<String, WbpSource> mapIdWbpSource;
     private final Random random;
     private static final Logger LOGGER = Logger.getLogger(WbpSourceDatabase.class.getSimpleName());
@@ -103,7 +104,7 @@ public class WbpSourceDatabase
         LOGGER.log(Level.FINE, "WbpSourceDatabase() initializing...");
 
 
-        mmapBsrpWbpSources = MultimapBuilder.hashKeys().arrayListValues().build();
+        mmapSapWbpSources = MultimapBuilder.hashKeys().arrayListValues().build();
         mmapSessionIdWbpSources = MultimapBuilder.hashKeys().arrayListValues().build();
         mapIdWbpSource = new HashMap<>();
         mapSessionIdResource = new HashMap<>();
@@ -382,7 +383,7 @@ public class WbpSourceDatabase
     {
         Objects.requireNonNull(style);
         Objects.requireNonNull(rootProfile);
-        List<WbpSource> res = mmapBsrpWbpSources.get(new BsRp(style, rootProfile));
+        List<WbpSource> res = mmapSapWbpSources.get(new StyleAndProfile(style, rootProfile));
         return Collections.unmodifiableList(res);
     }
 
@@ -490,12 +491,61 @@ public class WbpSourceDatabase
         var wbpSources = wbpSession.extractWbpSources(false, false);
         for (var wbpSource : wbpSources)
         {
+            if (!isValid(wbpSource))
+            {
+                continue;
+            }
+            fixOctaveIfRequired(wbpSource);
             if (getFirstCompatibleWbpSource(wbpSource.getBassStyle(), wbpSource.getSimpleChordSequence(), wbpSource.getSizedPhrase(), true) == null)
             {
                 // Add only non redundant phrases                
                 addWbpSourceImpl(wbpSource);
             }
         }
+    }
+
+    /**
+     * Transpose 1 octave down the WbpSource phrase if it's too high.
+     *
+     * @param wbpSource
+     */
+    private void fixOctaveIfRequired(WbpSource wbpSource)
+    {
+        var p = wbpSource.getSizedPhrase();
+        var pitchRange = Phrases.getPitchRange(p);
+        if (pitchRange.from >= 47 //  [B2+]
+                || (pitchRange.from >= 44 && pitchRange.to >= 56))   // [G2;G3+]
+        {
+            LOGGER.log(Level.WARNING, "isValid() Transposing 1 octave down wbpSource={0} p={1}", new Object[]
+            {
+                wbpSource, p
+            });
+            
+            p.processPitch(pitch -> pitch - 12);
+            
+        }
+    }
+
+    /**
+     * Discard WbpSource if e.g. there is no start note on beat 0.
+     *
+     * @param wbpSource
+     * @return
+     */
+    private boolean isValid(WbpSource wbpSource)
+    {
+        boolean b = true;
+        Phrase p = wbpSource.getSizedPhrase();
+        if (p.isEmpty()
+                || p.first().getPositionInBeats() > JJSwingBassMusicGenerator.DURATION_BEAT_MARGIN)
+        {
+            LOGGER.log(Level.WARNING, "isValid() Discarding wbpSource={0} p={1}", new Object[]
+            {
+                wbpSource, p
+            });
+            b = false;
+        }
+        return b;
     }
 
     /**
@@ -775,10 +825,10 @@ public class WbpSourceDatabase
             throw new IllegalStateException("Adding to mmapSessionIdWbpSources failed for " + wbpSource + " mmapSessionIdWbpSources=" + mmapSessionIdWbpSources);
         }
 
-        BsRp bsRp = new BsRp(wbpSource.getBassStyle(), wbpSource.getRootProfile());
-        if (!mmapBsrpWbpSources.put(bsRp, wbpSource))
+        StyleAndProfile sap = new StyleAndProfile(wbpSource.getBassStyle(), wbpSource.getRootProfile());
+        if (!mmapSapWbpSources.put(sap, wbpSource))
         {
-            throw new IllegalStateException("Adding to mmapBsrpWbpSources failed for " + wbpSource + " mmapBsrpWbpSources=" + mmapBsrpWbpSources);
+            throw new IllegalStateException("Adding to mmapBsrpWbpSources failed for " + wbpSource + " mmapBsrpWbpSources=" + mmapSapWbpSources);
         }
     }
 
@@ -794,10 +844,10 @@ public class WbpSourceDatabase
             throw new IllegalStateException("Removing non-existing WbpSource=" + wbpSource + " mmapSessionIdWbpSources=" + mmapSessionIdWbpSources);
         }
 
-        BsRp bsRp = new BsRp(wbpSource.getBassStyle(), wbpSource.getRootProfile());
-        if (!mmapBsrpWbpSources.remove(bsRp, wbpSource))
+        StyleAndProfile bsRp = new StyleAndProfile(wbpSource.getBassStyle(), wbpSource.getRootProfile());
+        if (!mmapSapWbpSources.remove(bsRp, wbpSource))
         {
-            throw new IllegalStateException("Removing non-existing WbpSource=" + wbpSource + " mmapBsrpWbpSources=" + mmapBsrpWbpSources);
+            throw new IllegalStateException("Removing non-existing WbpSource=" + wbpSource + " mmapBsrpWbpSources=" + mmapSapWbpSources);
         }
     }
 
@@ -808,10 +858,10 @@ public class WbpSourceDatabase
     /**
      * Most of the database requests for WbpSources are based on a combination of these 2 parameters.
      */
-    static private record BsRp(BassStyle bassStyle, RootProfile rootProfile)
+    static private record StyleAndProfile(BassStyle bassStyle, RootProfile rootProfile)
             {
 
-        public BsRp 
+        public StyleAndProfile 
         {
             Objects.requireNonNull(bassStyle);
             Objects.requireNonNull(rootProfile);

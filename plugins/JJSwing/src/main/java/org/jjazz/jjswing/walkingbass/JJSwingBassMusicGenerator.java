@@ -187,15 +187,6 @@ public class JJSwingBassMusicGenerator implements MusicGenerator
         return res;
     }
 
-    /**
-     * Remove ghost notes from the phrase.
-     *
-     * @param p
-     */
-    static public void removeGhostNotes(Phrase p)
-    {
-        p.removeIf(ne -> ne.getDurationInBeats() <= JJSwingBassMusicGenerator.GHOST_NOTE_MAX_DURATION);
-    }
 
     // ===============================================================================
     // Private methods

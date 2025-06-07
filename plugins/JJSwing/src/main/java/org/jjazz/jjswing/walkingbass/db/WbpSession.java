@@ -93,7 +93,7 @@ class WbpSession extends Wbp
     /**
      * Extract all the possible WbpSources from this session.
      * <p>
-     * We extract all the possible 1/2/3/4-bar WbpSources. So for one 4-bar session phrase, the method can generate 10 WbpSource objects: 1 * 4-bar + 2 * 3-bar
+     * We extract all the possible 1/2/3/4-bar WbpSources. So for one 4-bar session phrase, the method can generate up to 10 WbpSource objects: 1 * 4-bar + 2 * 3-bar
      * + 3 * 2-bar + 4 * 1-bar.
      * <p>
      * Returned WbpSources get the tags of the session.
@@ -107,7 +107,7 @@ class WbpSession extends Wbp
         List<WbpSource> res = new ArrayList<>();
         int sessionSizeInBars = getSizedPhrase().getSizeInBars();
 
-        computeBarData();
+        precomputeCrossingNotes();
 
         for (int srcSize = WbpSourceDatabase.SIZE_MIN; srcSize <= WbpSourceDatabase.SIZE_MAX; srcSize++)
         {
@@ -145,7 +145,7 @@ class WbpSession extends Wbp
     /**
      * Initialize hasNoCrossingNoteAtBar and hasNoCrossingNoteAtBar data for the session phrase.
      */
-    private void computeBarData()
+    private void precomputeCrossingNotes()
     {
         if (hasCrossingNoteAtBar != null)
         {
@@ -199,7 +199,7 @@ class WbpSession extends Wbp
     /**
      * Extract a WbpSource from a SizedPhrase.
      * <p>
-     *
+     * 
      * @param barRange Session phrase must have no crossing note at start or end of this bar range.
      * @return Can not be null
      */

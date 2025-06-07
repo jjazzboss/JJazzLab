@@ -51,6 +51,7 @@ import org.jjazz.harmony.api.Chord;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.utilities.api.FloatRange;
+import org.jjazz.utilities.api.IntRange;
 import org.jjazz.utilities.api.LongRange;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
@@ -147,6 +148,24 @@ public class Phrases
 
 
     /**
+     * Get the pitch range used by p's notes.
+     *
+     * @param p
+     * @return IntRange.EMPTY_RANGE if p is empty
+     */
+    static public IntRange getPitchRange(Phrase p)
+    {
+        int pMin = 128;
+        int pMax = -1;
+        for (var ne : p)
+        {
+            pMin = Math.min(pMin, ne.getPitch());
+            pMax = Math.max(pMax, ne.getPitch());
+        }
+        return pMin != 128 ? new IntRange(pMin, pMax) : IntRange.EMPTY_RANGE;
+    }
+
+    /**
      *
      * @param p
      * @return Null if phrase is empty.
@@ -241,11 +260,11 @@ public class Phrases
             {
                 var dur1 = ne1.getDurationInBeats();
                 var relPos1 = ne1.getPositionInBeats() - sp1.getBeatRange().from;
-                
+
                 var ne2 = it2.next();
                 var dur2 = ne2.getDurationInBeats();
-                var relPos2 =  ne2.getPositionInBeats() - sp2.getBeatRange().from;
-                
+                var relPos2 = ne2.getPositionInBeats() - sp2.getBeatRange().from;
+
                 if (Math.abs(relPos2 - relPos1) > nearBeatWindow
                         || (sameNoteDurations && Math.abs(dur2 - dur1) > (2 * nearBeatWindow)))
                 {
