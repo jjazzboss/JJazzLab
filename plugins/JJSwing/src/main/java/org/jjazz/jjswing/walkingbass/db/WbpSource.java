@@ -89,6 +89,7 @@ public class WbpSource extends Wbp
 
 
         fixShortNotesPostSessionSlice(phrase);
+        fixEndOfPhraseNotes(phrase);
         fixOctave(phrase);
         Velocities.normalizeVelocities(phrase, 0.5f);
 
@@ -567,7 +568,31 @@ public class WbpSource extends Wbp
         return b;
     }
 
-   
+    /**
+     * Fix end-of-phrase notes<br>
+     * <p>
+     * Make sure there is no note which ends right on sp boundary: when moving notes (eg Phrase.shiftAllEvents()), because of float rounding errors, this may
+     * lead to notes becoming out of SizedPhrase range.
+     *
+     * @param sp
+     * @return
+     */
+    private boolean fixEndOfPhraseNotes(SizedPhrase sp)
+    {
+        float end = sp.getBeatRange().to - 0.1f;
+        Map<NoteEvent, NoteEvent> mapNotes = new HashMap<>();
+        for (var ne : sp)
+        {
+            if (ne.getBeatRange().to > end)
+            {
+                mapNotes.put(ne, ne.setDuration(end - ne.getPositionInBeats()));
+            }
+        }
+        sp.replaceAll(mapNotes, false);
+        return !mapNotes.isEmpty();
+
+    }
+
 
     private float safeRatio(float upper, float lower)
     {

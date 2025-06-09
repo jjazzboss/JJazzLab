@@ -33,6 +33,7 @@ import org.jjazz.jjswing.api.BassStyle;
 import static org.jjazz.jjswing.walkingbass.JJSwingBassMusicGenerator.NON_QUANTIZED_WINDOW;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.utilities.api.FloatRange;
+import org.jjazz.utilities.api.IntRange;
 
 /**
  * A phrase builder for BassStyle.WALKING_DOUBLE.
@@ -66,6 +67,14 @@ public class WalkingDoublePhraseBuilder implements BassPhraseBuilder
             for (int bar : barRange)
             {
                 float barStartBeatPos = scs.getStartBeatPosition() + ((bar - barRange.from) * scs.getTimeSignature().getNbNaturalBeats());
+                var barScs = scs.subSequence(new IntRange(bar, bar), true);
+                if (barScs.size() > 2 || (barScs.size() == 2 && barScs.getLast().getPosition().getBeat() != 2f))
+                {
+                    // Non standard case, leave normal walking bass
+                    continue;
+                }
+                var cliCs0 = barScs.getFirst();
+                var cliCs2 = barScs.size() == 1 ? null : barScs.getLast();
 
                 FloatRange fr0 = new FloatRange(Math.max(0, barStartBeatPos - NON_QUANTIZED_WINDOW), barStartBeatPos + 2 - NON_QUANTIZED_WINDOW);
                 var p0 = p.subSet(fr0, true);
@@ -76,8 +85,7 @@ public class WalkingDoublePhraseBuilder implements BassPhraseBuilder
                 }
                 var ne0 = p0.first();
                 float beatPos0 = ne0.getPositionInBeats() < barStartBeatPos + NON_QUANTIZED_WINDOW ? ne0.getPositionInBeats() : barStartBeatPos;
-                var cliCs = scs.getChordSymbol(scs.toPosition(barStartBeatPos));
-                if (cliCs.getData().getChord().indexOfRelativePitch(ne0.getPitch()) == -1)
+                if (cliCs0.getData().getChord().indexOfRelativePitch(ne0.getPitch()) == -1)
                 {
                     // It's an unusual note, leave the normal walking bass for a change
                     continue;
@@ -86,7 +94,7 @@ public class WalkingDoublePhraseBuilder implements BassPhraseBuilder
                 var ne1 = ne0.setPosition(barStartBeatPos + 1, false);
 
 
-                FloatRange fr2 = new FloatRange(barStartBeatPos + 2 - NON_QUANTIZED_WINDOW, barStartBeatPos + 4 - NON_QUANTIZED_WINDOW);
+                FloatRange fr2 = new FloatRange(barStartBeatPos + 2f - NON_QUANTIZED_WINDOW, barStartBeatPos + 4 - NON_QUANTIZED_WINDOW);
                 var p2 = p.subSet(fr2, true);
                 if (p2.isEmpty())
                 {
@@ -94,15 +102,17 @@ public class WalkingDoublePhraseBuilder implements BassPhraseBuilder
                     continue;
                 }
                 var ne2 = p2.first();
-                cliCs = scs.getChordSymbol(scs.toPosition(ne2.getPositionInBeats()));
-                if (ne0.getPitch() == ne2.getPitch() || cliCs.getData().getChord().indexOfRelativePitch(ne2.getPitch()) == -1)
+                var ne2pitch = (cliCs2 == null) ? ne2.getPitch()
+                        : JJSwingBassMusicGenerator.getClosestAndAcceptableBassPitch(ne2, cliCs2.getData().getBassNote().getRelativePitch());
+                if (ne0.getPitch() == ne2pitch || (cliCs2 == null && cliCs0.getData().getChord().indexOfRelativePitch(ne2pitch) == -1))
                 {
                     // Leave the normal walking bass for a change
                     continue;
                 }
-                float beatPos2 = ne2.getPositionInBeats() < barStartBeatPos + 2 + NON_QUANTIZED_WINDOW ? ne2.getPositionInBeats() : barStartBeatPos + 2;
-                ne2 = ne2.setAll(-1, 0.9f, -1, beatPos2, false);
-                var ne3 = ne2.setPosition(barStartBeatPos + 3, false);
+
+                float beatPos2 = ne2.getPositionInBeats() < barStartBeatPos + 2f + NON_QUANTIZED_WINDOW ? ne2.getPositionInBeats() : barStartBeatPos + 2f;
+                ne2 = ne2.setAll(ne2pitch, 0.9f, -1, beatPos2, false);
+                var ne3 = ne2.setPosition(barStartBeatPos + 3f, false);
 
 
                 p.removeAll(new ArrayList<>(p0));

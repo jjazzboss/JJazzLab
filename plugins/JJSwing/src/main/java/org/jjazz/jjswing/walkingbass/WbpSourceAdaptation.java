@@ -26,15 +26,24 @@ package org.jjazz.jjswing.walkingbass;
 
 import org.jjazz.jjswing.walkingbass.db.WbpSource;
 import com.google.common.base.Preconditions;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import org.jjazz.jjswing.walkingbass.db.RootProfile;
 import org.jjazz.midi.api.MidiConst;
+import static org.jjazz.phrase.api.NoteEvent.SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
 
 /**
- * Associates a WbpSource to a chord sequence at a given start beat position, with a compatibility score.
+ * Associates a WbpSource to a SimpleChordSequence, with a compatibility score.
+ * <p>
+ * Instances are cached.
  * <p>
  * NOTE: Comparable implementation is implemented so that natural order is by descending compatibility score. Comparable implementation is NOT consistent with
  * equal(), so WbpSourceAdaptation should NOT be used in a SortedSet or SortedMap.
@@ -47,34 +56,80 @@ public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
     private final SimpleChordSequence simpleChordSequence;
     private Phrase adaptedPhrase;
     private int targetPitch;
-
+    private static final Map<String, WbpSourceAdaptation> MAP_KEYSTR_WBPSA = new HashMap<>();
+    private static final Logger LOGGER = Logger.getLogger(WbpSourceAdaptation.class.getSimpleName());
 
     /**
-     * Create an instance with a score=0.
+     * Get an instance from the specified parameters.
      *
      * @param wbpSource
      * @param scs
+     * @return
      */
-    public WbpSourceAdaptation(WbpSource wbpSource, SimpleChordSequence scs)
-    {
-        this(wbpSource, scs, Score.ZERO);
-    }
-
-    /**
-     *
-     * @param wbpSource
-     * @param scs
-     * @param compatibilityScore The score by default
-     */
-    public WbpSourceAdaptation(WbpSource wbpSource, SimpleChordSequence scs, Score compatibilityScore)
+    static public WbpSourceAdaptation of(WbpSource wbpSource, SimpleChordSequence scs)
     {
         Objects.requireNonNull(wbpSource);
         Objects.requireNonNull(scs);
-        Objects.requireNonNull(compatibilityScore);
+        WbpSourceAdaptation res;
+
+
+        var key = computeKey(wbpSource, scs);
+        var wbpsa = MAP_KEYSTR_WBPSA.get(key);
+        if (wbpsa == null)
+        {
+            // Create the instance
+            res = new WbpSourceAdaptation(wbpSource, scs);
+            MAP_KEYSTR_WBPSA.put(key, res);
+            LOGGER.log(Level.FINE, "of() Creating instance for {0}  key={1}  resBr={2}", new Object[]
+            {
+                wbpSource, key, res.getBeatRange()
+            });
+        } else if (wbpsa.getBeatRange().equals(scs.getBeatRange()))
+        {
+            // Direct reuse
+            res = wbpsa;
+            LOGGER.log(Level.FINE, "of() Direct reusing of instance for {0}  key={1}", new Object[]
+            {
+                wbpSource, key
+            });
+        } else
+        {
+            // Beat ranges differ, we can not directly reuse wbpsa but we can reuse some of its values in order to save future calculations
+            res = new WbpSourceAdaptation(wbpSource, scs);
+            Score baseScore = wbpsa.getCompatibilityScore();
+            Score newScore = new Score(baseScore.harmonicCompatibility(), baseScore.transposability(), 0, 0, 0);    // tempo/pre/post-target scores reset because depend on context
+            res.compatibilityScore = newScore;
+            if (wbpsa.getAdaptedPhrase() != null)
+            {
+                res.adaptedPhrase = wbpsa.getAdaptedPhrase().clone();
+                float shift = res.getBeatRange().from - wbpsa.getBeatRange().from;
+                res.adaptedPhrase.shiftAllEvents(shift, true);
+            }
+            res.targetPitch = wbpsa.targetPitch;
+            LOGGER.log(Level.FINE, "of() reusing values for {0}  key={1}  wbpsaBr={2}  resBr={3}", new Object[]
+            {
+                wbpSource, key, wbpsa.getBeatRange(), res.getBeatRange()
+            });
+        }
+
+        return res;
+    }
+
+
+    /**
+     * Private constructor.
+     *
+     * @param wbpSource
+     * @param scs
+     */
+    private WbpSourceAdaptation(WbpSource wbpSource, SimpleChordSequence scs)
+    {
+        Objects.requireNonNull(wbpSource);
+        Objects.requireNonNull(scs);
 
         this.wbpSource = wbpSource;
         this.simpleChordSequence = scs;
-        this.compatibilityScore = compatibilityScore;
+        this.compatibilityScore = Score.ZERO;
         this.adaptedPhrase = null;
         this.targetPitch = -1;
     }
@@ -89,6 +144,10 @@ public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
         return simpleChordSequence;
     }
 
+    /**
+     *
+     * @return Can not be null
+     */
     public Score getCompatibilityScore()
     {
         return compatibilityScore;
@@ -187,4 +246,24 @@ public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
         return "wbpsa{" + getBarRange() + ", " + wbpSource + "}";
     }
 
+    // ===================================================================================================================
+    // Private methods
+    // ===================================================================================================================
+    /**
+     * Compute a key from WbpSource and scs chord symbols, ignoring start beat position.
+     *
+     * @param wbpSource
+     * @param scs
+     * @return
+     */
+    private static String computeKey(WbpSource wbpSource, SimpleChordSequence scs)
+    {
+        var strChords = scs.stream()
+                .map(cliCs -> cliCs.getData().toString())
+                .collect(Collectors.joining(":"));
+        var rp = RootProfile.of(scs);
+        var strRp = rp.nbBars() + ":" + rp.ascendingIntervals() + ":" + rp.relativeChordPositionsInBeats();
+        var key = wbpSource.getId() + " " + strRp + " " + strChords;
+        return key;
+    }
 }

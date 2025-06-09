@@ -59,7 +59,7 @@ class EvaluateScoreAction extends AbstractAction
 
         for (var wbpsa : wbpsas)
         {
-            var score = wbpsaScorer.computeCompatibilityScore(wbpsa, null);
+            var score = wbpsaScorer.updateCompatibilityScore(wbpsa, null);
             LOGGER.log(Level.INFO, "{0}: {1}", new Object[]
             {
                 wbpsa.getWbpSource().getId(), score

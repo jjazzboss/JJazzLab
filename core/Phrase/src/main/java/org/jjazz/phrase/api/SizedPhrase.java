@@ -72,7 +72,7 @@ public class SizedPhrase extends Phrase
      * <p>
      *
      * @param ne
-     * @return 
+     * @return
      */
     @Override
     public boolean canAddNote(NoteEvent ne)
@@ -122,17 +122,16 @@ public class SizedPhrase extends Phrase
      * @param shiftInBeats
      */
     @Override
-    public void shiftAllEvents(float shiftInBeats)
+    public void shiftAllEvents(float shiftInBeats, boolean handleNegativePositions)
     {
         beatRange = beatRange.getTransformed(shiftInBeats);
-        super.shiftAllEvents(shiftInBeats);
+        super.shiftAllEvents(shiftInBeats, handleNegativePositions);
     }
 
     /**
      * Save the specified SizedPhrase as a string.
      * <p>
-     * Example "[8|12.0|16.0|4/4|NoteEventStr0|NoteEventStr1]" means a melodic Phrase for channel 8, beatRange=12-16, in 4/4, with
-     * 2 NoteEvents.<br>
+     * Example "[8|12.0|16.0|4/4|NoteEventStr0|NoteEventStr1]" means a melodic Phrase for channel 8, beatRange=12-16, in 4/4, with 2 NoteEvents.<br>
      * Example "[drums_9|12.0|16.0|4/4|NoteEventStr0|NoteEventStr1]" means a drums Phrase for channel 9.
      *
      * @param sp
@@ -189,7 +188,10 @@ public class SizedPhrase extends Phrase
                 } catch (IllegalArgumentException | ParseException ex)
                 {
                     // Nothing
-                    LOGGER.log(Level.WARNING, "loadAsString() Invalid string s={0}, ex={1}", new Object[]{s, ex.getMessage()});
+                    LOGGER.log(Level.WARNING, "loadAsString() Invalid string s={0}, ex={1}", new Object[]
+                    {
+                        s, ex.getMessage()
+                    });
                 }
             }
         }

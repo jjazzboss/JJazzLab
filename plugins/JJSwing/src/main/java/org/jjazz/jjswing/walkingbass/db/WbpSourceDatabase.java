@@ -60,6 +60,7 @@ import org.openide.util.Exceptions;
  */
 public class WbpSourceDatabase
 {
+
     /**
      * Min and max size of a WbpSource phrase.
      */
@@ -624,7 +625,7 @@ public class WbpSourceDatabase
                 LOGGER.log(Level.FINE, "Empty session found for barRange={0}", barRange);
                 continue;
             }
-            p.shiftAllEvents(-beatRange.from);
+            p.shiftAllEvents(-beatRange.from, false);
             beatRange = beatRange.getTransformed(-beatRange.from);
             SizedPhrase sp = new SizedPhrase(0, beatRange, ts, false);
             sp.add(p);
@@ -636,8 +637,14 @@ public class WbpSourceDatabase
 
             // Build the WbpSession
             WbpSession session = new WbpSession(sessionId, sessionTags, cSeq, sp, targetNote);
-            mapSessionIdResource.put(sessionId, midiFileResourcePath);
-            res.add(session);
+            if (mapSessionIdResource.put(sessionId, midiFileResourcePath) != null)
+            {
+                LOGGER.severe(() -> "loadWbpSessionsFromMidiFile() ignoring session with duplicate sessionId=" + sessionId);
+            } else
+            {
+                res.add(session);
+            }
+
         }
 
         return res;
@@ -722,9 +729,8 @@ public class WbpSourceDatabase
             {
                 continue;
             }
-            var wbpsa = new WbpSourceAdaptation(wbpSource, scs);
-            var score = scorer.computeCompatibilityScore(wbpsa, null);
-            if (score.compareTo(Score.ZERO) > 0)
+            var wbpsa = WbpSourceAdaptation.of(wbpSource, scs);
+            if (scorer.updateCompatibilityScore(wbpsa, null).compareTo(Score.ZERO) > 0)
             {
                 res = wbpSource;
                 break;

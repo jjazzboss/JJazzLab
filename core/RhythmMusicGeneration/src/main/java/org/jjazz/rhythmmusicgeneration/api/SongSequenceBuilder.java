@@ -594,7 +594,7 @@ public class SongSequenceBuilder
         // Shift phrases to start at position 0
         for (Phrase p : res.values())
         {
-            p.shiftAllEvents(-songContextWork.getBeatRange().from);
+            p.shiftAllEvents(-songContextWork.getBeatRange().from, false);
         }
 
 
@@ -871,7 +871,7 @@ public class SongSequenceBuilder
                 Phrase pCustom = rpValue.getCustomizedPhrase(rv);
                 var pWork = new Phrase(0);
                 pWork.add(pCustom);
-                pWork.shiftAllEvents(sptBeatRange.from);                // Custom phrase starts at beat 0, make it match spt's start
+                pWork.shiftAllEvents(sptBeatRange.from, false);                // Custom phrase starts at beat 0, make it match spt's start
                 pWork = Phrases.getSlice(pWork, sptBeatRangeInContext, false, 1, 0.1f);    // Keep only the relevant slice
 
 

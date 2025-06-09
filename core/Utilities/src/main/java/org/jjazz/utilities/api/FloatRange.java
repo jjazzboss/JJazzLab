@@ -274,16 +274,16 @@ public class FloatRange
         {
             return false;
         }
-        if (!(obj instanceof IntRange))
+        if (!(obj instanceof FloatRange))
         {
             return false;
         }
-        final IntRange other = (IntRange) obj;
-        if (this.from != other.from)
+        final FloatRange other = (FloatRange) obj;
+        if (Float.floatToIntBits(this.from) != Float.floatToIntBits(other.from))
         {
             return false;
         }
-        if (this.to != other.to)
+        if (Float.floatToIntBits(this.to) != Float.floatToIntBits(other.to))
         {
             return false;
         }

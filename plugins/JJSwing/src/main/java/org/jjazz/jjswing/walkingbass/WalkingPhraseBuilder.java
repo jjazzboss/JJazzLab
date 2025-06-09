@@ -62,7 +62,9 @@ public class WalkingPhraseBuilder implements BassPhraseBuilder
     {
         LOGGER.log(BassPhraseBuilderLogLevel, "build() -- tempo={0} scsList={1}", new Object[]
         {
-            tempo, Utilities.toMultilineString(scsList, " ")
+            tempo, 
+            scsList
+            // Utilities.toMultilineString(scsList, " ")
         });
 
 
@@ -167,11 +169,11 @@ public class WalkingPhraseBuilder implements BassPhraseBuilder
         }
 
 
-        LOGGER.log(BassPhraseBuilderLogLevel, "\n");
-        LOGGER.log(BassPhraseBuilderLogLevel, "\n");
-        LOGGER.log(BassPhraseBuilderLogLevel, "build() ######################      Tiling STATS       ######################");
-        LOGGER.log(BassPhraseBuilderLogLevel, tiling.toStatsString());
-        LOGGER.log(BassPhraseBuilderLogLevel, "\n");
+//        LOGGER.log(BassPhraseBuilderLogLevel, "\n");
+//        LOGGER.log(BassPhraseBuilderLogLevel, "\n");
+//        LOGGER.log(BassPhraseBuilderLogLevel, "build() ######################      Tiling STATS       ######################");
+//        LOGGER.log(BassPhraseBuilderLogLevel, tiling.toStatsString());
+//        LOGGER.log(BassPhraseBuilderLogLevel, "\n");
 
 
         var phrase = tiling.buildPhrase(phraseAdapter);

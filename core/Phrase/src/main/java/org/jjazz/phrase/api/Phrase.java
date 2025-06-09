@@ -989,10 +989,11 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
      * Shift all events.
      * <p>
      *
-     * @param shiftInBeats The value added to each event's position.
-     * @throws IllegalArgumentException If an event's position become negative.
+     * @param shiftInBeats            The value added to each event's position.
+     * @param handleNegativePositions If true reset negative note positions to 0
+     * @throws IllegalArgumentException If handleNegativePositions is false and a note's position becomes negative.
      */
-    public void shiftAllEvents(float shiftInBeats)
+    public void shiftAllEvents(float shiftInBeats, boolean handleNegativePositions)
     {
         if (shiftInBeats == 0)
         {
@@ -1007,6 +1008,10 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
             for (var ne : this)
             {
                 float newPosInBeats = ne.getPositionInBeats() + shiftInBeats;
+                if (handleNegativePositions && newPosInBeats < 0)
+                {
+                    newPosInBeats = 0;
+                }
                 if (newPosInBeats < 0)
                 {
                     throw new IllegalArgumentException("ne=" + ne + " shiftInBeats=" + shiftInBeats);

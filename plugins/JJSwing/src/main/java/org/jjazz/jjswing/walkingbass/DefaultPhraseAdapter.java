@@ -48,7 +48,7 @@ public class DefaultPhraseAdapter implements PhraseAdapter
 
         // Adapt to target chord symbol
         var sp = wbpSource.getTransposedPhrase(scs.getFirst().getData().getRootNote());      // Starts at beat 0        
-        sp.shiftAllEvents(startPos);
+        sp.shiftAllEvents(startPos, false);
 
 
         if (startPos >= NON_QUANTIZED_WINDOW && wbpSource.getFirstNoteBeatShift() < 0)

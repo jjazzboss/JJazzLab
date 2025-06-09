@@ -222,7 +222,7 @@ class WbpSession extends Wbp
         // Extract our phrase slice from sessionPhrase and make it start at beat 0
         FloatRange beatRange = new FloatRange(barRange.from * nbBeatsPerBar, (barRange.to + 1) * nbBeatsPerBar);
         Phrase p = Phrases.getSlice(sessionPhrase, beatRange, true, 1, NON_QUANTIZED_WINDOW);
-        p.shiftAllEvents(-beatRange.from);
+        p.shiftAllEvents(-beatRange.from, false);
         SizedPhrase sp = new SizedPhrase(sessionPhrase.getChannel(), beatRange.getTransformed(-beatRange.from), sessionPhrase.getTimeSignature(), false);
         sp.addAll(p);
 
@@ -253,10 +253,19 @@ class WbpSession extends Wbp
         }
 
 
-        var wbpSource = new WbpSource(getId(), barRange.from, bassStyle, scs, sp, getFirstNoteBeatShift(barRange.from), targetNote);
-        tags.forEach(t -> wbpSource.addTag(t));
-
-
+        WbpSource wbpSource = null;
+        try
+        {
+            wbpSource = new WbpSource(getId(), barRange.from, bassStyle, scs, sp, getFirstNoteBeatShift(barRange.from), targetNote);
+        } catch (Exception e)
+        {
+            LOGGER.log(Level.SEVERE, "Error creationg WBpSource for sessionId={0} barRange={1} bassStyle={2} scs={3} sp={4} targetNote={5}", new Object[]
+            {
+                getId(), barRange, bassStyle, scs, sp, targetNote
+            });
+            throw e;
+        }
+        
         return wbpSource;
     }
 

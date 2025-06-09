@@ -33,6 +33,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
@@ -60,7 +61,7 @@ public class WbpsaScorerDefault implements WbpsaScorer
      * @param sourceAdapter          If null target note matching score will not impact the overall score
      * @param tempo                  If &lt;= 0 tempo is ignored in score computing
      * @param minCompatibilityTester If null use Score.DEFAULT_TESTER. Used by
-     *                               {@link #computeCompatibilityScore(org.jjazz.jjswing.walkingbass.WbpSourceAdaptation, org.jjazz.jjswing.walkingbass.WbpTiling)}
+     *                               {@link #updateCompatibilityScore(org.jjazz.jjswing.walkingbass.WbpSourceAdaptation, org.jjazz.jjswing.walkingbass.WbpTiling)}
      * @param bStyles                Accept only WbpSources which match these bassStyle(s). If empty any BassStyle is accepted
      */
     public WbpsaScorerDefault(PhraseAdapter sourceAdapter, int tempo, Predicate<Score> minCompatibilityTester, BassStyle... bStyles)
@@ -86,23 +87,15 @@ public class WbpsaScorerDefault implements WbpsaScorer
         return Collections.unmodifiableSet(bassStyles);
     }
 
-    /**
-     * Compute global compatibility of this WbpSourceAdaptation.
-     * <p>
-     * Returns Score.ZERO as soon as one chord symbol is incompatible with the phrase.
-     *
-     * @param wbpsa  The instance for which we evaluate the compatibility score. The passed instance is updated with its Score.
-     * @param tiling Can be null, in this case pre/post target notes scores are 0
-     * @return If the resulting Score does not satisfy the minCompatibilityTester predicate, returned score is Score.ZERO.
-     * @see #DefaultWbpsaScorer(org.jjazz.jjswing.walkingbass.PhraseAdapter, int, java.util.function.Predicate, org.jjazz.jjswing.BassStyle...)
-     */
     @Override
-    public Score computeCompatibilityScore(WbpSourceAdaptation wbpsa, WbpTiling tiling)
+    public Score updateCompatibilityScore(WbpSourceAdaptation wbpsa, WbpTiling tiling)
     {
+        Objects.requireNonNull(wbpsa);
+
         var wbpSource = wbpsa.getWbpSource();
         var acceptNonRootStartNote = JJSwingBassMusicGeneratorSettings.getInstance().isAcceptNonChordBassStartNote();
 
-        Score res = Score.ZERO;
+        Score res = wbpsa.getCompatibilityScore();
 
         if (bassStyles.contains(wbpsa.getWbpSource().getBassStyle()) && (acceptNonRootStartNote || wbpSource.isStartingOnChordBass()))
         {
@@ -113,11 +106,22 @@ public class WbpsaScorerDefault implements WbpsaScorer
             if (wbpSourceAdapter != null && tiling != null)
             {
                 // We can evaluate pre/post notes matching
-                wbpsa.setAdaptedPhrase(wbpSourceAdapter.getPhrase(wbpsa));
-                wbpsa.setAdaptedTargetPitch(wbpSourceAdapter.getTargetPitch(wbpsa));        // Can be -1
-
-                preTargetNoteScore = computePreTargetNoteScore(wbpsa, tiling, wbpsa.getAdaptedPhrase().first().getPitch());
-                postTargetNoteScore = computePostTargetNoteScore(wbpsa, tiling);
+                if (wbpsa.getAdaptedPhrase() == null)
+                {
+                    wbpsa.setAdaptedPhrase(wbpSourceAdapter.getPhrase(wbpsa));
+                }
+                if (wbpsa.getAdaptedTargetPitch() == -1)
+                {
+                    wbpsa.setAdaptedTargetPitch(wbpSourceAdapter.getTargetPitch(wbpsa));        // Can be -1
+                }
+                if (res.preTargetNoteMatch() == 0)
+                {
+                    preTargetNoteScore = computePreTargetNoteScore(wbpsa, tiling, wbpsa.getAdaptedPhrase().first().getPitch());
+                }
+                if (res.postTargetNoteMatch() == 0)
+                {
+                    postTargetNoteScore = computePostTargetNoteScore(wbpsa, tiling);
+                }
             }
 
 
@@ -131,18 +135,30 @@ public class WbpsaScorerDefault implements WbpsaScorer
             {
 
                 // Harmonic compatibility
-                var ctScores = getHarmonicCompatibilityScores(wbpsa);
-                float ctScore = (float) ctScores.stream().mapToDouble(f -> Double.valueOf(f)).average().orElse(0);      // 0-100
+                float ctScore = res.harmonicCompatibility();
+                if (ctScore == 0)
+                {
+                    var ctScores = getHarmonicCompatibilityScores(wbpsa);
+                    ctScore = (float) ctScores.stream().mapToDouble(f -> Double.valueOf(f)).average().orElse(0);      // 0-100
+                }
 
 
                 // Tempo compatibility
-                float teScore = getTempoScore(wbpsa);           // 0 - 100
+                float teScore = res.tempoCompatibility();
+                if (teScore == 0)
+                {
+                    teScore = getTempoScore(wbpsa);           // 0 - 100
+                }
 
 
                 // Transposability
-                var scs = wbpsa.getSimpleChordSequence();
-                var scsFirstChordRoot = scs.first().getData().getRootNote();
-                int trScore = wbpsa.getWbpSource().getTransposabilityScore(scsFirstChordRoot);     // 0 - 100
+                float trScore = res.transposability();
+                if (trScore == 0)
+                {
+                    var scs = wbpsa.getSimpleChordSequence();
+                    var scsFirstChordRoot = scs.first().getData().getRootNote();
+                    trScore = wbpsa.getWbpSource().getTransposabilityScore(scsFirstChordRoot);     // 0 - 100
+                }
 
 
                 // Final score
@@ -167,7 +183,6 @@ public class WbpsaScorerDefault implements WbpsaScorer
         wbpsa.setCompatibilityScore(res);
 
         return res;
-
     }
 
     /**
@@ -209,7 +224,7 @@ public class WbpsaScorerDefault implements WbpsaScorer
         int nextWbpsaFirstPitch = getNextWbpsaFirstPitch(wbpsa, tiling);        // Can be -1
         int targetPitch = wbpsa.getAdaptedTargetPitch();
         float score;
-        if (targetPitch!=-1 && nextWbpsaFirstPitch == targetPitch)
+        if (targetPitch != -1 && nextWbpsaFirstPitch == targetPitch)
         {
             // Perfect
             score = 100f;
@@ -244,11 +259,10 @@ public class WbpsaScorerDefault implements WbpsaScorer
         // Calculate compatibility scores
         for (var wbpSource : wbpSources)
         {
-            var wbpsa = new WbpSourceAdaptation(wbpSource, scs);
-            var score = computeCompatibilityScore(wbpsa, tiling);       // This also save the score in wbpsa
-            if (score.compareTo(Score.ZERO) > 0)
+            var wbpsa = WbpSourceAdaptation.of(wbpSource, scs);
+            if (updateCompatibilityScore(wbpsa, tiling).compareTo(Score.ZERO) > 0)
             {
-                res.put(score, wbpsa);
+                res.put(wbpsa.getCompatibilityScore(), wbpsa);
             }
         }
 

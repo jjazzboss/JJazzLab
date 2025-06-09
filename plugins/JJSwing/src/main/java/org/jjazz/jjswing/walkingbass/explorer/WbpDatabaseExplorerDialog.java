@@ -173,8 +173,8 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
         // Evaluate compatibility
         WbpsaScorer wbpsaScorer = new WbpsaScorerDefault(null, tempo, cb_premiumOnly.isSelected() ? Score.PREMIUM_ONLY_TESTER : null, bassStyles);
         var wbpsas = wbpSources.stream()
-                .map(wbps -> new WbpSourceAdaptation(wbps, scs))
-                .filter(wbpsa -> cb_rootProfileOnly.isSelected() || scs.isEmpty() || wbpsaScorer.computeCompatibilityScore(wbpsa, null).compareTo(Score.ZERO) > 0)
+                .map(wbps -> WbpSourceAdaptation.of(wbps, scs))
+                .filter(wbpsa -> cb_rootProfileOnly.isSelected() || scs.isEmpty() || wbpsaScorer.updateCompatibilityScore(wbpsa, null).compareTo(Score.ZERO) > 0)
                 .toList();
 
 

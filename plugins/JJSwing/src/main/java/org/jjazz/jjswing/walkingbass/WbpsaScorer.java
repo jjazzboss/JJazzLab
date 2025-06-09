@@ -34,17 +34,18 @@ public interface WbpsaScorer
 {
 
     /**
-     * Scores the compatibility of wbpsa in the context of tiling.
+     * Compute the compatibility Score of wbpsa in the context of tiling.
      * <p>
-     * Uses chord type, transposition, tempo, target notes before/after.
+     * Uses chord type, transposition, tempo, target notes before/after. Resulting Score is Score.ZERO if the resulting Score does not satisfy the minCompatibilityTester
+     * predicate.
      * <p>
-     * Note that wbpsa's score is also updated with the returned value.
      *
-     * @param wbpsa
-     * @param tiling Might be null
-     * @return Score.ZERO means incompatibility
+     * @param wbpsa  The instance for which we will update the compatibility score (non-zero Score elements are not updated, they are directly reused)
+     * @param tiling Can be null, in this case pre/post target notes scores are 0
+     * @return The wbpsa Score
+     * @see #DefaultWbpsaScorer(org.jjazz.jjswing.walkingbass.PhraseAdapter, int, java.util.function.Predicate, org.jjazz.jjswing.BassStyle...)
      */
-    Score computeCompatibilityScore(WbpSourceAdaptation wbpsa, WbpTiling tiling);
+    Score updateCompatibilityScore(WbpSourceAdaptation wbpsa, WbpTiling tiling);
 
 
     /**

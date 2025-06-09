@@ -134,8 +134,8 @@ public class JJSwingBassMusicGenerator implements MusicGenerator
         }
 
 
-        // Add slight velocity randomization +/- 3 
-        pRes.processVelocity(v -> (int) Math.round(v + Math.random() * 6 - 3));
+        // Add slight velocity randomization +/- 2 
+        pRes.processVelocity(v -> (int) Math.round(v + Math.random() * 4 - 2));
 
 
         // Post process the phrase by SongPart, since SongParts using our rhythm can be any anywhere in the song     
@@ -194,6 +194,19 @@ public class JJSwingBassMusicGenerator implements MusicGenerator
         return res;
     }
 
+
+    static public int getClosestAndAcceptableBassPitch(Note n, int relPitch)
+    {
+        int res = n.getClosestPitch(relPitch);
+        if (res < WbpSource.BASS_GOOD_PITCH_RANGE.from)
+        {
+            res += 12;
+        } else if (res > WbpSource.BASS_GOOD_PITCH_RANGE.to)
+        {
+            res -= 12;
+        }
+        return res;
+    }
 
     // ===============================================================================
     // Private methods
@@ -644,19 +657,6 @@ public class JJSwingBassMusicGenerator implements MusicGenerator
         }
     }
 
-
-    private int getClosestAndAcceptableBassPitch(Note n, int relPitch)
-    {
-        int res = n.getClosestPitch(relPitch);
-        if (res < WbpSource.BASS_GOOD_PITCH_RANGE.from)
-        {
-            res += 12;
-        } else if (res > WbpSource.BASS_GOOD_PITCH_RANGE.to)
-        {
-            res -= 12;
-        }
-        return res;
-    }
 
     /**
      * Make sure no note start a bit before sptBeatPos because of non quantization.

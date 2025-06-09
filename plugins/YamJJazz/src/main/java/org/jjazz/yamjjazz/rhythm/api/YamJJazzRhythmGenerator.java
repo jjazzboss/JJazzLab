@@ -435,7 +435,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
 
             // Adjust it to shortcSeq's start and length => need a copy
             pSrc = pSrc.clone();
-            pSrc.shiftAllEvents(cSeqBeatRange.from);
+            pSrc.shiftAllEvents(cSeqBeatRange.from, false);
             Phrases.silenceAfter(pSrc, cSeqBeatRange.to);
 
 

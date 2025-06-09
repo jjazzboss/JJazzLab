@@ -252,7 +252,7 @@ public class YjzFileBuilder
                 for (int i = 0; i < nbSrcPhrases; i++)
                 {
                     Phrases.fillTrack(p, track);
-                    p.shiftAllEvents(sizeInBeats);
+                    p.shiftAllEvents(sizeInBeats, false);
                 }
 
 
