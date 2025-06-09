@@ -279,22 +279,19 @@ public class Chord implements Cloneable
     }
 
     /**
-     * Find a note whose pitch relatively equals p, i.e independently of the octave (module 12 semitons).
+     * Find a note whose pitch relatively equals p, i.e independently of the octave.
      *
-     * @param relPitch Relative pitch to search for, 0-11.
+     * @param p A pitch
      *
      * @return The index of the MidiNote if found, otherwise -1.
      */
-    public int indexOfRelativePitch(int relPitch)
+    public int indexOfRelativePitch(int p)
     {
-        if ((relPitch < 0) || (relPitch > 11))
-        {
-            throw new IllegalArgumentException("relPitch=" + relPitch);
-        }
         int res = -1;
+        p = p % 12;
         for (int i = 0; i < notes.size(); i++)
         {
-            if (notes.get(i).getRelativePitch() == relPitch)
+            if (notes.get(i).getRelativePitch() == p)
             {
                 res = i;
             }
