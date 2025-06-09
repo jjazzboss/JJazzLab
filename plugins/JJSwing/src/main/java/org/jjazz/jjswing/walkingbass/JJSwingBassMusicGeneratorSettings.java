@@ -79,7 +79,7 @@ public class JJSwingBassMusicGeneratorSettings
      */
     public float getWbpsaStoreRandomizedScoreWindow()
     {
-        return prefs.getFloat(PREF_WBPSA_STORE_RANDOMIZED_SCORE_WINDOW, 0f);        // Default is 5f. 0 means no randomization.
+        return prefs.getFloat(PREF_WBPSA_STORE_RANDOMIZED_SCORE_WINDOW, 5f);        // Default is 5f. 0 means no randomization.
     }
 
     /**
