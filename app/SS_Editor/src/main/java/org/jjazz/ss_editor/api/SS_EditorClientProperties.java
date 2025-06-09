@@ -43,7 +43,7 @@ import org.jjazz.song.api.Song;
  */
 public class SS_EditorClientProperties
 {
-
+    
     public enum ViewMode
     {
         NORMAL, COMPACT;
@@ -128,7 +128,7 @@ public class SS_EditorClientProperties
     static public List<RhythmParameter<?>> getCompactViewModeVisibleRPs(Song song, Rhythm r)
     {
         List<RhythmParameter<?>> res = new ArrayList<>();
-
+        
         String rProp = buildCompactViewRhythmPropertyName(r);
         String s = song.getClientProperties().get(rProp, null);
         if (s != null)
@@ -151,7 +151,7 @@ public class SS_EditorClientProperties
                 }
             }
         }
-
+        
         return res;
     }
 
@@ -182,14 +182,9 @@ public class SS_EditorClientProperties
     static public String getRhythmIdFromCompactViewRhythmPropertyName(String propName)
     {
         String res = null;
-        if (propName.startsWith(PROP_COMPACT_VIEW_MODE_VISIBLE_RPS))
+        if (propName.startsWith(PROP_COMPACT_VIEW_MODE_VISIBLE_RPS) && propName.length() > PROP_COMPACT_VIEW_MODE_VISIBLE_RPS.length() + 1)
         {
-            String[] strs = propName.split("_");
-            if (strs.length != 2)
-            {
-                throw new IllegalArgumentException("propName=" + propName);
-            }
-            res = strs[1];
+            res = propName.substring(PROP_COMPACT_VIEW_MODE_VISIBLE_RPS.length() + 1);
         }
         return res;
     }
@@ -268,6 +263,6 @@ public class SS_EditorClientProperties
                 .findAny()
                 .orElse(null);
     }
-
-
+    
+    
 }
