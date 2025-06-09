@@ -19,6 +19,7 @@ import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.jjswing.walkingbass.JJSwingBassMusicGenerator;
 import org.jjazz.jjswing.walkingbass.WbpSourceSlice;
+import org.jjazz.phrase.api.Phrases;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.utilities.api.IntRange;
 
@@ -56,7 +57,7 @@ public class WbpSource extends Wbp
      * @param sessionBarFrom     The bar index in the session phrase from which this source phrase comes
      * @param bassStyle          The bass style of this WbpSource
      * @param cSeq               Must start at bar 0. The source chord sequence. A copy is made which is chord-simplified based on phrase.
-     * @param phrase             Size must be between 1 and 4 bars, must start at beat 0. Ghost notes will be removed on the passed phrase.
+     * @param phrase             Size must be between 1 and 4 bars, must start at beat 0. Note that phrase might be modified in order to fix issues.
      * @param firstNoteBeatShift A 0 or negative beat value. Any phrase note at bar=0 beat=0 should be shifted with this value.
      * @param targetNote         Can be null
      * @param tags
@@ -87,13 +88,9 @@ public class WbpSource extends Wbp
         Stream.of(tags).forEach(t -> this.tags.add(t.toLowerCase()));
 
 
-        // Session slicing might have produced remaining short notes at the beginning of the phrase
-        getSizedPhrase().removeIf(ne -> 
-        {
-            float pos = ne.getPositionInBeats();
-            float dur = ne.getDurationInBeats();
-            return (pos % cSeq.getTimeSignature().getNaturalBeat()) == 0 && dur <= JJSwingBassMusicGenerator.GHOST_NOTE_MAX_DURATION;
-        });
+        fixShortNotesPostSessionSlice(phrase);
+        fixOctave(phrase);
+        Velocities.normalizeVelocities(phrase, 0.5f);
 
 
         // Must be called last because WbpSource must be fully initialized
@@ -522,6 +519,55 @@ public class WbpSource extends Wbp
             }
         }
     }
+
+
+    /**
+     * Transpose 1 octave down if too high<br>
+     *
+     * @param sp
+     * @return
+     */
+    private boolean fixOctave(SizedPhrase sp)
+    {
+        boolean b = false;
+        var pitchRange = Phrases.getPitchRange(sp);
+        if (pitchRange.from >= 47 //  [B2+]
+                || (pitchRange.from >= 44 && pitchRange.to >= 56))   // [G2;G3+]
+        {
+            sp.processPitch(pitch -> pitch - 12);
+            b = true;
+            LOGGER.log(Level.FINE, "fixOctave() Transposing 1 octave down wbpSource={0} p={1}", new Object[]
+            {
+                this, sp
+            });
+        }
+        return b;
+    }
+
+
+    /**
+     * Fix very short notes left on first beat due to session slicing.<br>
+     * <p>
+     * -
+     * - Transpose 1 octave down if too high<br>
+     * - Adjust some notes velocities<br>
+     *
+     * @param sp
+     * @return
+     */
+    private boolean fixShortNotesPostSessionSlice(SizedPhrase sp)
+    {
+        // Session slicing might have produced remaining short notes at the beginning of the phrase
+        boolean b = sp.removeIf(ne -> 
+        {
+            float pos = ne.getPositionInBeats();
+            float dur = ne.getDurationInBeats();
+            return (pos % sp.getTimeSignature().getNaturalBeat()) == 0 && dur <= JJSwingBassMusicGenerator.GHOST_NOTE_MAX_DURATION;
+        });
+        return b;
+    }
+
+   
 
     private float safeRatio(float upper, float lower)
     {

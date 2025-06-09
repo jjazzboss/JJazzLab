@@ -25,6 +25,7 @@ import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.Phrases;
 import org.jjazz.jjswing.api.RP_BassStyle;
 import org.jjazz.jjswing.api.BassStyle;
+import org.jjazz.jjswing.walkingbass.db.Velocities;
 import org.jjazz.jjswing.walkingbass.db.WbpSource;
 import org.jjazz.jjswing.walkingbass.db.WbpSourceDatabase;
 import org.jjazz.rhythm.api.Division;
@@ -114,7 +115,9 @@ public class JJSwingBassMusicGenerator implements MusicGenerator
         List<String> tags = guessTags(context);
 
 
-        LOGGER.log(Level.FINE, "\n\n\n\n############################################ \ngenerateMusic() -- rhythm={0} tags={1}", new Object[]
+        LOGGER.log(Level.FINE, "\n\n\n\n");
+        LOGGER.log(Level.FINE, "############################################");
+        LOGGER.log(Level.FINE, "generateMusic() -- rhythm={0} tags={1}", new Object[]
         {
             rhythm.getName(), tags
         });
@@ -129,6 +132,10 @@ public class JJSwingBassMusicGenerator implements MusicGenerator
         {
             pRes.add(p);
         }
+
+
+        // Add slight velocity randomization +/- 3 
+        pRes.processVelocity(v -> (int) Math.round(v + Math.random() * 6 - 3));
 
 
         // Post process the phrase by SongPart, since SongParts using our rhythm can be any anywhere in the song     
@@ -545,20 +552,12 @@ public class JJSwingBassMusicGenerator implements MusicGenerator
 
                     p.removeAll(nes);
 
-                    float beatPos = extendedChordBeatRange.from;
-                    while (beatPos < extendedChordBeatRange.to)
+                    if (Math.random() >= 0.5)
                     {
-                        int oneOrTwo = ((int) beatPos) % 2 == 0 ? 1 : 2;
-                        float dur = oneOrTwo - 2 * NON_QUANTIZED_WINDOW;
-                        if (beatPos + dur >= extendedChordBeatRange.to)
-                        {
-                            dur = extendedChordBeatRange.to - 2 * NON_QUANTIZED_WINDOW - beatPos;
-                        }
-                        int vel = WbpSourceDatabase.getInstance().getRandomVelocity();
-                        var ne = new NoteEvent(pitch, dur, vel, beatPos);
-                        p.add(ne);
-
-                        beatPos += oneOrTwo;
+                        addPedalNotes1(extendedChordBeatRange, pitch, p);
+                    } else
+                    {
+                        addPedalNotes2(extendedChordBeatRange, pitch, p);
                     }
                 }
 
@@ -584,6 +583,64 @@ public class JJSwingBassMusicGenerator implements MusicGenerator
             }
 
 
+        }
+    }
+
+    /**
+     * Add pedal notes to p with pattern quarter-half-quarter-half-quarter etc.
+     *
+     * @param extendedChordBeatRange Add notes in this range. Starts on beat 0 of a bar
+     * @param pitch                  The pedal note pitch
+     * @param p
+     */
+    private void addPedalNotes1(FloatRange extendedChordBeatRange, int pitch, Phrase p)
+    {
+        float beatPos = extendedChordBeatRange.from;
+
+        while (beatPos < extendedChordBeatRange.to)
+        {
+            int oneOrTwo = ((int) beatPos) % 2 == 0 ? 1 : 2;
+            float dur = oneOrTwo - 2 * NON_QUANTIZED_WINDOW;
+            if (beatPos + dur >= extendedChordBeatRange.to)
+            {
+                dur = extendedChordBeatRange.to - 2 * NON_QUANTIZED_WINDOW - beatPos;
+            }
+
+            int vel = Velocities.getRandomBassVelocity();
+            var ne = new NoteEvent(pitch, dur, vel, beatPos);
+            p.add(ne);
+
+            beatPos += oneOrTwo;
+        }
+    }
+
+    /**
+     * Add pedal notes to p with pattern quarter_dotted-quarter_dotted-quarter-quarter_dotted- etc.
+     *
+     * @param extendedChordBeatRange Add notes in this range. Starts on beat 0 of a bar
+     * @param pitch                  The pedal note pitch
+     * @param p
+     */
+    private void addPedalNotes2(FloatRange extendedChordBeatRange, int pitch, Phrase p)
+    {
+        float beatPos = extendedChordBeatRange.from;
+        assert beatPos % rhythm.getTimeSignature().getNbNaturalBeats() == 0 : "extendedChordBeatRange=" + extendedChordBeatRange;
+
+        while (beatPos < extendedChordBeatRange.to)
+        {
+            float inBarBeat = beatPos % rhythm.getTimeSignature().getNbNaturalBeats();
+            float advance = inBarBeat < 3 ? 1.5f : 1f;
+            float dur = advance - 2 * NON_QUANTIZED_WINDOW;
+            if (beatPos + dur >= extendedChordBeatRange.to)
+            {
+                dur = extendedChordBeatRange.to - 2 * NON_QUANTIZED_WINDOW - beatPos;
+            }
+
+            int vel = Velocities.getRandomBassVelocity();
+            var ne = new NoteEvent(pitch, dur, vel, beatPos);
+            p.add(ne);
+
+            beatPos += advance;
         }
     }
 

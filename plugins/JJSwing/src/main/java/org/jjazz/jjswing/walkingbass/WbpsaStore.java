@@ -49,9 +49,10 @@ public class WbpsaStore
      */
     private final ListMultimap<Integer, WbpSourceAdaptation>[] mmapWbpsAdaptations = new ListMultimap[WbpSourceDatabase.SIZE_MAX + 1];
     private final int width;
-    private static final Logger LOGGER = Logger.getLogger(WbpsaStore.class.getSimpleName());
     private final WbpsaScorer wbpsaScorer;
     private final float randomizeWithinOverallScoreWindow;
+    private static boolean RANDOM_WARNING_SHOWN = false;
+    private static final Logger LOGGER = Logger.getLogger(WbpsaStore.class.getSimpleName());
 
     /**
      * Create a WbpsaStore for the untiled bars of tiling.
@@ -67,9 +68,10 @@ public class WbpsaStore
         this.wbpsaScorer = scorer;
         this.width = width;
         this.randomizeWithinOverallScoreWindow = JJSwingBassMusicGeneratorSettings.getInstance().getWbpsaStoreRandomizedScoreWindow();
-        if (this.randomizeWithinOverallScoreWindow < 1)
+        if (!RANDOM_WARNING_SHOWN && this.randomizeWithinOverallScoreWindow < 1)
         {
             LOGGER.log(Level.WARNING, "WbpsaStore() randomization is DISABLED (randomizeWithinOverallScoreWindow={0})", randomizeWithinOverallScoreWindow);
+            RANDOM_WARNING_SHOWN = true;
         }
 
         for (int size = WbpSourceDatabase.SIZE_MIN; size <= WbpSourceDatabase.SIZE_MAX; size++)

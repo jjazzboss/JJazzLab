@@ -59,54 +59,57 @@ public class WalkingDoublePhraseBuilder implements BassPhraseBuilder
         Phrase p = walkingBuilder.build(scsList, tempo);
 
 
-        var usableBars = scsList.stream()
-                .map(scs -> scs.getBarRange())
-                .flatMap(br -> br.stream().boxed())
-                .toList();
-
-
         // Turn it into double notes phrase using notes from beat 0 and beat 2
-        float nbBeatsPerBar = 4;
-        for (int bar : usableBars)
+        for (var scs : scsList)
         {
-            float barStartBeatPos = bar * nbBeatsPerBar;
-
-
-            FloatRange fr0 = new FloatRange(Math.max(0, barStartBeatPos - NON_QUANTIZED_WINDOW), barStartBeatPos + 2 - NON_QUANTIZED_WINDOW);
-            var p0 = p.subSet(fr0, true);
-            if (p0.isEmpty())
+            var barRange = scs.getBarRange();
+            for (int bar : barRange)
             {
-                LOGGER.log(Level.WARNING, "build() No note found in first half of bar={0}", bar);
-                continue;
+                float barStartBeatPos = scs.getStartBeatPosition() + ((bar - barRange.from) * scs.getTimeSignature().getNbNaturalBeats());
+
+                FloatRange fr0 = new FloatRange(Math.max(0, barStartBeatPos - NON_QUANTIZED_WINDOW), barStartBeatPos + 2 - NON_QUANTIZED_WINDOW);
+                var p0 = p.subSet(fr0, true);
+                if (p0.isEmpty())
+                {
+                    LOGGER.log(Level.WARNING, "build() No note found in first half of bar={0}", bar);
+                    continue;
+                }
+                var ne0 = p0.first();
+                float beatPos0 = ne0.getPositionInBeats() < barStartBeatPos + NON_QUANTIZED_WINDOW ? ne0.getPositionInBeats() : barStartBeatPos;
+                var cliCs = scs.getChordSymbol(scs.toPosition(barStartBeatPos));
+                if (cliCs.getData().getChord().indexOfRelativePitch(ne0.getPitch()) == -1)
+                {
+                    // It's an unusual note, leave the normal walking bass for a change
+                    continue;
+                }
+                ne0 = ne0.setAll(-1, 0.9f, -1, beatPos0, false);
+                var ne1 = ne0.setPosition(barStartBeatPos + 1, false);
+
+
+                FloatRange fr2 = new FloatRange(barStartBeatPos + 2 - NON_QUANTIZED_WINDOW, barStartBeatPos + 4 - NON_QUANTIZED_WINDOW);
+                var p2 = p.subSet(fr2, true);
+                if (p2.isEmpty())
+                {
+                    LOGGER.log(Level.WARNING, "build() No note found in second half of bar={0}", bar);
+                    continue;
+                }
+                var ne2 = p2.first();
+                cliCs = scs.getChordSymbol(scs.toPosition(ne2.getPositionInBeats()));
+                if (ne0.getPitch() == ne2.getPitch() || cliCs.getData().getChord().indexOfRelativePitch(ne2.getPitch()) == -1)
+                {
+                    // Leave the normal walking bass for a change
+                    continue;
+                }
+                float beatPos2 = ne2.getPositionInBeats() < barStartBeatPos + 2 + NON_QUANTIZED_WINDOW ? ne2.getPositionInBeats() : barStartBeatPos + 2;
+                ne2 = ne2.setAll(-1, 0.9f, -1, beatPos2, false);
+                var ne3 = ne2.setPosition(barStartBeatPos + 3, false);
+
+
+                p.removeAll(new ArrayList<>(p0));
+                p.removeAll(new ArrayList<>(p2));
+                p.addAll(List.of(ne0, ne1, ne2, ne3));
+
             }
-            var ne0 = p0.first();
-            float beatPos0 = ne0.getPositionInBeats() < barStartBeatPos + NON_QUANTIZED_WINDOW ? ne0.getPositionInBeats() : barStartBeatPos;
-            ne0 = ne0.setAll(-1, 0.9f, -1, beatPos0, false);
-            var ne1 = ne0.setPosition(barStartBeatPos + 1, false);
-
-
-            FloatRange fr2 = new FloatRange(barStartBeatPos + 2 - NON_QUANTIZED_WINDOW, barStartBeatPos + 4 - NON_QUANTIZED_WINDOW);
-            var p2 = p.subSet(fr2, true);
-            if (p2.isEmpty())
-            {
-                LOGGER.log(Level.WARNING, "build() No note found in second half of bar={0}", bar);
-                continue;
-            }
-            var ne2 = p2.first();
-            if (ne0.getPitch() == ne2.getPitch())
-            {
-                // Leave the normal walking bass for a change, better than 4 times the same note!
-                continue;
-            }
-            float beatPos2 = ne2.getPositionInBeats() < barStartBeatPos + 2 + NON_QUANTIZED_WINDOW ? ne2.getPositionInBeats() : barStartBeatPos + 2;
-            ne2 = ne2.setAll(-1, 0.9f, -1, beatPos2, false);
-            var ne3 = ne2.setPosition(barStartBeatPos + 3, false);
-
-
-            p.removeAll(new ArrayList<>(p0));
-            p.removeAll(new ArrayList<>(p2));
-            p.addAll(List.of(ne0, ne1, ne2, ne3));
-
         }
 
 

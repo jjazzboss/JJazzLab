@@ -14,7 +14,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Random;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -33,7 +32,6 @@ import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.harmony.spi.ChordTypeDatabase;
-import org.jjazz.jjswing.walkingbass.JJSwingBassMusicGenerator;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.phrase.api.Phrase;
@@ -48,7 +46,6 @@ import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
 import org.jjazz.utilities.api.LongRange;
-import org.jjazz.utilities.api.Utilities;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.util.Exceptions;
 
@@ -63,7 +60,6 @@ import org.openide.util.Exceptions;
  */
 public class WbpSourceDatabase
 {
-
     /**
      * Min and max size of a WbpSource phrase.
      */
@@ -83,7 +79,7 @@ public class WbpSourceDatabase
     private final ListMultimap<String, WbpSource> mmapSessionIdWbpSources;
     private final ListMultimap<StyleAndProfile, WbpSource> mmapSapWbpSources;
     private final Map<String, WbpSource> mapIdWbpSource;
-    private final Random random;
+
     private static final Logger LOGGER = Logger.getLogger(WbpSourceDatabase.class.getSimpleName());
 
     public static WbpSourceDatabase getInstance()
@@ -108,7 +104,6 @@ public class WbpSourceDatabase
         mmapSessionIdWbpSources = MultimapBuilder.hashKeys().arrayListValues().build();
         mapIdWbpSource = new HashMap<>();
         mapSessionIdResource = new HashMap<>();
-        random = new Random();
 
         // Extract the WbpSources from the WbpSessions
         List<WbpSession> wbpSessions = loadWbpSessionsFromMidiFile(MIDI_FILE_WALKING_RESOURCE_PATH, "", "walking", TimeSignature.FOUR_FOUR);
@@ -429,33 +424,6 @@ public class WbpSourceDatabase
         return res;
     }
 
-    /**
-     * Get the most probable velocity range.
-     * <p>
-     * TODO: calculate it from the WbpSources.
-     *
-     * @return
-     *
-     */
-    public IntRange getMostProbableVelocityRange()
-    {
-        return new IntRange(50, 65);
-    }
-
-    /**
-     * Get a random velocity using a gaussian distribution in the range returned by getMostProbableVelocityRange().
-     *
-     * @return
-     * @see #getMostProbableVelocityRange()
-     */
-    public int getRandomVelocity()
-    {
-        float r = Utilities.getNextGaussianRandomValue(random); // [-1;1]
-        var rg = getMostProbableVelocityRange();
-        float f = rg.getCenter() + r * rg.size() / 2;
-        int vel = rg.clamp(Math.round(f));
-        return vel;
-    }
 
     /**
      * Check that nbBars is a valid WbpSource size.
@@ -491,11 +459,6 @@ public class WbpSourceDatabase
         var wbpSources = wbpSession.extractWbpSources(false, false);
         for (var wbpSource : wbpSources)
         {
-            if (!isValid(wbpSource))
-            {
-                continue;
-            }
-            fixOctaveIfRequired(wbpSource);
             if (getFirstCompatibleWbpSource(wbpSource.getBassStyle(), wbpSource.getSimpleChordSequence(), wbpSource.getSizedPhrase(), true) == null)
             {
                 // Add only non redundant phrases                
@@ -504,49 +467,6 @@ public class WbpSourceDatabase
         }
     }
 
-    /**
-     * Transpose 1 octave down the WbpSource phrase if it's too high.
-     *
-     * @param wbpSource
-     */
-    private void fixOctaveIfRequired(WbpSource wbpSource)
-    {
-        var p = wbpSource.getSizedPhrase();
-        var pitchRange = Phrases.getPitchRange(p);
-        if (pitchRange.from >= 47 //  [B2+]
-                || (pitchRange.from >= 44 && pitchRange.to >= 56))   // [G2;G3+]
-        {
-            LOGGER.log(Level.WARNING, "isValid() Transposing 1 octave down wbpSource={0} p={1}", new Object[]
-            {
-                wbpSource, p
-            });
-            
-            p.processPitch(pitch -> pitch - 12);
-            
-        }
-    }
-
-    /**
-     * Discard WbpSource if e.g. there is no start note on beat 0.
-     *
-     * @param wbpSource
-     * @return
-     */
-    private boolean isValid(WbpSource wbpSource)
-    {
-        boolean b = true;
-        Phrase p = wbpSource.getSizedPhrase();
-        if (p.isEmpty()
-                || p.first().getPositionInBeats() > JJSwingBassMusicGenerator.DURATION_BEAT_MARGIN)
-        {
-            LOGGER.log(Level.WARNING, "isValid() Discarding wbpSource={0} p={1}", new Object[]
-            {
-                wbpSource, p
-            });
-            b = false;
-        }
-        return b;
-    }
 
     /**
      * Retrieve WbpSession objects from a Midi resource file for the specified TimeSignature.

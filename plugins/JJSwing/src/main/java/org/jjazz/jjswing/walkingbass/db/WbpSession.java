@@ -34,6 +34,7 @@ import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.Phrases;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.jjswing.api.BassStyle;
+import org.jjazz.jjswing.walkingbass.JJSwingBassMusicGenerator;
 import static org.jjazz.jjswing.walkingbass.JJSwingBassMusicGenerator.NON_QUANTIZED_WINDOW;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.utilities.api.FloatRange;
@@ -93,8 +94,8 @@ class WbpSession extends Wbp
     /**
      * Extract all the possible WbpSources from this session.
      * <p>
-     * We extract all the possible 1/2/3/4-bar WbpSources. So for one 4-bar session phrase, the method can generate up to 10 WbpSource objects: 1 * 4-bar + 2 * 3-bar
-     * + 3 * 2-bar + 4 * 1-bar.
+     * We extract all the possible 1/2/3/4-bar WbpSources. So for one 4-bar session phrase, the method can generate up to 10 WbpSource objects: 1 * 4-bar + 2 *
+     * 3-bar + 3 * 2-bar + 4 * 1-bar.
      * <p>
      * Returned WbpSources get the tags of the session.
      *
@@ -120,10 +121,12 @@ class WbpSession extends Wbp
                 }
 
                 WbpSource wbpSource = extractWbpSource(barRange);
+                var p = wbpSource.getSizedPhrase();
 
+                boolean bStart = !p.isEmpty() && p.first().getPositionInBeats() <= JJSwingBassMusicGenerator.DURATION_BEAT_MARGIN;
                 boolean bFirst = !disallowNonRootStartNote || wbpSource.isStartingOnChordBass();
                 boolean bLast = !disallowNonChordToneLastNote || wbpSource.isEndingOnChordTone();
-                if (bFirst && bLast)
+                if (bStart && bFirst && bLast)
                 {
                     res.add(wbpSource);
                 }
@@ -131,6 +134,7 @@ class WbpSession extends Wbp
         }
         return res;
     }
+
 
     @Override
     public String toString()
@@ -199,7 +203,7 @@ class WbpSession extends Wbp
     /**
      * Extract a WbpSource from a SizedPhrase.
      * <p>
-     * 
+     *
      * @param barRange Session phrase must have no crossing note at start or end of this bar range.
      * @return Can not be null
      */

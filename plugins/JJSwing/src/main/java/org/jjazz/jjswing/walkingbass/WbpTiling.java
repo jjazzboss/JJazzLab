@@ -89,6 +89,16 @@ public class WbpTiling
     }
 
     /**
+     * The list of SimpleChordSequences passed to constructor.
+     *
+     * @return
+     */
+    public List<SimpleChordSequence> getScsList()
+    {
+        return scsList;
+    }
+
+    /**
      * The bar indexes managed by this WbpTiling.
      *
      * @return
@@ -411,10 +421,9 @@ public class WbpTiling
     /**
      * Get a new SimpleChordSequence corresponding to barRange.
      *
-     * @param barRange
+     * @param barRange           Must be a subRange of one of the SimpleChordSequences
      * @param addInitChordSympol
      * @return
-     * @throws IllegalArgumentException If barRange is not a usable bar range
      * @see #isUsable(org.jjazz.utilities.api.IntRange)
      */
     public SimpleChordSequence getSimpleChordSequence(IntRange barRange, boolean addInitChordSympol)

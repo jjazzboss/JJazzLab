@@ -261,11 +261,11 @@ public class JJSwingRhythm implements YjzCompositeRhythm
         LOGGER.log(Level.FINE, "loadResources() WbpSourceDatabase size={0}", wbpsDB.getNbWbpSources(-1));
 
         
-        LOGGER.log(Level.INFO, "loadResources() WbpSourceDatabase checkConsistency() skipped");
+        //LOGGER.log(Level.INFO, "loadResources() WbpSourceDatabase checkConsistency() skipped");
         // LOGGER.severe("loadResources() debug updating SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT");
         // System.setProperty(NoteEvent.SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT, "%1$s");
-//        wbpsDB.checkConsistency(BassStyle.TWO_FEEL);
-//        wbpsDB.checkConsistency(BassStyle.WALKING);
+        wbpsDB.checkConsistency(BassStyle.TWO_FEEL);
+        wbpsDB.checkConsistency(BassStyle.WALKING);
 
 
         pcs.firePropertyChange(PROP_RESOURCES_LOADED, false, true);

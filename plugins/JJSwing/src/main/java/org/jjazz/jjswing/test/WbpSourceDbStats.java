@@ -24,9 +24,13 @@
  */
 package org.jjazz.jjswing.test;
 
+import com.google.common.math.Quantiles;
+import com.google.common.math.Stats;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.DoubleSummaryStatistics;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.jjswing.walkingbass.db.WbpSourceDatabase;
@@ -56,6 +60,8 @@ public final class WbpSourceDbStats implements ActionListener
 
         // Compute stats about offset from beat 0 of the first note of each bar
         DoubleSummaryStatistics stats = new DoubleSummaryStatistics();
+
+        List<Integer> velocities = new ArrayList<>();
         for (var wbpSource : db.getWbpSources(1))
         {
             var sp = wbpSource.getSizedPhrase();
@@ -65,7 +71,19 @@ public final class WbpSourceDbStats implements ActionListener
             {
                 stats.accept(shift0);
             }
+
+            velocities.addAll(sp.stream()
+                    .filter(ne -> ne.getDurationInBeats() > 0.6f)
+                    .map(ne -> ne.getVelocity()).toList());
         }
         LOGGER.log(Level.SEVERE, "WdbAction stats={0}", stats);
+        Stats statsVelocity = Stats.of(velocities);
+        
+        // Results june 2025: velocity min=35 max=92 mean=62,742 median=62 stdDev=7.63
+        LOGGER.log(Level.SEVERE, "WdbAction velocity min={0} max={1} mean={2} median={3} stdDev={4}", new Object[]
+        {
+            statsVelocity.min(), statsVelocity.max(), statsVelocity.mean(), Quantiles.median().compute(velocities), statsVelocity.populationStandardDeviation()
+        });
+
     }
 }
