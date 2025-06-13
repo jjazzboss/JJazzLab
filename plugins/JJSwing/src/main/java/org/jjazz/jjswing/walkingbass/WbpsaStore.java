@@ -32,9 +32,11 @@ import com.google.common.collect.MultimapBuilder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.SortedSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jjazz.jjswing.api.BassStyle;
 import org.jjazz.utilities.api.IntRange;
 
 /**
@@ -49,24 +51,33 @@ public class WbpsaStore
      */
     private final ListMultimap<Integer, WbpSourceAdaptation>[] mmapWbpsAdaptations = new ListMultimap[WbpSourceDatabase.SIZE_MAX + 1];
     private final int width;
+    private final int tempo;
     private final WbpsaScorer wbpsaScorer;
+    private final List<BassStyle> bassStyles;
     private final float randomizeWithinOverallScoreWindow;
     private static boolean RANDOM_WARNING_SHOWN = false;
     private static final Logger LOGGER = Logger.getLogger(WbpsaStore.class.getSimpleName());
 
     /**
-     * Create a WbpsaStore for the untiled bars of tiling.
+     * Create a WbpsaStore for the untiled bars of a tiling.
      * <p>
      *
      * @param tiling The store will ignore already tiled bars
-     * @param width  Max number of WbpSourceAdaptations kept per bar
+     * @param width Max number of WbpSourceAdaptations kept per bar
      * @param scorer
+     * @param tempo If &lt;0 tempo is ignored
+     * @param bassStyles Can not be empty
      */
-    public WbpsaStore(WbpTiling tiling, int width, WbpsaScorer scorer)
+    public WbpsaStore(WbpTiling tiling, int width, WbpsaScorer scorer, int tempo, List<BassStyle> bassStyles)
     {
+        Objects.requireNonNull(tiling);
+        Objects.requireNonNull(scorer);
+        Preconditions.checkArgument(!bassStyles.isEmpty(), "bassStyles=" + bassStyles);
         this.tiling = tiling;
+        this.tempo = tempo;
         this.wbpsaScorer = scorer;
         this.width = width;
+        this.bassStyles = bassStyles;
         this.randomizeWithinOverallScoreWindow = JJSwingBassMusicGeneratorSettings.getInstance().getWbpsaStoreRandomizedScoreWindow();
         if (!RANDOM_WARNING_SHOWN && this.randomizeWithinOverallScoreWindow < 1)
         {
@@ -77,8 +88,8 @@ public class WbpsaStore
         for (int size = WbpSourceDatabase.SIZE_MIN; size <= WbpSourceDatabase.SIZE_MAX; size++)
         {
             mmapWbpsAdaptations[size] = MultimapBuilder.treeKeys() // Sort by bar
-                    .arrayListValues() // Wbpsas NOT sorted to enable possible randomization
-                    .build();
+                .arrayListValues() // Wbpsas NOT sorted to enable possible randomization
+                .build();
         }
 
         initialize();
@@ -90,13 +101,13 @@ public class WbpsaStore
         return width;
     }
 
-
     /**
      * Get the list of WbpSourceAdaptations for specified bar and size.
      *
-     * @param bar  Must be a usable bar
+     * @param bar Must be a usable bar
      * @param size The size in bars of returned WbpSourceAdaptations
-     * @return Unmodifiable list which can be empty. The list contains maximum getWidth() elements. List is ordered only if store does not use randomization.
+     * @return Unmodifiable list which can be empty. The list contains maximum getWidth() elements. List is ordered only if store does not use
+     * randomization.
      */
     public List<WbpSourceAdaptation> getWbpSourceAdaptations(int bar, int size)
     {
@@ -152,7 +163,6 @@ public class WbpsaStore
         }
         return mmap;
     }
-
 
     public String toDebugString(boolean hideEmptyBars)
     {
@@ -210,18 +220,15 @@ public class WbpsaStore
 
                 // Get all possible wbpsas for the sub sequence
                 var subSeq = tiling.getSimpleChordSequence(br, true);
-                ListMultimap<Score, WbpSourceAdaptation> bestWbpsas = wbpsaScorer.getWbpSourceAdaptations(subSeq, tiling);
-
+                ListMultimap<Score, WbpSourceAdaptation> bestWbpsas = WbpSourceAdaptation.getWbpSourceAdaptations(subSeq, wbpsaScorer, tiling, tempo, bassStyles);
 
                 var randWbpsas = randomizeSimilarScoreSets(bestWbpsas, randomizeWithinOverallScoreWindow);
-
 
                 // Trim
                 while (randWbpsas.size() > width)
                 {
                     randWbpsas.removeLast();
                 }
-
 
                 // Save data
                 mmapWbpsAdaptations[size].putAll(bar, randWbpsas);
@@ -236,7 +243,6 @@ public class WbpsaStore
             }
         }
     }
-
 
     /**
      * Add some order randomization within sets of WbpSourceAdaptations which are in the same similar score window.
@@ -272,7 +278,6 @@ public class WbpsaStore
         {
             res.addAll(mmap.values());
         }
-
 
         return res.reversed();
     }

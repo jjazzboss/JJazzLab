@@ -36,11 +36,17 @@ import java.util.function.Predicate;
  * compareTo(SCORE_ZERO) == 0 means incompatibility. compareTo(SCORE_ZERO) &gt; 0 means some compatibility.
  */
 public record Score(float harmonicCompatibility, float transposability, float tempoCompatibility, float preTargetNoteMatch, float postTargetNoteMatch) implements Comparable<Score>
-        {
+    {
 
-    static public Score ZERO = new Score(0, 0, 0, 0, 0);
-    static public Predicate<Score> PREMIUM_ONLY_TESTER = s -> s.harmonicCompatibility > 0 && s.tempoCompatibility() >= 50 && s.transposability() >= 50;
-    static public Predicate<Score> DEFAULT_TESTER = s -> s.harmonicCompatibility > 0;
+    static final public Score ZERO = new Score(0, 0, 0, 0, 0);
+    /**
+     * Harmonic score must be &gt; 0
+     */
+    static final public Predicate<Score> DEFAULT_TESTER = s -> s.harmonicCompatibility > 0;
+    /**
+     * DEFAULT_TESTER and tempo score &gt;= 50 and transposibility score &gt;= 50
+     */
+    static final public Predicate<Score> PREMIUM_ONLY_TESTER = s -> DEFAULT_TESTER.test(s) && s.tempoCompatibility() >= 50 && s.transposability() >= 50;
 
     public static final float MAX = 100;
     private static final int CT_WEIGHT = 5;
@@ -70,11 +76,11 @@ public record Score(float harmonicCompatibility, float transposability, float te
         if (harmonicCompatibility > 0)
         {
             res = (CT_WEIGHT * harmonicCompatibility
-                    + TR_WEIGHT * transposability
-                    + TE_WEIGHT * tempoCompatibility
-                    + PRE_TN_WEIGHT * preTargetNoteMatch
-                    + POST_TN_WEIGHT * postTargetNoteMatch)
-                    / WEIGHT_SUM;
+                + TR_WEIGHT * transposability
+                + TE_WEIGHT * tempoCompatibility
+                + PRE_TN_WEIGHT * preTargetNoteMatch
+                + POST_TN_WEIGHT * postTargetNoteMatch)
+                / WEIGHT_SUM;
         }
         return res;
     }
@@ -148,7 +154,6 @@ public record Score(float harmonicCompatibility, float transposability, float te
      *
      * @return
      */
-
     @Override
     public boolean equals(Object obj)
     {
@@ -168,19 +173,18 @@ public record Score(float harmonicCompatibility, float transposability, float te
         return Float.floatToIntBits(this.overall()) == Float.floatToIntBits(other.overall());
     }
 
-
     @Override
     public String toString()
     {
         DecimalFormat df = new DecimalFormat("#.##");
 
         String res = String.format("[all=%s, ct=%s tr=%s te=%s pre-tn=%s post-tn=%s]",
-                df.format(overall()),
-                df.format(harmonicCompatibility),
-                df.format(transposability),
-                df.format(tempoCompatibility),
-                df.format(preTargetNoteMatch),
-                df.format(postTargetNoteMatch));
+            df.format(overall()),
+            df.format(harmonicCompatibility),
+            df.format(transposability),
+            df.format(tempoCompatibility),
+            df.format(preTargetNoteMatch),
+            df.format(postTargetNoteMatch));
         return res;
     }
 }

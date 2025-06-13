@@ -43,16 +43,16 @@ import org.jjazz.jjswing.api.BassStyle;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.jjswing.walkingbass.db.WbpSourceDatabase;
 import org.jjazz.jjswing.walkingbass.db.WbpSource;
-import org.jjazz.jjswing.walkingbass.WbpsaScorerDefault;
+import org.jjazz.jjswing.walkingbass.WbpsaScorer;
 import org.jjazz.jjswing.walkingbass.Score;
 import org.jjazz.jjswing.walkingbass.WbpSourceAdaptation;
-import org.jjazz.jjswing.walkingbass.WbpsaScorer;
 import org.jjazz.jjswing.walkingbass.db.RootProfile;
 import org.jjazz.uiutilities.api.UIUtilities;
 import org.jjazz.utilities.api.IntRange;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.windows.WindowManager;
+import org.jjazz.jjswing.walkingbass.WbpsaScorer2;
 
 /**
  * A dialog to query the WbpDatabase.
@@ -171,7 +171,7 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
 
 
         // Evaluate compatibility
-        WbpsaScorer wbpsaScorer = new WbpsaScorerDefault(null, tempo, cb_premiumOnly.isSelected() ? Score.PREMIUM_ONLY_TESTER : null, bassStyles);
+        WbpsaScorer2 wbpsaScorer = new WbpsaScorer(null, tempo, cb_premiumOnly.isSelected() ? Score.PREMIUM_ONLY_TESTER : null, bassStyles);
         var wbpsas = wbpSources.stream()
                 .map(wbps -> WbpSourceAdaptation.of(wbps, scs))
                 .filter(wbpsa -> cb_rootProfileOnly.isSelected() || scs.isEmpty() || wbpsaScorer.updateCompatibilityScore(wbpsa, null).compareTo(Score.ZERO) > 0)

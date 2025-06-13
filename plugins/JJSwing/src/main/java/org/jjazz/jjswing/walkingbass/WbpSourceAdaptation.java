@@ -26,15 +26,19 @@ package org.jjazz.jjswing.walkingbass;
 
 import org.jjazz.jjswing.walkingbass.db.WbpSource;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.MultimapBuilder;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import org.jjazz.jjswing.api.BassStyle;
 import org.jjazz.jjswing.walkingbass.db.RootProfile;
+import org.jjazz.jjswing.walkingbass.db.WbpSourceDatabase;
 import org.jjazz.midi.api.MidiConst;
-import static org.jjazz.phrase.api.NoteEvent.SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.utilities.api.FloatRange;
@@ -45,8 +49,8 @@ import org.jjazz.utilities.api.IntRange;
  * <p>
  * Instances are cached.
  * <p>
- * NOTE: Comparable implementation is implemented so that natural order is by descending compatibility score. Comparable implementation is NOT consistent with
- * equal(), so WbpSourceAdaptation should NOT be used in a SortedSet or SortedMap.
+ * NOTE: Comparable implementation is implemented so that natural order is by descending compatibility score. Comparable implementation is NOT
+ * consistent with equal(), so WbpSourceAdaptation should NOT be used in a SortedSet or SortedMap.
  */
 public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
 {
@@ -71,7 +75,6 @@ public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
         Objects.requireNonNull(wbpSource);
         Objects.requireNonNull(scs);
         WbpSourceAdaptation res;
-
 
         var key = computeKey(wbpSource, scs);
         var wbpsa = MAP_KEYSTR_WBPSA.get(key);
@@ -115,13 +118,46 @@ public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
         return res;
     }
 
-
     /**
-     * Private constructor.
-     *
-     * @param wbpSource
+     * Find the WbpSources from WbpDatabase which are compatible with scs (compatibility score is &gt; Score.ZERO) and return the corresponding
+     * WbpSourceAdaptations.
+     * <p>
      * @param scs
+     * @param tiling Can be null. Used in the compatibility score calculation.
+     * @param tempo If &lt; tempo is ignored
+     * @param bassStyles Can not be empty. The style of the target WbpSources
+     * @return A multimap with WbpSourceAdaptation's Score keys in ascending order
      */
+    static public ListMultimap<Score, WbpSourceAdaptation> getWbpSourceAdaptations(SimpleChordSequence scs, WbpsaScorer scorer, WbpTiling tiling, int tempo, List<BassStyle> bassStyles)
+    {
+        Objects.requireNonNull(scs);
+        Objects.requireNonNull(scorer);
+        Preconditions.checkArgument(bassStyles != null && !bassStyles.isEmpty(), "bassStyles=%s", bassStyles);
+
+        // Score in ascending order
+        ListMultimap<Score, WbpSourceAdaptation> res = MultimapBuilder.treeKeys().arrayListValues().build();
+
+        // Get the WbpSources
+        var rootProfile = RootProfile.of(scs);
+        var wbpsDb = WbpSourceDatabase.getInstance();
+        var wbpSources = bassStyles.size() == 1 ? wbpsDb.getWbpSources(bassStyles.iterator().next(), rootProfile)
+            : bassStyles.stream()
+                .flatMap(bs -> wbpsDb.getWbpSources(bs, rootProfile).stream())
+                .toList();
+
+        // Calculate compatibility scores
+        for (var wbpSource : wbpSources)
+        {
+            var wbpsa = WbpSourceAdaptation.of(wbpSource, scs);
+            if (scorer.updateCompatibilityScore(wbpsa, tiling, tempo).compareTo(Score.ZERO) > 0)
+            {
+                res.put(wbpsa.getCompatibilityScore(), wbpsa);
+            }
+        }
+
+        return res;
+    }
+
     private WbpSourceAdaptation(WbpSource wbpSource, SimpleChordSequence scs)
     {
         Objects.requireNonNull(wbpSource);
@@ -259,8 +295,8 @@ public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
     private static String computeKey(WbpSource wbpSource, SimpleChordSequence scs)
     {
         var strChords = scs.stream()
-                .map(cliCs -> cliCs.getData().toString())
-                .collect(Collectors.joining(":"));
+            .map(cliCs -> cliCs.getData().toString())
+            .collect(Collectors.joining(":"));
         var rp = RootProfile.of(scs);
         var strRp = rp.nbBars() + ":" + rp.ascendingIntervals() + ":" + rp.relativeChordPositionsInBeats();
         var key = wbpSource.getId() + " " + strRp + " " + strChords;

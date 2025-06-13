@@ -29,9 +29,9 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
-import org.jjazz.jjswing.walkingbass.WbpsaScorerDefault;
-import org.jjazz.jjswing.walkingbass.WbpSourceAdaptation;
 import org.jjazz.jjswing.walkingbass.WbpsaScorer;
+import org.jjazz.jjswing.walkingbass.WbpSourceAdaptation;
+import org.jjazz.jjswing.walkingbass.WbpsaScorer2;
 
 /**
  *
@@ -54,7 +54,7 @@ class EvaluateScoreAction extends AbstractAction
     {
         LOGGER.info("\n### EvaluateScore");
 
-        WbpsaScorer wbpsaScorer = new WbpsaScorerDefault(null, -1, null);
+        WbpsaScorer2 wbpsaScorer = new WbpsaScorer(null, -1, null);
         List<WbpSourceAdaptation> wbpsas = dialog.getSelectedWbpSourceAdaptations();
 
         for (var wbpsa : wbpsas)

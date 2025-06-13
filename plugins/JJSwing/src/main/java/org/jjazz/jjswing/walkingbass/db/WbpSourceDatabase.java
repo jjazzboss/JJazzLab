@@ -40,7 +40,6 @@ import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.jjswing.walkingbass.Score;
 import org.jjazz.jjswing.walkingbass.WbpSourceAdaptation;
 import org.jjazz.jjswing.walkingbass.WbpsaScorer;
-import org.jjazz.jjswing.walkingbass.WbpsaScorerDefault;
 import static org.jjazz.jjswing.walkingbass.JJSwingBassMusicGenerator.NON_QUANTIZED_WINDOW;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.utilities.api.FloatRange;
@@ -48,6 +47,7 @@ import org.jjazz.utilities.api.IntRange;
 import org.jjazz.utilities.api.LongRange;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.util.Exceptions;
+import org.jjazz.jjswing.walkingbass.WbpsaScorer2;
 
 /**
  * The walking bass source phrase database.
@@ -189,7 +189,8 @@ public class WbpSourceDatabase
         final var POS2 = new Position(0, 2);
         final int NB_BARS = 1;
         final var scs = new SimpleChordSequence(new IntRange(0, NB_BARS - 1), 0, TimeSignature.FOUR_FOUR);
-        final WbpsaScorer scorer = new WbpsaScorerDefault(null, -1, null, bStyle);
+        // final WbpsaScorer scorer = new WbpsaScorer(null, -1, null, bStyle);
+        final WbpsaScorer scorer = new WbpsaScorer(null, null);
 
 
         // Check for 1-chord-per-bar with 0 or only 1 one-bar WbpSource
@@ -718,7 +719,7 @@ public class WbpSourceDatabase
     private WbpSource getFirstCompatibleWbpSource(BassStyle style, SimpleChordSequence scs, SizedPhrase sp, boolean checkNotesDuration)
     {
         WbpSource res = null;
-        WbpsaScorer scorer = new WbpsaScorerDefault(null, -1, null, style);
+        WbpsaScorer2 scorer = new WbpsaScorer(null, -1, null, style);
 
         var rp = RootProfile.of(scs);
         var wbpSources = getWbpSources(style, rp);

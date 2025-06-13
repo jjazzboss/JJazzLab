@@ -74,7 +74,7 @@ public class WalkingPhraseBuilder implements BassPhraseBuilder
 
 
         // PREMIUM PHASE
-        WbpsaScorer scorerPremium = new WbpsaScorerDefault(phraseAdapter, tempo, Score.PREMIUM_ONLY_TESTER, STYLE);
+        WbpsaScorer scorerPremium = new WbpsaScorer(phraseAdapter, Score.PREMIUM_ONLY_TESTER);
 
         LOGGER.log(BassPhraseBuilderLogLevel, "\n");
         LOGGER.log(BassPhraseBuilderLogLevel, "build() ================  tiling PREMIUM LongestFirstNoRepeat");
@@ -101,7 +101,7 @@ public class WalkingPhraseBuilder implements BassPhraseBuilder
         {
             LOGGER.log(BassPhraseBuilderLogLevel, "\n");
             LOGGER.log(BassPhraseBuilderLogLevel, "build() ================  tiling STANDARD LongestFirstNoRepeat");
-            WbpsaScorer scorerStandard = new WbpsaScorerDefault(phraseAdapter, tempo, null, STYLE);
+            WbpsaScorer2 scorerStandard = new WbpsaScorer(phraseAdapter, tempo, null, STYLE);
 
             var tilerLongestStandard = new TilerLongestFirstNoRepeat(scorerStandard, settings.getWbpsaStoreWidth());
             tilerLongestStandard.tile(tiling);
@@ -121,7 +121,7 @@ public class WalkingPhraseBuilder implements BassPhraseBuilder
 
 
         // If still untiled, try using previously computed CUSTOM source phrases
-        WbpsaScorer scorerCustom = new WbpsaScorerDefault(phraseAdapter, tempo, null, STYLE.getCustomStyle());
+        WbpsaScorer2 scorerCustom = new WbpsaScorer(phraseAdapter, tempo, null, STYLE.getCustomStyle());
         var tilerMaxDistanceCustomStandard = new TilerMaxDistance(scorerCustom, settings.getWbpsaStoreWidth());
         untiled = !tiling.isFullyTiled();
         if (untiled)
