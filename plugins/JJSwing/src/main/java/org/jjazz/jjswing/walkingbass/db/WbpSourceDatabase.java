@@ -47,7 +47,7 @@ import org.jjazz.utilities.api.IntRange;
 import org.jjazz.utilities.api.LongRange;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.util.Exceptions;
-import org.jjazz.jjswing.walkingbass.WbpsaScorer2;
+import org.jjazz.jjswing.walkingbass.WbpsaScorer;
 
 /**
  * The walking bass source phrase database.
@@ -199,7 +199,7 @@ public class WbpSourceDatabase
             scs.clear();
             var ecs = new ExtChordSymbol(C_NOTE, C_NOTE, ct);
             scs.add(clif.createChordSymbol(ecs, POS0));
-            var wbpsas = scorer.getWbpSourceAdaptations(scs, null);
+            var wbpsas = WbpSourceAdaptation.getWbpSourceAdaptations(scs, scorer, null, -1, List.of(bStyle));
             if (wbpsas.size() <= 1)
             {
                 LOGGER.log(Level.SEVERE, "checkConsistency() {0} x {1}-bar WbpSource for {2}", new Object[]
@@ -249,7 +249,7 @@ public class WbpSourceDatabase
                     scs.clear();
                     scs.add(cliCs0);
                     scs.add(cliCs2);
-                    var wbpsas = scorer.getWbpSourceAdaptations(scs, null);
+                    var wbpsas = WbpSourceAdaptation.getWbpSourceAdaptations(scs, scorer, null, -1, List.of(bStyle));
                     if (wbpsas.isEmpty())
                     {
                         zeroMatchList.add(scs.clone());
@@ -719,7 +719,7 @@ public class WbpSourceDatabase
     private WbpSource getFirstCompatibleWbpSource(BassStyle style, SimpleChordSequence scs, SizedPhrase sp, boolean checkNotesDuration)
     {
         WbpSource res = null;
-        WbpsaScorer2 scorer = new WbpsaScorer(null, -1, null, style);
+        WbpsaScorer scorer = new WbpsaScorer(null, null);
 
         var rp = RootProfile.of(scs);
         var wbpSources = getWbpSources(style, rp);
@@ -731,7 +731,7 @@ public class WbpSourceDatabase
                 continue;
             }
             var wbpsa = WbpSourceAdaptation.of(wbpSource, scs);
-            if (scorer.updateCompatibilityScore(wbpsa, null).compareTo(Score.ZERO) > 0)
+            if (scorer.updateCompatibilityScore(wbpsa, null, -1).compareTo(Score.ZERO) > 0)
             {
                 res = wbpSource;
                 break;

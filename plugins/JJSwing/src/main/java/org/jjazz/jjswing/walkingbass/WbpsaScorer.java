@@ -48,7 +48,7 @@ public class WbpsaScorer
     private static final Logger LOGGER = Logger.getLogger(WbpsaScorer.class.getSimpleName());
 
     /**
-     * @param sourceAdapter If null target note matching score will not impact the overall score
+     * @param sourceAdapter          If null target note matching score will not impact the overall score
      * @param minCompatibilityTester If null use Score.DEFAULT_TESTER.
      * @see Score#DEFAULT_TESTER
      */
@@ -61,14 +61,13 @@ public class WbpsaScorer
     /**
      * Compute and update the compatibility Score of a WbpSourceAdaptation using chord type, transposition, tempo, pre/post target notes.
      * <p>
-     * Score is computed only for wbpsa score elements which are equal to 0, i.e. non-zero elements are directly reused in the resulting Score. Result
-     * is Score.ZERO if the resulting Score does not satisfy the minCompatibilityTester predicate. The passed wbpsa instance is updated with the new
-     * Score.
+     * Score is computed only for wbpsa score elements which are equal to 0, i.e. non-zero elements are directly reused in the resulting Score. Result is
+     * Score.ZERO if the resulting Score does not satisfy the minCompatibilityTester predicate. The passed wbpsa instance is updated with the new Score.
      * <p>
      *
      * @param wbpsa
      * @param tiling Can be null, in this case pre/post target notes scores are 0
-     * @param tempo If &lt;= 0 tempo is ignored in score computing
+     * @param tempo  If &lt;= 0 tempo is ignored in score computing
      * @return The wbpsa Score
      */
     public Score updateCompatibilityScore(WbpSourceAdaptation wbpsa, WbpTiling tiling, int tempo)
@@ -276,12 +275,12 @@ public class WbpsaScorer
      *
      * @param wbpsa
      * @param tiling
-     * @return Can not be null
+     * @return Can be null
      */
     private WbpSourceAdaptation getPrevWbpsa(WbpSourceAdaptation wbpsa, WbpTiling tiling)
     {
         int prevBar = wbpsa.getBarRange().from - 1;
-        WbpSourceAdaptation res = tiling.getWbpSourceAdaptation(prevBar);
+        WbpSourceAdaptation res = tiling.getUsableBars().contains(prevBar) ? tiling.getWbpSourceAdaptation(prevBar) : null;
         return res;
     }
 
@@ -295,7 +294,7 @@ public class WbpsaScorer
     private WbpSourceAdaptation getNextWbpsa(WbpSourceAdaptation wbpsa, WbpTiling tiling)
     {
         int nextBar = wbpsa.getBarRange().to + 1;
-        WbpSourceAdaptation res = tiling.getWbpSourceAdaptation(nextBar);
+        WbpSourceAdaptation res = tiling.getUsableBars().contains(nextBar) ? tiling.getWbpSourceAdaptation(nextBar) : null;
         return res;
     }
 

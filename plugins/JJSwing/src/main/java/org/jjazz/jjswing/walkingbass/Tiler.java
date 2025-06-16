@@ -29,12 +29,12 @@ package org.jjazz.jjswing.walkingbass;
  */
 public interface Tiler
 {
-
     /**
-     * Try to tile the non-tiled bars of the specified tiling.
+     * Try to tile the non-tiled bars of tiling using WbpSourceAdaptations from store.
      *
      * @param tiling
+     * @param store Must be built for tiling
      */
-    void tile(WbpTiling tiling);
+    void tile(WbpTiling tiling, WbpsaStore store);
 
 }

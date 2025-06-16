@@ -4,8 +4,6 @@
 * FInalize rhythm dialog settings
 * Automate rhythm tests on 2000 sngs
 * Do tests with multiple rhythms/time signatures, play from start, middle, loop selection
-* Reuse WbpsaStore between calls (save all the Wbpsas with score > 0), so they can be later quickly recheked with standard score tester
-* rule that if one dimension of a Score is 0 then overall Score is 0.
 * Profile music generation for optimization
 * Review all Midi notes to make sure note length is long enough (spotted too short notes in walking)
 

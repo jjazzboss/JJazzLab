@@ -61,7 +61,6 @@ import org.jjazz.yamjjazz.rhythm.api.StylePart;
 import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythm;
 import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythmProvider;
 import org.netbeans.api.annotations.common.StaticResource;
-import org.jjazz.jjswing.api.YjzCompositeRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhrase;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Fill;
@@ -264,8 +263,8 @@ public class JJSwingRhythm implements YjzCompositeRhythm
         LOGGER.log(Level.INFO, "loadResources() WbpSourceDatabase checkConsistency() skipped");
         // LOGGER.severe("loadResources() debug updating SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT");
         // System.setProperty(NoteEvent.SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT, "%1$s");
-        //wbpsDB.checkConsistency(BassStyle.TWO_FEEL);
-        //wbpsDB.checkConsistency(BassStyle.WALKING);
+        // wbpsDB.checkConsistency(BassStyle.TWO_FEEL);
+        // wbpsDB.checkConsistency(BassStyle.WALKING);
 
 
         pcs.firePropertyChange(PROP_RESOURCES_LOADED, false, true);

@@ -24,13 +24,13 @@
  */
 package org.jjazz.jjswing.walkingbass;
 
-import org.jjazz.jjswing.walkingbass.db.WbpSource;
 import com.google.common.base.Preconditions;
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jjazz.jjswing.walkingbass.db.WbpSourceDatabase;
 
 /**
  * Tile in bar order the most compatible WbpSourceAdaptation whose WbpSource was never used or was used the furthest from current bar.
@@ -39,31 +39,25 @@ import java.util.logging.Logger;
 public class TilerMaxDistance implements Tiler
 {
 
-    private final Set<WbpSource> usedWbpSources;
-    private final int wbpsaStoreWidth;
-    private final WbpsaScorer scorer;    
+    private final Predicate<WbpSourceAdaptation> wbpsaTester;
     private static final Logger LOGGER = Logger.getLogger(TilerMaxDistance.class.getSimpleName());
 
-
-    public TilerMaxDistance(WbpsaScorer scorer, int wbpsaStoreWidth)
+    /**
+     *
+     * @param wbpsaTester Ignore WbpSourceAdapatations which do not satisfy this predicate
+     */
+    public TilerMaxDistance(Predicate<WbpSourceAdaptation> wbpsaTester)
     {
-        this.usedWbpSources = new HashSet<>();
-        this.wbpsaStoreWidth = wbpsaStoreWidth;
-        this.scorer = scorer;
+        this.wbpsaTester = wbpsaTester;
     }
 
 
     @Override
-    public void tile(WbpTiling tiling)
+    public void tile(WbpTiling tiling, WbpsaStore store)
     {
         LOGGER.log(Level.FINE, "tile() --");
-        reset();
-
-        WbpsaStore store = new WbpsaStore(tiling, wbpsaStoreWidth, scorer);
-
 
         // LOGGER.log(Level.FINE, "tile() store=\n{0}", store.toDebugString(true));
-
 
         var nonTiledBars = tiling.getNonTiledBars();
         var itBar = nonTiledBars.iterator();
@@ -71,7 +65,7 @@ public class TilerMaxDistance implements Tiler
         while (itBar.hasNext())
         {
             int bar = itBar.next();
-            var wbpsas = store.getWbpSourceAdaptations(bar);        // Might be partly shuffled
+            var wbpsas = getAllSizeWbpsas(store, bar);
             if (wbpsas.isEmpty())
             {
                 continue;
@@ -96,9 +90,27 @@ public class TilerMaxDistance implements Tiler
     // ====================================================================================================================
     // Private methods
     // ====================================================================================================================
-    private void reset()
+
+    /**
+     * Return the largest WbpSourceAdaptations first.
+     * <p>
+     * WbpSourceAdaptations which do not satisfy minScoreTester are ignored.
+     *
+     * @param store
+     * @param bar
+     * @return
+     */
+    private List<WbpSourceAdaptation> getAllSizeWbpsas(WbpsaStore store, int bar)
     {
-        usedWbpSources.clear();
+        List<WbpSourceAdaptation> res = new ArrayList<>();
+        for (int size = WbpSourceDatabase.SIZE_MAX; size >= WbpSourceDatabase.SIZE_MIN; size--)
+        {
+            var wbpsas = store.getWbpSourceAdaptations(bar, size).stream()
+                    .filter(wbpsa -> wbpsaTester.test(wbpsa))
+                    .toList();
+            res.addAll(wbpsas);
+        }
+        return res;
     }
 
     /**
@@ -114,12 +126,12 @@ public class TilerMaxDistance implements Tiler
 
         WbpSourceAdaptation res = null;
         int maxMinDistance = -1;
-        int wbpsaBar = wbpsas.get(0).getBarRange().from; 
+        int wbpsaBar = wbpsas.get(0).getBarRange().from;
 
         for (var wbpsa : wbpsas)
         {
             var usageBars = tiling.getStartBarIndexes(wbpsa.getWbpSource(), true);  // Use false for less possible redundancies
-            
+
             if (usageBars.isEmpty())
             {
                 res = wbpsa;    // not used before, use it now

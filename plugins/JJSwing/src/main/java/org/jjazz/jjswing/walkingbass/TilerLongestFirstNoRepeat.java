@@ -24,56 +24,81 @@
  */
 package org.jjazz.jjswing.walkingbass;
 
+import com.google.common.base.Preconditions;
 import org.jjazz.jjswing.walkingbass.db.WbpSource;
 import org.jjazz.jjswing.walkingbass.db.WbpSourceDatabase;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jjazz.utilities.api.IntRange;
 
 /**
- * Tile the longest and most compatible WbpSourceAdaptations first, using a given WbpSource maximum once.
+ * Tile the longest and most compatible WbpSourceAdaptations first, using a given WbpSource only once.
  * <p>
  * When a 2/3/4-bar WbpSource is used, its "sub-WbpSources" (1/2/3 bars) are also considered used.
  */
 public class TilerLongestFirstNoRepeat implements Tiler
 {
 
+    private static final int NB_RANKS = 5;
     private final Set<WbpSource> usedWbpSources;
-    private final int wbpsaStoreWidth;
-    private final WbpsaScorer scorer;
+    private final Predicate<WbpSourceAdaptation> wbpsaTester;
     private static final Logger LOGGER = Logger.getLogger(TilerLongestFirstNoRepeat.class.getSimpleName());
 
-    public TilerLongestFirstNoRepeat(WbpsaScorer scorer, int wbpsaStoreWidth)
+    /**
+     *
+     * @param wbpsaTester Ignore WbpSourceAdapatations which do not satisfy this predicate
+     */
+    public TilerLongestFirstNoRepeat(Predicate<WbpSourceAdaptation> wbpsaTester)
     {
+        Objects.requireNonNull(wbpsaTester);
         this.usedWbpSources = new HashSet<>();
-        this.wbpsaStoreWidth = wbpsaStoreWidth;
-        this.scorer = scorer;
+        this.wbpsaTester = wbpsaTester;
     }
 
 
     @Override
-    public void tile(WbpTiling tiling)
+    public void tile(WbpTiling tiling, WbpsaStore store)
     {
+        Objects.requireNonNull(tiling);
+        Objects.requireNonNull(store);
+        Preconditions.checkArgument(store.getTiling() == tiling, "tiling=%s  store.getTiling()=%s", tiling, store.getTiling());
+
         LOGGER.log(Level.FINE, "tile() --");
         reset();
 
-        WbpsaStore store = new WbpsaStore(tiling, wbpsaStoreWidth, scorer);
 
         // LOGGER.log(Level.FINE, "tile() store=\n{0}", store.toDebugString(true));
-
         for (int size = WbpSourceDatabase.SIZE_MAX; size >= WbpSourceDatabase.SIZE_MIN; size--)
         {
-            for (int rank = 0; rank < wbpsaStoreWidth; rank++)
+            for (int rank = 0; rank < NB_RANKS; rank++)
             {
-                var wbpsas = store.getWbpSourceAdaptationsRanked(rank, size).values();
-                for (var wbpsa : wbpsas)
+                for (int bar : tiling.getNonTiledBars())
                 {
-                    WbpSource wbpSource = wbpsa.getWbpSource();
-                    if (canUse(wbpSource) && tiling.isUsableAndFree(wbpsa.getBarRange()))
+                    if (!tiling.isUsableAndFree(new IntRange(bar, bar + size - 1)))
                     {
+                        continue;
+                    }
+
+                    var wbpsas = store.getWbpSourceAdaptations(bar, size);      // Might be partly shuffled
+                    if (rank >= wbpsas.size())
+                    {
+                        continue;
+                    }
+
+                    var wbpsa = wbpsas.get(rank);
+                    var wbpSource = wbpsa.getWbpSource();
+                    if (wbpsaTester.test(wbpsa) && canUse(wbpSource))
+                    {
+                        LOGGER.log(Level.SEVERE, "tile() wbpsa added bar={0} size={1} rank={2}", new Object[]
+                        {
+                            bar, size, rank
+                        });
                         tiling.add(wbpsa);
-                        markAsUsed(wbpSource, false);     // testing with false, switch back to true if it generates annoying redundancies 
+                        markAsUsed(wbpSource, false);     // use stric=false for now, switch back to true if it generates annoying redundancies 
                     }
                 }
             }
@@ -88,6 +113,7 @@ public class TilerLongestFirstNoRepeat implements Tiler
     {
         usedWbpSources.clear();
     }
+
 
     /**
      * Mark wbpSource and some of its related sources as used.

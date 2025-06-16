@@ -34,7 +34,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -43,7 +42,7 @@ import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.utilities.api.IntRange;
 
 /**
- * Define which WbpSourceAdaptations (of various sizes) cover which bars.
+ * Defines which WbpSourceAdaptation (of various sizes) covers which bar(s).
  * <p>
  */
 public class WbpTiling
@@ -69,7 +68,7 @@ public class WbpTiling
 
     private final List<SimpleChordSequence> scsList;
     private final List<Integer> usableBars;
-    private final TreeMap<Integer, WbpSourceAdaptation> mapBarWbpsa;
+    private final WbpSourceAdaptation[] wbpsas;
     private static final Logger LOGGER = Logger.getLogger(WbpTiling.class.getSimpleName());
 
     /**
@@ -80,14 +79,14 @@ public class WbpTiling
     public WbpTiling(List<SimpleChordSequence> scsList)
     {
         this.scsList = scsList;
-        mapBarWbpsa = new TreeMap<>();
         usableBars = scsList.stream()
                 .map(scs -> scs.getBarRange())
                 .flatMap(br -> br.stream().boxed())
                 .toList();
-
+        wbpsas = new WbpSourceAdaptation[usableBars.getLast() + 1];
     }
 
+    
     /**
      * The list of SimpleChordSequences passed to constructor.
      *
@@ -116,21 +115,23 @@ public class WbpTiling
      */
     public WbpSourceAdaptation remove(WbpSourceAdaptation wbpsa)
     {
-        var res = remove(wbpsa.getBarRange().from);
-        return res;
+        return remove(wbpsa.getBarRange().from);
     }
 
     /**
-     * Remove any WbpSourceAdaptation at specified start bar.
+     * Remove any WbpSourceAdaptation starting at specified bar.
      * <p>
-     * @param startBar The start bar of the WbpSourceAdaptation
+     * @param bar The start bar of the WbpSourceAdaptation
      * @return The WbpSourceAdaptation that was removed or null
      */
-    public WbpSourceAdaptation remove(int startBar)
+    public WbpSourceAdaptation remove(int bar)
     {
-        var res = mapBarWbpsa.remove(startBar);
-        return res;
+        checkBarIsValid(bar);
+        WbpSourceAdaptation old = wbpsas[bar];
+        wbpsas[bar] = null;
+        return old;
     }
+
 
     /**
      * Add a WbpSourceAdaptation.
@@ -142,11 +143,8 @@ public class WbpTiling
     {
         Objects.requireNonNull(wbpsa);
         var br = wbpsa.getBarRange();
-        if (!isUsableAndFree(br))
-        {
-            throw new IllegalArgumentException("Can not add " + wbpsa + ", bar zone is not free. this=" + this);
-        }
-        mapBarWbpsa.put(br.from, wbpsa);
+        Preconditions.checkArgument(isUsableAndFree(br), "wbpsa=%s  this=%s", wbpsa, this);
+        wbpsas[br.from] = wbpsa;
     }
 
     /**
@@ -182,7 +180,7 @@ public class WbpTiling
      */
     public List<WbpSourceAdaptation> getWbpSourceAdaptations()
     {
-        return new ArrayList<>(mapBarWbpsa.values());
+        return getWbpSourceAdaptations(wbpsa -> true);
     }
 
     /**
@@ -193,9 +191,15 @@ public class WbpTiling
      */
     public List<WbpSourceAdaptation> getWbpSourceAdaptations(Predicate<WbpSourceAdaptation> tester)
     {
-        var res = mapBarWbpsa.values().stream()
-                .filter(wbpsa -> tester.test(wbpsa))
-                .toList();
+        List<WbpSourceAdaptation> res = new ArrayList<>(usableBars.size());
+        for (int bar : usableBars)
+        {
+            var wbpsa = wbpsas[bar];
+            if (wbpsa != null && tester.test(wbpsa))
+            {
+                res.add(wbpsa);
+            }
+        }
         return res;
     }
 
@@ -225,10 +229,10 @@ public class WbpTiling
     {
         List<Integer> res = new ArrayList<>();
         var wdb = WbpSourceDatabase.getInstance();
-        var wbpsas = getWbpSourceAdaptations(wbpsa -> wbpsa.getWbpSource().getSessionId().equals(wbpSource.getSessionId()));
+        var wbpsaList = getWbpSourceAdaptations(wbpsa -> wbpsa.getWbpSource().getSessionId().equals(wbpSource.getSessionId()));
         var br = wbpSource.getBarRange();
 
-        for (var wbpsa : wbpsas)
+        for (var wbpsa : wbpsaList)
         {
             var ws = wbpsa.getWbpSource();
             var wsBr = wbpsa.getBarRange();
@@ -257,14 +261,15 @@ public class WbpTiling
     }
 
     /**
-     * Get the WbpSourceAdaptation starting at startBar.
+     * Get the WbpSourceAdaptation starting at bar.
      *
-     * @param startBar
+     * @param bar
      * @return Might be null.
      */
-    public WbpSourceAdaptation getWbpSourceAdaptationStartingAt(int startBar)
+    public WbpSourceAdaptation getWbpSourceAdaptationStartingAt(int bar)
     {
-        WbpSourceAdaptation res = mapBarWbpsa.get(startBar);
+        checkBarIsValid(bar);
+        WbpSourceAdaptation res = wbpsas[bar];
         return res;
     }
 
@@ -276,15 +281,18 @@ public class WbpTiling
      */
     public WbpSourceAdaptation getWbpSourceAdaptation(int bar)
     {
+        checkBarIsValid(bar);
         WbpSourceAdaptation res = null;
-        var floorEntry = mapBarWbpsa.floorEntry(bar);
-        if (floorEntry != null)
+        int index = bar;
+        do
         {
-            res = floorEntry.getValue();
-            if (!res.getBarRange().contains(bar))
-            {
-                res = null;
-            }
+            res = wbpsas[index];
+            index--;
+        } while (res == null && index >= usableBars.get(0));
+
+        if (res != null && !res.getBarRange().contains(bar))
+        {
+            res = null;
         }
         return res;
     }
@@ -312,7 +320,7 @@ public class WbpTiling
         while (it.hasNext())
         {
             int bar = it.next();
-            var wbpsa = getWbpSourceAdaptationStartingAt(bar);
+            var wbpsa = wbpsas[bar];
             if (wbpsa != null)
             {
                 res.add(bar);
@@ -334,20 +342,37 @@ public class WbpTiling
      */
     public List<Integer> getNonTiledBars()
     {
-        var tiledBars = getTiledBars();
-        var res = usableBars.stream()
-                .filter(bar -> !tiledBars.contains(bar))
-                .toList();
+        List<Integer> res = new ArrayList<>();
+
+        var it = usableBars.iterator();
+        while (it.hasNext())
+        {
+            int bar = it.next();
+            var wbpsa = wbpsas[bar];
+            if (wbpsa == null)
+            {
+                res.add(bar);
+            } else
+            {
+                for (int i = 1; i < wbpsa.getBarRange().size(); i++)
+                {
+                    it.next();
+                }
+            }
+        }
+
         return res;
     }
 
     /**
-     * Get the start bar indexes of zones not covered by a WbpSourceAdaptation.
+     * Get the start bar indexes of non-overlapping untiled zones.
+     * 
+     * Example: if untiled bars are 0,4,5,6,7,8 and zoneSize=2, then method returns [4,6].
      *
      * @param zoneSize 1 to 4 bars
      * @return
      */
-    public List<Integer> getUntiledZonesStartBarIndexes(int zoneSize)
+    public List<Integer> getNonTiledZonesStartBarIndexes(int zoneSize)
     {
         Preconditions.checkArgument(zoneSize >= 1 && zoneSize <= 4, "zoneSize=%s", zoneSize);
         List<Integer> res = new ArrayList<>();
@@ -414,8 +439,9 @@ public class WbpTiling
         {
             return false;
         }
-        var floorEntry = mapBarWbpsa.floorEntry(barRange.to);
-        return floorEntry == null || !floorEntry.getValue().getBarRange().isIntersecting(barRange);
+        boolean b = barRange.stream()
+                .allMatch(bar -> wbpsas[bar] == null);
+        return b;
     }
 
     /**
@@ -459,7 +485,7 @@ public class WbpTiling
 
         Set<SimpleChordSequence> processedChordSequences = new HashSet<>();
 
-        var startBars = getUntiledZonesStartBarIndexes(size);
+        var startBars = getNonTiledZonesStartBarIndexes(size);
         for (int startBar : startBars)
         {
             var br = new IntRange(startBar, startBar + size - 1);
@@ -485,7 +511,7 @@ public class WbpTiling
     @Override
     public String toString()
     {
-        return mapBarWbpsa.toString();
+        return "Tiling" + usableBars;
     }
 
     /**
@@ -497,7 +523,7 @@ public class WbpTiling
     {
         // Show how often each WbpSource is used, starting by the most used
         SortedSetMultimap<WbpSource, Integer> mapSourceBars = MultimapBuilder.hashKeys().treeSetValues().build();
-        for (var wbpsa : mapBarWbpsa.values())
+        for (var wbpsa : getWbpSourceAdaptations())
         {
             var source = wbpsa.getWbpSource();
             mapSourceBars.put(source, wbpsa.getBarRange().from);
@@ -532,7 +558,6 @@ public class WbpTiling
     public String toMultiLineString()
     {
         StringBuilder sb = new StringBuilder();
-        var usableBars = getUsableBars();
         sb.append("TILING ").append(String.valueOf(getTiledBars().size())).append("/").append(String.valueOf(usableBars.size())).append(" :\n");
 
         for (int bar : usableBars)
@@ -555,4 +580,8 @@ public class WbpTiling
     // =================================================================================================================
     // Private methods
     // =================================================================================================================
+    private void checkBarIsValid(int bar)
+    {
+        Preconditions.checkArgument(bar >=0 && isUsable(new IntRange(bar, bar)), "bar=%s usableBars=%s", bar, usableBars);
+    }
 }

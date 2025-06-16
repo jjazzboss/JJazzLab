@@ -39,7 +39,7 @@ public interface BassPhraseBuilder
     /**
      * Create a bass Phrase for one or more SimpleChordSequences.
      *
-     * @param scsList
+     * @param scsList SimpleChordSequences in bar ascending order.
      * @param tempo
      * @return
      */

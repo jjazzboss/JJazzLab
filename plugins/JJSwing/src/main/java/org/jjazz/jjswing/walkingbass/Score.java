@@ -137,7 +137,7 @@ public record Score(float harmonicCompatibility, float transposability, float te
     }
 
     /**
-     * Only overall() is takin into account, in order to be consistent with compareTo().
+     * Only overall() is taken into account, in order to be consistent with compareTo().
      *
      * @return
      */
@@ -150,7 +150,7 @@ public record Score(float harmonicCompatibility, float transposability, float te
     }
 
     /**
-     * Only overall() is takin into account, in order to be consistent with compareTo().
+     * Only overall() is taken into account, in order to be consistent with compareTo().
      *
      * @return
      */

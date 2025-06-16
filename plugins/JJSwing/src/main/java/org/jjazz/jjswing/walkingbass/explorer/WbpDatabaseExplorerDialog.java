@@ -52,7 +52,7 @@ import org.jjazz.utilities.api.IntRange;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.windows.WindowManager;
-import org.jjazz.jjswing.walkingbass.WbpsaScorer2;
+import org.jjazz.jjswing.walkingbass.WbpsaScorer;
 
 /**
  * A dialog to query the WbpDatabase.
@@ -171,10 +171,10 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
 
 
         // Evaluate compatibility
-        WbpsaScorer2 wbpsaScorer = new WbpsaScorer(null, tempo, cb_premiumOnly.isSelected() ? Score.PREMIUM_ONLY_TESTER : null, bassStyles);
+        WbpsaScorer wbpsaScorer = new WbpsaScorer(null, cb_premiumOnly.isSelected() ? Score.PREMIUM_ONLY_TESTER : null);
         var wbpsas = wbpSources.stream()
-                .map(wbps -> WbpSourceAdaptation.of(wbps, scs))
-                .filter(wbpsa -> cb_rootProfileOnly.isSelected() || scs.isEmpty() || wbpsaScorer.updateCompatibilityScore(wbpsa, null).compareTo(Score.ZERO) > 0)
+                .map(wbps -> WbpSourceAdaptation.of(wbps, scs.isEmpty() ? wbps.getSimpleChordSequence() : scs))
+                .filter(wbpsa -> cb_rootProfileOnly.isSelected() || wbpsaScorer.updateCompatibilityScore(wbpsa, null, getTempo()).compareTo(Score.ZERO) > 0)
                 .toList();
 
 

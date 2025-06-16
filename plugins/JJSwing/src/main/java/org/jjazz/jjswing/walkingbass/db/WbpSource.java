@@ -99,6 +99,44 @@ public class WbpSource extends Wbp
     }
 
     /**
+     * Only rely on Id.
+     *
+     * @return
+     */
+    @Override
+    public int hashCode()
+    {
+        int hash = 5;
+        hash = 71 * hash + Objects.hashCode(this.id);
+        return hash;
+    }
+
+    /**
+     * Only rely on Id.
+     *
+     * @return
+     */
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (this == obj)
+        {
+            return true;
+        }
+        if (obj == null)
+        {
+            return false;
+        }
+        if (getClass() != obj.getClass())
+        {
+            return false;
+        }
+        final WbpSource other = (WbpSource) obj;
+        return Objects.equals(this.id, other.id);
+    }
+
+
+    /**
      * If &lt; 0 the phrase notes starting on bar/beat 0 should be shifted with this value.
      * <p>
      * This is used to store the exact timing of "live-played notes" which can start a bit ahead of this phrase theorical start.

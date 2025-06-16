@@ -28,6 +28,8 @@ import org.jjazz.jjswing.walkingbass.db.WbpSource;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,8 +51,8 @@ import org.jjazz.utilities.api.IntRange;
  * <p>
  * Instances are cached.
  * <p>
- * NOTE: Comparable implementation is implemented so that natural order is by descending compatibility score. Comparable implementation is NOT
- * consistent with equal(), so WbpSourceAdaptation should NOT be used in a SortedSet or SortedMap.
+ * NOTE: Comparable implementation is implemented so that natural order is by descending compatibility score. Comparable implementation is NOT consistent with
+ * equal(), so WbpSourceAdaptation should NOT be used in a SortedSet or SortedMap.
  */
 public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
 {
@@ -119,31 +121,34 @@ public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
     }
 
     /**
-     * Find the WbpSources from WbpDatabase which are compatible with scs (compatibility score is &gt; Score.ZERO) and return the corresponding
-     * WbpSourceAdaptations.
+     * Find the WbpSources from WbpSourceDatabase which are compatible with scs (RootProfiles match and compatibility score is &gt; Score.ZERO) and return the
+     * corresponding WbpSourceAdaptations ordered by descending Score.
      * <p>
      * @param scs
-     * @param tiling Can be null. Used in the compatibility score calculation.
-     * @param tempo If &lt; tempo is ignored
-     * @param bassStyles Can not be empty. The style of the target WbpSources
-     * @return A multimap with WbpSourceAdaptation's Score keys in ascending order
+     * @param scorer
+     * @param tiling     Can be null. Used in the compatibility score calculation
+     * @param tempo      If &lt; 0 tempo is ignored in score calculation
+     * @param bassStyles Can not be empty. The styles of the target WbpSources to search in the WbpDatabase.
+     * @return A new list ordered by descending Score
+     * @see WbpSourceDatabase
      */
-    static public ListMultimap<Score, WbpSourceAdaptation> getWbpSourceAdaptations(SimpleChordSequence scs, WbpsaScorer scorer, WbpTiling tiling, int tempo, List<BassStyle> bassStyles)
+    static public List<WbpSourceAdaptation> getWbpSourceAdaptations(SimpleChordSequence scs, WbpsaScorer scorer, WbpTiling tiling, int tempo,
+            List<BassStyle> bassStyles)
     {
         Objects.requireNonNull(scs);
         Objects.requireNonNull(scorer);
-        Preconditions.checkArgument(bassStyles != null && !bassStyles.isEmpty(), "bassStyles=%s", bassStyles);
+        Objects.requireNonNull(bassStyles);
+        Preconditions.checkArgument(!bassStyles.isEmpty(), "bassStyles=%s", bassStyles);
 
-        // Score in ascending order
-        ListMultimap<Score, WbpSourceAdaptation> res = MultimapBuilder.treeKeys().arrayListValues().build();
+        List<WbpSourceAdaptation> res = new ArrayList<>();
 
         // Get the WbpSources
         var rootProfile = RootProfile.of(scs);
         var wbpsDb = WbpSourceDatabase.getInstance();
         var wbpSources = bassStyles.size() == 1 ? wbpsDb.getWbpSources(bassStyles.iterator().next(), rootProfile)
-            : bassStyles.stream()
-                .flatMap(bs -> wbpsDb.getWbpSources(bs, rootProfile).stream())
-                .toList();
+                : bassStyles.stream()
+                        .flatMap(bs -> wbpsDb.getWbpSources(bs, rootProfile).stream())
+                        .toList();
 
         // Calculate compatibility scores
         for (var wbpSource : wbpSources)
@@ -151,10 +156,11 @@ public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
             var wbpsa = WbpSourceAdaptation.of(wbpSource, scs);
             if (scorer.updateCompatibilityScore(wbpsa, tiling, tempo).compareTo(Score.ZERO) > 0)
             {
-                res.put(wbpsa.getCompatibilityScore(), wbpsa);
+                res.add(wbpsa);
             }
         }
 
+        Collections.sort(res, (o1, o2) -> o2.compareTo(o1));  // Descending score       
         return res;
     }
 
@@ -239,7 +245,7 @@ public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
     }
 
     /**
-     * Rely on Score.compareTo() whose natural ordering is by DESCENDING overall compatibility score.
+     * Rely on Score.compareTo() only.
      *
      * @param other
      * @return
@@ -295,8 +301,8 @@ public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
     private static String computeKey(WbpSource wbpSource, SimpleChordSequence scs)
     {
         var strChords = scs.stream()
-            .map(cliCs -> cliCs.getData().toString())
-            .collect(Collectors.joining(":"));
+                .map(cliCs -> cliCs.getData().toString())
+                .collect(Collectors.joining(":"));
         var rp = RootProfile.of(scs);
         var strRp = rp.nbBars() + ":" + rp.ascendingIntervals() + ":" + rp.relativeChordPositionsInBeats();
         var key = wbpSource.getId() + " " + strRp + " " + strChords;
