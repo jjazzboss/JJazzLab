@@ -31,6 +31,7 @@ import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.jjswing.walkingbass.db.WbpSourceDatabase;
+import org.jjazz.utilities.api.IntRange;
 
 /**
  * Tile in bar order the most compatible WbpSourceAdaptation whose WbpSource was never used or was used the furthest from current bar.
@@ -59,8 +60,7 @@ public class TilerMaxDistance implements Tiler
 
         // LOGGER.log(Level.FINE, "tile() store=\n{0}", store.toDebugString(true));
 
-        var nonTiledBars = tiling.getNonTiledBars();
-        var itBar = nonTiledBars.iterator();
+        var itBar = tiling.getNonTiledBars().iterator();
 
         while (itBar.hasNext())
         {
@@ -130,8 +130,13 @@ public class TilerMaxDistance implements Tiler
 
         for (var wbpsa : wbpsas)
         {
+            if (!tiling.isUsableAndFree(wbpsa.getBarRange()))
+            {
+                continue;
+            }
+            
+            
             var usageBars = tiling.getStartBarIndexes(wbpsa.getWbpSource(), true);  // Use false for less possible redundancies
-
             if (usageBars.isEmpty())
             {
                 res = wbpsa;    // not used before, use it now

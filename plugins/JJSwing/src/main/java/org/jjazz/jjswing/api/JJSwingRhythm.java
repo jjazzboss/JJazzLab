@@ -44,6 +44,7 @@ import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrasetransform.api.rps.RP_SYS_DrumsTransform;
 import org.jjazz.jjswing.walkingbass.db.WbpSourceDatabase;
 import org.jjazz.jjswing.walkingbass.JJSwingBassMusicGenerator;
+import org.jjazz.jjswing.walkingbass.JJSwingBassMusicGeneratorSettings;
 import org.jjazz.rhythm.api.Division;
 import org.jjazz.rhythm.api.Genre;
 import org.jjazz.rhythm.api.MusicGenerationException;
@@ -259,12 +260,17 @@ public class JJSwingRhythm implements YjzCompositeRhythm
         var wbpsDB = WbpSourceDatabase.getInstance();
         LOGGER.log(Level.FINE, "loadResources() WbpSourceDatabase size={0}", wbpsDB.getNbWbpSources(-1));
 
-        
+
         LOGGER.log(Level.INFO, "loadResources() WbpSourceDatabase checkConsistency() skipped");
         // LOGGER.severe("loadResources() debug updating SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT");
         // System.setProperty(NoteEvent.SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT, "%1$s");
         // wbpsDB.checkConsistency(BassStyle.TWO_FEEL);
         // wbpsDB.checkConsistency(BassStyle.WALKING);
+
+        LOGGER.log(Level.WARNING, "loadResources() DEBUG forcing randomization OFF");
+        JJSwingBassMusicGeneratorSettings.getInstance().setWbpsaStoreRandomized(false);
+
+        LOGGER.log(Level.INFO, "loadResources() isWbpsaStoreRandomized={0}", JJSwingBassMusicGeneratorSettings.getInstance().isWbpsaStoreRandomized());
 
 
         pcs.firePropertyChange(PROP_RESOURCES_LOADED, false, true);

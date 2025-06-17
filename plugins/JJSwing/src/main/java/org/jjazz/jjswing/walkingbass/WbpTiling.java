@@ -86,7 +86,7 @@ public class WbpTiling
         wbpsas = new WbpSourceAdaptation[usableBars.getLast() + 1];
     }
 
-    
+
     /**
      * The list of SimpleChordSequences passed to constructor.
      *
@@ -106,32 +106,6 @@ public class WbpTiling
     {
         return usableBars;
     }
-
-    /**
-     * Remove the specified WbpSourceAdaptation.
-     * <p>
-     * @param wbpsa
-     * @return The WbpSourceAdaptation that was removed or null
-     */
-    public WbpSourceAdaptation remove(WbpSourceAdaptation wbpsa)
-    {
-        return remove(wbpsa.getBarRange().from);
-    }
-
-    /**
-     * Remove any WbpSourceAdaptation starting at specified bar.
-     * <p>
-     * @param bar The start bar of the WbpSourceAdaptation
-     * @return The WbpSourceAdaptation that was removed or null
-     */
-    public WbpSourceAdaptation remove(int bar)
-    {
-        checkBarIsValid(bar);
-        WbpSourceAdaptation old = wbpsas[bar];
-        wbpsas[bar] = null;
-        return old;
-    }
-
 
     /**
      * Add a WbpSourceAdaptation.
@@ -284,11 +258,12 @@ public class WbpTiling
         checkBarIsValid(bar);
         WbpSourceAdaptation res = null;
         int index = bar;
+        int minIndex = Math.max(usableBars.get(0), bar - WbpSourceDatabase.SIZE_MAX + 1);
         do
         {
             res = wbpsas[index];
             index--;
-        } while (res == null && index >= usableBars.get(0));
+        } while (res == null && index >= minIndex);
 
         if (res != null && !res.getBarRange().contains(bar))
         {
@@ -366,7 +341,7 @@ public class WbpTiling
 
     /**
      * Get the start bar indexes of non-overlapping untiled zones.
-     * 
+     * <p>
      * Example: if untiled bars are 0,4,5,6,7,8 and zoneSize=2, then method returns [4,6].
      *
      * @param zoneSize 1 to 4 bars
@@ -441,6 +416,21 @@ public class WbpTiling
         }
         boolean b = barRange.stream()
                 .allMatch(bar -> wbpsas[bar] == null);
+        if (b)
+        {
+            int index = barRange.from - 1;
+            int minIndex = Math.max(usableBars.get(0), barRange.from - WbpSourceDatabase.SIZE_MAX + 1);
+            while (index >= minIndex)
+            {
+                var wbpsa = wbpsas[index];
+                if (wbpsa != null)
+                {
+                    b = !wbpsa.getBarRange().isIntersecting(barRange);
+                    break;
+                }
+                index--;
+            }
+        }
         return b;
     }
 
@@ -511,7 +501,7 @@ public class WbpTiling
     @Override
     public String toString()
     {
-        return "Tiling" + usableBars;
+        return "Tiling" + getTiledBars();
     }
 
     /**
@@ -582,6 +572,6 @@ public class WbpTiling
     // =================================================================================================================
     private void checkBarIsValid(int bar)
     {
-        Preconditions.checkArgument(bar >=0 && isUsable(new IntRange(bar, bar)), "bar=%s usableBars=%s", bar, usableBars);
+        Preconditions.checkArgument(bar >= 0 && isUsable(new IntRange(bar, bar)), "bar=%s usableBars=%s", bar, usableBars);
     }
 }
