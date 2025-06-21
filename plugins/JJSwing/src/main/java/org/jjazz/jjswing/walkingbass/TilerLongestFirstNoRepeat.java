@@ -93,10 +93,6 @@ public class TilerLongestFirstNoRepeat implements Tiler
                     var wbpSource = wbpsa.getWbpSource();
                     if (wbpsaTester.test(wbpsa) && canUse(wbpSource))
                     {
-                        LOGGER.log(Level.SEVERE, "tile() wbpsa added bar={0} size={1} rank={2}", new Object[]
-                        {
-                            bar, size, rank
-                        });
                         tiling.add(wbpsa);
                         markAsUsed(wbpSource, false);     // use stric=false for now, switch back to true if it generates annoying redundancies 
                     }

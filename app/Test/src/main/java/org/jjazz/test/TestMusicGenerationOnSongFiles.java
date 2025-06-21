@@ -25,6 +25,7 @@ package org.jjazz.test;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -45,7 +46,6 @@ import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongCreationException;
-import org.jjazz.songstructure.api.SongPart;
 import org.netbeans.api.progress.BaseProgressUtils;
 import org.openide.util.Exceptions;
 import org.jjazz.songstructure.api.SongStructure;
@@ -68,6 +68,9 @@ import org.openide.windows.WindowManager;
 public final class TestMusicGenerationOnSongFiles implements ActionListener
 {
 
+    private static final boolean UPDATE_SONGS = true;
+    private static final boolean COPY_SONGS_TO_DEST = false;
+    private static final boolean GENERATE_MUSIC = true;
     private static final Logger LOGGER = Logger.getLogger(TestMusicGenerationOnSongFiles.class.getSimpleName());
 
 
@@ -121,9 +124,6 @@ public final class TestMusicGenerationOnSongFiles implements ActionListener
         @Override
         public void run()
         {
-
-            var rpBassStyle = RP_BassStyle.get(rhythm);
-
             for (var songFile : songFiles)
             {
                 LOGGER.log(Level.INFO, "Processing ===================  {0}", songFile);
@@ -131,59 +131,48 @@ public final class TestMusicGenerationOnSongFiles implements ActionListener
                 try
                 {
                     Song song = Song.loadFromFile(songFile);
-                    SongStructure sgs = song.getSongStructure();
-                    var midiMix = MidiMixManager.getDefault().findMix(song);      // Can raise MidiUnavailableException      
 
-
-                    // Use our rhythm whenever possible
+                    if (UPDATE_SONGS)
                     {
-                        var oldSpts = sgs.getSongParts().stream()
-                                .filter(spt -> spt.getRhythm() != rhythm && spt.getRhythm().getTimeSignature() == rhythm.getTimeSignature())
-                                .toList();
-                        var newSpts = oldSpts.stream()
-                                .map(spt -> spt.clone(rhythm, spt.getStartBarIndex(), spt.getNbBars(), spt.getParentSection()))
-                                .toList();
-                        sgs.replaceSongParts(oldSpts, newSpts);
-                    }
-
-
-                    var rhythmSpts = new ArrayList<>(sgs.getSongParts(spt -> spt.getRhythm() == rhythm));
-                    if (rhythmSpts.isEmpty())
-                    {
-                        LOGGER.log(Level.INFO, "   No relevant song parts to use {0}, skipping song", rhythm.getName());
-                        continue;
-                    }
-
-
-                    // Update the rhythmSpts with first BassStyle
-                    var bassStyles = new ArrayList<>(BassStyle.getNonCustomStyles());
-                    for (var spt : rhythmSpts)
-                    {
-                        sgs.setRhythmParameterValue(spt, rpBassStyle, RP_BassStyle.toRpValue(bassStyles.get(0)));
-                    }
-
-
-                    // Create rhythmSpts copies for each other bass style
-                    int insertBar = rhythmSpts.getLast().getBarRange().to + 1;
-                    for (var bassStyle : bassStyles.stream().skip(1).toList())
-                    {
-                        for (var spt : rhythmSpts.reversed())
+                        LOGGER.log(Level.INFO, "  Updating song...");
+                        if (!updateSongForJJSwing(song))
                         {
-                            var newSpt = spt.clone(null, insertBar, spt.getNbBars(), spt.getParentSection());
-                            sgs.addSongParts(List.of(newSpt));
-                            sgs.setRhythmParameterValue(newSpt, rpBassStyle, RP_BassStyle.toRpValue(bassStyle));
+                            continue;
                         }
                     }
 
+                    if (COPY_SONGS_TO_DEST)
+                    {
+                        var destDirFile = songFile.getParentFile().toPath().resolve("dest").toFile();
+                        if (!destDirFile.isDirectory())
+                        {
+                            if (!destDirFile.mkdir())
+                            {
+                                LOGGER.log(Level.SEVERE, "Can not create {0}", destDirFile.getAbsolutePath());
+                                break;
+                            } else
+                            {
+                                LOGGER.log(Level.INFO, "Directory {0} created", destDirFile.getAbsolutePath());
+                            }
+                        }
+                        var newSongFile = new File(destDirFile, songFile.getName());
+                        LOGGER.log(Level.SEVERE, "  Saving file to {0}...", newSongFile);
+                        song.saveToFile(newSongFile, true);
+                    }
 
-                    // Generate music
-                    SongSequenceBuilder seqBuilder = new SongSequenceBuilder(new SongContext(song, midiMix), 0);
-                    seqBuilder.buildMapRvPhrase(true);
 
+                    if (GENERATE_MUSIC)
+                    {
+                        // Generate music
+                        LOGGER.log(Level.INFO, "  Generating music...");
+                        var midiMix = MidiMixManager.getDefault().findMix(song);      // Can raise MidiUnavailableException      
+                        SongSequenceBuilder seqBuilder = new SongSequenceBuilder(new SongContext(song, midiMix), 0);
+                        seqBuilder.buildMapRvPhrase(true);
+                    }
 
-                } catch (MidiUnavailableException | MusicGenerationException | SongCreationException | UnsupportedEditException ex)
+                } catch (MidiUnavailableException | IOException | MusicGenerationException | SongCreationException | UnsupportedEditException ex)
                 {
-                    LOGGER.log(Level.SEVERE, "  !!! EXCEPTION ex=" + ex.getMessage());
+                    LOGGER.log(Level.SEVERE, "  !!! EXCEPTION ex={0}", ex.getMessage());
                     // Exceptions.printStackTrace(ex);
                 }
             }
@@ -191,6 +180,59 @@ public final class TestMusicGenerationOnSongFiles implements ActionListener
 
             LOGGER.log(Level.INFO, "\n");
             LOGGER.log(Level.INFO, "{0} songs processed", songFiles.length);
+        }
+
+        /**
+         * Use our rhythm whenever possible
+         *
+         * @param song
+         * @return true if update was successful
+         * @throws UnsupportedEditException
+         */
+        private boolean updateSongForJJSwing(Song song) throws UnsupportedEditException
+        {
+            SongStructure sgs = song.getSongStructure();
+
+
+            var oldSpts = sgs.getSongParts().stream()
+                    .filter(spt -> spt.getRhythm() != rhythm && spt.getRhythm().getTimeSignature() == rhythm.getTimeSignature())
+                    .toList();
+            var newSpts = oldSpts.stream()
+                    .map(spt -> spt.clone(rhythm, spt.getStartBarIndex(), spt.getNbBars(), spt.getParentSection()))
+                    .toList();
+            sgs.replaceSongParts(oldSpts, newSpts);
+
+
+            var rhythmSpts = new ArrayList<>(sgs.getSongParts(spt -> spt.getRhythm() == rhythm));
+            if (rhythmSpts.isEmpty())
+            {
+                LOGGER.log(Level.INFO, "   No relevant song parts to use {0}, skipping song", rhythm.getName());
+                return false;
+            }
+
+
+            // Update the rhythmSpts with first BassStyle
+            var bassStyles = new ArrayList<>(BassStyle.getNonCustomStyles());
+            for (var spt : rhythmSpts)
+            {
+                sgs.setRhythmParameterValue(spt, RP_BassStyle.get(rhythm), RP_BassStyle.toRpValue(bassStyles.get(0)));
+            }
+
+
+            // Create rhythmSpts copies for each other bass style
+            int insertBar = rhythmSpts.getLast().getBarRange().to + 1;
+            for (var bassStyle : bassStyles.stream().skip(1).toList())
+            {
+                for (var spt : rhythmSpts.reversed())
+                {
+                    var newSpt = spt.clone(null, insertBar, spt.getNbBars(), spt.getParentSection());
+                    sgs.addSongParts(List.of(newSpt));
+                    sgs.setRhythmParameterValue(newSpt, RP_BassStyle.get(rhythm), RP_BassStyle.toRpValue(bassStyle));
+                }
+            }
+
+
+            return true;
         }
 
     }

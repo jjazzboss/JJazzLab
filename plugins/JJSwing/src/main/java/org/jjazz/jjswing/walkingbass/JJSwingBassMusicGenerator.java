@@ -73,6 +73,7 @@ public class JJSwingBassMusicGenerator implements MusicGenerator
 
 
     private final Rhythm rhythm;
+    private Song lastSong;
 
     private static final Logger LOGGER = Logger.getLogger(JJSwingBassMusicGenerator.class.getSimpleName());
 
@@ -82,6 +83,7 @@ public class JJSwingBassMusicGenerator implements MusicGenerator
                 && RP_SYS_Intensity.getIntensityRp(r) != null,
                 "r=%s", r);
         rhythm = r;
+        lastSong = null;
     }
 
     /**
@@ -98,6 +100,10 @@ public class JJSwingBassMusicGenerator implements MusicGenerator
         Objects.requireNonNull(context);
         Preconditions.checkArgument(rvs.length == 0 || (rvs.length == 1 && rvs[0].getType() == RhythmVoice.Type.BASS), "context=%s, rvs=%s", context, rvs);
 
+        if (context.getSong() != lastSong)
+        {
+            clearCacheData();
+        }
 
         RhythmVoice rvBass;
         if (rvs.length == 1)
@@ -190,6 +196,7 @@ public class JJSwingBassMusicGenerator implements MusicGenerator
 
         res.put(rvBass, pRes);
 
+        lastSong = context.getSong();
 
         return res;
     }
@@ -718,7 +725,13 @@ public class JJSwingBassMusicGenerator implements MusicGenerator
     }
 
 
+    private void clearCacheData()
+    {
+        WbpSourceAdaptation.clearCacheData();
+    }
+
     // =====================================================================================================================
     // Inner classes
     // =====================================================================================================================
+
 }

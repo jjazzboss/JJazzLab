@@ -89,17 +89,9 @@ public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
             {
                 wbpSource, key, res.getBeatRange()
             });
-        } else if (wbpsa.getBeatRange().equals(scs.getBeatRange()))
+        } else 
         {
-            // Direct reuse
-            res = wbpsa;
-            LOGGER.log(Level.FINE, "of() Direct reusing of instance for {0}  key={1}", new Object[]
-            {
-                wbpSource, key
-            });
-        } else
-        {
-            // Beat ranges differ, we can not directly reuse wbpsa but we can reuse some of its values in order to save future calculations
+            // Reuse wbpsa harmonic/transposability scores
             res = new WbpSourceAdaptation(wbpSource, scs);
             Score baseScore = wbpsa.getCompatibilityScore();
             Score newScore = new Score(baseScore.harmonicCompatibility(), baseScore.transposability(), 0, 0, 0);    // tempo/pre/post-target scores reset because depend on context
@@ -162,6 +154,11 @@ public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
 
         Collections.sort(res, (o1, o2) -> o2.compareTo(o1));  // Descending score       
         return res;
+    }
+    
+    static public void clearCacheData()
+    {
+        MAP_KEYSTR_WBPSA.clear();
     }
 
     private WbpSourceAdaptation(WbpSource wbpSource, SimpleChordSequence scs)

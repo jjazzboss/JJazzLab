@@ -43,7 +43,7 @@ import org.jjazz.utilities.api.IntRange;
 public class WbpsaStore
 {
 
-    private static final float SIMILAR_OVERALL_SCORE_WINDOW_SIZE = 7f;  // Overall score is [0;100]
+    private static final float RANDOMIZATION_SCORE_WINDOW_SIZE = 7f;  // Overall score is [0;100]
 
     private final WbpTiling tiling;
     /**
@@ -76,21 +76,21 @@ public class WbpsaStore
     }
 
     /**
-     * Create and store compatible WbpSourceAdaptations for the tiling with the specified parameters.
+     * Create and store compatible WbpSourceAdaptations for the non-tiled bars with the specified parameters.
      * <p>
-     * WbpSourceAdaptations created by this method are added in the store along with the existing ones.
      *
      * @param tempo      If &lt;0 tempo is ignored
      * @param bassStyles Can not be empty
      * @see WbpSourceAdaptation#getWbpSourceAdaptations(org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence, org.jjazz.jjswing.walkingbass.WbpsaScorer,
      * org.jjazz.jjswing.walkingbass.WbpTiling, int, java.util.List)
+     * @see #addWbpSourceAdaptations(int, java.util.List)
      */
     public void populate(int tempo, List<BassStyle> bassStyles)
     {
+        Objects.requireNonNull(bassStyles);
         Preconditions.checkArgument(!bassStyles.isEmpty(), "bassStyles=" + bassStyles);
 
         var nonTiledBars = tiling.getNonTiledBars();
-
         LOGGER.log(Level.FINE, "initialize() nonTiledBars={0}", nonTiledBars);
 
         for (int bar : nonTiledBars)
@@ -107,32 +107,52 @@ public class WbpsaStore
                 // Get all possible wbpsas for the sub sequence
                 var subSeq = tiling.getSimpleChordSequence(br, true);
                 var wbpsas = WbpSourceAdaptation.getWbpSourceAdaptations(subSeq, wbpsaScorer, tiling, tempo, bassStyles);
-
-                var oldWbpsas = mmapWbpsAdaptations[size].get(bar);
-                if (!oldWbpsas.isEmpty())
-                {
-                    // Need to merge them and resort
-                    wbpsas.addAll(oldWbpsas);
-                    Collections.sort(wbpsas, (o1, o2) -> o2.compareTo(o1));     // Restore descending order
-                    oldWbpsas.clear();
-                }
-
-                // Handle partial randomization
-                var rWbpsas = JJSwingBassMusicGeneratorSettings.getInstance().isWbpsaStoreRandomized() ? randomizeSimilarScoreSets(wbpsas) : wbpsas;
-
-                // Save state
-                mmapWbpsAdaptations[size].get(bar).addAll(rWbpsas);
-
-
                 if (wbpsas.isEmpty())
                 {
-                    LOGGER.log(Level.FINE, "initialize() No {0}-bar compatible WbpSources  found for {1}", new Object[]
+                    LOGGER.log(Level.FINE, "populate() No {0}-bar compatible WbpSources found for {1}", new Object[]
                     {
                         size, subSeq
                     });
+                } else
+                {
+                    addWbpSourceAdaptations(bar, wbpsas);
                 }
             }
         }
+    }
+
+    /**
+     * Add WbpSourceAdaptations for a specific bar.
+     * <p>
+     * No check is done to avoid adding a duplicate WbpSourceAdaptation for the specified bar.
+     *
+     * @param bar
+     * @param wbpsas All instances must have the same size
+     * @see #populate(int, java.util.List)
+     */
+    public void addWbpSourceAdaptations(int bar, List<WbpSourceAdaptation> wbpsas)
+    {
+        Preconditions.checkArgument(tiling.isUsable(new IntRange(bar, bar)), "bar=%s usableBars=%s", bar, tiling.getUsableBars());
+        Preconditions.checkArgument(wbpsas != null && !wbpsas.isEmpty());
+        int size = wbpsas.get(0).getBarRange().size();
+        Preconditions.checkArgument(wbpsas.stream().allMatch(wbpsa -> wbpsa.getBarRange().size() == size), "wbpsas=%s", wbpsas);
+
+
+        var wbpsaList = new ArrayList<>(wbpsas);
+        var oldWbpsas = mmapWbpsAdaptations[size].get(bar);
+        if (!oldWbpsas.isEmpty())
+        {
+            // Need to merge them and resort
+            wbpsaList.addAll(oldWbpsas);
+            Collections.sort(wbpsaList, (o1, o2) -> o2.compareTo(o1));     // Restore descending order
+            oldWbpsas.clear();
+        }
+
+        // Handle partial randomization
+        var rWbpsas = JJSwingBassMusicGeneratorSettings.getInstance().isWbpsaStoreRandomized() ? randomizeSimilarScoreSets(wbpsaList) : wbpsaList;
+
+        // Save state
+        mmapWbpsAdaptations[size].get(bar).addAll(rWbpsas);
 
     }
 
@@ -210,7 +230,7 @@ public class WbpsaStore
 
         // Group wbpsas per similar score set and shuffle the set
         var wbpsa = wbpsas.getFirst();
-        Score setLimitScore = Score.buildSampleFromOverallValue(Math.max(wbpsa.getCompatibilityScore().overall() - SIMILAR_OVERALL_SCORE_WINDOW_SIZE, 0));
+        Score setLimitScore = Score.buildSampleFromOverallValue(Math.max(wbpsa.getCompatibilityScore().overall() - RANDOMIZATION_SCORE_WINDOW_SIZE, 0));
         List<WbpSourceAdaptation> subset = new ArrayList<>();
 
         var it = wbpsas.iterator();
@@ -230,7 +250,7 @@ public class WbpsaStore
                     subset.clear();
                 }
 
-                setLimitScore = Score.buildSampleFromOverallValue(Math.max(score.overall() - SIMILAR_OVERALL_SCORE_WINDOW_SIZE, 0));
+                setLimitScore = Score.buildSampleFromOverallValue(Math.max(score.overall() - RANDOMIZATION_SCORE_WINDOW_SIZE, 0));
                 subset.add(wbpsa);
             }
         }

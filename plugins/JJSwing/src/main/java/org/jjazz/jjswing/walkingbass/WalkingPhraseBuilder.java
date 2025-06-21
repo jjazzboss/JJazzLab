@@ -71,8 +71,8 @@ public class WalkingPhraseBuilder implements BassPhraseBuilder
         WbpTiling tiling = new WbpTiling(scsList);
         WbpsaStore store = new WbpsaStore(tiling);
         store.populate(tempo, List.of(STYLE));
-        
-        
+
+
         Predicate<WbpSourceAdaptation> premiumWbpsaTester = wbpsa -> Score.PREMIUM_ONLY_TESTER.test(wbpsa.getCompatibilityScore());
         Predicate<WbpSourceAdaptation> stdWbpsaTester = wbpsa -> Score.DEFAULT_TESTER.test(wbpsa.getCompatibilityScore());
 
@@ -120,9 +120,6 @@ public class WalkingPhraseBuilder implements BassPhraseBuilder
         }
 
 
-
-
-        
         // If still untiled, try using previously computed CUSTOM source phrases
         Predicate<WbpSourceAdaptation> stdCustomTester = wbpsa -> wbpsa.getWbpSource().getBassStyle() == STYLE.getCustomStyle()
                 && Score.DEFAULT_TESTER.test(wbpsa.getCompatibilityScore());
@@ -130,8 +127,8 @@ public class WalkingPhraseBuilder implements BassPhraseBuilder
         untiled = !tiling.isFullyTiled();
         if (untiled)
         {
-            store.populate(tempo, List.of(STYLE.getCustomStyle()));            
-            
+            store.populate(tempo, List.of(STYLE.getCustomStyle()));
+
             LOGGER.log(BassPhraseBuilderLogLevel, "\n");
             LOGGER.log(BassPhraseBuilderLogLevel, "build() ================  tiling EXISTING CUSTOM MaxDistance");
             tilerMaxDistanceCustomStandard.tile(tiling, store);
@@ -155,11 +152,19 @@ public class WalkingPhraseBuilder implements BassPhraseBuilder
             {
                 if (!wbpDb.addWbpSource(wbps))
                 {
-                    LOGGER.log(Level.WARNING, "build() add failed for {0} ", new Object[]
+                    // This is normal if non-tiled bars contained 2 (or more) similar-but-different bars like |D . .  Ab7#5| and |Eb . . A7#5| which resulted
+                    // in tiling.buildMissingWbpSources() above providing WbpSources considered equal by the WbpSourceDatabase                    
+                    LOGGER.log(Level.INFO, "build() add failed for {0} ", new Object[]
                     {
                         wbps
                     });
                 }
+            }
+
+            // Update the store to use these new WbpSources
+            if (!customWbpSources.isEmpty())
+            {
+                store.populate(tempo, List.of(STYLE.getCustomStyle()));
             }
 
             // Redo a tiling
@@ -201,7 +206,7 @@ public class WalkingPhraseBuilder implements BassPhraseBuilder
     {
         Preconditions.checkArgument(scs.getBarRange().from == 0, "subSeq=%s", scs);
 
-        LOGGER.log(Level.ALL, "createCustomWbpSources() - scs={0}", scs);
+        LOGGER.log(Level.FINE, "createCustomWbpSources() - scs={0}", scs);
 
         if (scs.size() == 1)
         {

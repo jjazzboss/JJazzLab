@@ -238,12 +238,11 @@ public class WbpTiling
      * Get the WbpSourceAdaptation starting at bar.
      *
      * @param bar
-     * @return Might be null.
+     * @return Can be null (including if bar is covered by a WbpSourceAdaptation which starts on a previous bar)
      */
     public WbpSourceAdaptation getWbpSourceAdaptationStartingAt(int bar)
     {
-        checkBarIsValid(bar);
-        WbpSourceAdaptation res = wbpsas[bar];
+        WbpSourceAdaptation res = usableBars.contains(bar) ? wbpsas[bar] : null;
         return res;
     }
 
@@ -461,10 +460,12 @@ public class WbpTiling
     /**
      * For each chord sequence corresponding to an untiled zone, try to create WbpSources using wbpSourcesBuilder.
      * <p>
+     * It might happen than some returned WbpSources could not be added in the WbpSourceDatabase, because the database will consider there are redundant (transposition-wise and using
+     * simplified chord symbols).
      *
      * @param wbpSourcesBuilder Generate a list (possibly empty) of WbpSources for a SimpleChordSequence.
      * @param size              The size in bars of the WbpSources to be created.
-     * @return The built WbpSources
+     * @return The created WbpSources
      */
     public List<WbpSource> buildMissingWbpSources(CustomWbpSourcesBuilder wbpSourcesBuilder, int size)
     {
@@ -473,6 +474,7 @@ public class WbpTiling
 
         List<WbpSource> res = new ArrayList<>();
 
+        // Avoids processing the exact same chord sequence twice
         Set<SimpleChordSequence> processedChordSequences = new HashSet<>();
 
         var startBars = getNonTiledZonesStartBarIndexes(size);

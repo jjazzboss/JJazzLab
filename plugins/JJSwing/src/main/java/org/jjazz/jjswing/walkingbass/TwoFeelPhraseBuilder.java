@@ -139,20 +139,29 @@ public class TwoFeelPhraseBuilder implements BassPhraseBuilder
             LOGGER.log(BassPhraseBuilderLogLevel, "\n");
             LOGGER.log(BassPhraseBuilderLogLevel, "build() ================  tiling CREATED CUSTOM MaxDistance");
 
-            // Create custom WbpSources and add them to the database
+            // Create custom WbpSources 
             var customWbpSources = tiling.buildMissingWbpSources((chordSeq, targetNote) -> create2feelCustomWbpSources(chordSeq, targetNote),
                     WbpSourceDatabase.SIZE_MIN);
 
+            // Add them to the database
             var wbpDb = WbpSourceDatabase.getInstance();
             for (var wbps : customWbpSources)
             {
                 if (!wbpDb.addWbpSource(wbps))
                 {
-                    LOGGER.log(Level.WARNING, "build() add failed for {0} ", new Object[]
+                    // This is normal if non-tiled bars contained 2 (or more) similar-but-different bars like |D . .  Ab7#5| and |Eb . . A7#5| which resulted
+                    // in tiling.buildMissingWbpSources() above providing WbpSources considered equal by the WbpSourceDatabase   
+                    LOGGER.log(Level.INFO, "build() add failed for {0} ", new Object[]
                     {
                         wbps
                     });
                 }
+            }
+
+            // Update the store to use these new WbpSources
+            if (!customWbpSources.isEmpty())
+            {
+                store.populate(tempo, List.of(STYLE.getCustomStyle()));
             }
 
             // Redo a tiling
