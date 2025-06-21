@@ -694,7 +694,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
             String PROP_UNDO = isAdjusting ? PROP_NOTES_REMOVED_ADJUSTING : PROP_NOTES_REMOVED;
 
             // Create the undoable event
-            UndoableEdit edit = new SimpleEdit("Add note " + ne)
+            UndoableEdit edit = new SimpleEdit("Add note")
             {
                 @Override
                 public void undoBody()
@@ -761,7 +761,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
         if (res)
         {
             // Create the undoable event
-            UndoableEdit edit = new SimpleEdit("Add notes " + addedList)
+            UndoableEdit edit = new SimpleEdit("Add notes")
             {
                 @Override
                 public void undoBody()
@@ -832,7 +832,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
             String PROP_UNDO = isAdjusting ? PROP_NOTES_ADDED_ADJUSTING : PROP_NOTES_ADDED;
 
             // Create the undoable event
-            UndoableEdit edit = new SimpleEdit("Remove note " + ne)
+            UndoableEdit edit = new SimpleEdit("Remove note")
             {
                 @Override
                 public void undoBody()
@@ -906,7 +906,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
         if (res)
         {
             // Create the undoable event
-            UndoableEdit edit = new SimpleEdit("Remove notes " + removedList)
+            UndoableEdit edit = new SimpleEdit("Remove notes")
             {
                 @Override
                 public void undoBody()
