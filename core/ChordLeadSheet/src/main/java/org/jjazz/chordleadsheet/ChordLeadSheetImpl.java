@@ -750,6 +750,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         } catch (UnsupportedEditException ex)
         {
             // Should never happen as we increase the size
+            fireClsActionEventComplete(ClsActionEvent.API_ID.InsertBars);
             Exceptions.printStackTrace(ex);
         }
 
@@ -759,38 +760,39 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         if (barIndex > 0 && itemsToBeShifted.isEmpty())
         {
             // Nothing to do
-            return;
-        }
-        shiftItems(itemsToBeShifted, nbBars);
-
-        if (barIndex == 0)
+        } else
         {
-            // Special case: create a copy of the initial section        
-            synchronized (this)
+            shiftItems(itemsToBeShifted, nbBars);
+
+            if (barIndex == 0)
             {
-                // Rename init section                
-                String oldInitSectionName = initSection.getData().getName();
-                String newInitSectionName = "_" + oldInitSectionName;
-                while (getSection(newInitSectionName) != null)
+                // Special case: create a copy of the initial section        
+                synchronized (this)
                 {
-                    newInitSectionName = "_" + newInitSectionName;
-                }
-                this.setSectionName(initSection, newInitSectionName);
+                    // Rename init section                
+                    String oldInitSectionName = initSection.getData().getName();
+                    String newInitSectionName = "_" + oldInitSectionName;
+                    while (getSection(newInitSectionName) != null)
+                    {
+                        newInitSectionName = "_" + newInitSectionName;
+                    }
+                    this.setSectionName(initSection, newInitSectionName);
 
 
-                // Create a copy of the init section restoring the original name
-                CLI_Factory clif = CLI_Factory.getDefault();
-                CLI_Section initSectionCopy = clif.createSection(oldInitSectionName,
-                        initSection.getData().getTimeSignature(),
-                        nbBars,
-                        this);
-                try
-                {
-                    addSection(initSectionCopy);
-                } catch (UnsupportedEditException ex)
-                {
-                    // We should never be there since we don't change the time signature
-                    Exceptions.printStackTrace(ex);
+                    // Create a copy of the init section restoring the original name
+                    CLI_Factory clif = CLI_Factory.getDefault();
+                    CLI_Section initSectionCopy = clif.createSection(oldInitSectionName,
+                            initSection.getData().getTimeSignature(),
+                            nbBars,
+                            this);
+                    try
+                    {
+                        addSection(initSectionCopy);
+                    } catch (UnsupportedEditException ex)
+                    {
+                        // We should never be there since we don't change the time signature
+                        Exceptions.printStackTrace(ex);
+                    }
                 }
             }
         }
@@ -915,6 +917,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         } catch (UnsupportedEditException ex)
         {
             // Should never happen
+            fireClsActionEventComplete(ClsActionEvent.API_ID.SetSectionName);
             Exceptions.printStackTrace(ex);
         }
 
