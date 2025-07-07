@@ -195,6 +195,9 @@ public class SongSequenceBuilder
         if (task.musicException != null)
         {
             throw task.musicException;
+        } else if (task.rvPhrases == null)
+        {
+            throw new MusicGenerationException("SongSequenceBuilder.buildMapRvPhrase(): unexpected task.rvPhrases=null. Please report this bug.");
         }
 
         return task.rvPhrases;
