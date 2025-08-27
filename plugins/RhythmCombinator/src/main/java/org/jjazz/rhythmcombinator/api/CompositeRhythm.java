@@ -47,7 +47,7 @@ import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.songcontext.api.SongContext;
 
 /**
- * A rhythm which is an assembly of tracks from several rhythms.
+ * A base rhythm whose tracks can be replaced by tracks from other rhythms.
  */
 public class CompositeRhythm implements Rhythm, MusicGenerator
 {

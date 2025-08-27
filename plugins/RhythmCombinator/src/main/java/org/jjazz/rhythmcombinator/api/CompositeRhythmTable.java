@@ -257,25 +257,25 @@ public class CompositeRhythmTable extends JTable
             for (int colIndex = 0; colIndex < getColumnCount(); colIndex++)
             {
                 // Handle header
-                TableCellRenderer renderer = getTableHeader().getDefaultRenderer();
-                Component comp = renderer.getTableCellRendererComponent(this, tblModel.getColumnName(colIndex), true, true, 0, colIndex);
-                int headerWidth = comp.getPreferredSize().width;
-
-                int width = 20; // Min width
-
-                // Handle data
-                for (int row = 0; row < getRowCount(); row++)
-                {
-                    renderer = getCellRenderer(row, colIndex);
-                    comp = prepareRenderer(renderer, row, colIndex);
-                    width = Math.max(comp.getPreferredSize().width, width);
-                }
-                width = Math.max(width, headerWidth);
-                width = Math.min(width, 400);
-                width += EXTRA;
-
-                // We have our preferred width
-                colModel.getColumn(colIndex).setPreferredWidth(width);
+//                TableCellRenderer renderer = getTableHeader().getDefaultRenderer();
+//                Component comp = renderer.getTableCellRendererComponent(this, tblModel.getColumnName(colIndex), true, true, 0, colIndex);
+//                int headerWidth = comp.getPreferredSize().width;
+//
+//                int width = 20; // Min width
+//
+//                // Handle data
+//                for (int row = 0; row < getRowCount(); row++)
+//                {
+//                    renderer = getCellRenderer(row, colIndex);
+//                    comp = prepareRenderer(renderer, row, colIndex);
+//                    width = Math.max(comp.getPreferredSize().width, width);
+//                }
+//                width = Math.max(width, headerWidth);
+//                width = Math.min(width, 400);
+//                width += EXTRA;
+//
+//                // We have our preferred width
+//                colModel.getColumn(colIndex).setPreferredWidth(width);
 
                 // Also set max size
 //            switch (colIndex)

@@ -127,7 +127,7 @@ public class SongSequenceBuilder
     {
         Objects.requireNonNull(sgContext);
         this.songContextOriginal = sgContext;
-        this.songContextWork = songContextOriginal.deepClone(false);
+        this.songContextWork = songContextOriginal.deepClone(false, false);
         ClsUtilities.transpose(songContextWork.getSong().getChordLeadSheet(), playbackKeyTranspose);
     }
 
@@ -535,6 +535,13 @@ public class SongSequenceBuilder
     // =========================================================================
     // Private methods
     // =========================================================================
+
+    /**
+     * Ask each rhythm to generate a Phrase for each RhythmVoice then do the postprocessing.
+     *
+     * @return
+     * @throws MusicGenerationException
+     */
     private Map<RhythmVoice, Phrase> buildMapRvPhrase() throws MusicGenerationException
     {
         Map<RhythmVoice, Phrase> res = new HashMap<>();
@@ -687,7 +694,15 @@ public class SongSequenceBuilder
                 r.getName(), Objects.hashCode(r)
             });
             r.loadResources();
-            return mg.generateMusic(songContextWork);
+            var res = mg.generateMusic(songContextWork);
+            
+            // Safety checks
+            var rvs = res.keySet();
+            var phrases = res.values();
+            assert r.getRhythmVoices().containsAll(rvs) : "r=" + r + " rvs=" + rvs;
+            assert !phrases.contains(null) : "r=" + r + " phrases=" + phrases;
+            
+            return res;
         } else
         {
             LOGGER.log(Level.WARNING, "generateRhythmPhrases() r={0} is not a MusicGenerator instance", r);

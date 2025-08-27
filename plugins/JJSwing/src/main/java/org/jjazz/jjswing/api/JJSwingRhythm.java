@@ -24,8 +24,6 @@
  */
 package org.jjazz.jjswing.api;
 
-import com.google.common.collect.Multimap;
-import com.google.common.collect.MultimapBuilder;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
@@ -38,6 +36,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.SwingUtilities;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.phrase.api.Phrase;
@@ -63,20 +62,25 @@ import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythm;
 import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythmProvider;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.jjazz.rhythm.api.Rhythm;
+import static org.jjazz.rhythm.api.RhythmVoice.Type.BASS;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhrase;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Fill;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Intensity;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Marker;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_TempoFactor;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
-import org.jjazz.rhythmmusicgeneration.api.CompositeMusicGenerator;
+import org.jjazz.rhythmdatabase.api.RhythmDatabase;
+import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
+import org.jjazz.yamjjazz.rhythm.api.CompositeMusicGenerator;
 import org.jjazz.rhythmmusicgeneration.api.RP_SYS_Mute;
+import org.jjazz.yamjjazz.rhythm.api.CompositeMusicGenerator.MgTarget;
 import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythmGenerator;
+import org.openide.util.Exceptions;
 
 /**
  * Use a YjzCompositeRhythm to use a YamJJazzRhythm for all the tracks except the bass.
  */
-public class JJSwingRhythm implements YjzCompositeRhythm
+public class JJSwingRhythm implements YamJJazzRhythm
 {
 
     @StaticResource(relative = true)
@@ -95,7 +99,6 @@ public class JJSwingRhythm implements YjzCompositeRhythm
     private final String[] tags;
     private YamJJazzRhythm baseRhythm;
     private MusicGenerator musicGenerator;
-    private final Multimap<MusicGenerator, RhythmVoice> mmapGenRvs;
     private final List<RhythmParameter<?>> rhythmParameters;
     private final List<RhythmVoice> rhythmVoices;
     private final transient SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
@@ -130,15 +133,58 @@ public class JJSwingRhythm implements YjzCompositeRhythm
 
         // Initialize our CompositeMusicGenerator
         var baseGenerator = new YamJJazzRhythmGenerator(this);
-        var bassGenerator = new JJSwingBassMusicGenerator(this);
-        mmapGenRvs = MultimapBuilder.hashKeys().arrayListValues().build();
-        for (var rv : getRhythmVoices())
-        {
-            var gen = rv.getType() == RhythmVoice.Type.BASS ? bassGenerator : baseGenerator;
-            mmapGenRvs.put(gen, rv);
-        }
-        musicGenerator = new CompositeMusicGenerator(this, mmapGenRvs);
+        var walkingGenerator = new JJSwingBassMusicGenerator(this);
+        var rpVariation = RP_SYS_Variation.getVariationRp(this);
+        RhythmVoice baseRvBass = rhythmVoices.stream()
+                .filter(brv -> brv.getType() == RhythmVoice.Type.BASS)
+                .findAny()
+                .orElse(null);
+        assert baseRvBass!=null;
 
+
+        SwingUtilities.invokeLater(() -> // Avoid endless loop with the RhythmDatabase constructor                
+                
+        {
+            musicGenerator = new CompositeMusicGenerator(this, (rv, spt) -> 
+            {
+                RhythmVoice baseRv = rhythmVoices.stream()
+                        .filter(brv -> brv.getType() == rv.getType())
+                        .findAny()
+                        .orElse(null);
+                assert baseRv != null : "rv=" + rv;
+
+                MgTarget res = switch (rv.getType())
+                {
+                    case DRUMS ->
+                    {
+                        var rdb = RhythmDatabase.getDefault();
+                        YamJJazzRhythm rDrumsBis = null;
+                        try
+                        {
+                            rDrumsBis = (YamJJazzRhythm) rdb.getRhythmInstance("KoolFunk.STY-ID");
+                        } catch (UnavailableRhythmException ex)
+                        {
+                            Exceptions.printStackTrace(ex);
+                        }
+                        yield spt == null || !spt.getRPValue(rpVariation).toLowerCase().contains("main c") ? new MgTarget(baseGenerator, baseRv)
+                        : new MgTarget(rDrumsBis.getMusicGenerator(), baseRv);
+                    }
+                    case BASS ->
+                        new MgTarget(walkingGenerator, baseRv);
+                    case PAD ->
+                        new MgTarget(baseGenerator, baseRvBass);
+                    default ->
+                        new MgTarget(baseGenerator, baseRv);
+                };
+                return res;
+            });
+                });
+
+    }
+
+    public YamJJazzRhythm getBaseRhythm()
+    {
+        return baseRhythm;
     }
 
     @Override
@@ -219,21 +265,6 @@ public class JJSwingRhythm implements YjzCompositeRhythm
     {
         Objects.requireNonNull(mg);
         musicGenerator = mg;
-    }
-    // ================================================================================================
-    // YjzCompositeRhythm implementation
-    // ================================================================================================
-
-    @Override
-    public Multimap<MusicGenerator, RhythmVoice> getGenerators()
-    {
-        return mmapGenRvs;
-    }
-
-    @Override
-    public YamJJazzRhythm getBaseYamJJazzRhythm()
-    {
-        return baseRhythm;
     }
 
     // ================================================================================================

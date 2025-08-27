@@ -174,6 +174,34 @@ public class Utilities
     }
 
     /**
+     * Search a collection for subsequences using the same value, then return their start indexes.
+     * <p>
+     * Example: if c=[2,9,3,3,10,39,39,39] then returns [0,1,2,4,5]. if c=[toto] then returns [0].
+     *
+     * @param <T>
+     * @param c
+     * @return Empty list if c is empty.
+     */
+    public static <T> List<Integer> getSameValueSubSequencesIndexes(Collection<T> c)
+    {
+        List<Integer> res = new ArrayList<>();
+        var it = c.iterator();
+        T prevValue = null;
+        int index = 0;
+        while (it.hasNext())
+        {
+            T value = it.next();
+            if (index == 0 || !Objects.equals(prevValue, value))
+            {
+                res.add(index);
+            }
+            prevValue = value;
+            index++;
+        }
+        return res;
+    }
+
+    /**
      * Check if a class is an inner class (ie a non-static nested class).
      *
      * @param <T>
