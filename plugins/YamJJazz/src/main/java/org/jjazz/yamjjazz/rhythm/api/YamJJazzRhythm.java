@@ -58,7 +58,13 @@ public interface YamJJazzRhythm extends Rhythm, MusicGenerator
      * @param at
      * @return Can be null if this AccType is not used in this rhythm.
      */
-    RhythmVoice getRhythmVoice(AccType at);
+    default RhythmVoice getRhythmVoice(AccType at)
+    {
+        var res = getRhythmVoices().stream()
+                .filter(rv -> AccType.getAccType(rv) == at)
+                .findAny().orElse(null);
+        return res;
+    }
 
     /**
      * The Style object associated to this rhythm.

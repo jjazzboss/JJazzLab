@@ -252,20 +252,6 @@ public class YamJJazzAdaptedRhythmImpl implements YamJJazzAdaptedRhythm
     }
 
     /**
-     * Use our rhythmVoices copies.
-     *
-     * @param at
-     * @return
-     */
-    @Override
-    public RhythmVoice getRhythmVoice(AccType at)
-    {
-        return rhythmVoices.stream()
-                .filter(rv -> AccType.getAccType(rv) == at)
-                .findAny().orElse(null);
-    }
-
-    /**
      * @return Our adapted style !
      */
     @Override

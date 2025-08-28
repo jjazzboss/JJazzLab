@@ -359,7 +359,7 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
     {
         return "[" + name + ", r=" + rhythm + ", startBarIndex=" + startBarIndex + ", nbBars=" + nbBars + "]";
     }
-
+    
     public String toDumpString()
     {
         StringBuilder sb = new StringBuilder();

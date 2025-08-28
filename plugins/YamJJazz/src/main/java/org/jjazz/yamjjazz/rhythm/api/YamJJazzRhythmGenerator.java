@@ -280,7 +280,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
         int stylePartNbBars = rhythm.getStyle().getStylePartSizeInBars(stylePart.getType());
         if (stylePartNbBars <= 0)
         {
-            LOGGER.log(Level.SEVERE, "getAllAccTypesPhrasesOneChordSequence() stylePartNbBars={0}  stylePart={1}", new Object[]
+            LOGGER.log(Level.SEVERE, "getAllAccTypesPhrasesOneChordSequence() Invalid value for stylePartNbBars={0}  stylePart={1}", new Object[]
             {
                 stylePartNbBars, stylePart
             });

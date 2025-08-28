@@ -318,18 +318,7 @@ public class YamJJazzRhythmImpl implements YamJJazzRhythm
         return style;
     }
 
-    /**
-     * Get the RhythmVoice corresponding to specified AccType.
-     *
-     * @param at
-     * @return Can be null if this AccType is not used in this rhythm.
-     */
-    @Override
-    public RhythmVoice getRhythmVoice(AccType at)
-    {
-        return rhythmVoices.stream().filter(rv -> AccType.getAccType(rv) == at).findAny().orElse(null);
-    }
-
+  
     /**
      * Get the AccType corresponding to a RP_SYS_Mute value.
      *

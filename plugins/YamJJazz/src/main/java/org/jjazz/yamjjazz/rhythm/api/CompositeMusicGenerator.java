@@ -42,18 +42,24 @@ import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythm.api.MusicGenerationException;
-import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.utilities.api.IntRange;
+import org.jjazz.utilities.api.Utilities;
 import org.openide.util.Exceptions;
 
 /**
- * A rhythm's MusicGenerator which can delegate to other MusicGenerators for specific RhythmVoices, possibly depending on the SongPart context.
+ * A MusicGenerator which delegates to other target MusicGenerators.
  * <p>
+ * Delegation mechanism is configured via the RvToMgTargetMapper class.
+ * <p>
+ * This lets a base YamJJazzRhythm instance use more than one MusicGenerator, for example :<br>
+ * - use an internal MusicGenerator for the bass RhythmVoice and another internal one for the rest of the RhythmVoices<br>
+ * - use 2 internal MusicGenerators for the bass RhythmVoice, depending on the SongPart's RP_SYS_Variation value<br>
+ * - use the percussion MusicGenerator from another YamJJazzRhythm instance for our drums<br>
  */
 public class CompositeMusicGenerator implements MusicGenerator
 {
@@ -63,7 +69,7 @@ public class CompositeMusicGenerator implements MusicGenerator
      * Identify a target MusicGenerator and its associated target RhythmVoice.
      *
      * @param mg
-     * @param rv Must be a RhythmVoice of a YamJJazzRhythm
+     * @param rv Must be a RhythmVoice of a YamJJazzRhythm. Can be RhythmVoice of the baseRhythm.
      */
     public record MgTarget(MusicGenerator mg, RhythmVoice rv)
             {
@@ -80,20 +86,23 @@ public class CompositeMusicGenerator implements MusicGenerator
         }
     }
 
-    public interface MgTargetProvider
+    /**
+     * Map a base RhythmVoice to a MgTarget for a given SongPart context.
+     */
+    public interface RvToMgTargetMapper
     {
 
         /**
-         * Provide a MgTarget to be used to generate music for baseRv in the context of spt.
+         * Get the MgTarget to be used to generate music for baseRv in the context of spt.
          *
-         * @param baseRv A RhythmVoice from the baseRhythm
+         * @param baseRv A RhythmVoice of the baseRhythm
          * @param spt    A SongPart which uses the baseRhythm
          * @return A non-null value
          */
-        MgTarget getRvTarget(RhythmVoice baseRv, SongPart spt);
+        MgTarget get(RhythmVoice baseRv, SongPart spt);
     }
-    private final MgTargetProvider mgTargetProvider;
-    private final Rhythm baseRhythm;
+    private final RvToMgTargetMapper rvMapper;
+    private final YamJJazzRhythm baseRhythm;
     private static final Logger LOGGER = Logger.getLogger(CompositeMusicGenerator.class.getSimpleName());
 
 
@@ -101,17 +110,22 @@ public class CompositeMusicGenerator implements MusicGenerator
      * Create a CompositeMusicGenerator for a base YamJJazzRhythm.
      *
      * @param baseRhythm
-     * @param mgTargetProvider get() must return a non-null value for each RhythmVoice with a null SongPart
+     * @param rvMapper   get() must return a non-null value for each RhythmVoice with a null SongPart
      */
-    public CompositeMusicGenerator(YamJJazzRhythm baseRhythm, MgTargetProvider mgTargetProvider)
+    public CompositeMusicGenerator(YamJJazzRhythm baseRhythm, RvToMgTargetMapper rvMapper)
     {
         Objects.requireNonNull(baseRhythm);
-        Objects.requireNonNull(mgTargetProvider);
+        Objects.requireNonNull(rvMapper);
         Preconditions.checkArgument(
-                baseRhythm.getRhythmVoices().stream().allMatch(rv -> mgTargetProvider.getRvTarget(rv, null) != null),
+                baseRhythm.getRhythmVoices().stream().allMatch(rv -> rvMapper.get(rv, null) != null),
                 "mgTargetProvider returns a null value for at least one baseRhythm RhythmVoice. baseRhythm=%s", baseRhythm);
         this.baseRhythm = baseRhythm;
-        this.mgTargetProvider = mgTargetProvider;
+        this.rvMapper = rvMapper;
+    }
+
+    public YamJJazzRhythm getBaseRhythm()
+    {
+        return baseRhythm;
     }
 
 
@@ -134,10 +148,12 @@ public class CompositeMusicGenerator implements MusicGenerator
         for (var spt : contextSpts)
         {
             var sptMgTargets = rhythmVoices.stream()
-                    .map(rv -> mgTargetProvider.getRvTarget(rv, spt))
+                    .map(rv -> rvMapper.get(rv, spt))
                     .toList();
 
 
+            corriger: checker continuité par mg (pb walking bass lancé spt by spt alors qu'il pourrait faire tout le morceau d'un coup...)
+            
             if (prevSptMgTargets == null)
             {
                 prevSptMgTargets = sptMgTargets;
@@ -146,7 +162,7 @@ public class CompositeMusicGenerator implements MusicGenerator
                 // At least one target MgTarget has changed because of the SongPart context
                 // Start a music generation on the last subContext
                 var subContext = createSubContext(sgContext, prevSptList);
-                var mapRvPhrases = callTargetGenerators(subContext, prevSptMgTargets);     // throws MusicGenerationException
+                var mapRvPhrases = callGenerators(subContext, prevSptMgTargets);     // throws MusicGenerationException
                 mergePhrases(sgContext.getMidiMix(), res, mapRvPhrases);
 
                 prevSptList.clear();
@@ -159,7 +175,7 @@ public class CompositeMusicGenerator implements MusicGenerator
 
         // Start a music generation on the last subContext
         var subContext = createSubContext(sgContext, prevSptList);
-        var mapRvPhrases = callTargetGenerators(subContext, prevSptMgTargets);    // MusicGenerationException
+        var mapRvPhrases = callGenerators(subContext, prevSptMgTargets);    // MusicGenerationException
         mergePhrases(sgContext.getMidiMix(), res, mapRvPhrases);
 
 
@@ -178,7 +194,7 @@ public class CompositeMusicGenerator implements MusicGenerator
      * @return
      * @throws org.jjazz.rhythm.api.MusicGenerationException
      */
-    private Map<RhythmVoice, Phrase> callTargetGenerators(SongContext subContext, List<MgTarget> mgTargets) throws MusicGenerationException
+    private Map<RhythmVoice, Phrase> callGenerators(SongContext subContext, List<MgTarget> mgTargets) throws MusicGenerationException
     {
         var allBaseRvs = baseRhythm.getRhythmVoices();
         Preconditions.checkArgument(mgTargets.size() == allBaseRvs.size(), "mgTargets=%s allBaseRvs=%s", mgTargets, allBaseRvs);
@@ -197,12 +213,12 @@ public class CompositeMusicGenerator implements MusicGenerator
             processedMgs.add(mg);
 
             // Get all the base RhythmVoices for which mg must be used, save the associated target RhythmVoice
-            BiMap<RhythmVoice, RhythmVoice> bimapBaseTargetRv = HashBiMap.create();
+            Map<RhythmVoice, RhythmVoice> mapBaseTargetRv = new HashMap<>();
             for (int i = 0; i < allBaseRvs.size(); i++)
             {
                 if (mgTargets.get(i).mg == mg)
                 {
-                    bimapBaseTargetRv.put(allBaseRvs.get(i), mgTargets.get(i).rv);
+                    mapBaseTargetRv.put(allBaseRvs.get(i), mgTargets.get(i).rv);
                 }
             }
 
@@ -217,17 +233,19 @@ public class CompositeMusicGenerator implements MusicGenerator
 
 
             // Call MusicGenerator
-            LOGGER.log(Level.SEVERE, "callTargetGenerators() generating music mg={0} bimapBaseTargetRv={1} spts={2}", new Object[]
+            LOGGER.log(Level.SEVERE, "callGenerators() generating music mg={0} spts={1}  mapBaseTargetRv=\n{2} ", new Object[]
             {
-                mg.getClass().getSimpleName(), bimapBaseTargetRv, targetContext.getSongParts()
+                mg.getClass().getSimpleName(),
+                targetContext.getSongParts().stream().map(spt -> spt.toShortString()).toList(),
+                Utilities.toMultilineString(mapBaseTargetRv, "   ")
             });
-            var mapRvPhrases = mg.generateMusic(targetContext, getSortedRvArray(bimapBaseTargetRv.values()));
+            var mapRvPhrases = mg.generateMusic(targetContext, getSortedRvArray(mapBaseTargetRv.values()));
 
 
             // We need to map back the Phrases to their source RhythmVoices
-            for (var targetRv : mapRvPhrases.keySet())
+            for (var baseRv : mapBaseTargetRv.keySet())
             {
-                var baseRv = bimapBaseTargetRv.inverse().get(targetRv);
+                var targetRv = mapBaseTargetRv.get(baseRv);
                 if (baseRv != targetRv)
                 {
                     Phrase p = mapRvPhrases.remove(targetRv);
