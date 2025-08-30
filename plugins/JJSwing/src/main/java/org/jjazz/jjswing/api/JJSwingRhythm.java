@@ -78,7 +78,7 @@ import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythmGenerator;
 import org.openide.util.Exceptions;
 
 /**
- * Use a YjzCompositeRhythm to use a YamJJazzRhythm for all the tracks except the bass.
+ * An advanced swing rhythm which uses a specific generator for the bass (walking, etc.).
  */
 public class JJSwingRhythm implements YamJJazzRhythm
 {
@@ -394,33 +394,10 @@ public class JJSwingRhythm implements YamJJazzRhythm
         Objects.requireNonNull(r);
 
         LOGGER.log(Level.FINER, "buildRhythmVoices() --  this={0}", this);
-        List<RhythmVoice> rvs = new ArrayList<>();
-
-        // Copy all base rhythm RhythmVoices
-        for (var rvBase : r.getRhythmVoices())
-        {
-            RhythmVoice rv;
-            if (rvBase.isDrums())
-            {
-                rv = new RhythmVoice(rvBase.getDrumKit(), this,
-                        rvBase.getType(),
-                        rvBase.getName(),
-                        rvBase.getPreferredInstrument(),
-                        rvBase.getPreferredInstrumentSettings(),
-                        rvBase.getPreferredChannel());
-            } else
-            {
-                rv = new RhythmVoice(this,
-                        rvBase.getType(),
-                        rvBase.getName(),
-                        rvBase.getPreferredInstrument(),
-                        rvBase.getPreferredInstrumentSettings(),
-                        rvBase.getPreferredChannel());
-            }
-            rvs.add(rv);
-        }
-
-        return Collections.unmodifiableList(rvs);
+        List<RhythmVoice> rvs = r.getRhythmVoices().stream()
+                .map(rv -> rv.getCopy(r))
+                .toList();      // unmodifiable
+        return rvs;
     }
 
 

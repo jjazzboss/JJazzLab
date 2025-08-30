@@ -81,7 +81,7 @@ public class RhythmVoice
                 case OTHER:
                     return gmBank.getDefaultInstrument(InstrumentFamily.Piano);
                 default:
-                    throw new IllegalStateException("this=" + this);   
+                    throw new IllegalStateException("this=" + this);
             }
         }
     }
@@ -124,7 +124,7 @@ public class RhythmVoice
         if (container == null || type == null || type.equals(Type.DRUMS) || type.equals(Type.PERCUSSION) || ins == null
                 || ins.getSubstitute() == null || name == null || is == null || !MidiConst.checkMidiChannel(preferredChannel))
         {
-            throw new IllegalArgumentException( 
+            throw new IllegalArgumentException(
                     "container=" + container + " type=" + type + " name=" + name + " ins=" + ins.toLongString() + " is=" + is + " preferredChannel=" + preferredChannel);
         }
         this.container = container;
@@ -181,6 +181,35 @@ public class RhythmVoice
     }
 
     /**
+     * Get a deep copy of this RhythmVoice for the specified container.
+     *
+     * @param container Can not be null
+     * @return
+     */
+    public RhythmVoice getCopy(Rhythm container)
+    {
+        RhythmVoice rv;
+        if (isDrums())
+        {
+            rv = new RhythmVoice(getDrumKit(), container,
+                    getType(),
+                    getName(),
+                    getPreferredInstrument(),
+                    new InstrumentSettings(getPreferredInstrumentSettings()),
+                    getPreferredChannel());
+        } else
+        {
+            rv = new RhythmVoice(container,
+                    getType(),
+                    getName(),
+                    getPreferredInstrument(),
+                    new InstrumentSettings(getPreferredInstrumentSettings()),
+                    getPreferredChannel());
+        }
+        return rv;
+    }
+
+    /**
      * @return True if this object's type is Drums or Percussion.
      */
     public boolean isDrums()
@@ -230,8 +259,7 @@ public class RhythmVoice
     /**
      * The preferred Instrument for this voice.
      *
-     * @return Can't be null. Except for Drums/Percussion, returned instrument is guaranteed to have its method getSubstitute()
-     *         defined
+     * @return Can't be null. Except for Drums/Percussion, returned instrument is guaranteed to have its method getSubstitute() defined
      */
     public Instrument getPreferredInstrument()
     {

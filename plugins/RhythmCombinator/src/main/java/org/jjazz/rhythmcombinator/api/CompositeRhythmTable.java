@@ -40,7 +40,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.rhythmcombinator.api.CompositeRhythm;
+import org.jjazz.yamjjazz.rhythm.api.CompositeRhythm;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.RhythmInfo;
 import org.jjazz.rhythmselectiondialog.spi.RhythmPreviewer;
