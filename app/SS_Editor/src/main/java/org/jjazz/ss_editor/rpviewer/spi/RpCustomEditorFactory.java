@@ -43,9 +43,9 @@ public interface RpCustomEditorFactory
      */
     static public RpCustomEditorFactory findFactory(RhythmParameter<?> rp)
     {
-        if (rp instanceof RpCustomEditorFactory)
+        if (rp instanceof RpCustomEditorFactory rpCustomEditorFactory)
         {
-            return (RpCustomEditorFactory) rp;
+            return rpCustomEditorFactory;
         }
 
         for (var factory : Lookup.getDefault().lookupAll(RpCustomEditorFactory.class))

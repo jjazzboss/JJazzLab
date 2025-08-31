@@ -22,25 +22,12 @@
  *   Contributor(s): 
  * 
  */
-package org.jjazz.yamjjazz.rhythm.api;
-
-import com.google.common.collect.Multimap;
-import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
+package org.jjazz.rhythmmusicgeneration.spi;
 
 /**
- * A YamJJazzRhythm extended to use different MusicGenerators for specific RhythmVoices.
+ * An optional interface for Rhythm instances to replace the MusicGenerator.
  */
-public interface YjzCompositeRhythm extends YamJJazzRhythm
+public interface ConfigurableMusicGeneratorProvider extends MusicGeneratorProvider
 {
-
-    YamJJazzRhythm getBaseYamJJazzRhythm();
-
-    /**
-     * Get the MusicGenerators to be used, and the associated RhythmVoice list.
-     *
-     * @return
-     */
-    Multimap<MusicGenerator, RhythmVoice> getGenerators();
-    
+    void setMusicGenerator(MusicGenerator mg);
 }

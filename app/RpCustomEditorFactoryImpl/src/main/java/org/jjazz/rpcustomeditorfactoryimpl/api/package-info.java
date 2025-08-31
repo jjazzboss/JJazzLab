@@ -1,5 +1,5 @@
 /**
- * Generic graphical editor component for RhythmParameters which implement the RpCustomEditorProvider interface.
+ * Generic graphical editor component for RhythmParameters
  * <p>
  */
 package org.jjazz.rpcustomeditorfactoryimpl.api;

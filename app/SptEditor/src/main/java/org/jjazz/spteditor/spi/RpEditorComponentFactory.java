@@ -74,7 +74,7 @@ public interface RpEditorComponentFactory
     /**
      * Create a RpEditorComponent adapted to rp class (whatever the containing rhythm).
      *
-     * @param song Can be null except for RhythmParameters which implement the RpCustomEditorProvider interface
+     * @param song Can be null except for RhythmParameters which implement the RpCustomEditorFactory interface
      * @param spt
      * @param rp
      * @return Can be null if rp is not supported.

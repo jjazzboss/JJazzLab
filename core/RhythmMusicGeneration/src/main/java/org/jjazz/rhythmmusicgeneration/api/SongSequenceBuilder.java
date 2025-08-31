@@ -81,7 +81,15 @@ import org.jjazz.utilities.api.IntRange;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.util.Exceptions;
 import org.jjazz.outputsynth.spi.OutputSynthManager;
+import static org.jjazz.rhythm.api.RhythmVoice.Type.BASS;
+import static org.jjazz.rhythm.api.RhythmVoice.Type.CHORD2;
+import static org.jjazz.rhythm.api.RhythmVoice.Type.DRUMS;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Fill;
+import org.jjazz.rhythmdatabase.api.RhythmDatabase;
+import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
+import org.jjazz.rhythmmusicgeneration.api.CompositeMusicGenerator.MgTarget;
+import org.jjazz.rhythmmusicgeneration.spi.ConfigurableMusicGeneratorProvider;
+import org.jjazz.rhythmmusicgeneration.spi.MusicGeneratorProvider;
 
 /**
  * Methods to convert a Song into Phrases and Midi sequence.
@@ -677,7 +685,7 @@ public class SongSequenceBuilder
 
 
     /**
-     * Ask specified rhythm to generate music.
+     * Generate music for the specified rhythm, taking into account possible RP_SYS_RhythmCombinator usage.
      *
      * @param r
      * @return
@@ -685,29 +693,114 @@ public class SongSequenceBuilder
      */
     private Map<RhythmVoice, Phrase> generateRhythmPhrases(Rhythm r) throws MusicGenerationException
     {
-        Preconditions.checkNotNull(r);
+        Objects.requireNonNull(r);
 
-        if (r instanceof MusicGenerator mg)
+        if (r instanceof MusicGeneratorProvider mgp)
         {
             LOGGER.log(Level.FINE, "fillRhythmTracks() calling generateMusic() for rhythm r={0} hashCode(r)={1}", new Object[]
             {
                 r.getName(), Objects.hashCode(r)
             });
             r.loadResources();
-            var res = mg.generateMusic(songContextWork);
-            
+
+
+            Map<RhythmVoice, Phrase> res;
+
+
+            // Check if RP_SYS_RhythmCombinator is used
+            RP_SYS_RhythmCombinator rpRhythmCombinator = RP_SYS_RhythmCombinator.getRhythmCombinatorRp(r);
+            if (rpRhythmCombinator != null && songContextWork.getSongParts().stream()
+                    .anyMatch(spt -> !spt.getRPValue(rpRhythmCombinator).isEmpty()))
+            {
+                // RP_SYS_RhythmCombinator is used, we need a CompositeMusicGenerator
+                assert r instanceof ConfigurableMusicGeneratorProvider : "r=" + r;
+
+
+                CompositeMusicGenerator cmg = buildCompositeMusicGenerator(rpRhythmCombinator);
+
+                // Make sure all combined rhythms have their resources loaded
+                var otherCombinedRhythms = getOtherCombinedRhythms(rpRhythmCombinator, songContextWork);
+                otherCombinedRhythms.forEach(ri -> 
+                {
+                    try
+                    {
+                        ri.loadResources();
+                    } catch (MusicGenerationException ex)
+                    {
+                        LOGGER.log(Level.SEVERE, "generateRhythmPhrases() r={0} ri={1} exception={2}", new Object[]
+                        {
+                            r, ri, ex.getMessage()
+                        });
+                    }
+                });
+
+                // Generate using our composite generator
+                res = cmg.generateMusic(songContextWork);
+
+            } else
+            {
+                // Simple
+                res = mgp.getMusicGenerator().generateMusic(songContextWork);
+            }
+
             // Safety checks
             var rvs = res.keySet();
             var phrases = res.values();
             assert r.getRhythmVoices().containsAll(rvs) : "r=" + r + " rvs=" + rvs;
             assert !phrases.contains(null) : "r=" + r + " phrases=" + phrases;
-            
+
             return res;
         } else
         {
-            LOGGER.log(Level.WARNING, "generateRhythmPhrases() r={0} is not a MusicGenerator instance", r);
+            LOGGER.log(Level.WARNING, "generateRhythmPhrases() r={0} is not a MusicGeneratorProvider instance", r);
             throw new MusicGenerationException("Rhythm " + r.getName() + " is not able to generate music");
         }
+    }
+
+    /**
+     * Build a CompositeMusicGenerator based on RP_SYS_RhythmCombinator usage.
+     *
+     * @param rpRc
+     * @return
+     */
+    private CompositeMusicGenerator buildCompositeMusicGenerator(RP_SYS_RhythmCombinator rpRc)
+    {
+        var mgBase = rpRc.getConfigurableMusicGeneratorProvider().getMusicGenerator();
+        assert mgBase != null : "rpRc=" + rpRc;
+
+        CompositeMusicGenerator.RvToMgTargetMapper rvMapper = (rvBase, spt) -> 
+        {
+            Objects.requireNonNull(rvBase);
+
+            var mg = mgBase;        // by default no mapping
+            RhythmVoice rvDest = rvBase;           // by default no mapping
+
+            RhythmVoice rvMapped;
+            if (spt != null && (rvMapped = spt.getRPValue(rpRc).getDestRhythmVoice(rvBase)) != null)
+            {
+                // mapping
+                rvDest = rvMapped;
+                mg = ((MusicGeneratorProvider) rvDest.getContainer()).getMusicGenerator();
+            }
+
+            MgTarget res = new MgTarget(mg, rvDest);
+            return res;
+        };
+
+        CompositeMusicGenerator res = new CompositeMusicGenerator(rpRc.getBaseRhythm(), rvMapper);
+
+        return res;
+
+    }
+
+    private Set<Rhythm> getOtherCombinedRhythms(RP_SYS_RhythmCombinator rpRhythmCombinator, SongContext songContextWork)
+    {
+        Set<Rhythm> res = new HashSet<>();
+        for (var spt : songContextWork.getSongParts())
+        {
+            res.addAll(spt.getRPValue(rpRhythmCombinator).getOtherUsedRhythms());
+        }
+        return res;
     }
 
     /**

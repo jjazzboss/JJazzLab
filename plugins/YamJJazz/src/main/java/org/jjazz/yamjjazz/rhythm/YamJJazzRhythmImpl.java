@@ -55,6 +55,7 @@ import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Intensity;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhrase;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Marker;
+import org.jjazz.rhythmmusicgeneration.api.RP_SYS_RhythmCombinator;
 import org.jjazz.rhythmmusicgeneration.api.RP_SYS_Mute;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_TempoFactor;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
@@ -214,8 +215,7 @@ public class YamJJazzRhythmImpl implements YamJJazzRhythm
         isExtendedRhythm = true;
     }
 
-    
-  
+
     @Override
     public MusicGenerator getMusicGenerator()
     {
@@ -233,7 +233,7 @@ public class YamJJazzRhythmImpl implements YamJJazzRhythm
         generator = mg;
     }
 
-    
+
     /**
      * True if it's an extended rhythm, false if it's a standard Yamaha rhythm.
      *
@@ -251,7 +251,7 @@ public class YamJJazzRhythmImpl implements YamJJazzRhythm
      * getFile() will return the style extension extFile.
      *
      * @return
-     * @see #getFile() 
+     * @see #getFile()
      */
     public File getBaseStyleFile()
     {
@@ -318,7 +318,7 @@ public class YamJJazzRhythmImpl implements YamJJazzRhythm
         return style;
     }
 
-  
+
     /**
      * Get the AccType corresponding to a RP_SYS_Mute value.
      *
@@ -660,6 +660,7 @@ public class YamJJazzRhythmImpl implements YamJJazzRhythm
         // Mute : use available tracks      
         RP_SYS_Mute rpMute = RP_SYS_Mute.createMuteRp(this, false);
         RP_SYS_CustomPhrase rpCustomPhrase = new RP_SYS_CustomPhrase(this, false);
+        RP_SYS_RhythmCombinator rpRhythmCombinator = new RP_SYS_RhythmCombinator(this, false);
 
 
         rhythmParameters.add(rpVariation);
@@ -679,6 +680,7 @@ public class YamJJazzRhythmImpl implements YamJJazzRhythm
         }
 
         rhythmParameters.add(rpCustomPhrase);
+        rhythmParameters.add(rpRhythmCombinator);
 
         // Make it unmodifiable
         rhythmParameters = Collections.unmodifiableList(rhythmParameters);

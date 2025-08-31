@@ -32,14 +32,12 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrasetransform.api.rps.RP_SYS_DrumsTransform;
 import org.jjazz.jjswing.walkingbass.db.WbpSourceDatabase;
 import org.jjazz.jjswing.walkingbass.JJSwingBassMusicGenerator;
@@ -53,7 +51,6 @@ import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.TempoRange;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
-import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.utilities.api.Utilities;
 import org.jjazz.yamjjazz.rhythm.api.AccType;
 import org.jjazz.yamjjazz.rhythm.api.Style;
@@ -71,10 +68,11 @@ import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_TempoFactor;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
-import org.jjazz.yamjjazz.rhythm.api.CompositeMusicGenerator;
+import org.jjazz.rhythmmusicgeneration.api.CompositeMusicGenerator;
 import org.jjazz.rhythmmusicgeneration.api.RP_SYS_Mute;
-import org.jjazz.yamjjazz.rhythm.api.CompositeMusicGenerator.MgTarget;
+import org.jjazz.rhythmmusicgeneration.api.CompositeMusicGenerator.MgTarget;
 import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythmGenerator;
+import org.jjazz.rhythmmusicgeneration.api.RP_SYS_RhythmCombinator;
 import org.openide.util.Exceptions;
 
 /**
@@ -188,16 +186,7 @@ public class JJSwingRhythm implements YamJJazzRhythm
         return getName();
     }
 
-    // ================================================================================================
-    // MusicGenerator implementation
-    // ================================================================================================
-
-    @Override
-    public Map<RhythmVoice, Phrase> generateMusic(SongContext context, RhythmVoice... rvs) throws MusicGenerationException
-    {
-        var res = musicGenerator.generateMusic(context, rvs);
-        return res;
-    }
+  
     // ================================================================================================
     // YamJJazzRhythm implementation
     // ================================================================================================
@@ -395,7 +384,7 @@ public class JJSwingRhythm implements YamJJazzRhythm
 
         LOGGER.log(Level.FINER, "buildRhythmVoices() --  this={0}", this);
         List<RhythmVoice> rvs = r.getRhythmVoices().stream()
-                .map(rv -> rv.getCopy(r))
+                .map(rv -> rv.getCopy(this))
                 .toList();      // unmodifiable
         return rvs;
     }
@@ -430,7 +419,7 @@ public class JJSwingRhythm implements YamJJazzRhythm
                 .findAny()
                 .orElseThrow();
         RP_SYS_DrumsTransform rpDrumsTransform = new RP_SYS_DrumsTransform(rvDrums, false);
-
+        RP_SYS_RhythmCombinator rpRhythmCombinator = new RP_SYS_RhythmCombinator(this, false);
 
         rps.add(rpVariation);
         rps.add(new RP_BassStyle(true));
@@ -441,6 +430,7 @@ public class JJSwingRhythm implements YamJJazzRhythm
         rps.add(RP_SYS_TempoFactor.getInstance());
         rps.add(rpDrumsTransform);
         rps.add(rpCustomPhrase);
+        rps.add(rpRhythmCombinator);
 
 
         return Collections.unmodifiableList(rps);

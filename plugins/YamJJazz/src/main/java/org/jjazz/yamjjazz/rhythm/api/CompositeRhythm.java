@@ -24,6 +24,7 @@
  */
 package org.jjazz.yamjjazz.rhythm.api;
 
+import org.jjazz.rhythmmusicgeneration.api.CompositeMusicGenerator;
 import com.google.common.base.Preconditions;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -40,7 +41,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrasetransform.api.rps.RP_SYS_DrumsTransform;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.Rhythm;
@@ -55,14 +55,13 @@ import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_TempoFactor;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
 import org.jjazz.rhythmmusicgeneration.api.RP_SYS_Mute;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
-import org.jjazz.songcontext.api.SongContext;
 
 /**
  * A YamJJazzRhythm whose tracks can be replaced by tracks from other rhythms (or possibly from base rhythm).
  *
  * @see CompositeMusicGenerator
  */
-public class CompositeRhythm implements YamJJazzRhythm, MusicGenerator
+public class CompositeRhythm implements YamJJazzRhythm
 {
 
     /**
@@ -163,15 +162,6 @@ public class CompositeRhythm implements YamJJazzRhythm, MusicGenerator
         return Collections.unmodifiableSet(mapSrcDestRhythmVoices.keySet());
     }
 
-    // ===============================================================================================================
-    // MusicGenerator interface
-    // ===============================================================================================================   
-    @Override
-    public Map<RhythmVoice, Phrase> generateMusic(SongContext context, RhythmVoice... rhythmVoices) throws MusicGenerationException
-    {
-        var res = musicGenerator.generateMusic(context, rhythmVoices);
-        return res;
-    }
 
     // ===============================================================================================================
     // Rhythm interface

@@ -22,7 +22,7 @@
  *   Contributor(s): 
  * 
  */
-package org.jjazz.yamjjazz.rhythm.api;
+package org.jjazz.rhythmmusicgeneration.api;
 
 import com.google.common.base.Preconditions;
 import java.util.ArrayList;
@@ -39,12 +39,14 @@ import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythm.api.MusicGenerationException;
+import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.utilities.api.IntRange;
+import org.jjazz.utilities.api.Utilities;
 import org.openide.util.Exceptions;
 
 /**
@@ -52,10 +54,10 @@ import org.openide.util.Exceptions;
  * <p>
  * Delegation mechanism is configured via the RvToMgTargetMapper class.
  * <p>
- * This lets a base YamJJazzRhythm instance use more than one MusicGenerator, for example :<br>
+ * This lets a base Rhythm instance use more than one MusicGenerator, for example :<br>
  * - use an internal MusicGenerator for the bass RhythmVoice and another internal one for the rest of the RhythmVoices<br>
  * - use 2 internal MusicGenerators for the bass RhythmVoice, depending on the SongPart's RP_SYS_Variation value<br>
- * - use the percussion MusicGenerator from another YamJJazzRhythm instance for our drums<br>
+ * - use the percussion MusicGenerator from another Rhythm instance for our drums<br>
  */
 public class CompositeMusicGenerator implements MusicGenerator
 {
@@ -65,7 +67,7 @@ public class CompositeMusicGenerator implements MusicGenerator
      * Identify a target MusicGenerator and its associated target RhythmVoice.
      *
      * @param mg
-     * @param rv Must be a RhythmVoice of a YamJJazzRhythm. Can be RhythmVoice of the baseRhythm.
+     * @param rv 
      */
     public record MgTarget(MusicGenerator mg, RhythmVoice rv)
             {
@@ -73,12 +75,7 @@ public class CompositeMusicGenerator implements MusicGenerator
         public MgTarget 
         {
             Objects.requireNonNull(mg);
-            Preconditions.checkArgument(rv != null && rv.getContainer() instanceof YamJJazzRhythm, "rv=%s", rv);
-        }
-
-        public YamJJazzRhythm getRhythm()
-        {
-            return (YamJJazzRhythm) rv.getContainer();
+            Objects.requireNonNull(rv);
         }
 
         @Override
@@ -104,17 +101,17 @@ public class CompositeMusicGenerator implements MusicGenerator
         MgTarget get(RhythmVoice baseRv, SongPart spt);
     }
     private final RvToMgTargetMapper rvMapper;
-    private final YamJJazzRhythm baseRhythm;
+    private final Rhythm baseRhythm;
     private static final Logger LOGGER = Logger.getLogger(CompositeMusicGenerator.class.getSimpleName());
 
 
     /**
-     * Create a CompositeMusicGenerator for a base YamJJazzRhythm.
+     * Create a CompositeMusicGenerator for a base Rhythm.
      *
      * @param baseRhythm
      * @param rvMapper   get() must return a non-null value for each RhythmVoice with a null SongPart
      */
-    public CompositeMusicGenerator(YamJJazzRhythm baseRhythm, RvToMgTargetMapper rvMapper)
+    public CompositeMusicGenerator(Rhythm baseRhythm, RvToMgTargetMapper rvMapper)
     {
         Objects.requireNonNull(baseRhythm);
         Objects.requireNonNull(rvMapper);
@@ -125,7 +122,7 @@ public class CompositeMusicGenerator implements MusicGenerator
         this.rvMapper = rvMapper;
     }
 
-    public YamJJazzRhythm getBaseRhythm()
+    public Rhythm getBaseRhythm()
     {
         return baseRhythm;
     }
@@ -249,7 +246,7 @@ public class CompositeMusicGenerator implements MusicGenerator
         }
 
 
-        YamJJazzRhythm targetRhythm = (YamJJazzRhythm) targetRvsSorted[0].getContainer();
+        Rhythm targetRhythm = (Rhythm) targetRvsSorted[0].getContainer();
         SongContext targetContext = subContext;      // by default     
         if (targetRhythm != baseRhythm)
         {
@@ -259,12 +256,12 @@ public class CompositeMusicGenerator implements MusicGenerator
 
 
         // Call MusicGenerator
-        LOGGER.log(Level.FINE, "callGenerator() generating music mg={0} subContext={1}  mapBaseRvMgTarget=\n{2} ", new Object[]
+        LOGGER.log(Level.SEVERE, "callGenerator() generating music mg={0} subContext={1}  mapBaseRvMgTarget=\n{2} ", new Object[]
         {
-            mg, subContext, mapBaseRvMgTarget
-//            mg.getClass().getSimpleName(),
-//            subContext.getSongParts().stream().map(spt -> spt.toShortString()).toList(),
-//            Utilities.toMultilineString(mapBaseRvMgTarget, "   ")
+//            mg, subContext, mapBaseRvMgTarget
+            mg.getClass().getSimpleName(),
+            subContext.getSongParts().stream().map(spt -> spt.toShortString()).toList(),
+            Utilities.toMultilineString(mapBaseRvMgTarget, "   ")
         });
         var mapRvPhrases = mg.generateMusic(targetContext, targetRvsSorted);
 
@@ -326,7 +323,7 @@ public class CompositeMusicGenerator implements MusicGenerator
      * @return
      * @throws org.jjazz.rhythm.api.MusicGenerationException
      */
-    private SongContext createTargetContext(SongContext context, YamJJazzRhythm targetRhythm) throws MusicGenerationException
+    private SongContext createTargetContext(SongContext context, Rhythm targetRhythm) throws MusicGenerationException
     {
         SongContext res = context.deepClone(false, true);       // setMidiMixSong=true because MidiMix must update itself when we will later replace the rhythm
 

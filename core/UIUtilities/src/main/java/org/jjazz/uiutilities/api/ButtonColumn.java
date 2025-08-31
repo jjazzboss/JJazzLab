@@ -37,7 +37,7 @@ public class ButtonColumn extends AbstractCellEditor
      * column.
      *
      * @param table  the table containing the button renderer/editor
-     * @param al the Action to be invoked when the button is invoked
+     * @param al     the Action to be invoked when the button is invoked
      * @param column the column to which the button renderer/editor is added
      */
     public ButtonColumn(JTable table, ActionListener al, int column)
@@ -112,8 +112,7 @@ public class ButtonColumn extends AbstractCellEditor
     }
 
     @Override
-    public Component getTableCellEditorComponent(
-            JTable table, Object value, boolean isSelected, int row, int column)
+    public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column)
     {
         if (value == null)
         {

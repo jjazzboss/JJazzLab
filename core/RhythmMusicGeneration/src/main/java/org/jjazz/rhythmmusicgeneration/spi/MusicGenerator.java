@@ -29,7 +29,7 @@ import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmVoice;
 
 /**
- * Define the music generation capability of a Rhythm.
+ * The music generation capability of a Rhythm.
  */
 public interface MusicGenerator
 {

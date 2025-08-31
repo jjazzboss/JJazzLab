@@ -31,10 +31,10 @@ import org.jjazz.harmony.api.TimeSignature;
  * A rhythm descriptor.
  * <p>
  * This interface provides all the descriptive attributes of a rhythm. In order to be able to actually generate music, a Rhythm instance must also implement the
- * <code>MusicGenerator</code> interface.
+ * <code>MusicGeneratorProvider</code> interface from the RhythmMusicGeneration module.
  * <p>
- * The framework will call the rhythm's loadResources() before using the MidiMusicGenerator object(s). This allow to save memory usage when rhythm object is
- * only used in catalogs.
+ * The framework will call the rhythm's loadResources() before using its MusicGenerator. This allow to save memory usage when rhythm object is only used in
+ * catalogs.
  * <p>
  */
 public interface Rhythm extends Comparable<Rhythm>

@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * Define a parameter that influences the way a Rhythm generates music.
  * <p>
- * A RhythmParameter implementation can have additional capabilities by implementing additional interfaces, such as RpEnumerable, RpCustomEditorProvider,
+ * A RhythmParameter implementation can have additional capabilities by implementing additional interfaces, such as RpEnumerable, RpCustomEditorFactory,
  * RpViewerRendererFactory, etc.
  * <p>
  *
@@ -119,7 +119,7 @@ public interface RhythmParameter<E>
     /**
      * Clone the specified value.
      * <p>
-     * The default implementation just return value, which is fine is E is an immutable class. If E is mutable, this method must be overridden.
+     * The default implementation just return value, which is fine if E is an immutable class. If E is mutable, this method must be overridden.
      *
      * @param value
      * @return A copy of the specified value.

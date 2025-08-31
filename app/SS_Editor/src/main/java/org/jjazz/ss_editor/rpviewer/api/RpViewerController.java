@@ -35,8 +35,7 @@ public interface RpViewerController
      * User wants to use the custom edit dialog of the specified RhythmParameter.
      *
      * @param spt
-     * @param rp The RhythmParameter must implement the RpCustomEditorProvider interface
-     * @throws IllegalArgumentException If rp is not instanceof RpCustomEditorProvider
+     * @param rp 
      */
     void rhythmParameterEditWithCustomDialog(SongPart spt, RhythmParameter<?> rp);
 
