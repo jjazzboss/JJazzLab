@@ -56,11 +56,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.DefaultListModel;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
@@ -170,6 +171,7 @@ public class UIUtilities
         return new Rectangle(x0, y0, w, h);
     }
 
+
     /**
      * Positions a dialog at a position relative to an anchor component.
      *
@@ -222,6 +224,26 @@ public class UIUtilities
                 al.actionPerformed(e);
             }
         };
+    }
+
+
+    /**
+     * Silently update a JComboBox without notifying any ActionListener.
+     *
+     * @param cmb
+     * @param task E.g. addItem(), setSelectedItem(), etc.
+     */
+    public static void silentlyUpdateComboBox(final JComboBox<?> cmb, final Runnable task)
+    {
+        final ActionListener[] actionListeners = cmb.getActionListeners();
+        Stream.of(actionListeners).forEach(l -> cmb.removeActionListener(l));
+        try
+        {
+            task.run();
+        } finally
+        {
+            Stream.of(actionListeners).forEach(l -> cmb.addActionListener(l));
+        }
     }
 
     /**

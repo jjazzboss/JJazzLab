@@ -3,6 +3,7 @@ package org.jjazz.rhythmmusicgeneration.api;
 import com.google.common.base.Preconditions;
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.Objects;
+import java.util.StringJoiner;
 import java.util.logging.Logger;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
@@ -80,10 +81,22 @@ public class RP_SYS_RhythmCombinator implements RhythmParameter<RP_SYS_RhythmCom
         return "Combine tracks from different rhythms";
     }
 
+    /**
+     * Generally used as tooltip by the framework.
+     *
+     * @param value
+     * @return
+     */
     @Override
     public String getValueDescription(RP_SYS_RhythmCombinatorValue value)
     {
-        return null;
+        var joiner = new StringJoiner(", ");
+        for (var rv : value.getMappedRhythmVoices())
+        {
+            var rvDest = value.getDestRhythmVoice(rv);
+            joiner.add(rv.getName() + " > " + rvDest.getContainer().getName() + "/" + rv.getName());
+        }
+        return joiner.toString();
     }
 
     @Override
@@ -135,7 +148,7 @@ public class RP_SYS_RhythmCombinator implements RhythmParameter<RP_SYS_RhythmCom
             return (RP_SYS_RhythmCombinatorValue) rpValue;
         } else
         {
-            return new RP_SYS_RhythmCombinatorValue(rpRc.getBaseRhythm());
+            return new RP_SYS_RhythmCombinatorValue(getBaseRhythm());
         }
     }
 

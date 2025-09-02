@@ -22,17 +22,21 @@
  */
 package org.jjazz.rpcustomeditorfactoryimpl;
 
+import com.google.common.base.Preconditions;
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JTable;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rpcustomeditorfactoryimpl.api.RealTimeRpEditorComponent;
@@ -51,7 +55,7 @@ import org.openide.windows.WindowManager;
 /**
  * A RP editor component for RP_RhythmCombinator.
  */
-public class RP_SYS_RhythmCombinatorComp extends RealTimeRpEditorComponent<RP_SYS_RhythmCombinatorValue>
+public class RP_SYS_RhythmCombinatorComp extends RealTimeRpEditorComponent<RP_SYS_RhythmCombinatorValue> implements ListSelectionListener
 {
 
     private final RP_SYS_RhythmCombinator rp;
@@ -69,12 +73,20 @@ public class RP_SYS_RhythmCombinatorComp extends RealTimeRpEditorComponent<RP_SY
 
         tbl_mappings = ((RP_SYS_RhythmCombinatorValueTable) table);
 
+
         // Add listeners
+        tbl_mappings.addPropertyChangeListener(RP_SYS_RhythmCombinatorValueTable.PROP_RVDEST, e -> 
+        {
+            // User changed the destination track of a given rhythm
+            RhythmVoice rvSrc = (RhythmVoice) e.getOldValue();
+            RhythmVoice newRvDest = (RhythmVoice) e.getNewValue();
+            setEditedRpValue(uiValue.set(rvSrc, newRvDest));
+        });
+        tbl_mappings.getSelectionModel().addListSelectionListener(this);
         tbl_mappings.getInputMap(JTable.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "AddMappings");
-        tbl_mappings.getInputMap(JTable.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_F, 0), "ClearMappings");
+        tbl_mappings.getInputMap(JTable.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "ClearMappings");
         tbl_mappings.getActionMap().put("AddMappings", UIUtilities.getAction(evt -> setMapping(evt)));
         tbl_mappings.getActionMap().put("ClearMappings", UIUtilities.getAction(evt -> clearMapping(evt)));
-
         tbl_mappings.addMouseListener(new MouseAdapter()
         {
             @Override
@@ -85,6 +97,10 @@ public class RP_SYS_RhythmCombinatorComp extends RealTimeRpEditorComponent<RP_SY
         });
     }
 
+    public boolean isUpdateAllSongPartsEnabled()
+    {
+        return cb_applyToAllSpts.isSelected();
+    }
 
     @Override
     public RP_SYS_RhythmCombinator getRhythmParameter()
@@ -107,7 +123,11 @@ public class RP_SYS_RhythmCombinatorComp extends RealTimeRpEditorComponent<RP_SY
     @Override
     public void preset(RP_SYS_RhythmCombinatorValue rpValue, SongPartContext sptContext)
     {
-        checkNotNull(sptContext);
+        Objects.requireNonNull(rpValue);
+        Objects.requireNonNull(sptContext);
+        var spt0=sptContext.getSongParts().get(0);
+        Preconditions.checkArgument(rpValue.getBaseRhythm() == spt0.getRhythm(),
+                "rpValue.getBaseRhythm()=" + rpValue.getBaseRhythm() + " spt0=" + spt0.getRhythm());
 
         LOGGER.log(Level.FINE, "preset() -- rpValue={0} sptContext={1}", new Object[]
         {
@@ -145,6 +165,22 @@ public class RP_SYS_RhythmCombinatorComp extends RealTimeRpEditorComponent<RP_SY
     {
     }
 
+    // ===============================================================================
+    // ListSelectionListener methods
+    // ===============================================================================  
+    @Override
+    public void valueChanged(ListSelectionEvent e)
+    {
+        if (e.getValueIsAdjusting())
+        {
+            return;
+        }
+
+        var rvSrc = tbl_mappings.getSelectedBaseRhythmVoice();
+        btn_replace.setEnabled(rvSrc != null);
+        btn_clear.setEnabled(rvSrc != null && uiValue.getDestRhythmVoice(rvSrc) != null);
+
+    }
 
     // ===============================================================================
     // Private methods
@@ -154,7 +190,6 @@ public class RP_SYS_RhythmCombinatorComp extends RealTimeRpEditorComponent<RP_SY
      */
     private void refreshUI()
     {
-        lbl_rhythm.setText(uiValue.getBaseRhythm().getName());
         tbl_mappings.getModel().setRpValue(uiValue);
     }
 
@@ -174,7 +209,7 @@ public class RP_SYS_RhythmCombinatorComp extends RealTimeRpEditorComponent<RP_SY
 
         if (SwingUtilities.isLeftMouseButton(evt) && evt.getClickCount() == 2)
         {
-            setMapping(null);
+            btn_replaceActionPerformed(null);
         }
     }
 
@@ -185,7 +220,7 @@ public class RP_SYS_RhythmCombinatorComp extends RealTimeRpEditorComponent<RP_SY
      */
     private void setMapping(ActionEvent evt)
     {
-        var rvSrc = tbl_mappings.getSelectedRhythmVoice();
+        var rvSrc = tbl_mappings.getSelectedBaseRhythmVoice();
         if (uiValue == null || rvSrc == null)
         {
             return;
@@ -267,7 +302,7 @@ public class RP_SYS_RhythmCombinatorComp extends RealTimeRpEditorComponent<RP_SY
 
     private void clearMapping(ActionEvent evt)
     {
-        var rvSrc = tbl_mappings.getSelectedRhythmVoice();
+        var rvSrc = tbl_mappings.getSelectedBaseRhythmVoice();
         if (uiValue == null || rvSrc == null)
         {
             return;
@@ -292,21 +327,18 @@ public class RP_SYS_RhythmCombinatorComp extends RealTimeRpEditorComponent<RP_SY
     private void initComponents()
     {
 
-        jLabel1 = new javax.swing.JLabel();
-        lbl_rhythm = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         table = new org.jjazz.rpcustomeditorfactoryimpl.RP_SYS_RhythmCombinatorValueTable();
         btn_clear = new javax.swing.JButton();
         btn_replace = new javax.swing.JButton();
-
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, org.openide.util.NbBundle.getMessage(RP_SYS_RhythmCombinatorComp.class, "RP_SYS_RhythmCombinatorComp.jLabel1.text")); // NOI18N
-
-        lbl_rhythm.setFont(lbl_rhythm.getFont().deriveFont(lbl_rhythm.getFont().getStyle() | java.awt.Font.BOLD));
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_rhythm, org.openide.util.NbBundle.getMessage(RP_SYS_RhythmCombinatorComp.class, "RP_SYS_RhythmCombinatorComp.lbl_rhythm.text")); // NOI18N
+        jScrollPane2 = new javax.swing.JScrollPane();
+        helpTextArea1 = new org.jjazz.flatcomponents.api.HelpTextArea();
+        cb_applyToAllSpts = new javax.swing.JCheckBox();
 
         jScrollPane1.setViewportView(table);
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_clear, org.openide.util.NbBundle.getMessage(RP_SYS_RhythmCombinatorComp.class, "RP_SYS_RhythmCombinatorComp.btn_clear.text")); // NOI18N
+        btn_clear.setEnabled(false);
         btn_clear.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -317,6 +349,7 @@ public class RP_SYS_RhythmCombinatorComp extends RealTimeRpEditorComponent<RP_SY
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_replace, org.openide.util.NbBundle.getMessage(RP_SYS_RhythmCombinatorComp.class, "RP_SYS_RhythmCombinatorComp.btn_replace.text")); // NOI18N
         btn_replace.setToolTipText(org.openide.util.NbBundle.getMessage(RP_SYS_RhythmCombinatorComp.class, "RP_SYS_RhythmCombinatorComp.btn_replace.toolTipText")); // NOI18N
+        btn_replace.setEnabled(false);
         btn_replace.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -325,41 +358,50 @@ public class RP_SYS_RhythmCombinatorComp extends RealTimeRpEditorComponent<RP_SY
             }
         });
 
+        jScrollPane2.setBackground(null);
+        jScrollPane2.setBorder(null);
+
+        helpTextArea1.setColumns(20);
+        helpTextArea1.setRows(3);
+        helpTextArea1.setText(org.openide.util.NbBundle.getMessage(RP_SYS_RhythmCombinatorComp.class, "RP_SYS_RhythmCombinatorComp.helpTextArea1.text")); // NOI18N
+        jScrollPane2.setViewportView(helpTextArea1);
+
+        org.openide.awt.Mnemonics.setLocalizedText(cb_applyToAllSpts, org.openide.util.NbBundle.getMessage(RP_SYS_RhythmCombinatorComp.class, "RP_SYS_RhythmCombinatorComp.cb_applyToAllSpts.text")); // NOI18N
+        cb_applyToAllSpts.setToolTipText(org.openide.util.NbBundle.getMessage(RP_SYS_RhythmCombinatorComp.class, "RP_SYS_RhythmCombinatorComp.cb_applyToAllSpts.toolTipText")); // NOI18N
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jScrollPane2)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 564, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jScrollPane1)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(btn_clear)
-                            .addComponent(btn_replace, javax.swing.GroupLayout.Alignment.TRAILING)))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel1)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(lbl_rhythm)
-                        .addGap(0, 547, Short.MAX_VALUE)))
+                    .addComponent(btn_replace, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btn_clear, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(cb_applyToAllSpts))
                 .addContainerGap())
         );
+
+        layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {btn_clear, btn_replace});
+
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel1)
-                    .addComponent(lbl_rhythm))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 376, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(btn_replace)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(btn_clear)
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(cb_applyToAllSpts)))
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
@@ -379,9 +421,10 @@ public class RP_SYS_RhythmCombinatorComp extends RealTimeRpEditorComponent<RP_SY
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_clear;
     private javax.swing.JButton btn_replace;
-    private javax.swing.JLabel jLabel1;
+    private javax.swing.JCheckBox cb_applyToAllSpts;
+    private org.jjazz.flatcomponents.api.HelpTextArea helpTextArea1;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JLabel lbl_rhythm;
+    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTable table;
     // End of variables declaration//GEN-END:variables
 

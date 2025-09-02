@@ -13,6 +13,7 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.spi.ConfigurableMusicGeneratorProvider;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGeneratorProvider;
+import org.jjazz.utilities.api.ResUtil;
 
 /**
  * Indicates the RhythmVoices mapped to other RhythmVoices.
@@ -67,7 +68,7 @@ public class RP_SYS_RhythmCombinatorValue
     public RP_SYS_RhythmCombinatorValue set(RhythmVoice rvSrc, RhythmVoice rvDest)
     {
         Preconditions.checkArgument(baseRhythm.getRhythmVoices().contains(rvSrc), "rvSrc=%s baseRhythm=%s", rvSrc, baseRhythm);
-        Preconditions.checkArgument(rvDest.getContainer() instanceof MusicGeneratorProvider, "rvSrc=%s rvDest=%s", rvSrc, rvDest);
+        Preconditions.checkArgument(rvDest == null || rvDest.getContainer() instanceof MusicGeneratorProvider, "rvSrc=%s rvDest=%s", rvSrc, rvDest);
         var newMap = new HashMap<>(mapSrcDestRhythmVoice);
         if (rvDest == null)
         {
@@ -131,9 +132,19 @@ public class RP_SYS_RhythmCombinatorValue
 
     public String toDescriptionString()
     {
-        StringJoiner joiner = new StringJoiner(",");
-        mapSrcDestRhythmVoice.keySet().forEach(rv -> joiner.add(rv.getName()));
-        return joiner.toString();
+        String res = "";
+        var rvSrcs = mapSrcDestRhythmVoice.keySet();
+        int size = rvSrcs.size();
+        if (size > 1)
+        {
+            res = ResUtil.getString(getClass(), "NbMappedTracks", size);
+        } else if (size == 1)
+        {
+            var rvSrc = rvSrcs.iterator().next();
+            var rvDest = mapSrcDestRhythmVoice.get(rvSrc);
+            res = rvSrc.getName() + " > " + rvDest.getContainer().getName();
+        }
+        return res;
     }
 
     /**

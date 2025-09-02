@@ -25,12 +25,24 @@ package org.jjazz.rpcustomeditorfactoryimpl;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Rectangle;
+import java.util.function.BiConsumer;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.DefaultCellEditor;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JTable;
 import javax.swing.UIManager;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableCellEditor;
+import org.jjazz.midi.api.Instrument;
+import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.midimix.spi.MidiMixManager;
+import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.api.RP_SYS_RhythmCombinatorValue;
 
@@ -41,7 +53,14 @@ import org.jjazz.rhythmmusicgeneration.api.RP_SYS_RhythmCombinatorValue;
 public class RP_SYS_RhythmCombinatorValueTable extends JTable
 {
 
-    private final RhythmCombinatorValueTableModel tblModel = new RhythmCombinatorValueTableModel();
+    /**
+     * Change event fired when user updated the destination RhythmVoice of a given destination rhythm.
+     * <p>
+     * oldValue=rvSrc, newValue=newRvDest
+     */
+    public static final String PROP_RVDEST = "PropRvDest";
+    private final CustomTableModel tblModel = new CustomTableModel();
+    private final CustomRvCellEditor rvCellEditor;
     private static final Logger LOGGER = Logger.getLogger(RP_SYS_RhythmCombinatorValueTable.class.getSimpleName());
 
     public RP_SYS_RhythmCombinatorValueTable()
@@ -51,14 +70,40 @@ public class RP_SYS_RhythmCombinatorValueTable extends JTable
         setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         getTableHeader().setReorderingAllowed(false);               // Prevent column dragging
-        RhythmVoiceRenderer renderer = new RhythmVoiceRenderer();
-        getColumnModel().getColumn(RhythmCombinatorValueTableModel.COL_SRC_RHYTHM_VOICE).setCellRenderer(renderer);
-        getColumnModel().getColumn(RhythmCombinatorValueTableModel.COL_DEST_RHYTHM_VOICE).setCellRenderer(renderer);
+        RhythmVoiceRenderer rvRenderer = new RhythmVoiceRenderer();
+        getColumnModel().getColumn(CustomTableModel.COL_SRC_RHYTHM_VOICE).setCellRenderer(rvRenderer);
+        RhythmRenderer rRenderer = new RhythmRenderer();
+        getColumnModel().getColumn(CustomTableModel.COL_DEST_RHYTHM).setCellRenderer(rRenderer);
+        getColumnModel().getColumn(CustomTableModel.COL_DEST_RHYTHM_VOICE).setCellRenderer(rvRenderer);
+        putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
 
+        rvCellEditor = new CustomRvCellEditor((rvSrc, rvDest) -> firePropertyChange(PROP_RVDEST, rvSrc, rvDest));
     }
 
     @Override
-    public RhythmCombinatorValueTableModel getModel()
+    public TableCellEditor getCellEditor(int row, int column)
+    {
+        LOGGER.log(Level.SEVERE, "getCellEditor() -- row={0} column={1}", new Object[]
+        {
+            row, column
+        });
+        int modelColumn = convertColumnIndexToModel(column);
+        int modelRow = convertRowIndexToModel(row);
+        if (modelColumn == CustomTableModel.COL_DEST_RHYTHM_VOICE)
+        {
+            var rvSrc = tblModel.getSrcRhythmVoice(modelRow);
+            var rvDest = rvSrc != null ? tblModel.getRpValue().getDestRhythmVoice(rvSrc) : null;
+            assert rvDest != null;
+            rvCellEditor.resetSilently(rvSrc, rvDest.getContainer(), rvDest);
+            return rvCellEditor;
+        } else
+        {
+            return super.getCellEditor(row, column);
+        }
+    }
+
+    @Override
+    public CustomTableModel getModel()
     {
         return tblModel;
     }
@@ -73,7 +118,7 @@ public class RP_SYS_RhythmCombinatorValueTable extends JTable
      *
      * @return Can be null if no selection
      */
-    public RhythmVoice getSelectedRhythmVoice()
+    public RhythmVoice getSelectedBaseRhythmVoice()
     {
         RhythmVoice res = null;
         if (tblModel != null)
@@ -94,7 +139,7 @@ public class RP_SYS_RhythmCombinatorValueTable extends JTable
      *
      * @param rv
      */
-    public void setSelectedRhythmVoice(RhythmVoice rv)
+    public void setSelectedBaseRhythmVoice(RhythmVoice rv)
     {
         var rpValue = tblModel.getRpValue();
         if (rpValue == null)
@@ -117,15 +162,14 @@ public class RP_SYS_RhythmCombinatorValueTable extends JTable
     }
 
 
-    /**
-     * Our model.
-     */
-    static public class RhythmCombinatorValueTableModel extends AbstractTableModel
+    static public class CustomTableModel extends AbstractTableModel
     {
 
         public static final int COL_SRC_RHYTHM_VOICE = 0;
-        public static final int COL_DEST_RHYTHM_VOICE = 1;
+        public static final int COL_DEST_RHYTHM = 1;
+        public static final int COL_DEST_RHYTHM_VOICE = 2;
         private RP_SYS_RhythmCombinatorValue rpValue;
+
 
         /**
          *
@@ -135,6 +179,19 @@ public class RP_SYS_RhythmCombinatorValueTable extends JTable
         {
             this.rpValue = rpValue;
             fireTableDataChanged();
+        }
+
+        public RhythmVoice getSrcRhythmVoice(int row)
+        {
+            RhythmVoice res = rpValue != null ? rpValue.getBaseRhythm().getRhythmVoices().get(row) : null;
+            return res;
+        }
+
+        public RhythmVoice getDestRhythmVoice(int row)
+        {
+            var rvSrc = getSrcRhythmVoice(row);
+            RhythmVoice res = rvSrc != null ? rpValue.getDestRhythmVoice(rvSrc) : null;
+            return res;
         }
 
         public RP_SYS_RhythmCombinatorValue getRpValue()
@@ -147,6 +204,8 @@ public class RP_SYS_RhythmCombinatorValueTable extends JTable
         {
             Class<?> res = switch (col)
             {
+                case COL_DEST_RHYTHM ->
+                    Rhythm.class;
                 case COL_SRC_RHYTHM_VOICE, COL_DEST_RHYTHM_VOICE ->
                     RhythmVoice.class;
                 default -> throw new IllegalStateException("columnIndex=" + col);
@@ -155,14 +214,28 @@ public class RP_SYS_RhythmCombinatorValueTable extends JTable
         }
 
         @Override
+        public boolean isCellEditable(int row, int column)
+        {
+            boolean b = false;
+            if (column == COL_DEST_RHYTHM_VOICE)
+            {
+                var rvDest = getDestRhythmVoice(row);
+                b = rvDest != null;
+            }
+            return b;
+        }
+
+        @Override
         public String getColumnName(int columnIndex)
         {
             String s = switch (columnIndex)
             {
                 case COL_SRC_RHYTHM_VOICE ->
-                    "Track";
+                    "Current rhythm / track";
+                case COL_DEST_RHYTHM ->
+                    "Substitute rhythm";
                 case COL_DEST_RHYTHM_VOICE ->
-                    "Replacement";
+                    "Substitute track";
                 default -> throw new IllegalStateException("columnIndex=" + columnIndex);
             };
             return s;
@@ -177,7 +250,7 @@ public class RP_SYS_RhythmCombinatorValueTable extends JTable
         @Override
         public int getColumnCount()
         {
-            return 2;
+            return 3;
         }
 
         @Override
@@ -192,6 +265,11 @@ public class RP_SYS_RhythmCombinatorValueTable extends JTable
             {
                 case COL_SRC_RHYTHM_VOICE ->
                     rvSrc;
+                case COL_DEST_RHYTHM ->
+                {
+                    var rvDest = rpValue.getDestRhythmVoice(rvSrc);
+                    yield rvDest != null ? rvDest.getContainer() : null;
+                }
                 case COL_DEST_RHYTHM_VOICE ->
                     rpValue.getDestRhythmVoice(rvSrc);
                 default -> throw new IllegalStateException("col=" + col);
@@ -205,8 +283,28 @@ public class RP_SYS_RhythmCombinatorValueTable extends JTable
     // ============================================================================
     // Private methods
     // ============================================================================
-    private class RhythmVoiceRenderer extends DefaultTableCellRenderer
+    static private class RhythmVoiceRenderer extends DefaultTableCellRenderer
     {
+
+        static public String toRvString(RhythmVoice rv, boolean showRhythm)
+        {
+            Rhythm r = rv.getContainer();
+            MidiMix mm = MidiMixManager.getDefault().findMix(r);
+            String insStr = "";
+            if (mm != null && mm.getInstrumentMix(rv) != null)
+            {
+                insStr = " (" + mm.getInstrumentMix(rv).getInstrument().getPatchName() + ")";
+            } else
+            {
+                LOGGER.log(Level.WARNING, "toRvString() Unexpected null values. mm={0} rv={1}", new Object[]
+                {
+                    mm, rv
+                });
+            }
+            String res = (showRhythm ? r.getName() + " / " : "") + rv.getName() + insStr;
+            return res;
+        }
+
 
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col)
@@ -220,18 +318,121 @@ public class RP_SYS_RhythmCombinatorValueTable extends JTable
             RhythmVoice rv = (RhythmVoice) value;
             if (rv != null)
             {
-                String text;
-                if (col == RhythmCombinatorValueTableModel.COL_DEST_RHYTHM_VOICE)
-                {
-                    text = rv.getContainer().getName() + " > " + rv.getName();
-                } else
-                {
-                    text = rv.getName();
-                }
-                label.setText(text);
+                label.setText(toRvString(rv, col == CustomTableModel.COL_SRC_RHYTHM_VOICE));
+            }
+            return label;
+        }
+    }
+
+
+    static private class RhythmRenderer extends DefaultTableCellRenderer
+    {
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col)
+        {
+            JLabel label = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
+
+            // Default JDK TableCellRenderer ignores the enabled/disabled state!            
+            Color c = table.isEnabled() ? UIManager.getColor("Table.foreground") : UIManager.getColor("Label.disabledForeground");
+            label.setForeground(c);
+
+            Rhythm r = (Rhythm) value;
+            if (r != null)
+            {
+                label.setText(r.getName());
             }
 
             return label;
+        }
+    }
+
+    /**
+     * A DefaultCellEditor to edit the destination RhythmVoice.
+     */
+    private class CustomRvCellEditor extends DefaultCellEditor
+    {
+
+        private final JComboBox<RhythmVoice> comboBox;
+        private final DefaultComboBoxModel comboBoxModel;
+        private RhythmVoice currentRvSrc;
+        private boolean blockActionListener = false;
+
+        /**
+         *
+         * @param userChangedValueListener param1=rvSrc, param2=rvDest
+         */
+        public CustomRvCellEditor(BiConsumer<RhythmVoice, RhythmVoice> userChangedValueListener)
+        {
+            super(new JComboBox()); // Dummy component for parent constructor
+
+            comboBoxModel = new DefaultComboBoxModel();
+            comboBox = new JComboBox(comboBoxModel);
+            comboBox.setRenderer(new CmbRvRenderer());
+
+
+            comboBox.addActionListener(ae -> 
+            {
+                // User selected a value
+                if (!blockActionListener && currentRvSrc != null)
+                {
+                    RhythmVoice newRvDest = (RhythmVoice) comboBox.getSelectedItem();
+                    assert newRvDest != null;
+                    userChangedValueListener.accept(currentRvSrc, newRvDest);
+                }
+            });
+
+        }
+
+        /**
+         * Silently configure the DefaultCellEditor for the specified parameters.
+         * <p>
+         *
+         * @param rvSrc
+         * @param r
+         * @param rvDest
+         */
+        public void resetSilently(RhythmVoice rvSrc, Rhythm r, RhythmVoice rvDest)
+        {
+            currentRvSrc = rvSrc;
+            blockActionListener = true;
+            comboBoxModel.removeAllElements();
+            comboBoxModel.addAll(r.getRhythmVoices());
+            comboBoxModel.setSelectedItem(rvDest);
+            blockActionListener = false;
+        }
+
+        public RhythmVoice getRvValue()
+        {
+            return (RhythmVoice) comboBox.getSelectedItem();
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column)
+        {
+            return comboBox;
+        }
+
+        @Override
+        public Object getCellEditorValue()
+        {
+            return getRvValue();
+        }
+
+        static private class CmbRvRenderer extends DefaultListCellRenderer
+        {
+
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus)
+            {
+                Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);      // actually c=this !
+                RhythmVoice rv = (RhythmVoice) value;
+                if (rv != null)
+                {
+                    setText(RhythmVoiceRenderer.toRvString(rv, false));
+                }
+                return c;
+            }
         }
     }
 

@@ -67,7 +67,7 @@ public class CompositeMusicGenerator implements MusicGenerator
      * Identify a target MusicGenerator and its associated target RhythmVoice.
      *
      * @param mg
-     * @param rv 
+     * @param rv
      */
     public record MgTarget(MusicGenerator mg, RhythmVoice rv)
             {
@@ -181,11 +181,8 @@ public class CompositeMusicGenerator implements MusicGenerator
                         }
                     }
 
-                    if (!mapBaseRvMgTarget.isEmpty())
-                    {
-                        var mapRvPhrases = callGenerator(mg, mapBaseRvMgTarget, subContext);     // throws MusicGenerationException
-                        mergePhrases(sgContext.getMidiMix(), res, mapRvPhrases);
-                    }
+                    var mapRvPhrases = callGenerator(mg, mapBaseRvMgTarget, subContext);     // throws MusicGenerationException
+                    mergePhrases(sgContext.getMidiMix(), res, mapRvPhrases);
 
                     prevSptList.clear();
                     prevSptMgTargets = sptMgTargets;
@@ -231,56 +228,59 @@ public class CompositeMusicGenerator implements MusicGenerator
      */
     private Map<RhythmVoice, Phrase> callGenerator(MusicGenerator mg, Map<RhythmVoice, MgTarget> mapBaseRvMgTarget, SongContext subContext) throws MusicGenerationException
     {
-        Preconditions.checkArgument(!mapBaseRvMgTarget.isEmpty(), "mg=%s subContext=%s", mg.getClass().getSimpleName(), subContext);
-
         Map<RhythmVoice, Phrase> res = new HashMap<>();
 
-        var targetRvsSorted = mapBaseRvMgTarget.values().stream()
-                .filter(mgt -> mgt.mg == mg) // consistency check                
-                .sorted((mgt1, mgt2) -> Integer.compare(mgt1.rv.getPreferredChannel(), mgt2.rv.getPreferredChannel()))
-                .map(mgt -> mgt.rv)
-                .toArray(RhythmVoice[]::new);
-        if (targetRvsSorted.length != mapBaseRvMgTarget.size())
+        if (!mapBaseRvMgTarget.isEmpty())
         {
-            throw new IllegalArgumentException("targetRvsSorted=" + Arrays.asList(targetRvsSorted) + " mg=" + mg + " mapBaseRvMgTarget=" + mapBaseRvMgTarget);
-        }
 
-
-        Rhythm targetRhythm = (Rhythm) targetRvsSorted[0].getContainer();
-        SongContext targetContext = subContext;      // by default     
-        if (targetRhythm != baseRhythm)
-        {
-            // We need a new targetContext with a song using targetRhythm instead of baseRhythm
-            targetContext = createTargetContext(subContext, targetRhythm);
-        }
-
-
-        // Call MusicGenerator
-        LOGGER.log(Level.SEVERE, "callGenerator() generating music mg={0} subContext={1}  mapBaseRvMgTarget=\n{2} ", new Object[]
-        {
-//            mg, subContext, mapBaseRvMgTarget
-            mg.getClass().getSimpleName(),
-            subContext.getSongParts().stream().map(spt -> spt.toShortString()).toList(),
-            Utilities.toMultilineString(mapBaseRvMgTarget, "   ")
-        });
-        var mapRvPhrases = mg.generateMusic(targetContext, targetRvsSorted);
-
-
-        // We need to map back the Phrases to their source RhythmVoices
-        for (var baseRv : mapBaseRvMgTarget.keySet())
-        {
-            var targetRv = mapBaseRvMgTarget.get(baseRv).rv;
-            if (baseRv != targetRv)
+            var targetRvsSorted = mapBaseRvMgTarget.values().stream()
+                    .filter(mgt -> mgt.mg == mg) // consistency check                
+                    .sorted((mgt1, mgt2) -> Integer.compare(mgt1.rv.getPreferredChannel(), mgt2.rv.getPreferredChannel()))
+                    .map(mgt -> mgt.rv)
+                    .toArray(RhythmVoice[]::new);
+            if (targetRvsSorted.length != mapBaseRvMgTarget.size())
             {
-                Phrase p = mapRvPhrases.remove(targetRv);
-                assert p != null : "targetRv=" + targetRv + " baseRv=" + baseRv;
-                mapRvPhrases.put(baseRv, p);
+                throw new IllegalArgumentException("targetRvsSorted=" + Arrays.asList(targetRvsSorted) + " mg=" + mg + " mapBaseRvMgTarget=" + mapBaseRvMgTarget);
             }
+
+
+            Rhythm targetRhythm = (Rhythm) targetRvsSorted[0].getContainer();
+            SongContext targetContext = subContext;      // by default     
+            if (targetRhythm != baseRhythm)
+            {
+                // We need a new targetContext with a song using targetRhythm instead of baseRhythm
+                targetContext = createTargetContext(subContext, targetRhythm);
+            }
+
+
+            // Call MusicGenerator
+            LOGGER.log(Level.SEVERE, "callGenerator() generating music mg={0} subContext={1}  mapBaseRvMgTarget=\n{2} ", new Object[]
+            {
+//            mg, subContext, mapBaseRvMgTarget
+                mg.getClass().getSimpleName(),
+                subContext.getSongParts().stream().map(spt -> spt.toShortString()).toList(),
+                Utilities.toMultilineString(mapBaseRvMgTarget, "   ")
+            });
+            var mapRvPhrases = mg.generateMusic(targetContext, targetRvsSorted);
+
+
+            // We need to map back the Phrases to their source RhythmVoices
+            for (var baseRv : mapBaseRvMgTarget.keySet())
+            {
+                var targetRv = mapBaseRvMgTarget.get(baseRv).rv;
+                if (baseRv != targetRv)
+                {
+                    Phrase p = mapRvPhrases.remove(targetRv);
+                    assert p != null : "targetRv=" + targetRv + " baseRv=" + baseRv;
+                    mapRvPhrases.put(baseRv, p);
+                }
+            }
+
+
+            res.putAll(mapRvPhrases);
+            assert res.keySet().size() == mapBaseRvMgTarget.keySet().size() : "res=" + res + " mapBaseRvMgTarget=" + mapBaseRvMgTarget;
+
         }
-
-
-        res.putAll(mapRvPhrases);
-        assert res.keySet().size() == mapBaseRvMgTarget.keySet().size() : "res=" + res + " mapBaseRvMgTarget=" + mapBaseRvMgTarget;
 
         return res;
     }
