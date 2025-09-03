@@ -684,7 +684,6 @@ public class Song implements Serializable, PropertyChangeListener
             {
                 r.releaseResources();
             }
-            LOGGER.severe("close() !!!!!!!!!!!!!!!!!!! REMINDER also close rhythms indirectly used via RP_SYS_RhythmCombinator");
         }
         for (var p : mapUserPhrases.values())
         {
