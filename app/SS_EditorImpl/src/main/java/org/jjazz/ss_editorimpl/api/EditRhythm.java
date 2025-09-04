@@ -22,6 +22,7 @@
  */
 package org.jjazz.ss_editorimpl.api;
 
+import com.google.common.base.Preconditions;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
@@ -67,6 +68,7 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ss_editor.api.SS_ContextActionListener;
 import org.jjazz.ss_editorimpl.rhythmselectiondialog.RhythmSelectionDialogImpl;
+import org.jjazz.uiutilities.api.ColumnLeftAlignedLayoutManager;
 import org.jjazz.undomanager.api.SimpleEdit;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
@@ -316,18 +318,20 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
             cb_useRhythmTempo.setSelected(true);
             cb_applyRhythmToNextSpts = new JCheckBox();
             cb_applyRhythmToNextSpts.setText(ResUtil.getString(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.cb_applyRhythmToNextSpts.text"));
-            cb_applyRhythmToNextSpts.setToolTipText(ResUtil.getString(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.cb_applyRhythmToNextSpts.toolTipText"));
+            cb_applyRhythmToNextSpts.setToolTipText(ResUtil.getString(RhythmSelectionDialogImpl.class,
+                    "RhythmSelectionDialogImpl.cb_applyRhythmToNextSpts.toolTipText"));
             cb_applyRhythmToNextSpts.setSelected(true);
-            setLayout(new MyLayoutManager());
-            add(cb_applyRhythmToNextSpts);
+
+            setLayout(new ColumnLeftAlignedLayoutManager());
             add(cb_useRhythmTempo);
+            add(cb_applyRhythmToNextSpts);
         }
 
         static public RhythmSelectionDialogCustomerComp getInstance()
         {
             if (INSTANCE == null)
             {
-                INSTANCE = new RhythmSelectionDialogCustomerComp();           
+                INSTANCE = new RhythmSelectionDialogCustomerComp();
             }
             return INSTANCE;
         }
@@ -340,54 +344,6 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
         public boolean isApplyRhythmToNextSongParts()
         {
             return cb_applyRhythmToNextSpts.isSelected();
-        }
-
-        /**
-         * Layout the 2 checkboxes in a vertical row aligned on the left.
-         */
-        private class MyLayoutManager implements LayoutManager
-        {
-
-            private static final int PADDING = 3;
-
-            @Override
-            public void layoutContainer(Container parent)
-            {
-                cb_useRhythmTempo.setSize(cb_useRhythmTempo.getPreferredSize());
-                cb_useRhythmTempo.setLocation(PADDING, PADDING);
-                cb_applyRhythmToNextSpts.setSize(cb_applyRhythmToNextSpts.getPreferredSize());
-                cb_applyRhythmToNextSpts.setLocation(PADDING, 2 * PADDING + cb_useRhythmTempo.getHeight());
-            }
-
-            @Override
-            public void addLayoutComponent(String name, Component comp)
-            {
-                throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-            }
-
-            @Override
-            public void removeLayoutComponent(Component comp)
-            {
-                throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-            }
-
-            @Override
-            public Dimension preferredLayoutSize(Container parent)
-            {
-                var pdUseTempo = cb_useRhythmTempo.getPreferredSize();
-                var pdApply = cb_applyRhythmToNextSpts.getPreferredSize();
-                int w = PADDING + Math.max(pdUseTempo.width, pdApply.width);
-                int h = 3 * PADDING + pdUseTempo.height + pdApply.height;
-                return new Dimension(w, h);
-            }
-
-            @Override
-            public Dimension minimumLayoutSize(Container parent)
-            {
-                return preferredLayoutSize(parent);
-            }
-
-
         }
     }
 }
