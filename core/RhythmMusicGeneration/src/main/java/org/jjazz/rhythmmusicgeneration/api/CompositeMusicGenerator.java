@@ -35,6 +35,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.phrase.api.Phrase;
@@ -139,10 +140,15 @@ public class CompositeMusicGenerator implements MusicGenerator
 
         Map<RhythmVoice, Phrase> res = new HashMap<>();
 
+        // The SongParts using our rhythm
+        var spts = sgContext.getSongParts().stream()
+                .filter(spt -> spt.getRhythm() == baseRhythm)
+                .toList();
+
 
         // Identify the unique MusicGenerators used
         Set<MusicGenerator> uniqueMgs = new HashSet<>();
-        for (var spt : sgContext.getSongParts())
+        for (var spt : spts)
         {
             rhythmVoices.stream()
                     .map(rv -> rvMapper.get(rv, spt))
@@ -155,7 +161,7 @@ public class CompositeMusicGenerator implements MusicGenerator
             List<MgTarget> prevSptMgTargets = null;
             List<SongPart> prevSptList = new ArrayList<>();
 
-            for (var spt : sgContext.getSongParts())
+            for (var spt : spts)
             {
                 // Get a MgTargets vector, with null values for MgTargets not using mg
                 var sptMgTargets = rhythmVoices.stream()
@@ -169,8 +175,9 @@ public class CompositeMusicGenerator implements MusicGenerator
                 } else if (!sptMgTargets.equals(prevSptMgTargets))
                 {
                     // At least one target MgTarget has changed because of the SongPart context, start a music generation on the previous subContext
-                    var subContext = createSubContext(sgContext, prevSptList);
+                    var subContext = createSubContext(sgContext, prevSptList);  // note that SongParts might not be contiguous
 
+                    // Prepare the mg-specific map
                     Map<RhythmVoice, MgTarget> mapBaseRvMgTarget = new HashMap<>();
                     for (int i = 0; i < rhythmVoices.size(); i++)
                     {
@@ -181,6 +188,7 @@ public class CompositeMusicGenerator implements MusicGenerator
                         }
                     }
 
+                    // Get mg to generate music
                     var mapRvPhrases = callGenerator(mg, mapBaseRvMgTarget, subContext);     // throws MusicGenerationException
                     mergePhrases(sgContext.getMidiMix(), res, mapRvPhrases);
 
@@ -203,7 +211,6 @@ public class CompositeMusicGenerator implements MusicGenerator
                     mapBaseRvMgTarget.put(rhythmVoices.get(i), mgt);
                 }
             }
-
             var mapRvPhrases = callGenerator(mg, mapBaseRvMgTarget, subContext);     // throws MusicGenerationException
             mergePhrases(sgContext.getMidiMix(), res, mapRvPhrases);
         }
@@ -217,7 +224,7 @@ public class CompositeMusicGenerator implements MusicGenerator
     // =================================================================================================================================
 
     /**
-     * Generate phrases for a "uniform" subContext (which uses a single MusicGenerator with the same source/target RhythmVoices configuration).
+     * Generate phrases for a single MusicGenerator which a single same source/target RhythmVoices configuration.
      * <p>
      *
      * @param mg
@@ -232,19 +239,13 @@ public class CompositeMusicGenerator implements MusicGenerator
 
         if (!mapBaseRvMgTarget.isEmpty())
         {
-
-            var targetRvsSorted = mapBaseRvMgTarget.values().stream()
+            var uniqueTargetRvs = mapBaseRvMgTarget.values().stream()
                     .filter(mgt -> mgt.mg == mg) // consistency check                
-                    .sorted((mgt1, mgt2) -> Integer.compare(mgt1.rv.getPreferredChannel(), mgt2.rv.getPreferredChannel()))
                     .map(mgt -> mgt.rv)
-                    .toArray(RhythmVoice[]::new);
-            if (targetRvsSorted.length != mapBaseRvMgTarget.size())
-            {
-                throw new IllegalArgumentException("targetRvsSorted=" + Arrays.asList(targetRvsSorted) + " mg=" + mg + " mapBaseRvMgTarget=" + mapBaseRvMgTarget);
-            }
+                    .collect(Collectors.toSet());   // We might have 2 times the same Rv if redirecting one base RhythmVoice to another base RhythmVoice
+                                       
 
-
-            Rhythm targetRhythm = (Rhythm) targetRvsSorted[0].getContainer();
+            Rhythm targetRhythm = (Rhythm) uniqueTargetRvs.iterator().next().getContainer();
             SongContext targetContext = subContext;      // by default     
             if (targetRhythm != baseRhythm)
             {
@@ -254,14 +255,14 @@ public class CompositeMusicGenerator implements MusicGenerator
 
 
             // Call MusicGenerator
-            LOGGER.log(Level.SEVERE, "callGenerator() generating music mg={0} subContext={1}  mapBaseRvMgTarget=\n{2} ", new Object[]
+            LOGGER.log(Level.FINE, "callGenerator() generating music mg={0} subContext={1}  mapBaseRvMgTarget=\n{2} ", new Object[]
             {
-//            mg, subContext, mapBaseRvMgTarget
+               // mg, subContext, mapBaseRvMgTarget
                 mg.getClass().getSimpleName(),
                 subContext.getSongParts().stream().map(spt -> spt.toShortString()).toList(),
                 Utilities.toMultilineString(mapBaseRvMgTarget, "   ")
             });
-            var mapRvPhrases = mg.generateMusic(targetContext, targetRvsSorted);
+            var mapRvPhrases = mg.generateMusic(targetContext, uniqueTargetRvs.toArray(RhythmVoice[]::new));
 
 
             // We need to map back the Phrases to their source RhythmVoices
@@ -276,9 +277,7 @@ public class CompositeMusicGenerator implements MusicGenerator
                 }
             }
 
-
             res.putAll(mapRvPhrases);
-            assert res.keySet().size() == mapBaseRvMgTarget.keySet().size() : "res=" + res + " mapBaseRvMgTarget=" + mapBaseRvMgTarget;
 
         }
 
@@ -332,23 +331,23 @@ public class CompositeMusicGenerator implements MusicGenerator
         int unusedChannels = res.getMidiMix().getUnusedChannels().size();
         if (targetRhythm.getRhythmVoices().size() - baseRhythm.getRhythmVoices().size() > unusedChannels)
         {
-            throw new MusicGenerationException("CompositeMusicGenerator can not temporarily replace " + baseRhythm.getName()
+            throw new MusicGenerationException("CompositeMusicGenerator can not substitute " + baseRhythm.getName()
                     + " by " + targetRhythm.getName() + ": not enough Midi channels");
         }
 
         // Replace rhythm
-        SongStructure sgs = res.getSong().getSongStructure();
+        SongStructure sgsCopy = res.getSong().getSongStructure();
         var targetOldSpts = context.getSongParts().stream()
-                .map(spt -> sgs.getSongPart(spt.getStartBarIndex()))
+                .filter(spt -> spt.getRhythm() == baseRhythm)
+                .map(spt -> sgsCopy.getSongPart(spt.getStartBarIndex()))
                 .toList();
-        assert targetOldSpts.stream().allMatch(spt -> spt.getRhythm() == baseRhythm) : "targetOldSpts=" + targetOldSpts;
 
         var targetNewSpts = targetOldSpts.stream()
                 .map(spt -> spt.clone(targetRhythm, spt.getStartBarIndex(), spt.getNbBars(), spt.getParentSection()))
                 .toList();
         try
         {
-            sgs.replaceSongParts(targetOldSpts, targetNewSpts);
+            sgsCopy.replaceSongParts(targetOldSpts, targetNewSpts);
         } catch (UnsupportedEditException ex)
         {
             // Should not happen since we checked before

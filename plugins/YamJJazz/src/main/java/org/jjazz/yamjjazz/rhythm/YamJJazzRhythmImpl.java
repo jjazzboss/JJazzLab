@@ -55,7 +55,7 @@ import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Intensity;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhrase;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Marker;
-import org.jjazz.rhythmmusicgeneration.api.RP_SYS_RhythmCombinator;
+import org.jjazz.rhythmmusicgeneration.api.RP_SYS_SubstituteTracks;
 import org.jjazz.rhythmmusicgeneration.api.RP_SYS_Mute;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_TempoFactor;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
@@ -660,7 +660,7 @@ public class YamJJazzRhythmImpl implements YamJJazzRhythm
         // Mute : use available tracks      
         RP_SYS_Mute rpMute = RP_SYS_Mute.createMuteRp(this, false);
         RP_SYS_CustomPhrase rpCustomPhrase = new RP_SYS_CustomPhrase(this, false);
-        RP_SYS_RhythmCombinator rpRhythmCombinator = new RP_SYS_RhythmCombinator(this, false);
+        RP_SYS_SubstituteTracks rpSubstituteTracks = new RP_SYS_SubstituteTracks(this, false);
 
 
         rhythmParameters.add(rpVariation);
@@ -680,7 +680,7 @@ public class YamJJazzRhythmImpl implements YamJJazzRhythm
         }
 
         rhythmParameters.add(rpCustomPhrase);
-        rhythmParameters.add(rpRhythmCombinator);
+        rhythmParameters.add(rpSubstituteTracks);
 
         // Make it unmodifiable
         rhythmParameters = Collections.unmodifiableList(rhythmParameters);

@@ -7,8 +7,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.StringJoiner;
 import java.util.logging.Logger;
+import org.jjazz.phrasetransform.api.PhraseTransformChain;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.spi.ConfigurableMusicGeneratorProvider;
@@ -16,33 +16,34 @@ import org.jjazz.rhythmmusicgeneration.spi.MusicGeneratorProvider;
 import org.jjazz.utilities.api.ResUtil;
 
 /**
- * Indicates the RhythmVoices mapped to other RhythmVoices.
+ * Store which source RhythmVoices are mapped to which destination RhythmVoices.
  * <p>
  * This is an immutable value.
  */
-public class RP_SYS_RhythmCombinatorValue
+public class RP_SYS_SubstituteTracksValue
 {
 
     private final Map<RhythmVoice, RhythmVoice> mapSrcDestRhythmVoice;
     private final Rhythm baseRhythm;
-    private static final Logger LOGGER = Logger.getLogger(RP_SYS_RhythmCombinatorValue.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(RP_SYS_SubstituteTracksValue.class.getSimpleName());
 
 
     /**
      *
      * @param baseRhythm Must implement the ConfigurableMusicGeneratorProvider interface
      */
-    public RP_SYS_RhythmCombinatorValue(Rhythm baseRhythm)
+    public RP_SYS_SubstituteTracksValue(Rhythm baseRhythm)
     {
         this(baseRhythm, new HashMap<>());
     }
 
     /**
+     * Create the value for baseRhythm with the specified src-dest RhythmVoice mappings.
      *
      * @param baseRhythm            Must implement the ConfigurableMusicGeneratorProvider interface
      * @param mapSrcDestRhythmVoice All keys must belong to baseRhythm, and values must belong to a rhythm which implements the MusicGeneratorProvider interface
      */
-    public RP_SYS_RhythmCombinatorValue(Rhythm baseRhythm, Map<RhythmVoice, RhythmVoice> mapSrcDestRhythmVoice)
+    public RP_SYS_SubstituteTracksValue(Rhythm baseRhythm, Map<RhythmVoice, RhythmVoice> mapSrcDestRhythmVoice)
     {
         checkNotNull(baseRhythm);
         checkNotNull(mapSrcDestRhythmVoice);
@@ -59,16 +60,14 @@ public class RP_SYS_RhythmCombinatorValue
     }
 
     /**
-     * Return a new RP_SYS_RhythmCombinatorValue cloned from this instance but with the rvSrc/rvDest mapping changed.
+     * Return a new RP_SYS_SubstituteTracksValue cloned from this instance but with the rvSrc-rvDest mapping changed.
      *
      * @param rvSrc  Must belong to the baseRhythm
      * @param rvDest Can be null to remove the mapping for rvSrc. Container must be a MusicGeneratorProvider.
      * @return
      */
-    public RP_SYS_RhythmCombinatorValue set(RhythmVoice rvSrc, RhythmVoice rvDest)
+    public RP_SYS_SubstituteTracksValue set(RhythmVoice rvSrc, RhythmVoice rvDest)
     {
-        Preconditions.checkArgument(baseRhythm.getRhythmVoices().contains(rvSrc), "rvSrc=%s baseRhythm=%s", rvSrc, baseRhythm);
-        Preconditions.checkArgument(rvDest == null || rvDest.getContainer() instanceof MusicGeneratorProvider, "rvSrc=%s rvDest=%s", rvSrc, rvDest);
         var newMap = new HashMap<>(mapSrcDestRhythmVoice);
         if (rvDest == null)
         {
@@ -77,7 +76,7 @@ public class RP_SYS_RhythmCombinatorValue
         {
             newMap.put(rvSrc, rvDest);
         }
-        return new RP_SYS_RhythmCombinatorValue(baseRhythm, newMap);
+        return new RP_SYS_SubstituteTracksValue(baseRhythm, newMap);        // will do the sanity checks
     }
 
     public Rhythm getBaseRhythm()
@@ -86,11 +85,11 @@ public class RP_SYS_RhythmCombinatorValue
     }
 
     /**
-     * Get the other rhythms used in the mappings (besides the base rhythm) .
+     * Get all the destination rhythms used in the mappings.
      *
      * @return
      */
-    public Set<Rhythm> getOtherUsedRhythms()
+    public Set<Rhythm> getDestinationRhythms()
     {
         Set<Rhythm> res = new HashSet<>();
         mapSrcDestRhythmVoice.values().forEach(rv -> res.add(rv.getContainer()));
@@ -108,26 +107,32 @@ public class RP_SYS_RhythmCombinatorValue
     }
 
     @Override
-    public RP_SYS_RhythmCombinatorValue clone()
+    public RP_SYS_SubstituteTracksValue clone()
     {
-        return new RP_SYS_RhythmCombinatorValue(baseRhythm, mapSrcDestRhythmVoice);
+        return new RP_SYS_SubstituteTracksValue(baseRhythm, mapSrcDestRhythmVoice);
     }
 
-    public Set<RhythmVoice> getMappedRhythmVoices()
+    /**
+     * Get all the source RhythmVoices mapped to other RhythmVoices.
+     *
+     * @return
+     */
+    public Set<RhythmVoice> getSourceRhythmVoices()
     {
         return Collections.unmodifiableSet(mapSrcDestRhythmVoice.keySet());
     }
 
 
     /**
+     * The destination RhythmVoice for rvSrc.
      *
-     * @param rv
+     * @param rvSrc
      * @return Can be null if not mapped
      */
-    public RhythmVoice getDestRhythmVoice(RhythmVoice rv)
+    public RhythmVoice getDestRhythmVoice(RhythmVoice rvSrc)
     {
-        Preconditions.checkArgument(baseRhythm.getRhythmVoices().contains(rv), "rv=%s baseRhythm=%s", rv, baseRhythm);
-        return mapSrcDestRhythmVoice.get(rv);
+        Preconditions.checkArgument(baseRhythm.getRhythmVoices().contains(rvSrc), "rv=%s baseRhythm=%s", rvSrc, baseRhythm);
+        return mapSrcDestRhythmVoice.get(rvSrc);
     }
 
     public String toDescriptionString()
@@ -137,7 +142,7 @@ public class RP_SYS_RhythmCombinatorValue
         int size = rvSrcs.size();
         if (size > 1)
         {
-            res = ResUtil.getString(getClass(), "NbMappedTracks", size);
+            res = ResUtil.getString(getClass(), "NbSubstituteTracks", size);
         } else if (size == 1)
         {
             var rvSrc = rvSrcs.iterator().next();
@@ -155,7 +160,7 @@ public class RP_SYS_RhythmCombinatorValue
      * @return
      * @see #loadFromString(org.jjazz.rhythm.api.Rhythm, java.lang.String)
      */
-    static public String saveAsString(RP_SYS_RhythmCombinatorValue v)
+    static public String saveAsString(RP_SYS_SubstituteTracksValue v)
     {
         LOGGER.severe("saveAsString() NOT IMPLEMENTED!");
         throw new UnsupportedOperationException("loadFromString()");
@@ -170,7 +175,7 @@ public class RP_SYS_RhythmCombinatorValue
      * @see #saveAsString(org.jjazz.phrasetransform.api.rps.RP_SYS_DrumsTransformValue)
      * @see PhraseTransformChain#loadFromString(java.lang.String)
      */
-    static public RP_SYS_RhythmCombinatorValue loadFromString(String s)
+    static public RP_SYS_SubstituteTracksValue loadFromString(String s)
     {
         checkNotNull(s);
         LOGGER.severe("saveAsString() NOT IMPLEMENTED!");

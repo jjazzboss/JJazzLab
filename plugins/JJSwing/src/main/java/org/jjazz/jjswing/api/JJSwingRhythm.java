@@ -72,7 +72,7 @@ import org.jjazz.rhythmmusicgeneration.api.CompositeMusicGenerator;
 import org.jjazz.rhythmmusicgeneration.api.RP_SYS_Mute;
 import org.jjazz.rhythmmusicgeneration.api.CompositeMusicGenerator.MgTarget;
 import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythmGenerator;
-import org.jjazz.rhythmmusicgeneration.api.RP_SYS_RhythmCombinator;
+import org.jjazz.rhythmmusicgeneration.api.RP_SYS_SubstituteTracks;
 import org.openide.util.Exceptions;
 
 /**
@@ -419,7 +419,7 @@ public class JJSwingRhythm implements YamJJazzRhythm
                 .findAny()
                 .orElseThrow();
         RP_SYS_DrumsTransform rpDrumsTransform = new RP_SYS_DrumsTransform(rvDrums, false);
-        RP_SYS_RhythmCombinator rpRhythmCombinator = new RP_SYS_RhythmCombinator(this, false);
+        RP_SYS_SubstituteTracks rpRhythmCombinator = new RP_SYS_SubstituteTracks(this, false);
 
         rps.add(rpVariation);
         rps.add(new RP_BassStyle(true));

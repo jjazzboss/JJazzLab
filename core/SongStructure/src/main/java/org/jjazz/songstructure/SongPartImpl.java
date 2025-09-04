@@ -189,7 +189,7 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
     public <T> T getRPValue(RhythmParameter<T> rp)
     {
         Objects.requireNonNull(rp);
-        Preconditions.checkArgument(rhythm.getRhythmParameters().contains(rp), "rp=%s", rp);
+        Preconditions.checkArgument(rhythm.getRhythmParameters().contains(rp), "this=%s rhythm=%s rp=%s", this, rhythm, rp);
         @SuppressWarnings("unchecked")
         T value;
         synchronized (this)
@@ -359,7 +359,7 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
     {
         return "[" + name + ", r=" + rhythm + ", startBarIndex=" + startBarIndex + ", nbBars=" + nbBars + "]";
     }
-    
+
     public String toDumpString()
     {
         StringBuilder sb = new StringBuilder();

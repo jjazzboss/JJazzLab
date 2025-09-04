@@ -8,31 +8,32 @@ import java.util.logging.Logger;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythmmusicgeneration.spi.ConfigurableMusicGeneratorProvider;
+import org.jjazz.utilities.api.ResUtil;
 
 /**
- * A RhythmParameter to map some tracks to other tracks.
+ * A RhythmParameter to map substitute baseRhythm tracks by tracks from other rhythms.
  * <p>
  */
-public class RP_SYS_RhythmCombinator implements RhythmParameter<RP_SYS_RhythmCombinatorValue>
+public class RP_SYS_SubstituteTracks implements RhythmParameter<RP_SYS_SubstituteTracksValue>
 {
-
-    private final RP_SYS_RhythmCombinatorValue DEFAULT_VALUE;
+    public static String ID = "RP_SYS_SubstituteTracksID";
+    private final RP_SYS_SubstituteTracksValue DEFAULT_VALUE;
     private final Rhythm baseRhythm;
     private final boolean primary;
-    private static final Logger LOGGER = Logger.getLogger(RP_SYS_RhythmCombinator.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(RP_SYS_SubstituteTracks.class.getSimpleName());
 
     /**
      *
      * @param baseRhythm Must implement the ConfigurableMusicGeneratorProvider interface.
      * @param primary
      */
-    public RP_SYS_RhythmCombinator(Rhythm baseRhythm, boolean primary)
+    public RP_SYS_SubstituteTracks(Rhythm baseRhythm, boolean primary)
     {
         Objects.requireNonNull(baseRhythm);
         Preconditions.checkArgument(baseRhythm instanceof ConfigurableMusicGeneratorProvider, "baseRhythm=%s", baseRhythm);
         this.primary = primary;
         this.baseRhythm = baseRhythm;
-        DEFAULT_VALUE = new RP_SYS_RhythmCombinatorValue(baseRhythm);
+        DEFAULT_VALUE = new RP_SYS_SubstituteTracksValue(baseRhythm);
     }
 
     /**
@@ -41,9 +42,9 @@ public class RP_SYS_RhythmCombinator implements RhythmParameter<RP_SYS_RhythmCom
      * @return
      */
     @Override
-    public RP_SYS_RhythmCombinator getCopy(Rhythm newBaseRhythm)
+    public RP_SYS_SubstituteTracks getCopy(Rhythm newBaseRhythm)
     {
-        var res = new RP_SYS_RhythmCombinator(newBaseRhythm, primary);
+        var res = baseRhythm == newBaseRhythm ? this : new RP_SYS_SubstituteTracks(newBaseRhythm, primary);
         return res;
     }
 
@@ -66,19 +67,19 @@ public class RP_SYS_RhythmCombinator implements RhythmParameter<RP_SYS_RhythmCom
     @Override
     public String getId()
     {
-        return "RP_SYS_RhythmCombinator";
+        return ID;
     }
 
     @Override
     public String getDisplayName()
     {
-        return "rhythm combinator";
+        return ResUtil.getString(getClass(), "RpSysSubstituteTracksName");
     }
 
     @Override
     public String getDescription()
     {
-        return "Combine tracks from different rhythms";
+        return ResUtil.getString(getClass(), "RpSysSubstituteTracksDesc");
     }
 
     /**
@@ -88,10 +89,10 @@ public class RP_SYS_RhythmCombinator implements RhythmParameter<RP_SYS_RhythmCom
      * @return
      */
     @Override
-    public String getValueDescription(RP_SYS_RhythmCombinatorValue value)
+    public String getValueDescription(RP_SYS_SubstituteTracksValue value)
     {
         var joiner = new StringJoiner(", ");
-        for (var rv : value.getMappedRhythmVoices())
+        for (var rv : value.getSourceRhythmVoices())
         {
             var rvDest = value.getDestRhythmVoice(rv);
             joiner.add(rv.getName() + " > " + rvDest.getContainer().getName() + "/" + rv.getName());
@@ -100,25 +101,25 @@ public class RP_SYS_RhythmCombinator implements RhythmParameter<RP_SYS_RhythmCom
     }
 
     @Override
-    public RP_SYS_RhythmCombinatorValue getDefaultValue()
+    public RP_SYS_SubstituteTracksValue getDefaultValue()
     {
         return DEFAULT_VALUE;
     }
 
     @Override
-    public String saveAsString(RP_SYS_RhythmCombinatorValue v)
+    public String saveAsString(RP_SYS_SubstituteTracksValue v)
     {
-        return RP_SYS_RhythmCombinatorValue.saveAsString(v);
+        return RP_SYS_SubstituteTracksValue.saveAsString(v);
     }
 
     @Override
-    public RP_SYS_RhythmCombinatorValue loadFromString(String s)
+    public RP_SYS_SubstituteTracksValue loadFromString(String s)
     {
-        return RP_SYS_RhythmCombinatorValue.loadFromString(s);
+        return RP_SYS_SubstituteTracksValue.loadFromString(s);
     }
 
     @Override
-    public boolean isValidValue(RP_SYS_RhythmCombinatorValue value)
+    public boolean isValidValue(RP_SYS_SubstituteTracksValue value)
     {
         return value != null;
     }
@@ -126,50 +127,50 @@ public class RP_SYS_RhythmCombinator implements RhythmParameter<RP_SYS_RhythmCom
     @Override
     public String toString()
     {
-        return "RP_SYS_RhythmCombinator(" + baseRhythm.getName() + ")";
+        return "RP_SYS_SubstituteTracks(" + baseRhythm.getName() + ")";
     }
 
     @Override
     public boolean isCompatibleWith(RhythmParameter<?> rp)
     {
-        return rp instanceof RP_SYS_RhythmCombinator && rp.getId().equals(getId());
+        return rp instanceof RP_SYS_SubstituteTracks;
     }
 
 
     @Override
-    public <T> RP_SYS_RhythmCombinatorValue convertValue(RhythmParameter<T> rp, T rpValue)
+    public <T> RP_SYS_SubstituteTracksValue convertValue(RhythmParameter<T> rp, T rpValue)
     {
         Preconditions.checkArgument(isCompatibleWith(rp), "rp=%s is not compatible with this=%s", rp, this);
         Preconditions.checkNotNull(rpValue);
 
-        RP_SYS_RhythmCombinator rpRc = (RP_SYS_RhythmCombinator) rp;
-        if (rpRc.getBaseRhythm() == baseRhythm)
+        RP_SYS_SubstituteTracks rpSt = (RP_SYS_SubstituteTracks) rp;
+        if (rpSt.getBaseRhythm() == baseRhythm)
         {
-            return (RP_SYS_RhythmCombinatorValue) rpValue;
+            return (RP_SYS_SubstituteTracksValue) rpValue;
         } else
         {
-            return new RP_SYS_RhythmCombinatorValue(getBaseRhythm());
+            return new RP_SYS_SubstituteTracksValue(getBaseRhythm());
         }
     }
 
     @Override
-    public String getDisplayValue(RP_SYS_RhythmCombinatorValue value)
+    public String getDisplayValue(RP_SYS_SubstituteTracksValue value)
     {
         return value.toString();
     }
 
     /**
-     * Find the first RP_SYS_RhythmCombinator instance in the baseRhythm parameters of r.
+     * Find the first RP_SYS_SubstituteTracks instance in the baseRhythm parameters of r.
      *
      * @param r
      * @return Can be null if not found
      */
-    static public RP_SYS_RhythmCombinator getRhythmCombinatorRp(Rhythm r)
+    static public RP_SYS_SubstituteTracks getSubstituteTracksRp(Rhythm r)
     {
         checkNotNull(r);
-        return (RP_SYS_RhythmCombinator) r.getRhythmParameters()
+        return (RP_SYS_SubstituteTracks) r.getRhythmParameters()
                 .stream()
-                .filter(rp -> (rp instanceof RP_SYS_RhythmCombinator))
+                .filter(rp -> (rp instanceof RP_SYS_SubstituteTracks))
                 .findAny()
                 .orElse(null);
     }

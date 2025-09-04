@@ -39,18 +39,17 @@ import javax.swing.UIManager;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellEditor;
-import org.jjazz.midi.api.Instrument;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.rhythmmusicgeneration.api.RP_SYS_RhythmCombinatorValue;
+import org.jjazz.rhythmmusicgeneration.api.RP_SYS_SubstituteTracksValue;
 
 /**
- * A JTable used to edit RhythmVoice mappings for a RP_RhythmCombinatorValue.
+ * A JTable used to edit the RhythmVoice mappings of a RP_SYS_SubstituteTracksValue.
  */
 
-public class RP_SYS_RhythmCombinatorValueTable extends JTable
+public class RP_SYS_SubstituteTracksValueTable extends JTable
 {
 
     /**
@@ -61,9 +60,9 @@ public class RP_SYS_RhythmCombinatorValueTable extends JTable
     public static final String PROP_RVDEST = "PropRvDest";
     private final CustomTableModel tblModel = new CustomTableModel();
     private final CustomRvCellEditor rvCellEditor;
-    private static final Logger LOGGER = Logger.getLogger(RP_SYS_RhythmCombinatorValueTable.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(RP_SYS_SubstituteTracksValueTable.class.getSimpleName());
 
-    public RP_SYS_RhythmCombinatorValueTable()
+    public RP_SYS_SubstituteTracksValueTable()
     {
         setModel(tblModel);
         setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
@@ -108,7 +107,7 @@ public class RP_SYS_RhythmCombinatorValueTable extends JTable
         return tblModel;
     }
 
-    public RP_SYS_RhythmCombinatorValue getRpValue()
+    public RP_SYS_SubstituteTracksValue getRpValue()
     {
         return tblModel.getRpValue();
     }
@@ -168,14 +167,14 @@ public class RP_SYS_RhythmCombinatorValueTable extends JTable
         public static final int COL_SRC_RHYTHM_VOICE = 0;
         public static final int COL_DEST_RHYTHM = 1;
         public static final int COL_DEST_RHYTHM_VOICE = 2;
-        private RP_SYS_RhythmCombinatorValue rpValue;
+        private RP_SYS_SubstituteTracksValue rpValue;
 
 
         /**
          *
          * @param rpValue Can be null
          */
-        public void setRpValue(RP_SYS_RhythmCombinatorValue rpValue)
+        public void setRpValue(RP_SYS_SubstituteTracksValue rpValue)
         {
             this.rpValue = rpValue;
             fireTableDataChanged();
@@ -194,7 +193,7 @@ public class RP_SYS_RhythmCombinatorValueTable extends JTable
             return res;
         }
 
-        public RP_SYS_RhythmCombinatorValue getRpValue()
+        public RP_SYS_SubstituteTracksValue getRpValue()
         {
             return rpValue;
         }
