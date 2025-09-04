@@ -22,6 +22,10 @@
  */
 package org.jjazz.ss_editorimpl.api;
 
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.LayoutManager;
 import org.jjazz.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
@@ -33,6 +37,8 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
+import javax.swing.JCheckBox;
+import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.undo.UndoableEdit;
@@ -60,6 +66,7 @@ import org.openide.windows.WindowManager;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ss_editor.api.SS_ContextActionListener;
+import org.jjazz.ss_editorimpl.rhythmselectiondialog.RhythmSelectionDialogImpl;
 import org.jjazz.undomanager.api.SimpleEdit;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
@@ -76,9 +83,10 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
 
     public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("R");
     private static boolean dialogShown = false;
-    private static String undoText = ResUtil.getString(EditRhythm.class, "CTL_EditRhythm");    
+    private static String undoText = ResUtil.getString(EditRhythm.class, "CTL_EditRhythm");
     private Lookup context;
     private SS_ContextActionSupport cap;
+    private static RhythmSelectionDialogCustomerComp customComp;
 
     private static final Logger LOGGER = Logger.getLogger(EditRhythm.class.getSimpleName());
 
@@ -106,7 +114,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        changeRhythm(cap.getSelection().getIndirectlySelectedSongParts());
+        changeSongPartsRhythm(cap.getSelection().getIndirectlySelectedSongParts());
     }
 
 
@@ -126,7 +134,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
      *
      * @param selectedSpts
      */
-    static public void changeRhythm(final List<SongPart> selectedSpts)
+    static public void changeSongPartsRhythm(final List<SongPart> selectedSpts)
     {
         LOGGER.log(Level.FINE, "changeRhythm() -- selectedSpts={0}", selectedSpts);
 
@@ -140,6 +148,8 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
 
         // Initialize and show dialog
         RhythmSelectionDialog dlg = RhythmSelectionDialogProvider.getDefault().getDialog();
+        var customComp = RhythmSelectionDialogCustomerComp.getInstance();
+        dlg.setCustomComponent(customComp);
         Rhythm rSelSpt0 = selSpt0.getRhythm();
         RhythmPreviewer previewer = RhythmPreviewer.getDefault();
         if (previewer != null)
@@ -201,7 +211,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
         // Change tempo if required
         int newTempo = newRhythm.getPreferredTempo();
         int oldTempo = song.getTempo();
-        if (dlg.isUseRhythmTempo() && newTempo != oldTempo)
+        if (customComp.isUseRhythmTempo() && newTempo != oldTempo)
         {
             song.setTempo(newTempo);
 
@@ -229,7 +239,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
         ArrayList<SongPart> oldSpts = new ArrayList<>();
         ArrayList<SongPart> newSpts = new ArrayList<>();
 
-        if (dlg.isApplyRhythmToNextSongParts() && selSpts.size() == 1)
+        if (customComp.isApplyRhythmToNextSongParts() && selSpts.size() == 1)
         {
             // Special case:
             // Apply new rhythm also to next song parts (although they were not selected)
@@ -290,4 +300,94 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
     // ================================================================================
     // Private classes
     // ================================================================================
+    static private class RhythmSelectionDialogCustomerComp extends JPanel
+    {
+
+        private final JCheckBox cb_applyRhythmToNextSpts;
+        private final JCheckBox cb_useRhythmTempo;
+        private static RhythmSelectionDialogCustomerComp INSTANCE;
+
+
+        private RhythmSelectionDialogCustomerComp()
+        {
+            cb_useRhythmTempo = new JCheckBox();
+            cb_useRhythmTempo.setText(ResUtil.getString(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.cb_useRhythmTempo.text"));
+            cb_useRhythmTempo.setToolTipText(ResUtil.getString(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.cb_useRhythmTempo.toolTipText"));
+            cb_useRhythmTempo.setSelected(true);
+            cb_applyRhythmToNextSpts = new JCheckBox();
+            cb_applyRhythmToNextSpts.setText(ResUtil.getString(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.cb_applyRhythmToNextSpts.text"));
+            cb_applyRhythmToNextSpts.setToolTipText(ResUtil.getString(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.cb_applyRhythmToNextSpts.toolTipText"));
+            cb_applyRhythmToNextSpts.setSelected(true);
+            setLayout(new MyLayoutManager());
+            add(cb_applyRhythmToNextSpts);
+            add(cb_useRhythmTempo);
+        }
+
+        static public RhythmSelectionDialogCustomerComp getInstance()
+        {
+            if (INSTANCE == null)
+            {
+                INSTANCE = new RhythmSelectionDialogCustomerComp();           
+            }
+            return INSTANCE;
+        }
+
+        public boolean isUseRhythmTempo()
+        {
+            return cb_useRhythmTempo.isSelected();
+        }
+
+        public boolean isApplyRhythmToNextSongParts()
+        {
+            return cb_applyRhythmToNextSpts.isSelected();
+        }
+
+        /**
+         * Layout the 2 checkboxes in a vertical row aligned on the left.
+         */
+        private class MyLayoutManager implements LayoutManager
+        {
+
+            private static final int PADDING = 3;
+
+            @Override
+            public void layoutContainer(Container parent)
+            {
+                cb_useRhythmTempo.setSize(cb_useRhythmTempo.getPreferredSize());
+                cb_useRhythmTempo.setLocation(PADDING, PADDING);
+                cb_applyRhythmToNextSpts.setSize(cb_applyRhythmToNextSpts.getPreferredSize());
+                cb_applyRhythmToNextSpts.setLocation(PADDING, 2 * PADDING + cb_useRhythmTempo.getHeight());
+            }
+
+            @Override
+            public void addLayoutComponent(String name, Component comp)
+            {
+                throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+            }
+
+            @Override
+            public void removeLayoutComponent(Component comp)
+            {
+                throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+            }
+
+            @Override
+            public Dimension preferredLayoutSize(Container parent)
+            {
+                var pdUseTempo = cb_useRhythmTempo.getPreferredSize();
+                var pdApply = cb_applyRhythmToNextSpts.getPreferredSize();
+                int w = PADDING + Math.max(pdUseTempo.width, pdApply.width);
+                int h = 3 * PADDING + pdUseTempo.height + pdApply.height;
+                return new Dimension(w, h);
+            }
+
+            @Override
+            public Dimension minimumLayoutSize(Container parent)
+            {
+                return preferredLayoutSize(parent);
+            }
+
+
+        }
+    }
 }

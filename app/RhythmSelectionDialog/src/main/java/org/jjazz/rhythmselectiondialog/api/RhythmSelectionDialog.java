@@ -22,6 +22,7 @@
  */
 package org.jjazz.rhythmselectiondialog.api;
 
+import javax.swing.JComponent;
 import org.jjazz.rhythmselectiondialog.spi.RhythmPreviewer;
 import javax.swing.JDialog;
 import org.jjazz.rhythmdatabase.api.RhythmInfo;
@@ -70,25 +71,17 @@ abstract public class RhythmSelectionDialog extends JDialog
      */
     abstract public void setTitleText(String title);
 
-
-    /**
-     * Return if the rhythm should be also applied to the next songParts which have the same rhythm than the sptModel.
-     *
-     * @return
-     */
-    abstract public boolean isApplyRhythmToNextSongParts();
-
-    /**
-     * Return if the rhythm's preferred tempo should be applied to current song
-     *
-     * @return
-     */
-    abstract public boolean isUseRhythmTempo();
-
     /**
      * Cleanup references to preset data and dialog results.
      */
     abstract public void cleanup();
 
+
+    /**
+     * Set the optional custom component to insert custom controls to the dialog.
+     *
+     * @param comp
+     */
+    abstract public void setCustomComponent(JComponent comp);
 
 }

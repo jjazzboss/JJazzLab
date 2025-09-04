@@ -253,7 +253,7 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
 
     private void btn_RhythmActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_RhythmActionPerformed
     {//GEN-HEADEREND:event_btn_RhythmActionPerformed
-        EditRhythm.changeRhythm(songParts);
+        EditRhythm.changeSongPartsRhythm(songParts);
     }//GEN-LAST:event_btn_RhythmActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
