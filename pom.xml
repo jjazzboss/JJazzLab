@@ -305,7 +305,6 @@
         
         <module>plugins/FluidSynthEmbeddedSynth</module>        
         <module>plugins/JJSwing</module>
-        <module>plugins/RhythmCombinator</module>
         <module>plugins/YamJJazz</module>
         
     </modules>

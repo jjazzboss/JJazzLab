@@ -257,10 +257,10 @@ public class CompositeMusicGenerator implements MusicGenerator
             // Call MusicGenerator
             LOGGER.log(Level.FINE, "callGenerator() generating music mg={0} subContext={1}  mapBaseRvMgTarget=\n{2} ", new Object[]
             {
-                // mg, subContext, mapBaseRvMgTarget
-                mg.getClass().getSimpleName(),
-                subContext.getSongParts().stream().map(spt -> spt.toShortString()).toList(),
-                Utilities.toMultilineString(mapBaseRvMgTarget, "   ")
+                mg, subContext, mapBaseRvMgTarget
+//                mg.getClass().getSimpleName(),
+//                subContext.getSongParts().stream().map(spt -> spt.toShortString()).toList(),
+//                Utilities.toMultilineString(mapBaseRvMgTarget, "   ")
             });
             var mapRvPhrases = mg.generateMusic(targetContext, uniqueTargetRvs.toArray(RhythmVoice[]::new));
 

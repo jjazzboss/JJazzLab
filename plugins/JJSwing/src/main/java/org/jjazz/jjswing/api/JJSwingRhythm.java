@@ -417,7 +417,7 @@ public class JJSwingRhythm implements YamJJazzRhythm
                 .findAny()
                 .orElseThrow();
         RP_SYS_DrumsTransform rpDrumsTransform = new RP_SYS_DrumsTransform(rvDrums, false);
-        RP_SYS_SubstituteTracks rpRhythmCombinator = new RP_SYS_SubstituteTracks(this, false);
+        RP_SYS_SubstituteTracks rpSubstituteTracks = new RP_SYS_SubstituteTracks(this, false);
 
         rps.add(rpVariation);
         rps.add(new RP_BassStyle(true));
@@ -428,7 +428,7 @@ public class JJSwingRhythm implements YamJJazzRhythm
         rps.add(RP_SYS_TempoFactor.getInstance());
         rps.add(rpDrumsTransform);
         rps.add(rpCustomPhrase);
-        rps.add(rpRhythmCombinator);
+        rps.add(rpSubstituteTracks);
 
 
         return Collections.unmodifiableList(rps);
@@ -473,7 +473,8 @@ public class JJSwingRhythm implements YamJJazzRhythm
 
     private List<YamJJazzRhythm> getOtherRhythmInstances()
     {
-        return List.of(drumsDelegateRhythm);
+        // return List.of(drumsDelegateRhythm);
+        return Collections.emptyList();
     }
 
 }
