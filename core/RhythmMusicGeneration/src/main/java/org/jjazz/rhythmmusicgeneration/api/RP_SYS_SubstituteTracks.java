@@ -5,6 +5,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.logging.Logger;
+import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythmmusicgeneration.spi.ConfigurableMusicGeneratorProvider;
@@ -115,7 +116,7 @@ public class RP_SYS_SubstituteTracks implements RhythmParameter<RP_SYS_Substitut
     @Override
     public RP_SYS_SubstituteTracksValue loadFromString(String s)
     {
-        return RP_SYS_SubstituteTracksValue.loadFromString(s);
+        return RP_SYS_SubstituteTracksValue.loadFromString(baseRhythm, s);
     }
 
     @Override
@@ -144,12 +145,13 @@ public class RP_SYS_SubstituteTracks implements RhythmParameter<RP_SYS_Substitut
         Preconditions.checkNotNull(rpValue);
 
         RP_SYS_SubstituteTracks rpSt = (RP_SYS_SubstituteTracks) rp;
-        if (rpSt.getBaseRhythm() == baseRhythm)
+        var rpStRhythm = rpSt.getBaseRhythm();
+        if (rpStRhythm == baseRhythm)
         {
             return (RP_SYS_SubstituteTracksValue) rpValue;
         } else
         {
-            return new RP_SYS_SubstituteTracksValue(getBaseRhythm());
+            return new RP_SYS_SubstituteTracksValue(baseRhythm);
         }
     }
 

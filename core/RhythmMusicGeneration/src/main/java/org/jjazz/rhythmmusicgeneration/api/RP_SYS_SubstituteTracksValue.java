@@ -7,13 +7,21 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.StringJoiner;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jjazz.phrase.api.Phrase;
+import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.phrasetransform.api.PhraseTransformChain;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhraseValue;
+import org.jjazz.rhythmdatabase.api.RhythmDatabase;
+import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.rhythmmusicgeneration.spi.ConfigurableMusicGeneratorProvider;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGeneratorProvider;
 import org.jjazz.utilities.api.ResUtil;
+import org.openide.util.Exceptions;
 
 /**
  * Store which source RhythmVoices are mapped to which destination RhythmVoices.
@@ -155,6 +163,7 @@ public class RP_SYS_SubstituteTracksValue
     /**
      * Save the specified object state as a string.
      * <p>
+     * "Phrase1>jjSwing-ID>Bass&Chord1>popRock-ID>Chord1" means base rhythm voice Phrase1 has destination rhythmVoice=jjSwing/Bass, etc.
      *
      * @param v
      * @return
@@ -162,24 +171,87 @@ public class RP_SYS_SubstituteTracksValue
      */
     static public String saveAsString(RP_SYS_SubstituteTracksValue v)
     {
-        LOGGER.severe("saveAsString() NOT IMPLEMENTED!");
-        throw new UnsupportedOperationException("loadFromString()");
-
+        StringJoiner joiner = new StringJoiner("&");
+        for (RhythmVoice rvSrc : v.getSourceRhythmVoices())
+        {
+            var rvDest = v.getDestRhythmVoice(rvSrc);
+            String s = rvSrc.getName() + ">" + rvDest.getContainer().getUniqueId() + ">" + rvDest.getName();
+            joiner.add(s);
+        }
+        return joiner.toString();
     }
+
 
     /**
      * Create an object from a string.
      *
+     * @param baseRhythm
      * @param s
      * @return Can be null
-     * @see #saveAsString(org.jjazz.phrasetransform.api.rps.RP_SYS_DrumsTransformValue)
-     * @see PhraseTransformChain#loadFromString(java.lang.String)
+     * @see #saveAsString(org.jjazz.rhythmmusicgeneration.api.RP_SYS_SubstituteTracksValue)
      */
-    static public RP_SYS_SubstituteTracksValue loadFromString(String s)
+    static public RP_SYS_SubstituteTracksValue loadFromString(Rhythm baseRhythm, String s)
     {
+        checkNotNull(baseRhythm);
         checkNotNull(s);
-        LOGGER.severe("saveAsString() NOT IMPLEMENTED!");
-        throw new UnsupportedOperationException("loadFromString()");
+
+        Map<RhythmVoice, RhythmVoice> mapSrcDestRhythmVoice = new HashMap<>();
+
+        String strs[] = s.split("&");
+        for (String str : strs)
+        {
+            String subStrs[] = str.split(">");
+            if (subStrs.length == 3)
+            {
+                var strRvSrc = subStrs[0];
+                RhythmVoice rvSrc = baseRhythm.getRhythmVoices().stream()
+                        .filter(rvi -> rvi.getName().equals(strRvSrc))
+                        .findAny()
+                        .orElse(null);
+                if (rvSrc == null)
+                {
+                    LOGGER.log(Level.WARNING, "loadFromString() Ignoring invalid rhythm voice name {0} for base rhythm {1}", new Object[]
+                    {
+                        strRvSrc,
+                        baseRhythm.getName()
+                    });
+                    continue;
+                }
+
+                String strDestRhythmId = subStrs[1];
+                Rhythm destRhythm;
+                try
+                {
+                    destRhythm = RhythmDatabase.getDefault().getRhythmInstance(strDestRhythmId);
+                } catch (UnavailableRhythmException ex)
+                {
+                    LOGGER.log(Level.WARNING, "loadFromString() Ignoring unknown rhythm on this system. rhythmId={0}", strDestRhythmId);
+                    continue;
+                }
+
+                var strRvDest = subStrs[2];
+                RhythmVoice rvDest = destRhythm.getRhythmVoices().stream()
+                        .filter(rvi -> rvi.getName().equals(strRvDest))
+                        .findAny()
+                        .orElse(null);
+                if (rvDest == null)
+                {
+                    LOGGER.log(Level.WARNING, "loadFromString() Ignoring invalid destination rhythm voice name {0} for rhythm {1}", new Object[]
+                    {
+                        strRvDest,
+                        destRhythm.getName()                        
+                    });
+                    continue;
+                }
+
+                mapSrcDestRhythmVoice.put(rvSrc, rvDest);
+
+            }
+        }
+
+        RP_SYS_SubstituteTracksValue res = new RP_SYS_SubstituteTracksValue(baseRhythm, mapSrcDestRhythmVoice);
+
+        return res;
     }
 
 

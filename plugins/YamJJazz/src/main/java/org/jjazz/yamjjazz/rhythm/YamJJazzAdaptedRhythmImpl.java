@@ -53,6 +53,7 @@ import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhrase;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Marker;
 import org.jjazz.rhythmmusicgeneration.api.RP_SYS_Mute;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_TempoFactor;
+import org.jjazz.rhythmmusicgeneration.api.RP_SYS_SubstituteTracks;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.yamjjazz.rhythm.api.AccType;
 import org.jjazz.yamjjazz.rhythm.api.CtabChannelSettings;
@@ -537,6 +538,9 @@ public class YamJJazzAdaptedRhythmImpl implements YamJJazzAdaptedRhythm
             } else if (rp instanceof RP_SYS_DrumsTransform)
             {
                 res.add(new RP_SYS_DrumsTransform(getRhythmVoice(AccType.RHYTHM), rp.isPrimary()));
+            } else if (rp instanceof RP_SYS_SubstituteTracks)
+            {
+                res.add(new RP_SYS_SubstituteTracks(this, rp.isPrimary()));
             }
         }
         return res;

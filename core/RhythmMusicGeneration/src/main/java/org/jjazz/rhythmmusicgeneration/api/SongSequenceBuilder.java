@@ -691,7 +691,7 @@ public class SongSequenceBuilder
      *
      * @param r
      * @param sgContext
-     * @return Can not be null
+     * @return The default rMusicGenerator of r, or a r-based CompositeMusicGenerator if RP_SYS_SubstituteTracks is used
      * @throws org.jjazz.rhythm.api.MusicGenerationException If problem loading Rhythm resources
      */
     private MusicGenerator processRP_SYS_SubstituteTracks(Rhythm r, SongContext sgContext) throws MusicGenerationException
@@ -783,8 +783,7 @@ public class SongSequenceBuilder
     private CompositeMusicGenerator buildCompositeMusicGenerator(RP_SYS_SubstituteTracks rpSt)
     {
         var mgBase = rpSt.getConfigurableMusicGeneratorProvider().getMusicGenerator();
-        assert mgBase != null : "rpSt=" + rpSt;
-        
+        assert mgBase != null : "rpSt=" + rpSt;        
         var baseRhythm = rpSt.getBaseRhythm();
 
         CompositeMusicGenerator.RvToMgTargetMapper rvMapper = (rvBase, spt) -> 

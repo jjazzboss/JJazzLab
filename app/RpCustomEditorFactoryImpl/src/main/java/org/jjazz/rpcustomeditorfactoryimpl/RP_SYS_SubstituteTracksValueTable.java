@@ -41,8 +41,10 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellEditor;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.spi.MidiMixManager;
+import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
+import org.jjazz.rhythm.api.RhythmVoiceDelegate;
 import org.jjazz.rhythmmusicgeneration.api.RP_SYS_SubstituteTracksValue;
 
 /**
@@ -82,7 +84,7 @@ public class RP_SYS_SubstituteTracksValueTable extends JTable
     @Override
     public TableCellEditor getCellEditor(int row, int column)
     {
-        LOGGER.log(Level.SEVERE, "getCellEditor() -- row={0} column={1}", new Object[]
+        LOGGER.log(Level.FINE, "getCellEditor() -- row={0} column={1}", new Object[]
         {
             row, column
         });
@@ -288,7 +290,11 @@ public class RP_SYS_SubstituteTracksValueTable extends JTable
         static public String toRvString(RhythmVoice rv, boolean showRhythm)
         {
             Rhythm r = rv.getContainer();
-            MidiMix mm = MidiMixManager.getDefault().findMix(r);
+            if (rv instanceof RhythmVoiceDelegate rvd)
+            {
+                rv = rvd.getSource();
+            }
+            MidiMix mm = MidiMixManager.getDefault().findMix(r instanceof AdaptedRhythm ar ? ar.getSourceRhythm() : r);
             String insStr = "";
             if (mm != null && mm.getInstrumentMix(rv) != null)
             {

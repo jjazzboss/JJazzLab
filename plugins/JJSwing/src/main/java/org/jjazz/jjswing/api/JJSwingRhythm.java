@@ -147,24 +147,22 @@ public class JJSwingRhythm implements YamJJazzRhythm
 
                 MgTarget res = switch (baseRv.getType())
                 {
-                    case DRUMS ->
-                    {
-                        var rdb = RhythmDatabase.getDefault();
-                        try
-                        {
-                            drumsDelegateRhythm = (YamJJazzRhythm) rdb.getRhythmInstance("KoolFunk.STY-ID");
-                        } catch (UnavailableRhythmException ex)
-                        {
-                            Exceptions.printStackTrace(ex);
-                        }
-                        var rvDrumsBis = drumsDelegateRhythm.getRhythmVoice(AccType.RHYTHM);
-                        yield spt == null || !spt.getRPValue(rpVariation).toLowerCase().contains("main c") ? new MgTarget(baseGenerator, baseRv)
-                        : new MgTarget(drumsDelegateRhythm.getMusicGenerator(), rvDrumsBis);
-                    }
+//                    case DRUMS ->
+//                    {
+//                        var rdb = RhythmDatabase.getDefault();
+//                        try
+//                        {
+//                            drumsDelegateRhythm = (YamJJazzRhythm) rdb.getRhythmInstance("KoolFunk.STY-ID");
+//                        } catch (UnavailableRhythmException ex)
+//                        {
+//                            Exceptions.printStackTrace(ex);
+//                        }
+//                        var rvDrumsBis = drumsDelegateRhythm.getRhythmVoice(AccType.RHYTHM);
+//                        yield spt == null || !spt.getRPValue(rpVariation).toLowerCase().contains("main c") ? new MgTarget(baseGenerator, baseRv)
+//                        : new MgTarget(drumsDelegateRhythm.getMusicGenerator(), rvDrumsBis);
+//                    }
                     case BASS ->
                         new MgTarget(walkingGenerator, baseRv);
-                    case CHORD2 ->
-                        new MgTarget(baseGenerator, rvBass);
                     default ->
                         new MgTarget(baseGenerator, baseRv);
                 };

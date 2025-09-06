@@ -147,7 +147,7 @@ public class CompositeMusicGenerator implements MusicGenerator
 
 
         // Identify the unique MusicGenerators used
-        Set<MusicGenerator> uniqueMgs = new HashSet<>();
+        Set<MusicGenerator> uniqueMgs = new HashSet<>();       
         for (var spt : spts)
         {
             rhythmVoices.stream()
@@ -228,7 +228,7 @@ public class CompositeMusicGenerator implements MusicGenerator
      * <p>
      *
      * @param mg
-     * @param mapBaseRvMgTarget Associates a MgTarget to a base RhythmVoice. All MgTargets must use mg.
+     * @param mapBaseRvMgTarget Associates a MgTarget for some base RhythmVoices (possibly all). All MgTargets must use mg.
      * @param subContext
      * @return
      * @throws org.jjazz.rhythm.api.MusicGenerationException
@@ -243,7 +243,7 @@ public class CompositeMusicGenerator implements MusicGenerator
                     .filter(mgt -> mgt.mg == mg) // consistency check                
                     .map(mgt -> mgt.rv)
                     .collect(Collectors.toSet());   // We might have 2 times the same Rv if redirecting one base RhythmVoice to another base RhythmVoice
-                                       
+
 
             Rhythm targetRhythm = (Rhythm) uniqueTargetRvs.iterator().next().getContainer();
             SongContext targetContext = subContext;      // by default     
@@ -257,7 +257,7 @@ public class CompositeMusicGenerator implements MusicGenerator
             // Call MusicGenerator
             LOGGER.log(Level.FINE, "callGenerator() generating music mg={0} subContext={1}  mapBaseRvMgTarget=\n{2} ", new Object[]
             {
-               // mg, subContext, mapBaseRvMgTarget
+                // mg, subContext, mapBaseRvMgTarget
                 mg.getClass().getSimpleName(),
                 subContext.getSongParts().stream().map(spt -> spt.toShortString()).toList(),
                 Utilities.toMultilineString(mapBaseRvMgTarget, "   ")
@@ -271,7 +271,7 @@ public class CompositeMusicGenerator implements MusicGenerator
                 var targetRv = mapBaseRvMgTarget.get(baseRv).rv;
                 if (baseRv != targetRv)
                 {
-                    Phrase p = mapRvPhrases.remove(targetRv);
+                    Phrase p = targetRv.getContainer() != baseRhythm ? mapRvPhrases.remove(targetRv) : mapRvPhrases.get(targetRv);
                     assert p != null : "targetRv=" + targetRv + " baseRv=" + baseRv;
                     mapRvPhrases.put(baseRv, p);
                 }
