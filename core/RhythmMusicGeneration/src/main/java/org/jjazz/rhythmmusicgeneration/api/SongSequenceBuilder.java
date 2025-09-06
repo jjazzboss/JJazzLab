@@ -357,17 +357,8 @@ public class SongSequenceBuilder
         }
 
 
-        // Add markers for each song part
-        SongStructure ss = songContextWork.getSong().getSongStructure();
-        for (SongPart spt : spts)
-        {
-            String partName = spt.getName();
-            me = new MidiEvent(MidiUtilities.getMarkerMetaMessage(partName), 0);
-            track0.add(me);
-        }
-
-
         // Add markers at each chord symbol position
+        SongStructure ss = songContextWork.getSong().getSongStructure();
         for (SongPart spt : spts)
         {
             CLI_Section section = spt.getParentSection();
@@ -395,10 +386,16 @@ public class SongSequenceBuilder
         track0.add(me);
 
 
-        // Add additional song part tempo changes
+        // Add markers for each song part and additional song part tempo changes if present
         int lastTempoFactor = tempoFactor;
         for (SongPart spt : spts)
         {
+            String partName = spt.getName();
+            float beatPos = songContextWork.getSptBeatRange(spt).from - songContextWork.getBeatRange().from;
+            long spTickPos = Math.round(beatPos * MidiConst.PPQ_RESOLUTION);
+            me = new MidiEvent(MidiUtilities.getMarkerMetaMessage(partName), spTickPos);
+            track0.add(me);
+
             rp = RP_SYS_TempoFactor.getTempoFactorRp(spt.getRhythm());
             if (rp != null)
             {
@@ -406,9 +403,7 @@ public class SongSequenceBuilder
                 if (tempoFactor != lastTempoFactor)
                 {
                     tempo = Math.round(tempoFactor / 100f * songContextWork.getSong().getTempo());
-                    float beatPos = songContextWork.getSptBeatRange(spt).from - songContextWork.getBeatRange().from;
-                    long tickPos = Math.round(beatPos * MidiConst.PPQ_RESOLUTION);
-                    me = new MidiEvent(MidiUtilities.getTempoMessage(0, tempo), tickPos);
+                    me = new MidiEvent(MidiUtilities.getTempoMessage(0, tempo), spTickPos);
                     track0.add(me);
                     lastTempoFactor = tempoFactor;
                 }
