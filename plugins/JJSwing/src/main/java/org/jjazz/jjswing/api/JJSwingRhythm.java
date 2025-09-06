@@ -66,13 +66,13 @@ import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Intensity;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Marker;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_TempoFactor;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
-import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.rhythmmusicgeneration.api.CompositeMusicGenerator;
 import org.jjazz.rhythmmusicgeneration.api.RP_SYS_Mute;
 import org.jjazz.rhythmmusicgeneration.api.CompositeMusicGenerator.MgTarget;
 import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythmGenerator;
 import org.jjazz.rhythmmusicgeneration.api.RP_SYS_SubstituteTracks;
+import org.jjazz.rhythmmusicgeneration.spi.MusicGeneratorProvider;
 import org.openide.util.Exceptions;
 
 /**
@@ -95,7 +95,6 @@ public class JJSwingRhythm implements YamJJazzRhythm
     private final TimeSignature timeSignature;
     private final RhythmFeatures features;
     private final String[] tags;
-    private YamJJazzRhythm drumsDelegateRhythm;
     private YamJJazzRhythm baseRhythm;
     private MusicGenerator musicGenerator;
     private final List<RhythmParameter<?>> rhythmParameters;
@@ -124,8 +123,6 @@ public class JJSwingRhythm implements YamJJazzRhythm
         var yjrProvider = YamJJazzRhythmProvider.getInstance();
         var yjzFile = extractFiles();       // throw IOException
         baseRhythm = (YamJJazzRhythm) yjrProvider.readFast(yjzFile);    // throw IOException
-
-
         rhythmVoices = buildRhythmVoices(baseRhythm);
         rhythmParameters = buildRhythmParameters(baseRhythm);
 
@@ -133,39 +130,52 @@ public class JJSwingRhythm implements YamJJazzRhythm
         // Initialize our CompositeMusicGenerator
         var baseGenerator = new YamJJazzRhythmGenerator(this);
         var walkingGenerator = new JJSwingBassMusicGenerator(this);
-        var rpVariation = RP_SYS_Variation.getVariationRp(this);
-        RhythmVoice rvBass = getRhythmVoice(AccType.BASS);
-        assert rvBass != null;
 
-
-        SwingUtilities.invokeLater(() -> // Avoid endless loop with the RhythmDatabase constructor                                
+        SwingUtilities.invokeLater(() -> // Avoid endless loop with the RhythmDatabase constructor                                                
                 
         {
             musicGenerator = new CompositeMusicGenerator(this, (baseRv, spt) -> 
             {
                 assert rhythmVoices.contains(baseRv) : "baseRv=" + baseRv;
 
-                MgTarget res = switch (baseRv.getType())
+                MusicGenerator mg = switch (baseRv.getType())
                 {
-//                    case DRUMS ->
-//                    {
-//                        var rdb = RhythmDatabase.getDefault();
-//                        try
-//                        {
-//                            drumsDelegateRhythm = (YamJJazzRhythm) rdb.getRhythmInstance("KoolFunk.STY-ID");
-//                        } catch (UnavailableRhythmException ex)
-//                        {
-//                            Exceptions.printStackTrace(ex);
-//                        }
-//                        var rvDrumsBis = drumsDelegateRhythm.getRhythmVoice(AccType.RHYTHM);
-//                        yield spt == null || !spt.getRPValue(rpVariation).toLowerCase().contains("main c") ? new MgTarget(baseGenerator, baseRv)
-//                        : new MgTarget(drumsDelegateRhythm.getMusicGenerator(), rvDrumsBis);
-//                    }
+                    case DRUMS ->
+                    {
+                        if (spt == null)
+                        {
+                            yield baseGenerator;
+                        }
+                        var rpDrumsStyleValue = spt.getRPValue(RP_DrumsStyle.get(this));
+                        if (rpDrumsStyleValue.equals(RP_DrumsStyle.AUTO_MODE_VALUE))
+                        {
+                            var rpVariationValue = spt.getRPValue(RP_SYS_Variation.getVariationRp(this));
+                            rpDrumsStyleValue = RP_DrumsStyle.getAutoModeRpValueFromVariation(rpVariationValue);
+                        }
+                        DrumsStyle drumsStyle = RP_DrumsStyle.toDrumsStyle(rpDrumsStyleValue);
+                        try
+                        {
+                            Rhythm r = drumsStyle.getRhythm();   // throws UnavailableRhythmException
+                            yield ((MusicGeneratorProvider) r).getMusicGenerator();
+                        } catch (UnavailableRhythmException ex)
+                        {
+                            LOGGER.log(Level.SEVERE, "JJSwingRhythm().RvToMgTargetMapper Can not retrieve rhythm instance for drumsStyle={0}. ex={1}",
+                                    new Object[]
+                                    {
+                                        drumsStyle,
+                                        ex.getMessage()
+                                    });
+                            yield baseGenerator;
+                        }
+                    }
+
                     case BASS ->
-                        new MgTarget(walkingGenerator, baseRv);
+                        walkingGenerator;
                     default ->
-                        new MgTarget(baseGenerator, baseRv);
+                        baseGenerator;
                 };
+
+                var res = new MgTarget(mg, baseRv);
                 return res;
             });
                 });
@@ -184,11 +194,10 @@ public class JJSwingRhythm implements YamJJazzRhythm
         return getName();
     }
 
-  
+
     // ================================================================================================
     // YamJJazzRhythm implementation
     // ================================================================================================
-
     @Override
     public AccType getAccType(String rpMuteValue)
     {
@@ -253,7 +262,7 @@ public class JJSwingRhythm implements YamJJazzRhythm
         baseRhythm.loadResources();  // throws MusicGenerationException
 
         // We must also process other rhythm instances used by our CompositeMusicGenerator
-        for (var r : getOtherRhythmInstances())
+        for (var r : DrumsStyle.getAllRhythms())
         {
             r.loadResources();      // throws MusicGenerationException
         }
@@ -292,7 +301,7 @@ public class JJSwingRhythm implements YamJJazzRhythm
 
 
         // We must also process other rhythm instances used by our CompositeMusicGenerator
-        getOtherRhythmInstances().forEach(r -> r.releaseResources());
+        DrumsStyle.getAllRhythms().forEach(r -> r.releaseResources());
 
 
         pcs.firePropertyChange(PROP_RESOURCES_LOADED, true, false);
@@ -417,10 +426,10 @@ public class JJSwingRhythm implements YamJJazzRhythm
                 .findAny()
                 .orElseThrow();
         RP_SYS_DrumsTransform rpDrumsTransform = new RP_SYS_DrumsTransform(rvDrums, false);
-        RP_SYS_SubstituteTracks rpSubstituteTracks = new RP_SYS_SubstituteTracks(this, false);
 
         rps.add(rpVariation);
         rps.add(new RP_BassStyle(true));
+        rps.add(new RP_DrumsStyle(true));
         rps.add(rpIntensity);
         rps.add(rpFill);
         rps.add(rpMute);
@@ -428,7 +437,7 @@ public class JJSwingRhythm implements YamJJazzRhythm
         rps.add(RP_SYS_TempoFactor.getInstance());
         rps.add(rpDrumsTransform);
         rps.add(rpCustomPhrase);
-        rps.add(rpSubstituteTracks);
+        rps.add(new RP_SYS_SubstituteTracks(this, false));
 
 
         return Collections.unmodifiableList(rps);
@@ -471,10 +480,5 @@ public class JJSwingRhythm implements YamJJazzRhythm
         return yjzPath.toFile();
     }
 
-    private List<YamJJazzRhythm> getOtherRhythmInstances()
-    {
-        // return List.of(drumsDelegateRhythm);
-        return Collections.emptyList();
-    }
 
 }

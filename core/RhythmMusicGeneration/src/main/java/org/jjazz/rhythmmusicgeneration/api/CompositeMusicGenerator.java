@@ -26,7 +26,6 @@ package org.jjazz.rhythmmusicgeneration.api;
 
 import com.google.common.base.Preconditions;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -47,7 +46,6 @@ import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.utilities.api.IntRange;
-import org.jjazz.utilities.api.Utilities;
 import org.openide.util.Exceptions;
 
 /**
@@ -95,8 +93,8 @@ public class CompositeMusicGenerator implements MusicGenerator
         /**
          * Get the MgTarget to be used to generate music for baseRv in the context of spt.
          *
-         * @param baseRv A RhythmVoice of the baseRhythm
-         * @param spt    A SongPart which uses the baseRhythm
+         * @param baseRv A RhythmVoice of the baseRhythm. Can not be null.
+         * @param spt    A SongPart which uses the baseRhythm. Can not be null.
          * @return A non-null value
          */
         MgTarget get(RhythmVoice baseRv, SongPart spt);
@@ -110,15 +108,12 @@ public class CompositeMusicGenerator implements MusicGenerator
      * Create a CompositeMusicGenerator for a base Rhythm.
      *
      * @param baseRhythm
-     * @param rvMapper   get() must return a non-null value for each RhythmVoice with a null SongPart
+     * @param rvMapper   
      */
     public CompositeMusicGenerator(Rhythm baseRhythm, RvToMgTargetMapper rvMapper)
     {
         Objects.requireNonNull(baseRhythm);
         Objects.requireNonNull(rvMapper);
-        Preconditions.checkArgument(
-                baseRhythm.getRhythmVoices().stream().allMatch(rv -> rvMapper.get(rv, null) != null),
-                "mgTargetProvider returns a null value for at least one baseRhythm RhythmVoice. baseRhythm=%s", baseRhythm);
         this.baseRhythm = baseRhythm;
         this.rvMapper = rvMapper;
     }
