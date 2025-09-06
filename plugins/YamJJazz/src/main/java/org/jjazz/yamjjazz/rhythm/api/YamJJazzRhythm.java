@@ -22,18 +22,14 @@
  */
 package org.jjazz.yamjjazz.rhythm.api;
 
-import java.util.Map;
-import org.jjazz.phrase.api.Phrase;
-import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
-import org.jjazz.songcontext.api.SongContext;
+import org.jjazz.rhythmmusicgeneration.spi.ConfigurableMusicGeneratorProvider;
 
 /**
  * Our Rhythm interface extension.
  */
-public interface YamJJazzRhythm extends Rhythm, MusicGenerator
+public interface YamJJazzRhythm extends Rhythm, ConfigurableMusicGeneratorProvider
 {
 
     /**
@@ -58,7 +54,13 @@ public interface YamJJazzRhythm extends Rhythm, MusicGenerator
      * @param at
      * @return Can be null if this AccType is not used in this rhythm.
      */
-    RhythmVoice getRhythmVoice(AccType at);
+    default RhythmVoice getRhythmVoice(AccType at)
+    {
+        var res = getRhythmVoices().stream()
+                .filter(rv -> AccType.getAccType(rv) == at)
+                .findAny().orElse(null);
+        return res;
+    }
 
     /**
      * The Style object associated to this rhythm.
@@ -82,28 +84,5 @@ public interface YamJJazzRhythm extends Rhythm, MusicGenerator
      */
     boolean isExtendedRhythm();
 
-    /**
-     * The current MusicGenerator.
-     *
-     * @return Can not be null
-     */
-    MusicGenerator getMusicGenerator();
-
-    /**
-     * Set the current MusicGenerator.
-     *
-     * @param mg Can not be null
-     */
-    void setMusicGenerator(MusicGenerator mg);
-
-
-    // ==================================================================================================
-    // MusicGenerator interface
-    // ==================================================================================================
-    @Override
-    default public Map<RhythmVoice, Phrase> generateMusic(SongContext context, RhythmVoice... rvs) throws MusicGenerationException
-    {
-        return getMusicGenerator().generateMusic(context, rvs);
-    }
 
 }

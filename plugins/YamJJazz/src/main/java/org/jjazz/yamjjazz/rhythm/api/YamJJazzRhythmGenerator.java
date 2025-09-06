@@ -65,7 +65,7 @@ import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.Phrases;
 import org.jjazz.phrase.api.SourcePhrase;
 import org.jjazz.phrase.api.SourcePhraseSet;
-import org.jjazz.rhythmmusicgeneration.api.Utilities;
+import org.jjazz.rhythmmusicgeneration.api.PhraseUtilities;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Fill;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Intensity;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
@@ -128,9 +128,10 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
     {
         Objects.requireNonNull(contextOrig);
         var rhythmRvs = rhythm.getRhythmVoices();
-        Preconditions.checkArgument(!Stream.of(rvs).anyMatch(rv -> !rhythmRvs.contains(rv)), "rvs=", List.of(rvs));
+        var rvsList = List.of(rvs);
+        Preconditions.checkArgument(rhythmRvs.containsAll(rvsList), "rvsList=%s rhythmRvs=%s", rvsList, rhythmRvs);
 
-        rhythmVoices = rvs.length == 0 ? rhythmRvs : List.of(rvs);
+        rhythmVoices = rvsList.isEmpty() ? rhythmRvs : rvsList;
         contextOriginal = contextOrig;
 
         // Prepare a working context because SongStructure/ChordLeadsheet might be modified by preprocessFillParameter
@@ -279,7 +280,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
         int stylePartNbBars = rhythm.getStyle().getStylePartSizeInBars(stylePart.getType());
         if (stylePartNbBars <= 0)
         {
-            LOGGER.log(Level.SEVERE, "getAllAccTypesPhrasesOneChordSequence() stylePartNbBars={0}  stylePart={1}", new Object[]
+            LOGGER.log(Level.SEVERE, "getAllAccTypesPhrasesOneChordSequence() Invalid value for stylePartNbBars={0}  stylePart={1}", new Object[]
             {
                 stylePartNbBars, stylePart
             });
@@ -676,7 +677,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
             {
                 case ALL_PURPOSE, ARPEGGIO, STROKE -> // Use CHORD oriented processing
                 {
-                    pRes = Utilities.fitChordPhrase2ChordSymbol(pSrc, destEcs);
+                    pRes = PhraseUtilities.fitChordPhrase2ChordSymbol(pSrc, destEcs);
                 }
 //              case STROKE -> 
 //                {
@@ -707,11 +708,11 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
                         case MELODY:
                         case CHORD:
                             // fitChordPhrase2ChordSymbol() sets client property PARENT_NOTE for each destination note of the returned phrase
-                            pRes = Utilities.fitChordPhrase2ChordSymbol(pSrc, destEcs);
+                            pRes = PhraseUtilities.fitChordPhrase2ChordSymbol(pSrc, destEcs);
                             break;
                         default:
                             LOGGER.log(Level.WARNING, "      Unexpected ctb2.ntt value={0}", ctb2.ntt);
-                            pRes = Utilities.fitChordPhrase2ChordSymbol(pSrc, destEcs);
+                            pRes = PhraseUtilities.fitChordPhrase2ChordSymbol(pSrc, destEcs);
                             break;
                     }
                     break;
@@ -732,7 +733,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
                             ChordRenderingInfo newCri = new ChordRenderingInfo(cri, scale);
                             destEcs = destEcs.getCopy(null, newCri, destEcs.getAlternateChordSymbol(), destEcs.getAlternateFilter());
                             // fitMelodyPhrase2ChordSymbol() sets client property PARENT_NOTE for each destination note of the returned phrase
-                            pRes = Utilities.fitMelodyPhrase2ChordSymbol(pSrc, destEcs, false);
+                            pRes = PhraseUtilities.fitMelodyPhrase2ChordSymbol(pSrc, destEcs, false);
                         }
                         case MELODIC_MINOR_5, MELODIC_MINOR ->
                         {
@@ -741,7 +742,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
                             ChordRenderingInfo newCri = new ChordRenderingInfo(cri, scale);
                             destEcs = destEcs.getCopy(null, newCri, destEcs.getAlternateChordSymbol(), destEcs.getAlternateFilter());
                             // fitMelodyPhrase2ChordSymbol() sets client property PARENT_NOTE for each destination note of the returned phrase
-                            pRes = Utilities.fitMelodyPhrase2ChordSymbol(pSrc, destEcs, false);
+                            pRes = PhraseUtilities.fitMelodyPhrase2ChordSymbol(pSrc, destEcs, false);
                         }
                         case NATURAL_MINOR_5, NATURAL_MINOR ->
                         {
@@ -750,7 +751,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
                             ChordRenderingInfo newCri = new ChordRenderingInfo(cri, scale);
                             destEcs = destEcs.getCopy(null, newCri, destEcs.getAlternateChordSymbol(), destEcs.getAlternateFilter());
                             // fitMelodyPhrase2ChordSymbol() sets client property PARENT_NOTE for each destination note of the returned phrase
-                            pRes = Utilities.fitMelodyPhrase2ChordSymbol(pSrc, destEcs, false);
+                            pRes = PhraseUtilities.fitMelodyPhrase2ChordSymbol(pSrc, destEcs, false);
                         }
                         case DORIAN_5, DORIAN ->
                         {
@@ -759,21 +760,21 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
                             ChordRenderingInfo newCri = new ChordRenderingInfo(cri, scale);
                             destEcs = destEcs.getCopy(null, newCri, destEcs.getAlternateChordSymbol(), destEcs.getAlternateFilter());
                             // fitMelodyPhrase2ChordSymbol() sets client property PARENT_NOTE for each destination note of the returned phrase
-                            pRes = Utilities.fitMelodyPhrase2ChordSymbol(pSrc, destEcs, false);
+                            pRes = PhraseUtilities.fitMelodyPhrase2ChordSymbol(pSrc, destEcs, false);
                         }
                         case CHORD -> // Use the chord flag ON
                         {
-                            pRes = Utilities.fitMelodyPhrase2ChordSymbol(pSrc, destEcs, true);
+                            pRes = PhraseUtilities.fitMelodyPhrase2ChordSymbol(pSrc, destEcs, true);
                         }
                         case MELODY ->
                         {
                             // fitMelodyPhrase2ChordSymbol() sets client property PARENT_NOTE for each destination note of the returned phrase
                             if (!ctb2.bassOn)
                             {
-                                pRes = Utilities.fitMelodyPhrase2ChordSymbol(pSrc, destEcs, false);
+                                pRes = PhraseUtilities.fitMelodyPhrase2ChordSymbol(pSrc, destEcs, false);
                             } else
                             {
-                                pRes = Utilities.fitBassPhrase2ChordSymbol(pSrc, destEcs);
+                                pRes = PhraseUtilities.fitBassPhrase2ChordSymbol(pSrc, destEcs);
                             }
                         }
                         default -> throw new IllegalStateException("cTab.ntt=" + ctb2.ntt);   //NOI18N
@@ -789,7 +790,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
                     {
                         case ALL_PURPOSE, ARPEGGIO, STROKE -> // Use CHORD oriented processing
                         {
-                            pRes = Utilities.fitChordPhrase2ChordSymbol(pSrc, destEcs);
+                            pRes = PhraseUtilities.fitChordPhrase2ChordSymbol(pSrc, destEcs);
                         }
                         default -> throw new IllegalStateException("cTab.ntt=" + ctb2.ntt);   //NOI18N
                     }

@@ -79,6 +79,12 @@ public class SimpleRhythmSelectionDialog extends RhythmSelectionDialog implement
         list_Rhythms.setListData(rInfos);
         list_Rhythms.setSelectedValue(selectedRhythm, true);
     }
+    
+    @Override
+    public void setCustomComponent(JComponent comp)
+    {
+        // Do nothing
+    }
 
     @Override
     public void cleanup()
@@ -92,13 +98,6 @@ public class SimpleRhythmSelectionDialog extends RhythmSelectionDialog implement
     public boolean isExitOk()
     {
         return exitOk;
-    }
-
-    @Override
-    public boolean isUseRhythmTempo()
-    {
-        // Not implemented here
-        return false;
     }
 
     private void updateRhythmInfo(RhythmInfo ri)
@@ -151,11 +150,6 @@ public class SimpleRhythmSelectionDialog extends RhythmSelectionDialog implement
         tm.setValueAt(ri.rhythmFeatures().division(), 8, 1);
     }
 
-    @Override
-    public boolean isApplyRhythmToNextSongParts()
-    {
-        return cb_applyRhythmToNextSpts.isSelected();
-    }
 
     @Override
     public void valueChanged(ListSelectionEvent e)

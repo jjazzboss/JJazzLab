@@ -131,15 +131,20 @@ public class SongContext
     /**
      * Deep clone the SongContext : make a copy of the song and the midimix.
      *
-     * @param register If true the created song is registered by the SongFactory
+     * @param registerSong If true the created song is registered by the SongFactory
+     * @param setMidiMixSong If true MidMix.setSong() is called on the created MidiMix with the created Song.
      * @return
      * @see org.jjazz.songcontext.api.SongContextCopy &nbsp; (if you need to keep a reference to the original song and midiMix)
      */
-    public SongContext deepClone(boolean register)
+    public SongContext deepClone(boolean registerSong, boolean setMidiMixSong)
     {
         SongFactory sf = SongFactory.getInstance();
-        Song songCopy = sf.getCopy(song, register);
+        Song songCopy = sf.getCopy(song, registerSong);
         MidiMix mixCopy = midiMix.getDeepCopy();
+        if (setMidiMixSong)
+        {
+            mixCopy.setSong(songCopy);
+        }
         return new SongContext(songCopy, mixCopy, barRange);
     }
 

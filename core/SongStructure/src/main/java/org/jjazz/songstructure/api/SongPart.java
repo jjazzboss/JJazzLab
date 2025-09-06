@@ -109,14 +109,14 @@ public interface SongPart extends Transferable
      * @throws IllegalArgumentException If rp is not a valid RhythmParameter for this SongPart
      */
     <T> T getRPValue(RhythmParameter<T> rp);
-    
+
     Rhythm getRhythm();
 
     /**
      * @return The SongStructure this object belong to. Set by SongStructure when the SongPart is added.
      */
     SongStructure getContainer();
-    
+
     StringProperties getClientProperties();
 
     /**
@@ -132,9 +132,9 @@ public interface SongPart extends Transferable
      * @return A new SongPart.
      */
     SongPart clone(Rhythm r, int startBarIndex, int nbBars, CLI_Section parentSection);
-    
+
     void addPropertyChangeListener(PropertyChangeListener l);
-    
+
     void removePropertyChangeListener(PropertyChangeListener l);
 
     /**
@@ -156,5 +156,10 @@ public interface SongPart extends Transferable
                     .allMatch(rp -> getRPValue(rp).equals(spt.getRPValue(rp)));
         }
         return b;
+    }
+
+    default String toShortString()
+    {
+        return "[" + getName() + ", " + getStartBarIndex() + "]";
     }
 }

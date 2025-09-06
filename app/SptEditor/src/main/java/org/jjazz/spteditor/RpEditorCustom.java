@@ -46,7 +46,7 @@ import org.openide.util.Exceptions;
 import org.jjazz.ss_editor.rpviewer.spi.RpCustomEditorFactory;
 
 /**
- * A RP value editor for RhythmParameters which implement RpCustomEditorProvider.
+ * A RP value editor for RhythmParameters.
  * <p>
  */
 public class RpEditorCustom extends RpEditorComponent

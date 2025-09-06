@@ -49,10 +49,10 @@ import static org.jjazz.utilities.api.Utilities.heapPermutation;
 /**
  * Phrase manipulation methods.
  */
-public class Utilities
+public class PhraseUtilities
 {
 
-    private static final Logger LOGGER = Logger.getLogger(Utilities.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(PhraseUtilities.class.getSimpleName());
 
 
     /**

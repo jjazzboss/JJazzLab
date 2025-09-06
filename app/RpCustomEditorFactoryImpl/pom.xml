@@ -122,10 +122,30 @@
             <groupId>org.jjazzlab.app</groupId>
             <artifactId>analytics</artifactId>
             <version>${project.version}</version>
-        </dependency>        
+        </dependency>     
+        <dependency> 
+            <groupId>org.jjazzlab.app</groupId> 
+            <artifactId>rhythmselectiondialog</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>            
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>rhythmdatabase</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>rhythmmusicgeneration</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
         <dependency> 
             <groupId>org.jjazzlab.core</groupId> 
             <artifactId>utilities</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>org.jjazzlab.plugins</groupId> 
+            <artifactId>yamjjazz</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 

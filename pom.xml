@@ -304,8 +304,9 @@
         <module>app/ZoomableSliders</module>
         
         <module>plugins/FluidSynthEmbeddedSynth</module>        
-        <module>plugins/YamJJazz</module>
         <module>plugins/JJSwing</module>
+        <module>plugins/YamJJazz</module>
+        
     </modules>
     
     

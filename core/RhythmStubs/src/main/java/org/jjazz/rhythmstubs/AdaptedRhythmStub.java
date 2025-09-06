@@ -64,7 +64,7 @@ public class AdaptedRhythmStub implements AdaptedRhythm
     @Override
     public String getUniqueId()
     {
-        return RhythmStubProviderImpl.ID + AdaptedRhythm.RHYTHM_ID_DELIMITER + sourceRhythm.getUniqueId() + AdaptedRhythm.RHYTHM_ID_DELIMITER + timeSignature.toString();
+        return AdaptedRhythm.buildUniqueId(RhythmStubProviderImpl.ID, sourceRhythm, timeSignature);
     }
 
     @Override

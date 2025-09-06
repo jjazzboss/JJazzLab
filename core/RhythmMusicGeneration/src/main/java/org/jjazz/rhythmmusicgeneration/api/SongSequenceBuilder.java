@@ -23,6 +23,8 @@
 package org.jjazz.rhythmmusicgeneration.api;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.MultimapBuilder;
+import com.google.common.collect.SetMultimap;
 import org.jjazz.rhythm.api.UserErrorGenerationException;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.NoteEvent;
@@ -82,11 +84,16 @@ import org.jjazz.utilities.api.ResUtil;
 import org.openide.util.Exceptions;
 import org.jjazz.outputsynth.spi.OutputSynthManager;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Fill;
+import org.jjazz.rhythmmusicgeneration.api.CompositeMusicGenerator.MgTarget;
+import org.jjazz.rhythmmusicgeneration.spi.ConfigurableMusicGeneratorProvider;
+import org.jjazz.rhythmmusicgeneration.spi.MusicGeneratorProvider;
+import org.jjazz.song.api.Song;
 
 /**
  * Methods to convert a Song into Phrases and Midi sequence.
  * <p>
  */
+
 public class SongSequenceBuilder
 {
 
@@ -112,6 +119,10 @@ public class SongSequenceBuilder
 
     private final SongContext songContextOriginal;
     private final SongContext songContextWork;
+    /**
+     * Store substitute-tracks-rhythms to be released upon close for each song.
+     */
+    private final static SetMultimap<Song, Rhythm> MMAP_SONG_SUBSTITUTE_TRACKS_RHYTHMS = MultimapBuilder.hashKeys().hashSetValues().build();
 
     private static final Logger LOGGER = Logger.getLogger(SongSequenceBuilder.class.getSimpleName());
 
@@ -127,7 +138,7 @@ public class SongSequenceBuilder
     {
         Objects.requireNonNull(sgContext);
         this.songContextOriginal = sgContext;
-        this.songContextWork = songContextOriginal.deepClone(false);
+        this.songContextWork = songContextOriginal.deepClone(false, false);
         ClsUtilities.transpose(songContextWork.getSong().getChordLeadSheet(), playbackKeyTranspose);
     }
 
@@ -535,6 +546,13 @@ public class SongSequenceBuilder
     // =========================================================================
     // Private methods
     // =========================================================================
+
+    /**
+     * Ask each rhythm to generate a Phrase for each RhythmVoice then do the postprocessing.
+     *
+     * @return
+     * @throws MusicGenerationException
+     */
     private Map<RhythmVoice, Phrase> buildMapRvPhrase() throws MusicGenerationException
     {
         Map<RhythmVoice, Phrase> res = new HashMap<>();
@@ -550,9 +568,9 @@ public class SongSequenceBuilder
 
         for (Rhythm r : songContextWork.getUniqueRhythms())
         {
-
-            // Generate the phrase
-            Map<RhythmVoice, Phrase> rMap = generateRhythmPhrases(r);                       // Possible MusicGenerationException here
+            // Generate the phrases
+            MusicGenerator mg = processRP_SYS_SubstituteTracks(r, songContextWork);
+            Map<RhythmVoice, Phrase> rMap = generateRhythmPhrases(r, mg, songContextWork);                       // Possible MusicGenerationException here
 
             if (songContextWork.getUniqueRhythms().size() > 1)
             {
@@ -668,32 +686,175 @@ public class SongSequenceBuilder
         }
     }
 
-
     /**
-     * Ask specified rhythm to generate music.
+     * Process the RP_SYS_SubstituteTracks to get the MusicGenerator to use for r.
      *
      * @param r
+     * @param sgContext
+     * @return The default rMusicGenerator of r, or a r-based CompositeMusicGenerator if RP_SYS_SubstituteTracks is used
+     * @throws org.jjazz.rhythm.api.MusicGenerationException If problem loading Rhythm resources
+     */
+    private MusicGenerator processRP_SYS_SubstituteTracks(Rhythm r, SongContext sgContext) throws MusicGenerationException
+    {
+        Objects.requireNonNull(r);
+        Objects.requireNonNull(sgContext);
+
+        if (!(r instanceof MusicGeneratorProvider mgp))
+        {
+            LOGGER.log(Level.WARNING, "processRP_SYS_SubstituteTracks() r={0} is not a MusicGeneratorProvider instance", r);
+            throw new MusicGenerationException("Rhythm " + r.getName() + " does not implement MusicGeneratorProvider, it can not generate music");
+        }
+
+        LOGGER.log(Level.FINE, "processRP_SYS_SubstituteTracks() r={0} sgContext={1}", new Object[]
+        {
+            r, sgContext
+        });
+
+        MusicGenerator res = mgp.getMusicGenerator();       // Standard case by default
+
+
+        // Check if RP_SYS_SubstituteTracks is used
+        RP_SYS_SubstituteTracks rpSt = RP_SYS_SubstituteTracks.getSubstituteTracksRp(r);
+        if (rpSt != null && sgContext.getSongParts().stream()
+                .filter(spt -> spt.getRhythm() == r)
+                .anyMatch(spt -> !spt.getRPValue(rpSt).isEmpty()))
+        {
+            // RP_SYS_SubstituteTracks is used, we need a CompositeMusicGenerator
+            assert r instanceof ConfigurableMusicGeneratorProvider : "r=" + r;
+            res = buildCompositeMusicGenerator(rpSt);
+        }
+
+        return res;
+    }
+
+    /**
+     * Generate music for r using the specified MusicGenerator.
+     *
+     * @param r
+     * @param mg
+     * @param sgContext
      * @return
      * @throws org.jjazz.rhythm.api.MusicGenerationException
      */
-    private Map<RhythmVoice, Phrase> generateRhythmPhrases(Rhythm r) throws MusicGenerationException
+    private Map<RhythmVoice, Phrase> generateRhythmPhrases(Rhythm r, MusicGenerator mg, SongContext sgContext) throws MusicGenerationException
     {
-        Preconditions.checkNotNull(r);
+        Objects.requireNonNull(r);
+        Objects.requireNonNull(mg);
+        Objects.requireNonNull(sgContext);
 
-        if (r instanceof MusicGenerator mg)
+
+        // Make sure all Rhythm resources are loaded
+        r.loadResources();          // Throws MusicGenerationException      
+        var substituteRhythms = getSubstituteTracksRhythms(r, sgContext);
+        if (!substituteRhythms.isEmpty())
         {
-            LOGGER.log(Level.FINE, "fillRhythmTracks() calling generateMusic() for rhythm r={0} hashCode(r)={1}", new Object[]
+            for (var cr : substituteRhythms)
             {
-                r.getName(), Objects.hashCode(r)
-            });
-            r.loadResources();
-            return mg.generateMusic(songContextWork);
-        } else
-        {
-            LOGGER.log(Level.WARNING, "generateRhythmPhrases() r={0} is not a MusicGenerator instance", r);
-            throw new MusicGenerationException("Rhythm " + r.getName() + " is not able to generate music");
+                cr.loadResources();     // Throws MusicGenerationException
+
+                // Not ideal but it must be done somewhere
+                releaseSubstitutetrackRhythmResourcesUponSongClose(cr);
+            }
         }
+
+
+        // Generate the phrases
+        LOGGER.log(Level.FINE, "generateRhythmPhrases() calling generateMusic() for rhythm r={0}", r);
+        Map<RhythmVoice, Phrase> res = mg.generateMusic(sgContext);
+
+
+        // Robustness checks
+        var rvs = res.keySet();
+        assert r.getRhythmVoices().size() == rvs.size() && !rvs.contains(null) : "r=" + r + " rvs=" + rvs;
+        var phrases = res.values();
+        assert !phrases.contains(null) : "r=" + r + " phrases=" + phrases;
+
+
+        return res;
+
     }
+
+    /**
+     * Build a CompositeMusicGenerator based on RP_SYS_SubstituteTracks usage.
+     *
+     * @param rpSt
+     * @return
+     */
+    private CompositeMusicGenerator buildCompositeMusicGenerator(RP_SYS_SubstituteTracks rpSt)
+    {
+        var mgBase = rpSt.getConfigurableMusicGeneratorProvider().getMusicGenerator();
+        assert mgBase != null : "rpSt=" + rpSt;        
+        var baseRhythm = rpSt.getBaseRhythm();
+
+        CompositeMusicGenerator.RvToMgTargetMapper rvMapper = (rvBase, spt) -> 
+        {
+            Objects.requireNonNull(rvBase);
+
+            var mg = mgBase;        // by default no mapping
+            RhythmVoice rvDest = rvBase;           // by default no mapping
+
+            RhythmVoice rvMapped;
+            if (spt != null && spt.getRhythm() == baseRhythm && (rvMapped = spt.getRPValue(rpSt).getDestRhythmVoice(rvBase)) != null)
+            {
+                // mapping
+                rvDest = rvMapped;
+                mg = ((MusicGeneratorProvider) rvDest.getContainer()).getMusicGenerator();
+            }
+
+            MgTarget res = new MgTarget(mg, rvDest);
+            return res;
+        };
+
+        CompositeMusicGenerator res = new CompositeMusicGenerator(baseRhythm, rvMapper);
+
+        return res;
+
+    }
+
+    /**
+     * Get the possible substitute tracks rhythms used by r via the RP_SYS_SubstituteTracks parameter
+     *
+     * @param r
+     * @param sgContext
+     * @return Can be empty
+     */
+    private Set<Rhythm> getSubstituteTracksRhythms(Rhythm r, SongContext sgContext)
+    {
+        Set<Rhythm> res = new HashSet<>();
+        RP_SYS_SubstituteTracks rpRc = RP_SYS_SubstituteTracks.getSubstituteTracksRp(r);
+        if (rpRc != null)
+        {
+            sgContext.getSongParts().stream()
+                    .filter(spt -> spt.getRhythm() == r)
+                    .forEach(spt -> res.addAll(spt.getRPValue(rpRc).getDestinationRhythms()));
+        }
+        return res;
+    }
+
+    /**
+     * Handle the resources release for substitute tracks rhythms.
+     *
+     * @param str
+     */
+    private void releaseSubstitutetrackRhythmResourcesUponSongClose(Rhythm str)
+    {
+        Song song = songContextOriginal.getSong();
+        if (MMAP_SONG_SUBSTITUTE_TRACKS_RHYTHMS.get(song).isEmpty())
+        {
+            song.addPropertyChangeListener(Song.PROP_CLOSED, e -> 
+            {
+                MMAP_SONG_SUBSTITUTE_TRACKS_RHYTHMS.get(song).forEach(cr -> 
+                {
+                    LOGGER.log(Level.FINE, "releaseSubstitutetrackRhythmResourcesUponSongClose() (lambda-listener) song closed, release resources of cr={0}",
+                            cr);
+                    cr.releaseResources();
+                });
+                MMAP_SONG_SUBSTITUTE_TRACKS_RHYTHMS.removeAll(song);
+            });
+        }
+        MMAP_SONG_SUBSTITUTE_TRACKS_RHYTHMS.put(song, str);
+    }
+
 
     /**
      * Check that there is a starting chord symbol for each section used in the specified context.

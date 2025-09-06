@@ -29,7 +29,7 @@ import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmVoice;
 
 /**
- * Define the music generation capability of a Rhythm.
+ * The music generation capability of a Rhythm.
  */
 public interface MusicGenerator
 {
@@ -40,19 +40,19 @@ public interface MusicGenerator
      * each RhythmVoice via <code>MidiMix.getChannel(RhythmVoice)</code>. Phrases must be provided for all RhythmVoices (though a Phrase can be empty),
      * including for the possible RhythmVoiceDelegates used by the Rhythm.
      * <p>
-     * If the context song contains several rhythms, the method must add notes ONLY for bars which use this MidiMusicGenerator's rhythm. For example, if context
+     * If the context song contains several rhythms, the method must add notes ONLY for bars which use this MusicGenerator's rhythm. For example, if context
      * range is bars 3-4 with rhythm1 on bar3 and rhythm2 on bar4, then the rhythm1 generator must add notes for bar 3 only.
      * <p>
-     * IMPORTANT: the following features are directly managed by the JJazzLab framework by postprocessing the output of generateMusic():<br>
+     * IMPORTANT: the following features are directly managed by the JJazzLab framework, notably by postprocessing the output of generateMusic():<br>
      * - Midi Instrument selection and settings (Program changes, Midi controller messages such as bank select, volume, reverb, panoramic) <br>
      * - RP_SYS_Mute rhythm parameter handling (muting a specific track for a specific SongPart)<br>
      * - RP_SYS_DrumsMix rhythm parameter handling (adjusting some drums track instruments velocity)<br>
-     * - RP_SYS_CustomPhrase rhythm parameter handling <br>
+     * - RP_SYS_CustomPhrase rhythm parameter handling (substitute a user-supplied phrase for a rhythm track)<br>
      * - RP_STD_Fill rhythm parameter handling for the "fade_out" value (MusicGenerator must handle the other values)<br>
      * - Handling of the channel's specific velocity shift<br>
      * - Handling of the instrument's specific transposition<br>
-     * - Drums rerouting<br>
-     * - NC chord symbols<br>
+     * - Drums channel rerouting<br>
+     * - NC chord symbols (produce no sound)<br>
      *
      * @param context      The information to be used for music generation
      * @param rhythmVoices Generate music only for these RhythmVoices, or for all RhythmVoices if nothing specified
@@ -62,5 +62,5 @@ public interface MusicGenerator
      *
      */
 
-    Map<RhythmVoice, Phrase> generateMusic(SongContext context, RhythmVoice... rhythmVoices) throws MusicGenerationException;
+    Map<RhythmVoice, Phrase> generateMusic(SongContext context, RhythmVoice... rhythmVoices) throws MusicGenerationException;       
 }
