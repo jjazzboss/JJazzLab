@@ -129,7 +129,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
         Objects.requireNonNull(contextOrig);
         var rhythmRvs = rhythm.getRhythmVoices();
         var rvsList = List.of(rvs);
-        Preconditions.checkArgument(rhythmRvs.containsAll(rvsList), "rvsList=%s rhythmRvs=%s", rvsList, rhythmRvs);
+        Preconditions.checkArgument(rhythmRvs.containsAll(rvsList), "rvsList=%s\nrhythmRvs=%s", rvsList, rhythmRvs);
 
         rhythmVoices = rvsList.isEmpty() ? rhythmRvs : rvsList;
         contextOriginal = contextOrig;

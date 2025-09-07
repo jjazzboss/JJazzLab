@@ -819,6 +819,8 @@ public class Song implements Serializable, PropertyChangeListener
         }
         Song song = null;
 
+        LOGGER.log(Level.INFO, "loadFromFile() Loading song file {0}", f.getAbsolutePath());
+
         // Read file
         try (var fis = new FileInputStream(f))
         {

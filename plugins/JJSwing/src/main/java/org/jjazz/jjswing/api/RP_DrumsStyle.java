@@ -24,7 +24,6 @@
  */
 package org.jjazz.jjswing.api;
 
-import com.google.common.base.Preconditions;
 import java.util.Objects;
 import org.jjazz.rhythm.api.RP_State;
 import org.jjazz.rhythm.api.Rhythm;
@@ -73,17 +72,25 @@ public class RP_DrumsStyle extends RP_State
 
     /**
      * Return the DrumsStyle corresponding to rpValue.
+     * <p>
+     * Manage the AUTO_MODE_VALUE.
      *
-     * @param rpValue Can not be AUTO_MODE_VALUE
+     * @param rpValue
+     * @param rpVariationValue Required if rpValue==AUTO_MODE_VALUE
      * @return
      */
-    static public DrumsStyle toDrumsStyle(String rpValue)
+    static public DrumsStyle toDrumsStyle(String rpValue, String rpVariationValue)
     {
         Objects.requireNonNull(rpValue);
-        Preconditions.checkArgument(!rpValue.equals(AUTO_MODE_VALUE));
+        if (rpValue.equals(AUTO_MODE_VALUE))
+        {
+            rpValue = getAutoModeRpValueFromVariation(rpVariationValue);
+        }
         String s = rpValue.toUpperCase().replace(" ", "_");
+
         return DrumsStyle.valueOf(s);
     }
+
 
     /**
      * Get the RP_DrumsStyle rpValue to be used for a given rpVariation value when in auto mode.

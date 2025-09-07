@@ -38,22 +38,22 @@ import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
  */
 public enum DrumsStyle
 {
-    BRUSHES_1("CoolJazzBallad.S738.prs", "Main B"),
-    BRUSHES_2("MediumJazz.S737.sst", "Main A"),
-    BRUSHES_3("EasyAcJazz.T157.STY", "Main A"),
-    BRUSHES_4("JazzClub.S120.prs", "Main A"),
-    BRUSHES_5("JazzClub.S120.prs", "Main B"),
-    HI_HAT_1("DrawbarSwing.T153.sst", "Main A"),
-    HI_HAT_2("Swing1.S737.bcs", "Main A"),
-    HI_HAT_3("Swing1.S737.bcs", "Main B"),
-    RIDE_1("MediumJazz.S737.sst", "Main B"),
-    RIDE_2("MediumJazz.S737.sst", "Main C"),
-    RIDE_3("MediumJazz.S737.sst", "Main D"),
-    RIDE_4("LACoolSwing.STY", "Main B"),
-    RIDE_5("CoolJazzBallad.S738.prs", "Main D"),
-    RIDE_6("LACoolSwing.STY", "Main D"),
-    SHUFFLE_1("CountryShuffle.S477.bcs", "Main B"),
-    SHUFFLE_2("LACoolSwing.STY", "Main D");
+    BRUSHES_1("CoolJazzBallad.S738.prs", "Main B-1"),
+    BRUSHES_2("MediumJazz.S737.sst", "Main A-1"),
+    BRUSHES_3("EasyAcJazz.T157.STY", "Main A-1"),
+    BRUSHES_4("JazzClub.S120.prs", "Main A-1"),
+    BRUSHES_5("JazzClub.S120.prs", "Main B-1"),
+    HI_HAT_1("DrawbarSwing.T153.sst", "Main A-1"),
+    HI_HAT_2("Swing1.S737.bcs", "Main A-1"),
+    HI_HAT_3("Swing1.S737.bcs", "Main B-1"),
+    RIDE_1("MediumJazz.S737.sst", "Main B-1"),
+    RIDE_2("MediumJazz.S737.sst", "Main C-1"),
+    RIDE_3("MediumJazz.S737.sst", "Main D-1"),
+    RIDE_4("LACoolSwing.STY", "Main B-1"),
+    RIDE_5("CoolJazzBallad.S738.prs", "Main D-1"),
+    RIDE_6("LACoolSwing.STY", "Main D-1"),
+    SHUFFLE_1("CountryShuffle.S477.bcs", "Main B-1"),
+    SHUFFLE_2("LACoolSwing.STY", "Main D-1");
 
 
     private final String rhythmId;

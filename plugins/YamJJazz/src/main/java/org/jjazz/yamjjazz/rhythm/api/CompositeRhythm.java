@@ -88,7 +88,7 @@ public class CompositeRhythm implements YamJJazzRhythm
 
 
         this.mapSrcDestRhythmVoices = new HashMap<>();
-        CompositeMusicGenerator.RvToMgTargetMapper rvMapper = (baseRv, spt) -> 
+        CompositeMusicGenerator.RvToMgDelegateMapper rvMapper = (baseRv, spt) -> 
         {
             var rvTarget = mapSrcDestRhythmVoices.get(baseRv);
             MusicGenerator mg;
@@ -100,7 +100,7 @@ public class CompositeRhythm implements YamJJazzRhythm
             {
                 mg = ((YamJJazzRhythm) rvTarget.getContainer()).getMusicGenerator();
             }
-            return new CompositeMusicGenerator.MgTarget(mg, rvTarget);
+            return new CompositeMusicGenerator.MgDelegate(mg, rvTarget, null, null);
         };
         musicGenerator = new CompositeMusicGenerator(this, rvMapper);
     }

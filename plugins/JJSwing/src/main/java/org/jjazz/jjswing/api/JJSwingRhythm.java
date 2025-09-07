@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
@@ -42,6 +43,7 @@ import org.jjazz.phrasetransform.api.rps.RP_SYS_DrumsTransform;
 import org.jjazz.jjswing.walkingbass.db.WbpSourceDatabase;
 import org.jjazz.jjswing.walkingbass.JJSwingBassMusicGenerator;
 import org.jjazz.jjswing.walkingbass.JJSwingBassMusicGeneratorSettings;
+import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythm.api.Division;
 import org.jjazz.rhythm.api.Genre;
 import org.jjazz.rhythm.api.MusicGenerationException;
@@ -60,6 +62,7 @@ import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythmProvider;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.jjazz.rhythm.api.Rhythm;
 import static org.jjazz.rhythm.api.RhythmVoice.Type.BASS;
+import static org.jjazz.rhythm.api.RhythmVoice.Type.DRUMS;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhrase;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Fill;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Intensity;
@@ -68,12 +71,12 @@ import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_TempoFactor;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.rhythmmusicgeneration.api.CompositeMusicGenerator;
+import org.jjazz.rhythmmusicgeneration.api.CompositeMusicGenerator.MgDelegate;
 import org.jjazz.rhythmmusicgeneration.api.RP_SYS_Mute;
-import org.jjazz.rhythmmusicgeneration.api.CompositeMusicGenerator.MgTarget;
 import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythmGenerator;
 import org.jjazz.rhythmmusicgeneration.api.RP_SYS_SubstituteTracks;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGeneratorProvider;
-import org.openide.util.Exceptions;
+import org.jjazz.rhythmmusicgeneration.api.CompositeMusicGenerator.RvToMgDelegateMapper;
 
 /**
  * An advanced swing rhythm which uses a specific generator for the bass (walking, etc.).
@@ -126,60 +129,8 @@ public class JJSwingRhythm implements YamJJazzRhythm
         rhythmVoices = buildRhythmVoices(baseRhythm);
         rhythmParameters = buildRhythmParameters(baseRhythm);
 
-
-        // Initialize our CompositeMusicGenerator
-        var baseGenerator = new YamJJazzRhythmGenerator(this);
-        var walkingGenerator = new JJSwingBassMusicGenerator(this);
-
-        SwingUtilities.invokeLater(() -> // Avoid endless loop with the RhythmDatabase constructor                                                
-                
-        {
-            musicGenerator = new CompositeMusicGenerator(this, (baseRv, spt) -> 
-            {
-                assert rhythmVoices.contains(baseRv) : "baseRv=" + baseRv;
-
-                MusicGenerator mg = switch (baseRv.getType())
-                {
-                    case DRUMS ->
-                    {
-                        if (spt == null)
-                        {
-                            yield baseGenerator;
-                        }
-                        var rpDrumsStyleValue = spt.getRPValue(RP_DrumsStyle.get(this));
-                        if (rpDrumsStyleValue.equals(RP_DrumsStyle.AUTO_MODE_VALUE))
-                        {
-                            var rpVariationValue = spt.getRPValue(RP_SYS_Variation.getVariationRp(this));
-                            rpDrumsStyleValue = RP_DrumsStyle.getAutoModeRpValueFromVariation(rpVariationValue);
-                        }
-                        DrumsStyle drumsStyle = RP_DrumsStyle.toDrumsStyle(rpDrumsStyleValue);
-                        try
-                        {
-                            Rhythm r = drumsStyle.getRhythm();   // throws UnavailableRhythmException
-                            yield ((MusicGeneratorProvider) r).getMusicGenerator();
-                        } catch (UnavailableRhythmException ex)
-                        {
-                            LOGGER.log(Level.SEVERE, "JJSwingRhythm().RvToMgTargetMapper Can not retrieve rhythm instance for drumsStyle={0}. ex={1}",
-                                    new Object[]
-                                    {
-                                        drumsStyle,
-                                        ex.getMessage()
-                                    });
-                            yield baseGenerator;
-                        }
-                    }
-
-                    case BASS ->
-                        walkingGenerator;
-                    default ->
-                        baseGenerator;
-                };
-
-                var res = new MgTarget(mg, baseRv);
-                return res;
-            });
-                });
-
+        // Need task to avoid endless loop with the RhythmDatabase constructor
+        SwingUtilities.invokeLater(() -> musicGenerator = new CompositeMusicGenerator(this, buildRvMapper()));
     }
 
     @Override
@@ -375,6 +326,19 @@ public class JJSwingRhythm implements YamJJazzRhythm
         return tags;
     }
 
+
+    @Override
+    public void addPropertyChangeListener(PropertyChangeListener l)
+    {
+        pcs.addPropertyChangeListener(l);
+    }
+
+    @Override
+    public void removePropertyChangeListener(PropertyChangeListener l)
+    {
+        pcs.removePropertyChangeListener(l);
+    }
+
     // ================================================================================================
     // Private methods
     // ================================================================================================
@@ -443,21 +407,71 @@ public class JJSwingRhythm implements YamJJazzRhythm
         return Collections.unmodifiableList(rps);
     }
 
-    @Override
-    public void addPropertyChangeListener(PropertyChangeListener l)
+    /**
+     * The mapper which redirects each base RhythmVoice to a MusicGenerator, a destination RhythmVoice, and possibly a variation and a post-processor.
+     *
+     * @return
+     */
+    private RvToMgDelegateMapper buildRvMapper()
     {
-        pcs.addPropertyChangeListener(l);
-    }
+        var yjGenerator = new YamJJazzRhythmGenerator(this);
+        var bassGenerator = new JJSwingBassMusicGenerator(this);
 
-    @Override
-    public void removePropertyChangeListener(PropertyChangeListener l)
-    {
-        pcs.removePropertyChangeListener(l);
-    }
+        RvToMgDelegateMapper res = (baseRv, spt) -> 
+        {
+            Objects.requireNonNull(baseRv);
+            Objects.requireNonNull(spt);
+            assert rhythmVoices.contains(baseRv) : "baseRv=" + baseRv;
 
-    // ======================================================================================================
-    // private methods
-    // ======================================================================================================
+            // Default values
+            RhythmVoice destRv = baseRv;
+            MusicGenerator mg = yjGenerator;
+            String rpVariation = null;
+            Consumer<Phrase> postProcessor = null;
+
+
+            switch (baseRv.getType())
+            {
+                case DRUMS ->
+                {
+                    String rpDrumsStyleValue = spt.getRPValue(RP_DrumsStyle.get(JJSwingRhythm.this));
+                    String rpVariationValue = spt.getRPValue(RP_SYS_Variation.getVariationRp(JJSwingRhythm.this));
+                    DrumsStyle drumsStyle = RP_DrumsStyle.toDrumsStyle(rpDrumsStyleValue, rpVariationValue);
+                    rpVariation = drumsStyle.getVariationId();
+                    try
+                    {
+                        Rhythm r = drumsStyle.getRhythm();   // throws UnavailableRhythmException
+                        destRv = r.getRhythmVoices().stream()
+                                .filter(rv -> rv.isDrums())
+                                .findAny()
+                                .orElseThrow(() -> new UnavailableRhythmException(
+                                "buildRvMapper().RvToMgTargetMapper no drums rhythm voice found in rhythm " + r.getName()));
+                        mg = ((MusicGeneratorProvider) r).getMusicGenerator();
+                    } catch (UnavailableRhythmException ex)
+                    {
+                        LOGGER.log(Level.SEVERE, "JJSwingRhythm().RvToMgTargetMapper Can not retrieve rhythm instance for drumsStyle={0}. ex={1}",
+                                new Object[]
+                                {
+                                    drumsStyle,
+                                    ex.getMessage()
+                                });
+                    }
+                }
+                case BASS ->
+                {
+                    mg = bassGenerator;
+                }
+                default ->
+                {
+                    // Nothing
+                }
+            }
+            
+            return new MgDelegate(mg, destRv, rpVariation, postProcessor);
+        };
+
+        return res;
+    }
 
     /**
      * Extract the 2 resource files in the temporary directory.
