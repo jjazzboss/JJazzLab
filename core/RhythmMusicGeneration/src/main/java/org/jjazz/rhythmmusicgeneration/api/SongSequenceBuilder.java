@@ -96,7 +96,6 @@ import org.jjazz.song.api.Song;
 
 public class SongSequenceBuilder
 {
-
     /**
      * @see #getTempoFactorMetaMessage(float)
      * @see #getTempoFactor(javax.sound.midi.MetaMessage)
@@ -320,8 +319,9 @@ public class SongSequenceBuilder
      * - add reset controllers for each RhythmVoice track<br>
      * - add bank/program and volume/effects events for each RhythmVoice track<br>
      * - add a marker for each chord symbol<br>
+     * - add a marker for each song part<br>
      *
-     *
+     * 
      * @param songSequence      Must have been created using buildSongSequence() for the current SongContext
      * @param ignoreMidiMixMute If true, a track will sound even if it was muted in the context MidiMix
      * @see #buildSongSequence(java.util.Map, boolean)
@@ -331,6 +331,7 @@ public class SongSequenceBuilder
         Preconditions.checkNotNull(songSequence);
 
         Sequence sequence = songSequence.sequence;
+        List<SongPart> spts = songContextWork.getSongParts();
         MidiMix midiMix = songContextWork.getMidiMix();
         Track[] tracks = sequence.getTracks();
         Track track0 = tracks[0];
@@ -369,15 +370,14 @@ public class SongSequenceBuilder
 
         // Add markers at each chord symbol position
         SongStructure ss = songContextWork.getSong().getSongStructure();
-        for (SongPart spt : songContextWork.getSongParts())
+        for (SongPart spt : spts)
         {
             CLI_Section section = spt.getParentSection();
-            for (var cliCs : songContextWork.getSong().getChordLeadSheet().getItems(section, CLI_ChordSymbol.class))
+            for (var cliChordSymbol : songContextWork.getSong().getChordLeadSheet().getItems(section, CLI_ChordSymbol.class))
             {
-
-                Position absPos = ss.getSptItemPosition(spt, cliCs);
+                Position absPos = ss.getSptItemPosition(spt, cliChordSymbol);
                 long tickPos = songContextWork.toRelativeTick(absPos);
-                me = new MidiEvent(MidiUtilities.getMarkerMetaMessage(cliCs.getData().getName()), tickPos);
+                me = new MidiEvent(MidiUtilities.getMarkerMetaMessage(cliChordSymbol.getData().getName()), tickPos);
                 track0.add(me);
             }
         }
@@ -397,12 +397,16 @@ public class SongSequenceBuilder
         track0.add(me);
 
 
-        // Add additional song part tempo changes
+        // Add markers for each song part and additional song part tempo changes if present
         int lastTempoFactor = tempoFactor;
-        var spts = songContextWork.getSongParts();
-        for (i = 1; i < spts.size(); i++)
+        for (SongPart spt : spts)
         {
-            SongPart spt = spts.get(i);
+            String partName = spt.getName();
+            float beatPos = songContextWork.getSptBeatRange(spt).from - songContextWork.getBeatRange().from;
+            long spTickPos = Math.round(beatPos * MidiConst.PPQ_RESOLUTION);
+            me = new MidiEvent(MidiUtilities.getMarkerMetaMessage(partName), spTickPos);
+            track0.add(me);
+
             rp = RP_SYS_TempoFactor.getTempoFactorRp(spt.getRhythm());
             if (rp != null)
             {
@@ -410,9 +414,7 @@ public class SongSequenceBuilder
                 if (tempoFactor != lastTempoFactor)
                 {
                     tempo = Math.round(tempoFactor / 100f * songContextWork.getSong().getTempo());
-                    float beatPos = songContextWork.getSptBeatRange(spt).from - songContextWork.getBeatRange().from;
-                    long tickPos = Math.round(beatPos * MidiConst.PPQ_RESOLUTION);
-                    me = new MidiEvent(MidiUtilities.getTempoMessage(0, tempo), tickPos);
+                    me = new MidiEvent(MidiUtilities.getTempoMessage(0, tempo), spTickPos);
                     track0.add(me);
                     lastTempoFactor = tempoFactor;
                 }
