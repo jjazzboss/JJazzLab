@@ -4,8 +4,6 @@ import org.jjazz.jjswing.api.BassStyle;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
-import java.io.IOException;
-import java.io.InputStream;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,12 +16,8 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
-import javax.sound.midi.InvalidMidiDataException;
-import javax.sound.midi.MetaMessage;
 import javax.sound.midi.MidiEvent;
-import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Sequence;
-import javax.sound.midi.Track;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
@@ -32,6 +26,7 @@ import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.harmony.spi.ChordTypeDatabase;
+import org.jjazz.jjswing.drums.db.DpSourceDatabase;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.phrase.api.Phrase;
@@ -39,7 +34,6 @@ import org.jjazz.phrase.api.Phrases;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.jjswing.walkingbass.Score;
 import org.jjazz.jjswing.walkingbass.WbpSourceAdaptation;
-import org.jjazz.jjswing.walkingbass.WbpsaScorer;
 import static org.jjazz.jjswing.walkingbass.JJSwingBassMusicGenerator.NON_QUANTIZED_WINDOW;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.utilities.api.FloatRange;
@@ -497,7 +491,7 @@ public class WbpSourceDatabase
 
         List<WbpSession> res = new ArrayList<>();
 
-        Sequence sequence = loadSequenceFromResource(midiFileResourcePath);
+        Sequence sequence = DpSourceDatabase.loadSequenceFromResource(getClass(), midiFileResourcePath);
         int seqResolution = sequence.getResolution();
         if (sequence.getDivisionType() != Sequence.PPQ)
         {
@@ -505,52 +499,11 @@ public class WbpSourceDatabase
         }
 
         // Get all markers at the appropriate resolution
-        List<MidiEvent> markerEvents = new ArrayList<>();
-        for (Track track : sequence.getTracks())
-        {
-            var events = MidiUtilities.getMidiEvents(track,
-                    MetaMessage.class,
-                    me -> me.getType() == MidiConst.META_MARKER,
-                    null);
-            events = MidiUtilities.getMidiEventsAtPPQ(events, seqResolution, MidiConst.PPQ_RESOLUTION);
-            markerEvents.addAll(events);
-        }
-        assert !markerEvents.isEmpty() : "midiFileResourcePath=" + midiFileResourcePath;
-
-
-        // Sort markers: first session name "_xxx", then tags "#xxx", then chord symbols
-        markerEvents.sort((left, right) -> 
-        {
-            int c = Long.compare(left.getTick(), right.getTick());
-            if (c == 0)
-            {
-                String strLeft = MidiUtilities.getText(left);
-                String strRight = MidiUtilities.getText(right);
-                if (strLeft.charAt(0) == '_')
-                {
-                    c = -1;
-                    assert strRight.charAt(0) != '_' : "tick=" + left.getTick();
-                } else if (strRight.charAt(0) == '_')
-                {
-                    c = 1;
-                    assert strLeft.charAt(0) != '_' : "tick=" + left.getTick();
-                } else if (strLeft.charAt(0) == '#')
-                {
-                    c = -1;
-                } else if (strRight.charAt(0) == '#')
-                {
-                    c = 1;
-                } else
-                {
-                    // Nothing
-                }
-            }
-            return c;
-        });
-
+        var markerEvents = DpSourceDatabase.getMarkersSorted(sequence);
+        
 
         // Verify the presence of the end session marker
-        var lastMarker = markerEvents.get(markerEvents.size() - 1);
+        var lastMarker = markerEvents.getLast();
         assert "_END".equalsIgnoreCase(MidiUtilities.getText(lastMarker)) : "MidiUtilities.getText(lastMarker)=" + MidiUtilities.getText(lastMarker);
 
 
@@ -652,24 +605,6 @@ public class WbpSourceDatabase
 
     }
 
-    private Sequence loadSequenceFromResource(String midiFileResourcePath)
-    {
-        Sequence sequence = null;
-        try (InputStream is = getClass().getResourceAsStream(midiFileResourcePath))
-        {
-            // Load file into a sequence
-            sequence = MidiSystem.getSequence(is);       // Throws IOException, InvalidMidiDataException
-            if (sequence.getDivisionType() != Sequence.PPQ)
-            {
-                throw new IOException("Midi stream does not use PPQ division");
-            }
-        } catch (IOException | InvalidMidiDataException ex)
-        {
-            Exceptions.printStackTrace(ex);
-        }
-
-        return sequence;
-    }
 
     private SimpleChordSequence getChordSequence(int nbBars, TimeSignature ts, List<MidiEvent> sessionChords, long tickOffset)
     {

@@ -699,6 +699,32 @@ public class Utilities
     }
 
     /**
+     * Get a random value between from and to included.
+     *
+     * @param from
+     * @param to
+     * @return
+     */
+    public static double getRandom(double from, double to)
+    {
+        double f = Math.random() / Math.nextDown(1.0);
+        double res = from * (1.0 - f) + to * f;
+        return res;
+    }
+
+    /**
+     * Get an integer random value between from and to included.
+     *
+     * @param from
+     * @param to
+     * @return
+     */
+    public static int getIntRandom(int from, int to)
+    {
+        return (int) Math.round(getRandom(from, to));
+    }
+
+    /**
      * Get the index of an object reference in a List. The search uses direct equality '==', NOT the 'equals' function.
      *
      * @param o     The Object to search.

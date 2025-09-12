@@ -39,10 +39,13 @@ import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.harmony.api.TimeSignature;
+import org.jjazz.jjswing.drums.db.DpSourceDatabase;
+import org.jjazz.jjswing.drums.db.JJSwingDrumsMusicGenerator;
 import org.jjazz.phrasetransform.api.rps.RP_SYS_DrumsTransform;
 import org.jjazz.jjswing.walkingbass.db.WbpSourceDatabase;
 import org.jjazz.jjswing.walkingbass.JJSwingBassMusicGenerator;
 import org.jjazz.jjswing.walkingbass.JJSwingBassMusicGeneratorSettings;
+import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythm.api.Division;
 import org.jjazz.rhythm.api.Genre;
@@ -212,22 +215,27 @@ public class JJSwingRhythm implements YamJJazzRhythm
         // Initialize the base rhythm
         baseRhythm.loadResources();  // throws MusicGenerationException
 
+
         // We must also process other rhythm instances used by our CompositeMusicGenerator
-        for (var r : DrumsStyle.getAllRhythms())
+        for (var r : getOtherUsedRhythms())
         {
             r.loadResources();      // throws MusicGenerationException
         }
 
         // Initialize the WalkingBass database
         var wbpsDB = WbpSourceDatabase.getInstance();
-        LOGGER.log(Level.FINE, "loadResources() WbpSourceDatabase size={0}", wbpsDB.getNbWbpSources(-1));
-
-
         LOGGER.log(Level.INFO, "loadResources() WbpSourceDatabase checkConsistency() skipped");
         // LOGGER.severe("loadResources() debug updating SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT");
         // System.setProperty(NoteEvent.SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT, "%1$s");
         // wbpsDB.checkConsistency(BassStyle.TWO_FEEL);
         // wbpsDB.checkConsistency(BassStyle.WALKING);
+
+
+        // Initialize the Drums phrase database
+        var dpsDB = DpSourceDatabase.getInstance(TimeSignature.FOUR_FOUR);
+        // LOGGER.log(Level.INFO, "loadResources() DpSourceDatabase checkConsistency() skipped");
+        dpsDB.checkConsistency();
+
 
         LOGGER.log(Level.WARNING, "loadResources() DEBUG forcing randomization OFF");
         JJSwingBassMusicGeneratorSettings.getInstance().setWbpsaStoreRandomized(false);
@@ -252,7 +260,7 @@ public class JJSwingRhythm implements YamJJazzRhythm
 
 
         // We must also process other rhythm instances used by our CompositeMusicGenerator
-        DrumsStyle.getAllRhythms().forEach(r -> r.releaseResources());
+        getOtherUsedRhythms().forEach(r -> r.releaseResources());
 
 
         pcs.firePropertyChange(PROP_RESOURCES_LOADED, true, false);
@@ -416,6 +424,7 @@ public class JJSwingRhythm implements YamJJazzRhythm
     {
         var yjGenerator = new YamJJazzRhythmGenerator(this);
         var bassGenerator = new JJSwingBassMusicGenerator(this);
+        var drumsGenerator = new JJSwingDrumsMusicGenerator(this);
 
         RvToMgDelegateMapper res = (baseRv, spt) -> 
         {
@@ -425,48 +434,19 @@ public class JJSwingRhythm implements YamJJazzRhythm
 
             // Default values
             RhythmVoice destRv = baseRv;
-            MusicGenerator mg = yjGenerator;
             String rpVariation = null;
             Consumer<Phrase> postProcessor = null;
 
-
-            switch (baseRv.getType())
+            MusicGenerator mg = switch (baseRv.getType())
             {
-                case DRUMS ->
-                {
-                    String rpDrumsStyleValue = spt.getRPValue(RP_DrumsStyle.get(JJSwingRhythm.this));
-                    String rpVariationValue = spt.getRPValue(RP_SYS_Variation.getVariationRp(JJSwingRhythm.this));
-                    DrumsStyle drumsStyle = RP_DrumsStyle.toDrumsStyle(rpDrumsStyleValue, rpVariationValue);
-                    rpVariation = drumsStyle.getVariationId();
-                    try
-                    {
-                        Rhythm r = drumsStyle.getRhythm();   // throws UnavailableRhythmException
-                        destRv = r.getRhythmVoices().stream()
-                                .filter(rv -> rv.isDrums())
-                                .findAny()
-                                .orElseThrow(() -> new UnavailableRhythmException(
-                                "buildRvMapper().RvToMgTargetMapper no drums rhythm voice found in rhythm " + r.getName()));
-                        mg = ((MusicGeneratorProvider) r).getMusicGenerator();
-                    } catch (UnavailableRhythmException ex)
-                    {
-                        LOGGER.log(Level.SEVERE, "JJSwingRhythm().RvToMgTargetMapper Can not retrieve rhythm instance for drumsStyle={0}. ex={1}",
-                                new Object[]
-                                {
-                                    drumsStyle,
-                                    ex.getMessage()
-                                });
-                    }
-                }
+                case DRUMS, PERCUSSION ->
+                    drumsGenerator;
                 case BASS ->
-                {
-                    mg = bassGenerator;
-                }
+                    bassGenerator;
                 default ->
-                {
-                    // Nothing
-                }
-            }
-            
+                    yjGenerator;
+            };
+
             return new MgDelegate(mg, destRv, rpVariation, postProcessor);
         };
 
@@ -494,5 +474,9 @@ public class JJSwingRhythm implements YamJJazzRhythm
         return yjzPath.toFile();
     }
 
+    private List<Rhythm> getOtherUsedRhythms()
+    {
+        return Collections.emptyList();
+    }
 
 }

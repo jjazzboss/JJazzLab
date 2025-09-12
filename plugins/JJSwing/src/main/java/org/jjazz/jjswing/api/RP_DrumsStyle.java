@@ -43,19 +43,16 @@ public class RP_DrumsStyle extends RP_State
                 toRpValue(DrumsStyle.BRUSHES_1),
                 toRpValue(DrumsStyle.BRUSHES_2),
                 toRpValue(DrumsStyle.BRUSHES_3),
-                toRpValue(DrumsStyle.BRUSHES_4),
-                toRpValue(DrumsStyle.BRUSHES_5),
                 toRpValue(DrumsStyle.HI_HAT_1),
                 toRpValue(DrumsStyle.HI_HAT_2),
-                toRpValue(DrumsStyle.HI_HAT_3),
                 toRpValue(DrumsStyle.RIDE_1),
                 toRpValue(DrumsStyle.RIDE_2),
                 toRpValue(DrumsStyle.RIDE_3),
                 toRpValue(DrumsStyle.RIDE_4),
                 toRpValue(DrumsStyle.RIDE_5),
-                toRpValue(DrumsStyle.RIDE_6),
                 toRpValue(DrumsStyle.SHUFFLE_1),
-                toRpValue(DrumsStyle.SHUFFLE_2));
+                toRpValue(DrumsStyle.SHUFFLE_2)
+        );
     }
 
     /**
@@ -106,7 +103,7 @@ public class RP_DrumsStyle extends RP_State
             case "Main A", "Main A-1" ->
                 DrumsStyle.BRUSHES_2;
             case "Main A-2" ->
-                DrumsStyle.BRUSHES_4;
+                DrumsStyle.BRUSHES_3;
             case "Main B", "Main B-1" ->
                 DrumsStyle.HI_HAT_1;
             case "Main B-2" ->
@@ -118,7 +115,7 @@ public class RP_DrumsStyle extends RP_State
             case "Main D", "Main D-1" ->
                 DrumsStyle.RIDE_3;
             case "Main D-2" ->
-                DrumsStyle.RIDE_5;
+                DrumsStyle.SHUFFLE_1;
             default ->
                 DrumsStyle.BRUSHES_2;
         };

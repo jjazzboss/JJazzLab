@@ -1029,7 +1029,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
                 String rpComplexityValue = spt.getRPValue(RP_SYS_Variation.getVariationRp(yjr));
                 StylePart sp = yjr.getStylePart(rpComplexityValue);
                 String rpFillValue = spt.getRPValue(RP_SYS_Fill.getFillRp(yjr));
-                if (sp.getType().isMain() && needFill(rpFillValue))
+                if (sp.getType().isMain() && RP_SYS_Fill.needFill(rpFillValue))
                 {
                     // Change the RP Complexity value to use the appropriate Fill or Break
                     StylePartType breakType;
@@ -1054,29 +1054,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
         }
     }
 
-    /**
-     * Return true if we need to add a Fill In.
-     *
-     * @param rpFillValue
-     * @return
-     */
-    private boolean needFill(String rpFillValue)
-    {
-        boolean r = false;
-        rpFillValue = rpFillValue.toLowerCase();
-        double x = Math.random();
-        if (rpFillValue.contains(RP_SYS_Fill.VALUE_ALWAYS) || rpFillValue.contains(RP_SYS_Fill.VALUE_BREAK))
-        {
-            r = true;
-        } else if (rpFillValue.contains(RP_SYS_Fill.VALUE_RANDOM_RARE) && x <= 0.25)
-        {
-            r = true;
-        } else if (rpFillValue.contains(RP_SYS_Fill.VALUE_RANDOM) && x <= 0.5)
-        {
-            r = true;
-        }
-        return r;
-    }
+  
 
     /**
      * Change the velocity of notes depending on the Intensity parameter of each SongPart.

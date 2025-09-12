@@ -521,7 +521,7 @@ public class Phrases
      * [range.from-beatWindow;range.from[, then it's removed.<p>
      * If a note is starting before range.to and ending after range.to: <br>
      * - if keepRight is false, the note is removed, except if the note starts in the range [range.to-beatWindow;range.to[, then it's replaced by a shorter
-     * identical one starting at range<br>
+     * identical one starting at range.to<br>
      * - if keepRight is true, the note is replaced by a shorter identical one starting at range.to<br>
      *
      * @param p
@@ -666,6 +666,27 @@ public class Phrases
         return res;
     }
 
+    /**
+     * Make sure there is no note which ends right on sp boundary: when moving notes (eg Phrase.shiftAllEvents()), because of float rounding errors, this may
+     * lead to notes becoming out of SizedPhrase range.
+     *
+     * @param sp
+     * @return
+     */
+    static public boolean fixEndOfPhraseNotes(SizedPhrase sp)
+    {
+        float end = sp.getBeatRange().to - 0.1f;
+        Map<NoteEvent, NoteEvent> mapNotes = new HashMap<>();
+        for (var ne : sp)
+        {
+            if (ne.getBeatRange().to > end)
+            {
+                mapNotes.put(ne, ne.setDuration(end - ne.getPositionInBeats()));
+            }
+        }
+        sp.replaceAll(mapNotes, false);
+        return !mapNotes.isEmpty();
+    }
 
     /**
      * Remove overlapped phrase notes with identical pitch.

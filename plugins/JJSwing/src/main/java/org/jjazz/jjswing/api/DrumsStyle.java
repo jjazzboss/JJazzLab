@@ -24,13 +24,7 @@
  */
 package org.jjazz.jjswing.api;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jjazz.rhythm.api.Rhythm;
-import org.jjazz.rhythmdatabase.api.RhythmDatabase;
-import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 
 /**
  * The possible drums styles
@@ -38,74 +32,23 @@ import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
  */
 public enum DrumsStyle
 {
-    BRUSHES_1("CoolJazzBallad.S738.prs", "Main B-1"),
-    BRUSHES_2("MediumJazz.S737.sst", "Main A-1"),
-    BRUSHES_3("EasyAcJazz.T157.STY", "Main A-1"),
-    BRUSHES_4("JazzClub.S120.prs", "Main A-1"),
-    BRUSHES_5("JazzClub.S120.prs", "Main B-1"),
-    HI_HAT_1("DrawbarSwing.T153.sst", "Main A-1"),
-    HI_HAT_2("Swing1.S737.bcs", "Main A-1"),
-    HI_HAT_3("Swing1.S737.bcs", "Main B-1"),
-    RIDE_1("MediumJazz.S737.sst", "Main B-1"),
-    RIDE_2("MediumJazz.S737.sst", "Main C-1"),
-    RIDE_3("MediumJazz.S737.sst", "Main D-1"),
-    RIDE_4("LACoolSwing.STY", "Main B-1"),
-    RIDE_5("CoolJazzBallad.S738.prs", "Main D-1"),
-    RIDE_6("LACoolSwing.STY", "Main D-1"),
-    SHUFFLE_1("CountryShuffle.S477.bcs", "Main B-1"),
-    SHUFFLE_2("LACoolSwing.STY", "Main D-1");
+    BRUSHES_1,
+    BRUSHES_2,
+    BRUSHES_3,
+    HI_HAT_1,
+    HI_HAT_2,
+    RIDE_1,
+    RIDE_2,
+    RIDE_3,
+    RIDE_4,    
+    RIDE_5,    
+    SHUFFLE_1,
+    SHUFFLE_2,
+    DOUBLE_1;
 
 
-    private final String rhythmId;
-    private final String variationId;
     private static final Logger LOGGER = Logger.getLogger(DrumsStyle.class.getSimpleName());
 
-    DrumsStyle(String rId, String varId)
-    {
-        this.rhythmId = rId;
-        this.variationId = varId;
-    }
-
-    public String getRhythmId()
-    {
-        return rhythmId;
-    }
-
-    public Rhythm getRhythm() throws UnavailableRhythmException
-    {
-        RhythmDatabase rdb = RhythmDatabase.getDefault();
-        Rhythm res = rdb.getRhythmInstance(rhythmId+"-ID");
-        return res;
-    }
-
-    public String getVariationId()
-    {
-        return variationId;
-    }
-
-    /**
-     * Get all rhythm instances used by the possible DrumsStyles.
-     *
-     * @return
-     */
-    static public Set<Rhythm> getAllRhythms()
-    {
-        Set<Rhythm> res = new HashSet<>();
-        for (var ds : DrumsStyle.values())
-        {
-            try
-            {
-                res.add(ds.getRhythm());
-            } catch (UnavailableRhythmException ex)
-            {
-                LOGGER.log(Level.SEVERE, "getAllRhythms() Could not retrieve rhythm instance for rId={0}. ex={1}", new Object[]
-                {
-                    ds.rhythmId, ex.getMessage()
-                });
-            }
-        }
-        return res;
-    }
 
     //===============================================================================================
     // Inner classes
