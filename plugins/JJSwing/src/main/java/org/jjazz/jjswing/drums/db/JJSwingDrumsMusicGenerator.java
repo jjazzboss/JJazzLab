@@ -162,7 +162,7 @@ public class JJSwingDrumsMusicGenerator implements MusicGenerator
     {
         LOGGER.fine("fillPhrases() --");
         var dpsDb = DpSourceDatabase.getInstance(TimeSignature.FOUR_FOUR);
-
+        var nbBeatsPerBar = rhythm.getTimeSignature().getNbNaturalBeats();
 
         for (var spt : getRhythmSpts(context))
         {
@@ -179,27 +179,53 @@ public class JJSwingDrumsMusicGenerator implements MusicGenerator
             var sptBeatRange = context.getSptBeatRange(spt);
             float beatPos = sptBeatRange.from;
 
+
+            // Tile the SongPart with random phrases from the DpSourceSet
             for (int bar = sptBarRange.from; sptBarRange.contains(bar); bar += dpsSize)
             {
-                var dpSource = randomPick(dpss.dpSourcesStd());
-                var dpSourceFill = getFillDpSource(spt, dpss.dpSourcesFill());  // can be null if no fill required
-                SizedPhrase drumsFillPhrase = dpSourceFill != null ? dpSourceFill.getDrumsPhrase(0, null) : null;
-                SizedPhrase percFillPhrase = dpSourceFill != null ? dpSourceFill.getPercPhrase(0, null) : null;
+                FloatRange beatRange = new FloatRange(beatPos, beatPos + dpsSize * nbBeatsPerBar);
+                FloatRange beatRangeStd = beatRange;
+                DpSource dpSourceFill = null;   // no fill by default
+                FloatRange beatRangeFill = FloatRange.EMPTY_FLOAT_RANGE;  // no fill by default
 
-                var spDrums = dpSource.getDrumsPhrase(beatPos, drumsFillPhrase);
-                var spPerc = dpSource.getPercPhrase(beatPos, percFillPhrase);
 
-                if (!sptBeatRange.contains(spDrums.getBeatRange(), false))
+                boolean isLastIteration = (bar + dpsSize - 1) >= sptBarRange.to;
+                if (isLastIteration)
                 {
-                    // This is the last iteration, need to shorten phrases
-                    FloatRange lastBeatRange = sptBeatRange.getIntersectRange(spDrums.getBeatRange());
-                    var p = Phrases.getSlice(spDrums, lastBeatRange, false, 2, 0.1f);
-                    spDrums.clear();
-                    spDrums.add(p);
-                    p = Phrases.getSlice(spPerc, lastBeatRange, false, 2, 0.1f);
-                    spPerc.clear();
-                    spPerc.add(p);
+                    beatRange = sptBeatRange.getIntersectRange(beatRange);
+                    dpSourceFill = getFillDpSource(spt, dpss.dpSourcesFill());      // null if no fill
                 }
+
+
+                if (dpSourceFill != null)
+                {
+                    float fillBeatSize = dpSourceFill.getSizeInBars() * nbBeatsPerBar;
+                    assert fillBeatSize <= beatRange.size() : "spt=" + spt + " bar=" + bar + " beatRange=" + beatRange + " fillBeatSize=" + fillBeatSize;
+                    beatRangeFill = new FloatRange(beatRange.to - fillBeatSize, beatRange.to);
+                    beatRangeStd = beatRange.from == beatRangeFill.from ? FloatRange.EMPTY_FLOAT_RANGE : new FloatRange(beatRange.from, beatRangeFill.from);
+                }
+
+
+                DpSource dpSource = randomPick(dpss.dpSourcesStd());
+                Phrase spDrums = dpSource.getDrumsPhrase(beatRangeStd);
+                Phrase spPerc = dpSource.getPercPhrase(beatRangeStd);
+
+
+                if (dpSourceFill != null)
+                {
+                    var spDrumsFill = dpSourceFill.getDrumsPhrase(beatRangeFill);
+                    var p = new Phrase(0);
+                    p.add(spDrums);
+                    p.add(spDrumsFill);
+                    spDrums = p;
+
+                    var spPercFill = dpSourceFill.getPercPhrase(beatRangeFill);
+                    p = new Phrase(0);
+                    p.add(spPerc);
+                    p.add(spPercFill);
+                    spPerc = p;
+                }
+
 
                 pDrums.add(spDrums);
                 pPerc.add(spPerc);

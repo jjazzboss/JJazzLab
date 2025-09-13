@@ -50,20 +50,20 @@ public record DpSourceSet(List<DpSource> dpSourcesStd, List<DpSource> dpSourcesF
         Preconditions.checkArgument(!dpSourcesStd.isEmpty());
         Preconditions.checkArgument(!dpSourcesFill.isEmpty());
         int alt = 0;
-        int size = dpSourcesStd.get(0).getSize();
+        int size = dpSourcesStd.get(0).getSizeInBars();
         for (var dps : dpSourcesStd)
         {
-            if (dps.getAlternateId() != alt || dps.getSize() != size)
+            if (dps.getAlternateId() != alt || dps.getSizeInBars() != size)
             {
                 throw new IllegalArgumentException("alt=" + alt + "  dpSources=" + dpSourcesStd);
             }
             alt++;
         }
         alt = 0;
-        size = dpSourcesFill.get(0).getSize();
+        size = dpSourcesFill.get(0).getSizeInBars();
         for (var dps : dpSourcesFill)
         {
-            if (dps.getAlternateId() != alt || dps.getSize() != size)
+            if (dps.getAlternateId() != alt || dps.getSizeInBars() != size)
             {
                 throw new IllegalArgumentException("alt=" + alt + "  dpSourcesFill=" + dpSourcesFill);
             }
@@ -80,7 +80,7 @@ public record DpSourceSet(List<DpSource> dpSourcesStd, List<DpSource> dpSourcesF
      */
     public int getSize()
     {
-        return dpSourcesStd.get(0).getSize();
+        return dpSourcesStd.get(0).getSizeInBars();
     }
 
     /**

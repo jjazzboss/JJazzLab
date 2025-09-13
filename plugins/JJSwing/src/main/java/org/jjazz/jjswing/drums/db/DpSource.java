@@ -139,32 +139,30 @@ public class DpSource
     }
 
     /**
-     * Get a copy of the drums phrase starting at startBeatPos with the optional lastBarFillPhrase.
+     * Get a copy of the drums phrase (possibly trimmed) starting at targetBeatRange.from.
      *
-     * @param startBeatPos
-     * @param lastBarFillPhrase If not null, a 1-bar sized phrase used for the last bar. Must start at beat 0.
-     * @return Can be empty
+     * @param targetBeatRange The size of the resulting phrase.
+     * @return Can be empty.
      * @see #getPercPhrase()
      */
-    public SizedPhrase getDrumsPhrase(float startBeatPos, SizedPhrase lastBarFillPhrase)
+    public SizedPhrase getDrumsPhrase(FloatRange targetBeatRange)
     {
-        Preconditions.checkArgument(startBeatPos >= 0, "startBeatPos=%s", startBeatPos);
-        var sp = buildTargetPhrase(drumsPhrase, startBeatPos, lastBarFillPhrase);
+        Objects.requireNonNull(targetBeatRange);
+        var sp = buildTargetPhrase(drumsPhrase, targetBeatRange);
         return sp;
     }
 
     /**
-     * Get a copy of the percussion phrase starting at startBeatPos with the optional lastBarFillPhrase.
+     * Get a copy of the perc phrase (possibly trimmed) starting at targetBeatRange.from.
      *
-     * @param startBeatPos
-     * @param lastBarFillPhrase If not null, a 1-bar sized phrase used for the last bar. Must start at beat 0.
-     * @return Can be empty
+     * @param targetBeatRange The size of the resulting phrase.
+     * @return Can be empty.
      * @see #getDrumsPhrase()
      */
-    public SizedPhrase getPercPhrase(float startBeatPos, SizedPhrase lastBarFillPhrase)
+    public SizedPhrase getPercPhrase(FloatRange targetBeatRange)
     {
-        Preconditions.checkArgument(startBeatPos >= 0, "startBeatPos=%s", startBeatPos);
-        var sp = buildTargetPhrase(percPhrase, startBeatPos, lastBarFillPhrase);
+        Objects.requireNonNull(targetBeatRange);
+        var sp = buildTargetPhrase(percPhrase, targetBeatRange);
         return sp;
     }
 
@@ -196,7 +194,7 @@ public class DpSource
      *
      * @return Phrase size in bars
      */
-    public int getSize()
+    public int getSizeInBars()
     {
         return drumsPhrase.getSizeInBars();
     }
@@ -248,29 +246,24 @@ public class DpSource
     // =================================================================================================================
     // Private methods
     // ================================================================================================================= 
-    private SizedPhrase buildTargetPhrase(SizedPhrase sourcePhrase, float startBeatPos, SizedPhrase lastBarFillPhrase)
+    private SizedPhrase buildTargetPhrase(SizedPhrase srcPhrase, FloatRange targetBeatRange)
     {
-        Preconditions.checkArgument(
-                lastBarFillPhrase == null
-                || (lastBarFillPhrase.getBeatRange().from == 0
-                && lastBarFillPhrase.getSizeInBars() == 1
-                && lastBarFillPhrase.getTimeSignature() == sourcePhrase.getTimeSignature()),
-                "lastBarFillPhrase=%s",
-                lastBarFillPhrase);
-
-        var sp = sourcePhrase.clone();
-        sp.shiftAllEvents(startBeatPos, false);
-
-        if (lastBarFillPhrase != null)
+        SizedPhrase res = new SizedPhrase(srcPhrase.getChannel(), targetBeatRange, srcPhrase.getTimeSignature(), srcPhrase.isDrums());
+        for (var ne : srcPhrase)
         {
-            FloatRange fr = new FloatRange(sp.getBeatRange().to - lastBarFillPhrase.getBeatRange().size(), 999999);
-            Phrases.silence(sp, fr, true, true, 0.1f);
-            var spFill = lastBarFillPhrase.clone();
-            spFill.shiftAllEvents(fr.from, false);
-            sp.add(spFill);
+            var newPosInBeats = ne.getPositionInBeats() + targetBeatRange.from;
+            if (targetBeatRange.contains(newPosInBeats, true))
+            {
+                var newDur = ne.getDurationInBeats();
+                if (newPosInBeats + newDur >= targetBeatRange.to)
+                {
+                    newDur = targetBeatRange.to - 0.001f - newPosInBeats;
+                }
+                var newNe = ne.setAll(ne.getPitch(), newDur, ne.getVelocity(), newPosInBeats, false);
+                res.add(newNe);
+            }
         }
-
-        return sp;
+        return res;
     }
     // =================================================================================================================
     // Inner classes

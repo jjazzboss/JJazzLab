@@ -34,14 +34,12 @@ public enum DrumsStyle
 {
     BRUSHES_1,
     BRUSHES_2,
-    BRUSHES_3,
     HI_HAT_1,
     HI_HAT_2,
     RIDE_1,
     RIDE_2,
     RIDE_3,
     RIDE_4,    
-    RIDE_5,    
     SHUFFLE_1,
     SHUFFLE_2,
     DOUBLE_1;

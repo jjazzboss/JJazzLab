@@ -22,8 +22,11 @@
  */
 package org.jjazz.phrase.api;
 
+import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.text.ParseException;
+import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -53,8 +56,8 @@ public class SizedPhrase extends Phrase
     public SizedPhrase(int channel, FloatRange beatRange, TimeSignature ts, boolean isDrums)
     {
         super(channel, isDrums);
-        checkNotNull(ts);
-        checkNotNull(beatRange);
+        Objects.requireNonNull(ts);
+        Objects.requireNonNull(beatRange);
         this.beatRange = beatRange;
         this.timeSignature = ts;
     }
