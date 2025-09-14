@@ -37,7 +37,7 @@ import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.jjswing.api.BassStyle;
-import static org.jjazz.jjswing.walkingbass.JJSwingBassMusicGenerator.DURATION_BEAT_MARGIN;
+import static org.jjazz.jjswing.walkingbass.BassGenerator.DURATION_BEAT_MARGIN;
 import org.jjazz.jjswing.walkingbass.db.Velocities;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.utilities.api.FloatRange;

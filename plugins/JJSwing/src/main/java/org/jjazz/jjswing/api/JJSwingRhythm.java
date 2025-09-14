@@ -39,12 +39,13 @@ import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.harmony.api.TimeSignature;
+import org.jjazz.jjswing.drums.DrumsGenerator;
 import org.jjazz.jjswing.drums.db.DpSourceDatabase;
-import org.jjazz.jjswing.drums.db.JJSwingDrumsMusicGenerator;
 import org.jjazz.phrasetransform.api.rps.RP_SYS_DrumsTransform;
 import org.jjazz.jjswing.walkingbass.db.WbpSourceDatabase;
-import org.jjazz.jjswing.walkingbass.JJSwingBassMusicGenerator;
-import org.jjazz.jjswing.walkingbass.JJSwingBassMusicGeneratorSettings;
+import org.jjazz.jjswing.walkingbass.BassGenerator;
+import org.jjazz.jjswing.walkingbass.BassGeneratorSettings;
+import org.jjazz.midi.api.MidiConst;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythm.api.Division;
@@ -72,14 +73,13 @@ import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Intensity;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Marker;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_TempoFactor;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
-import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.rhythmmusicgeneration.api.CompositeMusicGenerator;
 import org.jjazz.rhythmmusicgeneration.api.CompositeMusicGenerator.MgDelegate;
 import org.jjazz.rhythmmusicgeneration.api.RP_SYS_Mute;
 import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythmGenerator;
 import org.jjazz.rhythmmusicgeneration.api.RP_SYS_SubstituteTracks;
-import org.jjazz.rhythmmusicgeneration.spi.MusicGeneratorProvider;
 import org.jjazz.rhythmmusicgeneration.api.CompositeMusicGenerator.RvToMgDelegateMapper;
+import org.jjazz.utilities.api.FloatRange;
 
 /**
  * An advanced swing rhythm which uses a specific generator for the bass (walking, etc.).
@@ -233,14 +233,14 @@ public class JJSwingRhythm implements YamJJazzRhythm
 
         // Initialize the Drums phrase database
         var dpsDB = DpSourceDatabase.getInstance(TimeSignature.FOUR_FOUR);
-        // LOGGER.log(Level.INFO, "loadResources() DpSourceDatabase checkConsistency() skipped");
-        dpsDB.checkConsistency();
+        LOGGER.log(Level.INFO, "loadResources() DpSourceDatabase checkConsistency() skipped");
+        // dpsDB.checkConsistency();
 
 
         LOGGER.log(Level.WARNING, "loadResources() DEBUG forcing randomization OFF");
-        JJSwingBassMusicGeneratorSettings.getInstance().setWbpsaStoreRandomized(false);
+        BassGeneratorSettings.getInstance().setWbpsaStoreRandomized(false);
 
-        LOGGER.log(Level.INFO, "loadResources() isWbpsaStoreRandomized={0}", JJSwingBassMusicGeneratorSettings.getInstance().isWbpsaStoreRandomized());
+        LOGGER.log(Level.INFO, "loadResources() isWbpsaStoreRandomized={0}", BassGeneratorSettings.getInstance().isWbpsaStoreRandomized());
 
 
         pcs.firePropertyChange(PROP_RESOURCES_LOADED, false, true);
@@ -423,8 +423,8 @@ public class JJSwingRhythm implements YamJJazzRhythm
     private RvToMgDelegateMapper buildRvMapper()
     {
         var yjGenerator = new YamJJazzRhythmGenerator(this);
-        var bassGenerator = new JJSwingBassMusicGenerator(this);
-        var drumsGenerator = new JJSwingDrumsMusicGenerator(this);
+        var bassGenerator = new BassGenerator(this);
+        var drumsGenerator = new DrumsGenerator(this);
 
         RvToMgDelegateMapper res = (baseRv, spt) -> 
         {

@@ -17,7 +17,7 @@ import org.jjazz.harmony.api.Note;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SizedPhrase;
-import org.jjazz.jjswing.walkingbass.JJSwingBassMusicGenerator;
+import org.jjazz.jjswing.walkingbass.BassGenerator;
 import org.jjazz.jjswing.walkingbass.WbpSourceSlice;
 import org.jjazz.phrase.api.Phrases;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
@@ -72,7 +72,7 @@ public class WbpSource extends Wbp
         Objects.requireNonNull(bassStyle);
         checkArgument(sessionId != null && !sessionId.isBlank());
         checkArgument(sessionBarFrom >= 0, "sessionBarFrom=%s", sessionBarFrom);
-        checkArgument(firstNoteBeatShift <= 0 && firstNoteBeatShift >= -JJSwingBassMusicGenerator.NON_QUANTIZED_WINDOW,
+        checkArgument(firstNoteBeatShift <= 0 && firstNoteBeatShift >= -BassGenerator.NON_QUANTIZED_WINDOW,
                 "firstNoteBeatShift=%s", firstNoteBeatShift);
         checkArgument(phrase.getSizeInBars() >= 1 && phrase.getSizeInBars() <= 4, "phrase=%s", phrase);
 
@@ -601,7 +601,7 @@ public class WbpSource extends Wbp
         {
             float pos = ne.getPositionInBeats();
             float dur = ne.getDurationInBeats();
-            return (pos % sp.getTimeSignature().getNaturalBeat()) == 0 && dur <= JJSwingBassMusicGenerator.GHOST_NOTE_MAX_DURATION;
+            return (pos % sp.getTimeSignature().getNaturalBeat()) == 0 && dur <= BassGenerator.GHOST_NOTE_MAX_DURATION;
         });
         return b;
     }

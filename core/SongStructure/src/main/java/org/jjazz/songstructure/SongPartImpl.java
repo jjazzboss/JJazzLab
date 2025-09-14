@@ -357,7 +357,7 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
     @Override
     public String toString()
     {
-        return "[" + name + ", r=" + rhythm + ", startBarIndex=" + startBarIndex + ", nbBars=" + nbBars + "]";
+        return name + getBarRange() + "-" + rhythm.getName();
     }
 
     public String toDumpString()

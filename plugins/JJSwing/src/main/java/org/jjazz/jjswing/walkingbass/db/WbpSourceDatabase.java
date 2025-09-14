@@ -34,7 +34,7 @@ import org.jjazz.phrase.api.Phrases;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.jjswing.walkingbass.Score;
 import org.jjazz.jjswing.walkingbass.WbpSourceAdaptation;
-import static org.jjazz.jjswing.walkingbass.JJSwingBassMusicGenerator.NON_QUANTIZED_WINDOW;
+import static org.jjazz.jjswing.walkingbass.BassGenerator.NON_QUANTIZED_WINDOW;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;

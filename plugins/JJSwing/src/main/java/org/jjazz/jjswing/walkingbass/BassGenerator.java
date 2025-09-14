@@ -52,7 +52,7 @@ import org.jjazz.utilities.api.IntRange;
  * @see WbpSourceDatabase
  */
 
-public class JJSwingBassMusicGenerator implements MusicGenerator
+public class BassGenerator implements MusicGenerator
 {
 
     /**
@@ -75,9 +75,9 @@ public class JJSwingBassMusicGenerator implements MusicGenerator
     private final Rhythm rhythm;
     private Song lastSong;
 
-    private static final Logger LOGGER = Logger.getLogger(JJSwingBassMusicGenerator.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(BassGenerator.class.getSimpleName());
 
-    public JJSwingBassMusicGenerator(Rhythm r)
+    public BassGenerator(Rhythm r)
     {
         Preconditions.checkArgument(RP_SYS_Variation.getVariationRp(r) != null
                 && RP_SYS_Intensity.getIntensityRp(r) != null,
@@ -213,6 +213,72 @@ public class JJSwingBassMusicGenerator implements MusicGenerator
             res -= 12;
         }
         return res;
+    }
+
+    /**
+     * Update notes from p depending on intensity.
+     *
+     * @param p
+     * @param beatRange Update notes in this range
+     * @param intensity [-10;10]
+     */
+    static public void processIntensity(Phrase p, FloatRange beatRange, int intensity)
+    {
+        int velShift = RP_SYS_Intensity.getRecommendedVelocityShift(intensity);
+        if (velShift != 0)
+        {
+            p.processNotes(ne -> beatRange.contains(ne.getPositionInBeats(), true), ne -> 
+            {
+                int v = MidiConst.clamp(ne.getVelocity() + velShift);
+                NoteEvent newNe = ne.setVelocity(v);
+                return newNe;
+            });
+        }
+    }
+
+    /**
+     * The faster the tempo the more we play before the beat.
+     * <p>
+     * Also depends on the setting getTempoNotePositionBiasFactor().
+     *
+     * @param tempo
+     * @return
+     */
+    static public float computeNotePositionBias(int tempo)
+    {
+        final int TEMPO_HIGH = 240;
+        final int TEMPO_NORMAL = TEMPO_HIGH / 2;
+        float TEMPO_HIGH_BIAS = -0.04f;
+        float TEMPO_NORMAL_BIAS = 0;
+        float tempo2 = Math.clamp(tempo, TEMPO_NORMAL, TEMPO_HIGH);
+        float biasTempo = TEMPO_NORMAL_BIAS + (tempo2 - TEMPO_NORMAL) / (TEMPO_HIGH - TEMPO_NORMAL) * (TEMPO_HIGH_BIAS - TEMPO_NORMAL_BIAS);
+
+        float BIAS_RANGE_MAX = 0.07f;
+        float biasSettingFactor = BassGeneratorSettings.getInstance().getTempoNotePositionBiasFactor();
+        float biasSetting = biasSettingFactor * BIAS_RANGE_MAX;
+        float res = Math.clamp(biasSetting + biasTempo, -BIAS_RANGE_MAX, BIAS_RANGE_MAX);
+        return res;
+    }
+
+    /**
+     * Update note timing depending on bias and tempo.
+     * <p>
+     *
+     * @param p
+     * @param beatRange    Update notes in this range
+     * @param positionBias
+     */
+    static public void processNotePositionBias(Phrase p, FloatRange beatRange, float positionBias)
+    {
+        if (positionBias != 0)
+        {
+            p.processNotes(ne -> beatRange.contains(ne.getPositionInBeats(), true), ne -> 
+            {
+                float newPos = Math.max(ne.getPositionInBeats() + positionBias, beatRange.from);
+                NoteEvent newNe = ne.setPosition(newPos, false);
+                return newNe;
+            });
+        }
     }
 
     // ===============================================================================
@@ -442,72 +508,6 @@ public class JJSwingBassMusicGenerator implements MusicGenerator
         ap.processHoldShotMono(p, AccentProcessor.HoldShotMode.NORMAL);
     }
 
-
-    /**
-     * Update notes from p depending on intensity.
-     *
-     * @param p
-     * @param beatRange Update notes in this range
-     * @param intensity [-10;10]
-     */
-    private void processIntensity(Phrase p, FloatRange beatRange, int intensity)
-    {
-        int velShift = RP_SYS_Intensity.getRecommendedVelocityShift(intensity);
-        if (velShift != 0)
-        {
-            p.processNotes(ne -> beatRange.contains(ne.getPositionInBeats(), true), ne -> 
-            {
-                int v = MidiConst.clamp(ne.getVelocity() + velShift);
-                NoteEvent newNe = ne.setVelocity(v);
-                return newNe;
-            });
-        }
-    }
-
-    /**
-     * Update note timing depending on bias and tempo.
-     * <p>
-     *
-     * @param p
-     * @param beatRange    Update notes in this range
-     * @param positionBias
-     */
-    private void processNotePositionBias(Phrase p, FloatRange beatRange, float positionBias)
-    {
-        if (positionBias != 0)
-        {
-            p.processNotes(ne -> beatRange.contains(ne.getPositionInBeats(), true), ne -> 
-            {
-                float newPos = Math.max(ne.getPositionInBeats() + positionBias, beatRange.from);
-                NoteEvent newNe = ne.setPosition(newPos, false);
-                return newNe;
-            });
-        }
-    }
-
-    /**
-     * The faster the tempo the more we play before the beat.
-     * <p>
-     * Also depends on the setting getTempoNotePositionBiasFactor().
-     *
-     * @param tempo
-     * @return
-     */
-    private float computeNotePositionBias(int tempo)
-    {
-        final int TEMPO_HIGH = 240;
-        final int TEMPO_NORMAL = TEMPO_HIGH / 2;
-        float TEMPO_HIGH_BIAS = -0.04f;
-        float TEMPO_NORMAL_BIAS = 0;
-        float tempo2 = Math.clamp(tempo, TEMPO_NORMAL, TEMPO_HIGH);
-        float biasTempo = TEMPO_NORMAL_BIAS + (tempo2 - TEMPO_NORMAL) / (TEMPO_HIGH - TEMPO_NORMAL) * (TEMPO_HIGH_BIAS - TEMPO_NORMAL_BIAS);
-
-        float BIAS_RANGE_MAX = 0.07f;
-        float biasSettingFactor = JJSwingBassMusicGeneratorSettings.getInstance().getTempoNotePositionBiasFactor();
-        float biasSetting = biasSettingFactor * BIAS_RANGE_MAX;
-        float res = Math.clamp(biasSetting + biasTempo, -BIAS_RANGE_MAX, BIAS_RANGE_MAX);
-        return res;
-    }
 
     /**
      * Update notes for pedal bass and slash chords in a SongPart.

@@ -48,8 +48,8 @@ import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.utilities.api.IntRange;
+import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.utilities.api.Utilities;
-import org.openide.util.Exceptions;
 
 /**
  * A MusicGenerator which delegates to other destination MusicGenerators.
@@ -66,6 +66,7 @@ import org.openide.util.Exceptions;
 public class CompositeMusicGenerator implements MusicGenerator
 {
 
+    protected final static Level LogLevel = Level.FINE;
 
     /**
      * A MusicGenerator delegate.
@@ -270,13 +271,15 @@ public class CompositeMusicGenerator implements MusicGenerator
 
 
             // Call MusicGenerator
-            LOGGER.log(Level.SEVERE, "callGenerator() generating music mg={0} subContext={1}  mapBaseRvMgDelegate=\n{2} ", new Object[]
+            if (LogLevel.intValue() >= Level.INFO.intValue())
             {
-                //mg, subContext, mapBaseRvMgDelegate
-                mg.getClass().getSimpleName(),
-                subContext.getSongParts().stream().map(spt -> spt.toShortString()).toList(),
-                Utilities.toMultilineString(mapBaseRvMgDelegate, "   ")
-            });
+                LOGGER.log(LogLevel, "callGenerator() generating music mg={0} subContext={1}  mapBaseRvMgDelegate=", new Object[]
+                {
+                    mg.getClass().getSimpleName(),
+                    subContext.getSongParts().stream().map(spt -> spt.toShortString()).toList(),
+                });
+                LOGGER.log(LogLevel, "{0}", Utilities.toMultilineString(mapBaseRvMgDelegate, "      "));
+            }
             var mapRvPhrases = mg.generateMusic(delegateContext, uniqueDelegateRvs.toArray(RhythmVoice[]::new));
 
 
@@ -352,14 +355,6 @@ public class CompositeMusicGenerator implements MusicGenerator
         SongContext res = context.deepClone(false, true);       // setMidiMixSong=true because MidiMix must update itself when we will later replace the rhythm
 
 
-        // Precheck Midi channels number limit before replacing rhythm
-        int unusedChannels = res.getMidiMix().getUnusedChannels().size();
-        if (delegateRhythm.getRhythmVoices().size() - baseRhythm.getRhythmVoices().size() > unusedChannels)
-        {
-            throw new MusicGenerationException("CompositeMusicGenerator can not substitute " + baseRhythm.getName()
-                    + " by " + delegateRhythm.getName() + ": not enough Midi channels");
-        }
-
         // Replace rhythm
         SongStructure sgsCopy = res.getSong().getSongStructure();
         var targetOldSpts = context.getSongParts().stream()
@@ -372,11 +367,16 @@ public class CompositeMusicGenerator implements MusicGenerator
                 .toList();
         try
         {
-            sgsCopy.replaceSongParts(targetOldSpts, targetNewSpts);
+            sgsCopy.replaceSongParts(targetOldSpts, targetNewSpts);     // exception possible if not enough Midi channel
         } catch (UnsupportedEditException ex)
         {
-            // Should not happen since we checked before
-            Exceptions.printStackTrace(ex);
+            LOGGER.log(Level.WARNING, "createDelegateContext() Can not use delegate rhythm. context={0}, baseRhythm={1}, delegateRhythm={2}. ex={3}",
+                    new Object[]
+                    {
+                        context, baseRhythm, delegateRhythm, ex.getMessage()
+                    });
+            String msg = ResUtil.getString(getClass(), "NotEnoughMidiChannelForDelegate", delegateRhythm.getName());
+            throw new MusicGenerationException(msg);
         }
 
         // Update the variation value if needed
@@ -404,7 +404,7 @@ public class CompositeMusicGenerator implements MusicGenerator
             var processor = mapBaseRvMgDelegate.get(rv).postProcessor();
             if (processor != null)
             {
-                LOGGER.log(Level.SEVERE, "postProcessPhrases() post-processing phrase for rv={0}", rv);
+                LOGGER.log(LogLevel, "postProcessPhrases() post-processing phrase for rv={0}", rv);
                 Phrase p = mapBaseRvPhrases.get(rv);
                 processor.accept(p);
             }

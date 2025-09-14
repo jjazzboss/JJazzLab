@@ -30,7 +30,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.jjswing.api.BassStyle;
-import static org.jjazz.jjswing.walkingbass.JJSwingBassMusicGenerator.NON_QUANTIZED_WINDOW;
+import static org.jjazz.jjswing.walkingbass.BassGenerator.NON_QUANTIZED_WINDOW;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
@@ -103,7 +103,7 @@ public class WalkingDoublePhraseBuilder implements BassPhraseBuilder
                 }
                 var ne2 = p2.first();
                 var ne2pitch = (cliCs2 == null) ? ne2.getPitch()
-                        : JJSwingBassMusicGenerator.getClosestAndAcceptableBassPitch(ne2, cliCs2.getData().getBassNote().getRelativePitch());
+                        : BassGenerator.getClosestAndAcceptableBassPitch(ne2, cliCs2.getData().getBassNote().getRelativePitch());
                 if (ne0.getPitch() == ne2pitch || (cliCs2 == null && cliCs0.getData().getChord().indexOfRelativePitch(ne2pitch) == -1))
                 {
                     // Leave the normal walking bass for a change

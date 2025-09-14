@@ -78,7 +78,7 @@ public class WbpsaScorer
 
         var wbpSource = wbpsa.getWbpSource();
 
-        if (JJSwingBassMusicGeneratorSettings.getInstance().isAcceptNonChordBassStartNote() || wbpSource.isStartingOnChordBass())
+        if (BassGeneratorSettings.getInstance().isAcceptNonChordBassStartNote() || wbpSource.isStartingOnChordBass())
         {
             float preTargetNoteScore = DEFAULT_TARGET_NOTE_SCORE;
             float postTargetNoteScore = DEFAULT_TARGET_NOTE_SCORE;

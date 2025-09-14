@@ -89,13 +89,13 @@ public class WbpSourceSlice
 
         // Extract notes (which are not quantized)
         var csBeatRange = wbpSource.getSimpleChordSequence().getBeatRange(srcCliChordSymbol);
-        float fromOffset = csBeatRange.from >= JJSwingBassMusicGenerator.NON_QUANTIZED_WINDOW ? JJSwingBassMusicGenerator.NON_QUANTIZED_WINDOW : 0;
-        float toOffset = csBeatRange.size() > JJSwingBassMusicGenerator.NON_QUANTIZED_WINDOW ? JJSwingBassMusicGenerator.NON_QUANTIZED_WINDOW : 0;
+        float fromOffset = csBeatRange.from >= BassGenerator.NON_QUANTIZED_WINDOW ? BassGenerator.NON_QUANTIZED_WINDOW : 0;
+        float toOffset = csBeatRange.size() > BassGenerator.NON_QUANTIZED_WINDOW ? BassGenerator.NON_QUANTIZED_WINDOW : 0;
         var phraseBeatRange = csBeatRange.getTransformed(-fromOffset, -toOffset);
         var sp = wbpSource.getSizedPhrase();
         srcNotes = new ArrayList<>(sp.subSet(phraseBeatRange, true));
         srcNotesNoGhost = srcNotes.stream()
-                .filter(ne -> ne.getDurationInBeats() > JJSwingBassMusicGenerator.GHOST_NOTE_MAX_DURATION)
+                .filter(ne -> ne.getDurationInBeats() > BassGenerator.GHOST_NOTE_MAX_DURATION)
                 .toList();
 
 

@@ -143,10 +143,9 @@ public class AccentProcessor
      */
     public void processHoldShotDrums(Phrase p, DrumKit kit, HoldShotMode hsMode)
     {
-        if (p == null || kit == null || hsMode == null || (!p.isEmpty() && p.getBeatRange().from < cSeqBeatRange.from))
-        {
-            throw new IllegalArgumentException("p=" + p + " kit=" + kit + " hsMode=" + hsMode);   //NOI18N
-        }
+        Objects.requireNonNull(p);
+        Objects.requireNonNull(kit);
+        Objects.requireNonNull(hsMode);
 
         LOGGER.log(Level.FINE, "processHoldShotDrums() --  hsMode={0}", hsMode);
 
@@ -207,10 +206,8 @@ public class AccentProcessor
      */
     public void processAccentDrums(Phrase p, DrumKit kit)
     {
-        if (p == null || kit == null || (!p.isEmpty() && p.getBeatRange().from < cSeqBeatRange.from))
-        {
-            throw new IllegalArgumentException("p=" + p + " kit=" + kit);   //NOI18N
-        }
+        Objects.requireNonNull(p);
+        Objects.requireNonNull(kit);
 
 
         LOGGER.log(Level.FINE, "processAccentDrums() --  kit={0}", kit);
@@ -313,10 +310,6 @@ public class AccentProcessor
     public void processAccentBass(Phrase p)
     {
         Objects.requireNonNull(p);
-//        if (!p.isEmpty() && p.getBeatRange().from < cSeqBeatRange.from)
-//        {
-//            throw new IllegalArgumentException("p=" + p);   //NOI18N
-//        }        
 
         LOGGER.log(Level.FINE, "processAccentBass() ");
 
@@ -393,10 +386,6 @@ public class AccentProcessor
     {
         Objects.requireNonNull(p);
         Objects.requireNonNull(hsMode);
-//        if (!p.isEmpty() && p.getBeatRange().from < cSeqBeatRange.from)
-//        {
-//            throw new IllegalArgumentException("hsMode=" + hsMode + " p=" + p);   //NOI18N
-//        }
 
         LOGGER.log(Level.FINE, "processHoldShotMono() -- hsMode={0}", hsMode);
 

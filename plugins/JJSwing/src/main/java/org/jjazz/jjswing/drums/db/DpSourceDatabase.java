@@ -1,13 +1,11 @@
 package org.jjazz.jjswing.drums.db;
 
-import com.google.common.base.Preconditions;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.InvalidMidiDataException;
@@ -61,7 +59,7 @@ public class DpSourceDatabase
     {
         this.timeSignature = ts;
         long time = System.currentTimeMillis();
-        LOGGER.log(Level.INFO, "DpSourceDatabase() {0} initializing...", ts);
+        LOGGER.log(Level.FINE, "DpSourceDatabase() {0} initializing...", ts);
 
         mapStyleDpSources = new HashMap<>();
 
@@ -77,7 +75,7 @@ public class DpSourceDatabase
             timeSignature, time
         });
 
-        dump();
+        // dump();
 
     }
 
@@ -302,16 +300,16 @@ public class DpSourceDatabase
                 markerEvent = nextMarkerEvent;
                 markerText = nextMarkerText;
                 i++;
-                LOGGER.log(Level.SEVERE, "        looping  markerText={0}", markerText);
+                // LOGGER.log(Level.SEVERE, "        looping  markerText={0}", markerText);
             }
             i--;
 
             // We can create the DpSourceSet and save it in the database
             var dpss = new DpSourceSet(dpSources, dpFillSources);
-            LOGGER.log(Level.SEVERE, "loadDpSourcesFromMidiFile() adding dpss={0}", dpss);
+            LOGGER.log(Level.FINE, "loadDpSourcesFromMidiFile() adding dpss={0}", dpss);
             if (mapStyleDpSources.put(drumsStyle, dpss) != null)
             {
-                LOGGER.log(Level.SEVERE, "loadDpSourcesFromMidiFile() found duplicate drumsStyle={0}", drumsStyle);
+                LOGGER.log(Level.WARNING, "loadDpSourcesFromMidiFile() found duplicate drumsStyle={0}", drumsStyle);
             }
 
         }

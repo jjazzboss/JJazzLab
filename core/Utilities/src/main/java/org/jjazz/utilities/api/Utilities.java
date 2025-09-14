@@ -916,7 +916,7 @@ public class Utilities
         }
         String prefix = prefixPostfix.length >= 1 ? prefixPostfix[0] : "";
         String postfix = prefixPostfix.length >= 2 ? prefixPostfix[1] : "";
-        var joiner = new StringJoiner("\n", "[", "]");
+        var joiner = new StringJoiner("\n");
         if (map instanceof NavigableMap nMap)
         {
             nMap.navigableKeySet().forEach(k -> joiner.add(prefix + (k == null ? "null" : k.toString() + " -> " + nMap.get(k)) + postfix));

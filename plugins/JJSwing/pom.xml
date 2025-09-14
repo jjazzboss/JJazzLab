@@ -10,7 +10,7 @@
     </parent>
     <groupId>org.jjazzlab.plugins</groupId>    
     <artifactId>jjswing</artifactId>
-    <name>JJSwing</name>
+    <name>jjSwing</name>
     <packaging>nbm</packaging>
     
     
