@@ -215,8 +215,8 @@ public class Phrases
 
 
         boolean b = false;
-        float srcBeat0 = spSrc.getBeatRange().from;
-        float destBeat0 = spDest.getBeatRange().from;
+        float srcBeat0 = spSrc.getNotesBeatRange().from;
+        float destBeat0 = spDest.getNotesBeatRange().from;
 
 
         var destNotes = new ArrayList<>(spDest);
@@ -259,11 +259,11 @@ public class Phrases
             for (var ne1 : sp1)
             {
                 var dur1 = ne1.getDurationInBeats();
-                var relPos1 = ne1.getPositionInBeats() - sp1.getBeatRange().from;
+                var relPos1 = ne1.getPositionInBeats() - sp1.getNotesBeatRange().from;
 
                 var ne2 = it2.next();
                 var dur2 = ne2.getDurationInBeats();
-                var relPos2 = ne2.getPositionInBeats() - sp2.getBeatRange().from;
+                var relPos2 = ne2.getPositionInBeats() - sp2.getNotesBeatRange().from;
 
                 if (Math.abs(relPos2 - relPos1) > nearBeatWindow
                         || (sameNoteDurations && Math.abs(dur2 - dur1) > (2 * nearBeatWindow)))
@@ -675,7 +675,7 @@ public class Phrases
      */
     static public boolean fixEndOfPhraseNotes(SizedPhrase sp)
     {
-        float end = sp.getBeatRange().to - 0.1f;
+        float end = sp.getNotesBeatRange().to - 0.1f;
         Map<NoteEvent, NoteEvent> mapNotes = new HashMap<>();
         for (var ne : sp)
         {

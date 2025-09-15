@@ -27,10 +27,11 @@ package org.jjazz.jjswing.api;
 import com.google.common.collect.ImmutableBiMap;
 import java.util.Set;
 import java.util.logging.Logger;
-import org.jjazz.jjswing.walkingbass.BassPhraseBuilder;
 import org.jjazz.jjswing.walkingbass.TwoFeelPhraseBuilder;
-import org.jjazz.jjswing.walkingbass.WalkingDoublePhraseBuilder;
+import org.jjazz.jjswing.walkingbass.WalkingDoubleTimePhraseBuilder;
 import org.jjazz.jjswing.walkingbass.WalkingPhraseBuilder;
+import org.jjazz.jjswing.walkingbass.PhraseBuilder;
+import org.jjazz.jjswing.walkingbass.WalkingDoubleNotePhraseBuilder;
 
 /**
  * The possible bass styles of a WbpSource.
@@ -43,13 +44,16 @@ public enum BassStyle
     TWO_FEEL_CUSTOM,
     WALKING,
     WALKING_CUSTOM,
-    WALKING_DOUBLE,
-    WALKING_DOUBLE_CUSTOM;
+    WALKING_DOUBLE_NOTE,
+    WALKING_DOUBLE_NOTE_CUSTOM,
+    WALKING_DOUBLE_TIME,
+    WALKING_DOUBLE_TIME_CUSTOM;
 
     private static final ImmutableBiMap<BassStyle, BassStyle> BIMAP_STYLE_CUSTOM = ImmutableBiMap.of(
             TWO_FEEL, TWO_FEEL_CUSTOM,
             WALKING, WALKING_CUSTOM,
-            WALKING_DOUBLE, WALKING_DOUBLE_CUSTOM
+            WALKING_DOUBLE_NOTE, WALKING_DOUBLE_NOTE_CUSTOM,
+            WALKING_DOUBLE_TIME, WALKING_DOUBLE_TIME_CUSTOM
     );
     private static final Logger LOGGER = Logger.getLogger(BassStyle.class.getSimpleName());
 
@@ -58,17 +62,19 @@ public enum BassStyle
      *
      * @return
      */
-    public BassPhraseBuilder getBassPhraseBuilder()
+    public PhraseBuilder getBassPhraseBuilder()
     {
-        BassPhraseBuilder res;
+        PhraseBuilder res;
         res = switch (this)
         {
             case TWO_FEEL ->
                 new TwoFeelPhraseBuilder();
             case WALKING ->
                 new WalkingPhraseBuilder();
-            case WALKING_DOUBLE ->
-                new WalkingDoublePhraseBuilder();
+            case WALKING_DOUBLE_NOTE ->
+                new WalkingDoubleNotePhraseBuilder();
+            case WALKING_DOUBLE_TIME ->
+                new WalkingDoubleTimePhraseBuilder();
             default -> throw new IllegalStateException("this=" + this);
         };
         return res;
@@ -81,7 +87,9 @@ public enum BassStyle
 
     public boolean isWalking()
     {
-        return this == WALKING || this == WALKING_CUSTOM || this == WALKING_DOUBLE || this == WALKING_DOUBLE_CUSTOM;
+        return this == WALKING || this == WALKING_CUSTOM
+                || this == WALKING_DOUBLE_NOTE || this == WALKING_DOUBLE_NOTE_CUSTOM
+                || this == WALKING_DOUBLE_TIME || this == WALKING_DOUBLE_TIME_CUSTOM;
     }
 
     public boolean isCustom()

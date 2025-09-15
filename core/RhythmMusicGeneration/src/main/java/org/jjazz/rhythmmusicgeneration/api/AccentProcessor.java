@@ -478,7 +478,7 @@ public class AccentProcessor
     {
         Objects.requireNonNull(p);
         Objects.requireNonNull(p);
-//        if (!p.isEmpty() && p.getBeatRange().from < cSeqBeatRange.from)
+//        if (!p.isEmpty() && p.getNotesBeatRange().from < cSeqBeatRange.from)
 //        {
 //            throw new IllegalArgumentException("hsMode=" + hsMode + " p=" + p);   //NOI18N
 //        }
@@ -570,7 +570,7 @@ public class AccentProcessor
      */
     public void processAccentChord(Phrase p)
     {
-        if (p == null || (!p.isEmpty() && p.getBeatRange().from < cSeqBeatRange.from))
+        if (p == null || (!p.isEmpty() && p.getNotesBeatRange().from < cSeqBeatRange.from))
         {
             throw new IllegalArgumentException("p=" + p);   //NOI18N
         }

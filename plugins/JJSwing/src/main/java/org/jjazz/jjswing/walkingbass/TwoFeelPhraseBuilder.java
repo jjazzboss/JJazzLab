@@ -45,7 +45,7 @@ import org.jjazz.utilities.api.FloatRange;
 /**
  * A factory for BassStyle.TWO_FEEL.
  */
-public class TwoFeelPhraseBuilder implements BassPhraseBuilder
+public class TwoFeelPhraseBuilder implements PhraseBuilder
 {
 
     private static int sessionCount = 0;
@@ -55,7 +55,7 @@ public class TwoFeelPhraseBuilder implements BassPhraseBuilder
     @Override
     public Phrase build(List<SimpleChordSequence> scsList, int tempo)
     {
-        LOGGER.log(BassPhraseBuilderLogLevel, "build() -- tempo={0} scsList={1}", new Object[]
+        LOGGER.log(PhraseBuilderLogLevel, "build() -- tempo={0} scsList={1}", new Object[]
         {
             tempo,
             scsList
@@ -73,19 +73,19 @@ public class TwoFeelPhraseBuilder implements BassPhraseBuilder
 
 
         // PREMIUM PHASE
-        LOGGER.log(BassPhraseBuilderLogLevel, "\n");
-        LOGGER.log(BassPhraseBuilderLogLevel, "build() ================  tiling PREMIUM LongestFirstNoRepeat");
+        LOGGER.log(PhraseBuilderLogLevel, "\n");
+        LOGGER.log(PhraseBuilderLogLevel, "build() ================  tiling PREMIUM LongestFirstNoRepeat");
         var tilerLongestPremium = new TilerLongestFirstNoRepeat(premiumWbpsaTester);
         tilerLongestPremium.tile(tiling, store);
-        LOGGER.log(BassPhraseBuilderLogLevel, tiling.toMultiLineString());
+        LOGGER.log(PhraseBuilderLogLevel, tiling.toMultiLineString());
         int nbTiledBars = tiling.getTiledBars().size();
 
 
         var untiled = !tiling.isFullyTiled();
         if (untiled)
         {
-            LOGGER.log(BassPhraseBuilderLogLevel, "\n");
-            LOGGER.log(BassPhraseBuilderLogLevel, "build() ================  tiling PREMIUM MaxDistance");
+            LOGGER.log(PhraseBuilderLogLevel, "\n");
+            LOGGER.log(PhraseBuilderLogLevel, "build() ================  tiling PREMIUM MaxDistance");
             var tilerMaxDistancePremium = new TilerMaxDistance(premiumWbpsaTester);
             tilerMaxDistancePremium.tile(tiling, store);
             nbTiledBars = logTilingIfChanged(tiling, nbTiledBars);
@@ -97,8 +97,8 @@ public class TwoFeelPhraseBuilder implements BassPhraseBuilder
         untiled = !tiling.isFullyTiled();
         if (untiled)
         {
-            LOGGER.log(BassPhraseBuilderLogLevel, "\n");
-            LOGGER.log(BassPhraseBuilderLogLevel, "build() ================  tiling STANDARD LongestFirstNoRepeat");
+            LOGGER.log(PhraseBuilderLogLevel, "\n");
+            LOGGER.log(PhraseBuilderLogLevel, "build() ================  tiling STANDARD LongestFirstNoRepeat");
             var tilerLongestStandard = new TilerLongestFirstNoRepeat(stdWbpsaTester);
             tilerLongestStandard.tile(tiling, store);
             nbTiledBars = logTilingIfChanged(tiling, nbTiledBars);
@@ -107,8 +107,8 @@ public class TwoFeelPhraseBuilder implements BassPhraseBuilder
             untiled = !tiling.isFullyTiled();
             if (untiled)
             {
-                LOGGER.log(BassPhraseBuilderLogLevel, "\n");
-                LOGGER.log(BassPhraseBuilderLogLevel, "build() ================  tiling STANDARD MaxDistance");
+                LOGGER.log(PhraseBuilderLogLevel, "\n");
+                LOGGER.log(PhraseBuilderLogLevel, "build() ================  tiling STANDARD MaxDistance");
                 var tilerMaxDistanceStandard = new TilerMaxDistance(stdWbpsaTester);
                 tilerMaxDistanceStandard.tile(tiling, store);
                 nbTiledBars = logTilingIfChanged(tiling, nbTiledBars);
@@ -125,8 +125,8 @@ public class TwoFeelPhraseBuilder implements BassPhraseBuilder
         {
             store.populate(tempo, List.of(STYLE.getCustomStyle()));
 
-            LOGGER.log(BassPhraseBuilderLogLevel, "\n");
-            LOGGER.log(BassPhraseBuilderLogLevel, "build() ================  tiling EXISTING CUSTOM MaxDistance");
+            LOGGER.log(PhraseBuilderLogLevel, "\n");
+            LOGGER.log(PhraseBuilderLogLevel, "build() ================  tiling EXISTING CUSTOM MaxDistance");
             tilerMaxDistanceCustomStandard.tile(tiling, store);
             nbTiledBars = logTilingIfChanged(tiling, nbTiledBars);
         }
@@ -136,8 +136,8 @@ public class TwoFeelPhraseBuilder implements BassPhraseBuilder
         untiled = !tiling.isFullyTiled();
         if (untiled)
         {
-            LOGGER.log(BassPhraseBuilderLogLevel, "\n");
-            LOGGER.log(BassPhraseBuilderLogLevel, "build() ================  tiling CREATED CUSTOM MaxDistance");
+            LOGGER.log(PhraseBuilderLogLevel, "\n");
+            LOGGER.log(PhraseBuilderLogLevel, "build() ================  tiling CREATED CUSTOM MaxDistance");
 
             // Create custom WbpSources 
             var customWbpSources = tiling.buildMissingWbpSources((chordSeq, targetNote) -> create2feelCustomWbpSources(chordSeq, targetNote),
@@ -177,11 +177,11 @@ public class TwoFeelPhraseBuilder implements BassPhraseBuilder
         }
 
 
-//        LOGGER.log(BassPhraseBuilderLogLevel, "\n");
-//        LOGGER.log(BassPhraseBuilderLogLevel, "\n");
-//        LOGGER.log(BassPhraseBuilderLogLevel, "build() ######################      Tiling STATS       ######################");
-//        LOGGER.log(BassPhraseBuilderLogLevel, tiling.toStatsString());
-//        LOGGER.log(BassPhraseBuilderLogLevel, "\n");
+//        LOGGER.log(PhraseBuilderLogLevel, "\n");
+//        LOGGER.log(PhraseBuilderLogLevel, "\n");
+//        LOGGER.log(PhraseBuilderLogLevel, "build() ######################      Tiling STATS       ######################");
+//        LOGGER.log(PhraseBuilderLogLevel, tiling.toStatsString());
+//        LOGGER.log(PhraseBuilderLogLevel, "\n");
         var p = tiling.buildPhrase(new DefaultPhraseAdapter());
 
         return p;
@@ -330,7 +330,7 @@ public class TwoFeelPhraseBuilder implements BassPhraseBuilder
     {
         int newNbTiledBars = tiling.getTiledBars().size();
         String txt = oldNbTiledBars != newNbTiledBars ? tiling.toMultiLineString() : "tiling unchanged";
-        LOGGER.log(BassPhraseBuilderLogLevel, txt);
+        LOGGER.log(PhraseBuilderLogLevel, txt);
         return newNbTiledBars;
     }
 

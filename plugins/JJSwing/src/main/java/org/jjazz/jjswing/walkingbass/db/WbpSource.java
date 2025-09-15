@@ -501,7 +501,7 @@ public class WbpSource extends Wbp
     {
         int transpose = getRequiredTransposition(destChordRoot);
         var sp = getSizedPhrase();
-        SizedPhrase res = new SizedPhrase(sp.getChannel(), sp.getBeatRange(), sp.getTimeSignature(), sp.isDrums());
+        SizedPhrase res = new SizedPhrase(sp.getChannel(), sp.getNotesBeatRange(), sp.getTimeSignature(), sp.isDrums());
         Phrase p = sp.getProcessedPhrasePitch(pitch -> pitch + transpose);
         LOGGER.log(Level.FINE, "getTransposedPhrase() transpose={0} => p={1}", new Object[]
         {

@@ -30,11 +30,11 @@ import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 
 /**
- * Produce a bass phrase according to a specific strategy.
+ * Produce a phrase according to a specific strategy.
  */
-public interface BassPhraseBuilder
+public interface PhraseBuilder
 {
-    public static Level BassPhraseBuilderLogLevel = Level.FINE;
+    public static Level PhraseBuilderLogLevel = Level.FINE;
     
     /**
      * Create a bass Phrase for one or more SimpleChordSequences.

@@ -438,7 +438,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
      *
      * @return FloatRange.EMPTY_FLOAT_RANGE if phrase is empty.
      */
-    public FloatRange getBeatRange()
+    public FloatRange getNotesBeatRange()
     {
         if (isEmpty())
         {

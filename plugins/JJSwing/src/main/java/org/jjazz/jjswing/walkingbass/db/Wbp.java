@@ -33,8 +33,8 @@ public class Wbp
     {
         checkNotNull(cSeq);
         checkNotNull(phrase);
-        checkArgument(cSeq.getBarRange().size() == (int) Math.round(phrase.getBeatRange().size() / phrase.getTimeSignature().getNbNaturalBeats())
-                && phrase.getBeatRange().from == 0
+        checkArgument(cSeq.getBarRange().size() == (int) Math.round(phrase.getNotesBeatRange().size() / phrase.getTimeSignature().getNbNaturalBeats())
+                && phrase.getNotesBeatRange().from == 0
                 && !phrase.isEmpty()
                 && cSeq.getBarRange().from == 0
                 && cSeq.hasChordAtBeginning()
@@ -89,7 +89,7 @@ public class Wbp
      */
     public FloatRange getBeatRange()
     {
-        return sizedPhrase.getBeatRange();
+        return sizedPhrase.getNotesBeatRange();
     }
 
     @Override
@@ -104,7 +104,7 @@ public class Wbp
     {
         final int NB_NOTES_MAX = 5;
         return "cSeq=" + chordSequence
-                + " rg=" + sizedPhrase.getBeatRange()
+                + " rg=" + sizedPhrase.getNotesBeatRange()
                 + " p=" + sizedPhrase.stream().limit(NB_NOTES_MAX).toList() + (sizedPhrase.size() > NB_NOTES_MAX ? "..." : "");
     }
 

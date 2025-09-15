@@ -23,14 +23,19 @@
 package org.jjazz.yamjjazz.rhythm.api;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.MultimapBuilder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jjazz.harmony.api.*;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
@@ -90,6 +95,7 @@ import static org.jjazz.yamjjazz.rhythm.api.Ctb2ChannelSettings.RetriggerRule.ST
 /**
  * Use YamJJazz style tracks to render music.
  */
+
 public class YamJJazzRhythmGenerator implements MusicGenerator
 {
 
@@ -137,7 +143,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
         // Prepare a working context because SongStructure/ChordLeadsheet might be modified by preprocessFillParameter
         SongFactory sf = SongFactory.getInstance();
         Song songCopy = sf.getCopyUnlinked(contextOriginal.getSong(), false);
-        preprocessFillParameter(songCopy);     // This will modify songCopy
+        preprocessFillParameter(songCopy, contextOrig);     // This will modify songCopy
 
         // The working context 
         this.contextWork = new SongContext(songCopy, contextOriginal.getMidiMix(), contextOriginal.getBarRange());
@@ -216,9 +222,13 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
         List<ChordSeqPhrases> res = new ArrayList<>();
 
 
-        // Process each variation 
+        // Process each used variation
         var rpVariation = RP_SYS_Variation.getVariationRp(rhythm);
-        for (var rpVariationValue : rpVariation.getPossibleValues())
+        Set<String> usedVariationValues = contextWork.getSongParts().stream()
+                .filter(spt -> spt.getRhythm() == rhythm)
+                .map(spt -> spt.getRPValue(rpVariation))
+                .collect(Collectors.toSet());
+        for (var rpVariationValue : usedVariationValues)
         {
             StylePart stylePart = rhythm.getStylePart(rpVariationValue);
             int complexity = rhythm.getComplexityLevel(rpVariationValue);
@@ -971,9 +981,10 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
      * Add a "fill" section on the last bar of each existing section. Exploit the RP_STD_Fill parameter: introduce "fake" Section/SongParts with Fill_In_AA-like
      * styles parts.
      * <p>
-     * @param song
+     * @param song    An "unlinked" song (SongStructure does not listen to ChordLeadSheet changes)
+     * @param context Process only the context song parts
      */
-    private void preprocessFillParameter(Song song)
+    private void preprocessFillParameter(Song song, SongContext context)
     {
         ChordLeadSheet cls = song.getChordLeadSheet();
         SongStructure ss = song.getSongStructure();
@@ -990,14 +1001,16 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
                     cls.setSectionName(section, fillSectionName);
                     continue;
                 }
+
                 // Add a special "fill" section on last bar
                 int fillSectionBar = section.getPosition().getBar() + sectionSize - 1;
                 CLI_Section fillSection = CLI_Factory.getDefault().createSection(fillSectionName, section.getData().getTimeSignature(),
                         fillSectionBar, null);
                 fillSection = cls.addSection(fillSection);
 
+
                 // Update all impacted SongParts
-                for (SongPart spt : ss.getSongParts())
+                for (SongPart spt : context.getSongParts())
                 {
                     if (spt.getParentSection() != section)
                     {
@@ -1015,12 +1028,12 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
             }
         } catch (UnsupportedEditException ex)
         {
-            // If here it's a bug
+            // Should never happen
             Exceptions.printStackTrace(ex);
         }
 
         // Change rpComplexity value for "fill" songParts depending on the rpFill value
-        for (SongPart spt : ss.getSongParts())
+        for (SongPart spt : context.getSongParts())
         {
             Rhythm r = spt.getRhythm();
             if (r.equals(rhythm) && spt.getParentSection().getData().getName().endsWith("*FILL*"))
@@ -1048,13 +1061,13 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
                     {
                         newComplexityValue = breakType.toString() + "-1";
                     }
-                    ss.setRhythmParameterValue(spt, RP_SYS_Variation.getVariationRp(yjr), newComplexityValue);
+                    var rpVariation = RP_SYS_Variation.getVariationRp(yjr);
+                    ss.setRhythmParameterValue(spt, rpVariation, newComplexityValue);
                 }
             }
         }
     }
 
-  
 
     /**
      * Change the velocity of notes depending on the Intensity parameter of each SongPart.
@@ -1252,8 +1265,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
 
         for (int i = 1; i <= chordSeqPhrases.size(); i++)
         {
-            SimpleChordSequence cSeq = i < chordSeqPhrases.size() ? 
-                    chordSeqPhrases.get(i).simpleChordSequence()
+            SimpleChordSequence cSeq = i < chordSeqPhrases.size() ? chordSeqPhrases.get(i).simpleChordSequence()
                     : chordSeqPhrases.get(i - 1).simpleChordSequence();  // cSeq fake value on last iteration (it must not be null)
             SimpleChordSequence prevSeq = chordSeqPhrases.get(i - 1).simpleChordSequence();
             int prevSeqLastBar = prevSeq.getBarRange().from + prevSeq.getBarRange().size() - 1;

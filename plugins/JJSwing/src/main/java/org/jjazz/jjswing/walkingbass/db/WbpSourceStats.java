@@ -77,7 +77,7 @@ public record WbpSourceStats(Slope startSlope,
         {
             var ne = nes.get(i);
             var beatPos = ne.getPositionInBeats();
-            var nextBeatPos = i < nes.size() - 1 ? nes.get(i + 1).getPositionInBeats() : sp.getBeatRange().to;
+            var nextBeatPos = i < nes.size() - 1 ? nes.get(i + 1).getPositionInBeats() : sp.getNotesBeatRange().to;
 
             var n2nDur = nextBeatPos - beatPos;
             boolean wasShort = false;

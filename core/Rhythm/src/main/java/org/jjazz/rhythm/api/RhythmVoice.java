@@ -348,7 +348,7 @@ public class RhythmVoice
     @Override
     public String toString()
     {
-        return "Rv[" + getName() + ", " + container + "]";
+        return "Rv[" + getName() + "," + container + "]";
     }
 
 }

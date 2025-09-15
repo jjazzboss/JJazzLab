@@ -115,6 +115,10 @@ public class RP_DrumsStyle extends RP_State
                 DrumsStyle.RIDE_3;
             case "Main D-2" ->
                 DrumsStyle.RIDE_4;
+            case "Main E-1" ->
+                DrumsStyle.SHUFFLE_1;
+            case "Main E-2" ->
+                DrumsStyle.DOUBLE_1;
             default ->
                 DrumsStyle.BRUSHES_2;
         };

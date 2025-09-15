@@ -343,6 +343,7 @@ public class WbpsaScorer
      * Return value will be &lt; 50 if there is a significant incompatibility.
      *
      * @param wbpsa
+     * @param tempo
      * @return
      */
     public float getTempoScore(WbpSourceAdaptation wbpsa, int tempo)
@@ -354,7 +355,7 @@ public class WbpsaScorer
 
         res = switch (bassStyle)
         {
-            case TWO_FEEL_CUSTOM, WALKING_CUSTOM, WALKING_DOUBLE_CUSTOM ->
+            case TWO_FEEL_CUSTOM, WALKING_CUSTOM, WALKING_DOUBLE_NOTE_CUSTOM ->
                 60;
 
             case TWO_FEEL ->

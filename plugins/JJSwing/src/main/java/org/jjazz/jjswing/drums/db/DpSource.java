@@ -52,7 +52,7 @@ public class DpSource
         Objects.requireNonNull(dPhrase);
         Objects.requireNonNull(pPhrase);
         checkArgument(!(dPhrase.isEmpty() && pPhrase.isEmpty())
-                && dPhrase.getBeatRange().from == 0 && dPhrase.getBeatRange().equals(pPhrase.getBeatRange()),
+                && dPhrase.getNotesBeatRange().from == 0 && dPhrase.getNotesBeatRange().equals(pPhrase.getNotesBeatRange()),
                 "dPhrase=%s pPhrase=%s",
                 dPhrase, pPhrase);
         checkArgument(type == Type.STD || dPhrase.getSizeInBars() == 1, "dPhrase=%s pPhrase=%s", dPhrase, pPhrase);

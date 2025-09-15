@@ -45,8 +45,6 @@ import org.jjazz.phrasetransform.api.rps.RP_SYS_DrumsTransform;
 import org.jjazz.jjswing.walkingbass.db.WbpSourceDatabase;
 import org.jjazz.jjswing.walkingbass.BassGenerator;
 import org.jjazz.jjswing.walkingbass.BassGeneratorSettings;
-import org.jjazz.midi.api.MidiConst;
-import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythm.api.Division;
 import org.jjazz.rhythm.api.Genre;
@@ -79,7 +77,6 @@ import org.jjazz.rhythmmusicgeneration.api.RP_SYS_Mute;
 import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythmGenerator;
 import org.jjazz.rhythmmusicgeneration.api.RP_SYS_SubstituteTracks;
 import org.jjazz.rhythmmusicgeneration.api.CompositeMusicGenerator.RvToMgDelegateMapper;
-import org.jjazz.utilities.api.FloatRange;
 
 /**
  * An advanced swing rhythm which uses a specific generator for the bass (walking, etc.).
@@ -382,9 +379,14 @@ public class JJSwingRhythm implements YamJJazzRhythm
 
         List<RhythmParameter<?>> rps = new ArrayList<>();
 
-        // Reuse variation values from the base rhythm
-        var baseRpVariation = RP_SYS_Variation.getVariationRp(r);
-        RP_SYS_Variation rpVariation = new RP_SYS_Variation(true, baseRpVariation.getDefaultValue(), baseRpVariation.getPossibleValues().toArray(new String[0]));
+        String[] possibleValues = new String[]
+        {
+            "Main A-1", "Main A-2", "Main B-1", "Main B-2", "Main C-1", "Main C-2", "Main D-1", "Main D-2", "Main E-1", "Main E-2",
+            "Fill In AA-1", "Fill In BB-1", "Fill In CC-1", "Fill In DD-1", "Fill In BA-1",
+            "Intro A-1", "Intro B-1", "Intro C-1",
+            "Ending A-1", "Ending B-1", "Ending C-1"
+        };
+        RP_SYS_Variation rpVariation = new RP_SYS_Variation(true, "Main A-1", possibleValues);
 
 
         RP_SYS_Intensity rpIntensity = new RP_SYS_Intensity(false);
@@ -432,22 +434,36 @@ public class JJSwingRhythm implements YamJJazzRhythm
             Objects.requireNonNull(spt);
             assert rhythmVoices.contains(baseRv) : "baseRv=" + baseRv;
 
+            var rpVariationValue = spt.getRPValue(RP_SYS_Variation.getVariationRp(this));
+
             // Default values
+            MusicGenerator destMg;
             RhythmVoice destRv = baseRv;
-            String rpVariation = null;
+            String destRpVarationValue = null;
             Consumer<Phrase> postProcessor = null;
 
-            MusicGenerator mg = switch (baseRv.getType())
+
+            switch (baseRv.getType())
             {
                 case DRUMS, PERCUSSION ->
-                    drumsGenerator;
+                {
+                    destMg = drumsGenerator;
+                }
                 case BASS ->
-                    bassGenerator;
+                {
+                    destMg = bassGenerator;
+                }
                 default ->
-                    yjGenerator;
-            };
+                {
+                    destMg = yjGenerator;
+                    if (rpVariationValue.toLowerCase().startsWith("main e"))
+                    {
+                        destRpVarationValue = "Main C-1";
+                    }
+                }
+            }
 
-            return new MgDelegate(mg, destRv, rpVariation, postProcessor);
+            return new MgDelegate(destMg, destRv, destRpVarationValue, postProcessor);
         };
 
         return res;

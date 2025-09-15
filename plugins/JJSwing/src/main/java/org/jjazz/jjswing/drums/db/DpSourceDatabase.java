@@ -282,7 +282,7 @@ public class DpSourceDatabase
                 var nextMarkerEvent = sortedMarkerEvents.get(i + 1);
                 var nextMarkerText = MidiUtilities.getText(nextMarkerEvent).toLowerCase();
                 var drumsPhrase = getPhrase(bigPhrase, markerEvent.getTick(), nextMarkerEvent.getTick() - 1, ts);
-                var percPhrase = new SizedPhrase(0, drumsPhrase.getBeatRange(), ts, true);
+                var percPhrase = new SizedPhrase(0, drumsPhrase.getNotesBeatRange(), ts, true);
                 var dps = new DpSource(drumsStyle, type, altId, drumsPhrase, percPhrase);
                 (type == Type.STD ? dpSources : dpFillSources).add(dps);
 

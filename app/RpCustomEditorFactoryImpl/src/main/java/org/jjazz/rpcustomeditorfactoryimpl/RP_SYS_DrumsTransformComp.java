@@ -453,7 +453,7 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
         SizedPhrase inPhrase = getOriginalPhrase();
         SizedPhrase outPhrase = (transformChainComplete == null) ? inPhrase : transformChainComplete.transform(inPhrase,
                 songPartContext);
-        birdview_outPhrase.setModel(outPhrase, outPhrase.getTimeSignature(), outPhrase.getBeatRange());
+        birdview_outPhrase.setModel(outPhrase, outPhrase.getTimeSignature(), outPhrase.getNotesBeatRange());
         // birdview_outPhrase.setForeground(transformChain != null ? PHRASE_COMP_CUSTOMIZED_FOREGROUND : PHRASE_COMP_FOREGROUND);
         birdview_outPhrase.setForeground(transformChainComplete != null ? PHRASE_COMP_FOREGROUND : PHRASE_COMP_FOREGROUND);
 
