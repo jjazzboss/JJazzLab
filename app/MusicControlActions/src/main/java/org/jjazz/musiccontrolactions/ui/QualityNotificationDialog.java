@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.musiccontrol.ui;
+package org.jjazz.musiccontrolactions.ui;
 
 import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;

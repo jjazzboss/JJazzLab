@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.prefs.Preferences;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MetaEventListener;
 import javax.sound.midi.MetaMessage;
@@ -60,13 +59,10 @@ import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.util.Exceptions;
 import org.jjazz.musiccontrol.api.playbacksession.ControlTrackProvider;
-import org.jjazz.musiccontrol.ui.QualityNotificationDialog;
 import org.jjazz.outputsynth.api.OutputSynth;
 import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder;
 import org.jjazz.song.api.Song;
 import org.jjazz.outputsynth.spi.OutputSynthManager;
-import org.openide.util.NbPreferences;
-import org.openide.windows.WindowManager;
 
 /**
  * Control the music playback of a PlaybackSession.
@@ -84,9 +80,6 @@ import org.openide.windows.WindowManager;
  */
 public class MusicController implements PropertyChangeListener, MetaEventListener
 {
-    private static final String PREF_SHOW_NOTIFICATION = "ShowSynthQualityNotification";
-    private static final Preferences prefs = NbPreferences.forModule(MusicController.class);
-
     /**
      * oldValue=old State, newValue=new State
      */
@@ -420,27 +413,6 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             LOGGER.info(MidiUtilities.toString(playbackSession.getSequence()));
         }
 
-        // Check that fluidsynth in use
-        var osm = OutputSynthManager.getDefault();
-        var dos = osm.getDefaultOutputSynth();
-
-        if (!dos.getMidiSynth().getName().equalsIgnoreCase("FluidSynth"))
-        {
-            if (prefs.getBoolean(PREF_SHOW_NOTIFICATION, true))
-            {
-                Runnable r = () -> 
-                {
-                    QualityNotificationDialog dlg = new QualityNotificationDialog(WindowManager.getDefault().getMainWindow(), true);
-                    dlg.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
-                    dlg.setVisible(true);
-                    if (dlg.isDoNotShowAgain())
-                    {
-                        prefs.putBoolean(PREF_SHOW_NOTIFICATION, false);
-                    }
-                };
-                SwingUtilities.invokeLater(r);
-            }
-        }
 
         // Set sequence
         try
