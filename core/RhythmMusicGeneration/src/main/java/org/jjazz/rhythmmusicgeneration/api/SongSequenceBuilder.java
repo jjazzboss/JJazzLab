@@ -84,7 +84,7 @@ import org.jjazz.utilities.api.ResUtil;
 import org.openide.util.Exceptions;
 import org.jjazz.outputsynth.spi.OutputSynthManager;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Fill;
-import org.jjazz.rhythmmusicgeneration.api.CompositeMusicGenerator.MgTarget;
+import org.jjazz.rhythmmusicgeneration.api.CompositeMusicGenerator.MgDelegate;
 import org.jjazz.rhythmmusicgeneration.spi.ConfigurableMusicGeneratorProvider;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGeneratorProvider;
 import org.jjazz.song.api.Song;
@@ -788,7 +788,7 @@ public class SongSequenceBuilder
         assert mgBase != null : "rpSt=" + rpSt;        
         var baseRhythm = rpSt.getBaseRhythm();
 
-        CompositeMusicGenerator.RvToMgTargetMapper rvMapper = (rvBase, spt) -> 
+        CompositeMusicGenerator.RvToMgDelegateMapper rvMapper = (rvBase, spt) -> 
         {
             Objects.requireNonNull(rvBase);
 
@@ -803,7 +803,7 @@ public class SongSequenceBuilder
                 mg = ((MusicGeneratorProvider) rvDest.getContainer()).getMusicGenerator();
             }
 
-            MgTarget res = new MgTarget(mg, rvDest);
+            MgDelegate res = new MgDelegate(mg, rvDest, null, null);
             return res;
         };
 

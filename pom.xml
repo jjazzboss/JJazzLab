@@ -307,7 +307,6 @@
         <module>plugins/JJSwing</module>
         <module>plugins/YamJJazz</module>
         
-    </modules>
-    
+    </modules>    
     
 </project>

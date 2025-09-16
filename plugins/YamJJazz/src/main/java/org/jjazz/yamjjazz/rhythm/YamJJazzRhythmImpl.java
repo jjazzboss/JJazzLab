@@ -646,7 +646,7 @@ public class YamJJazzRhythmImpl implements YamJJazzRhythm
                 if (sp != null && isResourcesLoaded())
                 {
                     int nbBars = (int) (sp.getSizeInBeats() / getTimeSignature().getNbNaturalBeats());
-                    res = "Length=" + nbBars + " bars";
+                    res = "length=" + nbBars + " bars";
                 }
                 return res;
             }
@@ -671,7 +671,7 @@ public class YamJJazzRhythmImpl implements YamJJazzRhythm
         rhythmParameters.add(RP_SYS_TempoFactor.getInstance());
 
 
-        // Add the RP_SYS_DrumsMix parameter if there is a drums track
+        // Add the RP_SYS_DrumsTransform parameter if there is a drums track
         RhythmVoice rvDrums = getRhythmVoice(AccType.RHYTHM);
         if (rvDrums != null)
         {

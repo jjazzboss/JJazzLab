@@ -17,7 +17,7 @@ import org.jjazz.harmony.api.Note;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SizedPhrase;
-import org.jjazz.jjswing.walkingbass.JJSwingBassMusicGenerator;
+import org.jjazz.jjswing.walkingbass.BassGenerator;
 import org.jjazz.jjswing.walkingbass.WbpSourceSlice;
 import org.jjazz.phrase.api.Phrases;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
@@ -72,7 +72,7 @@ public class WbpSource extends Wbp
         Objects.requireNonNull(bassStyle);
         checkArgument(sessionId != null && !sessionId.isBlank());
         checkArgument(sessionBarFrom >= 0, "sessionBarFrom=%s", sessionBarFrom);
-        checkArgument(firstNoteBeatShift <= 0 && firstNoteBeatShift >= -JJSwingBassMusicGenerator.NON_QUANTIZED_WINDOW,
+        checkArgument(firstNoteBeatShift <= 0 && firstNoteBeatShift >= -BassGenerator.NON_QUANTIZED_WINDOW,
                 "firstNoteBeatShift=%s", firstNoteBeatShift);
         checkArgument(phrase.getSizeInBars() >= 1 && phrase.getSizeInBars() <= 4, "phrase=%s", phrase);
 
@@ -89,9 +89,9 @@ public class WbpSource extends Wbp
 
 
         fixShortNotesPostSessionSlice(phrase);
-        fixEndOfPhraseNotes(phrase);
+        Phrases.fixEndOfPhraseNotes(phrase);
         fixOctave(phrase);
-        Velocities.normalizeVelocities(phrase, 0.5f);
+        Velocities.normalizeBassVelocities(phrase, 0.5f);
 
 
         // Must be called last because WbpSource must be fully initialized
@@ -501,7 +501,7 @@ public class WbpSource extends Wbp
     {
         int transpose = getRequiredTransposition(destChordRoot);
         var sp = getSizedPhrase();
-        SizedPhrase res = new SizedPhrase(sp.getChannel(), sp.getBeatRange(), sp.getTimeSignature(), sp.isDrums());
+        SizedPhrase res = new SizedPhrase(sp.getChannel(), sp.getNotesBeatRange(), sp.getTimeSignature(), sp.isDrums());
         Phrase p = sp.getProcessedPhrasePitch(pitch -> pitch + transpose);
         LOGGER.log(Level.FINE, "getTransposedPhrase() transpose={0} => p={1}", new Object[]
         {
@@ -601,36 +601,10 @@ public class WbpSource extends Wbp
         {
             float pos = ne.getPositionInBeats();
             float dur = ne.getDurationInBeats();
-            return (pos % sp.getTimeSignature().getNaturalBeat()) == 0 && dur <= JJSwingBassMusicGenerator.GHOST_NOTE_MAX_DURATION;
+            return (pos % sp.getTimeSignature().getNaturalBeat()) == 0 && dur <= BassGenerator.GHOST_NOTE_MAX_DURATION;
         });
         return b;
     }
-
-    /**
-     * Fix end-of-phrase notes<br>
-     * <p>
-     * Make sure there is no note which ends right on sp boundary: when moving notes (eg Phrase.shiftAllEvents()), because of float rounding errors, this may
-     * lead to notes becoming out of SizedPhrase range.
-     *
-     * @param sp
-     * @return
-     */
-    private boolean fixEndOfPhraseNotes(SizedPhrase sp)
-    {
-        float end = sp.getBeatRange().to - 0.1f;
-        Map<NoteEvent, NoteEvent> mapNotes = new HashMap<>();
-        for (var ne : sp)
-        {
-            if (ne.getBeatRange().to > end)
-            {
-                mapNotes.put(ne, ne.setDuration(end - ne.getPositionInBeats()));
-            }
-        }
-        sp.replaceAll(mapNotes, false);
-        return !mapNotes.isEmpty();
-
-    }
-
 
     private float safeRatio(float upper, float lower)
     {

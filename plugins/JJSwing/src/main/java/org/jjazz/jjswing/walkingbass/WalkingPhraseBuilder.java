@@ -41,16 +41,16 @@ import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.jjswing.api.BassStyle;
-import static org.jjazz.jjswing.walkingbass.BassPhraseBuilder.BassPhraseBuilderLogLevel;
-import static org.jjazz.jjswing.walkingbass.JJSwingBassMusicGenerator.DURATION_BEAT_MARGIN;
+import static org.jjazz.jjswing.walkingbass.BassGenerator.DURATION_BEAT_MARGIN;
 import org.jjazz.jjswing.walkingbass.db.Velocities;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.utilities.api.FloatRange;
+import static org.jjazz.jjswing.walkingbass.PhraseBuilder.PhraseBuilderLogLevel;
 
 /**
  * A bass phrase builder for BassStyle.WALKING.
  */
-public class WalkingPhraseBuilder implements BassPhraseBuilder
+public class WalkingPhraseBuilder implements PhraseBuilder
 {
 
     private static int sessionCount = 0;
@@ -60,7 +60,7 @@ public class WalkingPhraseBuilder implements BassPhraseBuilder
     @Override
     public Phrase build(List<SimpleChordSequence> scsList, int tempo)
     {
-        LOGGER.log(BassPhraseBuilderLogLevel, "build() -- tempo={0} scsList={1}", new Object[]
+        LOGGER.log(PhraseBuilderLogLevel, "build() -- tempo={0} scsList={1}", new Object[]
         {
             tempo,
             scsList
@@ -78,19 +78,19 @@ public class WalkingPhraseBuilder implements BassPhraseBuilder
 
 
         // PREMIUM PHASE
-        LOGGER.log(BassPhraseBuilderLogLevel, "\n");
-        LOGGER.log(BassPhraseBuilderLogLevel, "build() ================  tiling PREMIUM LongestFirstNoRepeat");
+        LOGGER.log(PhraseBuilderLogLevel, "\n");
+        LOGGER.log(PhraseBuilderLogLevel, "build() ================  tiling PREMIUM LongestFirstNoRepeat");
         var tilerLongestPremium = new TilerLongestFirstNoRepeat(premiumWbpsaTester);
         tilerLongestPremium.tile(tiling, store);
-        LOGGER.log(BassPhraseBuilderLogLevel, tiling.toMultiLineString());
+        LOGGER.log(PhraseBuilderLogLevel, tiling.toMultiLineString());
         int nbTiledBars = tiling.getTiledBars().size();
 
 
         var untiled = !tiling.isFullyTiled();
         if (untiled)
         {
-            LOGGER.log(BassPhraseBuilderLogLevel, "\n");
-            LOGGER.log(BassPhraseBuilderLogLevel, "build() ================  tiling PREMIUM MaxDistance");
+            LOGGER.log(PhraseBuilderLogLevel, "\n");
+            LOGGER.log(PhraseBuilderLogLevel, "build() ================  tiling PREMIUM MaxDistance");
             var tilerMaxDistancePremium = new TilerMaxDistance(premiumWbpsaTester);
             tilerMaxDistancePremium.tile(tiling, store);
             nbTiledBars = logTilingIfChanged(tiling, nbTiledBars);
@@ -101,8 +101,8 @@ public class WalkingPhraseBuilder implements BassPhraseBuilder
         untiled = !tiling.isFullyTiled();
         if (untiled)
         {
-            LOGGER.log(BassPhraseBuilderLogLevel, "\n");
-            LOGGER.log(BassPhraseBuilderLogLevel, "build() ================  tiling STANDARD LongestFirstNoRepeat");
+            LOGGER.log(PhraseBuilderLogLevel, "\n");
+            LOGGER.log(PhraseBuilderLogLevel, "build() ================  tiling STANDARD LongestFirstNoRepeat");
             var tilerLongestStandard = new TilerLongestFirstNoRepeat(stdWbpsaTester);
             tilerLongestStandard.tile(tiling, store);
             nbTiledBars = logTilingIfChanged(tiling, nbTiledBars);
@@ -111,8 +111,8 @@ public class WalkingPhraseBuilder implements BassPhraseBuilder
             untiled = !tiling.isFullyTiled();
             if (untiled)
             {
-                LOGGER.log(BassPhraseBuilderLogLevel, "\n");
-                LOGGER.log(BassPhraseBuilderLogLevel, "build() ================  tiling STANDARD MaxDistance");
+                LOGGER.log(PhraseBuilderLogLevel, "\n");
+                LOGGER.log(PhraseBuilderLogLevel, "build() ================  tiling STANDARD MaxDistance");
                 var tilerMaxDistanceStandard = new TilerMaxDistance(stdWbpsaTester);
                 tilerMaxDistanceStandard.tile(tiling, store);
                 nbTiledBars = logTilingIfChanged(tiling, nbTiledBars);
@@ -129,8 +129,8 @@ public class WalkingPhraseBuilder implements BassPhraseBuilder
         {
             store.populate(tempo, List.of(STYLE.getCustomStyle()));
 
-            LOGGER.log(BassPhraseBuilderLogLevel, "\n");
-            LOGGER.log(BassPhraseBuilderLogLevel, "build() ================  tiling EXISTING CUSTOM MaxDistance");
+            LOGGER.log(PhraseBuilderLogLevel, "\n");
+            LOGGER.log(PhraseBuilderLogLevel, "build() ================  tiling EXISTING CUSTOM MaxDistance");
             tilerMaxDistanceCustomStandard.tile(tiling, store);
             nbTiledBars = logTilingIfChanged(tiling, nbTiledBars);
         }
@@ -140,8 +140,8 @@ public class WalkingPhraseBuilder implements BassPhraseBuilder
         untiled = !tiling.isFullyTiled();
         if (untiled)
         {
-            LOGGER.log(BassPhraseBuilderLogLevel, "\n");
-            LOGGER.log(BassPhraseBuilderLogLevel, "build() ================  tiling CREATED CUSTOM MaxDistance");
+            LOGGER.log(PhraseBuilderLogLevel, "\n");
+            LOGGER.log(PhraseBuilderLogLevel, "build() ================  tiling CREATED CUSTOM MaxDistance");
 
             // Create custom WbpSources and add them to the database
             var customWbpSources = tiling.buildMissingWbpSources((chordSeq, targetNote) -> createWalkingCustomWbpSources(chordSeq, targetNote),
@@ -180,11 +180,11 @@ public class WalkingPhraseBuilder implements BassPhraseBuilder
         }
 
 
-//        LOGGER.log(BassPhraseBuilderLogLevel, "\n");
-//        LOGGER.log(BassPhraseBuilderLogLevel, "\n");
-//        LOGGER.log(BassPhraseBuilderLogLevel, "build() ######################      Tiling STATS       ######################");
-//        LOGGER.log(BassPhraseBuilderLogLevel, tiling.toStatsString());
-//        LOGGER.log(BassPhraseBuilderLogLevel, "\n");
+//        LOGGER.log(PhraseBuilderLogLevel, "\n");
+//        LOGGER.log(PhraseBuilderLogLevel, "\n");
+//        LOGGER.log(PhraseBuilderLogLevel, "build() ######################      Tiling STATS       ######################");
+//        LOGGER.log(PhraseBuilderLogLevel, tiling.toStatsString());
+//        LOGGER.log(PhraseBuilderLogLevel, "\n");
         var phrase = tiling.buildPhrase(new DefaultPhraseAdapter());
 
 
@@ -438,7 +438,7 @@ public class WalkingPhraseBuilder implements BassPhraseBuilder
     {
         int newNbTiledBars = tiling.getTiledBars().size();
         String txt = oldNbTiledBars != newNbTiledBars ? tiling.toMultiLineString() : "tiling unchanged";
-        LOGGER.log(BassPhraseBuilderLogLevel, txt);
+        LOGGER.log(PhraseBuilderLogLevel, txt);
         return newNbTiledBars;
     }
 }

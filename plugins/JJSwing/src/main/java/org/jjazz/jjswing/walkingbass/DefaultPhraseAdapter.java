@@ -25,7 +25,7 @@
 package org.jjazz.jjswing.walkingbass;
 
 import org.jjazz.phrase.api.Phrase;
-import static org.jjazz.jjswing.walkingbass.JJSwingBassMusicGenerator.NON_QUANTIZED_WINDOW;
+import static org.jjazz.jjswing.walkingbass.BassGenerator.NON_QUANTIZED_WINDOW;
 
 /**
  * This implementation just transposes the WbpSource phrase so that the 2 first chord roots match.

@@ -383,9 +383,9 @@ public class DefaultPhraseTransformProvider implements PhraseTransformProvider
             if (p.isEmpty())
             {
                 throw new IOException("p is empty");
-            } else if (p.getBeatRange().to > nbBars * ts.getNbNaturalBeats())
+            } else if (p.getNotesBeatRange().to > nbBars * ts.getNbNaturalBeats())
             {
-                throw new IOException("Invalid p range: p.getBeatRange().to=" + p.getBeatRange().to + " nbBars=" + nbBars + " ts=" + ts);
+                throw new IOException("Invalid p range: p.getBeatRange().to=" + p.getNotesBeatRange().to + " nbBars=" + nbBars + " ts=" + ts);
             }
 
             SizedPhrase sp = new SizedPhrase(MidiConst.CHANNEL_DRUMS, new FloatRange(0, nbBars * ts.getNbNaturalBeats()), ts, true);

@@ -71,7 +71,7 @@ public class AddDrumsMidiPhraseTransform implements PhraseTransform
     {
         checkNotNull(info);
         checkNotNull(addPhrase);
-        checkArgument(addPhrase.getBeatRange().from == 0, " addPhrase.getBeatRange()=%s", addPhrase.getBeatRange());
+        checkArgument(addPhrase.getNotesBeatRange().from == 0, " addPhrase.getBeatRange()=%s", addPhrase.getNotesBeatRange());
 
         Properties defaults = new Properties();
         defaults.setProperty(PROP_VELOCITY_OFFSET, Integer.toString(0));
@@ -113,7 +113,7 @@ public class AddDrumsMidiPhraseTransform implements PhraseTransform
         } else
         {
             // Add new notes only if there is not already an identical note in the area            
-            var br = inPhrase.getBeatRange();
+            var br = inPhrase.getNotesBeatRange();
 
             List<NoteEvent> notesToAdd = new ArrayList<>();
 
@@ -210,12 +210,12 @@ public class AddDrumsMidiPhraseTransform implements PhraseTransform
      */
     private SizedPhrase getAdaptedAddPhrase(SizedPhrase addSp, SizedPhrase destSp)
     {
-        SizedPhrase res = new SizedPhrase(destSp.getChannel(), destSp.getBeatRange(), destSp.getTimeSignature(), destSp.isDrums());
+        SizedPhrase res = new SizedPhrase(destSp.getChannel(), destSp.getNotesBeatRange(), destSp.getTimeSignature(), destSp.isDrums());
 
-        FloatRange addBr = addSp.getBeatRange();
+        FloatRange addBr = addSp.getNotesBeatRange();
         TimeSignature addTs = addSp.getTimeSignature();
         int addNbBars = (int) Math.floor(addBr.size() / addTs.getNbNaturalBeats());
-        FloatRange destBr = destSp.getBeatRange();
+        FloatRange destBr = destSp.getNotesBeatRange();
         TimeSignature destTs = destSp.getTimeSignature();
         int destNbBars = (int) Math.floor(destBr.size() / destTs.getNbNaturalBeats());
 

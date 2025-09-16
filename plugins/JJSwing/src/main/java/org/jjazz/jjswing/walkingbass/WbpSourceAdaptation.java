@@ -265,7 +265,7 @@ public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
     }
 
     /**
-     * Same as scs.getBeatRange().
+     * Same as scs.getNotesBeatRange().
      *
      * @return
      */

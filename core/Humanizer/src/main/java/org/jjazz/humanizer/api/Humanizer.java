@@ -191,7 +191,7 @@ public class Humanizer
      */
     public Humanizer(SizedPhrase sizedPhrase, InstrumentFamily insFamily, int tempo)
     {
-        this(sizedPhrase, sizedPhrase.getTimeSignature(), sizedPhrase.getBeatRange(), insFamily, tempo);
+        this(sizedPhrase, sizedPhrase.getTimeSignature(), sizedPhrase.getNotesBeatRange(), insFamily, tempo);
     }
 
     /**
@@ -209,7 +209,7 @@ public class Humanizer
         Objects.nonNull(allowedBeatRange);
         Objects.nonNull(ts);
         Preconditions.checkArgument(tempo >= 10 && tempo <= 400, "tempo=%s", tempo);
-        Preconditions.checkArgument(sourcePhrase.isEmpty() || allowedBeatRange.contains(sourcePhrase.getBeatRange(), false), "phrase=%s allowedBeatRange=%s",
+        Preconditions.checkArgument(sourcePhrase.isEmpty() || allowedBeatRange.contains(sourcePhrase.getNotesBeatRange(), false), "phrase=%s allowedBeatRange=%s",
                 sourcePhrase,
                 allowedBeatRange);
 

@@ -34,8 +34,8 @@ import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.Phrases;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.jjswing.api.BassStyle;
-import org.jjazz.jjswing.walkingbass.JJSwingBassMusicGenerator;
-import static org.jjazz.jjswing.walkingbass.JJSwingBassMusicGenerator.NON_QUANTIZED_WINDOW;
+import org.jjazz.jjswing.walkingbass.BassGenerator;
+import static org.jjazz.jjswing.walkingbass.BassGenerator.NON_QUANTIZED_WINDOW;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
@@ -123,7 +123,7 @@ class WbpSession extends Wbp
                 WbpSource wbpSource = extractWbpSource(barRange);
                 var p = wbpSource.getSizedPhrase();
 
-                boolean bStart = !p.isEmpty() && p.first().getPositionInBeats() <= JJSwingBassMusicGenerator.DURATION_BEAT_MARGIN;
+                boolean bStart = !p.isEmpty() && p.first().getPositionInBeats() <= BassGenerator.DURATION_BEAT_MARGIN;
                 boolean bFirst = !disallowNonRootStartNote || wbpSource.isStartingOnChordBass();
                 boolean bLast = !disallowNonChordToneLastNote || wbpSource.isEndingOnChordTone();
                 if (bStart && bFirst && bLast)

@@ -33,15 +33,19 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.harmony.api.TimeSignature;
+import org.jjazz.jjswing.drums.DrumsGenerator;
+import org.jjazz.jjswing.drums.db.DpSourceDatabase;
 import org.jjazz.phrasetransform.api.rps.RP_SYS_DrumsTransform;
 import org.jjazz.jjswing.walkingbass.db.WbpSourceDatabase;
-import org.jjazz.jjswing.walkingbass.JJSwingBassMusicGenerator;
-import org.jjazz.jjswing.walkingbass.JJSwingBassMusicGeneratorSettings;
+import org.jjazz.jjswing.walkingbass.BassGenerator;
+import org.jjazz.jjswing.walkingbass.BassGeneratorSettings;
+import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythm.api.Division;
 import org.jjazz.rhythm.api.Genre;
 import org.jjazz.rhythm.api.MusicGenerationException;
@@ -60,20 +64,19 @@ import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythmProvider;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.jjazz.rhythm.api.Rhythm;
 import static org.jjazz.rhythm.api.RhythmVoice.Type.BASS;
+import static org.jjazz.rhythm.api.RhythmVoice.Type.DRUMS;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhrase;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Fill;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Intensity;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Marker;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_TempoFactor;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
-import org.jjazz.rhythmdatabase.api.RhythmDatabase;
-import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.rhythmmusicgeneration.api.CompositeMusicGenerator;
+import org.jjazz.rhythmmusicgeneration.api.CompositeMusicGenerator.MgDelegate;
 import org.jjazz.rhythmmusicgeneration.api.RP_SYS_Mute;
-import org.jjazz.rhythmmusicgeneration.api.CompositeMusicGenerator.MgTarget;
 import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythmGenerator;
 import org.jjazz.rhythmmusicgeneration.api.RP_SYS_SubstituteTracks;
-import org.openide.util.Exceptions;
+import org.jjazz.rhythmmusicgeneration.api.CompositeMusicGenerator.RvToMgDelegateMapper;
 
 /**
  * An advanced swing rhythm which uses a specific generator for the bass (walking, etc.).
@@ -95,7 +98,6 @@ public class JJSwingRhythm implements YamJJazzRhythm
     private final TimeSignature timeSignature;
     private final RhythmFeatures features;
     private final String[] tags;
-    private YamJJazzRhythm drumsDelegateRhythm;
     private YamJJazzRhythm baseRhythm;
     private MusicGenerator musicGenerator;
     private final List<RhythmParameter<?>> rhythmParameters;
@@ -124,52 +126,11 @@ public class JJSwingRhythm implements YamJJazzRhythm
         var yjrProvider = YamJJazzRhythmProvider.getInstance();
         var yjzFile = extractFiles();       // throw IOException
         baseRhythm = (YamJJazzRhythm) yjrProvider.readFast(yjzFile);    // throw IOException
-
-
         rhythmVoices = buildRhythmVoices(baseRhythm);
         rhythmParameters = buildRhythmParameters(baseRhythm);
 
-
-        // Initialize our CompositeMusicGenerator
-        var baseGenerator = new YamJJazzRhythmGenerator(this);
-        var walkingGenerator = new JJSwingBassMusicGenerator(this);
-        var rpVariation = RP_SYS_Variation.getVariationRp(this);
-        RhythmVoice rvBass = getRhythmVoice(AccType.BASS);
-        assert rvBass != null;
-
-
-        SwingUtilities.invokeLater(() -> // Avoid endless loop with the RhythmDatabase constructor                                
-                
-        {
-            musicGenerator = new CompositeMusicGenerator(this, (baseRv, spt) -> 
-            {
-                assert rhythmVoices.contains(baseRv) : "baseRv=" + baseRv;
-
-                MgTarget res = switch (baseRv.getType())
-                {
-//                    case DRUMS ->
-//                    {
-//                        var rdb = RhythmDatabase.getDefault();
-//                        try
-//                        {
-//                            drumsDelegateRhythm = (YamJJazzRhythm) rdb.getRhythmInstance("KoolFunk.STY-ID");
-//                        } catch (UnavailableRhythmException ex)
-//                        {
-//                            Exceptions.printStackTrace(ex);
-//                        }
-//                        var rvDrumsBis = drumsDelegateRhythm.getRhythmVoice(AccType.RHYTHM);
-//                        yield spt == null || !spt.getRPValue(rpVariation).toLowerCase().contains("main c") ? new MgTarget(baseGenerator, baseRv)
-//                        : new MgTarget(drumsDelegateRhythm.getMusicGenerator(), rvDrumsBis);
-//                    }
-                    case BASS ->
-                        new MgTarget(walkingGenerator, baseRv);
-                    default ->
-                        new MgTarget(baseGenerator, baseRv);
-                };
-                return res;
-            });
-                });
-
+        // Need task to avoid endless loop with the RhythmDatabase constructor
+        SwingUtilities.invokeLater(() -> musicGenerator = new CompositeMusicGenerator(this, buildRvMapper()));
     }
 
     @Override
@@ -184,11 +145,10 @@ public class JJSwingRhythm implements YamJJazzRhythm
         return getName();
     }
 
-  
+
     // ================================================================================================
     // YamJJazzRhythm implementation
     // ================================================================================================
-
     @Override
     public AccType getAccType(String rpMuteValue)
     {
@@ -252,27 +212,32 @@ public class JJSwingRhythm implements YamJJazzRhythm
         // Initialize the base rhythm
         baseRhythm.loadResources();  // throws MusicGenerationException
 
+
         // We must also process other rhythm instances used by our CompositeMusicGenerator
-        for (var r : getOtherRhythmInstances())
+        for (var r : getOtherUsedRhythms())
         {
             r.loadResources();      // throws MusicGenerationException
         }
 
         // Initialize the WalkingBass database
         var wbpsDB = WbpSourceDatabase.getInstance();
-        LOGGER.log(Level.FINE, "loadResources() WbpSourceDatabase size={0}", wbpsDB.getNbWbpSources(-1));
-
-
         LOGGER.log(Level.INFO, "loadResources() WbpSourceDatabase checkConsistency() skipped");
         // LOGGER.severe("loadResources() debug updating SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT");
         // System.setProperty(NoteEvent.SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT, "%1$s");
         // wbpsDB.checkConsistency(BassStyle.TWO_FEEL);
         // wbpsDB.checkConsistency(BassStyle.WALKING);
 
-        LOGGER.log(Level.WARNING, "loadResources() DEBUG forcing randomization OFF");
-        JJSwingBassMusicGeneratorSettings.getInstance().setWbpsaStoreRandomized(false);
 
-        LOGGER.log(Level.INFO, "loadResources() isWbpsaStoreRandomized={0}", JJSwingBassMusicGeneratorSettings.getInstance().isWbpsaStoreRandomized());
+        // Initialize the Drums phrase database
+        var dpsDB = DpSourceDatabase.getInstance(TimeSignature.FOUR_FOUR);
+        LOGGER.log(Level.INFO, "loadResources() DpSourceDatabase checkConsistency() skipped");
+        // dpsDB.checkConsistency();
+
+
+        LOGGER.log(Level.WARNING, "loadResources() DEBUG forcing randomization OFF");
+        BassGeneratorSettings.getInstance().setWbpsaStoreRandomized(false);
+
+        LOGGER.log(Level.INFO, "loadResources() isWbpsaStoreRandomized={0}", BassGeneratorSettings.getInstance().isWbpsaStoreRandomized());
 
 
         pcs.firePropertyChange(PROP_RESOURCES_LOADED, false, true);
@@ -292,7 +257,7 @@ public class JJSwingRhythm implements YamJJazzRhythm
 
 
         // We must also process other rhythm instances used by our CompositeMusicGenerator
-        getOtherRhythmInstances().forEach(r -> r.releaseResources());
+        getOtherUsedRhythms().forEach(r -> r.releaseResources());
 
 
         pcs.firePropertyChange(PROP_RESOURCES_LOADED, true, false);
@@ -366,6 +331,19 @@ public class JJSwingRhythm implements YamJJazzRhythm
         return tags;
     }
 
+
+    @Override
+    public void addPropertyChangeListener(PropertyChangeListener l)
+    {
+        pcs.addPropertyChangeListener(l);
+    }
+
+    @Override
+    public void removePropertyChangeListener(PropertyChangeListener l)
+    {
+        pcs.removePropertyChangeListener(l);
+    }
+
     // ================================================================================================
     // Private methods
     // ================================================================================================
@@ -401,9 +379,14 @@ public class JJSwingRhythm implements YamJJazzRhythm
 
         List<RhythmParameter<?>> rps = new ArrayList<>();
 
-        // Reuse variation values from the base rhythm
-        var baseRpVariation = RP_SYS_Variation.getVariationRp(r);
-        RP_SYS_Variation rpVariation = new RP_SYS_Variation(true, baseRpVariation.getDefaultValue(), baseRpVariation.getPossibleValues().toArray(new String[0]));
+        String[] possibleValues = new String[]
+        {
+            "Main A-1", "Main A-2", "Main B-1", "Main B-2", "Main C-1", "Main C-2", "Main D-1", "Main D-2", "Main E-1", "Main E-2",
+            "Fill In AA-1", "Fill In BB-1", "Fill In CC-1", "Fill In DD-1", "Fill In BA-1",
+            "Intro A-1", "Intro B-1", "Intro C-1",
+            "Ending A-1", "Ending B-1", "Ending C-1"
+        };
+        RP_SYS_Variation rpVariation = new RP_SYS_Variation(true, "Main A-1", possibleValues);
 
 
         RP_SYS_Intensity rpIntensity = new RP_SYS_Intensity(false);
@@ -417,10 +400,10 @@ public class JJSwingRhythm implements YamJJazzRhythm
                 .findAny()
                 .orElseThrow();
         RP_SYS_DrumsTransform rpDrumsTransform = new RP_SYS_DrumsTransform(rvDrums, false);
-        RP_SYS_SubstituteTracks rpSubstituteTracks = new RP_SYS_SubstituteTracks(this, false);
 
         rps.add(rpVariation);
         rps.add(new RP_BassStyle(true));
+        rps.add(new RP_DrumsStyle(true));
         rps.add(rpIntensity);
         rps.add(rpFill);
         rps.add(rpMute);
@@ -428,27 +411,63 @@ public class JJSwingRhythm implements YamJJazzRhythm
         rps.add(RP_SYS_TempoFactor.getInstance());
         rps.add(rpDrumsTransform);
         rps.add(rpCustomPhrase);
-        rps.add(rpSubstituteTracks);
+        rps.add(new RP_SYS_SubstituteTracks(this, false));
 
 
         return Collections.unmodifiableList(rps);
     }
 
-    @Override
-    public void addPropertyChangeListener(PropertyChangeListener l)
+    /**
+     * The mapper which redirects each base RhythmVoice to a MusicGenerator, a destination RhythmVoice, and possibly a variation and a post-processor.
+     *
+     * @return
+     */
+    private RvToMgDelegateMapper buildRvMapper()
     {
-        pcs.addPropertyChangeListener(l);
-    }
+        var yjGenerator = new YamJJazzRhythmGenerator(this);
+        var bassGenerator = new BassGenerator(this);
+        var drumsGenerator = new DrumsGenerator(this);
 
-    @Override
-    public void removePropertyChangeListener(PropertyChangeListener l)
-    {
-        pcs.removePropertyChangeListener(l);
-    }
+        RvToMgDelegateMapper res = (baseRv, spt) -> 
+        {
+            Objects.requireNonNull(baseRv);
+            Objects.requireNonNull(spt);
+            assert rhythmVoices.contains(baseRv) : "baseRv=" + baseRv;
 
-    // ======================================================================================================
-    // private methods
-    // ======================================================================================================
+            var rpVariationValue = spt.getRPValue(RP_SYS_Variation.getVariationRp(this));
+
+            // Default values
+            MusicGenerator destMg;
+            RhythmVoice destRv = baseRv;
+            String destRpVarationValue = null;
+            Consumer<Phrase> postProcessor = null;
+
+
+            switch (baseRv.getType())
+            {
+                case DRUMS, PERCUSSION ->
+                {
+                    destMg = drumsGenerator;
+                }
+                case BASS ->
+                {
+                    destMg = bassGenerator;
+                }
+                default ->
+                {
+                    destMg = yjGenerator;
+                    if (rpVariationValue.toLowerCase().startsWith("main e"))
+                    {
+                        destRpVarationValue = "Main C-1";
+                    }
+                }
+            }
+
+            return new MgDelegate(destMg, destRv, destRpVarationValue, postProcessor);
+        };
+
+        return res;
+    }
 
     /**
      * Extract the 2 resource files in the temporary directory.
@@ -471,9 +490,8 @@ public class JJSwingRhythm implements YamJJazzRhythm
         return yjzPath.toFile();
     }
 
-    private List<YamJJazzRhythm> getOtherRhythmInstances()
+    private List<Rhythm> getOtherUsedRhythms()
     {
-        // return List.of(drumsDelegateRhythm);
         return Collections.emptyList();
     }
 

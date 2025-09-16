@@ -149,7 +149,7 @@ public class WbpsaStore
         }
 
         // Handle partial randomization
-        var rWbpsas = JJSwingBassMusicGeneratorSettings.getInstance().isWbpsaStoreRandomized() ? randomizeSimilarScoreSets(wbpsaList) : wbpsaList;
+        var rWbpsas = BassGeneratorSettings.getInstance().isWbpsaStoreRandomized() ? randomizeSimilarScoreSets(wbpsaList) : wbpsaList;
 
         // Save state
         mmapWbpsAdaptations[size].get(bar).addAll(rWbpsas);
@@ -166,7 +166,7 @@ public class WbpsaStore
      *
      * @param bar  Must be a usable bar
      * @param size The bar size of returned WbpSourceAdaptations.
-     * @return Can be empty. List is ordered by descending Score with some possible partial randomization depending on {@link JJSwingBassMusicGeneratorSettings#isWbpsaStoreRandomized()
+     * @return Can be empty. List is ordered by descending Score with some possible partial randomization depending on {@link BassGeneratorSettings#isWbpsaStoreRandomized()
      *         }
      */
     public List<WbpSourceAdaptation> getWbpSourceAdaptations(int bar, int size)

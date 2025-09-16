@@ -205,15 +205,16 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
      * <p>
      * Fire a PROP_RP_VALUE with OldValue=rp, NewValue=vp.
      *
+     * @param <T>
      * @param rp
      * @param value Must be a valid value for rp
      */
     public <T> void setRPValue(RhythmParameter<T> rp, T value)
     {
-        if (!rhythm.getRhythmParameters().contains(rp) || value == null || !rp.isValidValue(value))
-        {
-            throw new IllegalArgumentException("rp=" + rp + " value=" + value);
-        }
+        Objects.requireNonNull(rp);
+        Objects.requireNonNull(value);
+        Preconditions.checkArgument(rhythm.getRhythmParameters().contains(rp), "rhythm=%s rp=%s", rhythm, rp);
+        Preconditions.checkArgument(rp.isValidValue(value), "rp=%s value=%s", rp, value);
         @SuppressWarnings("unchecked")
         T oldValue = (T) mapRpValue.getValue(rp);
         assert oldValue != null : "rpValueProfileMap=" + mapRpValue + " rp=" + rp + " value=" + value;
@@ -357,7 +358,7 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
     @Override
     public String toString()
     {
-        return "[" + name + ", r=" + rhythm + ", startBarIndex=" + startBarIndex + ", nbBars=" + nbBars + "]";
+        return name + getBarRange() + "-" + rhythm.getName();
     }
 
     public String toDumpString()

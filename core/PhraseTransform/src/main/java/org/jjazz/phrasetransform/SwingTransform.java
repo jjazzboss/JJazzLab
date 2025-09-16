@@ -85,11 +85,11 @@ public class SwingTransform implements PhraseTransform
     @Override
     public SizedPhrase transform(SizedPhrase inPhrase, SongPartContext context)
     {
-        SizedPhrase res = new SizedPhrase(inPhrase.getChannel(), inPhrase.getBeatRange(), inPhrase.getTimeSignature(), inPhrase.isDrums());
+        SizedPhrase res = new SizedPhrase(inPhrase.getChannel(), inPhrase.getNotesBeatRange(), inPhrase.getTimeSignature(), inPhrase.isDrums());
 
 
         // Prepare data
-        FloatRange fr = inPhrase.getBeatRange();
+        FloatRange fr = inPhrase.getNotesBeatRange();
         float swingUnit = getSwingUnit();
         Quantization q = swingUnit == 0.5f ? Quantization.HALF_BEAT : Quantization.ONE_QUARTER_BEAT;
         float shift = swingUnit * getSwingAmount();

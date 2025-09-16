@@ -22,8 +22,11 @@
  */
 package org.jjazz.phrase.api;
 
+import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.text.ParseException;
+import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -53,8 +56,8 @@ public class SizedPhrase extends Phrase
     public SizedPhrase(int channel, FloatRange beatRange, TimeSignature ts, boolean isDrums)
     {
         super(channel, isDrums);
-        checkNotNull(ts);
-        checkNotNull(beatRange);
+        Objects.requireNonNull(ts);
+        Objects.requireNonNull(beatRange);
         this.beatRange = beatRange;
         this.timeSignature = ts;
     }
@@ -62,7 +65,7 @@ public class SizedPhrase extends Phrase
     public SizedPhrase(SizedPhrase sp)
     {
         super(sp.getChannel(), sp.isDrums());
-        this.beatRange = sp.getBeatRange();
+        this.beatRange = sp.getNotesBeatRange();
         this.timeSignature = sp.getTimeSignature();
         add(sp);
     }
@@ -92,12 +95,12 @@ public class SizedPhrase extends Phrase
     /**
      * Get the beat range corresponding to this phrase.
      * <p>
-     * Overrides Phrase.getBeatRange() because the beat range is fixed for a SizedPhrase.
+Overrides Phrase.getNotesBeatRange() because the beat range is fixed for a SizedPhrase.
      *
      * @return
      */
     @Override
-    public FloatRange getBeatRange()
+    public FloatRange getNotesBeatRange()
     {
         return beatRange;
     }
@@ -143,8 +146,8 @@ public class SizedPhrase extends Phrase
         StringJoiner joiner = new StringJoiner("|", "[", "]");
         String drums = sp.isDrums() ? "drums_" : "";
         joiner.add(drums + String.valueOf(sp.getChannel()));
-        joiner.add(String.valueOf(sp.getBeatRange().from));
-        joiner.add(String.valueOf(sp.getBeatRange().to));
+        joiner.add(String.valueOf(sp.getNotesBeatRange().from));
+        joiner.add(String.valueOf(sp.getNotesBeatRange().to));
         joiner.add(String.valueOf(sp.getTimeSignature()));
         sp.forEach(ne -> joiner.add(NoteEvent.saveAsString(ne)));
         return joiner.toString();

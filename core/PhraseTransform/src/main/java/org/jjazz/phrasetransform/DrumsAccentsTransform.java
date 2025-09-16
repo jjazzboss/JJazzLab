@@ -93,7 +93,7 @@ public class DrumsAccentsTransform implements PhraseTransform
     @Override
     public SizedPhrase transform(SizedPhrase inPhrase, SongPartContext context)
     {
-        SizedPhrase res = new SizedPhrase(inPhrase.getChannel(), inPhrase.getBeatRange(), inPhrase.getTimeSignature(), inPhrase.isDrums());
+        SizedPhrase res = new SizedPhrase(inPhrase.getChannel(), inPhrase.getNotesBeatRange(), inPhrase.getTimeSignature(), inPhrase.isDrums());
         int accentOffset = getAccentVelocityOffset();
 
 

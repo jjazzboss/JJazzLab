@@ -87,7 +87,7 @@ public class PhraseTransformChain extends ArrayList<PhraseTransform>
         {
             sp = pt.transform(sp, context);
 
-            if (!sp.getBeatRange().equals(inPhrase.getBeatRange()))
+            if (!sp.getNotesBeatRange().equals(inPhrase.getNotesBeatRange()))
             {
                 throw new IllegalStateException("Invalid beatRange modification by pt=" + pt + ", inPhrase=" + inPhrase + ", sp=" + sp);
             }

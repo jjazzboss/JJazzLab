@@ -8,29 +8,29 @@ import org.openide.util.NbPreferences;
 /**
  * JJSwing settings.
  */
-public class JJSwingBassMusicGeneratorSettings
+public class BassGeneratorSettings
 {
     private static final String PREF_WBPSA_STORE_RANDOMIZED = "PrefRandomizedWbpsaStore";
     private static final String PREF_ACCEPT_NON_CHORD_BASS_START_NOTE = "PrefAcceptNonChordBassStartNote";
     private static final String PREF_NOTE_TIMING_BIAS_FACTOR = "PrefNoteTimingBias";
-    private static JJSwingBassMusicGeneratorSettings INSTANCE;
-    private final Preferences prefs = NbPreferences.forModule(JJSwingBassMusicGeneratorSettings.class);
+    private static BassGeneratorSettings INSTANCE;
+    private final Preferences prefs = NbPreferences.forModule(BassGeneratorSettings.class);
     ;
-    private static final Logger LOGGER = Logger.getLogger(JJSwingBassMusicGeneratorSettings.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(BassGeneratorSettings.class.getSimpleName());
 
-    public static JJSwingBassMusicGeneratorSettings getInstance()
+    public static BassGeneratorSettings getInstance()
     {
-        synchronized (JJSwingBassMusicGeneratorSettings.class)
+        synchronized (BassGeneratorSettings.class)
         {
             if (INSTANCE == null)
             {
-                INSTANCE = new JJSwingBassMusicGeneratorSettings();
+                INSTANCE = new BassGeneratorSettings();
             }
         }
         return INSTANCE;
     }
 
-    private JJSwingBassMusicGeneratorSettings()
+    private BassGeneratorSettings()
     {
     }
 

@@ -48,7 +48,7 @@ public class RP_SYS_Fill extends RP_State
     public RP_SYS_Fill(boolean isPrimary)
     {
         super(ID, ResUtil.getString(RP_SYS_Fill.class, "CTL_RpFillName"), ResUtil.getString(RP_SYS_Fill.class, "CTL_RpFillDesc"), isPrimary, "", "",
-                 VALUE_ALWAYS, VALUE_RANDOM, VALUE_RANDOM_RARE, VALUE_BREAK, VALUE_FADE_OUT);
+                VALUE_ALWAYS, VALUE_RANDOM, VALUE_RANDOM_RARE, VALUE_BREAK, VALUE_FADE_OUT);
     }
 
     public RP_SYS_Fill(boolean isPrimary, String defaultVal, String... possibleValues)
@@ -68,5 +68,29 @@ public class RP_SYS_Fill extends RP_State
                 .filter(r -> (r instanceof RP_SYS_Fill))
                 .findAny()
                 .orElse(null);
+    }
+
+    /**
+     * Return true if we need to add a Fill In.
+     *
+     * @param rpFillValue
+     * @return
+     */
+    static public boolean needFill(String rpFillValue)
+    {
+        boolean r = false;
+        rpFillValue = rpFillValue.toLowerCase();
+        double x = Math.random();
+        if (rpFillValue.contains(RP_SYS_Fill.VALUE_ALWAYS) || rpFillValue.contains(RP_SYS_Fill.VALUE_BREAK))
+        {
+            r = true;
+        } else if (rpFillValue.contains(RP_SYS_Fill.VALUE_RANDOM_RARE) && x <= 0.25)
+        {
+            r = true;
+        } else if (rpFillValue.contains(RP_SYS_Fill.VALUE_RANDOM) && x <= 0.5)
+        {
+            r = true;
+        }
+        return r;
     }
 }
