@@ -20,14 +20,17 @@
  *
  *  Contributor(s):
  */
-package org.jjazz.musiccontrolactions.api;
+package org.jjazz.musiccontrolactions;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.prefs.Preferences;
+import javax.sound.midi.MidiDevice;
+import javax.sound.midi.MidiSystem;
 import javax.swing.SwingUtilities;
+import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.musiccontrol.api.MusicController;
-import org.jjazz.musiccontrolactions.ui.QualityNotificationDialog;
+import org.jjazz.outputsynth.api.OutputSynth;
 import org.jjazz.outputsynth.spi.OutputSynthManager;
 import org.jjazz.startup.spi.OnStartTask;
 import org.openide.util.NbPreferences;
@@ -38,46 +41,52 @@ import org.openide.windows.WindowManager;
  * Shows a dialog warning when music is going to be played and a low quality synth is being used.
  */
 @ServiceProvider(service = OnStartTask.class)
-public class RegisterLowQualityTask implements OnStartTask, PropertyChangeListener
+public class CheckLowQualitySynthTask implements OnStartTask, PropertyChangeListener
 {
+
     public static final int ONSTART_TASK_PRIORITY = 100;
 
-    private static final Preferences prefs = NbPreferences.forModule(RegisterLowQualityTask.class);
+    private static final Preferences prefs = NbPreferences.forModule(CheckLowQualitySynthTask.class);
     private static final String PREF_SHOW_NOTIFICATION = "ShowSynthQualityNotification";
 
     /**
      * Registers itself to listen for changes in MusicController's state.
      */
     @Override
-    public void run() {
+    public void run()
+    {
         var mc = MusicController.getInstance();
         mc.addPropertyChangeListener(this);
     }
 
     @Override
-    public int getPriority() {
+    public int getPriority()
+    {
         return ONSTART_TASK_PRIORITY;
     }
 
     @Override
-    public String getName() {
+    public String getName()
+    {
         return "RegisterLowQualityTask";
     }
 
     @Override
     public void propertyChange(PropertyChangeEvent event)
     {
-        if (
-                prefs.getBoolean(PREF_SHOW_NOTIFICATION, true)
+        if (prefs.getBoolean(PREF_SHOW_NOTIFICATION, true)
                 && MusicController.PROP_STATE.equals(event.getPropertyName())
-                && event.getNewValue().equals(MusicController.State.PLAYING)
-            )
+                && event.getNewValue().equals(MusicController.State.PLAYING))
         {
-            if (isSynthLowQuality())
+
+            var md = JJazzMidiSystem.getInstance().getDefaultOutDevice();
+
+            if (isSynthLowQuality(md))
             {
                 Runnable r = () -> 
                 {
-                    QualityNotificationDialog dlg = new QualityNotificationDialog(WindowManager.getDefault().getMainWindow(), true);
+                    String mdName = JJazzMidiSystem.getInstance().getDeviceFriendlyName(md);
+                    CheckLowQualitySynthDialog dlg = new CheckLowQualitySynthDialog(WindowManager.getDefault().getMainWindow(), true, mdName);
                     dlg.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
                     dlg.setVisible(true);
                     if (dlg.isDoNotShowAgain())
@@ -90,12 +99,9 @@ public class RegisterLowQualityTask implements OnStartTask, PropertyChangeListen
         }
     }
 
-    private boolean isSynthLowQuality()
+    private boolean isSynthLowQuality(MidiDevice md)
     {
-        // Check that fluidsynth in use
-        var osm = OutputSynthManager.getDefault();
-        var dos = osm.getDefaultOutputSynth();
-
-        return !dos.getMidiSynth().getName().equalsIgnoreCase("FluidSynth");
+        return md == JJazzMidiSystem.getInstance().getJavaInternalSynth()
+                || md.getDeviceInfo().getName().toLowerCase().startsWith("microsoft");
     }
 }

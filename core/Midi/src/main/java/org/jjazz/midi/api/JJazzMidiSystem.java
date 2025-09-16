@@ -1025,8 +1025,7 @@ public final class JJazzMidiSystem
     /**
      * Get a friendly name for a MidiDevice.
      * <p>
-     * Remove any trailing "_MD" from the MidiDevice name. Also give a better name to "Gervill" Java internal synth. the Java default synth (sometimes
-     * "Gervill") to JAVA_INTERNAL_SYNTH_NAME. Use DeviceInfo.name otherwise.
+     * Remove any trailing "_MD" from the MidiDevice name. Use JAVA_INTERNAL_SYNTH_NAME for the "Gervill" Java internal synth. Use DeviceInfo.name otherwise.
      *
      * @param md
      * @return
@@ -1042,7 +1041,7 @@ public final class JJazzMidiSystem
         {
             name = JAVA_INTERNAL_SYNTH_NAME;
         }
-        if (name.endsWith("_MD"))
+        else if (name.endsWith("_MD"))
         {
             name = name.substring(0, name.length() - 3);
         }
