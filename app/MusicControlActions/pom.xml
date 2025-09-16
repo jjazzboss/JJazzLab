@@ -27,7 +27,7 @@
             </plugin>
         </plugins>
     </build>
-    <dependencies>      
+    <dependencies>
         <dependency> 
             <groupId>org.jjazzlab.app</groupId> 
             <artifactId>activesong</artifactId> 
@@ -124,6 +124,11 @@
             <artifactId>utilities</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
+        <dependency> 
+            <groupId>org.jjazzlab.app</groupId> 
+            <artifactId>startupmanager</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>
         <dependency> 
             <groupId>org.netbeans.api</groupId> 
             <artifactId>org-netbeans-api-progress</artifactId> 

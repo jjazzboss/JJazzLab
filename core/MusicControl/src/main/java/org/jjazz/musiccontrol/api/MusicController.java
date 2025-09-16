@@ -80,7 +80,6 @@ import org.jjazz.outputsynth.spi.OutputSynthManager;
  */
 public class MusicController implements PropertyChangeListener, MetaEventListener
 {
-
     /**
      * oldValue=old State, newValue=new State
      */
