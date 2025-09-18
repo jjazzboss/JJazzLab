@@ -256,10 +256,10 @@ public class YamJJazzRhythmProvider implements RhythmProvider
      * <p>
      * If files are not yet present, extract them.
      *
-     * @param doCopy If true extract the files from zip resource file
+     * @param forceCopy If true always extract the files from zip resource file
      * @return
      */
-    private List<File> getDefaultRhythmFiles(boolean doCopy)
+    private List<File> getDefaultRhythmFiles(boolean forceCopy)
     {
         List<File> res = new ArrayList<>();
         var ddir = RhythmDirsLocator.getDefault().getDefaultRhythmsDirectory();
@@ -271,7 +271,7 @@ public class YamJJazzRhythmProvider implements RhythmProvider
         }
 
         File[] files = rDir.listFiles(fileFilter);
-        if (doCopy || files.length == 0)
+        if (forceCopy || files.length == 0)
         {
             for (File f : copyDefaultResourceFiles(rDir))
             {

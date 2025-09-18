@@ -157,9 +157,7 @@ public class DefaultMidiMixManager implements MidiMixManager, PropertyChangeList
         LOGGER.log(Level.FINE, "findMix() -- r={0}", r);
 
         MidiMix mm = null;
-        File rhythmFile = r.getFile();
-        File defaultDir = rhythmFile.getParentFile() == null ? RhythmDirsLocator.getDefault().getUserRhythmsDirectory() : rhythmFile.getParentFile();
-        File mixFile = r instanceof AdaptedRhythm ? null : MidiMix.getRhythmMixFile(r.getName(), rhythmFile, defaultDir);
+        File mixFile = r instanceof AdaptedRhythm ? null : MidiMix.getRhythmMixFile(r.getName(), r.getFile());
 
         if (mixFile != null && mixFile.canRead())
         {

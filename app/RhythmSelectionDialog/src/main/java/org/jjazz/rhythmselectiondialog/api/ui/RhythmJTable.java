@@ -50,6 +50,7 @@ import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import org.jjazz.midi.api.synths.GM1Instrument;
+import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.rhythm.spi.RhythmDirsLocator;
 import org.jjazz.rhythmdatabaseimpl.api.FavoriteRhythms;
 import org.jjazz.rhythmdatabase.api.RhythmInfo;
@@ -452,13 +453,8 @@ public class RhythmJTable extends JTable implements PropertyChangeListener
             LOGGER.fine("updateDefaultMixValues() -- starting updating default mix values");
             for (var ri : ris)
             {
-                File f = ri.file();
-                if (f.getName().equals(""))
-                {
-                    continue;
-                }
-                File mixFile = Utilities.replaceExtension(f, "mix");
-                setDefaultMix(ri, mixFile.exists() ? mixFile : null);
+                var rhythmMixFile = MidiMix.getRhythmMixFile(ri.name(), ri.file());
+                setDefaultMix(ri, rhythmMixFile.exists() ? rhythmMixFile : null);
             }
             LOGGER.fine("updateDefaultMixValues() finished");
         }

@@ -72,6 +72,7 @@ import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
+import org.jjazz.rhythm.spi.RhythmDirsLocator;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
@@ -1383,41 +1384,33 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
     }
 
     /**
-     * Get the rhythm mix File object for the specified rhythm.
+     * Get the expected location of the rhythm mix file.
      * <p>
-     * Rhythm mix file will be located in the same directory than rhythmFile if rhythmFile's parent directory is defined. Otherwise create file in defaultDir.
+     * If rhythmFile is defined then .mix file is located in the same directory. Otherwise .mix file is located in the default rhythms directory<br>
      *
-     * @param rhythmName
-     * @param rhythmFile Can be empty (no file) but can not be null.
-     * @param defaultDir
+     * @param rhythmName 
+     * @param rhythmFile Can not be null but can be the empty path ("")
      * @return
+     * @see Rhythm#getFile()
+     * @see RhythmDirsLocator#getDefaultRhythmsDirectory()
      */
-    static public File getRhythmMixFile(String rhythmName, File rhythmFile, File defaultDir)
+    static public File getRhythmMixFile(String rhythmName, File rhythmFile)
     {
         Preconditions.checkNotNull(rhythmName);
         Preconditions.checkNotNull(rhythmFile);
-        Preconditions.checkNotNull(defaultDir);
-        if (rhythmName.isEmpty())
+        String mixFileName;
+        File dir = rhythmFile.getParentFile();
+        if (dir != null)
         {
-            throw new IllegalArgumentException("rhythmName=" + rhythmName + " rhythmFile=" + rhythmName + " defaultDir=" + defaultDir);
-        }
-
-        File rhythmFileParent = rhythmFile.getParentFile();
-        if (rhythmFileParent != null)
-        {
-            defaultDir = rhythmFileParent;
-        }
-
-        String rhythmMixFileName;
-        if (rhythmFile.getName().isEmpty())
-        {
-            // No file
-            rhythmMixFileName = rhythmName.replace(" ", "") + "." + MIX_FILE_EXTENSION;
+            // File-based rhythm
+            mixFileName = Utilities.replaceExtension(rhythmFile.getName(), MIX_FILE_EXTENSION);
         } else
         {
-            rhythmMixFileName = Utilities.replaceExtension(rhythmFile.getName(), MIX_FILE_EXTENSION);
+            dir = RhythmDirsLocator.getDefault().getDefaultRhythmsDirectory();
+            var rhythmNameNoSpace = rhythmName.replace(" ", "");
+            mixFileName = rhythmNameNoSpace + "." + MIX_FILE_EXTENSION;
         }
-        File f = new File(defaultDir, rhythmMixFileName);
+        File f = new File(dir, mixFileName);
         return f;
     }
 
@@ -2245,7 +2238,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
                     xstream.alias("MidiMix", MidiMix.class);
                     xstream.alias("MidiMixSP", MidiMix.SerializationProxy.class);
                     xstream.alias("RvStorage", MidiMix.SerializationProxy.RvStorage.class);
-                    
+
                     // From 4.1.3 XStream with Java23 can not read anymore the 2 private fields from the RvStorage class. 
                     // Making RvStorage class static + its 2 fields public solves the issue for the future, but this does not let us read old .mix files
                     // which contain the "outer-class reference=..." tag. So we just ignore this element.
@@ -2404,7 +2397,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
 
             public String rhythmId;         // Had to switch to public for XStream with Java23
             public String rvName;           // Had to switch to public for XStream with Java23
-            
+
 
             public RvStorage(RhythmVoice rv)
             {
@@ -2446,7 +2439,6 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
                 return rv;
             }
         }
-
 
 
     }

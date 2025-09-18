@@ -25,7 +25,6 @@ package org.jjazz.rhythmstubs.api;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
@@ -36,8 +35,6 @@ import org.jjazz.midi.api.synths.GM1Bank;
 import org.jjazz.midi.api.keymap.KeyMapGM;
 import org.jjazz.midi.api.synths.InstrumentFamily;
 import org.jjazz.midi.api.synths.GMSynth;
-import org.jjazz.phrase.api.Phrase;
-import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmFeatures;
 import org.jjazz.rhythm.api.RhythmVoice;
@@ -45,25 +42,26 @@ import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythmmusicgeneration.api.DummyGenerator;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
-import org.jjazz.songcontext.api.SongContext;
+import org.jjazz.rhythmmusicgeneration.spi.MusicGeneratorProvider;
 
 /**
  * A rhythm stub whatever the time signature.
  * <p>
  */
-public class RhythmStub implements Rhythm, MusicGenerator
+public class RhythmStub implements Rhythm, MusicGeneratorProvider
 {
 
-    protected String uniqueId;
-    protected TimeSignature timeSignature;
+    private final String uniqueId;
+    private final TimeSignature timeSignature;
     /**
      * The default RhythmParameters associated to this rhythm.
      */
-    protected ArrayList<RhythmParameter<?>> rhythmParameters = new ArrayList<>();
+    private final ArrayList<RhythmParameter<?>> rhythmParameters = new ArrayList<>();
     /**
      * The supported RhythmVoices.
      */
-    protected ArrayList<RhythmVoice> rhythmVoices = new ArrayList<>();
+    private final ArrayList<RhythmVoice> rhythmVoices = new ArrayList<>();
+    private final MusicGenerator musicGenerator;
     private static final Logger LOGGER = Logger.getLogger(RhythmStub.class.getSimpleName());
 
     /**
@@ -92,14 +90,23 @@ public class RhythmStub implements Rhythm, MusicGenerator
         // Our Rhythm Parameters
         rhythmParameters.add(new RP_SYS_Variation(true));
 
+        musicGenerator = new DummyGenerator(this);
+
     }
+
+    // ==============================================================================================
+    // MusicGeneratorProvider interface
+    // ==============================================================================================
 
     @Override
-    public HashMap<RhythmVoice, Phrase> generateMusic(SongContext context, RhythmVoice... rvs) throws MusicGenerationException
+    public MusicGenerator getMusicGenerator()
     {
-        return new DummyGenerator(this).generateMusic(context);
+        return musicGenerator;
     }
 
+    // ==============================================================================================
+    // Rhythm interface
+    // ==============================================================================================
 
     @Override
     public boolean equals(Object o)
@@ -238,5 +245,6 @@ public class RhythmStub implements Rhythm, MusicGenerator
     {
         // Nothing
     }
+
 
 }
