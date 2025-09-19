@@ -38,16 +38,24 @@ public class RP_BassStyle extends RP_State
 
     public static final String AUTO_MODE_VALUE = "auto";
     public static final ImmutableBiMap<BassStyle, String> BIMAP_STYLE_RPVALUE = ImmutableBiMap.of(
+            BassStyle.INTRO, "intro",
+            BassStyle.ENDING, "ending",
             BassStyle.TWO_FEEL, "2-feel",
             BassStyle.WALKING, "walking",
-            BassStyle.WALKING_DOUBLE_NOTE, "walking-double",
+            BassStyle.WALKING_DOUBLE_NOTE, "double-note",
             BassStyle.WALKING_DOUBLE_TIME, "double-time"
     );
 
     public RP_BassStyle(boolean isPrimary)
     {
         super("BassStyleId", "Bass style", "Adjust bass style", isPrimary, AUTO_MODE_VALUE,
-                AUTO_MODE_VALUE, toRpValue(BassStyle.TWO_FEEL), toRpValue(BassStyle.WALKING), toRpValue(BassStyle.WALKING_DOUBLE_NOTE), toRpValue(BassStyle.WALKING_DOUBLE_TIME));
+                AUTO_MODE_VALUE, toRpValue(BassStyle.TWO_FEEL),
+                toRpValue(BassStyle.WALKING),
+                toRpValue(BassStyle.WALKING_DOUBLE_NOTE),
+                toRpValue(BassStyle.WALKING_DOUBLE_TIME),
+                toRpValue(BassStyle.INTRO),
+                toRpValue(BassStyle.ENDING)
+        );
     }
 
     /**
@@ -86,6 +94,10 @@ public class RP_BassStyle extends RP_State
         Objects.requireNonNull(rpVariationValue);
         BassStyle style = switch (rpVariationValue)
         {
+            case "Intro A-1" ->
+                BassStyle.INTRO;
+            case "Ending A-1" ->
+                BassStyle.ENDING;                
             case "Main A-1", "Main A-2" ->
                 BassStyle.TWO_FEEL;
             case "Main B-1", "Main B-2" ->

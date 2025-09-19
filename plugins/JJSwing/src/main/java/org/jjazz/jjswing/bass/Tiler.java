@@ -22,35 +22,19 @@
  *   Contributor(s): 
  * 
  */
-package org.jjazz.jjswing.api;
-
-import java.util.logging.Logger;
+package org.jjazz.jjswing.bass;
 
 /**
- * The possible drums styles
- * <p>
+ * Tile a WbpTiling with WbpSourceAdaptations according to a specific strategy.
  */
-public enum DrumsStyle
+public interface Tiler
 {
-    BRUSHES_1,
-    BRUSHES_2,
-    HI_HAT_1,
-    HI_HAT_2,
-    RIDE_1,
-    RIDE_2,
-    RIDE_3,
-    RIDE_4,    
-    SHUFFLE_1,
-    SHUFFLE_2,
-    DOUBLE_1,
-    INTRO,
-    ENDING;
+    /**
+     * Try to tile the non-tiled bars of tiling using WbpSourceAdaptations from store.
+     *
+     * @param tiling
+     * @param store Must be built for tiling
+     */
+    void tile(WbpTiling tiling, WbpsaStore store);
 
-
-    private static final Logger LOGGER = Logger.getLogger(DrumsStyle.class.getSimpleName());
-
-
-    //===============================================================================================
-    // Inner classes
-    //===============================================================================================
 }

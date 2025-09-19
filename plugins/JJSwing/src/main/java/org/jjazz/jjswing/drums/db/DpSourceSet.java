@@ -30,7 +30,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Store the STD and FILL DpSources of a given DrumsStyle.
+ * Store the STD and optional FILL DpSources of a given DrumsStyle.
  * <p>
  * All DpSources have the same size.
  */
@@ -43,12 +43,11 @@ public record DpSourceSet(List<DpSource> dpSourcesStd, List<DpSource> dpSourcesF
      * Check consistency of altId values.
      *
      * @param dpSources     Can not be empty
-     * @param dpSourcesFill Can not be empty
+     * @param dpSourcesFill Can be empty
      */
     public DpSourceSet(List<DpSource> dpSourcesStd, List<DpSource> dpSourcesFill)
     {
         Preconditions.checkArgument(!dpSourcesStd.isEmpty());
-        Preconditions.checkArgument(!dpSourcesFill.isEmpty());
         int alt = 0;
         int size = dpSourcesStd.get(0).getSizeInBars();
         for (var dps : dpSourcesStd)
@@ -60,14 +59,17 @@ public record DpSourceSet(List<DpSource> dpSourcesStd, List<DpSource> dpSourcesF
             alt++;
         }
         alt = 0;
-        size = dpSourcesFill.get(0).getSizeInBars();
-        for (var dps : dpSourcesFill)
+        if (!dpSourcesFill.isEmpty())
         {
-            if (dps.getAlternateId() != alt || dps.getSizeInBars() != size)
+            size = dpSourcesFill.get(0).getSizeInBars();
+            for (var dps : dpSourcesFill)
             {
-                throw new IllegalArgumentException("alt=" + alt + "  dpSourcesFill=" + dpSourcesFill);
+                if (dps.getAlternateId() != alt || dps.getSizeInBars() != size)
+                {
+                    throw new IllegalArgumentException("alt=" + alt + "  dpSourcesFill=" + dpSourcesFill);
+                }
+                alt++;
             }
-            alt++;
         }
         this.dpSourcesStd = List.copyOf(dpSourcesStd);
         this.dpSourcesFill = List.copyOf(dpSourcesFill);
@@ -82,29 +84,6 @@ public record DpSourceSet(List<DpSource> dpSourcesStd, List<DpSource> dpSourcesF
     {
         return dpSourcesStd.get(0).getSizeInBars();
     }
-
-    /**
-     * Get a DpSource from the arguments.
-     *
-     * @param type
-     * @param altId As a special case if -1 returns the last DpSource
-     * @return Null if no dpSource found with altId
-     */
-    public DpSource getDpSource(DpSource.Type type, int altId) throws IllegalArgumentException
-    {
-        DpSource res = null;
-
-        var dpss = getDpSources(type);
-        if (altId == -1)
-        {
-            res = dpss.getLast();
-        } else if (altId < dpss.size())
-        {
-            res = dpss.get(altId);
-        }
-        return res;
-    }
-
 
     /**
      * Get the DpSources of specified type.

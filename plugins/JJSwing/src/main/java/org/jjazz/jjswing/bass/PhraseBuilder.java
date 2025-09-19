@@ -22,35 +22,26 @@
  *   Contributor(s): 
  * 
  */
-package org.jjazz.jjswing.api;
+package org.jjazz.jjswing.bass;
 
-import java.util.logging.Logger;
+import java.util.List;
+import java.util.logging.Level;
+import org.jjazz.phrase.api.Phrase;
+import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 
 /**
- * The possible drums styles
- * <p>
+ * Produce a phrase according to a specific strategy.
  */
-public enum DrumsStyle
+public interface PhraseBuilder
 {
-    BRUSHES_1,
-    BRUSHES_2,
-    HI_HAT_1,
-    HI_HAT_2,
-    RIDE_1,
-    RIDE_2,
-    RIDE_3,
-    RIDE_4,    
-    SHUFFLE_1,
-    SHUFFLE_2,
-    DOUBLE_1,
-    INTRO,
-    ENDING;
-
-
-    private static final Logger LOGGER = Logger.getLogger(DrumsStyle.class.getSimpleName());
-
-
-    //===============================================================================================
-    // Inner classes
-    //===============================================================================================
+    public static Level PhraseBuilderLogLevel = Level.FINE;
+    
+    /**
+     * Create a bass Phrase for one or more SimpleChordSequences.
+     *
+     * @param scsList SimpleChordSequences in bar ascending order.
+     * @param tempo
+     * @return
+     */
+    Phrase build(List<SimpleChordSequence> scsList, int tempo);
 }

@@ -19,7 +19,7 @@ import org.jjazz.phrase.api.Phrase;
 import org.jjazz.jjswing.api.RP_DrumsStyle;
 import org.jjazz.jjswing.drums.db.DpSource;
 import org.jjazz.jjswing.drums.db.DpSourceDatabase;
-import org.jjazz.jjswing.walkingbass.BassGenerator;
+import org.jjazz.jjswing.bass.BassGenerator;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.UserErrorGenerationException;
@@ -188,7 +188,8 @@ public class DrumsGenerator implements MusicGenerator
                     float fillBeatSize = dpSourceFill.getSizeInBars() * nbBeatsPerBar;
                     assert fillBeatSize <= beatRangeStd.size() : "spt=" + spt + " bar=" + bar + " beatRange=" + beatRangeStd + " fillBeatSize=" + fillBeatSize;
                     beatRangeFill = new FloatRange(beatRangeStd.to - fillBeatSize, beatRangeStd.to);
-                    beatRangeStd = beatRangeStd.from == beatRangeFill.from ? FloatRange.EMPTY_FLOAT_RANGE : new FloatRange(beatRangeStd.from, beatRangeFill.from);
+                    beatRangeStd = beatRangeStd.from == beatRangeFill.from ? FloatRange.EMPTY_FLOAT_RANGE
+                            : new FloatRange(beatRangeStd.from, beatRangeFill.from);
                 }
 
 
@@ -247,7 +248,7 @@ public class DrumsGenerator implements MusicGenerator
      */
     private DpSource getFillDpSource(SongPart spt, List<DpSource> dpSources)
     {
-        return isFillRequired(spt) ? randomPick(dpSources) : null;
+        return !dpSources.isEmpty() && isFillRequired(spt) ? randomPick(dpSources) : null;
     }
 
     private boolean isFillRequired(SongPart spt)

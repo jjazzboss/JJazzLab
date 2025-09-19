@@ -22,35 +22,31 @@
  *   Contributor(s): 
  * 
  */
-package org.jjazz.jjswing.api;
+package org.jjazz.jjswing.bass;
 
-import java.util.logging.Logger;
+import org.jjazz.phrase.api.Phrase;
 
 /**
- * The possible drums styles
- * <p>
+ * Adapt a WbpSource phrase from a WbpSourceAdaptation into the resulting phrase.
  */
-public enum DrumsStyle
+public interface PhraseAdapter
 {
-    BRUSHES_1,
-    BRUSHES_2,
-    HI_HAT_1,
-    HI_HAT_2,
-    RIDE_1,
-    RIDE_2,
-    RIDE_3,
-    RIDE_4,    
-    SHUFFLE_1,
-    SHUFFLE_2,
-    DOUBLE_1,
-    INTRO,
-    ENDING;
 
+    /**
+     * Get the resulting phrase from wbpsa.
+     * <p>
+     * NOTE: first note position might be slightly before wbpsa start bar if WbpSource.getFirstNoteBeatShift() is &lt; 0.
+     *
+     * @param wbpsa The source phrase context
+     * @return
+     */
+    Phrase getPhrase(WbpSourceAdaptation wbpsa);
 
-    private static final Logger LOGGER = Logger.getLogger(DrumsStyle.class.getSimpleName());
-
-
-    //===============================================================================================
-    // Inner classes
-    //===============================================================================================
+    /**
+     * Get the resulting target note from wbpsa.
+     *
+     * @param wbpsa
+     * @return -1 if WbpSource has no target note 
+     */
+    int getTargetPitch(WbpSourceAdaptation wbpsa);
 }

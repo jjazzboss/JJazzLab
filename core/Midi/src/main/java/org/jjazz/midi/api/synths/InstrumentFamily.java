@@ -23,8 +23,6 @@
  */
 package org.jjazz.midi.api.synths;
 
-import org.jjazz.utilities.api.IntRange;
-
 /**
  * A family of similar instruments.
  * <p>
@@ -62,7 +60,7 @@ public enum InstrumentFamily
      */
     public int toAbsolutePitch(int relPitch)
     {
-        int octave = switch (this)
+         int octave = switch (this)
         {
             case Bass ->
                 relPitch >= 4 ? 3 : 4; // from E1(28) to D#2(39)

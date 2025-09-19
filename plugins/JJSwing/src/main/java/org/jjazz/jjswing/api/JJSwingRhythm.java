@@ -42,9 +42,9 @@ import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.jjswing.drums.DrumsGenerator;
 import org.jjazz.jjswing.drums.db.DpSourceDatabase;
 import org.jjazz.phrasetransform.api.rps.RP_SYS_DrumsTransform;
-import org.jjazz.jjswing.walkingbass.db.WbpSourceDatabase;
-import org.jjazz.jjswing.walkingbass.BassGenerator;
-import org.jjazz.jjswing.walkingbass.BassGeneratorSettings;
+import org.jjazz.jjswing.bass.db.WbpSourceDatabase;
+import org.jjazz.jjswing.bass.BassGenerator;
+import org.jjazz.jjswing.bass.BassGeneratorSettings;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythm.api.Division;
 import org.jjazz.rhythm.api.Genre;
@@ -383,8 +383,7 @@ public class JJSwingRhythm implements YamJJazzRhythm
         {
             "Main A-1", "Main A-2", "Main B-1", "Main B-2", "Main C-1", "Main C-2", "Main D-1", "Main D-2", "Main E-1", "Main E-2",
             "Fill In AA-1", "Fill In BB-1", "Fill In CC-1", "Fill In DD-1", "Fill In BA-1",
-            "Intro A-1", "Intro B-1", "Intro C-1",
-            "Ending A-1", "Ending B-1", "Ending C-1"
+            "Intro A-1", "Ending A-1"
         };
         RP_SYS_Variation rpVariation = new RP_SYS_Variation(true, "Main A-1", possibleValues);
 

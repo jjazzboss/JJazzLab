@@ -27,11 +27,13 @@ package org.jjazz.jjswing.api;
 import com.google.common.collect.ImmutableBiMap;
 import java.util.Set;
 import java.util.logging.Logger;
-import org.jjazz.jjswing.walkingbass.TwoFeelPhraseBuilder;
-import org.jjazz.jjswing.walkingbass.WalkingDoubleTimePhraseBuilder;
-import org.jjazz.jjswing.walkingbass.WalkingPhraseBuilder;
-import org.jjazz.jjswing.walkingbass.PhraseBuilder;
-import org.jjazz.jjswing.walkingbass.WalkingDoubleNotePhraseBuilder;
+import org.jjazz.jjswing.bass.EndingPhraseBuilder;
+import org.jjazz.jjswing.bass.TwoFeelPhraseBuilder;
+import org.jjazz.jjswing.bass.WalkingDoubleTimePhraseBuilder;
+import org.jjazz.jjswing.bass.WalkingPhraseBuilder;
+import org.jjazz.jjswing.bass.PhraseBuilder;
+import org.jjazz.jjswing.bass.WalkingDoubleNotePhraseBuilder;
+import org.jjazz.phrase.api.Phrase;
 
 /**
  * The possible bass styles of a WbpSource.
@@ -40,6 +42,8 @@ import org.jjazz.jjswing.walkingbass.WalkingDoubleNotePhraseBuilder;
  */
 public enum BassStyle
 {
+    INTRO,
+    ENDING,
     TWO_FEEL,
     TWO_FEEL_CUSTOM,
     WALKING,
@@ -67,6 +71,10 @@ public enum BassStyle
         PhraseBuilder res;
         res = switch (this)
         {
+            case INTRO ->
+                (scsList, tempo) -> new Phrase(0);      // no bass note
+            case ENDING ->
+                new EndingPhraseBuilder();
             case TWO_FEEL ->
                 new TwoFeelPhraseBuilder();
             case WALKING ->

@@ -50,7 +50,9 @@ public class RP_DrumsStyle extends RP_State
                 toRpValue(DrumsStyle.RIDE_4),
                 toRpValue(DrumsStyle.SHUFFLE_1),
                 toRpValue(DrumsStyle.SHUFFLE_2),
-                toRpValue(DrumsStyle.DOUBLE_1)
+                toRpValue(DrumsStyle.DOUBLE_1),
+                toRpValue(DrumsStyle.INTRO),
+                toRpValue(DrumsStyle.ENDING)
         );
     }
 
@@ -99,6 +101,10 @@ public class RP_DrumsStyle extends RP_State
         Objects.requireNonNull(rpVariationValue);
         DrumsStyle style = switch (rpVariationValue)
         {
+            case "Intro A-1" ->
+                DrumsStyle.INTRO;
+            case "Ending A-1" ->
+                DrumsStyle.ENDING;
             case "Main A", "Main A-1" ->
                 DrumsStyle.BRUSHES_1;
             case "Main A-2" ->
