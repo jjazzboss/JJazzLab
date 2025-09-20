@@ -182,6 +182,7 @@ public abstract class SS_Editor extends JPanel implements Lookup.Provider
      *
      * @param r
      * @return A non-empty list.
+     * @see SS_EditorClientProperties#setCompactViewModeVisibleRPs(org.jjazz.song.api.Song, org.jjazz.rhythm.api.Rhythm, java.util.List)
      */
     abstract public List<RhythmParameter<?>> getVisibleRps(Rhythm r);
 

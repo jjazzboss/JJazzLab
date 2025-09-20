@@ -27,10 +27,14 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.LayoutManager;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
- * A LayoutManager to arrange the 2 children in the top left/right corners, with a margin.
+ * A LayoutManager to arrange children components in the top left or top right corners, with a margin.
+ * <p>
+ * If more than 1 component in a given corner, put them in line.
  */
 public class RpViewerLayoutManager implements LayoutManager
 {
@@ -38,28 +42,39 @@ public class RpViewerLayoutManager implements LayoutManager
     public static final String NORTH_EAST = "NE";
     public static final String NORTH_WEST = "NW";
     private static final int PADDING = 1;
-    private Component cNW, cNE;
+    private static final int COMPONENTS_H_GAP = 3;
+    private final List<Component> componentsNW, componentsNE;
     private static final Logger LOGGER = Logger.getLogger(RpViewerLayoutManager.class.getSimpleName());
+
+    public RpViewerLayoutManager()
+    {
+        this.componentsNW = new ArrayList<>();
+        this.componentsNE = new ArrayList<>();
+
+    }
+
 
     @Override
     public void layoutContainer(Container container)
     {
         Insets in = container.getInsets();
-        int xMin = in.left + PADDING;
         int y = in.top + PADDING;
-                
-        if (cNW != null)
+
+        int x = in.left + PADDING;
+        for (var comp : componentsNW)
         {
-            cNW.setSize(cNW.getPreferredSize());
-            cNW.setLocation(xMin, y);
-            xMin += cNW.getWidth();
+            comp.setSize(comp.getPreferredSize());
+            comp.setLocation(x, y);
+            x += comp.getWidth() + COMPONENTS_H_GAP;
         }
 
-        if (cNE != null)
+        int xRight = container.getWidth() - in.right - PADDING;
+        for (var comp : componentsNE)
         {
-            cNE.setSize(cNE.getPreferredSize());
-            int x = Math.max(xMin, container.getWidth() - in.right - PADDING - cNE.getWidth());
-            cNE.setLocation(x, y);
+            comp.setSize(comp.getPreferredSize());
+            int xLeft = xRight - comp.getWidth() - 1;
+            comp.setLocation(xLeft, y);
+            xRight -= comp.getWidth() + COMPONENTS_H_GAP;
         }
     }
 
@@ -68,23 +83,21 @@ public class RpViewerLayoutManager implements LayoutManager
     {
         if (NORTH_EAST.equals(string))
         {
-            cNE = comp;
+            componentsNE.add(comp);
         } else if (NORTH_WEST.equals(string))
         {
-            cNW = comp;
+            componentsNW.add(comp);
+        } else
+        {
+            throw new IllegalArgumentException("string=" + string + " comp=" + comp);
         }
     }
 
     @Override
     public void removeLayoutComponent(Component comp)
     {
-        if (comp == cNE)
-        {
-            cNE = null;
-        } else if (comp == cNW)
-        {
-            cNW = null;
-        }
+        componentsNE.remove(comp);
+        componentsNW.remove(comp);
     }
 
     @Override
@@ -97,17 +110,22 @@ public class RpViewerLayoutManager implements LayoutManager
     @Override
     public Dimension minimumLayoutSize(Container parent)
     {
-        int w = 2 * PADDING, h = 2 * PADDING;
-        if (cNW != null)
+        int w = 2 * PADDING;
+        int maxCompHeight = 0;
+
+        for (var comp : componentsNE)
         {
-            w += cNW.getPreferredSize().width;
-            h += cNW.getPreferredSize().height;
+            w += comp.getPreferredSize().width + (comp != componentsNE.getLast() ? COMPONENTS_H_GAP : 0);
+            maxCompHeight = Math.max(comp.getHeight(), maxCompHeight);
         }
-        if (cNE != null)
+
+        for (var comp : componentsNW)
         {
-            w += cNE.getPreferredSize().width;
-            h += cNE.getPreferredSize().height;
+            w += comp.getPreferredSize().width + (comp != componentsNW.getLast() ? COMPONENTS_H_GAP : 0);
+            maxCompHeight = Math.max(comp.getHeight(), maxCompHeight);
         }
+
+        int h = 2 * PADDING + maxCompHeight;
         return new Dimension(w, h);
     }
 

@@ -53,7 +53,7 @@ import org.jjazz.song.api.SongFactory;
 import org.jjazz.songcontext.api.SongPartContext;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
-import org.jjazz.ss_editor.rpviewer.api.RpCustomEditor;
+import org.jjazz.ss_editor.rpviewer.api.RpCustomEditorDialog;
 import org.jjazz.utilities.api.IntRange;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.*;
@@ -66,7 +66,7 @@ import org.openide.util.Exceptions;
  *
  * @param <E> RhythmParameter value class
  */
-public class RealTimeRpEditorDialog<E> extends RpCustomEditor<E> implements PropertyChangeListener
+public class RealTimeRpEditorDialog<E> extends RpCustomEditorDialog<E> implements PropertyChangeListener
 {
 
     public static final int DEFAULT_PREVIEW_MAX_NB_BARS = 64;

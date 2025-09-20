@@ -32,10 +32,10 @@ import org.openide.windows.WindowManager;
  * <p>
  * @param <E> RhythmParameter value class
  */
-public abstract class RpCustomEditor<E> extends JDialog
+public abstract class RpCustomEditorDialog<E> extends JDialog
 {
 
-    public RpCustomEditor(boolean modal)
+    public RpCustomEditorDialog(boolean modal)
     {
         super(WindowManager.getDefault().getMainWindow(), modal);
     }

@@ -22,12 +22,12 @@
  */
 package org.jjazz.ss_editor.rpviewer.spi;
 
-import org.jjazz.ss_editor.rpviewer.api.RpCustomEditor;
+import org.jjazz.ss_editor.rpviewer.api.RpCustomEditorDialog;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.openide.util.Lookup;
 
 /**
- * Provide RpCustomEditor implementations.
+ * Provide RpCustomEditorDialog implementations.
  */
 public interface RpCustomEditorFactory
 {
@@ -35,8 +35,8 @@ public interface RpCustomEditorFactory
     /**
      * Try to find the relevant factory for the specified RhythmParameter.
      * <p>
-     * First, return rp if rp is an instanceof RpCustomEditorFactory. If not, scan all the RpCustomEditorFactory instances available on the global
-     * lookup, and return the first one which supports rp.
+     * First, return rp if rp is an instanceof RpCustomEditorFactory. If not, scan all the RpCustomEditorFactory instances available on the global lookup, and
+     * return the first one which supports rp.
      *
      * @param rp
      * @return Can be null if no relevant factory found.
@@ -48,7 +48,8 @@ public interface RpCustomEditorFactory
             return rpCustomEditorFactory;
         }
 
-        for (var factory : Lookup.getDefault().lookupAll(RpCustomEditorFactory.class))
+        var factories = Lookup.getDefault().lookupAll(RpCustomEditorFactory.class);
+        for (var factory : factories)
         {
             if (factory.isSupported(rp))
             {
@@ -76,8 +77,8 @@ public interface RpCustomEditorFactory
      *
      * @param <E> RhythmParameter value class
      * @param rp
-     * @return 
+     * @return
      */
-    public <E> RpCustomEditor<E> getEditor(RhythmParameter<E> rp);
+    public <E> RpCustomEditorDialog<E> getEditor(RhythmParameter<E> rp);
 
 }

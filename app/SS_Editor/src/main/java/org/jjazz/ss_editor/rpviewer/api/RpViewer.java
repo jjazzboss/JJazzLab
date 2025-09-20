@@ -49,26 +49,39 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.flatcomponents.api.FlatButton;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
+import org.jjazz.song.api.Song;
+import org.jjazz.ss_editor.api.SS_EditorClientProperties;
+import org.jjazz.ss_editor.api.SS_EditorClientProperties.ViewMode;
 import org.jjazz.uiutilities.api.RedispatchingMouseAdapter;
 import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.ss_editor.rpviewer.spi.RpCustomEditorFactory;
+import org.netbeans.api.annotations.common.StaticResource;
 
 /**
  * A RhythmParameter viewer.
  * <p>
- * Displays RP name and manage selected/focused status using background and border. Shows an edit button if RhythmParameter model
- * supports a custom edit dialog.
+ * - Display RP name<br>
+ * - Manage selected/focused status using background and border<br>
+ * When mouse is over component:<br>
+ * - Show an edit button if RhythmParameter model supports a custom edit dialog<br>
+ * - Show the hide button<br>
  * <p>
  * The actual rendering and preferred size setting is delegated to a RpViewerRenderer.
  */
 public class RpViewer extends JPanel implements PropertyChangeListener, FocusListener
 {
 
+    @StaticResource(relative = true)
+    private static final String BTN_EDIT_RESOURCE_PATH = "resources/OpenPopup.png";
+    @StaticResource(relative = true)
+    private static final String BTN_HIDE_RESOURCE_PATH = "resources/HideBtn.png";
     // UI variables   
     private JLayer<RenderingPanel> layer;
     private RenderingPanel renderingPanel;
     private JLabel lbl_RpName;
     private FlatButton fbtn_edit;
+    private FlatButton fbtn_hide;
 
     // Application variables
     private RpViewerRenderer renderer;
@@ -95,14 +108,14 @@ public class RpViewer extends JPanel implements PropertyChangeListener, FocusLis
     {
         if (rp == null || spt == null || settings == null || renderer == null)
         {
-            throw new NullPointerException("controller=" + controller + " spt=" + spt + " rp=" + rp + " settings=" + settings + " renderer=" + renderer);   
+            throw new NullPointerException("controller=" + controller + " spt=" + spt + " rp=" + rp + " settings=" + settings + " renderer=" + renderer);
         }
         this.rpModel = rp;
         this.sptModel = spt;
         this.settings = settings;
 
         this.renderer = renderer;
-        this.renderer.addChangeListener(e ->
+        this.renderer.addChangeListener(e -> 
         {
             // Renderer configuration has changed
             renderingPanel.revalidate();
@@ -155,7 +168,7 @@ public class RpViewer extends JPanel implements PropertyChangeListener, FocusLis
     {
         if (factor < 0 || factor > 100)
         {
-            throw new IllegalArgumentException("factor=" + factor);   
+            throw new IllegalArgumentException("factor=" + factor);
         }
         if (factor != zoomVFactor)
         {
@@ -207,7 +220,10 @@ public class RpViewer extends JPanel implements PropertyChangeListener, FocusLis
     public void setSelected(boolean b)
     {
         isSelected = b;
-        LOGGER.log(Level.FINE, "setSelected this={0} b={1}", new Object[]{this, b});   
+        LOGGER.log(Level.FINE, "setSelected this={0} b={1}", new Object[]
+        {
+            this, b
+        });
         if (isSelected)
         {
             setBackground(settings.getSelectedBackgroundColor());
@@ -346,10 +362,17 @@ public class RpViewer extends JPanel implements PropertyChangeListener, FocusLis
 
         // Optional edit button
         fbtn_edit = new FlatButton();
-        fbtn_edit.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/ss_editor/rpviewer/api/resources/OpenPopup.png"))); // NOI18N
+        fbtn_edit.setIcon(new javax.swing.ImageIcon(getClass().getResource(BTN_EDIT_RESOURCE_PATH))); // NOI18N
         fbtn_edit.addActionListener(e -> showRpCustomEditDialog());
         fbtn_edit.setBorderEntered(BorderFactory.createLineBorder(Color.GRAY));
         fbtn_edit.setToolTipText(ResUtil.getString(getClass(), "TooltipRpEditCustomDialog"));
+
+        // Hide button
+        fbtn_hide = new FlatButton();
+        fbtn_hide.setIcon(new javax.swing.ImageIcon(getClass().getResource(BTN_HIDE_RESOURCE_PATH))); // NOI18N
+        fbtn_hide.addActionListener(e -> hideRpViewer());
+        fbtn_hide.setBorderEntered(BorderFactory.createLineBorder(Color.GRAY));
+        fbtn_hide.setToolTipText(ResUtil.getString(getClass(), "TooltipHideRp"));
 
 
         // Our custom layout 
@@ -379,19 +402,36 @@ public class RpViewer extends JPanel implements PropertyChangeListener, FocusLis
         add(layer, BorderLayout.CENTER);
     }
 
-    private void setEditButtonVisible(boolean b)
+    private void setButtonsVisible(boolean showEditButton, boolean showHideButton)
     {
-        if (b && !fbtn_edit.isShowing())
+        boolean revalidate = false;
+
+        if (showEditButton && !fbtn_edit.isShowing())
         {
             renderingPanel.add(fbtn_edit, RpViewerLayoutManager.NORTH_WEST);
-            renderingPanel.revalidate();
-            renderingPanel.repaint();
-        } else if (!b && fbtn_edit.isShowing())
+            revalidate = true;
+        } else if (!showEditButton && fbtn_edit.isShowing())
         {
             renderingPanel.remove(fbtn_edit);
+            revalidate = true;
+        }
+
+        if (showHideButton && !fbtn_hide.isShowing())
+        {
+            renderingPanel.add(fbtn_hide, RpViewerLayoutManager.NORTH_WEST);
+            revalidate = true;
+        } else if (!showHideButton && fbtn_hide.isShowing())
+        {
+            renderingPanel.remove(fbtn_hide);
+            revalidate = true;
+        }
+
+        if (revalidate)
+        {
             renderingPanel.revalidate();
             renderingPanel.repaint();
         }
+
     }
 
     private void updateUIComponents()
@@ -427,6 +467,21 @@ public class RpViewer extends JPanel implements PropertyChangeListener, FocusLis
         }
     }
 
+    private void hideRpViewer()
+    {
+        Song song = renderer.getSong();
+        Rhythm r = sptModel.getRhythm();
+        var rps = SS_EditorClientProperties.getCompactViewModeVisibleRPs(song, r);
+        if (rps.remove(rpModel))
+        {
+            SS_EditorClientProperties.setCompactViewModeVisibleRPs(song, r, rps);
+        }
+        if (SS_EditorClientProperties.getViewMode(song) != ViewMode.COMPACT)
+        {
+            SS_EditorClientProperties.setViewMode(song, ViewMode.COMPACT);
+        }
+    }
+
     // ---------------------------------------------------------------
     // Private classes
     // ---------------------------------------------------------------        
@@ -449,24 +504,23 @@ public class RpViewer extends JPanel implements PropertyChangeListener, FocusLis
     }
 
     /**
-     * Used to track mouse entered/exit avoiding the problems with children components.
-     * <p>
-     * This is used only for RpCustomEditorDialog.Provider instances, see installUI().
+     * Track mouse enter/exit events (avoiding problems with children components) to display buttons while mouse is over viewer.
      */
     private class MyLayerUI extends LayerUI<RenderingPanel>
     {
+
+        private boolean needEditBtn = false;
+        private boolean needHideBtn = false;
 
         @Override
         public void installUI(JComponent c)
         {
             super.installUI(c);
+            JLayer jlayer = (JLayer) c;
+            jlayer.setLayerEventMask(AWTEvent.MOUSE_EVENT_MASK);
 
-            if (RpCustomEditorFactory.findFactory(rpModel) != null)
-            {
-                // Track mouse events only if we need to display the edit button
-                JLayer jlayer = (JLayer) c;
-                jlayer.setLayerEventMask(AWTEvent.MOUSE_EVENT_MASK);
-            }
+            needEditBtn = RpCustomEditorFactory.findFactory(rpModel) != null;
+            needHideBtn = !(rpModel instanceof RP_SYS_Variation);
         }
 
         @Override
@@ -482,10 +536,9 @@ public class RpViewer extends JPanel implements PropertyChangeListener, FocusLis
         {
             if (e.getID() == MouseEvent.MOUSE_ENTERED || e.getID() == MouseEvent.MOUSE_EXITED)
             {
-                // This way 
                 Point p = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), layer);
                 boolean inside = layer.contains(p);     // This way it works even if mouse is on another component inside the RpViewer
-                setEditButtonVisible(inside);
+                setButtonsVisible(needEditBtn && inside, needHideBtn && inside);
             }
         }
     }

@@ -27,7 +27,7 @@ import org.jjazz.rpcustomeditorfactoryimpl.api.RealTimeRpEditorDialog;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhrase;
 import org.jjazz.rhythmmusicgeneration.api.RP_SYS_SubstituteTracks;
-import org.jjazz.ss_editor.rpviewer.api.RpCustomEditor;
+import org.jjazz.ss_editor.rpviewer.api.RpCustomEditorDialog;
 import org.jjazz.ss_editor.rpviewer.spi.RpCustomEditorFactory;
 import org.openide.util.lookup.ServiceProvider;
 
@@ -57,9 +57,9 @@ public class RpCustomEditorFactoryImpl implements RpCustomEditorFactory
     }
 
     @Override
-    public <E> RpCustomEditor<E> getEditor(RhythmParameter<E> rp)
+    public <E> RpCustomEditorDialog<E> getEditor(RhythmParameter<E> rp)
     {
-        RpCustomEditor res = switch (rp)
+        RpCustomEditorDialog res = switch (rp)
         {
             case RP_SYS_CustomPhrase rps ->
                 new RP_SYS_CustomPhraseEditor(rps);

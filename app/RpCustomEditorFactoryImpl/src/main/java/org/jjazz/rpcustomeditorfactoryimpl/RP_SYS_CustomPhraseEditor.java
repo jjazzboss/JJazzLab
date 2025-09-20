@@ -29,7 +29,7 @@ import org.jjazz.song.api.Song;
 import org.jjazz.songcontext.api.SongPartContext;
 import org.jjazz.songeditormanager.spi.SongEditorManager;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.ss_editor.rpviewer.api.RpCustomEditor;
+import org.jjazz.ss_editor.rpviewer.api.RpCustomEditorDialog;
 import org.jjazz.uiutilities.api.UIUtilities;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.ResUtil;
@@ -41,10 +41,10 @@ import org.openide.util.Exceptions;
 /**
  * A RpCustomEditor for RP_SYS_CustomPhrase.
  * <p>
- * The editor can not use the standard RpCustomEditor<E> mechanism (i.e. make the modifications within the modal dialog) because we use a
+The editor can not use the standard RpCustomEditorDialog<E> mechanism (i.e. make the modifications within the modal dialog) because we use a
  * PianoRollEditorTopComponent which remains available after dialog is closed, and RP_SYS_CustomPhraseValue is mutable (MutableRpValue instance).
  */
-public class RP_SYS_CustomPhraseEditor extends RpCustomEditor<RP_SYS_CustomPhraseValue>
+public class RP_SYS_CustomPhraseEditor extends RpCustomEditorDialog<RP_SYS_CustomPhraseValue>
 {
 
     public static final Color PHRASE_COMP_CUSTOMIZED_FOREGROUND = new Color(255, 102, 102);
