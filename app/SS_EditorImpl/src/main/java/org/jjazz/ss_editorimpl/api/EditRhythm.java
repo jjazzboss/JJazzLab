@@ -318,8 +318,8 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
             cb_useRhythmTempo.setSelected(true);
             cb_applyRhythmToNextSpts = new JCheckBox();
             cb_applyRhythmToNextSpts.setText(ResUtil.getString(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.cb_applyRhythmToNextSpts.text"));
-            cb_applyRhythmToNextSpts.setToolTipText(ResUtil.getString(RhythmSelectionDialogImpl.class,
-                    "RhythmSelectionDialogImpl.cb_applyRhythmToNextSpts.toolTipText"));
+            cb_applyRhythmToNextSpts.setToolTipText(
+                    ResUtil.getString(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.cb_applyRhythmToNextSpts.toolTipText"));
             cb_applyRhythmToNextSpts.setSelected(true);
 
             setLayout(new ColumnLeftAlignedLayoutManager());
