@@ -59,11 +59,11 @@ public class MusicXMLFileReader
     /**
      * An optional String indicating musical style.
      *
-     * @return Can be null
+     * @return Can be empty if no musical style defined
      */
     public String getMusicalStyle()
     {
-        return musicalStyle;
+        return musicalStyle == null ? "" : musicalStyle;
     }
 
     /**
@@ -107,7 +107,6 @@ public class MusicXMLFileReader
         }
         musicalStyle = songBuilder.getMusicalStyle();
         tempo = songBuilder.getTempo();
-        
 
 
         // Set name

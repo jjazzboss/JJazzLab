@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
@@ -95,8 +96,7 @@ public class XmlImporter implements SongImporter
 
         MusicXMLFileReader reader = new MusicXMLFileReader(f);
         Song song = reader.readSong();
-
-        postProcessSong(song, reader.getMusicalStyle());        // Choose the initial rhythm
+        postProcessSong(song,reader.getMusicalStyle());        // Choose the initial rhythm
 
         int tempo = reader.getTempo();
         if (tempo < TempoRange.TEMPO_MIN )
@@ -171,10 +171,12 @@ public class XmlImporter implements SongImporter
      * If song containes 2 or more time signatures, use an AdaptedRhythm from the initial rhythm.
      *
      * @param song
-     * @param styleText
+     * @param styleText Can be an empty string
      */
     private void postProcessSong(Song song, String styleText)
     {
+        Objects.requireNonNull(song);
+        Objects.requireNonNull(styleText);
         LOGGER.log(Level.FINE, "postProcessSong() -- styleText={0}", styleText);
         SongStructure sgs = song.getSongStructure();
         List<SongPart> spts = sgs.getSongParts();
