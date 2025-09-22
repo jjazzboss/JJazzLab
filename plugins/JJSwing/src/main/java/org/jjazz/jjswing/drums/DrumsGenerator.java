@@ -293,10 +293,10 @@ public class DrumsGenerator implements MusicGenerator
             var scsSpt = new SimpleChordSequence(songChordSequence.subSequence(sptBarRange, false), sptBeatRange.from, rhythm.getTimeSignature());
 
             // Accents for drums only 
-            if (rv.getType() == RhythmVoice.Type.DRUMS)
+            DrumKit drumKit;
+            if (rv.getType() == RhythmVoice.Type.DRUMS && (drumKit = context.getMidiMix().getInstrumentMix(rv).getInstrument().getDrumKit()) != null)
             {
-                var ins = context.getMidiMix().getInstrumentMix(rv).getInstrument();
-                processDrumsAccents(p, scsSpt, song.getTempo(), ins.getDrumKit());
+                processDrumsAccents(p, scsSpt, song.getTempo(), drumKit);
             }
 
             // process RP_SYS_Intensity
@@ -342,6 +342,9 @@ public class DrumsGenerator implements MusicGenerator
      */
     private void processDrumsAccents(Phrase p, SimpleChordSequence scsSpt, int tempo, DrumKit kit)
     {
+        Objects.requireNonNull(p);
+        Objects.requireNonNull(scsSpt);
+        Objects.requireNonNull(kit);
         int nbCellsPerBeat = Grid.getRecommendedNbCellsPerBeat(rhythm.getTimeSignature(), rhythm.getFeatures().division().isSwing());
         AccentProcessor ap = new AccentProcessor(scsSpt, nbCellsPerBeat, tempo, BassGenerator.NON_QUANTIZED_WINDOW);
 
