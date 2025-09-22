@@ -123,7 +123,7 @@ public class RemoveBar extends AbstractAction implements ContextAwareAction, CL_
     {
         boolean b = false;
         ChordLeadSheet cls = selection.getChordLeadSheet();
-        if (selection.isContiguousBarSelection() && (selection.getMinBarIndexWithinCls() > 0 || selection.getMaxBarIndexWithinCls() < cls.getSizeInBars() - 1))
+        if (selection.isContiguousBarSelection() && cls.getBarRange().contains(selection.getBarRange()))
         {
             b = true;
         }
