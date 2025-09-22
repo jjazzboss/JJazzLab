@@ -24,6 +24,7 @@ package org.jjazz.uiutilities.api;
 
 import com.google.common.base.Preconditions;
 import java.awt.AWTEvent;
+import java.awt.AWTException;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
@@ -33,9 +34,12 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Robot;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -171,6 +175,45 @@ public class UIUtilities
         return new Rectangle(x0, y0, w, h);
     }
 
+    /**
+     * Move the mouse pointer to a specific point, handling possible multi-screen setup.
+     * <p>
+     * From https://stackoverflow.com/questions/2941324/how-do-i-set-the-position-of-the-mouse-in-java
+     *
+     * @param p
+     */
+    static public void moveMouse(Point p)
+    {
+        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        GraphicsDevice[] gs = ge.getScreenDevices();
+
+        // Search the devices for the one that draws the specified point.
+        for (GraphicsDevice device : gs)
+        {
+            GraphicsConfiguration[] configurations = device.getConfigurations();
+            for (GraphicsConfiguration config : configurations)
+            {
+                Rectangle bounds = config.getBounds();
+                if (bounds.contains(p))
+                {
+                    // Set point to screen coordinates.
+                    Point b = bounds.getLocation();
+                    Point s = new Point(p.x - b.x, p.y - b.y);
+                    try
+                    {
+                        Robot r = new Robot(device);
+                        r.mouseMove(s.x, s.y);
+                    } catch (AWTException e)
+                    {
+                        e.printStackTrace();
+                    }
+
+                    return;
+                }
+            }
+        }
+        // Couldn't move to the point, it may be off screen.
+    }
 
     /**
      * Positions a dialog at a position relative to an anchor component.
@@ -373,9 +416,9 @@ public class UIUtilities
         }
 
         JMenuItem item;
-        if (action instanceof Presenter.Popup)
+        if (action instanceof Presenter.Popup popup)
         {
-            item = ((Presenter.Popup) action).getPopupPresenter();
+            item = popup.getPopupPresenter();
             if (item == null)
             {
                 throw new IllegalArgumentException("getPopupPresenter() returning null for action=" + action);

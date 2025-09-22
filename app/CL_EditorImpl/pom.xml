@@ -43,6 +43,11 @@
         </dependency>
         <dependency>
             <groupId>org.jjazzlab.core</groupId>
+            <artifactId>rhythmmusicgeneration</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jjazzlab.core</groupId>
             <artifactId>song</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -112,6 +117,16 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.jjazzlab.app</groupId>
+            <artifactId>songeditormanager</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jjazzlab.app</groupId>
+            <artifactId>filedirectorymanager</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.jjazzlab.core</groupId>
             <artifactId>rhythmdatabase</artifactId>
             <version>${project.version}</version>
@@ -141,10 +156,6 @@
             <artifactId>org-openide-actions</artifactId>
             <version>${netbeans.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.jjazzlab.app</groupId>
-            <artifactId>songeditormanager</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+
     </dependencies>
 </project>

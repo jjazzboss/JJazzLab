@@ -84,7 +84,7 @@ public class ItemsTransferable implements Transferable
         Object res = data;      // DATA_FLAVOR by default
         if (flavor == DataFlavor.stringFlavor)
         {
-            res = TextReader.toText(buildCls(), 4);
+            res = TextReader.toText(buildCls(), 4, true);
         }
 
         return res;

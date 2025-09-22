@@ -1,0 +1,33 @@
+// JJAZZLAB USER CHORD PROGRESSIONS FILE
+//
+// This file is read by JJazzLab upon startup. It is expected to be in the JJazzLab User Directory (see menu Help/About) so that user can customize it.
+// 
+// The chord progressions are shown by the Insert->Chord progressions action in the bar popupmenu of the chord leadsheet editor (when you right-click on a bar).
+//
+// FORMAT:
+// - Empty lines are ignored
+// - A chord progression must start and end with the '|' char
+// - Max 2 chords per bar
+// - % is supported: |Cm7 F7 | % | means |Cm7 F7 |Cm7 F7 |
+// - Other lines are categories to group chord progressions. Each category is shown as a submenu in the bar's popup menu.
+
+
+|C |Am |
+|C |F  |
+|Cm7 |F7 |Bb7M |
+|C7M |   |Cm7 |F7 |
+|C  |Am  |F  |G  |
+
+Major		               // This is a category
+|C7M |A7 |Dm7 |G7 |
+|C7M Am |Dm7 G7 |Em7 A7 |Dm7 G7|
+|C7M  C#dim7 |Dm7 |
+
+Minor
+|Cm7   |Fm7 |
+|Cm7b5 |Fm7 |Bb-7  |
+
+Blues
+|C6  |   |   |C7 |F7 |   |C6  |   |G7 |F7 |C6 |G7 |
+|C7  |F7 |C7 |   |F7 |   |C7  |A7 |Dm7 |G7 |C7 A7|Dm7 G7 |
+|Cm7 |   |   |   |Fm7|   |Cm7 |   |Ab7 |G7 |Cm7 |Dm7b5 G7b9 |

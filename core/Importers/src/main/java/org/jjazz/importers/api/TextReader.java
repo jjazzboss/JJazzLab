@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -133,7 +132,6 @@ public class TextReader
         List<CLI_ChordSymbol> cliChordSymbols = new ArrayList<>();
         List<CLI_Section> extraSections = new ArrayList<>();
         int beatBarBase = 0;
-        int barSize = 4;
         List<CLI_ChordSymbol> lastBarChords = new ArrayList<>();
         int barIndex = 0;
         int lineCount = 0;
@@ -225,10 +223,6 @@ public class TextReader
                     beat -= beatBarBase;
                     var cliCs = CLI_Factory.getDefault().createChordSymbol(ecs, bar, beat);
                     cliChordSymbols.add(cliCs);
-                    if (bar >= barSize)
-                    {
-                        barSize = ((bar / 4) + 1) * 4;
-                    }
                 }
 
 
@@ -262,10 +256,6 @@ public class TextReader
                     float beat = (posInSeconds - barPosInSeconds) / oneBeatDurInSeconds;
                     var cliCs = CLI_Factory.getDefault().createChordSymbol(ecs, bar, beat);
                     cliChordSymbols.add(cliCs);
-                    if (bar >= barSize)
-                    {
-                        barSize = ((bar / 4) + 1) * 4;
-                    }
                 }
 
 
@@ -277,13 +267,13 @@ public class TextReader
                 // To be compatible with ChordPulse text export, remove all "." and isolated "/" (indicate a beat position)
                 String lineGrid = line.replaceAll("\\.", "");
                 lineGrid = lineGrid.replaceAll("/ ", "");
-                
+
                 // for split to create the right nb of bars, remove first '|' and possibly last '|'
                 lineGrid = lineGrid.replaceFirst("^\\s*[|!]", "");
                 lineGrid = lineGrid.replaceFirst("[|!]\\s*$", "");
                 String[] strBars = lineGrid.split("[|!]", -1);
-                
-                
+
+
                 List<CLI_ChordSymbol> curBarChords;
 
                 for (String strBar : strBars)
@@ -374,9 +364,8 @@ public class TextReader
 
 
         // Create the song object from the collected data
-        barSize = Math.max(barSize, barIndex);
         String sName = "A";
-        ChordLeadSheet cls = ChordLeadSheetFactory.getDefault().createEmptyLeadSheet(sName, ts0, barSize, null);
+        ChordLeadSheet cls = ChordLeadSheetFactory.getDefault().createEmptyLeadSheet(sName, ts0, barIndex, null);
         SongFactory sf = SongFactory.getInstance();
         Song song = null;
         try
@@ -429,19 +418,21 @@ public class TextReader
         return res;
     }
 
+
     /**
      * Get a (possibly multiline) string representing the chord leadsheet e.g. "|4/4 C7 | Dm6 G7 | Ab7M | G7#5|".
      *
      * @param cls
      * @param nbBarsPerLine
+     * @param showInitialTimeSignature
      * @return A string which could be read by a TextReader.
      */
-    public static String toText(ChordLeadSheet cls, int nbBarsPerLine)
+    public static String toText(ChordLeadSheet cls, int nbBarsPerLine, boolean showInitialTimeSignature)
     {
         Preconditions.checkNotNull(cls);
         Preconditions.checkArgument(nbBarsPerLine > 0);
         StringBuilder sb = new StringBuilder();
-        TimeSignature ts = null;
+        TimeSignature ts = showInitialTimeSignature ? null: cls.getSection(0).getData().getTimeSignature();
 
         for (int bar = 0; bar < cls.getSizeInBars(); bar++)
         {
