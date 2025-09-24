@@ -29,7 +29,6 @@ import java.awt.KeyboardFocusManager;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.util.List;
@@ -76,7 +75,7 @@ import org.jjazz.cl_editorimpl.actions.MoveItemRight;
 import org.jjazz.flatcomponents.api.FlatComponentsGlobalSettings;
 import org.jjazz.cl_editor.itemrenderer.api.IR_Type;
 import org.jjazz.cl_editor.itemrenderer.api.ItemRenderer;
-import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
+import org.jjazz.cl_editorimpl.actions.HearChord;
 import org.jjazz.uiutilities.api.Zoomable;
 import org.openide.awt.Actions;
 import org.openide.util.Utilities;
@@ -93,6 +92,7 @@ public class CL_EditorController implements CL_EditorMouseListener
     private final Action editAction;
     private final Action transposeUpAction;
     private final Action transposeDownAction;
+    private final Action hearChordAction;
 
     /**
      * Popupmenus depending of selection.
@@ -122,12 +122,15 @@ public class CL_EditorController implements CL_EditorMouseListener
         transposeDownAction = Actions.forID("JJazz", "org.jjazz.cl_editor.actions.transposedown");
         transposeUpAction = Actions.forID("JJazz", "org.jjazz.cl_editor.actions.transposeup");
         editAction = Actions.forID("JJazz", "org.jjazz.cl_editor.actions.edit");
+        hearChordAction = Actions.forID("JJazz", "org.jjazz.cl_editor.actions.hearchord");
 
         // Actions created by annotations (equivalent to org.openide.awt.Actions.context())
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(TransposeDown.KEYSTROKE, "TransposeDown");
         editor.getActionMap().put("TransposeDown", transposeDownAction);
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(TransposeUp.KEYSTROKE, "TransposeUp");
         editor.getActionMap().put("TransposeUp", transposeUpAction);
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(HearChord.KEYSTROKE, "HearChord");
+        editor.getActionMap().put("HearChord", hearChordAction);
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(RemoveBar.KEYSTROKE, "RemoveBar");
         editor.getActionMap().put("RemoveBar", Actions.forID("JJazz", "org.jjazz.cl_editor.actions.removebar"));
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(MoveItemLeft.KEYSTROKE, "MoveItemLeft");
@@ -241,8 +244,12 @@ public class CL_EditorController implements CL_EditorMouseListener
                 selection.unselectAll(editor);
                 editor.selectItem(item, true);
                 editor.setFocusOnItem(item, irType);
-            } else if ((e.getModifiersEx() & (InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK))
-                    == InputEvent.CTRL_DOWN_MASK)
+                if (e.isAltDown())
+                {
+                    hearChordAction.actionPerformed(null);
+                }
+
+            } else if ((e.getModifiersEx() & (InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK)) == InputEvent.CTRL_DOWN_MASK)
             {
                 // CTRL CLICK
                 // Just add selection, don't change focus

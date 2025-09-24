@@ -27,6 +27,8 @@ import java.awt.Point;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.event.InputEvent;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
@@ -68,7 +70,7 @@ import org.openide.util.Exceptions;
 public class CL_EditorTransferHandler extends TransferHandler
 {
 
-    private CL_EditorImpl editorImpl;
+    private final CL_EditorImpl editorImpl;
     private final Collection<String> dragInFileExtensions;
     private static final Logger LOGGER = Logger.getLogger(CL_EditorTransferHandler.class.getSimpleName());
 
@@ -98,6 +100,24 @@ public class CL_EditorTransferHandler extends TransferHandler
         }
         LOGGER.log(Level.FINE, "getSourceActions()  res={0}", res);
         return res;
+    }
+
+
+    /**
+     * Overridden to limit drag start to ItemRenderers with no modifier used.
+     *
+     * @param comp
+     * @param e
+     * @param action
+     */
+    @Override
+    public void exportAsDrag(JComponent comp, InputEvent e, int action)
+    {
+        if (!(comp instanceof ItemRenderer) || e instanceof MouseEvent me && (me.isAltDown() || me.isShiftDown())) // ctrl is authorized for item copy
+        {
+            return;
+        }
+        super.exportAsDrag(comp, e, action);
     }
 
     /**

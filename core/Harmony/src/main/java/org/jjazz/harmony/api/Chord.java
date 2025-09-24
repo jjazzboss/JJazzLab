@@ -38,7 +38,7 @@ public class Chord implements Cloneable
     /**
      * The notes of the chord
      */
-    private List<Note> notes = new ArrayList<>();
+    private final List<Note> notes = new ArrayList<>();
     private static final Logger LOGGER = Logger.getLogger(Chord.class.getName());
 
     public Chord()
@@ -114,11 +114,11 @@ public class Chord implements Cloneable
     /**
      * Return the notes of this chord.
      *
-     * @return A list of Note objects ordered by ascending pitch.
+     * @return An unmodifiable list ordered by ascending pitch.
      */
     public List<Note> getNotes()
     {
-        return new ArrayList<>(notes);
+        return Collections.unmodifiableList(notes);
     }
 
     /**

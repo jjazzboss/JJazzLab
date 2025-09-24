@@ -23,6 +23,7 @@
 package org.jjazz.rhythmmusicgeneration.api;
 
 import com.google.common.base.Preconditions;
+import java.util.ArrayList;
 import java.util.Collections;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.NoteEvent;
@@ -174,7 +175,7 @@ public class DummyGenerator implements MusicGenerator
             Chord c = cliCs.getData().getChord();
             float noteDuration = (brCliCs.size() / c.size()) - 0.01f;
 
-            var notes = c.getNotes();
+            var notes = new ArrayList<>(c.getNotes());
             Collections.shuffle(notes);
             for (var n : notes)
             {

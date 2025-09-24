@@ -374,6 +374,8 @@ public class ChordSymbol implements Cloneable
     /**
      * Get the chord corresponding to this ChordSymbol.
      * <p>
+     * First note of the chord is the relative pitch of the root note (bass note is ignored), then next notes are above the root note, with extension notes
+     * 9-11-13 at the end.<p>
      * The method chooses to use flat or sharp notes depending on the ChordSymbol, using the most "common" tonality associated to the ChordSymbol.
      *
      * @return
@@ -400,7 +402,7 @@ public class ChordSymbol implements Cloneable
         if (name.length() >= 2 && name.charAt(1) == '#')
         {
             defaultAlt = Accidental.SHARP;
-            for (var n : c.getNotes())
+            for (var n : c.getNotes().toArray(Note[]::new))
             {
                 // Change all notes
                 c.removeNote(n.getPitch());
