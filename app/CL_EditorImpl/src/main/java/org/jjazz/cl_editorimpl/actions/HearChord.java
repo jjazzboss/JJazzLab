@@ -61,7 +61,7 @@ import org.openide.util.Utilities;
 @ActionRegistration(displayName = "unused", lazy = false) // lazy is false to show the accelerator key in the menu
 @ActionReferences(
         {
-            @ActionReference(path = "Actions/ChordSymbol", position = 415),
+            @ActionReference(path = "Actions/ChordSymbol", position = 2010),
         })
 public final class HearChord extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
 {
