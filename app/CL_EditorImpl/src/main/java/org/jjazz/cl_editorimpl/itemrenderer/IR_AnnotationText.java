@@ -46,6 +46,7 @@ import org.jjazz.uiutilities.api.RedispatchingMouseAdapter;
  */
 public class IR_AnnotationText extends ItemRenderer implements IR_Copiable
 {
+
     /**
      * Border size between text and edge.
      */
@@ -95,15 +96,15 @@ public class IR_AnnotationText extends ItemRenderer implements IR_Copiable
         scrollPane.setOpaque(false);
         scrollPane.getViewport().setOpaque(false);
         scrollPane.setBorder(null);
-        setLayout(new BorderLayout());        
+        setLayout(new BorderLayout());
         add(scrollPane);
 
-        
+
         // Redispatch mouse events for selection and drag to work
         var mouseRedispatcher = new RedispatchingMouseAdapter(this);
         textArea.addMouseListener(mouseRedispatcher);
         textArea.addMouseMotionListener(mouseRedispatcher);
-        
+
     }
 
     public void setNbLines(int n)
@@ -120,7 +121,7 @@ public class IR_AnnotationText extends ItemRenderer implements IR_Copiable
         return nbLines;
     }
 
-   
+
     /**
      * Zoom factor.
      *
@@ -130,13 +131,7 @@ public class IR_AnnotationText extends ItemRenderer implements IR_Copiable
     public void setZoomFactor(int factor)
     {
         zoomFactor = factor;
-        float f2 = 0.5f + (zoomFactor / 100f);
-        float zFontSize = f2 * getFont().getSize2D();
-        zFontSize = Math.max(zFontSize, 7);
-        zFont = getFont().deriveFont(zFontSize);
-        textArea.setFont(zFont);
-        revalidate();
-        repaint();
+
     }
 
     @Override
@@ -172,12 +167,12 @@ public class IR_AnnotationText extends ItemRenderer implements IR_Copiable
     @Override
     public void paint(Graphics g)
     {
-        super.paint(g);   
+        super.paint(g);
 
 
         if (copyMode)
         {
-            Graphics2D g2 = (Graphics2D) g;            
+            Graphics2D g2 = (Graphics2D) g;
             // Draw the copy indicator in upper right corner
             int size = IR_Copiable.CopyIndicator.getSideLength();
             Graphics2D gg2 = (Graphics2D) g2.create(Math.max(getWidth() - size - 1, 0), 1, size, size);
@@ -199,6 +194,7 @@ public class IR_AnnotationText extends ItemRenderer implements IR_Copiable
             if (e.getPropertyName().equals(IR_AnnotationTextSettings.PROP_FONT))
             {
                 setFont(settings.getFont());
+                fontOrZoomChanged();
             } else if (e.getPropertyName().equals(IR_AnnotationTextSettings.PROP_FONT_COLOR))
             {
                 setTextFontColor(settings.getColor());
@@ -223,11 +219,18 @@ public class IR_AnnotationText extends ItemRenderer implements IR_Copiable
     // Private functions
     //-------------------------------------------------------------------------------
 
-    /**
-     * Update text area font color.
-     */
     private void setTextFontColor(Color c)
     {
-        textArea.setDisabledTextColor(c);
+        textArea.setDisabledTextColor(c);       // Since textArea is disabled (see why in constructor)
+        textArea.repaint();
+    }
+
+    private void fontOrZoomChanged()
+    {
+        float f2 = 0.5f + (zoomFactor / 100f);
+        float zFontSize = f2 * getFont().getSize2D();
+        zFontSize = Math.max(zFontSize, 7);
+        zFont = getFont().deriveFont(zFontSize);
+        textArea.setFont(zFont);
     }
 }

@@ -25,7 +25,6 @@ package org.jjazz.cl_editorimpl.itemrenderer;
 import java.awt.Color;
 import java.awt.Font;
 import java.beans.PropertyChangeListener;
-import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
@@ -131,7 +130,7 @@ public class IR_AnnotationTextSettingsImpl implements IR_AnnotationTextSettings,
     @Override
     public List<FontColorUserSettingsProvider.FCSetting> getFCSettings()
     {
-        return Arrays.asList((FontColorUserSettingsProvider.FCSetting) this);
+        return List.of(this);
     }
 
 }
