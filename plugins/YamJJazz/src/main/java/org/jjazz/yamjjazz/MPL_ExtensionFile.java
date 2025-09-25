@@ -258,7 +258,7 @@ public class MPL_ExtensionFile extends MidiParserListenerAdapter
      */
     public StylePartType getType(String marker)
     {
-        if (marker == null || marker.trim().isEmpty())
+        if (marker == null || marker.isBlank())
         {
             throw new IllegalArgumentException("marker=" + marker);   //NOI18N
         }
@@ -276,7 +276,7 @@ public class MPL_ExtensionFile extends MidiParserListenerAdapter
      */
     private int getComplexityLevel(String marker)
     {
-        if (marker == null || marker.trim().isEmpty())
+        if (marker == null || marker.isBlank())
         {
             throw new IllegalArgumentException("marker=" + marker);   //NOI18N
         }
@@ -304,7 +304,7 @@ public class MPL_ExtensionFile extends MidiParserListenerAdapter
      */
     private String getTrackId(String marker)
     {
-        if (marker == null || marker.trim().isEmpty())
+        if (marker == null || marker.isBlank())
         {
             throw new IllegalArgumentException("marker=" + marker);   //NOI18N
         }
@@ -325,7 +325,7 @@ public class MPL_ExtensionFile extends MidiParserListenerAdapter
      */
     private int getSizeInBeats(String marker)
     {
-        if (marker == null || marker.trim().isEmpty())
+        if (marker == null || marker.isBlank())
         {
             throw new IllegalArgumentException("marker=" + marker);   //NOI18N
         }
