@@ -35,6 +35,7 @@ import org.jjazz.rhythmdatabaseimpl.api.FavoriteRhythms;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.RhythmInfo;
 import org.jjazz.rhythm.spi.RhythmProvider;
+import org.jjazz.rhythm.spi.StubRhythmProvider;
 import org.jjazz.rhythmdatabaseimpl.api.FavoriteRhythmProvider;
 import org.openide.util.WeakListeners;
 
@@ -103,7 +104,7 @@ public class RhythmProviderJList extends JList<RhythmProvider> implements Change
         /**
          * Add the nb of the rhythms of the RhythmProvider and a tooltip.
          * <p>
-         * Also handle the special case of the FavoriteRhythmProvider instance.
+         * Handle special cases: FavoriteRhythmProvider and StubRhythmProviderID.
          *
          * @param list
          * @param value
@@ -125,8 +126,12 @@ public class RhythmProviderJList extends JList<RhythmProvider> implements Change
             List<RhythmInfo> rhythms = (rp == frp) ? frp.getBuiltinRhythmInfos() : rdb.getRhythms(rp);
             int size = tsFilter == null ? rhythms.size() : (int) rhythms.stream().filter(r -> r.timeSignature().equals(tsFilter)).count();
 
-            setText(rpi.getName() + " (" + size + ")");
-            setToolTipText(rpi.getDescription() + " - version " + rpi.getVersion());
+            // StubRhythmProviders are somewhat "hidden"
+            boolean isStubRhythmProvider = rp instanceof StubRhythmProvider;
+            var text = !isStubRhythmProvider ? rpi.getName() + " (" + size + ")" : "";
+            var tooltip = !isStubRhythmProvider ? rpi.getDescription(): "Dummy rhythms provider";
+            setText(text);
+            setToolTipText(tooltip);
 
             return c;
         }

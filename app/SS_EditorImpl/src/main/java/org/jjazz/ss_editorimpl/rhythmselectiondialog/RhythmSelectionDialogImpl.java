@@ -59,6 +59,7 @@ import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
 import org.jjazz.rhythm.spi.RhythmDirsLocator;
+import org.jjazz.rhythm.spi.StubRhythmProvider;
 import org.jjazz.rhythmdatabaseimpl.api.FavoriteRhythmProvider;
 import org.jjazz.rhythmselectiondialog.spi.RhythmPreviewer;
 import org.jjazz.rhythmdatabaseimpl.api.AddRhythmsAction;
@@ -373,17 +374,29 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         // Save selection
         RhythmProvider saveSelRp = selectedRhythmProvider;
 
-        // Rebuild the RhythmProvider list
-        RhythmDatabase rdb = RhythmDatabase.getDefault();
-        List<RhythmProvider> rps = new ArrayList<>();
-        rps.add(FavoriteRhythmProvider.getInstance());          // Always first
-        rps.addAll(rdb.getRhythmProviders());
+        List<RhythmProvider> rps = buildRhythmProviderList();
         list_RhythmProviders.setListData(rps.toArray(RhythmProvider[]::new));
 
         // Restore selection when possible
         selectedRhythmProvider = null;        // To make sure table is rebuilt
         RhythmProvider selRp = saveSelRp != null ? saveSelRp : presetRhythmProvider;
         list_RhythmProviders.setSelectedValue(selRp, true);  // This will update the rhythm table and restore selection if possible
+    }
+
+    private List<RhythmProvider> buildRhythmProviderList()
+    {
+        RhythmDatabase rdb = RhythmDatabase.getDefault();
+        List<RhythmProvider> rps = new ArrayList<>();
+        rps.addAll(rdb.getRhythmProviders());
+        rps.sort((rp1, rp2) -> rp1.getInfo().getName().compareTo(rp2.getInfo().getName()));     // alphabetical sort
+        // Put StubRhythmProviders at the end
+        var stubRps = rps.stream()
+                .filter(rp -> rp instanceof StubRhythmProvider)
+                .toList();
+        rps.removeAll(stubRps);
+        rps.addAll(stubRps);
+        rps.add(0, FavoriteRhythmProvider.getInstance());          // Always first
+        return rps;
     }
 
     /**
@@ -932,10 +945,11 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
                 .addGap(9, 9, 9)
                 .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btn_Ok)
-                    .addComponent(btn_Cancel)
-                    .addComponent(pnl_customComponent, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(pnl_customComponent, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(btn_Ok)
+                        .addComponent(btn_Cancel)))
                 .addContainerGap())
         );
 
