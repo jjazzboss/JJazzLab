@@ -50,6 +50,7 @@ import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.StatusDisplayer;
 import org.jjazz.outputsynth.spi.OutputSynthManager;
+import org.jjazz.rhythm.api.MusicGenerationException;
 
 /**
  * Controller of a MixChannelPanel + associated PhraseViewerPanel.
@@ -170,6 +171,38 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
         // Retrieve the phrase
         var asmb = ActiveSongBackgroundMusicBuilder.getDefault();
         var lastResult = asmb.getLastResult();
+
+
+        // Check for exception during last music generation
+        var ex = lastResult.throwable();
+        if (ex != null)
+        {
+            Level logLevel;
+            String msg;
+            if (ex instanceof MusicGenerationException)
+            {
+                // MusicGenerationException can be a missing chord at section start                
+                msg = ex.getMessage();
+                logLevel = Level.WARNING;
+            } else
+            {
+                // It's more serious
+                ex.printStackTrace();
+                msg = "Unexpected error, please check the log file and report the bug.\nex=" + ex.getMessage();
+                logLevel = Level.SEVERE;
+            }
+            LOGGER.log(logLevel, "cloneRhythmTrackAsUserTrack() {0} catched. msg={1}", new Object[]
+            {
+                ex.getClass().getSimpleName(),
+                ex.getMessage()
+            });
+            NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
+            DialogDisplayer.getDefault().notify(d);
+            return;
+        }
+
+
+        // Check for update status
         if (!asmb.isLastResultUpToDate())
         {
             String msg = ResUtil.getString(getClass(), "MixChannelPanelControllerImpl.ErrorCloneRhythmTrack");
@@ -178,7 +211,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
             return;
         }
 
-        
+
         Phrase p = lastResult.mapRvPhrases().get(rv);
         if (p == null)
         {
