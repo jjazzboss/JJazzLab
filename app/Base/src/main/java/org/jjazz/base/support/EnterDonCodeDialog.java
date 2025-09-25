@@ -56,12 +56,12 @@ public class EnterDonCodeDialog extends javax.swing.JDialog
 
     private String getDonationCode()
     {
-        return tf_code.getText().trim();
+        return tf_code.getText().strip();
     }
 
     private String getEmail()
     {
-        return tf_email.getText().trim();
+        return tf_email.getText().strip();
     }
 
 

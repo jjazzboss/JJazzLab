@@ -16,8 +16,6 @@ import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.base.spi.AboutDialogInfoProvider;
-import org.jjazz.upgrade.api.UpgradeManager;
-import org.jjazz.upgrade.api.UpgradeTask;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
