@@ -36,7 +36,7 @@ The delegate actions (found using ActionMap of the focusedComponent) may also be
 
 
 ACTIONS enablement depend on only 1 type of selected object 
-For example TransposerDown or SetEnd Bar
+For example TransposeDown or SetEnd Bar
 Simple: register the action so it is instanciated, the action must have a constructor
 with objecttype parameter for action enabled if only 1 object selected
 or List<objecttype> for action enabled if a several objects selected.

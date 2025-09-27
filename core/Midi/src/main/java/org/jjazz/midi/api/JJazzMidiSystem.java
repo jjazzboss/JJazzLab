@@ -623,7 +623,7 @@ public final class JJazzMidiSystem
     /**
      * Connect the output of JJazzMidiOut device to this device.
      * <p>
-     * Fire a PROP_MIDI_OUT property chane event.property change event if device is modified.
+     * Fire a PROP_MIDI_OUT property change event.property change event if device is modified.
      *
      * @param md Can be null.
      * @throws javax.sound.midi.MidiUnavailableException If exception occurs, the default OUT device is unchanged.

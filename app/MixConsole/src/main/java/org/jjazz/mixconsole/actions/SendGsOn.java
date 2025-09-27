@@ -22,7 +22,6 @@
  */
 package org.jjazz.mixconsole.actions;
 
-import org.jjazz.midimix.api.MidiMix;
 import java.awt.event.ActionEvent;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
@@ -35,22 +34,21 @@ import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.awt.StatusDisplayer;
 
-@ActionID(category = "MixConsole", id = "org.jjazz.mixconsole.actions.sendgson")
-@ActionRegistration(displayName = "#CTL_SendGsOn", lazy = true)
+@ActionID(category = SendGsOn.ACTION_CATEGORY, id = SendGsOn.ACTION_ID)
+@ActionRegistration(displayName = "#CTL_SendGsOn", lazy = false)
 @ActionReferences(
         {
             @ActionReference(path = "Actions/MixConsole/MenuBar/Midi", position = 430)
         })
 public class SendGsOn extends AbstractAction
 {
-
-    private MidiMix sonxGidiMix;
     private final String undoText = ResUtil.getString(getClass(), "CTL_SendGsOn");
+    public static final String ACTION_CATEGORY = "MixConsole";
+    public static final String ACTION_ID = "org.jjazz.mixconsole.actions.sendgson";
     private static final Logger LOGGER = Logger.getLogger(SendGsOn.class.getSimpleName());
 
-    public SendGsOn(MidiMix context)
+    public SendGsOn()
     {
-        sonxGidiMix = context;
         putValue(NAME, undoText);
     }
 
