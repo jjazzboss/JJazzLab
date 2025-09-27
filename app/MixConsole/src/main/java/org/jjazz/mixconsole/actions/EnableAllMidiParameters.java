@@ -24,11 +24,16 @@ package org.jjazz.mixconsole.actions;
 
 import org.jjazz.midimix.api.MidiMix;
 import java.awt.event.ActionEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import static javax.swing.Action.NAME;
+import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.analytics.api.Analytics;
+import org.jjazz.midi.api.JJazzMidiSystem;
+import org.jjazz.mixconsole.SynthUtils;
 import org.jjazz.song.api.Song;
 import org.jjazz.mixconsole.api.MixConsoleTopComponent;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
@@ -39,23 +44,29 @@ import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 
 @ActionID(category = "MixConsole", id = "org.jjazz.mixconsole.actions.EnableAllMidiParameters")
-@ActionRegistration(displayName = "#CTL_EnableAllMidiParameters", lazy = true)
+@ActionRegistration(displayName = "#CTL_EnableAllMidiParameters", lazy = false)
 @ActionReferences(
         {
             @ActionReference(path = "Actions/MixConsole/MenuBar/Midi", position = 100)
         })
-public class EnableAllMidiParameters extends AbstractAction
+public class EnableAllMidiParameters extends AbstractAction implements PropertyChangeListener
 {
-
-    private MidiMix songMidiMix;
+    private final MidiMix songMidiMix;
     private final String undoText = ResUtil.getString(getClass(), "CTL_EnableAllMidiParameters");
     private static final Logger LOGGER = Logger.getLogger(EnableAllMidiParameters.class.getSimpleName());
 
-    public EnableAllMidiParameters(MidiMix context)
+    public EnableAllMidiParameters()
     {
-        songMidiMix = context;
+        ActiveSongManager asm = ActiveSongManager.getDefault();
+        songMidiMix = asm.getActiveMidiMix();
+
         putValue(NAME, undoText);
         putValue(SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_EnableAllMidiParametersDescription"));
+
+        this.setEnabled(!SynthUtils.IS_FLUID_SYNTH_IN_USE());
+
+        JJazzMidiSystem jms =  JJazzMidiSystem.getInstance();
+        jms.addPropertyChangeListener(JJazzMidiSystem.PROP_MIDI_OUT, this);
     }
 
     @Override
@@ -74,4 +85,10 @@ public class EnableAllMidiParameters extends AbstractAction
         Analytics.logEvent("Enable All Midi Parameters");
     }
 
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        this.setEnabled(!SynthUtils.IS_FLUID_SYNTH(evt.getNewValue()));
+        LOGGER.info("SYNTH NAME IN EVENT ---old--- " + evt.getOldValue());
+        LOGGER.info("SYNTH NAME IN EVENT ---new--- " + evt.getNewValue());
+    }
 }
