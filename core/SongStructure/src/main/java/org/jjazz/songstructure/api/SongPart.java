@@ -39,7 +39,6 @@ import org.jjazz.utilities.api.StringProperties;
  */
 public interface SongPart extends Transferable
 {
-
     /**
      * Fired when a rhythm parameter value has changed.
      * <p>
@@ -48,6 +47,7 @@ public interface SongPart extends Transferable
      * oldValue=rhythm parameter, newValue=value.
      */
     public static final String PROP_RP_VALUE = "SptRpValue";
+
     /**
      * Fired when a mutable value has changed (in addition to the PROP_RP_VALUE change event).
      * <p>

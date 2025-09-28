@@ -340,9 +340,13 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
                 var spt = song.getSongStructure().getSongPart(offsettedBar);
                 if (spt.getStartBarIndex() == offsettedBar)
                 {
-                    String text = spt.getName();
+                    String sptName = spt.getName();
+                    String secName = spt.getParentSection().getData().getName();
+                    String sptLabel = sptName.equals(secName)
+                            ? sptName
+                            : String.format("%s(%s)", sptName, secName);
                     StringMetrics sm = new StringMetrics(g2, SMALL_FONT);
-                    var bounds = sm.getLogicalBoundsNoLeadingNoDescent(text);
+                    var bounds = sm.getLogicalBoundsNoLeadingNoDescent(sptLabel);
 
                     // Draw rounded box
                     float PADDING = 1;
@@ -359,7 +363,7 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
                     float xStr = xSongPart + PADDING;
                     g2.setFont(SMALL_FONT);
                     g2.setColor(COLOR_SONG_PART_FONT);
-                    g2.drawString(text, xStr, yTimeSignatureBaseLine);
+                    g2.drawString(sptLabel, xStr, yTimeSignatureBaseLine);
                 }
             }
 
@@ -439,8 +443,8 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
                 if (loopZone.contains(bar))
                 {
                     // Draw a thin rectangle at the bottom
-                    double HEIGHT = 2d;
-                    var r = new Rectangle2D.Double(x, y - HEIGHT + 1, oneBeatPixelSize, HEIGHT);
+                    double RECT_HEIGHT = 2d;
+                    var r = new Rectangle2D.Double(x, y - RECT_HEIGHT + 1, oneBeatPixelSize, RECT_HEIGHT);
                     g2.draw(r);
                     g2.fill(r);
                 }
@@ -470,7 +474,6 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
                 float yStr = yBottomBarLane - 1;           // text baseline position
                 g2.drawString(aStr.getIterator(), xStr, yStr);
             }
-
         }
 
 
@@ -491,8 +494,6 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
             g2.draw(p);
             g2.fill(p);
         }
-
-
     }
 
 
@@ -633,7 +634,6 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
                 clEditor.unselectAll();
                 clEditor.selectItem(cliCs, true);
             }
-
         }
 
         @Override
