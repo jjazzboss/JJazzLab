@@ -51,6 +51,7 @@ import org.openide.awt.ActionRegistration;
         })
 public class EnableAllMidiParameters extends AbstractAction implements PropertyChangeListener
 {
+
     private final MidiMix songMidiMix;
     private final String undoText = ResUtil.getString(getClass(), "CTL_EnableAllMidiParameters");
     private static final Logger LOGGER = Logger.getLogger(EnableAllMidiParameters.class.getSimpleName());
@@ -65,14 +66,14 @@ public class EnableAllMidiParameters extends AbstractAction implements PropertyC
 
         this.setEnabled(!SynthUtils.IS_FLUID_SYNTH_IN_USE());
 
-        JJazzMidiSystem jms =  JJazzMidiSystem.getInstance();
+        JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
         jms.addPropertyChangeListener(JJazzMidiSystem.PROP_MIDI_OUT, this);
     }
 
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        LOGGER.log(Level.FINE, "actionPerformed() songMidiMix={0}", songMidiMix);   
+        LOGGER.log(Level.FINE, "actionPerformed() songMidiMix={0}", songMidiMix);
 
         Song song = MixConsoleTopComponent.getInstance().getEditor().getSong();
 
@@ -81,14 +82,13 @@ public class EnableAllMidiParameters extends AbstractAction implements PropertyC
         DisableAllMidiParameters.setAllMidiParametersEnabled(true, songMidiMix);
 
         JJazzUndoManagerFinder.getDefault().get(song).endCEdit(undoText);
-        
+
         Analytics.logEvent("Enable All Midi Parameters");
     }
 
     @Override
-    public void propertyChange(PropertyChangeEvent evt) {
+    public void propertyChange(PropertyChangeEvent evt)
+    {
         this.setEnabled(!SynthUtils.IS_FLUID_SYNTH(evt.getNewValue()));
-        LOGGER.info("SYNTH NAME IN EVENT ---old--- " + evt.getOldValue());
-        LOGGER.info("SYNTH NAME IN EVENT ---new--- " + evt.getNewValue());
     }
 }
