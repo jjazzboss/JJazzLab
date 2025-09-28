@@ -43,7 +43,7 @@ import org.jjazz.utilities.api.Utilities;
  * <p>
  * A MidiSynth contains at least one InstrumentBank with one instrument.
  * <p>
- * You can optionnaly specify if this MidiSynth is GM/GM2/XG/GS compatible, and indicate the base MidiAddress of the GM bank.
+ * You can optionally specify if this MidiSynth is GM/GM2/XG/GS compatible, and indicate the base MidiAddress of the GM bank.
  */
 public class MidiSynth
 {
@@ -55,7 +55,6 @@ public class MidiSynth
      */
     public interface Finder
     {
-
         /**
          * Find the first Finder implementation in the global lookup.
          *

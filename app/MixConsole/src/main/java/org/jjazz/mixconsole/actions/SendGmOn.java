@@ -22,12 +22,14 @@
  */
 package org.jjazz.mixconsole.actions;
 
-import org.jjazz.midimix.api.MidiMix;
 import java.awt.event.ActionEvent;
-import java.util.logging.Logger;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import javax.swing.AbstractAction;
 import static javax.swing.Action.NAME;
+import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.midi.api.MidiUtilities;
+import org.jjazz.mixconsole.SynthUtils;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -35,23 +37,26 @@ import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.awt.StatusDisplayer;
 
-@ActionID(category = "MixConsole", id = "org.jjazz.mixconsole.actions.sendgmon")
-@ActionRegistration(displayName = "#CTL_SendGmOn", lazy = true)
+@ActionID(category = SendGmOn.ACTION_CATEGORY, id = SendGmOn.ACTION_ID)
+@ActionRegistration(displayName = "#CTL_SendGmOn", lazy = false)
 @ActionReferences(
         {
             @ActionReference(path = "Actions/MixConsole/MenuBar/Midi", position = 300, separatorBefore=299)
         })
-public class SendGmOn extends AbstractAction
+public class SendGmOn extends AbstractAction implements PropertyChangeListener
 {
-
-    private MidiMix songMidiMix;
     private final String undoText = ResUtil.getString(getClass(), "CTL_SendGmOn");
-    private static final Logger LOGGER = Logger.getLogger(SendGmOn.class.getSimpleName());
+    public static final String ACTION_CATEGORY = "MixConsole";
+    public static final String ACTION_ID = "org.jjazz.mixconsole.actions.sendgmon";
 
-    public SendGmOn(MidiMix context)
+    public SendGmOn()
     {
-        songMidiMix = context;
         putValue(NAME, undoText);
+
+        this.setEnabled(!SynthUtils.IS_FLUID_SYNTH_IN_USE());
+
+        JJazzMidiSystem jms =  JJazzMidiSystem.getInstance();
+        jms.addPropertyChangeListener(JJazzMidiSystem.PROP_MIDI_OUT, this);
     }
 
     @Override
@@ -59,5 +64,10 @@ public class SendGmOn extends AbstractAction
     {
         MidiUtilities.sendSysExMessage(MidiUtilities.getGmModeOnSysExMessage());
         StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "CTL_GMMidiMessageSent"));
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        this.setEnabled(!SynthUtils.IS_FLUID_SYNTH(evt.getNewValue()));
     }
 }

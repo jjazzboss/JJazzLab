@@ -22,12 +22,14 @@
  */
 package org.jjazz.mixconsole.actions;
 
-import org.jjazz.midimix.api.MidiMix;
 import java.awt.event.ActionEvent;
-import java.util.logging.Logger;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import javax.swing.AbstractAction;
 import static javax.swing.Action.NAME;
+import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.midi.api.MidiUtilities;
+import org.jjazz.mixconsole.SynthUtils;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -35,23 +37,26 @@ import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.awt.StatusDisplayer;
 
-@ActionID(category = "MixConsole", id = "org.jjazz.mixconsole.actions.sendxgon")
-@ActionRegistration(displayName = "#CTL_SendXgOn", lazy = true)
+@ActionID(category = SendXgOn.ACTION_CATEGORY, id = SendXgOn.ACTION_ID)
+@ActionRegistration(displayName = "#CTL_SendXgOn", lazy = false)
 @ActionReferences(
         {
             @ActionReference(path = "Actions/MixConsole/MenuBar/Midi", position = 400)
         })
-public class SendXgOn extends AbstractAction
+public class SendXgOn extends AbstractAction implements PropertyChangeListener
 {
-
-    private MidiMix sonxGidiMix;
     private final String undoText = ResUtil.getString(getClass(), "CTL_SendXgOn");
-    private static final Logger LOGGER = Logger.getLogger(SendXgOn.class.getSimpleName());
+    public static final String ACTION_CATEGORY = "MixConsole";
+    public static final String ACTION_ID = "org.jjazz.mixconsole.actions.sendxgon";
 
-    public SendXgOn(MidiMix context)
+    public SendXgOn()
     {
-        sonxGidiMix = context;
         putValue(NAME, undoText);
+
+        this.setEnabled(!SynthUtils.IS_FLUID_SYNTH_IN_USE());
+
+        JJazzMidiSystem jms =  JJazzMidiSystem.getInstance();
+        jms.addPropertyChangeListener(JJazzMidiSystem.PROP_MIDI_OUT, this);
     }
 
     @Override
@@ -59,5 +64,10 @@ public class SendXgOn extends AbstractAction
     {
         MidiUtilities.sendSysExMessage(MidiUtilities.getXgModeOnSysExMessage());
         StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "CTL_XGMidiMessageSent"));
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        this.setEnabled(!SynthUtils.IS_FLUID_SYNTH(evt.getNewValue()));
     }
 }
