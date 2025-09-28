@@ -388,7 +388,7 @@ public class Humanizer
 
 
             // Get the new replacing note and update state
-            var newNe = ne.setAll(-1, newDuration, newVelocity, newPosInBeats, true);
+            var newNe = ne.setAll(-1, newDuration, newVelocity, newPosInBeats, null, true);
             registeredNotes.remove(ne);
             registeredNotes.add(newNe);
             mapNoteOrig.remove(ne);

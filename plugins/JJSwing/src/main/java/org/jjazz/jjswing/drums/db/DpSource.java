@@ -258,7 +258,7 @@ public class DpSource
                 {
                     newDur = targetBeatRange.to - 0.001f - newPosInBeats;
                 }
-                var newNe = ne.setAll(ne.getPitch(), newDur, ne.getVelocity(), newPosInBeats, false);
+                var newNe = ne.setAll(ne.getPitch(), newDur, ne.getVelocity(), newPosInBeats, null, false);
                 res.add(newNe);
             }
         }

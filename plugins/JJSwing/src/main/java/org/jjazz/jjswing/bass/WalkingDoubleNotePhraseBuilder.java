@@ -97,7 +97,7 @@ public class WalkingDoubleNotePhraseBuilder implements PhraseBuilder
                     });
                     continue;
                 }
-                ne0 = ne0.setAll(-1, 0.9f, -1, beatPos0, false);
+                ne0 = ne0.setAll(-1, 0.9f, -1, beatPos0, null, false);
                 var ne1 = ne0.setPosition(barStartBeatPos + 1, false);
 
 
@@ -139,7 +139,7 @@ public class WalkingDoubleNotePhraseBuilder implements PhraseBuilder
 
 
                 float beatPos2 = ne2.getPositionInBeats() < barStartBeatPos + 2f + NON_QUANTIZED_WINDOW ? ne2.getPositionInBeats() : barStartBeatPos + 2f;
-                ne2 = ne2.setAll(ne2pitch, 0.9f, -1, beatPos2, false);
+                ne2 = ne2.setAll(ne2pitch, 0.9f, -1, beatPos2, null, false);
                 var ne3 = ne2.setPosition(barStartBeatPos + 3f, false);
 
 

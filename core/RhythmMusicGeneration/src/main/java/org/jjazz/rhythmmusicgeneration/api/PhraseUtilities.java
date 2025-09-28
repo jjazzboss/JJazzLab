@@ -96,7 +96,7 @@ public class PhraseUtilities
             {
                 int destRelPitch = ecsSrc.getRelativePitch(srcNote.getRelativePitch(), ecsDest);
                 int destPitch = new Note(srcNote.getPitch() + rootPitchDelta).getClosestPitch(destRelPitch);
-                NoteEvent destNote = srcNote.setPitch(destPitch);
+                NoteEvent destNote = srcNote.setPitch(destPitch, true);
                 destNote.getClientProperties().put(PARENT_NOTE, srcNote);
                 pDest.add(destNote);  // Don't need addOrdered here
             }
@@ -120,7 +120,7 @@ public class PhraseUtilities
                     "srcDegree=" + srcDegree + " srcNote=" + srcNote + " pSrc=" + pSrc + " ecsDest=" + ecsDest + " chordMode=" + chordMode;
             int destRelPitch = ecsDest.getRelativePitch(destDegree);
             int destPitch = new Note(srcNote.getPitch() + rootPitchDelta).getClosestPitch(destRelPitch);
-            NoteEvent destNote = srcNote.setPitch(destPitch);
+            NoteEvent destNote = srcNote.setPitch(destPitch, true);
             destNote.getClientProperties().put(PARENT_NOTE, srcNote);
             pDest.add(destNote);
         }
@@ -185,7 +185,7 @@ public class PhraseUtilities
                 }
 
                 int destPitch = new Note(srcNote.getPitch() + rootPitchDelta).getClosestPitch(destRelPitch);
-                NoteEvent destNote = srcNote.setPitch(destPitch);
+                NoteEvent destNote = srcNote.setPitch(destPitch, true);
                 destNote.getClientProperties().put(PARENT_NOTE, srcNote);
                 pDest.add(destNote);         // Don't need addOrdered here
             }
@@ -216,7 +216,7 @@ public class PhraseUtilities
             }
 
             int destPitch = new Note(srcNote.getPitch() + rootPitchDelta).getClosestPitch(destRelPitch);
-            NoteEvent destNote = srcNote.setPitch(destPitch);
+            NoteEvent destNote = srcNote.setPitch(destPitch, true);
             destNote.getClientProperties().put(PARENT_NOTE, srcNote);
             pDest.add(destNote);         // Don't need addOrdered here
         }
@@ -346,7 +346,7 @@ public class PhraseUtilities
             if (srcIndex < bestDestChord.size())            // Because of computeParallelChord(), bestDestChord size might be smaller
             {
                 int destPitch = bestDestChord.getNote(srcIndex).getPitch();
-                NoteEvent destNote = srcNote.setPitch(destPitch);
+                NoteEvent destNote = srcNote.setPitch(destPitch, true);
                 destNote.getClientProperties().put(PARENT_NOTE, srcNote);
                 pDest.add(destNote);     // Don't need addOrdered here
             }

@@ -260,7 +260,7 @@ public class SelectionTool implements EditTool
                         {
                             float newDur = srcNe.getDurationInBeats() - posDelta;
                             newDur = Math.min(newDur, editor.getPhraseBeatRange().to - 0.001f - newPos);
-                            var newDragNe = srcNe.setAll(-1, newDur, -1, newPos, true);
+                            var newDragNe = srcNe.setAll(-1, newDur, -1, newPos, null, true);
                             NoteEvent.markIsAdjustingNote(newDragNe, true);
                             mapOldNew.put(dragNe, newDragNe);
                             mapSrcDragNotes.put(srcNe, newDragNe);
@@ -290,7 +290,7 @@ public class SelectionTool implements EditTool
                                 && (srcNe.getPositionInBeats() + newDur) < editor.getPhraseBeatRange().to)
                         {
                             var dragNe = mapSrcDragNotes.get(srcNe);
-                            var newDragNe = srcNe.setDuration(newDur);
+                            var newDragNe = srcNe.setDuration(newDur, true);
                             NoteEvent.markIsAdjustingNote(newDragNe, true);
                             mapOldNew.put(dragNe, newDragNe);
                             mapSrcDragNotes.put(srcNe, newDragNe);
@@ -350,7 +350,7 @@ public class SelectionTool implements EditTool
 
 
                         // Move the drag note
-                        var newDragNe = dragNe.setAll(newDragPitch, -1, -1, newDragPos, true);          // This also copies the isAdjusting clientProperties flag
+                        var newDragNe = dragNe.setAll(newDragPitch, -1, -1, newDragPos, null, true);          // This also copies the isAdjusting clientProperties flag
                         mapOldNew.put(dragNe, newDragNe);
                         mapSrcDragNotes.put(sne, newDragNe);
                     }
@@ -546,7 +546,7 @@ public class SelectionTool implements EditTool
                 var ne = snv.getModel();
                 int delta = (e.getWheelRotation() < 0) ? STEP : -STEP;
                 int newVel = MidiConst.clamp(ne.getVelocity() + delta);
-                var newNe = ne.setVelocity(newVel);
+                var newNe = ne.setVelocity(newVel, true);
                 mapOldNew.put(ne, newNe);
             }
             editor.getModel().replaceAll(mapOldNew, false);

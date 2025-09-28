@@ -6,7 +6,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -26,7 +25,6 @@ import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.Phrases;
 import org.jjazz.jjswing.api.RP_BassStyle;
-import org.jjazz.jjswing.api.BassStyle;
 import org.jjazz.jjswing.bass.db.Velocities;
 import org.jjazz.jjswing.bass.db.WbpSource;
 import org.jjazz.jjswing.bass.db.WbpSourceDatabase;
@@ -232,7 +230,7 @@ public class BassGenerator implements MusicGenerator
             p.processNotes(ne -> beatRange.contains(ne.getPositionInBeats(), true), ne -> 
             {
                 int v = MidiConst.clamp(ne.getVelocity() + velShift);
-                NoteEvent newNe = ne.setVelocity(v);
+                NoteEvent newNe = ne.setVelocity(v, false);
                 return newNe;
             });
         }
@@ -574,7 +572,7 @@ public class BassGenerator implements MusicGenerator
                     // Simple, just change the pitch of existing notes
                     for (var ne : nes)
                     {
-                        var neNew = ne.setPitch(getClosestAndAcceptableBassPitch(ne, bassRelPitch));
+                        var neNew = ne.setPitch(getClosestAndAcceptableBassPitch(ne, bassRelPitch), false);
                         p.replace(ne, neNew);
                     }
                 } else
@@ -608,7 +606,7 @@ public class BassGenerator implements MusicGenerator
                         .filter(ne -> ne.getPositionInBeats() < brCliCs.from + 2f - NON_QUANTIZED_WINDOW)
                         .forEach(ne -> 
                         {
-                            var neNew = ne.setPitch(getClosestAndAcceptableBassPitch(ne, bassRelPitch));
+                            var neNew = ne.setPitch(getClosestAndAcceptableBassPitch(ne, bassRelPitch), false);
                             p.replace(ne, neNew);
                         });
 
@@ -690,7 +688,7 @@ public class BassGenerator implements MusicGenerator
         for (var ne : nes)
         {
             var dur = ne.getDurationInBeats() - (beatPos - ne.getPositionInBeats());
-            var newNe = ne.setAll(-1, dur, -1, beatPos, false);
+            var newNe = ne.setAll(-1, dur, -1, beatPos, null, false);
             p.replace(ne, newNe);
         }
     }

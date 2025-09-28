@@ -67,7 +67,7 @@ public class WalkingDoubleTimePhraseBuilder implements PhraseBuilder
         {
             var newDur = ne.getDurationInBeats() / 2;
             var newPos = ne.getPositionInBeats() / 2;
-            return ne.setAll(ne.getPitch(), newDur, ne.getVelocity(), newPos, false);
+            return ne.setAll(ne.getPitch(), newDur, ne.getVelocity(), newPos, null, false);
         });
 
 

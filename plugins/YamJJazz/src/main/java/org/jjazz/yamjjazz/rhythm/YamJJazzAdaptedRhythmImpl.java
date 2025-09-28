@@ -363,7 +363,7 @@ public class YamJJazzAdaptedRhythmImpl implements YamJJazzAdaptedRhythm
                     newDur *= ((float) newNbBeatsPerBar) / oldNbBeatsPerBar;  // Make it longer proportionally
                     durExtended = true;
                 }
-                NoteEvent newNe = ne.setAll(-1, newDur, -1, newPosInBeats, true);
+                NoteEvent newNe = ne.setAll(-1, newDur, -1, newPosInBeats, null, true);
                 newPhrase.add(newNe);
 
                 if (!durExtended && relPosInBeats < (newNbBeatsPerBar - oldNbBeatsPerBar) - 0.1f)
@@ -372,7 +372,7 @@ public class YamJJazzAdaptedRhythmImpl implements YamJJazzAdaptedRhythm
                     float copyRelPosInBeats = relPosInBeats + oldNbBeatsPerBar;
                     float copyNePos = bar * newNbBeatsPerBar + copyRelPosInBeats;
                     float copyNeDur = copyRelPosInBeats + newDur >= newNbBeatsPerBar ? newNbBeatsPerBar - copyRelPosInBeats - 0.1f : newDur;
-                    NoteEvent copyNe = ne.setAll(-1, copyNeDur, -1, copyNePos, true);
+                    NoteEvent copyNe = ne.setAll(-1, copyNeDur, -1, copyNePos, null, true);
                     newPhrase.add(copyNe);
                 }
             }
@@ -398,7 +398,7 @@ public class YamJJazzAdaptedRhythmImpl implements YamJJazzAdaptedRhythm
                         // Can't exceed end of phrase
                         newDur = nbBars * newNbBeatsPerBar - newPosInBeats - 0.1f;
                     }
-                    NoteEvent newNe = ne.setAll(-1, newDur, -1, newPosInBeats, true);
+                    NoteEvent newNe = ne.setAll(-1, newDur, -1, newPosInBeats, null, true);
                     newPhrase.add(newNe);
                 }
             }

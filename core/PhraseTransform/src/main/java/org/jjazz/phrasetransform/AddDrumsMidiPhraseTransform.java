@@ -257,7 +257,7 @@ public class AddDrumsMidiPhraseTransform implements PhraseTransform
                     }
 
                     // Create the note at the right position
-                    var nne  = ne.setAll(-1, destDur, -1, destPos, true);
+                    var nne  = ne.setAll(-1, destDur, -1, destPos, null, true);
                     res.add(nne);
                 }
             }

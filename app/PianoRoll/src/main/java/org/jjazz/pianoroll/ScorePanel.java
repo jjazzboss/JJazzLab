@@ -46,10 +46,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 import org.jjazz.harmony.api.ChordSymbol;
-import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.Position;
+import org.jjazz.harmony.api.Note;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.midi.api.MidiConst;
-import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.pianoroll.api.NoteView;
@@ -123,7 +123,7 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
         baseChordFontHeight = (int) Math.ceil(new StringMetrics(baseChordFont).getHeight("I")); // include baseline
 
         // LOGGER.severe("ScorePanel() DEBUG Updating SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT");
-        // System.setProperty(NoteEvent.SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT, "%1$s p=%2$.1f");
+        // System.setProperty(Note.SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT, "%1$s p=%2$.1f");
 
     }
 
@@ -330,41 +330,46 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
 
 
         // Paint notes         
-        var noteEvents = computeClipImpactedNoteEvents(g2);
+        var allNoteEvents = computeClipImpactedNoteEvents(g2);
         var selectedNoteEvents = editor.getSelectedNoteEvents();
         var xMapper = notesPanel.getXMapper();
-        var chordNotes = new ChordNotes(noteEvents.size());
+        var noteEventBuffer = new NoteEventBuffer(allNoteEvents.size());
         MeasureContext mContext = null;
 
         int i = 0;
-        while (i < noteEvents.size())
+        while (i < allNoteEvents.size())
         {
-            var ne = noteEvents.get(i);
-            chordNotes.clear();
-            chordNotes.addOrdered(transpose(ne), selectedNoteEvents.contains(ne));
+            var ne = allNoteEvents.get(i);
+            noteEventBuffer.clear();
+            noteEventBuffer.addOrdered(transpose(ne), selectedNoteEvents.contains(ne));  // single note by default
             i++;
 
 
             // Group all the next notes if they are at the same position
-            while (i < noteEvents.size() && noteEvents.get(i).isNear(ne.getPositionInBeats(), 0.1f))
+            while (i < allNoteEvents.size() && allNoteEvents.get(i).isNear(ne.getPositionInBeats(), 0.1f))
             {
-                var samePosNe = noteEvents.get(i);
-                chordNotes.addOrdered(transpose(samePosNe), selectedNoteEvents.contains(samePosNe));
+                var samePosNe = allNoteEvents.get(i);
+                noteEventBuffer.addOrdered(transpose(samePosNe), selectedNoteEvents.contains(samePosNe));
                 i++;
             }
 
-            // Prepare to paint the group of notes
-            float posInBeats = ne.getPositionInBeats();
-            int x = xMapper.getX(posInBeats);
-            Position pos = xMapper.getPosition(posInBeats);
-            int bar = pos.getBar();
-            ChordSymbol cs = getChordSymbol(pos);
-            if (mContext == null || mContext.getBarIndex() != bar)
+
+            // Update the MeasureContext
+            float neBeatPos = ne.getPositionInBeats();
+            Position nePos = xMapper.getPosition(neBeatPos);
+            TimeSignature ts = editor.getTimeSignature(neBeatPos);
+            if (mContext == null || mContext.getBarIndex() != nePos.getBar())
             {
-                mContext = new MeasureContext(ng, bar, new Note(60));
+                float barStartBeatPos = nePos.isFirstBarBeat() ? neBeatPos : xMapper.getBeatPosition(new Position(nePos.getBar(), 0));
+                FloatRange beatRange = new FloatRange(barStartBeatPos, barStartBeatPos + ts.getNbNaturalBeats() - 0.0001f);
+                mContext = new MeasureContext(ng, nePos.getBar(), beatRange, new Note(60));
             }
 
-            paintChordNotes(chordNotes, x, mContext, cs);
+
+            // Paint a single note or a set of chord notes at (more or less) same position
+            int x = xMapper.getX(neBeatPos);
+            ChordSymbol cs = findChordSymbol(nePos, ts);
+            paintChordNotes(noteEventBuffer, x, mContext, cs);
 
         }
 
@@ -533,14 +538,14 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
     /**
      * Paint one or more notes at same position.
      *
-     * @param chordNotes
-     * @param x          x coordinate where to draw the notes
+     * @param neBuffer
+     * @param x        x coordinate where to draw the notes
      * @param mContext
-     * @param cs         Optional chord symbol
+     * @param cs       Optional chord symbol
      */
-    private void paintChordNotes(ChordNotes chordNotes, int x, MeasureContext mContext, ChordSymbol cs)
+    private void paintChordNotes(NoteEventBuffer neBuffer, int x, MeasureContext mContext, ChordSymbol cs)
     {
-        Preconditions.checkArgument(!chordNotes.isEmpty());
+        Preconditions.checkArgument(!neBuffer.isEmpty());
 //        LOGGER.log(Level.INFO, "paintChordNotes() -- nes={0} mContext.barIndex={1}", new Object[]
 //        {
 //            new ArrayList<>(chordNotes), mContext.getBarIndex()
@@ -550,19 +555,19 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
 
 
         List<ScoreNote> scoreNotes;
-        if (chordNotes.size() == 1)
+        if (neBuffer.size() == 1)
         {
-            scoreNotes = List.of(mContext.buildScoreNote(chordNotes.get(0), cs));
+            scoreNotes = List.of(mContext.buildScoreNote(neBuffer.get(0), cs));
         } else
         {
-            scoreNotes = mContext.buildChordScoreNotes(chordNotes, cs);
+            scoreNotes = mContext.buildChordScoreNotes(neBuffer, cs);
         }
 
-        for (int i = 0; i < chordNotes.size(); i++)
+        for (int i = 0; i < neBuffer.size(); i++)
         {
-            var n = chordNotes.get(i);
+            var n = neBuffer.get(i);
             var sn = scoreNotes.get(i);
-            Color c = chordNotes.isSelected(n) ? Color.RED.brighter() : Color.BLACK;
+            Color c = neBuffer.isSelected(n) ? Color.RED.brighter() : Color.BLACK;
             paintOneScoreNote(sn, c);
         }
 
@@ -673,22 +678,32 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
 
     private NoteEvent transpose(NoteEvent ne)
     {
-        return octaveTransposition == 0 ? ne : ne.setPitch(MidiConst.clamp(ne.getPitch() + octaveTransposition * 12));
+        return octaveTransposition == 0 ? ne : ne.setPitch(MidiConst.clamp(ne.getPitch() + octaveTransposition * 12), false);
     }
 
     /**
      * Get the active ChordSymbol at specified pos.
+     * <p>
+     * Manage the case of a real time played note for which the relevant chord symbol is actually after the note. For example in a 4/4 bar, the note at
+     * pos=[bar=0,beat=3.98] must be linked to the chord symbol at start of bar 1.
      *
      * @param pos
+     * @param ts  The TimeSignature at pos
      * @return
      */
-    private ChordSymbol getChordSymbol(Position pos)
+    private ChordSymbol findChordSymbol(Position pos, TimeSignature ts)
     {
         ChordSymbol res = null;
         var cSeq = editor.getChordSequence();
+
         if (cSeq != null)
         {
             pos = pos.getMoved(editor.getRulerStartBar(), 0);
+            if (ts.isEndOfBar(pos.getBeat(), 0.13f))
+            {
+                // This position is most probably played in real time and should be attached to the chord of next bar.
+                pos = pos.getNextBarStart();
+            }
             var cliCs = cSeq.getLastBefore(pos, true, cli -> true);
             res = cliCs != null ? cliCs.getData() : null;
         }
@@ -704,55 +719,55 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
      * <p>
      * Also store the selected state of each note.
      */
-    private class ChordNotes extends ArrayList<Note>
+    private class NoteEventBuffer extends ArrayList<NoteEvent>
     {
 
-        private final Set<Note> selectedNotes = new HashSet<>();
+        private final Set<NoteEvent> selectedNotes = new HashSet<>();
 
-        private ChordNotes(int size)
+        private NoteEventBuffer(int size)
         {
             super(size);
         }
 
         /**
-         * Add a NoteEvent ordered by pitch.
+         * Add a Note ordered by pitch.
          *
-         * @param n
+         * @param ne
          * @param isSelected
          */
-        public void addOrdered(Note n, boolean isSelected)
+        public void addOrdered(NoteEvent ne, boolean isSelected)
         {
             boolean added = false;
             var it = listIterator();
             while (it.hasNext())
             {
                 var next = it.next();
-                if (n.getPitch() == next.getPitch())
+                if (ne.getPitch() == next.getPitch())
                 {
                     // Special case, we should not normally have this (same pos and same pitch), just ignore the note
                     added = true;
                     break;
-                } else if (n.getPitch() < next.getPitch())
+                } else if (ne.getPitch() < next.getPitch())
                 {
-                    it.add(n);
+                    it.add(ne);
                     added = true;
                     break;
                 }
             }
             if (!added)
             {
-                add(n);
+                add(ne);
             }
             if (isSelected)
             {
-                selectedNotes.add(n);
+                selectedNotes.add(ne);
             }
 
         }
 
-        public boolean isSelected(Note n)
+        public boolean isSelected(NoteEvent ne)
         {
-            return selectedNotes.contains(n);
+            return selectedNotes.contains(ne);
         }
 
     }

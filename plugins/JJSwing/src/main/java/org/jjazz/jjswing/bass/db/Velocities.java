@@ -104,7 +104,7 @@ public class Velocities
         {
             int offset = (int) Math.round((stats.getAverage() - VELOCITY_BASS_STATS_MEDIAN) / 2);
             b = offset != 0;
-            p.processNotes(ne -> ne.getDurationInBeats() >= durMin, ne -> ne.setVelocity(VELOCITY_BASS_EXTENDED_RANGE.clamp(ne.getVelocity() - offset)));
+            p.processNotes(ne -> ne.getDurationInBeats() >= durMin, ne -> ne.setVelocity(VELOCITY_BASS_EXTENDED_RANGE.clamp(ne.getVelocity() - offset), true));
             LOGGER.log(Level.FINE, "Adjusted phrase velocity. offset={0}", offset);
         }
 

@@ -96,7 +96,7 @@ public class RideToHiHatTransform implements PhraseTransform
             {
                 pitch = destPitch;
             }
-            var newNe = ne.setPitch(pitch);
+            var newNe = ne.setPitch(pitch, true);
             res.add(newNe);
         }
 

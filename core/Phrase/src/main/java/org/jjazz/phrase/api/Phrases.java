@@ -230,7 +230,7 @@ public class Phrases
                 throw new IllegalArgumentException("Notes position differ too much: neSrc=" + neSrc + " neDest=" + neDest + " newDestPos=" + newDestPos);
             }
             b = b || (newDestPos != neDest.getPositionInBeats() || neSrc.getDurationInBeats() != neDest.getDurationInBeats() || neSrc.getVelocity() != neDest.getVelocity());
-            var newNeDest = neDest.setAll(neDest.getPitch(), neSrc.getDurationInBeats(), neSrc.getVelocity(), newDestPos, false);
+            var newNeDest = neDest.setAll(neDest.getPitch(), neSrc.getDurationInBeats(), neSrc.getVelocity(), newDestPos, null, false);
             spDest.replace(neDest, newNeDest);
 
             i++;
@@ -350,7 +350,7 @@ public class Phrases
             {
                 // Shorten notes before posInBeats but ending after posInBeats
                 float newDuration = posInBeats - pos;
-                NoteEvent newNe = ne.setDuration(newDuration);
+                NoteEvent newNe = ne.setDuration(newDuration, true);
                 tobeReplaced.put(ne, newNe);
             }
         }
@@ -415,7 +415,7 @@ public class Phrases
                     {
                         // Note crosses range.from, make it start at range.from
                         float newDur = Math.max(neBr.to - range.from, 0.05f);
-                        NoteEvent newNe = ne.setAll(-1, newDur, -1, range.from, true);
+                        NoteEvent newNe = ne.setAll(-1, newDur, -1, range.from, null, true);
                         res.add(newNe);
                     }
                     beatWindowProcessedNotes.add(ne);
@@ -468,7 +468,7 @@ public class Phrases
                         }
                     }
                     float newDur = nePosTo - range.from;
-                    NoteEvent newNe = ne.setAll(-1, newDur, -1, range.from, true);
+                    NoteEvent newNe = ne.setAll(-1, newDur, -1, range.from, null, true);
                     res.add(newNe);
                 }
             } else if (nePosFrom < range.to)
@@ -490,7 +490,7 @@ public class Phrases
                         case 1:
                             // Add it but make it shorter
                             float newDur = range.to - nePosFrom;
-                            NoteEvent newNe = ne.setDuration(newDur);
+                            NoteEvent newNe = ne.setDuration(newDur, true);
                             res.add(newNe);
                             break;
                         case 2:
@@ -570,7 +570,7 @@ public class Phrases
 
                         // Replace
                         float newDur = range.from - nePosFrom;
-                        NoteEvent newNe = ne.setDuration(newDur);
+                        NoteEvent newNe = ne.setDuration(newDur, true);
                         toBeReplaced.put(ne, newNe);
 
 
@@ -578,7 +578,7 @@ public class Phrases
                         if (keepRight && nePosTo > range.to)
                         {
                             newDur = nePosTo - range.to;
-                            newNe = ne.setAll(-1, newDur, -1, range.to, true);
+                            newNe = ne.setAll(-1, newDur, -1, range.to, null, true);
 
                             toBeAdded.add(newNe);
                         }
@@ -598,7 +598,7 @@ public class Phrases
                 if (nePosTo > range.to && (keepRight || frRight.contains(nePosFrom, true)))
                 {
                     float newDur = nePosTo - range.to;
-                    NoteEvent newNe = ne.setAll(-1, newDur, -1, range.to, true);
+                    NoteEvent newNe = ne.setAll(-1, newDur, -1, range.to, null, true);
                     toBeAdded.add(newNe);
                 }
             } else
@@ -681,7 +681,7 @@ public class Phrases
         {
             if (ne.getBeatRange().to > end)
             {
-                mapNotes.put(ne, ne.setDuration(end - ne.getPositionInBeats()));
+                mapNotes.put(ne, ne.setDuration(end - ne.getPositionInBeats(), true));
             }
         }
         sp.replaceAll(mapNotes, false);
@@ -757,7 +757,7 @@ public class Phrases
                     {
                         // Note is partially overlapped, replace by a shorter one
                         float newDur = br.from - brOn.from;
-                        var newNoteOn = prevNoteOn.setDuration(newDur);
+                        var newNoteOn = prevNoteOn.setDuration(newDur, true);
                         p.replace(prevNoteOn, newNoteOn);
                         res.put(prevNoteOn, newNoteOn);
                         itOn.remove();
@@ -800,7 +800,7 @@ public class Phrases
             {
                 pitch -= 12;
             }
-            return ne.setPitch(pitch);
+            return ne.setPitch(pitch, true);
         };
 
         p.processNotes(tester, mapper);

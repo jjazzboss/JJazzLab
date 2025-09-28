@@ -90,7 +90,8 @@ public class Grid implements Cloneable
         Objects.requireNonNull(beatRange);
         Preconditions.checkArgument(beatRange.from % 1 == 0 && beatRange.to % 1 == 0, "beatRange=%s", beatRange);
         Preconditions.checkArgument(nbCellsPerBeat > 0 && nbCellsPerBeat <= 6, "nbCellsPerBeat=%s", nbCellsPerBeat);
-        Preconditions.checkArgument(preCellBeatWindow >= 0 && preCellBeatWindow < (1f / nbCellsPerBeat), "nbCellsPerBeat=%s, preCellBeatWindow=%s", (Integer)nbCellsPerBeat, (Float)preCellBeatWindow);
+        Preconditions.checkArgument(preCellBeatWindow >= 0 && preCellBeatWindow < (1f / nbCellsPerBeat), "nbCellsPerBeat=%s, preCellBeatWindow=%s",
+                (Integer) nbCellsPerBeat, (Float) preCellBeatWindow);
 
         this.phrase = p;
         this.cellsPerBeat = nbCellsPerBeat;
@@ -105,7 +106,7 @@ public class Grid implements Cloneable
                 -preCellBeatWindow);
         this.cellRange = new IntRange(0, (int) (this.originalBeatRange.size() * this.cellsPerBeat) - 1);
         this.predicate = (filter != null) ? filter : ne -> true;
-        
+
         refresh();
     }
 
@@ -336,7 +337,7 @@ public class Grid implements Cloneable
             {
                 float newDur = ne.getDurationInBeats() + (cellOff - rg.to) * cellDuration;
                 newDur = Math.max(cellDuration, newDur);
-                NoteEvent newNe = ne.setDuration(newDur);
+                NoteEvent newNe = ne.setDuration(newDur, true);
                 phrase.replace(ne, newNe);
                 usedPitches.add(newNe.getPitch());
 
@@ -371,7 +372,7 @@ public class Grid implements Cloneable
         for (NoteEvent ne : nes)
         {
             int newVelocity = MidiConst.clamp(f.apply(ne.getVelocity()));
-            NoteEvent newNe = ne.setVelocity(newVelocity);
+            NoteEvent newNe = ne.setVelocity(newVelocity, true);
             mapOldNew.put(ne, newNe);
         }
         phrase.replaceAll(mapOldNew, false);
@@ -573,7 +574,7 @@ public class Grid implements Cloneable
             throw new IllegalArgumentException("cellIndex=" + cell + " relPosInCell=" + relPosInCell);
         }
         float posInBeats = getStartPos(cell) + relPosInCell;
-        NoteEvent ne = new NoteEvent(n.getPitch(), n.getDurationInBeats(), n.getVelocity(), posInBeats);
+        NoteEvent ne = new NoteEvent(n, posInBeats);
         phrase.add(ne);
         refresh();
         return ne;
@@ -632,7 +633,7 @@ public class Grid implements Cloneable
                     // Extend the duration
                     durationInBeats = ne.getPositionInBeats() + ne.getDurationInBeats() - newPosInBeats;
                 }
-                NoteEvent movedNe = ne.setAll(-1, durationInBeats, -1, newPosInBeats, true);
+                NoteEvent movedNe = ne.setAll(-1, durationInBeats, -1, newPosInBeats, null, true);
                 phrase.remove(ne);
                 phrase.add(movedNe);
             }
@@ -669,7 +670,7 @@ public class Grid implements Cloneable
                 // Extend the duration
                 durationInBeats = ne.getPositionInBeats() + ne.getDurationInBeats() - newPosInBeats;
             }
-            NoteEvent movedNe = ne.setAll(-1, durationInBeats, -1, newPosInBeats, true);
+            NoteEvent movedNe = ne.setAll(-1, durationInBeats, -1, newPosInBeats, null, true);
             phrase.remove(ne);
             phrase.add(movedNe);
             refresh();
@@ -696,7 +697,7 @@ public class Grid implements Cloneable
         for (NoteEvent ne : nes)
         {
             float newDuration = pos - ne.getPositionInBeats();
-            NoteEvent newNe = ne.setDuration(newDuration);
+            NoteEvent newNe = ne.setDuration(newDuration, true);
             mapOldNew.put(ne, newNe);
         }
         phrase.replaceAll(mapOldNew, false);

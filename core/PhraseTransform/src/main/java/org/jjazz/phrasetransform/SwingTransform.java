@@ -116,7 +116,7 @@ public class SwingTransform implements PhraseTransform
                     newDur = fr.to - newPos - 0.1f;
                 }
             }
-            var newNe = ne.setAll(-1, newDur, -1, newPos, true);
+            var newNe = ne.setAll(-1, newDur, -1, newPos, null, true);
             res.add(newNe);
         }
 

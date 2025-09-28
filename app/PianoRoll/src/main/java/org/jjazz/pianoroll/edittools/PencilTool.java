@@ -173,7 +173,7 @@ public class PencilTool implements EditTool
                 dur = Math.max(q.getSymbolicDuration().getDuration(), dur);
             }
             dur = Math.min(beatRange.to - dragStartPos, dur);
-            var ne = dragNote.setDuration(dur);         // This copies also the adjustingNote flag in clientProperties
+            var ne = dragNote.setDuration(dur, true);         // This copies also the adjustingNote flag in clientProperties
             editor.getModel().replaceAll(Map.of(dragNote, ne), true);
             dragNote = ne;
         }
@@ -278,7 +278,7 @@ public class PencilTool implements EditTool
             dragStartPos = srcNote.getPositionInBeats();
             float dur = pos - dragStartPos;
             dur = Math.max(0.1f, dur);
-            dragNote = srcNote.setDuration(dur);
+            dragNote = srcNote.setDuration(dur, true);
             NoteEvent.markIsAdjustingNote(dragNote, true);
             editor.getModel().replaceAll(Map.of(srcNote, dragNote), true);
 
@@ -290,7 +290,7 @@ public class PencilTool implements EditTool
             // Continue dragging
             float dur = pos - dragStartPos;
             dur = Math.max(0.1f, dur);
-            var newNe = dragNote.setDuration(dur);                      // This also copies the adjusting flag in clientProperties
+            var newNe = dragNote.setDuration(dur, true);                      // This also copies the adjusting flag in clientProperties
             editor.getModel().replaceAll(Map.of(dragNote, newNe), true);
             dragNote = newNe;
         }

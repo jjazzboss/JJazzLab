@@ -48,12 +48,12 @@ public class PhraseSamples
         float pos = startPos;
         for (Note n : ScaleManager.MAJOR.getNotes())
         {
-            NoteEvent ne = new NoteEvent(n.getPitch() + 60, noteDur, n.getVelocity(), pos);
+            NoteEvent ne = new NoteEvent(n.getPitch() + 60, noteDur, n.getVelocity(), pos, Note.Accidental.FLAT);
             pos += noteDur;
             p.add(ne);
         }
         // Add octave note at this end
-        NoteEvent ne = new NoteEvent(72, noteDur, Note.VELOCITY_STD, pos);
+        NoteEvent ne = new NoteEvent(72, noteDur, Note.VELOCITY_STD, pos, Note.Accidental.FLAT);
         p.add(ne);
         return p;
     }
@@ -76,7 +76,7 @@ public class PhraseSamples
             int vel = (int) (50 + Math.round(20 * Math.random()));
             float pos = Math.max(0, Math.round(nbBars * 4 * Math.random()) - 2);
             float dur = Math.random() > 0.5d ? 0.5f : 1f;
-            p.add(new NoteEvent(pitch, dur, vel, pos));
+            p.add(new NoteEvent(pitch, dur, vel, pos, Note.Accidental.FLAT));
         }
 
         return p;
@@ -104,9 +104,9 @@ public class PhraseSamples
             for (int beat = 0; beat < ts.getNbNaturalBeats(); beat++)
             {
                 // 2 Hi Hat per beat
-                NoteEvent ne = new NoteEvent(MidiConst.CLOSED_HI_HAT, duration, 80, startPosInBeats);
+                NoteEvent ne = new NoteEvent(MidiConst.CLOSED_HI_HAT, duration, 80, startPosInBeats, Note.Accidental.FLAT);
                 p.add(ne);
-                ne = new NoteEvent(MidiConst.CLOSED_HI_HAT, duration, 80, startPosInBeats + 0.5f);
+                ne = new NoteEvent(MidiConst.CLOSED_HI_HAT, duration, 80, startPosInBeats + 0.5f, Note.Accidental.FLAT);
                 p.add(ne);
 
                 // Bass drums or Snare
@@ -127,7 +127,7 @@ public class PhraseSamples
                     default:
                         pitch = MidiConst.ACOUSTIC_BASS_DRUM;
                 }
-                ne = new NoteEvent(pitch, duration, velocity, startPosInBeats);
+                ne = new NoteEvent(pitch, duration, velocity, startPosInBeats, Note.Accidental.FLAT);
                 p.add(ne);
 
                 // Next beat

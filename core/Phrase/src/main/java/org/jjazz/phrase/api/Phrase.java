@@ -54,6 +54,7 @@ import java.util.logging.Logger;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.UndoableEdit;
+import org.jjazz.harmony.api.Note.Accidental;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.undomanager.api.SimpleEdit;
 import org.jjazz.utilities.api.FloatRange;
@@ -410,6 +411,11 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
     }
 
 
+    /**
+     * Notes are sorted by position.
+     *
+     * @return
+     */
     public List<NoteEvent> getNotes()
     {
         return new ArrayList<>(noteEvents);
@@ -465,7 +471,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
     }
 
     /**
-     * Get a a clone of this Phrase with only filtered notes processed by the specified mapper.
+     * Get a clone of this Phrase with only filtered notes processed by the specified mapper.
      * <p>
      * Notes of the returned phrase will have their PARENT_NOTE client property set to:<br>
      * - source note's PARENT_NOTE client property if this property is not null, or<br>
@@ -539,7 +545,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
         return getProcessedPhrase(ne -> true, ne -> 
         {
             int v = MidiConst.clamp(f.apply(ne.getVelocity()));
-            NoteEvent newNe = ne.setVelocity(v);
+            NoteEvent newNe = ne.setVelocity(v, true);
             return newNe;
         });
     }
@@ -556,7 +562,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
         processNotes(ne -> true, ne -> 
         {
             int v = MidiConst.clamp(f.apply(ne.getVelocity()));
-            NoteEvent newNe = ne.setVelocity(v);
+            NoteEvent newNe = ne.setVelocity(v, true);
             return newNe;
         });
     }
@@ -576,7 +582,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
         return getProcessedPhrase(ne -> true, ne -> 
         {
             int p = MidiConst.clamp(f.apply(ne.getPitch()));
-            NoteEvent newNe = ne.setPitch(p);
+            NoteEvent newNe = ne.setPitch(p, true);
             return newNe;
         });
     }
@@ -593,7 +599,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
         processNotes(ne -> true, ne -> 
         {
             int p = MidiConst.clamp(f.apply(ne.getPitch()));
-            NoteEvent newNe = ne.setPitch(p);
+            NoteEvent newNe = ne.setPitch(p, true);
             return newNe;
         });
     }
@@ -1281,7 +1287,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
      */
     static public NoteEvent getFloorNote(float pos)
     {
-        return new NoteEvent(0, 0.000001f, 0, pos);
+        return new NoteEvent(0, 0.000001f, 0, pos, Accidental.FLAT);
     }
 
     /**
@@ -1294,7 +1300,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
      */
     static public NoteEvent getCeilNote(float pos)
     {
-        return new NoteEvent(127, 10000f, 127, pos);
+        return new NoteEvent(127, 10000f, 127, pos, Accidental.FLAT);
     }
 
     public void addPropertyChangeListener(PropertyChangeListener l)

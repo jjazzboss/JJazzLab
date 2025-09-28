@@ -1179,7 +1179,7 @@ public class SongSequenceBuilder
                 {
                     float f = 1 - beatRange.getPercentage(ne.getPositionInBeats());
                     int vel = Math.round(f * ne.getVelocity());
-                    return ne.setVelocity(vel);
+                    return ne.setVelocity(vel, false);
                 });
             }
 

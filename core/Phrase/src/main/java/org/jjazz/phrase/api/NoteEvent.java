@@ -81,16 +81,26 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
      * @param duration
      * @param velocity
      * @param posInBeats
+     * @param acc
      */
-    public NoteEvent(int pitch, float duration, int velocity, float posInBeats)
+    public NoteEvent(int pitch, float duration, int velocity, float posInBeats, Accidental acc)
     {
-        super(pitch, duration, velocity);
+        super(pitch, duration, velocity, acc);
         if (posInBeats < 0)
         {
             throw new IllegalArgumentException("posInBeats=" + posInBeats);
         }
         position = posInBeats;
         clientProperties = new ObservableProperties<>();
+    }
+
+    /**
+     * Create a new NoteEvent with Accidental.FLAT.
+     * <p>
+     */
+    public NoteEvent(int pitch, float duration, int velocity, float posInBeats)
+    {
+        this(pitch, duration, velocity, posInBeats, Accidental.FLAT);
     }
 
     /**
@@ -102,31 +112,9 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
      */
     public NoteEvent(Note n, float posInBeats)
     {
-        this(n.getPitch(), n.getDurationInBeats(), n.getPitch(), posInBeats);
+        this(n.getPitch(), n.getDurationInBeats(), n.getPitch(), posInBeats, n.getAccidental());
     }
 
-    /**
-     * Create a new and possibly modified NoteEvent from this instance.
-     * <p>
-     * @param pitch          if &lt; 0 reuse this instance's pitch, otherwise use the parameter value
-     * @param duration       if &lt; 0 reuse this instance's duration, otherwise use the parameter value
-     * @param velocity       if &lt; 0 reuse this instance's velocity, otherwise use the parameter value
-     * @param posInBeats     if &lt; 0 reuse this instance's position, otherwise use the parameter value
-     * @param copyProperties if true copy the properties
-     * @return
-     */
-    public NoteEvent setAll(int pitch, float duration, int velocity, float posInBeats, boolean copyProperties)
-    {
-        var res = new NoteEvent(pitch < 0 ? getPitch() : pitch,
-                duration < 0 ? getDurationInBeats() : duration,
-                velocity < 0 ? getVelocity() : velocity,
-                posInBeats < 0 ? getPositionInBeats() : posInBeats);
-        if (copyProperties)
-        {
-            res.getClientProperties().set(getClientProperties());
-        }
-        return res;
-    }
 
     /**
      * Set or reset the note as isAdjusting.
@@ -153,51 +141,77 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
     }
 
     /**
+     * Create a new and possibly modified NoteEvent from this instance.
+     * <p>
+     * @param pitch          if &lt; 0 reuse this instance's pitch, otherwise use the parameter value
+     * @param duration       if &lt; 0 reuse this instance's duration, otherwise use the parameter value
+     * @param velocity       if &lt; 0 reuse this instance's velocity, otherwise use the parameter value
+     * @param posInBeats     if &lt; 0 reuse this instance's position, otherwise use the parameter value
+     * @param acc            if null reuse this instance's accidental, otherwise use the parameter value
+     * @param copyProperties if true copy the properties
+     * @return
+     */
+    public NoteEvent setAll(int pitch, float duration, int velocity, float posInBeats, Accidental acc, boolean copyProperties)
+    {
+        var res = new NoteEvent(pitch < 0 ? getPitch() : pitch,
+                duration < 0 ? getDurationInBeats() : duration,
+                velocity < 0 ? getVelocity() : velocity,
+                posInBeats < 0 ? getPositionInBeats() : posInBeats,
+                acc == null ? getAccidental() : acc
+        );
+        if (copyProperties)
+        {
+            res.getClientProperties().set(getClientProperties());
+        }
+        return res;
+    }
+
+    /**
      * Get a copy with the pitch parameter modified.
      * <p>
      * Client properties are copied.
      *
-     * @param newPitch The new pitch
+     * @param newPitch       The new pitch
+     * @param copyProperties
      * @return
      */
-    public NoteEvent setPitch(int newPitch)
+    public NoteEvent setPitch(int newPitch, boolean copyProperties)
     {
-        var res = setAll(newPitch, getDurationInBeats(), getVelocity(), position, true);
+        var res = setAll(newPitch, -1, -1, -1, null, copyProperties);
         return res;
     }
 
     /**
      * Get a copy with the duration parameter modified.
      * <p>
-     * Client properties are copied.
      *
      * @param newDurationInBeats
+     * @param copyProperties     If true copy the properties
      * @return
      */
-    public NoteEvent setDuration(float newDurationInBeats)
+    public NoteEvent setDuration(float newDurationInBeats, boolean copyProperties)
     {
-        var res = setAll(getPitch(), newDurationInBeats, getVelocity(), position, true);
+        var res = setAll(-1, newDurationInBeats, -1, -1, null, copyProperties);
         return res;
     }
 
     /**
      * Get a copy with the velocity parameter modified.
      * <p>
-     * Client properties are copied.
      *
      * @param newVelocity
+     * @param copyProperties If true copy the properties
      * @return
      */
-    public NoteEvent setVelocity(int newVelocity)
+    public NoteEvent setVelocity(int newVelocity, boolean copyProperties)
     {
-        var res = setAll(getPitch(), getDurationInBeats(), newVelocity, position, true);
+        var res = setAll(-1, -1, newVelocity, -1, null, copyProperties);
         return res;
     }
 
     /**
      * Get a copy with the position parameter modified.
      * <p>
-     * Client properties are copied.
      *
      * @param newPositionInBeats
      * @param copyProperties     If true copy the properties
@@ -205,7 +219,21 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
      */
     public NoteEvent setPosition(float newPositionInBeats, boolean copyProperties)
     {
-        var res = setAll(getPitch(), getDurationInBeats(), getVelocity(), newPositionInBeats, true);
+        var res = setAll(-1, -1, -1, newPositionInBeats, null, copyProperties);
+        return res;
+    }
+
+    /**
+     * Get a copy with the alteration parameter modified.
+     * <p>
+     *
+     * @param newAccidental
+     * @param copyProperties If true copy the properties
+     * @return
+     */
+    public NoteEvent setAccidental(Accidental newAccidental, boolean copyProperties)
+    {
+        var res = setAll(-1, -1, -1, -1, newAccidental, copyProperties);
         return res;
     }
 
@@ -422,7 +450,7 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
     @Override
     public NoteEvent clone()
     {
-        NoteEvent ne = setAll(-1, -1, -1, -1, true);
+        NoteEvent ne = setAll(-1, -1, -1, -1, null, true);
         return ne;
     }
 
@@ -483,13 +511,12 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
             {
                 Note n = Note.loadAsString(strs[0]);
                 float pos = Float.parseFloat(strs[1]);
-                ne = new NoteEvent(n.getPitch(), n.getDurationInBeats(), n.getVelocity(), pos);
+                ne = new NoteEvent(n, pos);
             } catch (IllegalArgumentException | ParseException ex)   // Will catch NumberFormatException too
             {
                 LOGGER.log(Level.WARNING, "loadAsString() Catched ex={0}", ex.getMessage());
             }
         }
-
         if (ne == null)
         {
             throw new ParseException("NoteEvent.loadAsString() Invalid NoteEvent string s=" + s, 0);

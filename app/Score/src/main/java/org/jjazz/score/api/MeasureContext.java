@@ -24,6 +24,7 @@
  */
 package org.jjazz.score.api;
 
+import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -33,6 +34,7 @@ import java.util.logging.Logger;
 import org.jjazz.harmony.api.Chord;
 import org.jjazz.harmony.api.ChordSymbol;
 import org.jjazz.harmony.api.Note;
+import org.jjazz.harmony.api.Note.Accidental;
 import org.jjazz.harmony.api.SymbolicDuration;
 import static org.jjazz.harmony.api.SymbolicDuration.EIGHTH;
 import static org.jjazz.harmony.api.SymbolicDuration.EIGHTH_DOTTED;
@@ -49,11 +51,14 @@ import static org.jjazz.harmony.api.SymbolicDuration.UNKNOWN;
 import static org.jjazz.harmony.api.SymbolicDuration.WHOLE;
 import static org.jjazz.harmony.api.SymbolicDuration.WHOLE_DOTTED;
 import static org.jjazz.harmony.api.SymbolicDuration.WHOLE_TRIPLET;
+import org.jjazz.harmony.api.TimeSignature;
+import org.jjazz.phrase.api.NoteEvent;
 import static org.jjazz.score.api.NotationGraphics.ACCIDENTAL_FLAT;
 import static org.jjazz.score.api.NotationGraphics.ACCIDENTAL_NATURAL;
 import static org.jjazz.score.api.NotationGraphics.ACCIDENTAL_NO;
 import static org.jjazz.score.api.NotationGraphics.ACCIDENTAL_SHARP;
 import org.jjazz.score.api.NotationGraphics.ScoreNote;
+import org.jjazz.utilities.api.FloatRange;
 
 /**
  * A single measure context to build ScoreNotes for NotationGraphics.
@@ -67,19 +72,28 @@ public class MeasureContext
     private final Map<Integer, Note.Accidental> mapPitchAccidental = new HashMap<>();
     private final int barIndex;
     private final int gStaffLowestPitch;
+    private final FloatRange beatRange;
     private static final Logger LOGGER = Logger.getLogger(MeasureContext.class.getSimpleName());
 
-    public MeasureContext(NotationGraphics ng, int barIndex, Note majorKey, int gStaffLowestPitch)
+
+    public MeasureContext(NotationGraphics ng, int barIndex, FloatRange beatRange, Note majorKey, int gStaffLowestPitch)
     {
+        Objects.requireNonNull(ng);
+        Objects.requireNonNull(beatRange);
+        Objects.requireNonNull(majorKey);
+        Preconditions.checkArgument(barIndex >= 0, "barIndex=%s", barIndex);
+        Preconditions.checkArgument(gStaffLowestPitch >= 40, "gStaffLowestPitch=%s", gStaffLowestPitch);
+
         this.ng = ng;
         this.barIndex = barIndex;
         this.majorKey = majorKey;
         this.gStaffLowestPitch = gStaffLowestPitch;
+        this.beatRange = beatRange;
     }
 
-    public MeasureContext(NotationGraphics ng, int barIndex, Note majorKey)
+    public MeasureContext(NotationGraphics ng, int barIndex, FloatRange beatRange, Note majorKey)
     {
-        this(ng, barIndex, majorKey, G_STAFF_LOWEST_PITCH);
+        this(ng, barIndex, beatRange, majorKey, G_STAFF_LOWEST_PITCH);
     }
 
     public int getgStaffLowestPitch()
@@ -92,23 +106,28 @@ public class MeasureContext
         return majorKey;
     }
 
+    public FloatRange getBeatRange()
+    {
+        return beatRange;
+    }
+
     public int getBarIndex()
     {
         return barIndex;
     }
 
     /**
-     * Build several ScoreNotes which belong to a chord (same position).
+     * Build several ScoreNotes which should be displayed as a chord (same position).
      * <p>
      * Handle accidental selection and note base shift.
      *
-     * @param notes
-     * @param cs    Can be null. If specified used to try to select the appropriate ScoreNote accidental
+     * @param nes
+     * @param cs  Can be null. If specified used to try to select the appropriate ScoreNote accidental
      * @return
      */
-    public List<ScoreNote> buildChordScoreNotes(List<Note> notes, ChordSymbol cs)
+    public List<ScoreNote> buildChordScoreNotes(List<NoteEvent> nes, ChordSymbol cs)
     {
-        Objects.requireNonNull(notes);
+        Objects.requireNonNull(nes);
         List<ScoreNote> res = new ArrayList<>();
 
 //        LOGGER.log(Level.SEVERE, "buildChordScoreNotes() cs={0} notes={1}", new Object[]
@@ -117,10 +136,10 @@ public class MeasureContext
 //        });
 
         // Adjust all notes to the chord symbol                    
-        List<Note> adjustedNotes = new ArrayList<>(notes.size());
-        for (int i = 0; i < notes.size(); i++)
+        List<NoteEvent> adjustedNotes = new ArrayList<>(nes.size());
+        for (int i = 0; i < nes.size(); i++)
         {
-            var ne = getAdjustedNoteToChordSymbol(notes.get(i), cs);
+            var ne = getAdjustedNoteToChordSymbol(nes.get(i), cs);
             adjustedNotes.add(ne);
         }
 
@@ -128,7 +147,7 @@ public class MeasureContext
         // Fix notes on the same line
         // Search for adjacent notes and shift the top one
         // The algorithm does not check for all the possible adjacency combinations, but should be enough most of the time
-        List<Note> needShift = new ArrayList<>();
+        List<NoteEvent> needShift = new ArrayList<>();
         for (int i = 0; i < adjustedNotes.size() - 1; i++)
         {
             var ne = adjustedNotes.get(i);
@@ -155,14 +174,14 @@ public class MeasureContext
 //                        ne,
 //                        neNext
 //                    });
-                    neNext = new Note(neNext, Note.Accidental.FLAT);
+                    neNext = neNext.setAccidental(NoteEvent.Accidental.FLAT, false);
                     neNextLine++;
                     adjustedNotes.set(i + 1, neNext);
 
                 } else
                 {
                     // ne=Bb  neNext=B -> use a sharp for first note
-                    ne = new Note(ne, Note.Accidental.SHARP);
+                    ne = ne.setAccidental(NoteEvent.Accidental.SHARP, false);
                     neLine--;
                     adjustedNotes.set(i, ne);
                 }
@@ -181,22 +200,22 @@ public class MeasureContext
 
         for (int i = 0; i < adjustedNotes.size(); i++)
         {
-            var n = adjustedNotes.get(i);
+            var ne = adjustedNotes.get(i);
             ScoreNote sn = new ScoreNote();
 
             // Set accidental depending on last accidental used for the same staff line
-            updateAccidental(sn, n);
+            setScoreNoteAccidental(sn, ne);
 
             // Set duration
-            updateDuration(sn, n);
+            updateDuration(sn, ne);
 
 
             // Set staff line
-            updateStaffLine(sn, n);
+            updateStaffLine(sn, ne);
 
-            sn.lateralShift = needShift.contains(n) ? 1 : 0;
+            sn.lateralShift = needShift.contains(ne) ? 1 : 0;
 
-            sn.note = notes.get(i);
+            sn.note = nes.get(i);
 
             res.add(sn);
         }
@@ -208,11 +227,11 @@ public class MeasureContext
     /**
      * Build the ScoreNote for the specified note.
      *
-     * @param n
+     * @param ne
      * @param cs Can be null. If specified used to try to select the appropriate ScoreNote accidental
      * @return
      */
-    public ScoreNote buildScoreNote(Note n, ChordSymbol cs)
+    public ScoreNote buildScoreNote(NoteEvent ne, ChordSymbol cs)
     {
 //        LOGGER.log(Level.SEVERE, "buildChordScoreNotes() cs={0} note={1}", new Object[]
 //        {
@@ -220,22 +239,23 @@ public class MeasureContext
 //        });
 
 
-        Objects.requireNonNull(n);
+        Objects.requireNonNull(ne);
         ScoreNote res = new ScoreNote();
 
         // Use chord symbol to adjust the note
-        Note adjustedNote = getAdjustedNoteToChordSymbol(n, cs);
+        NoteEvent adjustedNote = getAdjustedNoteToChordSymbol(ne, cs);
+
 
         // Set accidental depending on last accidental used for the same staff line
-        updateAccidental(res, adjustedNote);
+        setScoreNoteAccidental(res, adjustedNote);
 
         // Set duration
-        updateDuration(res, n);
+        updateDuration(res, ne);
 
         // Set staff line
         updateStaffLine(res, adjustedNote);
 
-        res.note = n;
+        res.note = ne;
 
         return res;
     }
@@ -269,7 +289,7 @@ public class MeasureContext
     }
 
 
-    private void updateDuration(ScoreNote sn, Note n)
+    private void updateDuration(ScoreNote sn, NoteEvent n)
     {
         var sd = n.getSymbolicDuration();
         if (sd == SymbolicDuration.UNKNOWN)
@@ -280,19 +300,29 @@ public class MeasureContext
         sn.dotted = sd.isDotted() ? 1 : 0;
     }
 
-    private void updateAccidental(ScoreNote res, Note adjustedNote)
+    /**
+     * Set the ScoreNote accidental.
+     * <p>
+     * Depends on ne's accidental, ne's position, and on possible previous note in the measure.
+     *
+     * @param scoreNote
+     * @param ne
+     */
+    private void setScoreNoteAccidental(ScoreNote scoreNote, NoteEvent ne)
     {
-        // Set accidental
-        int whiteKeyPitch = adjustedNote.getWhiteKeyPitch();
-        var prevPitchAlt = mapPitchAccidental.get(whiteKeyPitch);
-        if (!Note.isWhiteKey(adjustedNote.getPitch()))
+        int whiteKeyPitch = ne.getWhiteKeyPitch();
+
+        // If ne is an "anticipated note" from next bar, we must ignore previous accidental
+        Accidental prevPitchAcc = ne.getPositionInBeats() >= beatRange.to - 0.13f ? null : mapPitchAccidental.get(whiteKeyPitch);
+
+        if (!NoteEvent.isWhiteKey(ne.getPitch()))
         {
-            var acc = adjustedNote.getAccidental();
-            res.accidental = acc == prevPitchAlt ? ACCIDENTAL_NO : toScoreNoteAccidental(acc); // Possibly take into accound previous accidental on same pitch
+            var acc = ne.getAccidental();
+            scoreNote.accidental = acc == prevPitchAcc ? ACCIDENTAL_NO : toScoreNoteAccidental(acc); // Possibly take into accound previous accidental on same pitch
             mapPitchAccidental.put(whiteKeyPitch, acc);
         } else
         {
-            res.accidental = prevPitchAlt == null ? ACCIDENTAL_NO : ACCIDENTAL_NATURAL;
+            scoreNote.accidental = prevPitchAcc == null ? ACCIDENTAL_NO : ACCIDENTAL_NATURAL;
             mapPitchAccidental.remove(whiteKeyPitch);
         }
     }
@@ -300,38 +330,38 @@ public class MeasureContext
     /**
      * If note is not a white key, get an accidental-adjusted note for this context, e.g. change Db into C# if required.
      *
-     * @param n
+     * @param ne
      * @param cs Can be null. The current chord symbol.
      * @return
      */
-    private Note getAdjustedNoteToChordSymbol(Note n, ChordSymbol cs)
+    private NoteEvent getAdjustedNoteToChordSymbol(NoteEvent ne, ChordSymbol cs)
     {
-        Note res = n;
+        NoteEvent res = ne;
 
         // TODO: use key to adjust
 
-        if (!n.isWhiteKey() && cs != null)
+        if (!ne.isWhiteKey() && cs != null)
         {
             // If it's a note of the chord reuse its accidental, otherwise use chord symbol default accidental
             Chord c = cs.getChord();
-            int index = c.indexOfRelativePitch(n.getRelativePitch());
+            int index = c.indexOfRelativePitch(ne.getRelativePitch());
             var acc = index > -1 ? c.getNote(index).getAccidental() : cs.getDefaultAccidental();
 
-            if (n.getAccidental() != acc)
+            if (ne.getAccidental() != acc)
             {
-                res = new Note(n, acc);
+                res = ne.setAccidental(acc, false);
             }
         }
 
         return res;
     }
 
-    private int toScoreNoteAccidental(Note.Accidental acc)
+    private int toScoreNoteAccidental(NoteEvent.Accidental acc)
     {
-        return acc == Note.Accidental.FLAT ? ACCIDENTAL_FLAT : ACCIDENTAL_SHARP;
+        return acc == NoteEvent.Accidental.FLAT ? ACCIDENTAL_FLAT : ACCIDENTAL_SHARP;
     }
 
-    private void updateStaffLine(ScoreNote res, Note n)
+    private void updateStaffLine(ScoreNote res, NoteEvent n)
     {
         res.isFstaff = isFstaff(n.getPitch());
         res.staffLine = (res.isFstaff ? n.getFStaffLineNumber() : n.getGStaffLineNumber()) - 2;

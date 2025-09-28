@@ -29,7 +29,6 @@ import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
-import org.jjazz.pianoroll.api.NoteView;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.utilities.api.ResUtil;
 
@@ -69,7 +68,7 @@ public class TransposeSelectionUp extends AbstractAction
             int newPitch = ne.getPitch() + 1;
             if (newPitch <= 127)
             {
-                var newNe = ne.setPitch(newPitch);
+                var newNe = ne.setPitch(newPitch, true);
                 mapOldNew.put(ne, newNe);
             }
         }

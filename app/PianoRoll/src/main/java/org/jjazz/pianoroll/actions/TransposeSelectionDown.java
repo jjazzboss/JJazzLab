@@ -69,7 +69,7 @@ public class TransposeSelectionDown extends AbstractAction
             int newPitch = ne.getPitch() - 1;
             if (newPitch >= 0)
             {
-                var newNe = ne.setPitch(newPitch);
+                var newNe = ne.setPitch(newPitch, true);
                 mapOldNew.put(ne, newNe);
             }
         }

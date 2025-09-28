@@ -359,7 +359,7 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
             selectedNvs.stream()
                     .map(nv -> nv.getModel())
                     .filter(ne -> ne.getVelocity() != newSpinnerValue)
-                    .forEach(ne -> mapOldNew.put(ne, ne.setVelocity(newSpinnerValue)));
+                    .forEach(ne -> mapOldNew.put(ne, ne.setVelocity(newSpinnerValue, true)));
         } else
         {
             // User increased/decreased, apply the delta to all notes
@@ -369,7 +369,7 @@ public class ToolbarPanel extends javax.swing.JPanel implements PropertyChangeLi
                     .forEach(ne -> 
                     {
                         int newVel = MidiConst.clamp(ne.getVelocity() + delta);
-                        mapOldNew.put(ne, ne.setVelocity(newVel));
+                        mapOldNew.put(ne, ne.setVelocity(newVel, true));
                     });
         }
         editor.getModel().replaceAll(mapOldNew, false);

@@ -505,7 +505,7 @@ public class VelocityPanel extends EditorPanel implements PropertyChangeListener
                 int v = getVelocity(e.getPoint());
                 for (var ne : impactedNotes.toArray(NoteEvent[]::new))
                 {
-                    var newNe = ne.setVelocity(v);
+                    var newNe = ne.setVelocity(v, true);
                     editor.getModel().replace(ne, newNe);
                 }
             }

@@ -70,7 +70,7 @@ public class IncreaseSelectionVelocity extends AbstractAction
             int newVel = MidiConst.clamp(ne.getVelocity() + CHANGE);
             if (newVel != ne.getVelocity())
             {
-                var newNe = ne.setVelocity(newVel);
+                var newNe = ne.setVelocity(newVel, true);
                 mapOldNew.put(ne, newNe);
             }
         }

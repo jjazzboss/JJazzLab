@@ -23,12 +23,9 @@
 package org.jjazz.yamjjazz.rhythm.api;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.MultimapBuilder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -36,7 +33,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.jjazz.harmony.api.*;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
@@ -896,7 +892,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
 
             // Shorten the previous parent dest note, or even remove it if too short
             float shortenedDuration = posDestNote - prevParentDestNote.getPositionInBeats();
-            NoteEvent shortenedPrevParentDestNote = prevParentDestNote.setDuration(shortenedDuration);
+            NoteEvent shortenedPrevParentDestNote = prevParentDestNote.setDuration(shortenedDuration, true);
 
             if (prevParentDestNote.getDurationInBeats() >= Grid.PRE_CELL_BEAT_WINDOW_DEFAULT && shortenedDuration <= Grid.PRE_CELL_BEAT_WINDOW_DEFAULT)
             {
@@ -940,7 +936,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
                     assert destCliCs != null : "ne=" + destNote + " cSeq=" + cSeq;   //NOI18N
                     Note n = ctb2.bassOn ? destCliCs.getData().getBassNote() : destCliCs.getData().getRootNote();
                     int destCliCsRootPitch = destNote.getClosestPitch(n.getRelativePitch());
-                    NoteEvent newDestNote = destNote.setPitch(destCliCsRootPitch);
+                    NoteEvent newDestNote = destNote.setPitch(destCliCsRootPitch, true);
                     pDest.replace(destNote, newDestNote);
 
                     LOGGER.log(Level.FINE, "  RETRIGGER_TO_ROOT replace destNote={0} > newDestNote={1}", new Object[]
@@ -1096,7 +1092,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
                     p.processNotes(ne -> frg.contains(ne.getPositionInBeats(), true), ne -> 
                     {
                         int v = MidiConst.clamp(ne.getVelocity() + velShift);
-                        NoteEvent newNe = ne.setVelocity(v);
+                        NoteEvent newNe = ne.setVelocity(v, true);
                         return newNe;
                     });
                 }
@@ -1152,7 +1148,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
 
                     NoteEvent ne = notes.get(0);
                     int newPitch = ne.getClosestPitch(bassRelPitch);
-                    NoteEvent newNe = ne.setPitch(newPitch);
+                    NoteEvent newNe = ne.setPitch(newPitch, true);
                     p.replace(ne, newNe);
                     LOGGER.log(Level.FINE, "processBassLine()    => replacing {0} with {1}", new Object[]
                     {
@@ -1346,7 +1342,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
                 int newPitch = StandardKeyMapConverter.convertKey(srcKeyMap, oldPitch, destKeyMap);
                 if (newPitch != -1 && newPitch != oldPitch)
                 {
-                    NoteEvent newNe = ne.setPitch(newPitch);
+                    NoteEvent newNe = ne.setPitch(newPitch, true);
                     mapOldNew.put(ne, newNe);
                     LOGGER.log(Level.FINE, "remapDrumNotes() pitch replaced {0} ==> {1}", new Object[]
                     {
