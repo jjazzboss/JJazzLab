@@ -22,12 +22,14 @@
  */
 package org.jjazz.mixconsole.actions;
 
-import org.jjazz.midimix.api.MidiMix;
 import java.awt.event.ActionEvent;
-import java.util.logging.Logger;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import javax.swing.AbstractAction;
 import static javax.swing.Action.NAME;
+import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.midi.api.MidiUtilities;
+import org.jjazz.mixconsole.SynthUtils;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -35,23 +37,26 @@ import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.awt.StatusDisplayer;
 
-@ActionID(category = "MixConsole", id = "org.jjazz.mixconsole.actions.sendgm2on")
-@ActionRegistration(displayName = "#CTL_SendGm2On", lazy = true)
+@ActionID(category = SendGm2On.ACTION_CATEGORY, id = SendGm2On.ACTION_ID)
+@ActionRegistration(displayName = "#CTL_SendGm2On", lazy = false)
 @ActionReferences(
         {
             @ActionReference(path = "Actions/MixConsole/MenuBar/Midi", position = 318)
         })
-public class SendGm2On extends AbstractAction
+public class SendGm2On extends AbstractAction implements PropertyChangeListener
 {
-
-    private MidiMix songMidiMix;
     private final String undoText = ResUtil.getString(getClass(), "CTL_SendGm2On");
-    private static final Logger LOGGER = Logger.getLogger(SendGm2On.class.getSimpleName());
+    public static final String ACTION_CATEGORY = "MixConsole";
+    public static final String ACTION_ID = "org.jjazz.mixconsole.actions.sendgm2on";
 
-    public SendGm2On(MidiMix context)
+    public SendGm2On()
     {
-        songMidiMix = context;
         putValue(NAME, undoText);
+
+        this.setEnabled(!SynthUtils.IS_FLUID_SYNTH_IN_USE());
+
+        JJazzMidiSystem jms =  JJazzMidiSystem.getInstance();
+        jms.addPropertyChangeListener(JJazzMidiSystem.PROP_MIDI_OUT, this);
     }
 
     @Override
@@ -59,5 +64,10 @@ public class SendGm2On extends AbstractAction
     {
         MidiUtilities.sendSysExMessage(MidiUtilities.getGm2ModeOnSysExMessage());
         StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "CTL_GM2MidiMessageSent"));
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        this.setEnabled(!SynthUtils.IS_FLUID_SYNTH(evt.getNewValue()));
     }
 }

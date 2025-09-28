@@ -25,7 +25,6 @@ package org.jjazz.mixconsole;
 import java.awt.Color;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeListener;
-import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import org.jjazz.midi.api.Instrument;
 
@@ -141,5 +140,4 @@ public interface MixChannelPanelModel
     Instrument getInstrument();
 
     void cleanup();
-
 }

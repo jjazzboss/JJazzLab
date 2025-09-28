@@ -23,7 +23,8 @@
 package org.jjazz.startup.spi;
 
 /**
- * A startup task which will be executed by StartupManager in priority ascending order when platform is ready (see @onStart).
+ * A startup task which will be executed by StartupManager in priority ascending order when platform
+ * is ready (see {@link org.openide.modules.OnStart}).
  * <p>
  * If order of execution does not matter, you might directly use @OnStart instead.
  * <p>

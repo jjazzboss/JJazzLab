@@ -944,13 +944,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         public MyOutDeviceButton()
         {
             var jms = JJazzMidiSystem.getInstance();
-            jms.addPropertyChangeListener(e -> 
-            {
-                if (e.getPropertyName().equals(JJazzMidiSystem.PROP_MIDI_OUT))
-                {
-                    updateText();
-                }
-            });
+            jms.addPropertyChangeListener(JJazzMidiSystem.PROP_MIDI_OUT, e -> updateText());
             updateText();
             setToolTipText(ResUtil.getString(getClass(), "CURRENT_MIDI_OUT_DEVICE"));
             addActionListener(e -> showMidiOptionPanel());
