@@ -344,7 +344,7 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
                     String secName = spt.getParentSection().getData().getName();
                     String sptLabel = sptName.equals(secName)
                             ? sptName
-                            : String.format("%s(%s)", sptName, secName);
+                            : sptName + "(" + secName + ")";
                     StringMetrics sm = new StringMetrics(g2, SMALL_FONT);
                     var bounds = sm.getLogicalBoundsNoLeadingNoDescent(sptLabel);
 
