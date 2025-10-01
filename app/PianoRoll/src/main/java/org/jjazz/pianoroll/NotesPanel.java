@@ -109,7 +109,6 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
         layer = new JLayer(this, layerUI);
 
         editor.getSettings().addPropertyChangeListener(this);
-
     }
 
     /**
@@ -125,7 +124,7 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
     /**
      * Early detection of size changes in order to update xMapper as soon as possible.
      * <p>
-     * Ovverridden because this method is called (by parent's layoutManager) before component is painted and before the component resized/moved event is fired.
+     * Overridden because this method is called (by parent's layoutManager) before component is painted and before the component resized/moved event is fired.
      * This lets us update xMapper as soon as possible.
      *
      * @param x
