@@ -454,7 +454,7 @@ public class WbpSource extends Wbp
 
 
         // Save cache
-        mapDestChordRootTransposibility.put(destChordRoot.getRelativePitch(), new TransposibilityResult(res, transpose));
+        mapDestChordRootTransposibility.put(destChordRelPitch, new TransposibilityResult(res, transpose));
         LOGGER.log(Level.FINE, "getTransposibilityScore() countGood={0} countOutside={1} countExtended={2}",
                 new Object[]
                 {
@@ -485,7 +485,15 @@ public class WbpSource extends Wbp
         {
             getTransposabilityScore(destChordRoot);     // This will update mapDestChordRootTransposibility to get transposition direction
             tr = mapDestChordRootTransposibility.get(destChordRoot.getRelativePitch());
-            assert tr != null;
+            if (tr == null)
+            {
+                // Robustness test: happened sometimes, but not trivial to reproduce, race condition ? 
+                tr = new TransposibilityResult(0, 0);
+                LOGGER.log(Level.WARNING, "getRequiredTransposition() destChordRoot={0} Unexpected tr=null ! Using instead tr={1}", new Object[]
+                {
+                    destChordRoot, tr
+                });
+            }
         }
 
         return tr.transpose();
