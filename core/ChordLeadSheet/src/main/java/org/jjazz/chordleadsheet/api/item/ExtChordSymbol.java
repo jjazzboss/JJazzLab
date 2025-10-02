@@ -48,10 +48,10 @@ import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_SAVE;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
- * An extended chord symbol with additionnal features:
+ * An extended chord symbol with additional features:
  * <p>
  * - Chord rendering information<br>
- * - An optional conditionnally-enabled alternate chord symbol.
+ * - An optional conditionally-enabled alternate chord symbol.
  * <p>
  * This is an immutable class.
  */

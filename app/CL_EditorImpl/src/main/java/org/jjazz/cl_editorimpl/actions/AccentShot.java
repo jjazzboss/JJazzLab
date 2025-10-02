@@ -64,7 +64,6 @@ import org.openide.util.actions.Presenter;
         })
 public final class AccentShot extends AbstractAction implements ContextAwareAction, CL_ContextActionListener, Presenter.Popup, ClsChangeListener
 {
-
     private CL_ContextActionSupport cap;
     private final Lookup context;
     private JRadioButtonMenuItem rbMenuItem;
@@ -182,9 +181,7 @@ public final class AccentShot extends AbstractAction implements ContextAwareActi
         CL_SelectionUtilities selection = cap.getSelection();
         ChordLeadSheet cls = selection.getChordLeadSheet();
 
-
         JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(undoText);
-
 
         for (CLI_ChordSymbol item : selection.getSelectedChordSymbols())
         {
@@ -211,13 +208,11 @@ public final class AccentShot extends AbstractAction implements ContextAwareActi
         {
             return;
         }
-        // Update the checkbox: select it if only all chord symbols use Accent Hold
+        // Update the checkbox: select it if only all chord symbols use Accent Shot
         CL_SelectionUtilities selection = cap.getSelection();
-        boolean b = selection.getSelectedChordSymbols().stream()
+        boolean allChordsShotAccent = selection.getSelectedChordSymbols().stream()
                 .map(cliCs -> cliCs.getData().getRenderingInfo())
                 .allMatch(cri -> cri.hasOneFeature(Feature.ACCENT, Feature.ACCENT_STRONGER) && cri.hasOneFeature(Feature.SHOT));
-        rbMenuItem.setSelected(b);
-        rbMenuItem.setEnabled(isEnabled());
+        rbMenuItem.setSelected(allChordsShotAccent);
     }
-
 }

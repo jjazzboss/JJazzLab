@@ -64,7 +64,6 @@ import org.openide.util.actions.Presenter;
         })
 public final class AccentDefault extends AbstractAction implements ContextAwareAction, CL_ContextActionListener, Presenter.Popup, ClsChangeListener
 {
-
     private CL_ContextActionSupport cap;
     private final Lookup context;
     private JRadioButtonMenuItem rbMenuItem;
@@ -182,19 +181,19 @@ public final class AccentDefault extends AbstractAction implements ContextAwareA
         CL_SelectionUtilities selection = cap.getSelection();
         ChordLeadSheet cls = selection.getChordLeadSheet();
 
-
         JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(undoText);
-
 
         for (CLI_ChordSymbol item : selection.getSelectedChordSymbols())
         {
             ExtChordSymbol ecs = item.getData();
             ChordRenderingInfo cri = ecs.getRenderingInfo();
             var features = cri.getFeatures();
-            features.remove(Feature.ACCENT_STRONGER);
             features.remove(Feature.HOLD);
             features.remove(Feature.SHOT);
-            features.add(Feature.ACCENT);
+            if (!cri.hasOneFeature(Feature.ACCENT_STRONGER))
+            {
+                features.add(Feature.ACCENT);
+            }
             ChordRenderingInfo newCri = new ChordRenderingInfo(cri, features);
             ExtChordSymbol newCs = ecs.getCopy(null, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
             item.getContainer().changeItem(item, newCs);
@@ -211,12 +210,10 @@ public final class AccentDefault extends AbstractAction implements ContextAwareA
         }
         // Update the checkbox: select it if only all chord symbols use Accent normal
         CL_SelectionUtilities selection = cap.getSelection();
-        boolean b = selection.getSelectedItems().stream()
-                .filter(item -> item instanceof CLI_ChordSymbol)
-                .map(item -> ((CLI_ChordSymbol) item).getData().getRenderingInfo())
-                .allMatch(cri -> cri.hasOneFeature(Feature.ACCENT) && !cri.hasOneFeature(Feature.HOLD, Feature.SHOT));
-        rbMenuItem.setSelected(b);
-        rbMenuItem.setEnabled(isEnabled());
+        boolean allChordsHaveAccent = selection.getSelectedChordSymbols().stream()
+                .map(cliCs -> cliCs.getData().getRenderingInfo())
+                .allMatch(cri -> cri.hasOneFeature(Feature.ACCENT, Feature.ACCENT_STRONGER)
+                        && !cri.hasOneFeature(Feature.HOLD, Feature.SHOT));
+        rbMenuItem.setSelected(allChordsHaveAccent);
     }
-
 }

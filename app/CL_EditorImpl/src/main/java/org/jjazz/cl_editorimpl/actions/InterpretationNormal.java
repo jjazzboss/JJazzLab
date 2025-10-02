@@ -64,7 +64,6 @@ import org.openide.util.actions.Presenter;
         })
 public final class InterpretationNormal extends AbstractAction implements ContextAwareAction, CL_ContextActionListener, Presenter.Popup, ClsChangeListener
 {
-
     private CL_ContextActionSupport cap;
     private final Lookup context;
     private JRadioButtonMenuItem rbMenuItem;
@@ -182,9 +181,7 @@ public final class InterpretationNormal extends AbstractAction implements Contex
         CL_SelectionUtilities selection = cap.getSelection();
         ChordLeadSheet cls = selection.getChordLeadSheet();
 
-
         JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(undoText);
-
 
         for (CLI_ChordSymbol item : selection.getSelectedChordSymbols())
         {
@@ -192,6 +189,8 @@ public final class InterpretationNormal extends AbstractAction implements Contex
             ChordRenderingInfo cri = ecs.getRenderingInfo();
             var features = cri.getFeatures();
             features.remove(Feature.ACCENT);
+            features.remove(Feature.HOLD);
+            features.remove(Feature.SHOT);
             features.remove(Feature.ACCENT_STRONGER);
             ChordRenderingInfo newCri = new ChordRenderingInfo(cri, features);
             ExtChordSymbol newCs = ecs.getCopy(null, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
@@ -209,11 +208,9 @@ public final class InterpretationNormal extends AbstractAction implements Contex
         }
         // Update the checkbox: select it if only all chord symbols do not use accent
         CL_SelectionUtilities selection = cap.getSelection();
-        boolean b = selection.getSelectedChordSymbols().stream()
+        boolean allChordsNoAccent = selection.getSelectedChordSymbols().stream()
                 .map(cliCs -> cliCs.getData().getRenderingInfo())
                 .allMatch(cri -> !cri.hasOneFeature(Feature.ACCENT, Feature.ACCENT_STRONGER));
-        rbMenuItem.setSelected(b);
-        rbMenuItem.setEnabled(isEnabled());
+        rbMenuItem.setSelected(allChordsNoAccent);
     }
-
 }

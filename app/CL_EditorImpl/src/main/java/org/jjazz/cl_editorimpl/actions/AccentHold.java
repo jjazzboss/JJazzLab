@@ -64,7 +64,6 @@ import org.openide.util.actions.Presenter;
         })
 public final class AccentHold extends AbstractAction implements ContextAwareAction, CL_ContextActionListener, Presenter.Popup, ClsChangeListener
 {
-
     private CL_ContextActionSupport cap;
     private final Lookup context;
     private JRadioButtonMenuItem rbMenuItem;
@@ -211,11 +210,9 @@ public final class AccentHold extends AbstractAction implements ContextAwareActi
         }
         // Update the checkbox: select it if only all chord symbols use Accent Hold
         CL_SelectionUtilities selection = cap.getSelection();
-        boolean b = selection.getSelectedChordSymbols().stream()
+        boolean allChordsHoldAccent = selection.getSelectedChordSymbols().stream()
                 .map(cliCs -> cliCs.getData().getRenderingInfo())
                 .allMatch(cri -> cri.hasOneFeature(Feature.ACCENT, Feature.ACCENT_STRONGER) && cri.hasOneFeature(Feature.HOLD));
-        rbMenuItem.setSelected(b);
-        rbMenuItem.setEnabled(isEnabled());
+        rbMenuItem.setSelected(allChordsHoldAccent);
     }
-
 }

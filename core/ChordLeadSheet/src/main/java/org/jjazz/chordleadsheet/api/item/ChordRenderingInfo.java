@@ -97,13 +97,13 @@ public class ChordRenderingInfo implements Serializable
         /**
          * Make sure there is no crash cymbal.
          * <p>
-         * IMPORTANT: Exclusive with NO_CRASH
+         * IMPORTANT: Exclusive with CRASH
          */
         NO_CRASH,
         /**
          * Make sure there is a crash cymbal.
          * <p>
-         * IMPORTANT: Exclusive with CRASH
+         * IMPORTANT: Exclusive with NO_CRASH
          */
         CRASH,
         /**
@@ -229,16 +229,11 @@ public class ChordRenderingInfo implements Serializable
      * <p>
      * Convenience method because of EnumSet...
      *
-     * @param f1
      * @param fx
      * @return
      */
-    public boolean hasAllFeatures(Feature f1, Feature... fx)
+    public boolean hasAllFeatures(Feature... fx)
     {
-        if (!features.contains(f1))
-        {
-            return false;
-        }
         return features.containsAll(Arrays.asList(fx));
     }
 
@@ -247,16 +242,11 @@ public class ChordRenderingInfo implements Serializable
      * <p>
      * Convenience method because of EnumSet...
      *
-     * @param f1
      * @param fx
      * @return
      */
-    public boolean hasOneFeature(Feature f1, Feature... fx)
+    public boolean hasOneFeature(Feature... fx)
     {
-        if (features.contains(f1))
-        {
-            return true;
-        }
         for (Feature f : fx)
         {
             if (features.contains(f))

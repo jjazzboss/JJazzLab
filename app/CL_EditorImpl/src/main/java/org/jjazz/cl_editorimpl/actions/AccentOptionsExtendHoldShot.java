@@ -62,7 +62,6 @@ import org.openide.util.actions.Presenter;
         })
 public final class AccentOptionsExtendHoldShot extends AbstractAction implements ContextAwareAction, CL_ContextActionListener, Presenter.Popup, ClsChangeListener
 {
-
     public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("X");
     private CL_ContextActionSupport cap;
     private final Lookup context;
@@ -118,10 +117,10 @@ public final class AccentOptionsExtendHoldShot extends AbstractAction implements
         }
 
 
-        boolean b = selection.getSelectedChordSymbols().stream()
+        boolean allChordsHoldOrShot = selection.getSelectedChordSymbols().stream()
                 .map(cliCs -> cliCs.getData().getRenderingInfo())
-                .allMatch(cri -> cri.hasOneFeature(Feature.ACCENT, Feature.ACCENT_STRONGER));
-        setEnabled(b);
+                .allMatch(cri -> cri.hasOneFeature(Feature.HOLD, Feature.SHOT));
+        setEnabled(allChordsHoldOrShot);
         updateMenuItem();
     }
 
@@ -220,5 +219,4 @@ public final class AccentOptionsExtendHoldShot extends AbstractAction implements
         cbMenuItem.setSelected(b);
         cbMenuItem.setEnabled(isEnabled());
     }
-
 }

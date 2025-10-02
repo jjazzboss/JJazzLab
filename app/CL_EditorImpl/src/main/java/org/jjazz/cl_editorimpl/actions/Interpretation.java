@@ -30,13 +30,6 @@ import javax.swing.Action;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JSeparator;
-import org.jjazz.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.chordleadsheet.api.ClsChangeListener;
-import org.jjazz.chordleadsheet.api.UnsupportedEditException;
-import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
-import org.jjazz.chordleadsheet.api.event.ItemChangedEvent;
-import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.cl_editor.api.CL_ContextActionListener;
 import org.jjazz.cl_editor.api.CL_ContextActionSupport;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
@@ -65,7 +58,6 @@ public final class Interpretation extends AbstractAction implements ContextAware
     private CL_ContextActionSupport cap;
     private final Lookup context;
     JMenu subMenu;
-    private ChordLeadSheet currentCls;
     private static final Logger LOGGER = Logger.getLogger(Interpretation.class.getSimpleName());
 
     public Interpretation()

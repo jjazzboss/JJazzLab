@@ -121,14 +121,14 @@ public final class AccentOptionsCrash extends AbstractAction implements ContextA
         }
 
 
-        boolean b = selection.getSelectedChordSymbols().stream()
+        boolean allChordsHaveAccent =  selection.getSelectedChordSymbols().stream()
                 .map(cliCs -> cliCs.getData().getRenderingInfo())
                 .allMatch(cri -> cri.hasOneFeature(Feature.ACCENT, Feature.ACCENT_STRONGER));
-        setEnabled(b);
+        setEnabled(allChordsHaveAccent);
 
         if (dynMenuItem != null)
         {
-            dynMenuItem.setEnabled(b);
+            dynMenuItem.setEnabled(allChordsHaveAccent);
             dynMenuItem.update();
         }
 
@@ -242,7 +242,6 @@ public final class AccentOptionsCrash extends AbstractAction implements ContextA
             ChordRenderingInfo newCri = new ChordRenderingInfo(features, cri.getScaleInstance());
             ExtChordSymbol newCs = ecs.getCopy(null, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
             item.getContainer().changeItem(item, newCs);
-
         }
 
         JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(undoText);
@@ -255,7 +254,7 @@ public final class AccentOptionsCrash extends AbstractAction implements ContextA
     private class MyMenuItem extends JMenuItem implements DynamicMenuContent
     {
 
-        private JComponent[] components = new JComponent[2];
+        private final JComponent[] components = new JComponent[2];
         public JCheckBoxMenuItem cbm_crashAlways;
         public JCheckBoxMenuItem cbm_crashNever;
 
@@ -282,13 +281,15 @@ public final class AccentOptionsCrash extends AbstractAction implements ContextA
             CL_SelectionUtilities selection = cap.getSelection();
 
             boolean crashAlways = selection.getSelectedChordSymbols().stream()
-                    .allMatch(cliCs -> cliCs.getData().getRenderingInfo().hasOneFeature(Feature.CRASH));
+                    .map(cliCs -> cliCs.getData().getRenderingInfo())
+                    .allMatch(cri -> cri.hasOneFeature(Feature.CRASH));
 
             cbm_crashAlways.setSelected(crashAlways);
             cbm_crashAlways.setEnabled(isEnabled());
 
             boolean crashNever = selection.getSelectedChordSymbols().stream()
-                    .allMatch(cliCs -> cliCs.getData().getRenderingInfo().hasOneFeature(Feature.NO_CRASH));
+                    .map(cliCs -> cliCs.getData().getRenderingInfo())
+                    .allMatch(cri -> cri.hasOneFeature(Feature.NO_CRASH));
 
             cbm_crashNever.setSelected(crashNever);
             cbm_crashNever.setEnabled(isEnabled());
@@ -327,8 +328,5 @@ public final class AccentOptionsCrash extends AbstractAction implements ContextA
             }
             changeSelectedChordSymbols(s);
         }
-
-
     }
-
 }

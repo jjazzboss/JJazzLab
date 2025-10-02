@@ -62,7 +62,6 @@ import org.openide.util.actions.Presenter;
         })
 public final class AccentOptionsStronger extends AbstractAction implements ContextAwareAction, CL_ContextActionListener, Presenter.Popup, ClsChangeListener
 {
-
     public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("S");
 
     private CL_ContextActionSupport cap;
@@ -187,12 +186,8 @@ public final class AccentOptionsStronger extends AbstractAction implements Conte
         {
             ExtChordSymbol ecs = item.getData();
             ChordRenderingInfo cri = ecs.getRenderingInfo();
-            if (!cri.hasOneFeature(Feature.ACCENT, Feature.ACCENT_STRONGER))
-            {
-                continue;
-            }
 
-            var features = cri.getFeatures();            
+            var features = cri.getFeatures();
             if (stronger)
             {
                 features.add(Feature.ACCENT_STRONGER);
@@ -220,9 +215,10 @@ public final class AccentOptionsStronger extends AbstractAction implements Conte
 
         // Update the checkbox: select it if only all chord symbols have a Stronger Accent
         CL_SelectionUtilities selection = cap.getSelection();
-        boolean b = selection.getSelectedChordSymbols().stream()
-                .allMatch(cliCs -> cliCs.getData().getRenderingInfo().hasOneFeature(Feature.ACCENT_STRONGER));
-        cbMenuItem.setSelected(b);
+        boolean allChordsStrongerAccent = selection.getSelectedChordSymbols().stream()
+                .map(cliCs -> cliCs.getData().getRenderingInfo())
+                .allMatch(cri -> cri.hasOneFeature(Feature.ACCENT_STRONGER));
+        cbMenuItem.setSelected(allChordsStrongerAccent);
 
         cbMenuItem.setEnabled(isEnabled());
     }
