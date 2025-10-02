@@ -495,7 +495,7 @@ public class ChordRenderingInfo implements Serializable
             }
         }
 
-        private Object readResolve() throws ObjectStreamException
+        protected Object readResolve() throws ObjectStreamException
         {
             if (spPlayStyleV1 != null)
             {
