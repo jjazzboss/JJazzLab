@@ -30,7 +30,6 @@ import org.jjazz.chordleadsheet.api.ClsChangeListener;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
 import org.jjazz.chordleadsheet.api.event.SizeChangedEvent;
-import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.openide.util.Lookup;
 import org.openide.util.LookupEvent;
 import org.openide.util.LookupListener;

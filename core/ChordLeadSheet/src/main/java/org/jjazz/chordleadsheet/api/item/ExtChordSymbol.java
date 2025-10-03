@@ -48,16 +48,15 @@ import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_SAVE;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
- * An extended chord symbol with additionnal features:
+ * An extended chord symbol with additional features:
  * <p>
  * - Chord rendering information<br>
- * - An optional conditionnally-enabled alternate chord symbol.
+ * - An optional conditionally-enabled alternate chord symbol.
  * <p>
  * This is an immutable class.
  */
 public class ExtChordSymbol extends ChordSymbol implements Serializable
 {
-
     private ChordRenderingInfo renderingInfo;
     private AltExtChordSymbol altChordSymbol;
     private AltDataFilter altFilter;
@@ -328,8 +327,8 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
     /**
      * Get a transposed ExtChordSymbol.
      *
-     * @param t   The amount of transposition in semi-tons.
-     * @param alt If not null accidental is unchanged, otherwise use alt
+     * @param t   The amount of transposition in semitones.
+     * @param alt If <code>null</code>, accidental is unchanged; otherwise use alt.
      * @return A new transposed ExtChordSymbol.
      */
     @Override
@@ -337,7 +336,9 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
     {
         ChordSymbol cs = super.getTransposedChordSymbol(t, alt);
         ChordRenderingInfo cri = getRenderingInfo().getTransposed(t);
-        AltExtChordSymbol altCs = (altChordSymbol == null) ? null : altChordSymbol.getTransposedChordSymbol(t, alt);
+        AltExtChordSymbol altCs = (altChordSymbol == null)
+                ? null
+                : altChordSymbol.getTransposedChordSymbol(t, alt);
         ExtChordSymbol ecs = new ExtChordSymbol(cs, cri, altCs, altFilter);
         return ecs;
     }

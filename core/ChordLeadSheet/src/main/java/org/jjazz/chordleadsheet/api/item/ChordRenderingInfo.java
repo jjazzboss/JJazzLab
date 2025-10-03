@@ -269,11 +269,11 @@ public class ChordRenderingInfo implements Serializable
 
 
     /**
-     * Return a new object transposed by the specified semi-tons (StandardScaleInstance startNote is impacted).
+     * Return a new object transposed by the specified semitones (StandardScaleInstance startNote is impacted).
      * <p>
      * Default value is 0.
      *
-     * @param t Transposition in semi-tons.
+     * @param t Transposition in semitones.
      * @return
      */
     public ChordRenderingInfo getTransposed(int t)
