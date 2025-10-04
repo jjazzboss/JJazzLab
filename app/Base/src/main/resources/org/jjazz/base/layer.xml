@@ -81,12 +81,18 @@
         </folder>
     </folder>
     <folder name="Toolbars">
-        <file name="MyToolBarConfig.xml" url="MyToolBarConfig.xml"/>      
-        <folder name="File">
+        <file name="Standard.xml" url="Standard.xml"/>                    
+        <!-- Need to specify position of our toolbars (despite this is also done in Standard.xml), otherwise warning "Not all children in Toolbars/ marked with the position attribute..." -->
+        <folder name="ControlToolbar">
+            <attr name="position" intvalue="400"/>  
+        </folder>
+        <folder name="AutoPreviewToolbar">
+            <attr name="position" intvalue="450"/> 
+        </folder> 
+        <folder name="File" >
             <!-- We don't use the IDE action but our own  -->
             <file name="org-openide-actions-SaveAllAction.shadow_hidden"/>
-        </folder>
-        <file name="Standard.xml_hidden"/>
+        </folder>   
     </folder>
     <folder name="Shortcuts">
         <!-- Add shortcuts for Netbeans actions -->

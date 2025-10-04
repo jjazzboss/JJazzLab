@@ -36,7 +36,7 @@ import org.openide.util.actions.Presenter;
 @ActionRegistration(displayName = "#CTL_ControlToolbarAction", lazy = false)   // Need to be false because we implement Presenter.Toolbar
 @ActionReferences(
         {
-            @ActionReference(path = "Toolbars/MusicControls", position = 50)     // This will insert our toolbar
+            @ActionReference(path = "Toolbars/ControlToolbar") // see Base module / layer.xml for toolbars ordering (position here has mysteriously no impact)
         })
 public class ControlToolbarAction extends AbstractAction implements Presenter.Toolbar
 {

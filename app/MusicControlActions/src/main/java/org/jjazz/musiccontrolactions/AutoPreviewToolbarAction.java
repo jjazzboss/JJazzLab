@@ -40,7 +40,7 @@ import org.openide.util.actions.Presenter;
 @ActionRegistration(displayName = "not used", lazy = false)   // Need to be false because we implement Presenter.Toolbar
 @ActionReferences(
         {
-            @ActionReference(path = "Toolbars/AutoPreviewToolBar", position = 1000)     // This will insert our toolbar
+            @ActionReference(path = "Toolbars/AutoPreviewToolbar")   // see Base module / layer.xml for toolbars ordering (position here has mysteriously no impact)
         })
 public class AutoPreviewToolbarAction extends AbstractAction implements Presenter.Toolbar
 {

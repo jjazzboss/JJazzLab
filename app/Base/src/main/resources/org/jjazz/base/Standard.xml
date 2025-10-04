@@ -21,15 +21,18 @@
 -->
 
 <!DOCTYPE Configuration PUBLIC "-//NetBeans IDE//DTD toolbar//EN" "http://www.netbeans.org/dtds/toolbar.dtd">
-
+<!-- This file is referenced by layer.xml --> 
+<!-- https://netbeans.apache.org/wiki/main/netbeansdevelopperfaq/DevFaqHideShowToolbar/ -->
+<!-- https://anchialas.wordpress.com/2010/08/19/custom-toolbar-configuration/ -->
+<!-- https://github.com/apache/netbeans/blob/master/platform/core.ui/src/org/netbeans/core/ui/resources/layer.xml -->
 <Configuration>
     <Row>
         <Toolbar name="File" position="100" />
         <Toolbar name="UndoRedo" position="200" />
-        <Toolbar name="Clipboard" visible="false" position="300" />    
-        <Toolbar name="MusicControls" position="400" />      
-        <Toolbar name="OutputSynth" position="450" />      
-        <Toolbar name="Memory" visible="false" position="500" />
+        <Toolbar name="Clipboard" visible="false" />
+        <Toolbar name="ControlToolbar" position="400" />      
+        <Toolbar name="AutoPreviewToolbar" position="450" />      
+        <Toolbar name="Memory" visible="false" />
     </Row> 
 
 </Configuration>
