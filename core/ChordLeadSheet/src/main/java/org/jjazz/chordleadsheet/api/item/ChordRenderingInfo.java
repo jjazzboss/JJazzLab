@@ -48,7 +48,6 @@ import org.openide.util.lookup.ServiceProvider;
  */
 public class ChordRenderingInfo implements Serializable
 {
-
     private static final Logger LOGGER = Logger.getLogger(ChordRenderingInfo.class.getSimpleName());
 
     // =================================================================================================
@@ -505,7 +504,7 @@ public class ChordRenderingInfo implements Serializable
             }
         }
 
-        private Object readResolve() throws ObjectStreamException
+        protected Object readResolve() throws ObjectStreamException
         {
             if (spPlayStyleV1 != null)
             {

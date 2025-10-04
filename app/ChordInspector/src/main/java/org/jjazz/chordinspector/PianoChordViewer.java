@@ -103,13 +103,6 @@ public class PianoChordViewer extends javax.swing.JPanel implements ChordViewer
     }
 
     @Override
-    public void setEnabled(boolean b)
-    {
-        super.setEnabled(b);
-        // To do
-    }
-
-    @Override
     public void cleanup()
     {
         // Nothing
