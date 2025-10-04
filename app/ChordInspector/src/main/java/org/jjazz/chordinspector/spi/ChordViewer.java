@@ -24,7 +24,7 @@ package org.jjazz.chordinspector.spi;
 
 import javax.swing.Icon;
 import javax.swing.JComponent;
-import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.song.api.Song;
@@ -73,11 +73,11 @@ public interface ChordViewer
     /**
      * Represent the specified chord symbol.
      *
-     * @param cliCs
+     * @param ecs
      */
-    void setModel(CLI_ChordSymbol cliCs);
+    void setModel(ExtChordSymbol ecs);
     
-    CLI_ChordSymbol getModel();
+    ExtChordSymbol getModel();
 
     void setEnabled(boolean b);
 

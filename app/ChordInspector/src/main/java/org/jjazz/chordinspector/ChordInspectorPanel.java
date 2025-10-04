@@ -25,19 +25,14 @@ package org.jjazz.chordinspector;
 import com.google.common.base.Preconditions;
 import java.awt.Color;
 import java.awt.Font;
-import java.text.ParseException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.border.Border;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.chordinspector.spi.ChordViewer;
-import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.chordleadsheet.api.item.CLI_Factory;
-import org.jjazz.harmony.api.Position;
+import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.flatcomponents.api.BorderManager;
 import org.jjazz.flatcomponents.api.FlatButton;
 import org.jjazz.uisettings.api.GeneralUISettings;
@@ -48,7 +43,6 @@ import org.openide.util.*;
  */
 public class ChordInspectorPanel extends javax.swing.JPanel
 {
-
     private static final Border BORDER_NOTHING_SELECTED = BorderFactory.createLineBorder(Color.RED);
     private static final Border BORDER_NOTHING_UNSELECTED = BorderManager.DEFAULT_BORDER_NOTHING;
     private static final Border BORDER_ENTERED_SELECTED = BORDER_NOTHING_SELECTED;
@@ -63,17 +57,8 @@ public class ChordInspectorPanel extends javax.swing.JPanel
     public ChordInspectorPanel()
     {
         initComponents();
-
         setActiveChordViewer(initChordViewers());
-        
-        try
-        {
-            setModel(CLI_Factory.getDefault().createChordSymbol("C", 0,0));
-        } catch (ParseException ex)
-        {
-            // Should never happen
-            Exceptions.printStackTrace(ex);
-        }
+        setModel(null);
     }
 
     public void cleanup()
@@ -81,13 +66,19 @@ public class ChordInspectorPanel extends javax.swing.JPanel
         chordViewer.cleanup();
     }
 
-    public void setModel(CLI_ChordSymbol model)
+    public final void setModel(ExtChordSymbol model)
     {
-        chordViewer.setModel(model);
-        updateChordSymbolUI(model);
+        // TODO #534 - Apply transposition here, pass to chordViewer and to updateChordsSymbol
+        // This is where the model gets to the UI
+        var transposedModel = model == null
+                ? null
+                : model.getTransposedChordSymbol(0, null);
+
+        chordViewer.setModel(transposedModel);
+        updateChordSymbolUI(transposedModel);
     }
 
-    public CLI_ChordSymbol getModel()
+    public ExtChordSymbol getModel()
     {
         return chordViewer.getModel();
     }
@@ -127,7 +118,7 @@ public class ChordInspectorPanel extends javax.swing.JPanel
             return;
         }
 
-        CLI_ChordSymbol model = null;
+        ExtChordSymbol model = null;
         if (chordViewer != null)
         {
             model = chordViewer.getModel();
@@ -136,30 +127,26 @@ public class ChordInspectorPanel extends javax.swing.JPanel
             mapViewerButton.get(chordViewer).setBorderEntered(BORDER_ENTERED_UNSELECTED);
         }
 
-
         chordViewer = cViewer;
         chordViewer.setModel(model); 
-        
 
         pnl_viewer.removeAll();
         pnl_viewer.add(chordViewer.getComponent());
         pnl_viewer.revalidate();
         pnl_viewer.repaint();
 
-        
         mapViewerButton.get(chordViewer).setBorderNothing(BORDER_NOTHING_SELECTED);
         mapViewerButton.get(chordViewer).setBorderEntered(BORDER_ENTERED_SELECTED);
 
         Analytics.logEvent("Set Active Chord Viewer", Analytics.buildMap("ChordViewer", chordViewer.getClass().getSimpleName()));
     }
 
-    private void updateChordSymbolUI(CLI_ChordSymbol cliCs)
+    private void updateChordSymbolUI(ExtChordSymbol ecs)
     {
         String strCs = " ";
         String strExtraInfo = " ";
-        if (cliCs != null)
+        if (ecs != null)
         {
-            var ecs = cliCs.getData();
             strCs = ecs.getOriginalName();
             strExtraInfo = ecs.toNoteString();
             var scale = ecs.getRenderingInfo().getScaleInstance();
@@ -241,6 +228,5 @@ public class ChordInspectorPanel extends javax.swing.JPanel
     private javax.swing.JPanel pnl_viewer;
     private javax.swing.JPanel pnl_viewerButtons;
     // End of variables declaration//GEN-END:variables
-
 
 }

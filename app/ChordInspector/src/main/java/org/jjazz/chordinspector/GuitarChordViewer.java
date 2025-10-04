@@ -31,7 +31,7 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import org.jjazz.chordinspector.spi.ChordViewer;
-import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.song.api.Song;
@@ -51,7 +51,7 @@ public class GuitarChordViewer extends javax.swing.JPanel implements ChordViewer
     final private static String ICON_PATH = "resources/DiagramIcon.png";
     final private static Icon ICON = new ImageIcon(GuitarChordViewer.class.getResource(ICON_PATH));
     private static final Color TONIC_NOTE_COLOR = new Color(231, 83, 35);
-    private CLI_ChordSymbol model;
+    private ExtChordSymbol model;
     private final int maxFretSpan = 4;
     private static final Logger LOGGER = Logger.getLogger(GuitarChordViewer.class.getSimpleName());
 
@@ -91,14 +91,14 @@ public class GuitarChordViewer extends javax.swing.JPanel implements ChordViewer
     }
 
     @Override
-    public void setModel(CLI_ChordSymbol cliCs)
+    public void setModel(ExtChordSymbol ecs)
     {
-        this.model = cliCs;
-        updateDiagrams(cliCs);
+        this.model = ecs;
+        updateChordDiagrams(ecs);
     }
 
     @Override
-    public CLI_ChordSymbol getModel()
+    public ExtChordSymbol getModel()
     {
         return model;
     }
@@ -123,17 +123,16 @@ public class GuitarChordViewer extends javax.swing.JPanel implements ChordViewer
     // Private methods
     // ===============================================================================
 
-    private void updateDiagrams(CLI_ChordSymbol cliCs)
+    private void updateChordDiagrams(ExtChordSymbol ecs)
     {
         pnl_instrument.removeAll();
 
-        if (cliCs != null)
+        if (ecs != null)
         {
-            var cs = cliCs.getData();
-            List<TGChord> tgChords = new TGChordCreatorUtil(maxFretSpan).getChords(cs);
+            List<TGChord> tgChords = new TGChordCreatorUtil(maxFretSpan).getChords(ecs);
             tgChords.stream().limit(30).forEach(tgChord -> 
             {
-                GuitarDiagramComponent diagram = new GuitarDiagramComponent(tgChord, cs);
+                GuitarDiagramComponent diagram = new GuitarDiagramComponent(tgChord, ecs);
                 diagram.setTonicNoteColor(TONIC_NOTE_COLOR);
                 pnl_instrument.add(diagram);
             });
@@ -141,7 +140,6 @@ public class GuitarChordViewer extends javax.swing.JPanel implements ChordViewer
 
         revalidate();
         repaint();
-
     }
 
     private List<GuitarDiagramComponent> getDiagrams()
@@ -209,7 +207,7 @@ public class GuitarChordViewer extends javax.swing.JPanel implements ChordViewer
         var tgs = TGChordSettings.getInstance();
         ChordMode mode = tgs.getChordMode().next();
         TGChordSettings.getInstance().setChordMode(mode);
-        updateDiagrams(model);
+        updateChordDiagrams(model);
         fbtn_chordMode.setText(mode.toString());
     }//GEN-LAST:event_fbtn_chordModeActionPerformed
 

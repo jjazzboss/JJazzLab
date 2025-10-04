@@ -48,7 +48,6 @@ import org.openide.util.lookup.ServiceProvider;
  */
 public class ChordRenderingInfo implements Serializable
 {
-
     private static final Logger LOGGER = Logger.getLogger(ChordRenderingInfo.class.getSimpleName());
 
     // =================================================================================================
@@ -269,11 +268,11 @@ public class ChordRenderingInfo implements Serializable
 
 
     /**
-     * Return a new object transposed by the specified semi-tons (StandardScaleInstance startNote is impacted).
+     * Return a new object transposed by the specified semitones (StandardScaleInstance startNote is impacted).
      * <p>
      * Default value is 0.
      *
-     * @param t Transposition in semi-tons.
+     * @param t Transposition in semitones.
      * @return
      */
     public ChordRenderingInfo getTransposed(int t)
@@ -505,7 +504,7 @@ public class ChordRenderingInfo implements Serializable
             }
         }
 
-        private Object readResolve() throws ObjectStreamException
+        protected Object readResolve() throws ObjectStreamException
         {
             if (spPlayStyleV1 != null)
             {
