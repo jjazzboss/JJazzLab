@@ -71,7 +71,6 @@ import org.openide.util.lookup.ServiceProvider;
  */
 public class SongPartImpl implements SongPart, Serializable, ChangeListener
 {
-
     public static final String NO_NAME = "NoName";
     /**
      * The rhythm of this part.
@@ -716,7 +715,5 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
 
             return newSpt;
         }
-
-
     }
 }

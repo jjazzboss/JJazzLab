@@ -33,7 +33,6 @@ import javax.swing.JComponent;
 import org.jjazz.chordinspector.spi.ChordViewer;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.Note.Accidental;
-import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.phrase.api.NoteEvent;
@@ -56,7 +55,7 @@ public class ScoreChordViewer extends javax.swing.JPanel implements ChordViewer
     final private static String ICON_PATH = "resources/EighthNoteIcon.png";
     final private static Icon ICON = new ImageIcon(ScoreChordViewer.class.getResource(ICON_PATH));
 
-    private CLI_ChordSymbol model;
+    private ExtChordSymbol model;
     private final NotationGraphics ng;
     private static final Logger LOGGER = Logger.getLogger(ScoreChordViewer.class.getSimpleName());
 
@@ -103,7 +102,7 @@ public class ScoreChordViewer extends javax.swing.JPanel implements ChordViewer
         // Draw chord notes
         MeasureContext mContext = new MeasureContext(ng, 0, new FloatRange(0, 4), new Note(0));
         ng.relative(8);
-        ExtChordSymbol ecs = model.getData();
+        ExtChordSymbol ecs = getModel();
         ng.startNoteGroup();
         var chord = ecs.getChord();     // chord notes accidentals are made consistent with the chord symbol
         int t = chord.getMinPitch() < 9 ? 60 : 48;
@@ -151,8 +150,6 @@ public class ScoreChordViewer extends javax.swing.JPanel implements ChordViewer
                 previousNote = nn;
             }
         }
-
-
     }
 
 
@@ -184,23 +181,16 @@ public class ScoreChordViewer extends javax.swing.JPanel implements ChordViewer
     }
 
     @Override
-    public void setModel(CLI_ChordSymbol cliCs)
+    public void setModel(ExtChordSymbol ecs)
     {
-        this.model = cliCs;
+        this.model = ecs;
         repaint();
     }
 
     @Override
-    public CLI_ChordSymbol getModel()
+    public ExtChordSymbol getModel()
     {
         return model;
-    }
-
-    @Override
-    public void setEnabled(boolean b)
-    {
-        super.setEnabled(b);
-        // To do
     }
 
     @Override

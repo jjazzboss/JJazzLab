@@ -12,7 +12,7 @@
  *
  *  JJazzLab is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Lesser General Public License for more details.
  * 
  *  You should have received a copy of the GNU Lesser General Public License
@@ -38,16 +38,14 @@ import org.openide.util.Utilities;
  */
 public class ChordListener implements CL_ContextActionListener, PropertyChangeListener
 {
-
     private final CL_ContextActionSupport cap;
     private CLI_ChordSymbol chordSymbol;
-    private ChordInspectorPanel editor;
+    private final ChordInspectorPanel editor;
 
     public ChordListener(ChordInspectorPanel editor)
     {
         Preconditions.checkNotNull(editor);
         this.editor = editor;
-
 
         // Listen to selection changes in the current leadsheet editor
         cap = CL_ContextActionSupport.getInstance(Utilities.actionsGlobalContext());
@@ -68,7 +66,7 @@ public class ChordListener implements CL_ContextActionListener, PropertyChangeLi
     // CL_ContextActionListener interface
     // -----------------------------------------------------------------------------   
     @Override
-    public void selectionChange(CL_SelectionUtilities selection)
+    public final void selectionChange(CL_SelectionUtilities selection)
     {
         CLI_ChordSymbol newSelectedChordSymbol = null;
 
@@ -81,8 +79,8 @@ public class ChordListener implements CL_ContextActionListener, PropertyChangeLi
         {
             // Find the last chord valid for this bar
             var cls = selection.getChordLeadSheet();
-            newSelectedChordSymbol = cls.getLastItemBefore(new Position(selection.getMinBarIndex() + 1), false, CLI_ChordSymbol.class,
-                    cli -> true);
+            newSelectedChordSymbol = cls.getLastItemBefore(new Position(selection.getMinBarIndex() + 1),
+                    false, CLI_ChordSymbol.class, cli -> true);
             if (newSelectedChordSymbol == null)
             {
                 // Can happen if user temporarily remove all chord symbols!
@@ -109,7 +107,7 @@ public class ChordListener implements CL_ContextActionListener, PropertyChangeLi
 
         if (chordSymbol != null)
         {
-            editor.setModel(chordSymbol);
+            editor.setModel(chordSymbol.getData());
         }
     }
 
@@ -124,7 +122,7 @@ public class ChordListener implements CL_ContextActionListener, PropertyChangeLi
         {
             if (ChordLeadSheetItem.PROP_ITEM_DATA.equals(evt.getPropertyName()))
             {
-                editor.setModel(chordSymbol);
+                editor.setModel(chordSymbol.getData());
             }
         }
     }

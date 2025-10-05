@@ -27,10 +27,8 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import org.jjazz.chordinspector.spi.ChordViewer;
-import org.jjazz.harmony.api.Chord;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.instrumentcomponents.keyboard.api.KeyboardComponent;
-import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.rhythm.api.RhythmVoice;
@@ -53,7 +51,7 @@ public class PianoChordViewer extends javax.swing.JPanel implements ChordViewer
     private static final Color CHORD_COLOR = new Color(0, 128, 192);
     private static final Color SCALE_COLOR = new Color(187, 187, 187);
 
-    private CLI_ChordSymbol model;
+    private ExtChordSymbol model;
 
     /**
      * Creates new form PianoChordViewer
@@ -92,23 +90,16 @@ public class PianoChordViewer extends javax.swing.JPanel implements ChordViewer
     }
 
     @Override
-    public void setModel(CLI_ChordSymbol cliCs)
+    public void setModel(ExtChordSymbol ecs)
     {
-        this.model = cliCs;
+        this.model = ecs;
         updateKeyboardUI();
     }
 
     @Override
-    public CLI_ChordSymbol getModel()
+    public ExtChordSymbol getModel()
     {
         return model;
-    }
-
-    @Override
-    public void setEnabled(boolean b)
-    {
-        super.setEnabled(b);
-        // To do
     }
 
     @Override
@@ -129,15 +120,10 @@ public class PianoChordViewer extends javax.swing.JPanel implements ChordViewer
             return;
         }
 
-
         // Chord notes
-        ExtChordSymbol ecs = model.getData();
-        Chord c = ecs.getChord();
+        ExtChordSymbol ecs = getModel();
         int cPitch = keyboard.getRange().getCentralC() - 12;
-//        if (ecs.getRootNote().getRelativePitch() > 7)
-//        {
-//            cPitch -= 12;
-//        }
+
         for (Note n : ecs.getChord().getNotes())
         {
             keyboard.setPressed(cPitch + n.getPitch(), 127, CHORD_COLOR);
