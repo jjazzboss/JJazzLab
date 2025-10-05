@@ -54,8 +54,6 @@ import org.jjazz.cl_editorimpl.actions.InterpretationNext;
 import org.jjazz.cl_editorimpl.actions.RemoveBar;
 import org.jjazz.cl_editorimpl.actions.SetEndBar;
 import org.jjazz.cl_editorimpl.actions.ToggleBarAnnotations;
-import org.jjazz.cl_editorimpl.actions.TransposeDown;
-import org.jjazz.cl_editorimpl.actions.TransposeUp;
 import org.jjazz.cl_editorimpl.actions.ExtendSelectionRight;
 import org.jjazz.cl_editorimpl.actions.JumpToHome;
 import org.jjazz.cl_editorimpl.actions.JumpToEnd;
@@ -87,7 +85,7 @@ public class CL_EditorController implements CL_EditorMouseListener
 {
 
     /**
-     * Actions reused several times
+     * Actions which can be also triggered with the mouse
      */
     private final Action editAction;
     private final Action transposeUpAction;
@@ -118,17 +116,16 @@ public class CL_EditorController implements CL_EditorMouseListener
         editor = (CL_EditorImpl) ed;
         dragStartBbIndex = -1;
 
-        // Initialize actions. 
+        assert SwingUtilities.isEventDispatchThread();
+
+        // Initialize actions used in methods
         transposeDownAction = Actions.forID("JJazz", "org.jjazz.cl_editor.actions.transposedown");
         transposeUpAction = Actions.forID("JJazz", "org.jjazz.cl_editor.actions.transposeup");
         editAction = Actions.forID("JJazz", "org.jjazz.cl_editor.actions.edit");
         hearChordAction = Actions.forID("JJazz", "org.jjazz.cl_editor.actions.hearchord");
 
+
         // Actions created by annotations (equivalent to org.openide.awt.Actions.context())
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(TransposeDown.KEYSTROKE, "TransposeDown");
-        editor.getActionMap().put("TransposeDown", transposeDownAction);
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(TransposeUp.KEYSTROKE, "TransposeUp");
-        editor.getActionMap().put("TransposeUp", transposeUpAction);
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(HearChord.KEYSTROKE, "HearChord");
         editor.getActionMap().put("HearChord", hearChordAction);
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(RemoveBar.KEYSTROKE, "RemoveBar");
@@ -244,7 +241,7 @@ public class CL_EditorController implements CL_EditorMouseListener
                 selection.unselectAll(editor);
                 editor.selectItem(item, true);
                 editor.setFocusOnItem(item, irType);
-                if (e.isAltDown())
+                if (e.isAltDown() && hearChordAction.isEnabled())
                 {
                     hearChordAction.actionPerformed(null);
                 }
@@ -290,7 +287,10 @@ public class CL_EditorController implements CL_EditorMouseListener
 
             // Edit with registered action
             ActionEvent ae = new ActionEvent(e.getSource(), ActionEvent.ACTION_FIRST, "item");
-            editAction.actionPerformed(ae);
+            if (editAction.isEnabled())
+            {
+                editAction.actionPerformed(ae);
+            }
 
         } else if (e.getClickCount() == 1 && SwingUtilities.isRightMouseButton(e))
         {
@@ -307,7 +307,7 @@ public class CL_EditorController implements CL_EditorMouseListener
                 if (popupChordSymbolMenu == null)
                 {
                     List<? extends Action> actions = Utilities.actionsForPath("Actions/ChordSymbol");
-                    popupChordSymbolMenu = Utilities.actionsToPopup(actions.toArray(Action[]::new), editor);
+                    popupChordSymbolMenu = Utilities.actionsToPopup(actions.toArray(Action[]::new), editor); 
                 }
                 popupChordSymbolMenu.show(e.getComponent(), e.getX(), e.getY());
             } else if (item instanceof CLI_Section)
@@ -369,11 +369,17 @@ public class CL_EditorController implements CL_EditorMouseListener
             {
                 if (e.getWheelRotation() > 0)
                 {
-                    transposeDownAction.actionPerformed(null);
+                    if (transposeDownAction.isEnabled())
+                    {
+                        transposeDownAction.actionPerformed(null);
+                    }
 
                 } else
                 {
-                    transposeUpAction.actionPerformed(null);
+                    if (transposeUpAction.isEnabled())
+                    {
+                        transposeUpAction.actionPerformed(null);
+                    }
                 }
             }
         });

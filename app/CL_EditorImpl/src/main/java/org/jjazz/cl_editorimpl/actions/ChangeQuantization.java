@@ -22,17 +22,17 @@
  */
 package org.jjazz.cl_editorimpl.actions;
 
-import org.jjazz.cl_editor.api.CL_ContextActionListener;
-import org.jjazz.cl_editor.api.CL_ContextActionSupport;
 import java.awt.event.ActionEvent;
+import java.util.EnumSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
 import static javax.swing.Action.NAME;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
+import org.jjazz.chordleadsheet.api.event.SizeChangedEvent;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.cl_editor.api.CL_ContextAction;
 import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.api.CL_EditorClientProperties;
@@ -43,9 +43,6 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.ContextAwareAction;
-import org.openide.util.Lookup;
-import org.openide.util.Utilities;
 import org.openide.windows.WindowManager;
 
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.changequantization")
@@ -53,44 +50,30 @@ import org.openide.windows.WindowManager;
 @ActionReferences(
         {
             @ActionReference(path = "Actions/Bar", position = 1400, separatorBefore = 1390),
+            @ActionReference(path = "Actions/Section", position = 2200)
         })
-public class ChangeQuantization extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
+public class ChangeQuantization extends CL_ContextAction
 {
 
-    private Lookup context;
-    private CL_ContextActionSupport cap;
-    private final String undoText = ResUtil.getString(getClass(), "CTL_ChangeQuantization");
     private static final Logger LOGGER = Logger.getLogger(ChangeQuantization.class.getSimpleName());
 
-    public ChangeQuantization()
-    {
-        this(Utilities.actionsGlobalContext());
-        LOGGER.log(Level.FINE, "ChangeQuantization()");
-    }
 
-    private ChangeQuantization(Lookup context)
+    @Override
+    protected void configureAction()
     {
-        this.context = context;
-        cap = CL_ContextActionSupport.getInstance(this.context);
-        cap.addListener(this);
-        putValue(NAME, undoText);
-        LOGGER.log(Level.FINE, "ChangeQuantization(context) context={0}", context);
-        selectionChange(cap.getSelection());
+        putValue(NAME, ResUtil.getString(getClass(), "CTL_ChangeQuantization"));
     }
 
     @Override
-    public Action createContextAwareInstance(Lookup context)
+    protected EnumSet<CL_ContextAction.ListeningTarget> getListeningTargets()
     {
-        LOGGER.log(Level.FINE, "createContextAwareInstance(context)");
-        return new ChangeQuantization(context);
+        return EnumSet.of(CL_ContextAction.ListeningTarget.CLS_ITEMS_SELECTION, CL_ContextAction.ListeningTarget.ACTIVE_CLS_CHANGES);
     }
 
     @Override
-    public void actionPerformed(ActionEvent e)
+    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)
     {
-        CL_SelectionUtilities selection = cap.getSelection();
-        ChordLeadSheet cls = selection.getChordLeadSheet();
-        CL_Editor editor = CL_EditorTopComponent.getActive().getEditor();
+        CL_Editor editor = CL_EditorTopComponent.get(cls).getEditor();
 
         // Selection must contain bars belonging to one section
         CLI_Section section = cls.getSection(selection.getMinBarIndexWithinCls());
@@ -109,22 +92,43 @@ public class ChangeQuantization extends AbstractAction implements ContextAwareAc
 
 
         // Analyze result
-        if (dialog.getExitStatus().equals(ChangeQuantizationDialog.ExitStatus.OK_CURRENT_SECTION))
+        switch (dialog.getExitStatus())
         {
-            q = dialog.getQuantization();
-            CL_EditorClientProperties.setSectionUserQuantization(section, q);
-            LOGGER.log(Level.FINE, "actionPerformed() apply q={0} for section={1}", new Object[]
+            case OK_CURRENT_SECTION ->
             {
-                q, section
-            });
+                q = dialog.getQuantization();
+                LOGGER.log(Level.FINE, "actionPerformed() apply q={0} for section={1}", new Object[]
+                {
+                    q, section
+                });
+                if (selection.isSectionSelected())
+                {
+                    for (var cliSec : selection.getSelectedSections())
+                    {
+                        CL_EditorClientProperties.setSectionUserQuantization(cliSec, q);
+                    }
+                } else
+                {
+                    CL_EditorClientProperties.setSectionUserQuantization(section, q);
+                }
+            }
 
-        } else if (dialog.getExitStatus().equals(ChangeQuantizationDialog.ExitStatus.OK_ALL_SECTIONS))
-        {
-            q = dialog.getQuantization();
-            LOGGER.log(Level.FINE, "actionPerformed() apply q={0} for all sections", q);
-            for (CLI_Section aSection : cls.getItems(CLI_Section.class))
+            case OK_ALL_SECTIONS ->
             {
-                CL_EditorClientProperties.setSectionUserQuantization(section, q);
+                q = dialog.getQuantization();
+                LOGGER.log(Level.FINE, "actionPerformed() apply q={0} for all sections", q);
+                for (CLI_Section aSection : cls.getItems(CLI_Section.class))
+                {
+                    CL_EditorClientProperties.setSectionUserQuantization(aSection, q);
+                }
+            }
+            case CANCEL ->
+            {
+                // Nothing
+            }
+            default ->
+            {
+                throw new IllegalStateException("dialog.getExitStatus()=" + dialog.getExitStatus());
             }
         }
 
@@ -140,7 +144,7 @@ public class ChangeQuantization extends AbstractAction implements ContextAwareAc
     }
 
     /**
-     * Enable the action only if all selected bars belong to only one section.
+     * If bars are selected, enable the action only if all selected bars belong to only one section.
      */
     @Override
     public void selectionChange(CL_SelectionUtilities selection)
@@ -151,14 +155,21 @@ public class ChangeQuantization extends AbstractAction implements ContextAwareAc
         {
             CLI_Section section = cls.getSection(selection.getMinBarIndexWithinCls());
             b = (section == cls.getSection(selection.getMaxBarIndexWithinCls()));
+        } else if (selection.isSectionSelected())
+        {
+            b = true;
         }
         LOGGER.log(Level.FINE, "selectionChange() b={0}", b);
         setEnabled(b);
     }
 
     @Override
-    public void sizeChanged(int oldSize, int newSize)
+    public void chordLeadSheetChanged(ClsChangeEvent event)
     {
-        selectionChange(cap.getSelection());
+        if (event instanceof SizeChangedEvent)
+        {
+            selectionChange(getSelection());
+        }
     }
+
 }

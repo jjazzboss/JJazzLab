@@ -23,15 +23,16 @@
 package org.jjazz.cl_editorimpl.actions;
 
 import java.awt.event.ActionEvent;
+import java.util.EnumSet;
 import java.util.logging.Logger;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
 import static javax.swing.Action.NAME;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenuItem;
+import org.jjazz.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
+import org.jjazz.chordleadsheet.api.event.SizeChangedEvent;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.cl_editor.api.CL_ContextActionListener;
-import org.jjazz.cl_editor.api.CL_ContextActionSupport;
+import org.jjazz.cl_editor.api.CL_ContextAction;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.api.CL_EditorClientProperties;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
@@ -41,55 +42,40 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.ContextAwareAction;
-import org.openide.util.Lookup;
-import org.openide.util.Utilities;
 import org.openide.util.actions.Presenter;
 
-@ActionRegistration(displayName = "#CTL_SectionAtNewLine", lazy = false) // lazy can't be true because of Presenter.Popup implementation
+@ActionRegistration(displayName = "not_used", lazy = false) // lazy can't be true because of Presenter.Popup implementation
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.sectionatnewline")
 @ActionReferences(
         {
             @ActionReference(path = "Actions/Bar", position = 1420),
             @ActionReference(path = "Actions/Section", position = 2110)
         })
-public final class SectionAtNewLine extends AbstractAction implements ContextAwareAction, CL_ContextActionListener, Presenter.Popup
+public final class SectionAtNewLine extends CL_ContextAction implements Presenter.Popup
 {
 
     private JCheckBoxMenuItem checkBoxMenuItem;
-    private Lookup context;
-    private CL_ContextActionSupport cap;
     private CL_Editor editor;
     private CLI_Section cliSection;
     private static final Logger LOGGER = Logger.getLogger(SectionAtNewLine.class.getSimpleName());
 
-    public SectionAtNewLine()
+    @Override
+    protected void configureAction()
     {
-        this(Utilities.actionsGlobalContext());
-    }
-
-    public SectionAtNewLine(Lookup context)
-    {
-        this.context = context;
-        cap = CL_ContextActionSupport.getInstance(this.context);
-        cap.addListener(this);
         putValue(NAME, ResUtil.getString(getClass(), "CTL_SectionAtNewLine"));
-        selectionChange(cap.getSelection());
-        
-        // Ideally should listen to CLI_Section client property changes...
     }
 
     @Override
-    public Action createContextAwareInstance(Lookup context)
+    protected EnumSet<ListeningTarget> getListeningTargets()
     {
-        return new SectionAtNewLine(context);
+        return EnumSet.of(ListeningTarget.BAR_SELECTION, ListeningTarget.CLS_ITEMS_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES);
     }
 
     @Override
-    public void actionPerformed(ActionEvent e)
+    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)
     {
         assert cliSection != null && editor != null :
-                "cliSection=" + cliSection + " editor=" + editor + " cap.getSelection()=" + cap.getSelection();
+                "cliSection=" + cliSection + " editor=" + editor + " getSelection()=" + getSelection();
         CL_EditorClientProperties.setSectionIsOnNewLine(cliSection, checkBoxMenuItem.isSelected());
         editor.getSongModel().setSaveNeeded(true);
     }
@@ -131,9 +117,12 @@ public final class SectionAtNewLine extends AbstractAction implements ContextAwa
     }
 
     @Override
-    public void sizeChanged(int oldSize, int newSize)
+    public void chordLeadSheetChanged(ClsChangeEvent event)
     {
-        // Nothing
+        if (event instanceof SizeChangedEvent)
+        {
+            selectionChange(getSelection());
+        }
     }
 
     // ============================================================================================= 

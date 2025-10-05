@@ -22,71 +22,78 @@
  */
 package org.jjazz.cl_editor.api;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.WeakHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.ClsChangeListener;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
-import org.jjazz.chordleadsheet.api.event.SizeChangedEvent;
-import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.openide.util.Lookup;
 import org.openide.util.LookupEvent;
 import org.openide.util.LookupListener;
-import org.openide.util.Utilities;
 import org.openide.util.WeakListeners;
 
 /**
  * A helper class to write CL_Editor context aware actions.
  * <p>
- * Listen to ChordLeadSheetItem, SelectedBar, ChordLeadSheet presence in the lookup. Listen to the "present" ChordLeadSheet property
- * changes. Fire the corresponding events to listeners.
+ * Listen to changes in the lookup context:<br>
+ * - ChordLeadSheetItem and SelectedBar presence changes are notified to the registered CL_ContextActionListeners.<br>
+ * - If a ChordLeadSheet is present, listen to its changes and forward the ClsChangeEvents to the registered ClsChangeListeners.<br>
+ * <p>
+ * CL_ContextActionSupport instances are cached per lookup context. Only weak listeners are used: declaratively registered actions might be transient actions
+ * (e.g. ContextAwareAction instances).
  */
 public class CL_ContextActionSupport implements ClsChangeListener
 {
 
-    static private CL_ContextActionSupport INSTANCE;
-    private Lookup context;
-    private Lookup.Result<SelectedBar> selectedBarLkpResult;
-    private LookupListener barLkpListener;
+    private final Lookup context;
+    private final Lookup.Result<SelectedBar> selectedBarLkpResult;
+    private final LookupListener barLkpListener;
     @SuppressWarnings("rawtypes")
-    private Lookup.Result<SelectedCLI> itemLkpResult;
-    private LookupListener itemLkpListener;
-    private Lookup.Result<ChordLeadSheet> clsLkpResult;
-    private LookupListener clsLkpListener;
+    private final Lookup.Result<SelectedCLI> itemLkpResult;
+    private final LookupListener itemLkpListener;
+    private final Lookup.Result<ChordLeadSheet> clsLkpResult;
+    private final LookupListener clsLkpListener;
     private ChordLeadSheet model;
     private CL_SelectionUtilities selection;
-    private ArrayList<CL_ContextActionListener> listeners;
+    private final List<WeakReference<CL_ContextActionListener>> selectionListeners;
+    private final List<WeakReference<ClsChangeListener>> clsListeners;
+    private static WeakHashMap<Lookup, CL_ContextActionSupport> MapContextInstance;
     private static final Logger LOGGER = Logger.getLogger(CL_ContextActionSupport.class.getSimpleName());
 
     /**
-     * If context == Utilities.actionsGlobalContext() return a shared instance. Otherwise return a new specific object.
+     * Get the instance associated to the specified context.
      *
      * @param context
      * @return
      */
     static public CL_ContextActionSupport getInstance(Lookup context)
     {
-        CL_ContextActionSupport o;
+        Objects.requireNonNull(context);
+
+        CL_ContextActionSupport res;
         synchronized (CL_ContextActionSupport.class)
         {
-            if (context == Utilities.actionsGlobalContext())
+            if (MapContextInstance == null)
             {
-                if (INSTANCE == null)
-                {
-                    INSTANCE = new CL_ContextActionSupport(context);
-                }
-                o = INSTANCE;
-            } else
+                MapContextInstance = new WeakHashMap<>();
+            }
+            res = MapContextInstance.get(context);
+            if (res == null)
             {
-                o = new CL_ContextActionSupport(context);
+                res = new CL_ContextActionSupport(context);
+                MapContextInstance.put(context, res);
             }
         }
-        return o;
+        return res;
     }
 
-    public CL_ContextActionSupport(Lookup context)
+    private CL_ContextActionSupport(Lookup context)
     {
         if (context == null)
         {
@@ -94,7 +101,8 @@ public class CL_ContextActionSupport implements ClsChangeListener
         }
         this.context = context;
 
-        listeners = new ArrayList<>();
+        selectionListeners = new ArrayList<>();
+        clsListeners = new ArrayList<>();
 
         // For WeakReferences to work, we need to keep a strong reference on the listeners (see WeakListeners java doc).
         barLkpListener = new LookupListener()
@@ -102,7 +110,7 @@ public class CL_ContextActionSupport implements ClsChangeListener
             @Override
             public void resultChanged(LookupEvent le)
             {
-                barPresenceChanged();
+                lookupContentChanged(SelectedBar.class);
             }
         };
         itemLkpListener = new LookupListener()
@@ -110,7 +118,7 @@ public class CL_ContextActionSupport implements ClsChangeListener
             @Override
             public void resultChanged(LookupEvent le)
             {
-                itemPresenceChanged();
+                lookupContentChanged(SelectedCLI.class);
             }
         };
         clsLkpListener = new LookupListener()
@@ -139,10 +147,10 @@ public class CL_ContextActionSupport implements ClsChangeListener
         // Initialize the selection
         if (context.lookup(SelectedBar.class) != null)
         {
-            barPresenceChanged();
+            lookupContentChanged(SelectedBar.class);
         } else
         {
-            itemPresenceChanged();
+            lookupContentChanged(SelectedCLI.class);
         }
     }
 
@@ -162,82 +170,101 @@ public class CL_ContextActionSupport implements ClsChangeListener
         return selection;
     }
 
-    public void addListener(CL_ContextActionListener l)
+    /**
+     *
+     * @return The ChordLeadSheet currently present in the lookup context. Can be null.
+     */
+    public final ChordLeadSheet getActiveChordLeadSheet()
     {
-        if (!listeners.contains(l))
-        {
-            listeners.add(l);
-        }
+        return model;
     }
 
-    public void removeListener(CL_ContextActionListener l)
+    /**
+     * Add a weak reference to the specified listener.
+     * <p>
+     * Listener will be notified of selection changes (bars or chord leadsheet items), unless listener is garbage-collected. 
+     * @param listener
+     */
+    public void addWeakSelectionListener(CL_ContextActionListener listener)
     {
-        listeners.remove(l);
+        selectionListeners.add(new WeakReference(listener));
     }
+
+    /**
+     * Remove the specified listener.
+     * <p>
+     * @param listener
+     */
+    public void removeWeakSelectionListener(CL_ContextActionListener listener)
+    {
+        selectionListeners.removeIf(wr -> wr.get() == listener);
+    }
+
+    /**
+     * Add a weak reference to the specified listener.
+     * <p>
+     * Listener will be notified of ClsChangeEvents from the active ChordLeadSheet, i.e the one present in the lookup context (unless listener is
+     * garbage-collected).
+     *
+     * @param listener
+     */
+    public void addWeakActiveClsChangeListener(ClsChangeListener listener)
+    {
+        clsListeners.add(new WeakReference(listener));
+    }
+
+    /**
+     * Remove the specified listener.
+     * <p>
+     * @param listener
+     */
+    public void removeWeakActiveClsChangeListener(ClsChangeListener listener)
+    {
+        clsListeners.removeIf(wr -> wr.get() == listener);
+    }
+
 
     // ============================================================================================= 
     // ClsChangeListener implementation
     // =============================================================================================      
-
     @Override
     public void authorizeChange(ClsChangeEvent e) throws UnsupportedEditException
     {
-        // Nothing
+        // Forward the event
+        for (ClsChangeListener l : getTargetListeners(clsListeners))
+        {
+            l.authorizeChange(e);
+        }
     }
 
     @Override
     public void chordLeadSheetChanged(ClsChangeEvent event)
     {
-        // Just forward the event
-        if (event instanceof SizeChangedEvent)
+        // Forward the event
+        for (ClsChangeListener l : getTargetListeners(clsListeners))
         {
-            SizeChangedEvent e = (SizeChangedEvent) event;
-            for (CL_ContextActionListener l : listeners)
-            {
-                l.sizeChanged(e.getOldSize(), e.getNewSize());
-            }
+            l.chordLeadSheetChanged(event);
         }
     }
 
     //----------------------------------------------------------------------------------------
-    // Private functions
+    // Private methods
     //----------------------------------------------------------------------------------------    
     /**
-     * Called when items presence changed in the lookup. Delegates to selectionChanged(Selection)
+     * Called when items presence changed in the lookup.
+     * <p>
+     *
+     * @param itemsClass The class of the items at the origin of the change.
      */
-    @SuppressWarnings(
-            {
-                "rawtypes",
-                "unchecked"
-            })
-    private void itemPresenceChanged()
+    private void lookupContentChanged(Class itemsClass)
     {
         selection = new CL_SelectionUtilities(context);
-        LOGGER.log(Level.FINE, "itemPresenceChanged() model={0} selection.getSelectedItems()={1}", new Object[]
+        LOGGER.log(Level.FINE, "lookupContentChanged() model={0} selection.getSelectedItems()={1}", new Object[]
         {
             model,
             selection.getSelectedItems()
         });
-        fireSelectionChanged(selection);
-    }
-
-    /**
-     * Called when SelectedBar presence changed in the lookup. Delegates to selectionChanged(Selection)
-     */
-    @SuppressWarnings(
-            {
-                "rawtypes",
-                "unchecked"
-            })
-    private void barPresenceChanged()
-    {
-        selection = new CL_SelectionUtilities(context);
-        LOGGER.log(Level.FINE, "barPresenceChanged() model={0} selection.getSelectedBars()={1}", new Object[]
-        {
-            model,
-            selection.getSelectedBars()
-        });
-        fireSelectionChanged(selection);
+        fireSelectionChanged(itemsClass, selection);
     }
 
     /**
@@ -256,11 +283,42 @@ public class CL_ContextActionSupport implements ClsChangeListener
         }
     }
 
-    private void fireSelectionChanged(CL_SelectionUtilities selection)
+    /**
+     *
+     * @param itemsClass The class of the items at the origin of the lookup change. Not used for now.
+     * @param selection
+     */
+    private void fireSelectionChanged(Class itemsClass, CL_SelectionUtilities selection)
     {
-        for (CL_ContextActionListener l : listeners)
+        for (CL_ContextActionListener l : getTargetListeners(selectionListeners))
         {
             l.selectionChange(selection);
         }
     }
+
+
+    /**
+     * Get the listeners not yet GC'ed.
+     *
+     * @param <T>
+     * @param wrs
+     * @return
+     */
+    private <T> List<T> getTargetListeners(List<WeakReference<T>> wrs)
+    {
+        List<T> res = new ArrayList<>();
+        for (var it = wrs.iterator(); it.hasNext();)
+        {
+            T o = it.next().get();
+            if (o == null)
+            {
+                it.remove();
+            } else
+            {
+                res.add(o);
+            }
+        }
+        return res;
+    }
+
 }

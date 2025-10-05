@@ -23,25 +23,20 @@
 package org.jjazz.cl_editorimpl.actions;
 
 import java.awt.event.ActionEvent;
+import org.jjazz.cl_editor.api.CL_ContextAction;
+import java.util.EnumSet;
 import java.util.logging.Logger;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.chordleadsheet.api.ClsChangeListener;
-import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
 import org.jjazz.chordleadsheet.api.event.ItemChangedEvent;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
-import org.jjazz.cl_editor.api.CL_ContextActionListener;
-import org.jjazz.cl_editor.api.CL_ContextActionSupport;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.utilities.api.ResUtil;
@@ -49,49 +44,67 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.ContextAwareAction;
-import org.openide.util.Lookup;
-import org.openide.util.Utilities;
 import org.openide.util.actions.Presenter;
 
+/**
+ * Set accent stronger.
+ * <p>
+ */
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.accentstronger")
 @ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
         {
             @ActionReference(path = "Actions/ChordSymbolInterpretation", position = 150)
         })
-public final class AccentOptionsStronger extends AbstractAction implements ContextAwareAction, CL_ContextActionListener, Presenter.Popup, ClsChangeListener
+public final class AccentOptionsStronger extends CL_ContextAction implements Presenter.Popup
 {
 
     public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("S");
-
-    private CL_ContextActionSupport cap;
-    private final Lookup context;
-    private final String undoText = ResUtil.getString(getClass(), "CTL_AccentStronger");
-    private ChordLeadSheet currentCls;
     private JCheckBoxMenuItem cbMenuItem;
     private static final Logger LOGGER = Logger.getLogger(AccentOptionsStronger.class.getSimpleName());
 
-    public AccentOptionsStronger()
+    @Override
+    protected void configureAction()
     {
-        this(Utilities.actionsGlobalContext());
-    }
-
-    public AccentOptionsStronger(Lookup context)
-    {
-        this.context = context;
-        cap = CL_ContextActionSupport.getInstance(this.context);
-        cap.addListener(this);
-        putValue(NAME, undoText);
+        putValue(NAME, ResUtil.getString(getClass(), "CTL_AccentStronger"));
         putValue(ACCELERATOR_KEY, KEYSTROKE);
-        selectionChange(cap.getSelection());
     }
 
     @Override
+    protected EnumSet<ListeningTarget> getListeningTargets()
+    {
+        return EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES);
+    }
+
+    @Override
+    public void selectionChange(CL_SelectionUtilities selection)
+    {
+        boolean b = selection.getSelectedChordSymbols().stream()
+                .map(cliCs -> cliCs.getData().getRenderingInfo())
+                .allMatch(cri -> cri.hasOneFeature(Feature.ACCENT, Feature.ACCENT_STRONGER));
+        setEnabled(b);
+        updateMenuItem(selection);
+    }
+
+    @Override
+    public void chordLeadSheetChanged(ClsChangeEvent event)
+    {
+        var selection = getSelection();
+        if (event instanceof ItemChangedEvent && selection.getSelectedItems().contains(event.getItem()))
+        {
+            selectionChange(selection);
+        }
+    }
+
+    /**
+     * Called when action triggered via the keyboard shortcut.
+     *
+     * @param ev
+     */
+    @Override
     public void actionPerformed(ActionEvent ev)
     {
-        // Called via controller/keyboard shortcut
-        CL_SelectionUtilities selection = cap.getSelection();
+        CL_SelectionUtilities selection = getSelection();
         if (selection.isChordSymbolSelected())
         {
             var cliCs0 = selection.getSelectedChordSymbols().get(0);
@@ -100,42 +113,15 @@ public final class AccentOptionsStronger extends AbstractAction implements Conte
         }
     }
 
+    /**
+     * Not used since we have overridden actionPerformed(ActionEvent).
+     *
+     * @param cls
+     * @param selection
+     */
     @Override
-    public void selectionChange(CL_SelectionUtilities selection)
+    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)
     {
-        // Need to listen to possible CLI_ChordSymbol accent features changes that may occur while selection is unchanged
-        ChordLeadSheet cls = selection.getChordLeadSheet();
-        if (cls != currentCls)
-        {
-            if (currentCls != null)
-            {
-                currentCls.removeClsChangeListener(this);
-            }
-            currentCls = cls;
-            if (currentCls != null)
-            {
-                currentCls.addClsChangeListener(this);
-            }
-        }
-
-
-        boolean b = selection.getSelectedChordSymbols().stream()
-                .map(cliCs -> cliCs.getData().getRenderingInfo())
-                .allMatch(cri -> cri.hasOneFeature(Feature.ACCENT, Feature.ACCENT_STRONGER));
-        setEnabled(b);
-        updateMenuItem();
-    }
-
-    @Override
-    public Action createContextAwareInstance(Lookup context)
-    {
-        return new AccentOptionsStronger(context);
-    }
-
-    @Override
-    public void sizeChanged(int oldSize, int newSize)
-    {
-        // Nothing
     }
 
     // ============================================================================================= 
@@ -146,44 +132,26 @@ public final class AccentOptionsStronger extends AbstractAction implements Conte
     {
         if (cbMenuItem == null)
         {
-            cbMenuItem = new JCheckBoxMenuItem(undoText);
+            cbMenuItem = new JCheckBoxMenuItem(getActionName());
             cbMenuItem.setAccelerator(KEYSTROKE);
             cbMenuItem.addActionListener(evt -> setAccent(cbMenuItem.isSelected()));
             cbMenuItem.putClientProperty("CheckBoxMenuItem.doNotCloseOnMouseClick", true);
         }
 
-        updateMenuItem();
+        updateMenuItem(getSelection());
 
         return cbMenuItem;
     }
 
     // ============================================================================================= 
-    // ClsChangeListener implementation
-    // =============================================================================================      
-    @Override
-    public void authorizeChange(ClsChangeEvent e) throws UnsupportedEditException
-    {
-        // Nothing
-    }
-
-    @Override
-    public void chordLeadSheetChanged(ClsChangeEvent event)
-    {
-        var selection = cap.getSelection();
-        if (event instanceof ItemChangedEvent && selection.getSelectedItems().contains(event.getItem()))
-        {
-            selectionChange(selection);
-        }
-    }
-
+    // Private methods
+    // =============================================================================================   
     private void setAccent(boolean stronger)
     {
-        CL_SelectionUtilities selection = cap.getSelection();
-        ChordLeadSheet cls = selection.getChordLeadSheet();
+        ChordLeadSheet cls = getActiveChordLeadSheet();
+        JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(getActionName());
 
-        JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(undoText);
-
-        for (CLI_ChordSymbol item : selection.getSelectedChordSymbols())
+        for (CLI_ChordSymbol item : getSelection().getSelectedChordSymbols())
         {
             ExtChordSymbol ecs = item.getData();
             ChordRenderingInfo cri = ecs.getRenderingInfo();
@@ -192,7 +160,7 @@ public final class AccentOptionsStronger extends AbstractAction implements Conte
                 continue;
             }
 
-            var features = cri.getFeatures();            
+            var features = cri.getFeatures();
             if (stronger)
             {
                 features.add(Feature.ACCENT_STRONGER);
@@ -208,10 +176,10 @@ public final class AccentOptionsStronger extends AbstractAction implements Conte
             item.getContainer().changeItem(item, newCs);
         }
 
-        JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(undoText);
+        JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(getActionName());
     }
 
-    private void updateMenuItem()
+    private void updateMenuItem(CL_SelectionUtilities selection)
     {
         if (cbMenuItem == null)
         {
@@ -219,11 +187,10 @@ public final class AccentOptionsStronger extends AbstractAction implements Conte
         }
 
         // Update the checkbox: select it if only all chord symbols have a Stronger Accent
-        CL_SelectionUtilities selection = cap.getSelection();
         boolean b = selection.getSelectedChordSymbols().stream()
-                .allMatch(cliCs -> cliCs.getData().getRenderingInfo().hasOneFeature(Feature.ACCENT_STRONGER));
+                .map(cliCs -> cliCs.getData().getRenderingInfo())
+                .allMatch(cri -> cri.hasOneFeature(Feature.ACCENT_STRONGER));
         cbMenuItem.setSelected(b);
-
         cbMenuItem.setEnabled(isEnabled());
     }
 }

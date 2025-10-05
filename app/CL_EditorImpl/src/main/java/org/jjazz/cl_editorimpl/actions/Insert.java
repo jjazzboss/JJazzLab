@@ -24,19 +24,20 @@ package org.jjazz.cl_editorimpl.actions;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;
+import java.util.EnumSet;
 import java.util.logging.Logger;
-import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.NAME;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+import org.jjazz.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.cl_editor.api.CL_ContextAction;
+import org.jjazz.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.ContextAwareAction;
-import org.openide.util.Lookup;
 import org.openide.util.actions.Presenter;
 
 /**
@@ -45,40 +46,39 @@ import org.openide.util.actions.Presenter;
  * Actions displayed in the menu are the ones found in the layer.xml Actions/Bar/Insert folder.
  */
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.insert")
-@ActionRegistration(displayName = "#CTL_Insert", lazy = false)
+@ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
         {
             @ActionReference(path = "Actions/Bar", position = 200)
         })
-public final class Insert extends AbstractAction implements Presenter.Popup, ContextAwareAction
+public final class Insert extends CL_ContextAction implements Presenter.Popup
 {
 
     private JMenu subMenu;
-    private final Lookup context;
-    private final String undoText = ResUtil.getString(getClass(), "CTL_Insert");
     private static final Logger LOGGER = Logger.getLogger(Insert.class.getSimpleName());
 
-    public Insert()
+    @Override
+    protected void configureAction()
     {
-        this(org.openide.util.Utilities.actionsGlobalContext());
-    }
-
-    public Insert(Lookup context)
-    {
-        this.context = context;
-        putValue(NAME, undoText);
+        putValue(NAME, ResUtil.getString(getClass(), "CTL_Insert"));
     }
 
     @Override
-    public void actionPerformed(ActionEvent e)
+    protected EnumSet<ListeningTarget> getListeningTargets()
     {
-        // Useless
+        return EnumSet.of(ListeningTarget.BAR_SELECTION);
     }
 
     @Override
-    public Action createContextAwareInstance(Lookup context)
+    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)
     {
-        return new Insert(context);
+        // Nothing
+    }
+
+    @Override
+    public void selectionChange(CL_SelectionUtilities selection)
+    {
+        setEnabled(selection.isBarSelected());
     }
 
     // ============================================================================================= 
@@ -89,11 +89,11 @@ public final class Insert extends AbstractAction implements Presenter.Popup, Con
     {
         if (subMenu == null)
         {
-            subMenu = new JMenu(undoText);
+            subMenu = new JMenu(getActionName());
             var actions = org.openide.util.Utilities.actionsForPath("Actions/BarInsert");
             for (Action action : actions)
             {
-                for (Component c : org.jjazz.uiutilities.api.UIUtilities.actionToMenuItems(action, context))
+                for (Component c : org.jjazz.uiutilities.api.UIUtilities.actionToMenuItems(action, getContext()))
                 {
                     subMenu.add(c);
                 }

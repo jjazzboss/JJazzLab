@@ -22,16 +22,16 @@
  */
 package org.jjazz.cl_editorimpl.actions;
 
-import org.jjazz.cl_editor.api.CL_ContextActionListener;
-import org.jjazz.cl_editor.api.CL_ContextActionSupport;
 import java.awt.event.ActionEvent;
+import java.util.EnumSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.KeyStroke;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
+import org.jjazz.chordleadsheet.api.event.SizeChangedEvent;
+import org.jjazz.cl_editor.api.CL_ContextAction;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
@@ -40,9 +40,6 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.ContextAwareAction;
-import org.openide.util.Lookup;
-import org.openide.util.Utilities;
 
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.removebar")
 @ActionRegistration(displayName = "not_used", lazy = false)
@@ -50,55 +47,41 @@ import org.openide.util.Utilities;
         {
             @ActionReference(path = "Actions/Bar", position = 400),
         })
-public class RemoveBar extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
+public class RemoveBar extends CL_ContextAction
 {
+
     public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("shift DELETE");
-    private Lookup context;
-    private CL_ContextActionSupport cap;
-    private final String undoText = ResUtil.getString(getClass(), "CTL_RemoveBar");
     private static final Logger LOGGER = Logger.getLogger(RemoveBar.class.getSimpleName());
 
-    public RemoveBar()
+    @Override
+    protected void configureAction()
     {
-        this(Utilities.actionsGlobalContext());
-        LOGGER.log(Level.FINE, "RemoveBar()");
-    }
-
-    private RemoveBar(Lookup context)
-    {
-        this.context = context;
-        cap = CL_ContextActionSupport.getInstance(this.context);
-        cap.addListener(this);
-        putValue(NAME, undoText);
+        putValue(NAME, ResUtil.getString(getClass(), "CTL_RemoveBar"));
         putValue(ACCELERATOR_KEY, KEYSTROKE);
-        LOGGER.log(Level.FINE, "RemoveBar(context) context={0}", context);
-        selectionChange(cap.getSelection());
     }
 
     @Override
-    public Action createContextAwareInstance(Lookup context)
+    protected EnumSet<ListeningTarget> getListeningTargets()
     {
-        LOGGER.log(Level.FINE, "createContextAwareInstance(context)");
-        return new RemoveBar(context);
+        return EnumSet.of(ListeningTarget.BAR_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES);
     }
 
+
     @Override
-    public void actionPerformed(ActionEvent e)
+    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)
     {
-        CL_SelectionUtilities selection = cap.getSelection();
-        ChordLeadSheet cls = selection.getChordLeadSheet();
         int minBar = selection.getMinBarIndexWithinCls();
         int maxBar = selection.getMaxBarIndexWithinCls();
         int lastBar = cls.getSizeInBars() - 1;
 
 
-        LOGGER.log(Level.FINE, "actionPerformed() minBar={0} cls={1} context={2}", new Object[]
+        LOGGER.log(Level.FINE, "actionPerformed() minBar={0} cls={1}", new Object[]
         {
-            minBar, cls, context
+            minBar, cls
         });
 
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(cls);
-        um.startCEdit(undoText);
+        um.startCEdit(getActionName());
 
 
         try
@@ -107,12 +90,12 @@ public class RemoveBar extends AbstractAction implements ContextAwareAction, CL_
         } catch (UnsupportedEditException ex)
         {
             String msg = "Impossible to remove bars.\n" + ex.getLocalizedMessage();
-            um.abortCEdit(undoText, msg);
+            um.abortCEdit(getActionName(), msg);
             return;
         }
 
 
-        um.endCEdit(undoText);
+        um.endCEdit(getActionName());
     }
 
     /**
@@ -132,8 +115,11 @@ public class RemoveBar extends AbstractAction implements ContextAwareAction, CL_
     }
 
     @Override
-    public void sizeChanged(int oldSize, int newSize)
+    public void chordLeadSheetChanged(ClsChangeEvent event)
     {
-        selectionChange(cap.getSelection());
+        if (event instanceof SizeChangedEvent)
+        {
+            selectionChange(getSelection());
+        }
     }
 }

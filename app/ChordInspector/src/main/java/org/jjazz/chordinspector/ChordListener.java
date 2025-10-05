@@ -51,14 +51,13 @@ public class ChordListener implements CL_ContextActionListener, PropertyChangeLi
 
         // Listen to selection changes in the current leadsheet editor
         cap = CL_ContextActionSupport.getInstance(Utilities.actionsGlobalContext());
-        cap.addListener(this);
-
+        cap.addWeakSelectionListener(this);
         selectionChange(cap.getSelection());
     }
 
     public void cleanup()
     {
-        cap.removeListener(this);
+        cap.removeWeakSelectionListener(this);
         if (chordSymbol != null)
         {
             chordSymbol.removePropertyChangeListener(this);
@@ -114,11 +113,6 @@ public class ChordListener implements CL_ContextActionListener, PropertyChangeLi
         }
     }
 
-    @Override
-    public void sizeChanged(int oldSize, int newSize)
-    {
-        // Nothing
-    }
 
     // =================================================================================
     // PropertyChangeListener implementation

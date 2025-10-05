@@ -26,21 +26,22 @@ import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.Transferable;
-import org.jjazz.cl_editor.api.CL_ContextActionListener;
-import org.jjazz.cl_editor.api.CL_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
 import static javax.swing.Action.SMALL_ICON;
 import javax.swing.Icon;
+import javax.swing.KeyStroke;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
+import org.jjazz.chordleadsheet.api.event.SizeChangedEvent;
 import org.jjazz.cl_editorimpl.ItemsTransferable;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
+import org.jjazz.cl_editor.api.CL_ContextAction;
 import org.jjazz.cl_editorimpl.BarsTransferable;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
 import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
@@ -51,9 +52,6 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.ContextAwareAction;
-import org.openide.util.Lookup;
-import org.openide.util.Utilities;
 import org.openide.util.actions.SystemAction;
 
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.copy")
@@ -65,46 +63,29 @@ import org.openide.util.actions.SystemAction;
             @ActionReference(path = "Actions/Bar", position = 1100),
             @ActionReference(path = "Actions/BarAnnotation", position = 1010)
         })
-public class Copy extends AbstractAction implements ContextAwareAction, CL_ContextActionListener, ClipboardOwner
+public class Copy extends CL_ContextAction implements ClipboardOwner
 {
 
-    private final String undoText = ResUtil.getCommonString("CTL_Copy");
-    private Lookup context;
-    private CL_ContextActionSupport cap;
+    public static final KeyStroke KEYSTROKE = getGenericControlKeyStroke(KeyEvent.VK_C);
 
-    public Copy()
+    @Override
+    protected void configureAction()
     {
-        this(Utilities.actionsGlobalContext());
-    }
-
-    private Copy(Lookup context)
-    {
-        this.context = context;
-        cap = CL_ContextActionSupport.getInstance(this.context);
-        cap.addListener(this);
-        putValue(NAME, undoText);
+        putValue(NAME, ResUtil.getCommonString("CTL_Copy"));
         Icon icon = SystemAction.get(CopyAction.class).getIcon();
         putValue(SMALL_ICON, icon);
-        putValue(ACCELERATOR_KEY, getGenericControlKeyStroke(KeyEvent.VK_C));
-        selectionChange(cap.getSelection());
+        putValue(ACCELERATOR_KEY, KEYSTROKE);
     }
 
     @Override
-    public Action createContextAwareInstance(Lookup context)
+    protected EnumSet<ListeningTarget> getListeningTargets()
     {
-        return new Copy(context);
+        return EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION, ListeningTarget.BAR_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES);
     }
 
-    @SuppressWarnings(
-            {
-                "rawtypes",
-                "unchecked"
-            })
     @Override
-    public void actionPerformed(ActionEvent ae)
+    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)
     {
-        CL_SelectionUtilities selection = cap.getSelection();
-        ChordLeadSheet cls = selection.getChordLeadSheet();
         Transferable t = null;
         List<ChordLeadSheetItem> items = new ArrayList<>();
 
@@ -148,9 +129,12 @@ public class Copy extends AbstractAction implements ContextAwareAction, CL_Conte
     }
 
     @Override
-    public void sizeChanged(int oldSize, int newSize)
+    public void chordLeadSheetChanged(ClsChangeEvent event)
     {
-        selectionChange(cap.getSelection());
+        if (event instanceof SizeChangedEvent)
+        {
+            selectionChange(getSelection());
+        }
     }
 
 

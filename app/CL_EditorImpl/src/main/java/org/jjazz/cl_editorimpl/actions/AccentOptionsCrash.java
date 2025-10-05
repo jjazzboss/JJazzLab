@@ -23,25 +23,21 @@
 package org.jjazz.cl_editorimpl.actions;
 
 import java.awt.event.ActionEvent;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import static javax.swing.Action.ACCELERATOR_KEY;
+import org.jjazz.cl_editor.api.CL_ContextAction;
+import java.util.EnumSet;
+import java.util.logging.Logger;
 import static javax.swing.Action.NAME;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.chordleadsheet.api.ClsChangeListener;
-import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
 import org.jjazz.chordleadsheet.api.event.ItemChangedEvent;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
-import org.jjazz.cl_editor.api.CL_ContextActionListener;
-import org.jjazz.cl_editor.api.CL_ContextActionSupport;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.utilities.api.ResUtil;
@@ -50,18 +46,19 @@ import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.awt.DynamicMenuContent;
-import org.openide.util.ContextAwareAction;
-import org.openide.util.Lookup;
-import org.openide.util.Utilities;
 import org.openide.util.actions.Presenter;
 
+/**
+ * Accent crash cymbal usage.
+ * <p>
+ */
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.accentcrash")
 @ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
         {
             @ActionReference(path = "Actions/ChordSymbolInterpretation", position = 400)
         })
-public final class AccentOptionsCrash extends AbstractAction implements ContextAwareAction, CL_ContextActionListener, Presenter.Popup, ClsChangeListener
+public final class AccentOptionsCrash extends CL_ContextAction implements Presenter.Popup
 {
 
     private enum CrashState
@@ -69,32 +66,55 @@ public final class AccentOptionsCrash extends AbstractAction implements ContextA
         AUTO, ALWAYS, NEVER
     };
     public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("H");
-    private CL_ContextActionSupport cap;
-    private final Lookup context;
     private MyMenuItem dynMenuItem;
-    private ChordLeadSheet currentCls;
-    private final String undoText = ResUtil.getString(getClass(), "CTL_AccentChangeCrash");
+    private static final Logger LOGGER = Logger.getLogger(AccentOptionsCrash.class.getSimpleName());
 
-    public AccentOptionsCrash()
+    @Override
+    protected void configureAction()
     {
-        this(Utilities.actionsGlobalContext());
-    }
-
-    public AccentOptionsCrash(Lookup context)
-    {
-        this.context = context;
-        cap = CL_ContextActionSupport.getInstance(this.context);
-        cap.addListener(this);
-        putValue(NAME, undoText);
+        putValue(NAME, ResUtil.getString(getClass(), "CTL_AccentChangeCrash"));
         putValue(ACCELERATOR_KEY, KEYSTROKE);
-        selectionChange(cap.getSelection());
     }
 
     @Override
+    protected EnumSet<ListeningTarget> getListeningTargets()
+    {
+        return EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES);
+    }
+
+    @Override
+    public void selectionChange(CL_SelectionUtilities selection)
+    {
+        boolean b = selection.getSelectedChordSymbols().stream()
+                .map(cliCs -> cliCs.getData().getRenderingInfo())
+                .allMatch(cri -> cri.getAccentFeature() != null);
+        setEnabled(b);
+        if (dynMenuItem != null)
+        {
+            dynMenuItem.update();
+        }
+
+    }
+
+    @Override
+    public void chordLeadSheetChanged(ClsChangeEvent event)
+    {
+        var selection = getSelection();
+        if (event instanceof ItemChangedEvent && selection.getSelectedItems().contains(event.getItem()) && dynMenuItem != null)
+        {
+            selectionChange(selection);
+        }
+    }
+
+    /**
+     * Called when action triggered via the keyboard shortcut.
+     *
+     * @param ev
+     */
+    @Override
     public void actionPerformed(ActionEvent ev)
     {
-        // Called via controller/keyboard shortcut
-        CL_SelectionUtilities selection = cap.getSelection();
+        CL_SelectionUtilities selection = getSelection();
         if (selection.isChordSymbolSelected())
         {
             var cri = selection.getSelectedChordSymbols().get(0).getData().getRenderingInfo();
@@ -102,68 +122,15 @@ public final class AccentOptionsCrash extends AbstractAction implements ContextA
         }
     }
 
+    /**
+     * Not used since we have overridden actionPerformed(ActionEvent).
+     *
+     * @param cls
+     * @param selection
+     */
     @Override
-    public void selectionChange(CL_SelectionUtilities selection)
+    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)
     {
-        // Need to listen to possible CLI_ChordSymbol accent features changes that may occur while selection is unchanged
-        ChordLeadSheet cls = selection.getChordLeadSheet();
-        if (cls != currentCls)
-        {
-            if (currentCls != null)
-            {
-                currentCls.removeClsChangeListener(this);
-            }
-            currentCls = cls;
-            if (currentCls != null)
-            {
-                currentCls.addClsChangeListener(this);
-            }
-        }
-
-
-        boolean b = selection.getSelectedChordSymbols().stream()
-                .map(cliCs -> cliCs.getData().getRenderingInfo())
-                .allMatch(cri -> cri.hasOneFeature(Feature.ACCENT, Feature.ACCENT_STRONGER));
-        setEnabled(b);
-
-        if (dynMenuItem != null)
-        {
-            dynMenuItem.setEnabled(b);
-            dynMenuItem.update();
-        }
-
-    }
-
-    @Override
-    public Action createContextAwareInstance(Lookup context)
-    {
-        return new AccentOptionsCrash(context);
-    }
-
-    @Override
-    public void sizeChanged(int oldSize, int newSize)
-    {
-        // Nothing
-    }
-
-
-    // ============================================================================================= 
-    // ClsChangeListener implementation
-    // =============================================================================================   
-    @Override
-    public void authorizeChange(ClsChangeEvent e) throws UnsupportedEditException
-    {
-        // Nothing
-    }
-
-    @Override
-    public void chordLeadSheetChanged(ClsChangeEvent event)
-    {
-        var selection = cap.getSelection();
-        if (event instanceof ItemChangedEvent && selection.getSelectedItems().contains(event.getItem()))
-        {
-            selectionChange(selection);
-        }
     }
 
     // ============================================================================================= 
@@ -182,8 +149,7 @@ public final class AccentOptionsCrash extends AbstractAction implements ContextA
 
     // ============================================================================================= 
     // Private methods
-    // =============================================================================================      
-
+    // =============================================================================================   
     private CrashState nextState(ChordRenderingInfo cri)
     {
         CrashState res = CrashState.AUTO;
@@ -205,12 +171,10 @@ public final class AccentOptionsCrash extends AbstractAction implements ContextA
      */
     private void changeSelectedChordSymbols(CrashState crashState)
     {
-        CL_SelectionUtilities selection = cap.getSelection();
-        ChordLeadSheet cls = selection.getChordLeadSheet();
+        ChordLeadSheet cls = getActiveChordLeadSheet();
+        JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(getActionName());
 
-        JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(undoText);
-
-        for (CLI_ChordSymbol item : selection.getSelectedChordSymbols())
+        for (CLI_ChordSymbol item : getSelection().getSelectedChordSymbols())
         {
             ExtChordSymbol ecs = item.getData();
             ChordRenderingInfo cri = ecs.getRenderingInfo();
@@ -240,14 +204,13 @@ public final class AccentOptionsCrash extends AbstractAction implements ContextA
             }
 
             ChordRenderingInfo newCri = new ChordRenderingInfo(features, cri.getScaleInstance());
-            ExtChordSymbol newCs = ecs.getCopy(null, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
+            ExtChordSymbol newCs = ecs.getCopy(null, newCri, null, null);
             item.getContainer().changeItem(item, newCs);
 
         }
 
-        JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(undoText);
+        JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(getActionName());
     }
-
 
     /**
      * DynamicMenuContent item which is used to return the 2 checkboxes
@@ -255,7 +218,7 @@ public final class AccentOptionsCrash extends AbstractAction implements ContextA
     private class MyMenuItem extends JMenuItem implements DynamicMenuContent
     {
 
-        private JComponent[] components = new JComponent[2];
+        private final JComponent[] components = new JComponent[2];
         public JCheckBoxMenuItem cbm_crashAlways;
         public JCheckBoxMenuItem cbm_crashNever;
 
@@ -279,19 +242,22 @@ public final class AccentOptionsCrash extends AbstractAction implements ContextA
 
         public void update()
         {
-            CL_SelectionUtilities selection = cap.getSelection();
+
+            boolean actionEnabled = AccentOptionsCrash.this.isEnabled();
+            CL_SelectionUtilities selection = getSelection();
 
             boolean crashAlways = selection.getSelectedChordSymbols().stream()
-                    .allMatch(cliCs -> cliCs.getData().getRenderingInfo().hasOneFeature(Feature.CRASH));
-
+                    .map(cliCs -> cliCs.getData().getRenderingInfo())
+                    .allMatch(cri -> cri.hasOneFeature(Feature.CRASH));
             cbm_crashAlways.setSelected(crashAlways);
-            cbm_crashAlways.setEnabled(isEnabled());
+            cbm_crashAlways.setEnabled(actionEnabled);
+
 
             boolean crashNever = selection.getSelectedChordSymbols().stream()
-                    .allMatch(cliCs -> cliCs.getData().getRenderingInfo().hasOneFeature(Feature.NO_CRASH));
-
+                    .map(cliCs -> cliCs.getData().getRenderingInfo())
+                    .allMatch(cri -> cri.hasOneFeature(Feature.NO_CRASH));
             cbm_crashNever.setSelected(crashNever);
-            cbm_crashNever.setEnabled(isEnabled());
+            cbm_crashNever.setEnabled(actionEnabled);
         }
 
         @Override
@@ -312,14 +278,14 @@ public final class AccentOptionsCrash extends AbstractAction implements ContextA
             if (b)
             {
                 cbm_crashNever.setSelected(false);
-                s  = CrashState.ALWAYS;
-            }             
+                s = CrashState.ALWAYS;
+            }
             changeSelectedChordSymbols(s);
         }
 
         private void setCrashNever(boolean b)
         {
-            CrashState s = CrashState.AUTO;            
+            CrashState s = CrashState.AUTO;
             if (b)
             {
                 cbm_crashAlways.setSelected(false);
@@ -330,5 +296,4 @@ public final class AccentOptionsCrash extends AbstractAction implements ContextA
 
 
     }
-
 }

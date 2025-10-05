@@ -20,9 +20,12 @@ LAZY INSTANCE: final action object is actually created only when actionPerformed
 created by Netbeans has just the attributes set through the @RegisterAnnotation optional elements (displayname, icon, see ref 7), so it can be used 
 to initialize a JButton even if action is not really instanced yet (but not all attributes are available, ACCELERATOR_KEY for example).
 Lazy instanciation allow to accelerate app startup.
-For actions of type ContextAwareAction or PopupPresenter or used in Popupmenu..., lazy should be set to false see ref7. For example to make sure 
-that action attributes that can only be set when action is really instancied, such as putValue(ACCELERATOR_KEY), are taken into account 
-when action is used to popuplate a popupmenu. 
+For actions of type ContextAwareAction or PopupPresenter or used in Popupmenu..., lazy should be set to false see ref7. For example to make sure that action attributes that can only be set when action is really instancied, such as putValue(ACCELERATOR_KEY), are taken into account when action is used to popuplate a popupmenu. 
+
+
+CONTEXT AWARE ACTIONS
+This is used by Utilities.actionsForPath(path, Lookup context) or Utilities.actionsToPopup(action[], Lookup context): if MyAction is a ContextAwareAction then those methods create MyAction() (no-arg constructor) and use it only to get MyActionInstance.createContextAwareInstance().  In those cases the MyAction no-arg constructor should do nothing since it is only used "temporarily". I think ContextAwareAction should be used in the case where MyAction is *only* shown in a popupmenu (no keyboard shortcut etc.) and without implementing Presenter.Popup. In this simple case it simplifies MyAction implementation since eah time a new instance is created before performing the action.
+
 
 CALLBACK ACTIONS
 There are global actions with a standard shortcut, present in global menus or toolbars/buttons, such as DELETE, but which need different 
@@ -35,16 +38,14 @@ with an empty body and just the annotation of  public static final String ACTION
 The delegate actions (found using ActionMap of the focusedComponent) may also be created using @registration for the reasons above.
 
 
-ACTIONS enablement depend on only 1 type of selected object 
-For example TransposeDown or SetEnd Bar
-Simple: register the action so it is instanciated, the action must have a constructor
-with objecttype parameter for action enabled if only 1 object selected
-or List<objecttype> for action enabled if a several objects selected.
+ACTION ENABLEMENT
+If enablement depends on only 1 type of selected object: register the action so it is instanciated, the action must have a constructor with objecttype parameter for action enabled if only 1 object selected or List<objecttype> for action enabled if a several objects selected. => However I encountered some limitations when trying these techniques, not sure there are some actions that still use it.
 
-ACTIONS enablement is more complex, i.e. depend on several types of selected objects, 
-OR need to be put in a context menu WITH shotcut displayed (see ref9)
-For example DeleteItem
-I created a base abstract action CL_EditorContextAction using ref4. 
+
+GENERAL CASE - JJAZZLAB RECOMMENDED TECHNIQUE
+It covers all the possible cases: showing the keyboard shortcut key in menu, complex enablement logic, Presenter.Popup compatible, action can be performed via multiple ways (menu, keyboard shortcuts, programmatically).
+Use lazy=false and CL_ContextActionSupport/CL_ContextActionListener (or SS_ContextActionSupport for SS_Editor) constructed with the global context returned by Utilities.actionsGlobalContext() (a lookup which "proxies" the lookup of the focused TopComponent).
+
 
  
 SHORTCUTS: shortcuts keys defined in layer.xml for an action are global for an application ! 

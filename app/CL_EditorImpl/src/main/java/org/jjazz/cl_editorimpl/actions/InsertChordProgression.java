@@ -22,25 +22,25 @@
  */
 package org.jjazz.cl_editorimpl.actions;
 
-import org.jjazz.cl_editor.api.CL_ContextActionListener;
-import org.jjazz.cl_editor.api.CL_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
+import org.jjazz.chordleadsheet.api.event.SizeChangedEvent;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.cl_editor.api.CL_ContextAction;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
@@ -62,11 +62,7 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.ContextAwareAction;
-import org.openide.util.Exceptions;
-import org.openide.util.Lookup;
 import org.openide.util.NbPreferences;
-import org.openide.util.Utilities;
 import org.openide.util.actions.Presenter;
 
 /**
@@ -79,7 +75,7 @@ import org.openide.util.actions.Presenter;
         {
             @ActionReference(path = "Actions/BarInsert", position = 200)
         })
-public class InsertChordProgression extends AbstractAction implements Presenter.Popup, ContextAwareAction, CL_ContextActionListener
+public class InsertChordProgression extends CL_ContextAction implements Presenter.Popup
 {
 
     private static File CHORD_PROGRESSION_TEXT_FILE;
@@ -87,37 +83,27 @@ public class InsertChordProgression extends AbstractAction implements Presenter.
     private static final String CHORD_PROGRESSION_RESOURCE = "resources/ChordProgressions.txt";
     private static final String CHORD_PROGRESSION_TEXT_FILE_NAME = "ChordProgressions.txt";
     private static final String PREF_CHORD_PROGRESSION_WARNING_SHOWN = "PrefChordProgressionWarningShown";
-    private Lookup context;
-    private CL_ContextActionSupport cap;
     private JMenu menu;
-    private final String undoText = ResUtil.getString(getClass(), "CTL_InsertChordProgression");
     private static final Logger LOGGER = Logger.getLogger(InsertChordProgression.class.getSimpleName());
     private static final Preferences prefs = NbPreferences.forModule(InsertChordProgression.class);
 
-    public InsertChordProgression()
+    @Override
+    protected void configureAction()
     {
-        this(Utilities.actionsGlobalContext());
-    }
-
-    private InsertChordProgression(Lookup context)
-    {
-        this.context = context;
-        cap = CL_ContextActionSupport.getInstance(this.context);
-        cap.addListener(this);
-        putValue(NAME, undoText);
-        selectionChange(cap.getSelection());
+        putValue(NAME, ResUtil.getString(getClass(), "CTL_InsertChordProgression"));
     }
 
     @Override
-    public Action createContextAwareInstance(Lookup context)
+    protected EnumSet<ListeningTarget> getListeningTargets()
     {
-        return new InsertChordProgression(context);
+        return EnumSet.of(ListeningTarget.BAR_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES);
     }
 
+
     @Override
-    public void actionPerformed(ActionEvent e)
+    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)
     {
-        // Useless
+        // useless
     }
 
     @Override
@@ -125,12 +111,16 @@ public class InsertChordProgression extends AbstractAction implements Presenter.
     {
         boolean b = selection.getSelectedBarIndexesWithinCls().size() == 1;
         setEnabled(b);
+        menu.setEnabled(b);
     }
 
     @Override
-    public void sizeChanged(int oldSize, int newSize)
+    public void chordLeadSheetChanged(ClsChangeEvent event)
     {
-        selectionChange(cap.getSelection());
+        if (event instanceof SizeChangedEvent)
+        {
+            selectionChange(getSelection());
+        }
     }
 
     // ============================================================================================= 
@@ -141,7 +131,7 @@ public class InsertChordProgression extends AbstractAction implements Presenter.
     {
         if (menu == null)
         {
-            menu = buildMenu(undoText);
+            menu = buildMenu(getActionName());
         }
         menu.setEnabled(isEnabled());
         return menu;
@@ -175,8 +165,6 @@ public class InsertChordProgression extends AbstractAction implements Presenter.
             return menu;
         }
 
-
-        CL_SelectionUtilities selection = cap.getSelection();
 
         // Convert to menu items
         JMenu currentSubMenu = null;
@@ -271,9 +259,9 @@ public class InsertChordProgression extends AbstractAction implements Presenter.
      */
     private void insertChordProgression(ChordSequence cSeq)
     {
-        var cls = cap.getSelection().getChordLeadSheet();
-        var modelBarIndex = cap.getSelection().getMinBarIndexWithinCls();
-        
+        var cls = getActiveChordLeadSheet();
+        var modelBarIndex = getSelection().getMinBarIndexWithinCls();
+
         LOGGER.log(Level.FINE, "insertChordProgression() cls={0} modelBarIndex={1} cSeq={2}", new Object[]
         {
             cls, modelBarIndex, cSeq
@@ -285,7 +273,7 @@ public class InsertChordProgression extends AbstractAction implements Presenter.
         var barRange = cSeq.getBarRange();
 
 
-        JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(undoText);
+        JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(getActionName());
 
 
         // resize if required
@@ -301,12 +289,12 @@ public class InsertChordProgression extends AbstractAction implements Presenter.
                 {
                     newSize, ex.getMessage()
                 });
-                JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(undoText);
+                JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(getActionName());
                 return;
             }
         }
 
-        // add chords
+        // Add chords
         for (int bar : barRange)
         {
             int destBar = modelBarIndex + bar;
@@ -341,9 +329,9 @@ public class InsertChordProgression extends AbstractAction implements Presenter.
             }
         }
 
-        JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(undoText);
+        JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(getActionName());
 
-        
+
         if (addedChords.isEmpty())
         {
             return;

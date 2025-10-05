@@ -26,26 +26,27 @@ import java.awt.Toolkit;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.FlavorEvent;
 import java.awt.datatransfer.FlavorListener;
-import org.jjazz.cl_editor.api.CL_ContextActionListener;
-import org.jjazz.cl_editor.api.CL_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
 import static javax.swing.Action.SMALL_ICON;
 import javax.swing.Icon;
+import javax.swing.KeyStroke;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
+import org.jjazz.chordleadsheet.api.event.SizeChangedEvent;
 import org.jjazz.cl_editorimpl.ItemsTransferable;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
+import org.jjazz.cl_editor.api.CL_ContextAction;
 import org.jjazz.cl_editorimpl.BarsTransferable;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.importers.api.TextReader;
@@ -59,9 +60,6 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.ContextAwareAction;
-import org.openide.util.Lookup;
-import org.openide.util.Utilities;
 import org.openide.util.WeakListeners;
 import org.openide.util.actions.SystemAction;
 
@@ -69,7 +67,7 @@ import org.openide.util.actions.SystemAction;
  * Paste items chordsymbols or sections, possibly across songs, also manage the case of pasting a copied string representing a song.
  */
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.paste")
-@ActionRegistration(displayName = "cl-paste-not-used", lazy = false)
+@ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
         {
             @ActionReference(path = "Actions/Section", position = 1200),
@@ -77,57 +75,48 @@ import org.openide.util.actions.SystemAction;
             @ActionReference(path = "Actions/Bar", position = 1200),
             @ActionReference(path = "Actions/BarAnnotation", position = 1020)
         })
-public class Paste extends AbstractAction implements ContextAwareAction, CL_ContextActionListener, FlavorListener
+public class Paste extends CL_ContextAction implements FlavorListener
 {
 
+    public static final KeyStroke KEYSTROKE = getGenericControlKeyStroke(KeyEvent.VK_V);
     private static final List<DataFlavor> SUPPORTED_FLAVORS = Arrays.asList(ItemsTransferable.DATA_FLAVOR, BarsTransferable.DATA_FLAVOR, DataFlavor.stringFlavor);
-    private Lookup context;
-    private CL_ContextActionSupport cap;
-    private final String undoText = ResUtil.getCommonString("CTL_Paste");
     protected static final Logger LOGGER = Logger.getLogger(Paste.class.getName());
 
-    public Paste()
-    {
-        this(Utilities.actionsGlobalContext());
-    }
 
-    private Paste(Lookup context)
+    @Override
+    protected void configureAction()
     {
-        this.context = context;
-        cap = CL_ContextActionSupport.getInstance(this.context);
-        cap.addListener(this);
-        putValue(NAME, undoText);
+        putValue(NAME, ResUtil.getCommonString("CTL_Paste"));
+        putValue(ACCELERATOR_KEY, KEYSTROKE);
         Icon icon = SystemAction.get(PasteAction.class).getIcon();
         putValue(SMALL_ICON, icon);
-        putValue(ACCELERATOR_KEY, getGenericControlKeyStroke(KeyEvent.VK_V));
+
 
         // Listen to clipboard contents changes        
         // Use WeakListener because no simple way to know when to remove listener
         var clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
         FlavorListener weakListener = WeakListeners.create(FlavorListener.class, this, clipboard);
         clipboard.addFlavorListener(weakListener);
-
-
-        CL_SelectionUtilities selection = cap.getSelection();
-        selectionChange(selection);
     }
 
     @Override
-    public Action createContextAwareInstance(Lookup context)
+    protected EnumSet<ListeningTarget> getListeningTargets()
     {
-        return new Paste(context);
+        return EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION, ListeningTarget.BAR_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES);
     }
 
-    @SuppressWarnings(
-            {
-                "rawtypes",
-                "unchecked"
-            })
     @Override
-    public void actionPerformed(ActionEvent e)
+    public void chordLeadSheetChanged(ClsChangeEvent event)
     {
-        CL_SelectionUtilities selection = cap.getSelection();
-        ChordLeadSheet targetCls = selection.getChordLeadSheet();
+        if (event instanceof SizeChangedEvent)
+        {
+            selectionChange(getSelection());
+        }
+    }
+
+    @Override
+    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)
+    {
         int targetBarIndex = selection.getMinBarIndex();
         assert targetBarIndex >= 0;
 
@@ -149,8 +138,8 @@ public class Paste extends AbstractAction implements ContextAwareAction, CL_Cont
         }
 
 
-        JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(targetCls);
-        um.startCEdit(undoText);
+        JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(cls);
+        um.startCEdit(getActionName());
 
 
         List<ChordLeadSheetItem> items = new ArrayList<>();  // Default do nothing
@@ -173,15 +162,15 @@ public class Paste extends AbstractAction implements ContextAwareAction, CL_Cont
         {
             String text = (String) data;
             TextReader tr = new TextReader(text);
-            Song song = tr.readSong();
-            if (song != null)
+            Song pastedSong = tr.readSong();
+            if (pastedSong != null)
             {
-                var cls = song.getChordLeadSheet();
-                for (var item : cls.getItems())
+                var pastedCls = pastedSong.getChordLeadSheet();
+                for (var item : pastedCls.getItems())
                 {
                     items.add(item.getCopy(null, item.getPosition().getMoved(targetBarIndex, 0)));
                 }
-                nbInsertBars = cls.getSizeInBars();
+                nbInsertBars = pastedCls.getSizeInBars();
             }
         } else
         {
@@ -192,24 +181,24 @@ public class Paste extends AbstractAction implements ContextAwareAction, CL_Cont
         // Insert new bars if required
         if (nbInsertBars > 0)
         {
-            if (targetBarIndex >= targetCls.getSizeInBars())
+            if (targetBarIndex >= cls.getSizeInBars())
             {
                 // Resize
                 try
                 {
-                    targetCls.setSizeInBars(targetBarIndex + nbInsertBars);
+                    cls.setSizeInBars(targetBarIndex + nbInsertBars);
                 } catch (UnsupportedEditException ex)
                 {
                     // Should never happen when resizing bigger
                     String msg = "Impossible to resize.\n" + ex.getLocalizedMessage();
                     msg += "\n" + ex.getLocalizedMessage();
-                    um.abortCEdit(undoText, msg);
+                    um.abortCEdit(getActionName(), msg);
                     return;
                 }
             } else
             {
                 // Insert bars
-                targetCls.insertBars(targetBarIndex, nbInsertBars);
+                cls.insertBars(targetBarIndex, nbInsertBars);
             }
         }
 
@@ -220,7 +209,7 @@ public class Paste extends AbstractAction implements ContextAwareAction, CL_Cont
             int barIndex = item.getPosition().getBar();
 
             // Items which arrive after end of leadsheet are skipped.
-            if (barIndex < targetCls.getSizeInBars())
+            if (barIndex < cls.getSizeInBars())
             {
                 if (item instanceof CLI_Section itemSection)
                 {
@@ -228,27 +217,28 @@ public class Paste extends AbstractAction implements ContextAwareAction, CL_Cont
                     // the possible previous sections added to the chordleadsheet.
                     // Otherwise possible name clash if e.g. bridge1 and bridge2 in the buffer,
                     // bridge1->bridge3, bridge2->bridge3.
-                    CLI_Section newSection = (CLI_Section) itemSection.getCopy(null, targetCls);
+                    CLI_Section newSection = (CLI_Section) itemSection.getCopy(null, cls);
                     try
                     {
-                        newSection = targetCls.addSection(newSection);
+                        newSection = cls.addSection(newSection);
+                        LOGGER.log(Level.FINE, "newSection={0}", newSection);   // Just to make sure newSection is used
                     } catch (UnsupportedEditException ex)
                     {
                         String msg = ResUtil.getString(getClass(), "ERR_Paste", newSection);
                         msg += "\n" + ex.getLocalizedMessage();
-                        um.abortCEdit(undoText, msg);
+                        um.abortCEdit(getActionName(), msg);
                         return;
                     }
                 } else
                 {
                     // Simple
-                    targetCls.addItem(item);
+                    cls.addItem(item);
                 }
             }
         }
 
 
-        um.endCEdit(undoText);
+        um.endCEdit(getActionName());
     }
 
     @Override
@@ -275,12 +265,6 @@ public class Paste extends AbstractAction implements ContextAwareAction, CL_Cont
         setEnabled(b);
     }
 
-    @Override
-    public void sizeChanged(int oldSize, int newSize
-    )
-    {
-        selectionChange(cap.getSelection());
-    }
 
     // =================================================================================================
     // FlavorListener
@@ -288,8 +272,9 @@ public class Paste extends AbstractAction implements ContextAwareAction, CL_Cont
     @Override
     public void flavorsChanged(FlavorEvent e)
     {
-        selectionChange(cap.getSelection());
+        selectionChange(getSelection());
     }
+    
     // =================================================================================================
     // Private
     // =================================================================================================    

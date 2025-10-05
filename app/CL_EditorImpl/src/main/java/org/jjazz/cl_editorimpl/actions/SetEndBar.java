@@ -22,17 +22,15 @@
  */
 package org.jjazz.cl_editorimpl.actions;
 
-import org.jjazz.cl_editor.api.CL_ContextActionListener;
-import org.jjazz.cl_editor.api.CL_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
+import java.util.EnumSet;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
 import javax.swing.KeyStroke;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.cl_editor.api.CL_ContextAction;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -42,48 +40,38 @@ import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.utilities.api.ResUtil;
-import org.openide.util.ContextAwareAction;
-import org.openide.util.Lookup;
-import org.openide.util.Utilities;
 
-@ActionRegistration(displayName = "#CTL_SetEndBar", lazy = false)
+@ActionRegistration(displayName = "not_used", lazy = false)
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.setendbar")
 @ActionReferences(
         {
             @ActionReference(path = "Actions/Bar", position = 205),
         })
-public final class SetEndBar extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
+public final class SetEndBar extends CL_ContextAction
 {
+
     public static final KeyStroke KEYSTROKE = getGenericControlKeyStroke(KeyEvent.VK_E);
-    private Lookup context;
-    private CL_ContextActionSupport cap;
-    private final String undoText = ResUtil.getString(getClass(), "CTL_SetEndBar");
     private int endBar = -1;
 
-    public SetEndBar()
+    @Override
+    protected void configureAction()
     {
-        this(Utilities.actionsGlobalContext());
-    }
-
-    private SetEndBar(Lookup context)
-    {
-        this.context = context;
-        cap = CL_ContextActionSupport.getInstance(this.context);
-        cap.addListener(this);
-        putValue(NAME, undoText);
+        putValue(NAME, ResUtil.getString(getClass(), "CTL_SetEndBar"));
         putValue(ACCELERATOR_KEY, KEYSTROKE);
-        selectionChange(cap.getSelection());
     }
 
     @Override
-    public void actionPerformed(ActionEvent e)
+    protected EnumSet<ListeningTarget> getListeningTargets()
     {
-        CL_SelectionUtilities selection = cap.getSelection();
-        assert endBar >= 0 : "selection=" + selection;   
-        ChordLeadSheet cls = selection.getChordLeadSheet();
+        return EnumSet.of(ListeningTarget.BAR_SELECTION);
+    }
+
+    @Override
+    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)
+    {
 
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(cls);
-        um.startCEdit(undoText);
+        um.startCEdit(getActionName());
 
         try
         {
@@ -91,18 +79,13 @@ public final class SetEndBar extends AbstractAction implements ContextAwareActio
         } catch (UnsupportedEditException ex)
         {
             String msg = "Impossible to resize.\n" + ex.getLocalizedMessage();
-            um.abortCEdit(undoText, msg);
+            um.abortCEdit(getActionName(), msg);
             return;
         }
 
-        um.endCEdit(undoText);
+        um.endCEdit(getActionName());
     }
 
-    @Override
-    public Action createContextAwareInstance(Lookup context)
-    {
-        return new SetEndBar(context);
-    }
 
     @Override
     public void selectionChange(CL_SelectionUtilities selection)
@@ -115,11 +98,5 @@ public final class SetEndBar extends AbstractAction implements ContextAwareActio
             endBar = selection.getMinBarIndex();
         }
         setEnabled(b);
-    }
-
-    @Override
-    public void sizeChanged(int oldSize, int newSize)
-    {
-        // Nothing
     }
 }

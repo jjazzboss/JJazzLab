@@ -22,15 +22,15 @@
  */
 package org.jjazz.cl_editorimpl.actions;
 
-import org.jjazz.cl_editor.api.CL_ContextActionListener;
-import org.jjazz.cl_editor.api.CL_ContextActionSupport;
 import java.awt.event.ActionEvent;
+import java.util.EnumSet;
 import java.util.logging.Logger;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import javax.swing.KeyStroke;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
+import org.jjazz.chordleadsheet.api.event.SizeChangedEvent;
+import org.jjazz.cl_editor.api.CL_ContextAction;
 import org.jjazz.cl_editor.spi.Preset;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.cl_editor.api.CL_Editor;
@@ -41,9 +41,6 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.ContextAwareAction;
-import org.openide.util.Lookup;
-import org.openide.util.Utilities;
 
 /**
  * Insert a section at the first selected bar.
@@ -53,46 +50,35 @@ import org.openide.util.Utilities;
 @ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
         {
-            @ActionReference(path = "Actions/BarInsert", position = 110)     
+            @ActionReference(path = "Actions/BarInsert", position = 110)
         })
-public class InsertSection extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
+public class InsertSection extends CL_ContextAction
 {
+
     public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("T");
-    private Lookup context;
-    private CL_ContextActionSupport cap;
-    private final String undoText = ResUtil.getString(getClass(), "CTL_InsertSection");
     private static final Logger LOGGER = Logger.getLogger(InsertSection.class.getSimpleName());
 
-    public InsertSection()
+    @Override
+    protected void configureAction()
     {
-        this(Utilities.actionsGlobalContext());
-    }
-
-    private InsertSection(Lookup context)
-    {
-        this.context = context;
-        cap = CL_ContextActionSupport.getInstance(this.context);
-        cap.addListener(this);
-        putValue(NAME, undoText);
+        putValue(NAME, ResUtil.getString(getClass(), "CTL_InsertSection"));
         putValue(ACCELERATOR_KEY, KEYSTROKE);
-        selectionChange(cap.getSelection());
     }
 
     @Override
-    public Action createContextAwareInstance(Lookup context)
+    protected EnumSet<ListeningTarget> getListeningTargets()
     {
-        return new InsertSection(context);
+        return EnumSet.of(ListeningTarget.BAR_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES);
     }
 
+
     @Override
-    public void actionPerformed(ActionEvent e)
+    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)
     {
-        CL_SelectionUtilities selection = cap.getSelection();
-        ChordLeadSheet cls = selection.getChordLeadSheet();
         CL_Editor editor = CL_EditorTopComponent.getActive().getEditor();
         int barIndex = selection.getMinBarIndexWithinCls();
         Preset preset = new Preset(Type.SectionNameEdit, null, (char) 0);
-        Edit.editBarWithDialog(editor, barIndex, preset, cls, undoText);
+        Edit.editBarWithDialog(editor, barIndex, preset, cls, getActionName());
     }
 
     @Override
@@ -111,9 +97,12 @@ public class InsertSection extends AbstractAction implements ContextAwareAction,
     }
 
     @Override
-    public void sizeChanged(int oldSize, int newSize)
+    public void chordLeadSheetChanged(ClsChangeEvent event)
     {
-        selectionChange(cap.getSelection());
+        if (event instanceof SizeChangedEvent)
+        {
+            selectionChange(getSelection());
+        }
     }
 
 }

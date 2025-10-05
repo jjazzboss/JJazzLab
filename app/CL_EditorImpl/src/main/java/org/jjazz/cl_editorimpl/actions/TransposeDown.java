@@ -22,105 +22,74 @@
  */
 package org.jjazz.cl_editorimpl.actions;
 
-import org.jjazz.cl_editor.api.CL_ContextActionListener;
-import org.jjazz.cl_editor.api.CL_ContextActionSupport;
 import java.awt.event.ActionEvent;
+import org.jjazz.cl_editor.api.CL_ContextAction;
 import java.awt.event.KeyEvent;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
+import java.util.EnumSet;
+import java.util.logging.Logger;
+import static javax.swing.Action.ACCELERATOR_KEY;
+import static javax.swing.Action.NAME;
 import javax.swing.KeyStroke;
-import org.jjazz.harmony.api.Note;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.harmony.api.Note;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
 import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
-import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.ContextAwareAction;
-import org.openide.util.Lookup;
-import org.openide.util.Utilities;
+import org.jjazz.utilities.api.ResUtil;
 
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.transposedown")
-@ActionRegistration(displayName = "#CTL_TransposeDown", lazy = false)   // lazy is false to show the accelerator key in the menu
+@ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
         {
             @ActionReference(path = "Actions/ChordSymbol", position = 410),
+            @ActionReference(path = "Shortcuts", name = "D-DOWN")
         })
-public final class TransposeDown extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
+public final class TransposeDown extends CL_ContextAction
 {
-    public static final KeyStroke KEYSTROKE = getGenericControlKeyStroke(KeyEvent.VK_DOWN);    
-    private final String undoText = ResUtil.getString(getClass(), "CTL_TransposeDown");
-    private Lookup context;
-    private CL_ContextActionSupport cap;
 
-    public TransposeDown()
+    public static final KeyStroke KEYSTROKE = getGenericControlKeyStroke(KeyEvent.VK_DOWN);
+    private static final Logger LOGGER = Logger.getLogger(TransposeUp.class.getSimpleName());
+
+    @Override
+    protected void configureAction()
     {
-        this(Utilities.actionsGlobalContext());
-    }
-
-    public TransposeDown(Lookup context)
-    {
-        this.context = context;
-
-        // Help class to get notified of selection change in the current leadsheet editor
-        cap = CL_ContextActionSupport.getInstance(this.context);
-        cap.addListener(this);
-
-
-        // As lazy=false above, need to set action properties to have the correct display in the menu
-        putValue(NAME, undoText);
+        putValue(NAME, ResUtil.getString(TransposeUp.class, "CTL_TransposeDown"));
         putValue(ACCELERATOR_KEY, KEYSTROKE);
-
-
-        // Update enabled state
-        selectionChange(cap.getSelection());
     }
 
     @Override
-    public void actionPerformed(ActionEvent e)
+    protected EnumSet<ListeningTarget> getListeningTargets()
     {
-        // Get current selection state
-        CL_SelectionUtilities selection = cap.getSelection();
-
-
-        // Prepare the undoable action to receive the individual undoable edits
-        ChordLeadSheet cls = selection.getChordLeadSheet();
-        JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(undoText);
-
-
-        // Transpose down use FLAT notes by default (transpose up will use SHARP notes)
-        for (CLI_ChordSymbol cliCs : selection.getSelectedChordSymbols())
-        {
-            ExtChordSymbol ecs = cliCs.getData();
-            ExtChordSymbol newEcs = ecs.getTransposedChordSymbol(-1, Note.Accidental.FLAT);
-            cliCs.getContainer().changeItem(cliCs, newEcs);     // will generate undoable edits
-        }
-
-
-        // End the undoable action
-        JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(undoText);
+        return EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION);
     }
 
     @Override
     public void selectionChange(CL_SelectionUtilities selection)
     {
-        setEnabled(selection.isItemSelected() && (selection.getSelectedItems().get(0) instanceof CLI_ChordSymbol));
+        setEnabled(selection.isChordSymbolSelected());
     }
 
     @Override
-    public Action createContextAwareInstance(Lookup context)
+    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)
     {
-        return new TransposeDown(context);
+        JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(getActionName());
+
+        // Transpose up use FLAT            
+        for (CLI_ChordSymbol cliCs : selection.getSelectedChordSymbols())
+        {
+            ExtChordSymbol ecs = cliCs.getData();
+            ExtChordSymbol newEcs = ecs.getTransposedChordSymbol(-1, Note.Accidental.FLAT);
+            cliCs.getContainer().changeItem(cliCs, newEcs);
+        }
+
+        JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(getActionName());
     }
 
-    @Override
-    public void sizeChanged(int oldSize, int newSize)
-    {
-        // Nothing: transpose is not impacted by resize 
-    }
+
 }

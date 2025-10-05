@@ -48,7 +48,7 @@ import org.openide.util.actions.Presenter;
  * Allow user to change color of selected chords via a JPopupMenu.
  */
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.SetChordColor")
-@ActionRegistration(displayName = "#CTL_SetChordColor", lazy = false)
+@ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
         {
             @ActionReference(path = "Actions/ChordSymbol", position = 2000, separatorBefore = 1999)

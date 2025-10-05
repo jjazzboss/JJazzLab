@@ -22,21 +22,21 @@
  */
 package org.jjazz.cl_editorimpl.actions;
 
-import org.jjazz.cl_editor.api.CL_ContextActionListener;
-import org.jjazz.cl_editor.api.CL_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.KeyStroke;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
+import org.jjazz.chordleadsheet.api.event.SizeChangedEvent;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
+import org.jjazz.cl_editor.api.CL_ContextAction;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
@@ -46,9 +46,6 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.ContextAwareAction;
-import org.openide.util.Lookup;
-import org.openide.util.Utilities;
 import org.openide.util.actions.SystemAction;
 
 /**
@@ -63,52 +60,37 @@ import org.openide.util.actions.SystemAction;
             @ActionReference(path = "Actions/ChordSymbol", position = 480),
             @ActionReference(path = "Actions/BarAnnotation", position = 110)
         })
-public class DeleteItem extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
+public class DeleteItem extends CL_ContextAction
 {
 
-    private Lookup context;
-    private CL_ContextActionSupport cap;
-    private final String undoText = ResUtil.getString(getClass(), "CTL_DeleteItem");
+    public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("DELETE");
     private static final Logger LOGGER = Logger.getLogger(DeleteItem.class.getSimpleName());
 
-    public DeleteItem()
-    {
-        this(Utilities.actionsGlobalContext());
-    }
 
-    private DeleteItem(Lookup context)
+    @Override
+    protected void configureAction()
     {
-        this.context = context;
-        cap = CL_ContextActionSupport.getInstance(this.context);
-        cap.addListener(this);
-        putValue(NAME, undoText);
+        putValue(NAME, ResUtil.getString(getClass(), "CTL_DeleteItem"));
+        putValue(ACCELERATOR_KEY, KEYSTROKE);
         Icon icon = SystemAction.get(DeleteAction.class).getIcon();
         putValue(SMALL_ICON, icon);
-        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("DELETE"));
-        selectionChange(cap.getSelection());
     }
 
     @Override
-    public Action createContextAwareInstance(Lookup context)
+    protected EnumSet<ListeningTarget> getListeningTargets()
     {
-        return new DeleteItem(context);
+        return EnumSet.of(ListeningTarget.BAR_SELECTION, ListeningTarget.CLS_ITEMS_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES);
     }
 
-    @SuppressWarnings(
-            {
-                "rawtypes",
-                "unchecked"
-            })
+
     @Override
-    public void actionPerformed(ActionEvent e)
+    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)
     {
-        CL_SelectionUtilities selection = cap.getSelection();
-        ChordLeadSheet cls = selection.getChordLeadSheet();
         List<ChordLeadSheetItem> items = new ArrayList<>();
 
-        
+
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(cls);
-        um.startCEdit(undoText);
+        um.startCEdit(getActionName());
 
 
         if (selection.isBarSelectedWithinCls())
@@ -119,7 +101,7 @@ public class DeleteItem extends AbstractAction implements ContextAwareAction, CL
             }
         } else
         {
-            assert selection.isItemSelected() == true : " selection=" + selection;   
+            assert selection.isItemSelected() == true : " selection=" + selection;
             items.addAll(selection.getSelectedItems());
         }
 
@@ -138,7 +120,7 @@ public class DeleteItem extends AbstractAction implements ContextAwareAction, CL
                     } catch (UnsupportedEditException ex)
                     {
                         String msg = "Impossible to cut section " + section.getData().getName() + ".\n" + ex.getLocalizedMessage();
-                        um.abortCEdit(undoText, msg);
+                        um.abortCEdit(getActionName(), msg);
                         return;
                     }
                 }
@@ -147,7 +129,7 @@ public class DeleteItem extends AbstractAction implements ContextAwareAction, CL
                 cls.removeItem(item);
             }
         }
-        um.endCEdit(undoText);
+        um.endCEdit(getActionName());
     }
 
     @Override
@@ -158,13 +140,16 @@ public class DeleteItem extends AbstractAction implements ContextAwareAction, CL
         {
             b = true;
         }
-        LOGGER.log(Level.FINE, "selectionChange() b={0}", b);   
+        LOGGER.log(Level.FINE, "selectionChange() b={0}", b);
         setEnabled(b);
     }
 
     @Override
-    public void sizeChanged(int oldSize, int newSize)
+    public void chordLeadSheetChanged(ClsChangeEvent event)
     {
-        selectionChange(cap.getSelection());
+        if (event instanceof SizeChangedEvent)
+        {
+            selectionChange(getSelection());
+        }
     }
 }

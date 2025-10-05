@@ -35,8 +35,14 @@ final public class SelectedCLI implements Comparable<SelectedCLI>
 
     private final ChordLeadSheetItem<?> cli;
 
+
+    /**
+     *
+     * @param cli Not null
+     */
     public SelectedCLI(ChordLeadSheetItem<?> cli)
     {
+        Objects.requireNonNull(cli);
         this.cli = cli;
     }
 

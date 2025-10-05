@@ -47,7 +47,7 @@ import org.openide.util.actions.Presenter;
  * Allow user to change color of selected sections via a JPopupMenu.
  */
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.SetSectionColor")
-@ActionRegistration(displayName = "#CTL_SetSectionColor", lazy = false)
+@ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
         {
             @ActionReference(path = "Actions/Section", position = 2100, separatorBefore=2099)

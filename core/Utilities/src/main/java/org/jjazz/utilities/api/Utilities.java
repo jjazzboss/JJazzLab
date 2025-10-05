@@ -51,9 +51,11 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import javax.swing.Action;
 import org.netbeans.api.progress.ProgressHandle;
 import org.openide.*;
 import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileUtil;
 
 /**
  * Various convenience functions.

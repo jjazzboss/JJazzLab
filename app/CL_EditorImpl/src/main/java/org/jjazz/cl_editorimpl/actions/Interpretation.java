@@ -22,97 +22,75 @@
  */
 package org.jjazz.cl_editorimpl.actions;
 
-import java.awt.Component;
 import java.awt.event.ActionEvent;
+import java.awt.Component;
+import java.util.EnumSet;
 import java.util.logging.Logger;
-import javax.swing.AbstractAction;
 import javax.swing.Action;
+import static javax.swing.Action.ACCELERATOR_KEY;
+import static javax.swing.Action.NAME;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JSeparator;
+import javax.swing.SwingUtilities;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.chordleadsheet.api.ClsChangeListener;
-import org.jjazz.chordleadsheet.api.UnsupportedEditException;
-import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
-import org.jjazz.chordleadsheet.api.event.ItemChangedEvent;
-import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo;
-import org.jjazz.cl_editor.api.CL_ContextActionListener;
-import org.jjazz.cl_editor.api.CL_ContextActionSupport;
+import org.jjazz.cl_editor.api.CL_ContextAction;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
+import static org.jjazz.cl_editorimpl.actions.AccentOptionsStronger.KEYSTROKE;
+import org.jjazz.uiutilities.api.UIUtilities;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.ContextAwareAction;
-import org.openide.util.Lookup;
 import org.openide.util.Utilities;
 import org.openide.util.actions.Presenter;
 
 /**
- * A submenu to directly set some interpretations options via the chord symbol popupmenu.
+ * A submenu to let user update chord symbol interpretation options via a popupmenu.
  */
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.interpretation")
-@ActionRegistration(displayName = "#CTL_Interpretation", lazy = false)
+@ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
         {
             @ActionReference(path = "Actions/ChordSymbol", position = 470)
         })
-public final class Interpretation extends AbstractAction implements ContextAwareAction, CL_ContextActionListener, Presenter.Popup
+public final class Interpretation extends CL_ContextAction implements Presenter.Popup
 {
 
-    private CL_ContextActionSupport cap;
-    private final Lookup context;
     JMenu subMenu;
-    private ChordLeadSheet currentCls;
     private static final Logger LOGGER = Logger.getLogger(Interpretation.class.getSimpleName());
 
-    public Interpretation()
+    @Override
+    protected void configureAction()
     {
-        this(Utilities.actionsGlobalContext());
-    }
-
-    public Interpretation(Lookup context)
-    {
-        this.context = context;
-        cap = CL_ContextActionSupport.getInstance(this.context);
-        cap.addListener(this);
-        selectionChange(cap.getSelection());
+        putValue(NAME, ResUtil.getString(getClass(), "CTL_Interpretation"));
+        putValue(ACCELERATOR_KEY, KEYSTROKE);
     }
 
     @Override
-    public void actionPerformed(ActionEvent ev)
+    protected EnumSet<CL_ContextAction.ListeningTarget> getListeningTargets()
     {
-        // Unused
+        return EnumSet.of(CL_ContextAction.ListeningTarget.CLS_ITEMS_SELECTION);
     }
 
     @Override
     public void selectionChange(CL_SelectionUtilities selection)
     {
-       
-        // Disable menu of no accent features ON on selected chord symbols
         boolean b = selection.isChordSymbolSelected();
         setEnabled(b);
         if (subMenu != null)
         {
-            subMenu.setEnabled(b);
+            // subMenu.setEnabled(b);   testing if useless
         }
     }
 
     @Override
-    public Action createContextAwareInstance(Lookup context)
+    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)
     {
-        return new Interpretation(context);
+        // Not used
     }
 
-    @Override
-    public void sizeChanged(int oldSize, int newSize)
-    {
-        // Nothing
-    }
-
- 
     // ============================================================================================= 
     // Presenter.Popup implementation
     // =============================================================================================      
@@ -121,8 +99,9 @@ public final class Interpretation extends AbstractAction implements ContextAware
     {
         if (subMenu == null)
         {
-            subMenu = new JMenu(ResUtil.getString(getClass(), "CTL_Interpretation"));
-            var actions = Utilities.actionsForPath("Actions/ChordSymbolInterpretation");   
+            assert SwingUtilities.isEventDispatchThread();
+            subMenu = new JMenu(getActionName());
+            var actions = Utilities.actionsForPath("Actions/ChordSymbolInterpretation");
             for (Action action : actions)
             {
                 if (action == null)
@@ -130,7 +109,7 @@ public final class Interpretation extends AbstractAction implements ContextAware
                     subMenu.add(new JSeparator());
                 } else
                 {
-                    for (Component c : org.jjazz.uiutilities.api.UIUtilities.actionToMenuItems(action, context))
+                    for (Component c : UIUtilities.actionToMenuItems(action, getContext()))
                     {
                         subMenu.add(c);
                     }
@@ -144,4 +123,5 @@ public final class Interpretation extends AbstractAction implements ContextAware
     // ============================================================================================= 
     // Private methods
     // =============================================================================================     
+
 }

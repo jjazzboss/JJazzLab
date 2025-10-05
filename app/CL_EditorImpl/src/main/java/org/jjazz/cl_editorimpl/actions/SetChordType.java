@@ -51,7 +51,7 @@ import org.openide.util.actions.Presenter;
  * To be used in CLI_ChordSymbol context popup menu.
  */
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.SetChordType")
-@ActionRegistration(displayName = "#CTL_SetChordType", lazy = false)
+@ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
         {
             @ActionReference(path = "Actions/ChordSymbol", position = 200)
@@ -143,7 +143,7 @@ public final class SetChordType extends AbstractAction implements Presenter.Menu
     private void changeChordType(CL_Editor editor, ChordType ct)
     {
         CL_SelectionUtilities selection = new CL_SelectionUtilities(editor.getLookup());
-        if (selection.isItemSelected() && (selection.getSelectedItems().get(0) instanceof CLI_ChordSymbol))
+        if (selection.isChordSymbolSelected())
         {
             for (ChordLeadSheetItem<?> item : selection.getSelectedItems())
             {

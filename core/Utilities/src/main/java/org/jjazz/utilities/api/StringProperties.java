@@ -107,7 +107,7 @@ public class StringProperties extends ObservableProperties<String> implements Se
         Color res = defaultValue;
         try
         {
-            int rgb = Integer.valueOf(s);
+            int rgb = Integer.parseInt(s);
             res = new Color(rgb);
         } catch (NumberFormatException ex)
         {

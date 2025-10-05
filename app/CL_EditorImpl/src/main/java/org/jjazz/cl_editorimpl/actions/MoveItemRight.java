@@ -22,14 +22,11 @@
  */
 package org.jjazz.cl_editorimpl.actions;
 
-import org.jjazz.cl_editor.api.CL_ContextActionListener;
-import org.jjazz.cl_editor.api.CL_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.logging.Logger;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
 import javax.swing.KeyStroke;
@@ -38,6 +35,8 @@ import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.item.CLI_BarAnnotation;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.cl_editor.api.CL_ContextAction;
+import org.jjazz.cl_editor.api.CL_ContextAction.ListeningTarget;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.harmony.api.Position;
 import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
@@ -46,10 +45,7 @@ import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.ContextAwareAction;
 import org.openide.util.Exceptions;
-import org.openide.util.Lookup;
-import org.openide.util.Utilities;
 
 /**
  * Move selected items left.
@@ -60,59 +56,36 @@ import org.openide.util.Utilities;
         {
             // Only via keyboard shortcut
         })
-public class MoveItemRight extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
+public class MoveItemRight extends CL_ContextAction
 {
 
     public static final KeyStroke KEYSTROKE = getGenericControlKeyStroke(KeyEvent.VK_RIGHT);
-    private Lookup context;
-    private CL_ContextActionSupport cap;
-    private final String undoText = ResUtil.getString(getClass(), "CTL_MoveItemRight");
     private static final Logger LOGGER = Logger.getLogger(MoveItemLeft.class.getSimpleName());
 
-    public MoveItemRight()
+  @Override
+    protected void configureAction()
     {
-        this(Utilities.actionsGlobalContext());
-    }
-
-    private MoveItemRight(Lookup context)
-    {
-        this.context = context;
-        cap = CL_ContextActionSupport.getInstance(this.context);
-        cap.addListener(this);
-        putValue(NAME, undoText);
-//        Icon icon = SystemAction.get(DeleteAction.class).getIcon();
-//        putValue(SMALL_ICON, icon);
+        putValue(NAME, ResUtil.getString(getClass(), "CTL_MoveItemRight"));
         putValue(ACCELERATOR_KEY, KEYSTROKE);
-        selectionChange(cap.getSelection());
     }
 
     @Override
-    public Action createContextAwareInstance(Lookup context)
+    protected EnumSet<ListeningTarget> getListeningTargets()
     {
-        return new MoveItemRight(context);
+        return EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION);
     }
 
     @Override
-    public void actionPerformed(ActionEvent ev)
+    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)
     {
-        performMove(cap.getSelection(), undoText, true);
+        MoveItemRight.performMove(selection, getActionName(), true);
     }
 
-
-    // ===========================================================================================================
-    // CL_ContextActionListener interface
-    // ===========================================================================================================    
     @Override
     public void selectionChange(CL_SelectionUtilities selection)
     {
         boolean b = selection.isItemSelected();
         setEnabled(b);
-    }
-
-    @Override
-    public void sizeChanged(int oldSize, int newSize)
-    {
-        selectionChange(cap.getSelection());
     }
 
     // ===========================================================================================================

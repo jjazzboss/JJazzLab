@@ -97,7 +97,7 @@ public final class CreatePracticeSong extends AbstractAction implements ContextA
     {
         this.context = context;
         cap = CL_ContextActionSupport.getInstance(this.context);
-        cap.addListener(this);
+        cap.addWeakSelectionListener(this);
         putValue(NAME, ResUtil.getString(getClass(), "CTL_CreatePracticeSong"));
         selectionChange(cap.getSelection());
     }
@@ -184,12 +184,6 @@ public final class CreatePracticeSong extends AbstractAction implements ContextA
     {
         boolean b = selection.isContiguousBarboxSelectionWithinCls();
         setEnabled(b);
-    }
-
-    @Override
-    public void sizeChanged(int oldSize, int newSize)
-    {
-        // Nothing
     }
 
     // ========================================================================================

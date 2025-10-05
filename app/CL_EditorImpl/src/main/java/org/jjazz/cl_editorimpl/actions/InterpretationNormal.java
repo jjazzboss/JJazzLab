@@ -23,22 +23,19 @@
 package org.jjazz.cl_editorimpl.actions;
 
 import java.awt.event.ActionEvent;
+import java.util.EnumSet;
 import java.util.logging.Logger;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
+import static javax.swing.Action.NAME;
 import javax.swing.JMenuItem;
 import javax.swing.JRadioButtonMenuItem;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.chordleadsheet.api.ClsChangeListener;
-import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
 import org.jjazz.chordleadsheet.api.event.ItemChangedEvent;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
-import org.jjazz.cl_editor.api.CL_ContextActionListener;
-import org.jjazz.cl_editor.api.CL_ContextActionSupport;
+import org.jjazz.cl_editor.api.CL_ContextAction;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.utilities.api.ResUtil;
@@ -46,13 +43,10 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.ContextAwareAction;
-import org.openide.util.Lookup;
-import org.openide.util.Utilities;
 import org.openide.util.actions.Presenter;
 
 /**
- * Remove accent on selected chord symbols.
+ * Remove all interpretation options.
  * <p>
  * Action is actually performed via a checkbox menu item (see Presenter.Popup).
  */
@@ -62,88 +56,44 @@ import org.openide.util.actions.Presenter;
         {
             @ActionReference(path = "Actions/ChordSymbolInterpretation", position = 10)
         })
-public final class InterpretationNormal extends AbstractAction implements ContextAwareAction, CL_ContextActionListener, Presenter.Popup, ClsChangeListener
+public final class InterpretationNormal extends CL_ContextAction implements Presenter.Popup
 {
 
-    private CL_ContextActionSupport cap;
-    private final Lookup context;
     private JRadioButtonMenuItem rbMenuItem;
-    private final String undoText = ResUtil.getString(getClass(), "CTL_InterpretationNormal");
-    private ChordLeadSheet currentCls;
     private static final Logger LOGGER = Logger.getLogger(InterpretationNormal.class.getSimpleName());
 
-    public InterpretationNormal()
+    @Override
+    protected void configureAction()
     {
-        this(Utilities.actionsGlobalContext());
-    }
-
-    public InterpretationNormal(Lookup context)
-    {
-        this.context = context;
-        cap = CL_ContextActionSupport.getInstance(this.context);
-        cap.addListener(this);
-        putValue(NAME, undoText);
-        // putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("X"));
-        selectionChange(cap.getSelection());
+        putValue(NAME, ResUtil.getString(getClass(), "CTL_InterpretationNormal"));
     }
 
     @Override
-    public void actionPerformed(ActionEvent ev)
+    protected EnumSet<CL_ContextAction.ListeningTarget> getListeningTargets()
     {
-        // not used
+        return EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES);
+    }
+
+    @Override
+    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)
+    {
+        // Not used
     }
 
     @Override
     public void selectionChange(CL_SelectionUtilities selection)
     {
-        // Need to listen to possible CLI_ChordSymbol accent features changes that may occur while selection is unchanged
-        ChordLeadSheet cls = selection.getChordLeadSheet();
-        if (cls != currentCls)
-        {
-            if (currentCls != null)
-            {
-                currentCls.removeClsChangeListener(this);
-            }
-            currentCls = cls;
-            if (currentCls != null)
-            {
-                currentCls.addClsChangeListener(this);
-            }
-        }
-
-
         setEnabled(selection.isChordSymbolSelected());
-        updateMenuItem();
-    }
-
-    @Override
-    public Action createContextAwareInstance(Lookup context)
-    {
-        return new InterpretationNormal(context);
-    }
-
-    @Override
-    public void sizeChanged(int oldSize, int newSize)
-    {
-        // Nothing
-    }
-
-    // ============================================================================================= 
-    // ClsChangeListener implementation
-    // =============================================================================================      
-    @Override
-    public void authorizeChange(ClsChangeEvent e) throws UnsupportedEditException
-    {
-        // Nothing
+        updateMenuItem(selection);
     }
 
     @Override
     public void chordLeadSheetChanged(ClsChangeEvent event)
     {
-        var selection = cap.getSelection();
+        var selection = getSelection();
         if (event instanceof ItemChangedEvent && selection.getSelectedItems().contains(event.getItem()))
         {
-            selectionChange(selection);
+            updateMenuItem(selection);
         }
     }
 
@@ -155,23 +105,10 @@ public final class InterpretationNormal extends AbstractAction implements Contex
     {
         if (rbMenuItem == null)
         {
-            rbMenuItem = new JRadioButtonMenuItem(undoText);
-            // rbMenuItem.setAccelerator(KEYSTROKE);
-            rbMenuItem.addActionListener(evt -> 
-            {
-                if (rbMenuItem.isSelected())
-                {
-                    setNoAccent();
-                } else
-                {
-                    rbMenuItem.setSelected(true);
-                }
-            });
-            rbMenuItem.putClientProperty("RadioButtonMenuItem.doNotCloseOnMouseClick", true);
-            rbMenuItem.putClientProperty("CheckBoxMenuItem.doNotCloseOnMouseClick", true);
+            rbMenuItem = AccentNormal.createRadioButtonMenuItem(getActionName(), () -> setNoAccent());
         }
 
-        updateMenuItem();
+        updateMenuItem(getSelection());
 
         return rbMenuItem;
     }
@@ -179,36 +116,36 @@ public final class InterpretationNormal extends AbstractAction implements Contex
 
     private void setNoAccent()
     {
-        CL_SelectionUtilities selection = cap.getSelection();
-        ChordLeadSheet cls = selection.getChordLeadSheet();
+        ChordLeadSheet cls = getActiveChordLeadSheet();
 
 
-        JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(undoText);
+        JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(getActionName());
 
 
-        for (CLI_ChordSymbol item : selection.getSelectedChordSymbols())
+        for (CLI_ChordSymbol item : getSelection().getSelectedChordSymbols())
         {
             ExtChordSymbol ecs = item.getData();
             ChordRenderingInfo cri = ecs.getRenderingInfo();
             var features = cri.getFeatures();
             features.remove(Feature.ACCENT);
             features.remove(Feature.ACCENT_STRONGER);
+            features.remove(Feature.HOLD);
+            features.remove(Feature.SHOT);
             ChordRenderingInfo newCri = new ChordRenderingInfo(cri, features);
             ExtChordSymbol newCs = ecs.getCopy(null, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
             item.getContainer().changeItem(item, newCs);
         }
 
-        JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(undoText);
+        JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(getActionName());
     }
 
-    private void updateMenuItem()
+    private void updateMenuItem(CL_SelectionUtilities selection)
     {
         if (rbMenuItem == null)
         {
             return;
         }
         // Update the checkbox: select it if only all chord symbols do not use accent
-        CL_SelectionUtilities selection = cap.getSelection();
         boolean b = selection.getSelectedChordSymbols().stream()
                 .map(cliCs -> cliCs.getData().getRenderingInfo())
                 .allMatch(cri -> !cri.hasOneFeature(Feature.ACCENT, Feature.ACCENT_STRONGER));

@@ -104,7 +104,7 @@ public class CL_EditorTransferHandler extends TransferHandler
 
 
     /**
-     * Overridden to limit drag start to ItemRenderers with no modifier used.
+     * Overridden to limit drag start to ItemRenderers with no modifier used and mouse left button.
      *
      * @param comp
      * @param e
@@ -113,7 +113,8 @@ public class CL_EditorTransferHandler extends TransferHandler
     @Override
     public void exportAsDrag(JComponent comp, InputEvent e, int action)
     {
-        if (!(comp instanceof ItemRenderer) || e instanceof MouseEvent me && (me.isAltDown() || me.isShiftDown())) // ctrl is authorized for item copy
+        if (!(comp instanceof ItemRenderer) 
+                || (e instanceof MouseEvent me && (!SwingUtilities.isLeftMouseButton(me) || me.isAltDown() || me.isShiftDown()))) // ctrl is authorized for item copy
         {
             return;
         }

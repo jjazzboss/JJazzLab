@@ -22,16 +22,13 @@
  */
 package org.jjazz.cl_editorimpl.actions;
 
-import org.jjazz.cl_editor.api.CL_ContextActionListener;
-import org.jjazz.cl_editor.api.CL_ContextActionSupport;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.JDialog;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
@@ -39,11 +36,14 @@ import org.jjazz.analytics.api.Analytics;
 import org.jjazz.chordleadsheet.api.Section;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
+import org.jjazz.chordleadsheet.api.event.SizeChangedEvent;
 import org.jjazz.chordleadsheet.api.item.CLI_BarAnnotation;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
+import org.jjazz.cl_editor.api.CL_ContextAction;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.cl_editor.spi.CL_BarEditorDialog;
 import org.jjazz.cl_editor.spi.Preset;
@@ -62,9 +62,6 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.ContextAwareAction;
-import org.openide.util.Lookup;
-import org.openide.util.Utilities;
 import org.openide.windows.WindowManager;
 
 /**
@@ -84,34 +81,24 @@ import org.openide.windows.WindowManager;
             @ActionReference(path = "Actions/Bar", position = 100),
             @ActionReference(path = "Actions/BarAnnotation", position = 100)
         })
-public class Edit extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
+public class Edit extends CL_ContextAction
 {
 
-
-    private Lookup context;
-    private CL_ContextActionSupport cap;
+    public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("ENTER");
     private final String undoText = ResUtil.getString(getClass(), "CTL_Edit");
     private static final Logger LOGGER = Logger.getLogger(Edit.class.getSimpleName());
 
-    public Edit()
+   @Override
+    protected void configureAction()
     {
-        this(Utilities.actionsGlobalContext());
-    }
-
-    private Edit(Lookup context)
-    {
-        this.context = context;
-        cap = CL_ContextActionSupport.getInstance(this.context);
-        cap.addListener(this);
-        putValue(NAME, undoText);
-        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("ENTER"));
-        selectionChange(cap.getSelection());
+        putValue(NAME, ResUtil.getString(getClass(), "CTL_Edit"));
+        putValue(ACCELERATOR_KEY, KEYSTROKE);
     }
 
     @Override
-    public Action createContextAwareInstance(Lookup context)
+    protected EnumSet<ListeningTarget> getListeningTargets()
     {
-        return new Edit(context);
+        return EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION, ListeningTarget.BAR_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES);
     }
 
     /**
@@ -123,10 +110,8 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
      * @param ae
      */
     @Override
-    public void actionPerformed(ActionEvent ae)
+    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)
     {
-        CL_SelectionUtilities selection = cap.getSelection();
-        final ChordLeadSheet cls = selection.getChordLeadSheet();
         final CL_Editor editor = CL_EditorTopComponent.getActive().getEditor();
         char key = (char) 0;
         LOGGER.log(Level.FINE, "ae={0}", ae);
@@ -140,7 +125,6 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
                 key = c;
             }
         }
-
 
         if (selection.isItemSelected())
         {
@@ -205,10 +189,14 @@ public class Edit extends AbstractAction implements ContextAwareAction, CL_Conte
         setEnabled(b);
     }
 
+
     @Override
-    public void sizeChanged(int oldSize, int newSize)
+    public void chordLeadSheetChanged(ClsChangeEvent event)
     {
-        selectionChange(cap.getSelection());
+        if (event instanceof SizeChangedEvent)
+        {
+            selectionChange(getSelection());
+        }
     }
 
     static protected void editSectionWithDialog(final SectionEditorDialog dialog, final CLI_Section sectionItem, final char key, final ChordLeadSheet cls,

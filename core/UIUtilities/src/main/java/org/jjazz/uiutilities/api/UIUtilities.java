@@ -403,9 +403,9 @@ public class UIUtilities
         }
 
         // switch to replacement action if there is some
-        if (action instanceof ContextAwareAction)
+        if (action instanceof ContextAwareAction cwa)
         {
-            Action contextAwareAction = ((ContextAwareAction) action).createContextAwareInstance(context);
+            Action contextAwareAction = cwa.createContextAwareInstance(context);
             if (contextAwareAction == null)
             {
                 throw new IllegalArgumentException("ContextAwareAction.createContextAwareInstance(context) returns null.");

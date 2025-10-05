@@ -22,19 +22,18 @@
  */
 package org.jjazz.cl_editorimpl.actions;
 
-import org.jjazz.cl_editor.api.CL_ContextActionListener;
-import org.jjazz.cl_editor.api.CL_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.KeyStroke;
+import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.cl_editor.api.CL_ContextAction;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
@@ -53,9 +52,6 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.ContextAwareAction;
-import org.openide.util.Lookup;
-import org.openide.util.Utilities;
 
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.hearchord")
 @ActionRegistration(displayName = "unused", lazy = false) // lazy is false to show the accelerator key in the menu
@@ -63,42 +59,28 @@ import org.openide.util.Utilities;
         {
             @ActionReference(path = "Actions/ChordSymbol", position = 2010),
         })
-public final class HearChord extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
+public final class HearChord extends CL_ContextAction
 {
 
     public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("M");
-    private final String undoText = ResUtil.getString(getClass(), "CTL_HearChord");
-    private Lookup context;
-    private CL_ContextActionSupport cap;
     private static final Logger LOGGER = Logger.getLogger(HearChord.class.getSimpleName());
 
-    public HearChord()
+    @Override
+    protected void configureAction()
     {
-        this(Utilities.actionsGlobalContext());
-    }
-
-    public HearChord(Lookup context)
-    {
-        this.context = context;
-
-        // Help class to get notified of selection change in the current leadsheet editor
-        cap = CL_ContextActionSupport.getInstance(this.context);
-        cap.addListener(this);
-
-
-        // As lazy=false above, need to set action properties to have the correct display in the menu
-        putValue(NAME, undoText);
+        putValue(NAME, ResUtil.getString(getClass(), "CTL_HearChord"));
         putValue(ACCELERATOR_KEY, KEYSTROKE);
-
-
-        // Update enabled state
-        selectionChange(cap.getSelection());
     }
 
     @Override
-    public void actionPerformed(ActionEvent e)
+    protected EnumSet<ListeningTarget> getListeningTargets()
     {
-        CL_SelectionUtilities selection = cap.getSelection();
+        return EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION);
+    }
+
+    @Override
+    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)
+    {
         CL_Editor editor = CL_EditorTopComponent.getActive().getEditor();
 
         TestPlayer tp = TestPlayer.getDefault();
@@ -116,21 +98,8 @@ public final class HearChord extends AbstractAction implements ContextAwareActio
     @Override
     public void selectionChange(CL_SelectionUtilities selection)
     {
-        setEnabled(selection.isItemSelected() && (selection.getSelectedItems().get(0) instanceof CLI_ChordSymbol));
+        setEnabled(selection.isChordSymbolSelected());
     }
-
-    @Override
-    public Action createContextAwareInstance(Lookup context)
-    {
-        return new HearChord(context);
-    }
-
-    @Override
-    public void sizeChanged(int oldSize, int newSize)
-    {
-        // Nothing
-    }
-
 
     /**
      * Find a relevant melodic channel used by the current song.

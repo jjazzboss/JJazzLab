@@ -22,10 +22,12 @@
  */
 package org.jjazz.cl_editor.api;
 
+import java.util.EventListener;
+
 /**
  * Listener of events fired by CL_ContextActionSupport.
  */
-public interface CL_ContextActionListener
+public interface CL_ContextActionListener extends EventListener
 {
 
     /**
@@ -34,11 +36,4 @@ public interface CL_ContextActionListener
      * @param selection
      */
     public void selectionChange(CL_SelectionUtilities selection);
-
-    /**
-     * The size of the active ChordLeadSheet (present in the lookup) has changed.
-     * @param oldSize
-     * @param newSize
-     */
-    public void sizeChanged(int oldSize, int newSize);
 }

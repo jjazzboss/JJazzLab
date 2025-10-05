@@ -22,70 +22,61 @@
  */
 package org.jjazz.cl_editorimpl.actions;
 
-import org.jjazz.cl_editor.api.CL_ContextActionListener;
-import org.jjazz.cl_editor.api.CL_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.util.EnumSet;
 import java.util.logging.Logger;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import static javax.swing.Action.ACCELERATOR_KEY;
 import javax.swing.KeyStroke;
-import org.jjazz.harmony.api.Note;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
+import org.jjazz.cl_editor.api.CL_ContextAction;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.harmony.api.Note;
 import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
+import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.ContextAwareAction;
-import org.openide.util.Lookup;
-import org.openide.util.Utilities;
-import org.jjazz.utilities.api.ResUtil;
 
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.transposeup")
-@ActionRegistration(displayName = "#CTL_TransposeUp", lazy = false)
+@ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
         {
             @ActionReference(path = "Actions/ChordSymbol", position = 400),
+            @ActionReference(path = "Shortcuts", name = "D-UP")
         })
-public final class TransposeUp extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
+public final class TransposeUp extends CL_ContextAction
 {
 
     public static final KeyStroke KEYSTROKE = getGenericControlKeyStroke(KeyEvent.VK_UP);
-    private Lookup context;
-    private CL_ContextActionSupport cap;
-    private final String undoText = ResUtil.getString(getClass(), "CTL_TransposeUp");
     private static final Logger LOGGER = Logger.getLogger(TransposeUp.class.getSimpleName());
 
-    public TransposeUp()
+    @Override
+    protected void configureAction()
     {
-        this(Utilities.actionsGlobalContext());
-    }
-
-    public TransposeUp(Lookup context)
-    {
-        this.context = context;
-        cap = CL_ContextActionSupport.getInstance(this.context);
-        cap.addListener(this);
-        putValue(NAME, undoText);
+        putValue(NAME, ResUtil.getString(TransposeUp.class, "CTL_TransposeUp"));
         putValue(ACCELERATOR_KEY, KEYSTROKE);
-        selectionChange(cap.getSelection());
     }
 
     @Override
-    public void actionPerformed(ActionEvent e)
+    protected EnumSet<ListeningTarget> getListeningTargets()
     {
-        CL_SelectionUtilities selection = cap.getSelection();
+        return EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION);
+    }
 
+    @Override
+    public void selectionChange(CL_SelectionUtilities selection)
+    {
+        setEnabled(selection.isChordSymbolSelected());
+    }
 
-        ChordLeadSheet cls = selection.getChordLeadSheet();
-        JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(undoText);
-
+    @Override
+    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)
+    {
+        JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(getActionName());
 
         // Transpose up use SHARP            
         for (CLI_ChordSymbol cliCs : selection.getSelectedChordSymbols())
@@ -95,25 +86,8 @@ public final class TransposeUp extends AbstractAction implements ContextAwareAct
             cliCs.getContainer().changeItem(cliCs, newEcs);
         }
 
-
-        JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(undoText);
+        JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(getActionName());
     }
 
-    @Override
-    public void selectionChange(CL_SelectionUtilities selection)
-    {
-        setEnabled(selection.isItemSelected() && (selection.getSelectedItems().get(0) instanceof CLI_ChordSymbol));
-    }
 
-    @Override
-    public Action createContextAwareInstance(Lookup context)
-    {
-        return new TransposeUp(context);
-    }
-
-    @Override
-    public void sizeChanged(int oldSize, int newSize)
-    {
-        // Nothing
-    }
 }

@@ -23,32 +23,27 @@
 package org.jjazz.cl_editorimpl.actions;
 
 import java.awt.event.ActionEvent;
+import org.jjazz.cl_editor.api.CL_ContextAction;
+import java.util.EnumSet;
 import java.util.logging.Logger;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
+import static javax.swing.Action.NAME;
 import javax.swing.JMenuItem;
 import javax.swing.JRadioButtonMenuItem;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.chordleadsheet.api.ClsChangeListener;
-import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
 import org.jjazz.chordleadsheet.api.event.ItemChangedEvent;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
-import org.jjazz.cl_editor.api.CL_ContextActionListener;
-import org.jjazz.cl_editor.api.CL_ContextActionSupport;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
+import static org.jjazz.cl_editorimpl.actions.AccentNormal.createRadioButtonMenuItem;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.ContextAwareAction;
-import org.openide.util.Lookup;
-import org.openide.util.Utilities;
 import org.openide.util.actions.Presenter;
 
 /**
@@ -62,89 +57,43 @@ import org.openide.util.actions.Presenter;
         {
             @ActionReference(path = "Actions/ChordSymbolInterpretation", position = 20)
         })
-public final class AccentHold extends AbstractAction implements ContextAwareAction, CL_ContextActionListener, Presenter.Popup, ClsChangeListener
+public final class AccentHold extends CL_ContextAction implements Presenter.Popup
 {
-
-    private CL_ContextActionSupport cap;
-    private final Lookup context;
     private JRadioButtonMenuItem rbMenuItem;
-    private final String undoText = ResUtil.getString(getClass(), "CTL_AccentHold");
-    private ChordLeadSheet currentCls;
     private static final Logger LOGGER = Logger.getLogger(AccentHold.class.getSimpleName());
 
-    public AccentHold()
+        @Override
+    protected void configureAction()
     {
-        this(Utilities.actionsGlobalContext());
+        putValue(NAME, ResUtil.getString(getClass(), "CTL_AccentHold"));
     }
-
-    public AccentHold(Lookup context)
-    {
-        this.context = context;
-        cap = CL_ContextActionSupport.getInstance(this.context);
-        cap.addListener(this);
-        putValue(NAME, undoText);
-        // putValue(ACCELERATOR_KEY, KEYSTROKE);
-        selectionChange(cap.getSelection());
-    }
-
+    
     @Override
-    public void actionPerformed(ActionEvent ev)
+    protected EnumSet<ListeningTarget> getListeningTargets()
     {
-        // not used
+        return EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES);
     }
-
+    
     @Override
     public void selectionChange(CL_SelectionUtilities selection)
     {
-        // Need to listen to possible CLI_ChordSymbol accent features changes that may occur while selection is unchanged
-        ChordLeadSheet cls = selection.getChordLeadSheet();
-        if (cls != currentCls)
-        {
-            if (currentCls != null)
-            {
-                currentCls.removeClsChangeListener(this);
-            }
-            currentCls = cls;
-            if (currentCls != null)
-            {
-                currentCls.addClsChangeListener(this);
-            }
-        }
-
         setEnabled(selection.isChordSymbolSelected());
         updateMenuItem();
-
     }
-
-    @Override
-    public Action createContextAwareInstance(Lookup context)
-    {
-        return new AccentHold(context);
-    }
-
-    @Override
-    public void sizeChanged(int oldSize, int newSize)
-    {
-        // Nothing
-    }
-
-    // ============================================================================================= 
-    // ClsChangeListener implementation
-    // =============================================================================================      
-    @Override
-    public void authorizeChange(ClsChangeEvent e) throws UnsupportedEditException
-    {
-        // Nothing
-    }
-
-    @Override
+    
+       @Override
     public void chordLeadSheetChanged(ClsChangeEvent event)
     {
-        var selection = cap.getSelection();
-        if (event instanceof ItemChangedEvent && selection.getSelectedItems().contains(event.getItem()))
+        if (event instanceof ItemChangedEvent && getSelection().getSelectedItems().contains(event.getItem()))
         {
-            selectionChange(selection);
+            updateMenuItem();
         }
+    }
+    
+      @Override
+    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)            
+    {
+        // Nothing
     }
 
     // ============================================================================================= 
@@ -155,20 +104,7 @@ public final class AccentHold extends AbstractAction implements ContextAwareActi
     {
         if (rbMenuItem == null)
         {
-            rbMenuItem = new JRadioButtonMenuItem(undoText);
-            // rbMenuItem.setAccelerator(KEYSTROKE);
-            rbMenuItem.addActionListener(evt -> 
-            {
-                if (rbMenuItem.isSelected())
-                {
-                    setAccentHold();
-                } else
-                {
-                    rbMenuItem.setSelected(true);
-                }
-            });
-            rbMenuItem.putClientProperty("CheckBoxMenuItem.doNotCloseOnMouseClick", true);
-            rbMenuItem.putClientProperty("RadioButtonMenuItem.doNotCloseOnMouseClick", true);
+           rbMenuItem = createRadioButtonMenuItem(getActionName(), () -> setAccentHold());
         }
 
         updateMenuItem();
@@ -179,19 +115,18 @@ public final class AccentHold extends AbstractAction implements ContextAwareActi
 
     private void setAccentHold()
     {
-        CL_SelectionUtilities selection = cap.getSelection();
-        ChordLeadSheet cls = selection.getChordLeadSheet();
+        ChordLeadSheet cls = getActiveChordLeadSheet();
+        JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(getActionName());
 
-        JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(undoText);
-
-        for (CLI_ChordSymbol item : selection.getSelectedChordSymbols())
+        for (CLI_ChordSymbol item : getSelection().getSelectedChordSymbols())
         {
             ExtChordSymbol ecs = item.getData();
             ChordRenderingInfo cri = ecs.getRenderingInfo();
             var features = cri.getFeatures();
             features.remove(Feature.SHOT);
             features.add(Feature.HOLD);
-            if (!cri.hasOneFeature(Feature.ACCENT, Feature.ACCENT_STRONGER))
+
+            if (cri.getAccentFeature() == null)
             {
                 features.add(Feature.ACCENT);
             }
@@ -200,7 +135,7 @@ public final class AccentHold extends AbstractAction implements ContextAwareActi
             item.getContainer().changeItem(item, newCs);
         }
 
-        JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(undoText);
+        JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(getActionName());
     }
 
     private void updateMenuItem()
@@ -210,12 +145,10 @@ public final class AccentHold extends AbstractAction implements ContextAwareActi
             return;
         }
         // Update the checkbox: select it if only all chord symbols use Accent Hold
-        CL_SelectionUtilities selection = cap.getSelection();
-        boolean b = selection.getSelectedChordSymbols().stream()
+        boolean b = getSelection().getSelectedChordSymbols().stream()
                 .map(cliCs -> cliCs.getData().getRenderingInfo())
                 .allMatch(cri -> cri.hasOneFeature(Feature.ACCENT, Feature.ACCENT_STRONGER) && cri.hasOneFeature(Feature.HOLD));
         rbMenuItem.setSelected(b);
         rbMenuItem.setEnabled(isEnabled());
     }
-
 }

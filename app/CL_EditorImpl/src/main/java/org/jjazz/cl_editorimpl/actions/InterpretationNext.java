@@ -23,8 +23,7 @@
 package org.jjazz.cl_editorimpl.actions;
 
 import java.awt.event.ActionEvent;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
+import java.util.EnumSet;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
 import javax.swing.KeyStroke;
@@ -33,7 +32,7 @@ import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
-import org.jjazz.cl_editor.api.CL_ContextActionListener;
+import org.jjazz.cl_editor.api.CL_ContextAction;
 import org.jjazz.cl_editor.api.CL_ContextActionSupport;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
@@ -42,46 +41,40 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.ContextAwareAction;
-import org.openide.util.Lookup;
-import org.openide.util.Utilities;
 
+
+/**
+ * Change to the next accent.
+ */
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.interpretationnext")
-@ActionRegistration(displayName = "#CTL_InterpretationNext", lazy = false)
+@ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
         {
-            // @ActionReference(path = "Actions/ChordSymbol", position = 450)
-                @ActionReference(path = "Actions/ChordSymbolInterpretation", position = 5, separatorAfter=6)
+            @ActionReference(path = "Actions/ChordSymbolInterpretation", position = 5, separatorAfter = 6)
         })
-public final class InterpretationNext extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
+public final class InterpretationNext extends CL_ContextAction
 {
+
     public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("P");
     private CL_ContextActionSupport cap;
-    private final Lookup context;
     private final String undoText = ResUtil.getString(getClass(), "CTL_InterpretationNext");
 
-    public InterpretationNext()
+    @Override
+    protected void configureAction()
     {
-        this(Utilities.actionsGlobalContext());
-    }
-
-    public InterpretationNext(Lookup context)
-    {
-        this.context = context;
-        cap = CL_ContextActionSupport.getInstance(this.context);
-        cap.addListener(this);
-        putValue(NAME, undoText);
+        putValue(NAME, ResUtil.getString(getClass(), "CTL_InterpretationNext"));
         putValue(ACCELERATOR_KEY, KEYSTROKE);
-        selectionChange(cap.getSelection());
     }
 
     @Override
-    public void actionPerformed(ActionEvent ev)
+    protected EnumSet<CL_ContextAction.ListeningTarget> getListeningTargets()
     {
-        CL_SelectionUtilities selection = cap.getSelection();
-        ChordLeadSheet cls = selection.getChordLeadSheet();
+        return EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION);
+    }
 
-
+    @Override
+    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)
+    {
         JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(undoText);
 
 
@@ -100,21 +93,13 @@ public final class InterpretationNext extends AbstractAction implements ContextA
     @Override
     public void selectionChange(CL_SelectionUtilities selection)
     {
-        setEnabled(selection.isItemSelected() && (selection.getSelectedItems().get(0) instanceof CLI_ChordSymbol));
+        setEnabled(selection.isChordSymbolSelected());
     }
 
-    @Override
-    public Action createContextAwareInstance(Lookup context)
-    {
-        return new InterpretationNext(context);
-    }
 
-    @Override
-    public void sizeChanged(int oldSize, int newSize)
-    {
-        // Nothing
-    }
-
+    // ====================================================================================================================
+    // Private methods
+    // ====================================================================================================================
     private ChordRenderingInfo next(ChordRenderingInfo cri)
     {
         var features = cri.getFeatures();

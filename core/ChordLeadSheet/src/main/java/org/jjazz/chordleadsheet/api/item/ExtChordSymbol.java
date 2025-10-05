@@ -186,7 +186,7 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
     }
 
     /**
-     * Get a copy of this ExtChordSymbol, possibly modified with the specified parameters.
+     * Get a copy of this ExtChordSymbol, possibly modified with the specified non-null parameters.
      *
      * @param cs             If not null return value will use this parameter.
      * @param rInfo          If not null return value will use this parameter.

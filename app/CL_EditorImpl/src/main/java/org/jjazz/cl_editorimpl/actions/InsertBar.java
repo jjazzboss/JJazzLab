@@ -22,15 +22,15 @@
  */
 package org.jjazz.cl_editorimpl.actions;
 
-import org.jjazz.cl_editor.api.CL_ContextActionListener;
-import org.jjazz.cl_editor.api.CL_ContextActionSupport;
 import java.awt.event.ActionEvent;
+import java.util.EnumSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.KeyStroke;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
+import org.jjazz.chordleadsheet.api.event.SizeChangedEvent;
+import org.jjazz.cl_editor.api.CL_ContextAction;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.utilities.api.ResUtil;
@@ -38,7 +38,6 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.*;
 import org.openide.windows.WindowManager;
 
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.InsertBar")
@@ -47,61 +46,44 @@ import org.openide.windows.WindowManager;
         {
             @ActionReference(path = "Actions/BarInsert", position = 100)
         })
-public class InsertBar extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
+public class InsertBar extends CL_ContextAction 
 {
 
     public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("I");
-    private Lookup context;
-    private CL_ContextActionSupport cap;
     private int insertModelBarIndex;
     private int insertNbBars;
-    private final String undoText = ResUtil.getString(getClass(), "CTL_InsertBar");
     private static final Logger LOGGER = Logger.getLogger(InsertBar.class.getSimpleName());
 
-    public InsertBar()
+    @Override
+    protected void configureAction()
     {
-        this(Utilities.actionsGlobalContext());
-    }
-
-    private InsertBar(Lookup context)
-    {
-        this.context = context;
-        cap = CL_ContextActionSupport.getInstance(this.context);
-        cap.addListener(this);
-        putValue(NAME, undoText);
+        putValue(NAME, ResUtil.getString(getClass(), "CTL_InsertBar"));
         putValue(ACCELERATOR_KEY, KEYSTROKE);
-        selectionChange(cap.getSelection());
     }
 
     @Override
-    public Action createContextAwareInstance(Lookup context)
+    protected EnumSet<ListeningTarget> getListeningTargets()
     {
-        LOGGER.log(Level.FINE, "createContextAwareInstance()");
-        return new InsertBar(context);
+        return EnumSet.of(ListeningTarget.BAR_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES);
     }
 
     @Override
-    public void actionPerformed(ActionEvent e)
+    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)
     {
         assert insertModelBarIndex >= 0;
-        CL_SelectionUtilities selection = cap.getSelection();
-        ChordLeadSheet cls = selection.getChordLeadSheet();
         InsertBarDialog dlg = InsertBarDialog.getInstance();
         dlg.preset(cls, insertModelBarIndex, insertNbBars);
         dlg.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
         dlg.setVisible(true);
         if (dlg.exitedOk())
         {
-            JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(undoText);
+            JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(getActionName());
             cls.insertBars(insertModelBarIndex, dlg.getNbBars());
-            JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(undoText);
+            JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(getActionName());
         }
         dlg.cleanup();
     }
 
-    /**
-     * Enable the action if a bar is selected.<br>
-     */
     @Override
     public void selectionChange(CL_SelectionUtilities selection)
     {
@@ -127,8 +109,11 @@ public class InsertBar extends AbstractAction implements ContextAwareAction, CL_
     }
 
     @Override
-    public void sizeChanged(int oldSize, int newSize)
+    public void chordLeadSheetChanged(ClsChangeEvent event)
     {
-        selectionChange(cap.getSelection());
+        if (event instanceof SizeChangedEvent)
+        {
+            selectionChange(getSelection());
+        }
     }
 }

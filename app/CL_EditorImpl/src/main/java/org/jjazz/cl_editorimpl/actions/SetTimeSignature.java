@@ -54,13 +54,14 @@ import org.openide.util.actions.Presenter;
  * Allow user to select a timesignature in a JPopupMenu when a CLI_Section is selected.
  */
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.SetTimeSignature")
-@ActionRegistration(displayName = "#CTL_SetTimeSignature", lazy = false)
+@ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
         {
             @ActionReference(path = "Actions/Section", position = 200)
         })
 public final class SetTimeSignature extends AbstractAction implements Presenter.Popup
 {
+
     private MyDynamicMenu menu;
     private final String undoText = ResUtil.getString(getClass(), "CTL_SetTimeSignature");
     private static final Logger LOGGER = Logger.getLogger(SetTimeSignature.class.getSimpleName());
@@ -76,15 +77,16 @@ public final class SetTimeSignature extends AbstractAction implements Presenter.
      * <p>
      * If there is only 1 section and it's the initial section, ask user if he wants to apply the setting to all sections.
      *
-     * @param editor
+     * @param cls
      * @param ts
      * @param cliSections
+     * @throws org.jjazz.chordleadsheet.api.UnsupportedEditException
      */
     static public void changeTimeSignaturePossiblyForWholeSong(ChordLeadSheet cls, TimeSignature ts, List<CLI_Section> cliSections) throws UnsupportedEditException
     {
         if (cls == null || ts == null || cliSections == null)
         {
-            throw new IllegalArgumentException("cls=" + cls + " ts=" + ts + " cliSections=" + cliSections);   
+            throw new IllegalArgumentException("cls=" + cls + " ts=" + ts + " cliSections=" + cliSections);
         }
         if (cliSections.isEmpty())
         {
@@ -161,7 +163,7 @@ public final class SetTimeSignature extends AbstractAction implements Presenter.
             JMenuItem mi = new JMenuItem(ts.toString());
 
 
-            mi.addActionListener((ActionEvent e) ->
+            mi.addActionListener((ActionEvent e) -> 
             {
                 CL_Editor editor = CL_EditorTopComponent.getActive().getEditor();
                 CL_SelectionUtilities selection = new CL_SelectionUtilities(editor.getLookup());

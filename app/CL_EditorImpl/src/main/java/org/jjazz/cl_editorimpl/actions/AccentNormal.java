@@ -23,7 +23,6 @@
 package org.jjazz.cl_editorimpl.actions;
 
 import java.awt.event.ActionEvent;
-import org.jjazz.cl_editor.api.CL_ContextAction;
 import java.util.EnumSet;
 import java.util.logging.Logger;
 import static javax.swing.Action.NAME;
@@ -36,8 +35,8 @@ import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
+import org.jjazz.cl_editor.api.CL_ContextAction;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
-import static org.jjazz.cl_editorimpl.actions.AccentNormal.createRadioButtonMenuItem;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.ActionID;
@@ -47,41 +46,49 @@ import org.openide.awt.ActionRegistration;
 import org.openide.util.actions.Presenter;
 
 /**
- * Set a shot accent on selected chord symbols.
+ * Set a normal accent on selected chord symbols.
  * <p>
- * Action is actually performed via a checkbox menu item (see Presenter.Popup).
+ * Action is actually performed via a rabiobutton menu item (see Presenter.Popup).
  */
-@ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.accentshot")
+
+@ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.accentnormal")
 @ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
         {
-            @ActionReference(path = "Actions/ChordSymbolInterpretation", position = 30, separatorAfter = 31)
+            @ActionReference(path = "Actions/ChordSymbolInterpretation", position = 15)
         })
-public final class AccentShot extends CL_ContextAction implements Presenter.Popup
+public final class AccentNormal extends CL_ContextAction implements Presenter.Popup
 {
-    private JRadioButtonMenuItem rbMenuItem;
-    private static final Logger LOGGER = Logger.getLogger(AccentShot.class.getSimpleName());
 
-        @Override
+    private JRadioButtonMenuItem rbMenuItem;
+    private static final Logger LOGGER = Logger.getLogger(AccentNormal.class.getSimpleName());
+
+    @Override
     protected void configureAction()
     {
-        putValue(NAME, ResUtil.getString(getClass(), "CTL_AccentShot"));
+        putValue(NAME, ResUtil.getString(getClass(), "CTL_AccentDefault"));
     }
-    
+
     @Override
     protected EnumSet<ListeningTarget> getListeningTargets()
     {
         return EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES);
     }
-    
+
     @Override
     public void selectionChange(CL_SelectionUtilities selection)
     {
         setEnabled(selection.isChordSymbolSelected());
         updateMenuItem(selection);
     }
-    
-       @Override
+
+    @Override
+    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)
+    {
+        // Nothing
+    }
+
+    @Override
     public void chordLeadSheetChanged(ClsChangeEvent event)
     {
         var selection = getSelection();
@@ -90,11 +97,32 @@ public final class AccentShot extends CL_ContextAction implements Presenter.Popu
             updateMenuItem(selection);
         }
     }
-    
-      @Override
-    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)            
+
+    /**
+     * Construct a JRadioButtonMenuItem adapted to appear in the chord symbol interpertation context menu.
+     *
+     * @param name
+     * @param task The task to run when radio button is selected
+     * @return
+     */
+    protected static JRadioButtonMenuItem createRadioButtonMenuItem(String name, Runnable task)
     {
-        // Nothing
+        var res = new JRadioButtonMenuItem(name);
+        res.addActionListener(evt -> 
+        {
+            if (res.isSelected())
+            {
+                task.run();
+            } else
+            {
+                // Force re-selection
+                res.setSelected(true);
+            }
+        });
+        res.putClientProperty("RadioButtonMenuItem.doNotCloseOnMouseClick", true);
+        res.putClientProperty("CheckBoxMenuItem.doNotCloseOnMouseClick", true);
+
+        return res;
     }
 
     // ============================================================================================= 
@@ -105,7 +133,7 @@ public final class AccentShot extends CL_ContextAction implements Presenter.Popu
     {
         if (rbMenuItem == null)
         {
-           rbMenuItem = createRadioButtonMenuItem(getActionName(), () -> setAccentShot());
+            rbMenuItem = createRadioButtonMenuItem(getActionName(), () -> setAccentNormal());
         }
 
         updateMenuItem(getSelection());
@@ -114,7 +142,7 @@ public final class AccentShot extends CL_ContextAction implements Presenter.Popu
     }
 
 
-     private void setAccentShot()
+    private void setAccentNormal()
     {
         ChordLeadSheet cls = getActiveChordLeadSheet();
         JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(getActionName());
@@ -125,12 +153,10 @@ public final class AccentShot extends CL_ContextAction implements Presenter.Popu
             ExtChordSymbol ecs = item.getData();
             ChordRenderingInfo cri = ecs.getRenderingInfo();
             var features = cri.getFeatures();
+            features.remove(Feature.ACCENT_STRONGER);
             features.remove(Feature.HOLD);
-            features.add(Feature.SHOT);
-            if (!cri.hasOneFeature(Feature.ACCENT, Feature.ACCENT_STRONGER))
-            {
-                features.add(Feature.ACCENT);
-            }
+            features.remove(Feature.SHOT);
+            features.add(Feature.ACCENT);
             ChordRenderingInfo newCri = new ChordRenderingInfo(cri, features);
             ExtChordSymbol newCs = ecs.getCopy(null, newCri, ecs.getAlternateChordSymbol(), ecs.getAlternateFilter());
             item.getContainer().changeItem(item, newCs);
@@ -139,16 +165,17 @@ public final class AccentShot extends CL_ContextAction implements Presenter.Popu
         JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(getActionName());
     }
 
+
     private void updateMenuItem(CL_SelectionUtilities selection)
     {
         if (rbMenuItem == null)
         {
             return;
         }
-        // Update the checkbox: select it if only all chord symbols use Accent Hold
+        // Update the radiobutton: select it if only all chord symbols use Accent normal
         boolean b = selection.getSelectedChordSymbols().stream()
                 .map(cliCs -> cliCs.getData().getRenderingInfo())
-                .allMatch(cri -> cri.hasOneFeature(Feature.ACCENT, Feature.ACCENT_STRONGER) && cri.hasOneFeature(Feature.SHOT));
+                .allMatch(cri -> cri.hasOneFeature(Feature.ACCENT) && !cri.hasOneFeature(Feature.HOLD, Feature.SHOT));
         rbMenuItem.setSelected(b);
         rbMenuItem.setEnabled(isEnabled());
     }

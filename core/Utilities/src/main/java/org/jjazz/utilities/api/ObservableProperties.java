@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -64,7 +65,7 @@ public class ObservableProperties<T> implements Serializable
 
     /**
      *
-     * @param owner Can be null
+     * @param owner           Can be null
      * @param otherProperties
      */
     public ObservableProperties(Object owner, ObservableProperties<T> otherProperties)
@@ -89,7 +90,7 @@ public class ObservableProperties<T> implements Serializable
      * Fire a PropertyChangeEvent using propertyName.
      *
      * @param propertyName
-     * @param value If null the property is removed.
+     * @param value        If null the property is removed.
      */
     public void put(String propertyName, T value)
     {
@@ -159,7 +160,7 @@ public class ObservableProperties<T> implements Serializable
             return;
         }
 
-        // Could be simplier but we want to minimize the number of property change events
+        // Could be simpler but we want to minimize the number of property change events
         Set<String> processedProps = new HashSet<>();
         if (properties != null)
         {
@@ -185,15 +186,11 @@ public class ObservableProperties<T> implements Serializable
     /**
      * Get all property names.
      *
-     * @return
+     * @return An unmodifiable set
      */
     public Set<String> getPropertyNames()
     {
-        Set<String> res = new HashSet<>();
-        if (properties != null)
-        {
-            res.addAll(properties.keySet());
-        }
+        Set<String> res = Collections.unmodifiableSet(properties.keySet());
         return res;
     }
 

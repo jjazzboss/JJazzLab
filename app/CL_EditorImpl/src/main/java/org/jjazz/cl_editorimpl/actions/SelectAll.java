@@ -22,15 +22,17 @@
  */
 package org.jjazz.cl_editorimpl.actions;
 
-import org.jjazz.cl_editor.api.CL_ContextActionListener;
-import org.jjazz.cl_editor.api.CL_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.util.EnumSet;
 import java.util.logging.Logger;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
+import static javax.swing.Action.NAME;
+import javax.swing.KeyStroke;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
+import org.jjazz.chordleadsheet.api.event.SizeChangedEvent;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.cl_editor.api.CL_ContextAction;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
@@ -40,7 +42,6 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.*;
 
 /**
  * SelectAll : perform selection all in 2 steps, first in the current section, then in the whole leadsheet.
@@ -54,33 +55,29 @@ import org.openide.util.*;
             @ActionReference(path = "Actions/ChordSymbol", position = 1300),
             @ActionReference(path = "Actions/BarAnnotation", position = 1300)
         })
-public class SelectAll extends AbstractAction implements ContextAwareAction, CL_ContextActionListener
+public class SelectAll extends CL_ContextAction
 {
 
-    private Lookup context;
-    private CL_ContextActionSupport cap;
+    public static final KeyStroke KEYSTROKE = getGenericControlKeyStroke(KeyEvent.VK_A);
     private static final Logger LOGGER = Logger.getLogger(SelectAll.class.getSimpleName());
 
-    public SelectAll()
-    {
-        this(Utilities.actionsGlobalContext());
-    }
 
-    private SelectAll(Lookup context)
+    @Override
+    protected void configureAction()
     {
-        this.context = context;
-        cap = CL_ContextActionSupport.getInstance(this.context);
-        cap.addListener(this);
         putValue(NAME, ResUtil.getString(getClass(), "CTL_SelectAll"));
-        putValue(ACCELERATOR_KEY, getGenericControlKeyStroke(KeyEvent.VK_A));
-        selectionChange(cap.getSelection());
+        putValue(ACCELERATOR_KEY, KEYSTROKE);
     }
 
     @Override
-    public void actionPerformed(ActionEvent e)
+    protected EnumSet<ListeningTarget> getListeningTargets()
     {
-        CL_SelectionUtilities selection = cap.getSelection();
-        ChordLeadSheet cls = selection.getChordLeadSheet();
+        return EnumSet.of(ListeningTarget.BAR_SELECTION, ListeningTarget.CLS_ITEMS_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES);
+    }
+
+    @Override
+    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)
+    {
         CL_Editor editor = CL_EditorTopComponent.get(cls).getEditor();
         if (selection.isEmpty())
         {
@@ -103,16 +100,17 @@ public class SelectAll extends AbstractAction implements ContextAwareAction, CL_
     }
 
     @Override
-    public Action createContextAwareInstance(Lookup context)
+    public void chordLeadSheetChanged(ClsChangeEvent event)
     {
-        return new SelectAll(context);
+        if (event instanceof SizeChangedEvent)
+        {
+            selectionChange(getSelection());
+        }
     }
 
-    @Override
-    public void sizeChanged(int oldSize, int newSize)
-    {
-        selectionChange(cap.getSelection());
-    }
+    // ============================================================================================= 
+    // Private methods
+    // =============================================================================================   
 
     /**
      *
