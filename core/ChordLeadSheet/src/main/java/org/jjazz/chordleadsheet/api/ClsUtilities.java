@@ -40,6 +40,9 @@ public class ClsUtilities
      * @param cls
      * @param transposition
      */
+    /* TODO #534 Check if used bu other code than the playback transposition.
+     * It may be reused by passing transposition to all CLI_ChordSymbol.
+     * Just not called frrom SongSequenceBuilder           */
     static public void transpose(ChordLeadSheet cls, int transposition)
     {
         if (transposition == 0)

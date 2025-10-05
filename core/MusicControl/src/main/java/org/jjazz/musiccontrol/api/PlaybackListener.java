@@ -27,7 +27,7 @@ import org.jjazz.harmony.api.Position;
 import org.jjazz.songstructure.api.SongPart;
 
 /**
- * Listener of events occuring during song playback.
+ * Listener of events occurring during song playback.
  * <p>
  * MusicController will fire the events taking into account the user-defined output synth latency. Events are fired by the
  * MusicController on the Event Dispatching Thread. Event handling must be time-efficient.
@@ -35,7 +35,6 @@ import org.jjazz.songstructure.api.SongPart;
  */
 public interface PlaybackListener
 {
-
     /**
      * The enable status has changed.
      *

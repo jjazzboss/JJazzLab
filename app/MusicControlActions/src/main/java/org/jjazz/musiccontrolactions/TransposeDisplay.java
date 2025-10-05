@@ -40,24 +40,23 @@ import org.openide.awt.ActionRegistration;
 import org.openide.windows.WindowManager;
 
 /**
- * Transpose the leadsheet for playback.
+ * Transpose the leadsheet and all other music shown in the UI.
  */
 @ActionID(category = "MusicControls", id = "org.jjazz.musiccontrolactions.transposeplaybackkey")
-@ActionRegistration(displayName = "#CTL_TransposePlaybackKey", lazy = false)
+@ActionRegistration(displayName = "#CTL_TransposeDisplay", lazy = false)
 @ActionReferences(
         {
             @ActionReference(path = "Actions/ExtendedToolbar", position = 10)    
         })
-public class TransposePlaybackKey extends AbstractAction implements PropertyChangeListener
+public class TransposeDisplay extends AbstractAction implements PropertyChangeListener
 {
-
     @StaticResource(relative = true)
     private static final String OFF_ICON = "resources/Sax-OFF-24x24.png";
     @StaticResource(relative = true)
     private static final String ON_ICON = "resources/Sax-ON-24x24.png";
-    private static final Logger LOGGER = Logger.getLogger(TransposePlaybackKey.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(TransposeDisplay.class.getSimpleName());
 
-    public TransposePlaybackKey()
+    public TransposeDisplay()
     {
         putValue("hideActionText", true);
         updateButtonUI();
@@ -69,22 +68,18 @@ public class TransposePlaybackKey extends AbstractAction implements PropertyChan
     public void actionPerformed(ActionEvent e)
     {
         var ps = PlaybackSettings.getInstance();
-        var dlg = TransposePlaybackKeyDialog.getInstance();
+        var dlg = TransposeDisplayDialog.getInstance();
 
-
-        dlg.preset(ps.getPlaybackKeyTransposition());
+        dlg.preset(ps.getDisplayTransposition());
         dlg.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
         dlg.setVisible(true);
 
-
         if (dlg.isExitOk())
         {
-            int old = ps.getPlaybackKeyTransposition();
-            ps.setPlaybackKeyTransposition(dlg.getPlaybackKeyTransposition());
+            int old = ps.getDisplayTransposition();
+            ps.setDisplayTransposition(dlg.getDisplayTransposition());
 
-
-            Analytics.setProperties(Analytics.buildMap("Playback Key Transpose", dlg.getPlaybackKeyTransposition()));
-
+            Analytics.setProperties(Analytics.buildMap("Playback Key Transpose", dlg.getDisplayTransposition()));
         }
     }
 
@@ -97,7 +92,7 @@ public class TransposePlaybackKey extends AbstractAction implements PropertyChan
         var mc = PlaybackSettings.getInstance();
         if (evt.getSource() == mc)
         {
-            if (evt.getPropertyName().equals(PlaybackSettings.PROP_PLAYBACK_KEY_TRANSPOSITION))
+            if (evt.getPropertyName().equals(PlaybackSettings.PROP_DISPLAY_TRANSPOSITION))
             {
                 updateButtonUI();
             }
@@ -109,16 +104,12 @@ public class TransposePlaybackKey extends AbstractAction implements PropertyChan
     // ======================================================================   
     private void updateButtonUI()
     {
-        int t = PlaybackSettings.getInstance().getPlaybackKeyTransposition();
-
+        int t = PlaybackSettings.getInstance().getDisplayTransposition();
 
         String iconPath = t == 0 ? OFF_ICON : ON_ICON;
         putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource(iconPath)));
 
-
-        String s = ResUtil.getString(getClass(), "CTL_CurrentPlaybackTransposition", t);
+        String s = ResUtil.getString(getClass(), "CTL_CurrentDisplayTransposition", t);
         putValue(Action.SHORT_DESCRIPTION, s);
-
     }
-
 }

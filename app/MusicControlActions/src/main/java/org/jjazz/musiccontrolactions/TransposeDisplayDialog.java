@@ -1,3 +1,25 @@
+/*
+ *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+ * 
+ *  Copyright @2025 Jerome Lelasseux. All rights reserved.
+ *
+ *  This file is part of the JJazzLab software.
+ *   
+ *  JJazzLab is free software: you can redistribute it and/or modify
+ *  it under the terms of the Lesser GNU General Public License (LGPLv3) 
+ *  as published by the Free Software Foundation, either version 3 of the License, 
+ *  or (at your option) any later version.
+ *
+ *  JJazzLab is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Lesser General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU Lesser General Public License
+ *  along with JJazzLab.  If not, see <https://www.gnu.org/licenses/>
+ * 
+ *  Contributor(s): 
+ */
 package org.jjazz.musiccontrolactions;
 
 import java.awt.event.ActionEvent;
@@ -9,56 +31,58 @@ import javax.swing.KeyStroke;
 import org.openide.windows.WindowManager;
 
 /**
- * Dialog to select playback transposition.
+ * Dialog to select transposition.
  */
-public class TransposePlaybackKeyDialog extends javax.swing.JDialog
+public class TransposeDisplayDialog extends javax.swing.JDialog
 {
-
-    static private TransposePlaybackKeyDialog INSTANCE;
+    static private TransposeDisplayDialog INSTANCE;
     private boolean exitOk;
 
-    public static TransposePlaybackKeyDialog getInstance()
+    public static TransposeDisplayDialog getInstance()
     {
-        synchronized (TransposePlaybackKeyDialog.class)
+        synchronized (TransposeDisplayDialog.class)
         {
             if (INSTANCE == null)
             {
-                INSTANCE = new TransposePlaybackKeyDialog(WindowManager.getDefault().getMainWindow(), true);
+                INSTANCE = new TransposeDisplayDialog(WindowManager.getDefault().getMainWindow(), true);
             }
         }
         return INSTANCE;
     }
 
-    private TransposePlaybackKeyDialog(java.awt.Frame parent, boolean modal)
+    /**
+     * Private constructor for Singleton pattern.
+     * @param parent
+     * @param modal 
+     */
+    private TransposeDisplayDialog(java.awt.Frame parent, boolean modal)
     {
         super(parent, modal);
         initComponents();
     }
 
     /**
-     *
-     * @param keyTransposition [-11;0]
+     * @param transposeBy [-11;0]
      */
-    public void preset(int keyTransposition)
+    public void preset(int transposeBy)
     {
-        if (keyTransposition < -11 || keyTransposition > 0)
+        if (transposeBy < -11 || transposeBy > 0)
         {
-            throw new IllegalArgumentException("transposition=" + keyTransposition);   
+            throw new IllegalArgumentException("transposition=" + transposeBy);   
         }
-        cb_enableKeyTransposition.setSelected(keyTransposition != 0);
-        cmb_transposition.setEnabled(keyTransposition != 0);
-        if (keyTransposition != 0)
+        cb_enableTransposition.setSelected(transposeBy != 0);
+        cmb_transposition.setEnabled(transposeBy != 0);
+        if (transposeBy != 0)
         {
-            cmb_transposition.setSelectedIndex(-keyTransposition - 1);
+            cmb_transposition.setSelectedIndex(-transposeBy - 1);
         }
         pack();
-        cb_enableKeyTransposition.requestFocusInWindow();       // After pack
+        cb_enableTransposition.requestFocusInWindow();       // After pack
     }
 
     public boolean isExitOk()
     {
         return exitOk;
-
     }
 
     /**
@@ -68,9 +92,9 @@ public class TransposePlaybackKeyDialog extends javax.swing.JDialog
      *
      * @return
      */
-    public int getPlaybackKeyTransposition()
+    public int getDisplayTransposition()
     {
-        return !cb_enableKeyTransposition.isSelected() ? 0 : -cmb_transposition.getSelectedIndex() - 1;
+        return !cb_enableTransposition.isSelected() ? 0 : -cmb_transposition.getSelectedIndex() - 1;
     }    
 
     // ====================================================================================================
@@ -88,7 +112,6 @@ public class TransposePlaybackKeyDialog extends javax.swing.JDialog
         contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");   
         contentPane.getActionMap().put("actionOk", new AbstractAction("OK")
         {
-
             @Override
             public void actionPerformed(ActionEvent e)
             {
@@ -99,7 +122,6 @@ public class TransposePlaybackKeyDialog extends javax.swing.JDialog
         contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");   
         contentPane.getActionMap().put("actionCancel", new AbstractAction("Cancel")
         {
-
             @Override
             public void actionPerformed(ActionEvent e)
             {
@@ -135,9 +157,9 @@ public class TransposePlaybackKeyDialog extends javax.swing.JDialog
         cmb_transposition = new javax.swing.JComboBox<>();
         jScrollPane1 = new javax.swing.JScrollPane();
         helpTextArea1 = new org.jjazz.flatcomponents.api.HelpTextArea();
-        cb_enableKeyTransposition = new javax.swing.JCheckBox();
+        cb_enableTransposition = new javax.swing.JCheckBox();
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_Ok, org.openide.util.NbBundle.getMessage(TransposePlaybackKeyDialog.class, "TransposePlaybackKeyDialog.btn_Ok.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_Ok, org.openide.util.NbBundle.getMessage(TransposeDisplayDialog.class, "TransposeDisplayDialog.btn_Ok.text")); // NOI18N
         btn_Ok.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -146,7 +168,7 @@ public class TransposePlaybackKeyDialog extends javax.swing.JDialog
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_Cancel, org.openide.util.NbBundle.getMessage(TransposePlaybackKeyDialog.class, "TransposePlaybackKeyDialog.btn_Cancel.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_Cancel, org.openide.util.NbBundle.getMessage(TransposeDisplayDialog.class, "TransposeDisplayDialog.btn_Cancel.text")); // NOI18N
         btn_Cancel.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -169,15 +191,15 @@ public class TransposePlaybackKeyDialog extends javax.swing.JDialog
 
         helpTextArea1.setColumns(20);
         helpTextArea1.setRows(2);
-        helpTextArea1.setText(org.openide.util.NbBundle.getMessage(TransposePlaybackKeyDialog.class, "TransposePlaybackKeyDialog.helpTextArea1.text")); // NOI18N
+        helpTextArea1.setText(org.openide.util.NbBundle.getMessage(TransposeDisplayDialog.class, "TransposeDisplayDialog.helpTextArea1.text")); // NOI18N
         jScrollPane1.setViewportView(helpTextArea1);
 
-        org.openide.awt.Mnemonics.setLocalizedText(cb_enableKeyTransposition, org.openide.util.NbBundle.getMessage(TransposePlaybackKeyDialog.class, "TransposePlaybackKeyDialog.cb_enableKeyTransposition.text")); // NOI18N
-        cb_enableKeyTransposition.addChangeListener(new javax.swing.event.ChangeListener()
+        org.openide.awt.Mnemonics.setLocalizedText(cb_enableTransposition, org.openide.util.NbBundle.getMessage(TransposeDisplayDialog.class, "TransposeDisplayDialog.cb_enableTransposition.text")); // NOI18N
+        cb_enableTransposition.addChangeListener(new javax.swing.event.ChangeListener()
         {
             public void stateChanged(javax.swing.event.ChangeEvent evt)
             {
-                cb_enableKeyTranspositionStateChanged(evt);
+                cb_enableTranspositionStateChanged(evt);
             }
         });
 
@@ -192,7 +214,7 @@ public class TransposePlaybackKeyDialog extends javax.swing.JDialog
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(cb_enableKeyTransposition)
+                                .addComponent(cb_enableTransposition)
                                 .addGap(0, 0, Short.MAX_VALUE))
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                                 .addGap(0, 0, Short.MAX_VALUE)
@@ -212,7 +234,7 @@ public class TransposePlaybackKeyDialog extends javax.swing.JDialog
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(18, 18, 18)
-                .addComponent(cb_enableKeyTransposition)
+                .addComponent(cb_enableTransposition)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -245,16 +267,16 @@ public class TransposePlaybackKeyDialog extends javax.swing.JDialog
         actionCancel();
     }//GEN-LAST:event_btn_CancelActionPerformed
 
-    private void cb_enableKeyTranspositionStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_cb_enableKeyTranspositionStateChanged
-    {//GEN-HEADEREND:event_cb_enableKeyTranspositionStateChanged
-        cmb_transposition.setEnabled(cb_enableKeyTransposition.isSelected());
-    }//GEN-LAST:event_cb_enableKeyTranspositionStateChanged
+    private void cb_enableTranspositionStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_cb_enableTranspositionStateChanged
+    {//GEN-HEADEREND:event_cb_enableTranspositionStateChanged
+        cmb_transposition.setEnabled(cb_enableTransposition.isSelected());
+    }//GEN-LAST:event_cb_enableTranspositionStateChanged
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_Cancel;
     private javax.swing.JButton btn_Ok;
-    private javax.swing.JCheckBox cb_enableKeyTransposition;
+    private javax.swing.JCheckBox cb_enableTransposition;
     private javax.swing.JComboBox<String> cmb_transposition;
     private org.jjazz.flatcomponents.api.HelpTextArea helpTextArea1;
     private javax.swing.JScrollPane jScrollPane1;

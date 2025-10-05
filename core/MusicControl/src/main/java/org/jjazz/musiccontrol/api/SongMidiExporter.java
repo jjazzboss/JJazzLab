@@ -85,7 +85,7 @@ public class SongMidiExporter
 
 
         var sgContext = new SongContext(song, midiMix);
-        var ssb = new SongSequenceBuilder(sgContext, PlaybackSettings.getInstance().getPlaybackKeyTransposition());
+        var ssb = new SongSequenceBuilder(sgContext, 0);
         SongSequenceBuilder.SongSequence songSequence = null;
 
 

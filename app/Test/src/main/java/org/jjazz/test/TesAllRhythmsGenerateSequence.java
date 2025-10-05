@@ -80,7 +80,6 @@ public final class TesAllRhythmsGenerateSequence implements ActionListener
 
     private class Run implements Runnable
     {
-
         Song song;
         MidiMix midiMix;
 
@@ -99,7 +98,7 @@ public final class TesAllRhythmsGenerateSequence implements ActionListener
         @Override
         public void run()
         {
-            SongSequenceBuilder seqBuilder = new SongSequenceBuilder(new SongContext(song, midiMix), PlaybackSettings.getInstance().getPlaybackKeyTransposition());
+            SongSequenceBuilder seqBuilder = new SongSequenceBuilder(new SongContext(song, midiMix), PlaybackSettings.getInstance().getDisplayTransposition());
             SongStructure sgs = song.getSongStructure();
             JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(sgs);
             um.setLimit(1);      // to not use too much memory with all rhythms instances...

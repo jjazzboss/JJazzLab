@@ -83,7 +83,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     private long loopStartTick = 0;
     private long loopEndTick = -1;
     protected int loopCount = PLAYBACK_SETTINGS_LOOP_COUNT;         // Need to be accessible from subclass, because of getLoopCount() implementation
-    private boolean isPlaybackTranspositionEnabled = true;
+    private boolean isPlaybackTranspositionEnabled = true; // TODO #534 This does not serialize w/song, get rid of attibute?
     private boolean isClickTrackIncluded = true;
     private boolean isPrecountTrackIncluded = true;
     private boolean isControlTrackIncluded = true;
@@ -109,10 +109,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
      */
     public BaseSongSession(SongContext sgContext,
             boolean enablePlaybackTransposition, boolean enableClickTrack, boolean enablePrecountTrack, boolean enableControlTrack,
-            int loopCount,
-            ActionListener endOfPlaybackAction,
-            boolean useActiveSongBackgroundMusicBuilder
-    )
+            int loopCount, ActionListener endOfPlaybackAction, boolean useActiveSongBackgroundMusicBuilder)
     {
         if (sgContext == null)
         {
@@ -393,7 +390,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
         return precountClickTrackId;
     }
 
-    public boolean isPlaybackTranspositionEnabled()
+    public boolean isPlaybackTranspositionEnabled() // TODO #534 Just used for THE playback transposition? Cleanup if that's the case
     {
         return isPlaybackTranspositionEnabled;
     }
@@ -482,7 +479,6 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
                         pcs.firePropertyChange(PROP_MUTED_TRACKS, false, true);
                     }
                 }
-
                 default ->
                 {
                 }
@@ -498,7 +494,6 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
                     mapTrackIdMuted.put(playbackClickTrackId, !PlaybackSettings.getInstance().isPlaybackClickEnabled());
                     pcs.firePropertyChange(PROP_MUTED_TRACKS, false, true);
                 }
-
                 case PlaybackSettings.PROP_LOOPCOUNT ->
                 {
                     if (loopCount == PLAYBACK_SETTINGS_LOOP_COUNT)
@@ -506,15 +501,12 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
                         pcs.firePropertyChange(PROP_LOOP_COUNT, (Integer) e.getOldValue(), (Integer) e.getNewValue());
                     }
                 }
-
-                default -> // E.g. PROP_PLAYBACK_KEY_TRANSPOSITION
+                default -> // E.g. PROP_DISPLAY_TRANSPOSITION
                 {
                 }
             }
-            // E.g. PROP_PLAYBACK_KEY_TRANSPOSITION
+            // E.g. PROP_DISPLAY_TRANSPOSITION
             // Nothing
-
-
         }
     }
 
@@ -583,7 +575,6 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     // ==========================================================================================================
 
     /**
-     *
      * @param sgContext
      * @param silent
      * @param useBackgroundMusicBuilder
@@ -594,10 +585,8 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     {
         SongSequenceBuilder.SongSequence res = null;
         
-        
-        int playbackKeyTranspose = isPlaybackTranspositionEnabled() ? PlaybackSettings.getInstance().getPlaybackKeyTransposition() : 0;        
-        SongSequenceBuilder seqBuilder = new SongSequenceBuilder(sgContext, playbackKeyTranspose);      // Will work on a deep copy of sgContext
-
+        // TODO #534 Check consequences, can I get rid of the constructor that receives transposition?
+        SongSequenceBuilder seqBuilder = new SongSequenceBuilder(sgContext, 0); // Will work on a deep copy of sgContext
 
         // Reuse ActiveSongBackgroundMusicBuilder result when possible
         var asbmb = ActiveSongBackgroundMusicBuilder.getDefault();
@@ -627,8 +616,6 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
             throw new MusicGenerationException(ResUtil.getString(getClass(), "ERR_BuildSeqError"));
         }
 
-
         return res;
     }
-
 }
