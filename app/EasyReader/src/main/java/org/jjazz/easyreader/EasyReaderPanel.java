@@ -341,13 +341,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
     // ----------------------------------------------------------------------------------
 
     @Override
-    public void authorizeChange(ClsChangeEvent e) throws UnsupportedEditException
-    {
-        // Nothing
-    }
-
-    @Override
-    public void chordLeadSheetChanged(final ClsChangeEvent event)
+    public void chordLeadSheetChanged(final ClsChangeEvent event) throws UnsupportedEditException
     {
         // Model changes can be generated outside the EDT
         Runnable run = () -> 
@@ -462,12 +456,6 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
     //------------------------------------------------------------------------------
     // SgsChangeListener interface
     //------------------------------------------------------------------------------   
-
-    @Override
-    public void authorizeChange(SgsChangeEvent e) throws UnsupportedEditException
-    {
-        // Nothing
-    }
 
     @Override
     public void songStructureChanged(final SgsChangeEvent e)

@@ -79,7 +79,7 @@ public interface ChordLeadSheet
      * @param cliSection
      * @return cliSection if it was added, or the existing CLI_Section that was updated.
      * @throws IllegalArgumentException If section is invalid (e.g. section is after chordleadsheet size)
-     * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. Exception is thrown before any change is done.
+     * @throws UnsupportedEditException If a ChordLeadSheet change listener vetoes this edit. Exception is thrown before any change is done.
      */
     CLI_Section addSection(CLI_Section cliSection) throws UnsupportedEditException;
 
@@ -89,7 +89,7 @@ public interface ChordLeadSheet
      * The section on bar 0 can not be removed. Trailing items' position might be adjusted if it results in a time signature change.
      *
      * @param section
-     * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. Exception is thrown before any change is done.
+     * @throws UnsupportedEditException If a ChordLeadSheet change listener vetoes this edit. Exception is thrown before any change is done.
      */
     void removeSection(CLI_Section section) throws UnsupportedEditException;
 
@@ -110,7 +110,7 @@ public interface ChordLeadSheet
      * @param section The section to be changed.
      * @param ts
      * @throws IllegalArgumentException If section does not belong to this leadsheet.
-     * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. Exception is thrown before any change is done.
+     * @throws UnsupportedEditException If a ChordLeadSheet change listener vetoes this edit. Exception is thrown before any change is done.
      */
     void setSectionTimeSignature(CLI_Section section, TimeSignature ts) throws UnsupportedEditException;
 
@@ -121,7 +121,7 @@ public interface ChordLeadSheet
      *
      * @param section     The section to be moved
      * @param newBarIndex The bar index section will be moved to
-     * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. Exception is thrown before any change is done.
+     * @throws UnsupportedEditException If a ChordLeadSheet change listener vetoes this edit. Exception is thrown before any change is done.
      * @throws IllegalArgumentException If new position is not valid.
      */
     void moveSection(CLI_Section section, int newBarIndex) throws UnsupportedEditException;

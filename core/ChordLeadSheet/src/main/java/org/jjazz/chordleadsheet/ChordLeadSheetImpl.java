@@ -152,7 +152,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         var event = new SizeChangedEvent(ChordLeadSheetImpl.this, oldSize, newSize);
         try
         {
-            authorizeChangeEvent(event);        // Possible exception here !
+            fireVetoableChangeEvent(new ClsVetoableChangeEvent(this, event));
         } catch (UnsupportedEditException ex)
         {
             fireClsActionEventComplete(ClsActionEvent.API_ID.SetSizeInBars);       // We need to complete the action
@@ -322,7 +322,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
             // Check that change is not vetoed
             var event = new ItemAddedEvent(ChordLeadSheetImpl.this, cliSection);
-            authorizeChangeEvent(event);        // Possible exception here !        
+            fireVetoableChangeEvent(new ClsVetoableChangeEvent(this, event));   // throws UnsupportedEditException
             fireClsActionEventStart(ClsActionEvent.API_ID.AddSection, cliSection);
 
 
@@ -404,7 +404,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
         // Check that change is not vetoed
         var event = new ItemRemovedEvent(ChordLeadSheetImpl.this, cliSection);
-        authorizeChangeEvent(event);            // Possible exception here! 
+        fireVetoableChangeEvent(new ClsVetoableChangeEvent(this, event));   // throws UnsupportedEditException
         fireClsActionEventStart(ClsActionEvent.API_ID.RemoveSection, cliSection);
 
         // Prepare data
@@ -483,7 +483,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
         // Check that change is not vetoed
         var event = new SectionMovedEvent(ChordLeadSheetImpl.this, cliSection, oldBarIndex, newBarIndex);
-        authorizeChangeEvent(event);            // Possible exception here! 
+        fireVetoableChangeEvent(new ClsVetoableChangeEvent(this, event));   // throws UnsupportedEditException
         fireClsActionEventStart(ClsActionEvent.API_ID.MoveSection, cliSection);
 
 
@@ -1373,7 +1373,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
         // Check change is not vetoed
         var event = new ItemChangedEvent(ChordLeadSheetImpl.this, cliSection, oldData, newData);
-        authorizeChangeEvent(event);                // Possible exception here
+        fireVetoableChangeEvent(new ClsVetoableChangeEvent(this, event));   // throws UnsupportedEditException
 
         // Change state
         var newTs = newData.getTimeSignature();
@@ -1433,7 +1433,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
         // Check change is not vetoed
         var event = new ItemRemovedEvent(ChordLeadSheetImpl.this, cliSection);
-        authorizeChangeEvent(event);            // Possible exception here! 
+        fireVetoableChangeEvent(new ClsVetoableChangeEvent(this, event));   // throws UnsupportedEditException
 
         // Change state
         removeItemChecked(cliSection);
@@ -1503,34 +1503,31 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     }
 
     /**
-     * Make sure change is authorized by all listeners.
+     * Make sure that a change is authorized by all listeners.
+     * <p>
      *
      * @param event
-     * @throws UnsupportedEditException
+     * @throws org.jjazz.chordleadsheet.api.UnsupportedEditException
      */
-    protected void authorizeChangeEvent(ClsChangeEvent event) throws UnsupportedEditException
+    protected void fireVetoableChangeEvent(ClsVetoableChangeEvent event) throws UnsupportedEditException
     {
-        if (event == null)
+        for (ClsChangeListener l : listeners.toArray(ClsChangeListener[]::new))
         {
-            throw new IllegalArgumentException("event=" + event);
-        }
-        var ls = listeners.toArray(ClsChangeListener[]::new);
-        for (ClsChangeListener l : ls)
-        {
-            l.authorizeChange(event);   // Possible exception here
+            l.chordLeadSheetChanged(event);
         }
     }
 
     /**
-     * Fire an authorized change event to all listeners.
+     * Fire a change event to all listeners.
      * <p>
-     * If it's not a ClsActionEvent, also adds the event to the active ClsActionEvent.
+     * If it's not a ClsActionEvent also add the event to the active ClsActionEvent.
      *
-     * @param event
+     * @param event Can not be a ClsVetoableChangeEvent
      */
     protected void fireAuthorizedChangeEvent(ClsChangeEvent event)
     {
         Objects.requireNonNull(event);
+        Preconditions.checkArgument(!(event instanceof ClsVetoableChangeEvent), "event=%s", event);
 
         if (!(event instanceof ClsActionEvent))
         {
@@ -1538,9 +1535,17 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             activeClsActionEvent.addSubEvent(event);
         }
 
+
         for (ClsChangeListener l : listeners.toArray(ClsChangeListener[]::new))
         {
-            l.chordLeadSheetChanged(event);
+            try
+            {
+                l.chordLeadSheetChanged(event);
+            } catch (UnsupportedEditException ex)
+            {
+                // Should never happen
+                Exceptions.printStackTrace(ex);
+            }
         }
     }
 

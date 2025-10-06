@@ -48,6 +48,7 @@ import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.chordleadsheet.api.ClsChangeListener;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.event.ClsActionEvent;
+import org.jjazz.chordleadsheet.api.event.ClsVetoableChangeEvent;
 import org.jjazz.chordleadsheet.api.event.SizeChangedEvent;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.quantizer.api.Quantization;
@@ -62,6 +63,8 @@ import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
+import org.jjazz.songstructure.api.event.SptAddedEvent;
+import org.jjazz.songstructure.api.event.SptRemovedEvent;
 import org.jjazz.songstructure.api.event.SptReplacedEvent;
 import org.openide.util.Exceptions;
 
@@ -105,13 +108,7 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
     // =============================================================================================      
 
     @Override
-    public void authorizeChange(ClsChangeEvent evt) throws UnsupportedEditException
-    {
-        processClsChangeEvent(evt, true);
-    }
-
-    @Override
-    public void chordLeadSheetChanged(ClsChangeEvent evt)
+    public void chordLeadSheetChanged(ClsChangeEvent evt) throws UnsupportedEditException
     {
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(songStructure);
         if (um != null && um.isUndoRedoInProgress())
@@ -122,6 +119,14 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
             LOGGER.log(Level.FINE, "chordLeadSheetChanged() undo is in progress, exiting");
             return;
         }
+
+        if (evt instanceof ClsVetoableChangeEvent vce)
+        {
+            var changeEvent = vce.getChangeEvent();
+            processClsChangeEvent(changeEvent, true);       // throws UnsupportedEditException
+            return;
+        }
+
 
         try
         {
@@ -136,12 +141,6 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
     // ============================================================================================= 
     // SgsChangeListener implementation
     // =============================================================================================    
-
-    @Override
-    public void authorizeChange(SgsChangeEvent e) throws UnsupportedEditException
-    {
-        // Nothing: no SongStructure change can be vetoed by a ChordLeadSheet
-    }
 
     @Override
     public void songStructureChanged(SgsChangeEvent e)
@@ -226,7 +225,7 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
                 {
                     if (authorizeOnly)
                     {
-                        authorizeSectionMove(sme, cliSections.get(0));
+                        checkSectionMoveForVeto(sme, cliSections.get(0));
                     } else
                     {
                         processSectionMoved(sme, cliSections.get(0));
@@ -344,7 +343,7 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
      * @param cliSection
      * @throws UnsupportedEditException
      */
-    private void authorizeSectionMove(SectionMovedEvent evt, CLI_Section cliSection) throws UnsupportedEditException
+    private void checkSectionMoveForVeto(SectionMovedEvent evt, CLI_Section cliSection) throws UnsupportedEditException
     {
         int newBarIndex = evt.getNewBar();
         int oldBarIndex = evt.getOldBar();
@@ -364,11 +363,12 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
 
         // It's a "big move", which crosses at least another section
 
-        // We remove and re-add
+        // Test remove and re-add
         CLI_Section prevSection = chordLeadSheet.getSection(newBarIndex - 1);
-        songStructure.authorizeRemoveSongParts(getSongParts(cliSection));
+        songStructure.testChangeEventForVeto(new SptRemovedEvent(songStructure, getSongParts(cliSection)));     // throws UnsupportedEditException
+
         SongPart spt = createSptAfterSection(cliSection, getVirtualSectionSize(newBarIndex), prevSection);
-        songStructure.authorizeAddSongParts(Arrays.asList(spt));
+        songStructure.testChangeEventForVeto(new SptAddedEvent(songStructure, List.of(spt)));   // throws UnsupportedEditException
 
     }
 
@@ -379,7 +379,8 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
         {
             if (authorizeOnly)
             {
-                songStructure.authorizeRemoveSongParts(getSongParts(cliSection));
+                var event = new SptRemovedEvent(songStructure, getSongParts(cliSection));
+                songStructure.testChangeEventForVeto(event);          // Possible exception here    
             } else
             {
                 songStructure.removeSongParts(getSongParts(cliSection));
@@ -408,7 +409,8 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
             if (authorizeOnly)
             {
                 SongPart spt = createSptAfterSection(cliSection, getVirtualSectionSize(barIndex), prevSection);
-                songStructure.authorizeAddSongParts(Arrays.asList(spt));
+                var event = new SptAddedEvent(songStructure, List.of(spt));
+                songStructure.testChangeEventForVeto(event);          // Possible exception here    
             } else
             {
                 // Possible exception here !
@@ -466,12 +468,12 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
 
                 if (authorizeOnly)
                 {
-                    // Possible exception here                        
-                    songStructure.authorizeReplaceSongParts(oldSpts, newSpts);
+                    var event = new SptReplacedEvent(songStructure, oldSpts, oldSpts);
+                    songStructure.testChangeEventForVeto(event);          // Possible exception here     
                 } else
                 {
                     // Possible exception here
-                    songStructure.replaceSongParts(oldSpts, newSpts);
+                    songStructure.replaceSongParts(oldSpts, newSpts);         // Possible exception here     
                 }
             }
         }
@@ -534,7 +536,7 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
     {
         Set<CLI_Section> processedSections = new HashSet<>();
 
-        
+
         for (int i = 0; i < sre.getSongParts().size(); i++)
         {
             var oldSpt = sre.getSongParts().get(i);

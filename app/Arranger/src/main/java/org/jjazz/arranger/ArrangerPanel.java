@@ -242,11 +242,6 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
     // ================================================================================    
     // SgsChangeListener interface
     // ================================================================================   
-    @Override
-    public void authorizeChange(SgsChangeEvent e) throws UnsupportedEditException
-    {
-        // Nothing
-    }
 
     @Override
     public void songStructureChanged(SgsChangeEvent e)

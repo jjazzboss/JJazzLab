@@ -254,12 +254,6 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
     // =========================================================================================
 
     @Override
-    public void authorizeChange(SgsChangeEvent e) throws UnsupportedEditException
-    {
-        // Nothing
-    }
-
-    @Override
     public void songStructureChanged(SgsChangeEvent e)
     {
         if (e instanceof RpValueChangedEvent && e.getSongPart() == songPartRef)

@@ -1145,13 +1145,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
     // ==========================================================================================================    
 
     @Override
-    public void authorizeChange(ClsChangeEvent e) throws UnsupportedEditException
-    {
-        // Nothing
-    }
-
-    @Override
-    public void chordLeadSheetChanged(ClsChangeEvent e)
+    public void chordLeadSheetChanged(ClsChangeEvent e) throws UnsupportedEditException
     {
         if (e instanceof ClsActionEvent ae && ae.isComplete())
         {

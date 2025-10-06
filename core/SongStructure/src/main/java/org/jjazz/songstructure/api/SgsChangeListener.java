@@ -32,23 +32,13 @@ public interface SgsChangeListener
 {
 
     /**
-     * Some change events might need to be authorized by all listeners before being processed by songStructureChanged().
-     *
-     * @param e The change to authorize.
-     * @throws UnsupportedEditException Listener shall throw this exception if change is not acceptable. Exception message might
-     * be shown to user to explain the problem.
-     */
-    public void authorizeChange(SgsChangeEvent e) throws UnsupportedEditException;
-
-
-    /**
      * Process the change.
      * <p>
      * Note that this method might be called outside of the EDT.
      *
      * @param e
-     * @throws IllegalStateException If change is not authorized by this listener.
+     * @throws UnsupportedEditException Listener might throw this exception (with a user message) to veto a SgsVetoableChangeEvent. 
      */
-    public void songStructureChanged(SgsChangeEvent e);
+    public void songStructureChanged(SgsChangeEvent e) throws UnsupportedEditException;
 
 }

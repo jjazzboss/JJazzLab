@@ -68,6 +68,7 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.event.SgsActionEvent;
+import org.jjazz.songstructure.api.event.SgsVetoableChangeEvent;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
 import org.jjazz.utilities.api.Utilities;
@@ -76,6 +77,7 @@ import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_LOAD;
 import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_SAVE;
 import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_LOAD;
 import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_SAVE;
+import org.openide.util.Exceptions;
 import org.openide.util.lookup.ServiceProvider;
 
 public class SongStructureImpl implements SongStructure, Serializable, PropertyChangeListener
@@ -220,13 +222,6 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
         return spt;
     }
 
-    @Override
-    public void authorizeAddSongParts(List<SongPart> spts) throws UnsupportedEditException
-    {
-        // Check change is not vetoed by listeners
-        var event = new SptAddedEvent(this, spts);
-        authorizeChangeEvent(event);            // Possible exception here! 
-    }
 
     @Override
     public void addSongParts(final List<SongPart> spts) throws UnsupportedEditException
@@ -243,8 +238,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
         }
 
 
-        // Possible exception here!
-        authorizeAddSongParts(spts);
+        testChangeEventForVeto(new SptAddedEvent(this, spts));           // Possible exception here        
 
 
         var saveSpts = new ArrayList<>(spts);
@@ -267,15 +261,6 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
 
     }
 
-
-    @Override
-    public void authorizeRemoveSongParts(List<SongPart> spts) throws UnsupportedEditException
-    {
-        // Check change is not vetoed by listeners 
-        var event = new SptRemovedEvent(this, spts);
-        authorizeChangeEvent(event);        // Possible exception here!
-    }
-
     @Override
     public void removeSongParts(List<SongPart> spts) throws UnsupportedEditException
     {
@@ -290,8 +275,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
         }
 
 
-        // Possible exception here
-        authorizeRemoveSongParts(spts);
+        testChangeEventForVeto(new SptRemovedEvent(this, spts));           // Possible exception here        
 
 
         var saveSpts = new ArrayList<>(spts);
@@ -393,14 +377,31 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
     }
 
 
+    /**
+     * Test if a change is authorized by listeners.
+     *
+     * @param event Can not be a SgsActionEvent
+     * @throws UnsupportedEditException If change is vetoed by a listener
+     */
     @Override
-    public void authorizeReplaceSongParts(List<SongPart> oldSpts, List<SongPart> newSpts) throws UnsupportedEditException
+    public void testChangeEventForVeto(SgsChangeEvent event) throws UnsupportedEditException
     {
-        // Check that change is not vetoed
-        var event = new SptReplacedEvent(SongStructureImpl.this, oldSpts, newSpts);
-        authorizeChangeEvent(event);            // Possible UnsupportedEditException here
+        Objects.requireNonNull(event);
+        Preconditions.checkArgument(event.getSource() == this && !(event instanceof SgsActionEvent), "event=%s", event);
+        SgsVetoableChangeEvent svce;
+        if (event instanceof SgsVetoableChangeEvent ve)
+        {
+            svce = ve;
+        } else
+        {
+            svce = new SgsVetoableChangeEvent(this, event);
+        }
+        var ls = listeners.toArray(SgsChangeListener[]::new);
+        for (SgsChangeListener l : ls)
+        {
+            l.songStructureChanged(svce);   // Possible exception here
+        }
     }
-
 
     /**
      * We need a method that works with a list of SongParts because replacing a single spt at a time may cause problems when there is an
@@ -448,7 +449,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
 
 
         // Possible exception here!
-        authorizeReplaceSongParts(oldSpts, newSpts);
+        testChangeEventForVeto(new SptReplacedEvent(this, oldSpts, newSpts));           // Possible exception here        
 
 
         var saveNewSpts = new ArrayList<>(newSpts);
@@ -891,7 +892,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
         Position res = new Position(spt.getStartBarIndex() + relBar, pos.getBeat());
         return res;
     }
-    
+
 
     @Override
     public String toString()
@@ -1225,34 +1226,16 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
 
 
     /**
-     * Make sure change is authorized by all listeners.
-     *
-     * @param event
-     * @throws UnsupportedEditException
-     */
-    private void authorizeChangeEvent(SgsChangeEvent event) throws UnsupportedEditException
-    {
-        Objects.requireNonNull(event);
-        var ls = listeners.toArray(SgsChangeListener[]::new);
-        for (SgsChangeListener l : ls)
-        {
-            l.authorizeChange(event);   // Possible exception here
-        }
-    }
-
-    /**
      * Fire an authorized change event to all listeners.
      * <p>
      * If it's not a SgsActionEvent, also adds the event to the active SgsActionEvent.
      *
-     * @param event
+     * @param event Can not be a SgsVetoableChangeEvent
      */
     private void fireAuthorizedChangeEvent(SgsChangeEvent event)
     {
-        if (event == null)
-        {
-            throw new IllegalArgumentException("event=" + event);
-        }
+        Objects.requireNonNull(event);
+        Preconditions.checkArgument(!(event instanceof SgsVetoableChangeEvent), "event=%s", event);
 
         if (!(event instanceof SgsActionEvent))
         {
@@ -1262,7 +1245,14 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
 
         for (SgsChangeListener l : listeners.toArray(SgsChangeListener[]::new))
         {
-            l.songStructureChanged(event);
+            try
+            {
+                l.songStructureChanged(event);
+            } catch (UnsupportedEditException ex)
+            {
+                // Should never happen
+                Exceptions.printStackTrace(ex);
+            }
         }
     }
 

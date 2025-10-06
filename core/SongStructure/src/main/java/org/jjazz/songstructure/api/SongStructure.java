@@ -37,6 +37,8 @@ import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.RhythmParameter;
+import org.jjazz.songstructure.api.event.SgsChangeEvent;
+import org.jjazz.songstructure.api.event.SgsVetoableChangeEvent;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
 
@@ -298,16 +300,6 @@ public interface SongStructure
     public Position getSptItemPosition(SongPart spt, ChordLeadSheetItem<?> clsItem);
 
     /**
-     * Check if add operation is doable.
-     * <p>
-     * Operation is not doable if a new rhythm could not be accepted by listeners.
-     *
-     * @param spts
-     * @throws UnsupportedEditException
-     */
-    public void authorizeAddSongParts(List<SongPart> spts) throws UnsupportedEditException;
-
-    /**
      * Add one by one a list of SongParts.
      * <p>
      * Each SongPart's startBarIndex must be a valid barIndex, either:<br>
@@ -320,15 +312,6 @@ public interface SongStructure
      * @throws UnsupportedEditException Exception is thrown before any change is done. See authorizeAddSongParts().
      */
     public void addSongParts(List<SongPart> spts) throws UnsupportedEditException;
-
-    /**
-     * Check if remove operation is doable.
-     * <p>
-     *
-     * @param spts
-     * @throws UnsupportedEditException
-     */
-    public void authorizeRemoveSongParts(List<SongPart> spts) throws UnsupportedEditException;
 
     /**
      * Remove some SongParts.
@@ -350,16 +333,12 @@ public interface SongStructure
     public void resizeSongParts(Map<SongPart, Integer> mapSptSize);
 
     /**
-     * Check if replace operation is doable.
-     * <p>
-     * UnsupportedEditException is thrown if replacement is impossible, because :<br>
-     * - not enough Midi channels for a new rhythm<br>
+     * Test if a change is vetoed by listeners.
      *
-     * @param oldSpts
-     * @param newSpts
-     * @throws UnsupportedEditException
+     * @param event Can not be a SgsActionEvent
+     * @throws UnsupportedEditException If change is vetoed by a listener
      */
-    public void authorizeReplaceSongParts(List<SongPart> oldSpts, List<SongPart> newSpts) throws UnsupportedEditException;
+    public void testChangeEventForVeto(SgsChangeEvent event) throws UnsupportedEditException;
 
     /**
      * Replace SongParts by other SongParts.

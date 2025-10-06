@@ -971,14 +971,9 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     // ----------------------------------------------------------------------------------
     // ClsChangeListener interface
     // ----------------------------------------------------------------------------------
-    @Override
-    public void authorizeChange(ClsChangeEvent e) throws UnsupportedEditException
-    {
-        // Nothing
-    }
 
     @Override
-    public void chordLeadSheetChanged(final ClsChangeEvent event)
+    public void chordLeadSheetChanged(final ClsChangeEvent event) throws UnsupportedEditException
     {
         // Model changes can be generated outside the EDT
         Runnable run = () -> 

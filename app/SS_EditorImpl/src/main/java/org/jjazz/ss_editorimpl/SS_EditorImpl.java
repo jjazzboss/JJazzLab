@@ -736,16 +736,8 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     // SgsChangeListener interface
     //------------------------------------------------------------------------------   
     @Override
-    public void authorizeChange(SgsChangeEvent e) throws UnsupportedEditException
-    {
-        // Nothing
-    }
-
-    @Override
     public void songStructureChanged(final SgsChangeEvent e)
     {
-
-
         // Model changes can be generated outside the EDT
         Runnable run = () -> 
         {

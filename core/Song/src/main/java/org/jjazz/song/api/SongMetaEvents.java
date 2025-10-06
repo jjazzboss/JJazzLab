@@ -58,7 +58,7 @@ import org.jjazz.songstructure.api.event.SgsChangeEvent;
  */
 public class SongMetaEvents implements ClsChangeListener, SgsChangeListener, PropertyChangeListener, VetoableChangeListener
 {
- 
+
 
     /**
      * Fired when the song modification initiated by a ChordLeadSheet/SongStructure API method is complete.
@@ -206,14 +206,9 @@ public class SongMetaEvents implements ClsChangeListener, SgsChangeListener, Pro
     // ====================================================================================
     // ClsChangeListener
     // ====================================================================================    
-    @Override
-    public void authorizeChange(ClsChangeEvent e) throws UnsupportedEditException
-    {
-        // Nothing
-    }
 
     @Override
-    public void chordLeadSheetChanged(ClsChangeEvent event)
+    public void chordLeadSheetChanged(ClsChangeEvent event) throws UnsupportedEditException
     {
 
         if (!(event instanceof ClsActionEvent))
@@ -253,12 +248,6 @@ public class SongMetaEvents implements ClsChangeListener, SgsChangeListener, Pro
     // ====================================================================================
     // SgsChangeListener
     // ====================================================================================    
-    @Override
-    public void authorizeChange(SgsChangeEvent e) throws UnsupportedEditException
-    {
-        // Nothing
-    }
-
     @Override
     public void songStructureChanged(SgsChangeEvent event)
     {

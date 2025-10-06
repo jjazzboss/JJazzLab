@@ -203,16 +203,6 @@ public abstract class CL_ContextAction extends AbstractAction implements CL_Cont
     // ============================================================================================= 
     // ClsChangeListener implementation
     // =============================================================================================      
-    /**
-     * Default implementation does nothing.
-     *
-     * @param e
-     * @throws UnsupportedEditException
-     */
-    @Override
-    public void authorizeChange(ClsChangeEvent e) throws UnsupportedEditException
-    {
-    }
 
     /**
      * Default implementation does nothing.

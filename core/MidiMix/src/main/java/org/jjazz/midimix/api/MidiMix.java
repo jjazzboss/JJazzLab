@@ -84,6 +84,7 @@ import org.jjazz.song.api.SongCreationException;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.songstructure.api.event.SgsVetoableChangeEvent;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.undomanager.api.SimpleEdit;
@@ -1388,7 +1389,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * <p>
      * If rhythmFile is defined then .mix file is located in the same directory. Otherwise .mix file is located in the default rhythms directory<br>
      *
-     * @param rhythmName 
+     * @param rhythmName
      * @param rhythmFile Can not be null but can be the empty path ("")
      * @return
      * @see Rhythm#getFile()
@@ -1445,57 +1446,9 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
     //-----------------------------------------------------------------------
     // Implementation of the SgsChangeListener interface
     //-----------------------------------------------------------------------
-    @Override
-    public void authorizeChange(SgsChangeEvent e) throws UnsupportedEditException
-    {
-
-        LOGGER.log(Level.FINE, "authorizeChange() -- e={0}", e);
-
-        // Build the list of SongPart after the change
-        List<SongPart> spts = null;
-        if (e instanceof SptAddedEvent sae)
-        {
-            spts = song.getSongStructure().getSongParts();
-            spts.addAll(sae.getSongParts());
-
-        } else if (e instanceof SptReplacedEvent sre)
-        {
-            List<SongPart> oldSpts = sre.getSongParts();
-            List<SongPart> newSpts = sre.getNewSpts();
-
-            spts = song.getSongStructure().getSongParts();
-            spts.removeAll(oldSpts);
-            spts.addAll(newSpts);
-        }
-
-        if (spts == null)
-        {
-            // Nb of rhythmVoices can't have increased
-            return;
-        }
-
-        // Number of RhythmVoices has possibly changed
-        HashSet<Rhythm> rhythms = new HashSet<>();
-        int nbVoices = getUserChannels().size();      // Initialize with user rhythm voices
-        for (SongPart spt : spts)
-        {
-            Rhythm r = getSourceRhythm(spt.getRhythm());
-            if (!rhythms.contains(r))
-            {
-                nbVoices += r.getRhythmVoices().size();
-                rhythms.add(r);
-            }
-        }
-
-        if (nbVoices > NB_AVAILABLE_CHANNELS)
-        {
-            throw new UnsupportedEditException(ResUtil.getString(getClass(), "ERR_NotEnoughChannels"));
-        }
-
-    }
 
     @Override
-    public void songStructureChanged(SgsChangeEvent e)
+    public void songStructureChanged(SgsChangeEvent e) throws UnsupportedEditException
     {
         LOGGER.log(Level.FINE, "songStructureChanged() -- e={0}", e);
 
@@ -1506,6 +1459,12 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
             // IMPORTANT : MidiMix generates his own undoableEdits
             // so we must not listen to SongStructure changes if undo/redo in progress, otherwise 
             // the "undo/redo" restore operations will be performed twice !
+            return;
+        }
+
+        if (e instanceof SgsVetoableChangeEvent svce)
+        {
+            testChangeEventForVeto(svce.getChangeEvent());
             return;
         }
 
@@ -2088,6 +2047,60 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
                 });
             }
         }
+    }
+
+
+    /**
+     * Check that we don't exceed number of available Midi channels.
+     *
+     * @param e
+     * @throws UnsupportedEditException
+     */
+    private void testChangeEventForVeto(SgsChangeEvent e) throws UnsupportedEditException
+    {
+        LOGGER.log(Level.FINE, "testChangeEventForVeto() -- e={0}", e);
+
+        // Build the list of SongPart after the change
+        List<SongPart> spts = null;
+        if (e instanceof SptAddedEvent sae)
+        {
+            spts = song.getSongStructure().getSongParts();
+            spts.addAll(sae.getSongParts());
+
+        } else if (e instanceof SptReplacedEvent sre)
+        {
+            List<SongPart> oldSpts = sre.getSongParts();
+            List<SongPart> newSpts = sre.getNewSpts();
+
+            spts = song.getSongStructure().getSongParts();
+            spts.removeAll(oldSpts);
+            spts.addAll(newSpts);
+        }
+
+        if (spts == null)
+        {
+            // Nb of rhythmVoices can't have increased
+            return;
+        }
+
+        // Number of RhythmVoices has possibly changed
+        HashSet<Rhythm> rhythms = new HashSet<>();
+        int nbVoices = getUserChannels().size();      // Initialize with user rhythm voices
+        for (SongPart spt : spts)
+        {
+            Rhythm r = getSourceRhythm(spt.getRhythm());
+            if (!rhythms.contains(r))
+            {
+                nbVoices += r.getRhythmVoices().size();
+                rhythms.add(r);
+            }
+        }
+
+        if (nbVoices > NB_AVAILABLE_CHANNELS)
+        {
+            throw new UnsupportedEditException(ResUtil.getString(getClass(), "ERR_NotEnoughChannels"));
+        }
+
     }
 
     /**

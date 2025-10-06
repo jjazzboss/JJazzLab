@@ -227,18 +227,9 @@ public class CL_ContextActionSupport implements ClsChangeListener
     // ============================================================================================= 
     // ClsChangeListener implementation
     // =============================================================================================      
-    @Override
-    public void authorizeChange(ClsChangeEvent e) throws UnsupportedEditException
-    {
-        // Forward the event
-        for (ClsChangeListener l : getTargetListeners(clsListeners))
-        {
-            l.authorizeChange(e);
-        }
-    }
 
     @Override
-    public void chordLeadSheetChanged(ClsChangeEvent event)
+    public void chordLeadSheetChanged(ClsChangeEvent event) throws UnsupportedEditException
     {
         // Forward the event
         for (ClsChangeListener l : getTargetListeners(clsListeners))
