@@ -83,9 +83,8 @@ public class SongMidiExporter
             return false;
         }
 
-
         var sgContext = new SongContext(song, midiMix);
-        var ssb = new SongSequenceBuilder(sgContext, 0);
+        var ssb = new SongSequenceBuilder(sgContext);
         SongSequenceBuilder.SongSequence songSequence = null;
 
 

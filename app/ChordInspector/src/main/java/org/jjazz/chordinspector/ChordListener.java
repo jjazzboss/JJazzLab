@@ -58,15 +58,15 @@ public class ChordListener implements CL_ContextActionListener, PropertyChangeLi
 
         // Listen to transposition option changes
         playbackSettings = PlaybackSettings.getInstance();
-        playbackSettings.addPropertyChangeListener(PlaybackSettings.PROP_DISPLAY_TRANSPOSITION, this);
-        setTransposition(playbackSettings.getDisplayTransposition());
+        playbackSettings.addPropertyChangeListener(PlaybackSettings.PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION, this);
+        setTransposition(playbackSettings.getChordSymbolsDisplayTransposition());
     }
 
     public void cleanup()
     {
         cap.removeWeakSelectionListener(this);
 
-        playbackSettings.removePropertyChangeListener(PlaybackSettings.PROP_DISPLAY_TRANSPOSITION, this);
+        playbackSettings.removePropertyChangeListener(PlaybackSettings.PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION, this);
         if (chordSymbol != null)
         {
             chordSymbol.removePropertyChangeListener(this);
@@ -150,7 +150,7 @@ public class ChordListener implements CL_ContextActionListener, PropertyChangeLi
             {
                 editor.setModel(chordSymbol.getData());
             }
-        } else if (PlaybackSettings.PROP_DISPLAY_TRANSPOSITION.equals(evt.getPropertyName()))
+        } else if (PlaybackSettings.PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION.equals(evt.getPropertyName()))
         {
             setTransposition((int) evt.getNewValue());
         }

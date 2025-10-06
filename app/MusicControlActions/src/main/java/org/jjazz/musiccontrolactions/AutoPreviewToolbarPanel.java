@@ -44,7 +44,6 @@ import org.openide.awt.Actions;
  */
 public class AutoPreviewToolbarPanel extends javax.swing.JPanel
 {
-
     private static final Logger LOGGER = Logger.getLogger(AutoPreviewToolbarPanel.class.getSimpleName());
 
     public AutoPreviewToolbarPanel()
@@ -53,7 +52,7 @@ public class AutoPreviewToolbarPanel extends javax.swing.JPanel
 
         new AutoUpdateLabelModel(lbl_autoPreview);
 
-        this.fbtn_playbackTransposition.setAction(Actions.forID("MusicControls", "org.jjazz.musiccontrolactions.transposeplaybackkey"));   //NOI18N
+        this.fbtn_chordsDisplayTransposition.setAction(Actions.forID("MusicControls", "org.jjazz.musiccontrolactions.transposedisplay"));   //NOI18N
     }
 
     // ======================================================================
@@ -170,7 +169,7 @@ public class AutoPreviewToolbarPanel extends javax.swing.JPanel
     {
 
         filler4 = new javax.swing.Box.Filler(new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 0), new java.awt.Dimension(5, 32767));
-        fbtn_playbackTransposition = new org.jjazz.flatcomponents.api.FlatToggleButton();
+        fbtn_chordsDisplayTransposition = new org.jjazz.flatcomponents.api.FlatToggleButton();
         filler9 = new javax.swing.Box.Filler(new java.awt.Dimension(3, 0), new java.awt.Dimension(6, 0), new java.awt.Dimension(6, 32767));
         lbl_autoPreview = new javax.swing.JLabel();
 
@@ -178,8 +177,8 @@ public class AutoPreviewToolbarPanel extends javax.swing.JPanel
         setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.X_AXIS));
         add(filler4);
 
-        fbtn_playbackTransposition.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/musiccontrolactions/resources/Sax-OFF-24x24.png"))); // NOI18N
-        add(fbtn_playbackTransposition);
+        fbtn_chordsDisplayTransposition.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/musiccontrolactions/resources/Sax-OFF-24x24.png"))); // NOI18N
+        add(fbtn_chordsDisplayTransposition);
         add(filler9);
 
         lbl_autoPreview.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/jjazz/musiccontrolactions/resources/AutoUpdate-OFF-24x24.png"))); // NOI18N
@@ -187,7 +186,7 @@ public class AutoPreviewToolbarPanel extends javax.swing.JPanel
     }// </editor-fold>//GEN-END:initComponents
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private org.jjazz.flatcomponents.api.FlatToggleButton fbtn_playbackTransposition;
+    private org.jjazz.flatcomponents.api.FlatToggleButton fbtn_chordsDisplayTransposition;
     private javax.swing.Box.Filler filler4;
     private javax.swing.Box.Filler filler9;
     private javax.swing.JLabel lbl_autoPreview;

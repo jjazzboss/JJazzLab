@@ -136,7 +136,6 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditorDialog<RP_SYS_Custo
                     false,
                     false,
                     false,
-                    false,
                     0,
                     null,
                     false);

@@ -22,6 +22,7 @@
  */
 package org.jjazz.musiccontrolactions;
 
+import com.google.common.base.Preconditions;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import javax.swing.AbstractAction;
@@ -66,10 +67,8 @@ public class TransposeDisplayDialog extends javax.swing.JDialog
      */
     public void preset(int transposeBy)
     {
-        if (transposeBy < -11 || transposeBy > 0)
-        {
-            throw new IllegalArgumentException("transposition=" + transposeBy);   
-        }
+        Preconditions.checkArgument(transposeBy >= -11 && transposeBy <= 0, "transposition=" + transposeBy);
+
         cb_enableTransposition.setSelected(transposeBy != 0);
         cmb_transposition.setEnabled(transposeBy != 0);
         if (transposeBy != 0)

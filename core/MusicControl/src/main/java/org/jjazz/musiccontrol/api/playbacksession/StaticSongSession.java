@@ -26,11 +26,8 @@ import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
 import java.util.List;
-import org.jjazz.midimix.api.MidiMix;
-import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.musiccontrol.api.SongMusicGenerationListener;
 import org.jjazz.rhythm.api.MusicGenerationException;
-import org.jjazz.song.api.Song;
 import org.jjazz.songcontext.api.SongContext;
 
 /**
@@ -52,7 +49,6 @@ public class StaticSongSession extends BaseSongSession
      * <p>
      *
      * @param sgContext
-     * @param enablePlaybackTransposition If true apply the playback transposition
      * @param includeClickTrack           If true add the click track, and its muted/unmuted state will depend on the PlaybackSettings
      * @param includePrecountTrack        If true add the precount track, and loopStartTick will depend on the PlaybackSettings
      * @param includeControlTrack         if true add a control track (beat positions + chord symbol markers)
@@ -60,26 +56,19 @@ public class StaticSongSession extends BaseSongSession
      * @param endOfPlaybackAction         Action executed when playback is stopped. Can be null.
      * @return A session in the NEW or GENERATED state.
      */
-    static public StaticSongSession getSession(SongContext sgContext,
-            boolean enablePlaybackTransposition, boolean includeClickTrack, boolean includePrecountTrack,
-            boolean includeControlTrack,
-            int loopCount,
-            ActionListener endOfPlaybackAction)
+    static public StaticSongSession getSession(SongContext sgContext, boolean includeClickTrack,
+            boolean includePrecountTrack, boolean includeControlTrack, int loopCount, ActionListener endOfPlaybackAction)
     {
         if (sgContext == null)
         {
             throw new IllegalArgumentException("sgContext=" + sgContext);
         }
-        StaticSongSession session = findSession(sgContext,
-                enablePlaybackTransposition, includeClickTrack, includePrecountTrack, includeControlTrack,
-                loopCount,
-                endOfPlaybackAction);
+        StaticSongSession session = findSession(sgContext, includeClickTrack, includePrecountTrack,
+                includeControlTrack, loopCount, endOfPlaybackAction);
         if (session == null)
         {
-            final StaticSongSession newSession = new StaticSongSession(sgContext,
-                    enablePlaybackTransposition, includeClickTrack, includePrecountTrack, includeControlTrack,
-                    loopCount,
-                    endOfPlaybackAction);
+            final StaticSongSession newSession = new StaticSongSession(sgContext, includeClickTrack,
+                    includePrecountTrack, includeControlTrack, loopCount, endOfPlaybackAction);
 
             sessions.add(newSession);
             return newSession;
@@ -98,14 +87,14 @@ public class StaticSongSession extends BaseSongSession
      */
     static public StaticSongSession getSession(SongContext sgContext)
     {
-        return getSession(sgContext, true, true, true, true, PLAYBACK_SETTINGS_LOOP_COUNT, null);
+        return getSession(sgContext, true, true, true, PLAYBACK_SETTINGS_LOOP_COUNT, null);
     }
 
 
-    private StaticSongSession(SongContext sgContext, boolean enablePlaybackTransposition, boolean enableClickTrack,
+    private StaticSongSession(SongContext sgContext, boolean enableClickTrack,
             boolean enablePrecountTrack, boolean enableControlTrack, int loopCount, ActionListener endOfPlaybackAction)
     {
-        super(sgContext, enablePlaybackTransposition, enableClickTrack, enablePrecountTrack, enableControlTrack, loopCount, endOfPlaybackAction, true);
+        super(sgContext, enableClickTrack, enablePrecountTrack, enableControlTrack, loopCount, endOfPlaybackAction, true);
     }
 
     /**
@@ -161,17 +150,14 @@ public class StaticSongSession extends BaseSongSession
      *
      * @return Null if not found
      */
-    static private StaticSongSession findSession(SongContext sgContext,
-            boolean includePlaybackTransposition, boolean includeClickTrack, boolean includePrecount, boolean includeControlTrack,
-            int loopCount,
-            ActionListener endOfPlaybackAction)
+    static private StaticSongSession findSession(SongContext sgContext, boolean includeClickTrack,
+            boolean includePrecount, boolean includeControlTrack, int loopCount, ActionListener endOfPlaybackAction)
     {
         for (var session : sessions)
         {
             if ((session.getState().equals(PlaybackSession.State.GENERATED) || session.getState().equals(PlaybackSession.State.NEW))
                     && !session.isDirty()
                     && sgContext.equals(session.getSongContext())
-                    && includePlaybackTransposition == session.isPlaybackTranspositionEnabled()
                     && includeClickTrack == session.isClickTrackIncluded()
                     && includePrecount == session.isPrecountTrackIncluded()
                     && includeControlTrack == session.isControlTrackIncluded()
