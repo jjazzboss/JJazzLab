@@ -63,17 +63,17 @@ public class TransposeDisplayDialog extends javax.swing.JDialog
     }
 
     /**
-     * @param transposeBy [-11;0]
+     * @param transposeBy int in range [0, 12)
      */
     public void preset(int transposeBy)
     {
-        Preconditions.checkArgument(transposeBy >= -11 && transposeBy <= 0, "transposition=" + transposeBy);
+        Preconditions.checkArgument(transposeBy >= 0 && transposeBy < 12, "transposition=" + transposeBy);
 
         cb_enableTransposition.setSelected(transposeBy != 0);
         cmb_transposition.setEnabled(transposeBy != 0);
         if (transposeBy != 0)
         {
-            cmb_transposition.setSelectedIndex(-transposeBy - 1);
+            cmb_transposition.setSelectedIndex(transposeBy - 1);
         }
         pack();
         cb_enableTransposition.requestFocusInWindow();       // After pack
@@ -93,7 +93,7 @@ public class TransposeDisplayDialog extends javax.swing.JDialog
      */
     public int getDisplayTransposition()
     {
-        return !cb_enableTransposition.isSelected() ? 0 : -cmb_transposition.getSelectedIndex() - 1;
+        return !cb_enableTransposition.isSelected() ? 0 : cmb_transposition.getSelectedIndex() + 1;
     }    
 
     // ====================================================================================================
