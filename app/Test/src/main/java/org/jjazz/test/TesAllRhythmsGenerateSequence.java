@@ -32,7 +32,6 @@ import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.spi.MidiMixManager;
-import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder;
@@ -98,7 +97,7 @@ public final class TesAllRhythmsGenerateSequence implements ActionListener
         @Override
         public void run()
         {
-            SongSequenceBuilder seqBuilder = new SongSequenceBuilder(new SongContext(song, midiMix), PlaybackSettings.getInstance().getDisplayTransposition());
+            SongSequenceBuilder seqBuilder = new SongSequenceBuilder(new SongContext(song, midiMix));
             SongStructure sgs = song.getSongStructure();
             JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(sgs);
             um.setLimit(1);      // to not use too much memory with all rhythms instances...

@@ -200,6 +200,13 @@ public class MusicGenerationQueue implements Runnable
 
             if (incoming != null)
             {
+                // DON'T REMOVE commented logging! A few recurrent bugs have shown up and it helps to troubleshoot them.
+//                LOGGER.log(Level.FINE, "MusicGenerationQueue.run() handling incoming={0} nanoTime()={1}", new Object[]
+//                {
+//                    incoming, System.nanoTime()
+//                });
+                // LOGGER.info("UpdateRequestsHandler.run() handling cls=" + toDebugString(incoming.getSong().getChordLeadSheet()));
+
                 // Handle new context, save as pending if handling failed
                 pendingSongContext = handleContext(incoming) ? null : incoming;
 
@@ -208,6 +215,7 @@ public class MusicGenerationQueue implements Runnable
                 // Handle the last pending context, reset it if handling was successful
                 if (handleContext(pendingSongContext))
                 {
+//                    LOGGER.log(Level.FINE, "MusicGenerationQueue.run() handled pendingSongContext={0}", pendingSongContext);
                     pendingSongContext = null;
                 }
             }
@@ -285,19 +293,35 @@ public class MusicGenerationQueue implements Runnable
     private boolean handleContext(SongContext sgContext)
     {
         boolean newContextAccepted;
-        if (generationFuture == null || generationFuture.isDone())
+        if (generationFuture == null)
         {
-            // Either no generation task created yet, or a previous one finished already. Start a new one either way.
-            // LOGGER.fine(() -> "handleContext() - Task is null, create a new one: " + (generationFuture == null)
-            //  + ". Existing task already finished: " + generationFuture.isDone());
+            // No generation task created yet, start one
+            // LOGGER.fine("handleContext() start generation FIRST TIME");
+            startGenerationTask(sgContext);
+            newContextAccepted = true;
+
+        } else if (generationFuture.isDone())
+        {
+            // There is a generation task but it is complete, restart one
+            // LOGGER.fine("handleContext() start generation");
             startGenerationTask(sgContext);
             newContextAccepted = true;
 
         } else
         {
             // There is a generation task : because not started yet (wait preUpdateBufferTimeMs) or generating music
-            // Try to update it. Value is true means task was waiting, we're done. Value is false means task is generating music.
-            newContextAccepted = generationTask.changeContext(sgContext);
+            // Try to update it
+            if (generationTask.changeContext(sgContext))
+            {
+                // LOGGER.fine("handleContext() changed context of current generation task");
+                // OK, task was waiting, we're done
+                newContextAccepted = true;
+
+            } else
+            {
+                // NOK, task is generating music
+                newContextAccepted = false;
+            }
         }
 
         return newContextAccepted;
@@ -352,7 +376,7 @@ public class MusicGenerationQueue implements Runnable
         }
 
         /**
-         * Change the context for which to generate the update.
+         * Change the context for which to generate the update
          * <p>
          * Once the task has started (run() was called) the context can't be changed anymore.
          *
@@ -380,11 +404,10 @@ public class MusicGenerationQueue implements Runnable
 
             long startTime = System.nanoTime();
             LOGGER.log(Level.FINE, "UpdateGenerationTask.run() >>> STARTING generation nanoTime()={0}", startTime);
-
+            //LOGGER.info("UpdateGenerationTask.run() >>> STARTING generation cls=" + toDebugString(songContext.getSong().getChordLeadSheet()));
 
             // Recompute the RhythmVoice mapRvPhrases
-            // TODO #534 Disply transposition should not happen here, pass zero and check if we can get rid of the parameter
-            SongSequenceBuilder sgBuilder = new SongSequenceBuilder(songContext, 0);
+            SongSequenceBuilder sgBuilder = new SongSequenceBuilder(songContext);
 
             Throwable throwable = null;
             Map<RhythmVoice, Phrase> map = null;

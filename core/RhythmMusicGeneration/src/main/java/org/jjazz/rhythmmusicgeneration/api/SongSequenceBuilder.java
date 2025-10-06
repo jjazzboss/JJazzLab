@@ -93,7 +93,6 @@ import org.jjazz.song.api.Song;
  * Methods to convert a Song into Phrases and Midi sequence.
  * <p>
  */
-
 public class SongSequenceBuilder
 {
     /**
@@ -110,7 +109,6 @@ public class SongSequenceBuilder
      */
     static public class SongSequence
     {
-
         public Sequence sequence;
         public Map<RhythmVoice, Integer> mapRvTrackId;
         public Map<RhythmVoice, Phrase> mapRvPhrase;
@@ -131,16 +129,12 @@ public class SongSequenceBuilder
      * Note that sgContext is not modified, the instance works on a deep copy of sgContext.
      *
      * @param sgContext
-     * @param playbackKeyTranspose Optional chord symbols transposition (use 0 for no transposition)
      */
-    public SongSequenceBuilder(SongContext sgContext, int playbackKeyTranspose)
-    // TODO #534 Probably get rid of the transpose param here, not sure if it will be used at all
-    // >>>>> public SongSequenceBuilder(SongContext sgContext) <<<<<
+    public SongSequenceBuilder(SongContext sgContext)
     {
         Objects.requireNonNull(sgContext);
         this.songContextOriginal = sgContext;
         this.songContextWork = songContextOriginal.deepClone(false, false);
-        ClsUtilities.transpose(songContextWork.getSong().getChordLeadSheet(), playbackKeyTranspose);
     }
 
 
@@ -1129,7 +1123,6 @@ public class SongSequenceBuilder
                 continue;
             }
             InstrumentSettings insSet = insMix.getSettings();
-            // ALERT! What is that transposition over there??? May not be relevant
             if (insSet.getTransposition() != 0)
             {
                 p.processPitch(pitch -> pitch + insSet.getTransposition());

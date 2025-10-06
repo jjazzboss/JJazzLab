@@ -42,21 +42,21 @@ import org.openide.windows.WindowManager;
 /**
  * Transpose the leadsheet and all other music shown in the UI.
  */
-@ActionID(category = "MusicControls", id = "org.jjazz.musiccontrolactions.transposeplaybackkey")
+@ActionID(category = "MusicControls", id = "org.jjazz.musiccontrolactions.transposedisplay")
 @ActionRegistration(displayName = "#CTL_TransposeDisplay", lazy = false)
 @ActionReferences(
         {
             @ActionReference(path = "Actions/ExtendedToolbar", position = 10)    
         })
-public class TransposeDisplay extends AbstractAction implements PropertyChangeListener
+public class TransposeDisplayedChordSymbols extends AbstractAction implements PropertyChangeListener
 {
     @StaticResource(relative = true)
     private static final String OFF_ICON = "resources/Sax-OFF-24x24.png";
     @StaticResource(relative = true)
     private static final String ON_ICON = "resources/Sax-ON-24x24.png";
-    private static final Logger LOGGER = Logger.getLogger(TransposeDisplay.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(TransposeDisplayedChordSymbols.class.getSimpleName());
 
-    public TransposeDisplay()
+    public TransposeDisplayedChordSymbols()
     {
         putValue("hideActionText", true);
         updateButtonUI();
@@ -70,16 +70,15 @@ public class TransposeDisplay extends AbstractAction implements PropertyChangeLi
         var ps = PlaybackSettings.getInstance();
         var dlg = TransposeDisplayDialog.getInstance();
 
-        dlg.preset(ps.getDisplayTransposition());
+        dlg.preset(ps.getChordSymbolsDisplayTransposition());
         dlg.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
         dlg.setVisible(true);
 
         if (dlg.isExitOk())
         {
-            int old = ps.getDisplayTransposition();
-            ps.setDisplayTransposition(dlg.getDisplayTransposition());
+            ps.setChordSymbolsDisplayTransposition(dlg.getDisplayTransposition());
 
-            Analytics.setProperties(Analytics.buildMap("Playback Key Transpose", dlg.getDisplayTransposition()));
+            Analytics.setProperties(Analytics.buildMap("Chord symbol display transposition", dlg.getDisplayTransposition()));
         }
     }
 
@@ -92,7 +91,7 @@ public class TransposeDisplay extends AbstractAction implements PropertyChangeLi
         var mc = PlaybackSettings.getInstance();
         if (evt.getSource() == mc)
         {
-            if (evt.getPropertyName().equals(PlaybackSettings.PROP_DISPLAY_TRANSPOSITION))
+            if (evt.getPropertyName().equals(PlaybackSettings.PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION))
             {
                 updateButtonUI();
             }
@@ -104,7 +103,7 @@ public class TransposeDisplay extends AbstractAction implements PropertyChangeLi
     // ======================================================================   
     private void updateButtonUI()
     {
-        int t = PlaybackSettings.getInstance().getDisplayTransposition();
+        int t = PlaybackSettings.getInstance().getChordSymbolsDisplayTransposition();
 
         String iconPath = t == 0 ? OFF_ICON : ON_ICON;
         putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource(iconPath)));

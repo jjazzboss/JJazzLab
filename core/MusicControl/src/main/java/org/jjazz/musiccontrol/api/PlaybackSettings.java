@@ -22,6 +22,7 @@
  */
 package org.jjazz.musiccontrol.api;
 
+import com.google.common.base.Preconditions;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyVetoException;
 import java.beans.VetoableChangeListener;
@@ -94,10 +95,10 @@ public class PlaybackSettings
      */
     public static final String PROP_VETO_PRE_PLAYBACK = "PropVetoPrePlayback";
     public static final String PROP_LOOPCOUNT = "PropLoopCount";
-    
-    // TODO #534 This should go away
-    public static final String PROP_DISPLAY_TRANSPOSITION = "DisplayTransposition";
-    
+
+    // TODO #534 This should ideally be moved somewhere not related with music playback.
+    public static final String PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION = "DisplayTransposition";
+
     public static final String PROP_CLICK_PITCH_HIGH = "ClickPitchHigh";
     public static final String PROP_CLICK_PITCH_LOW = "ClickPitchLow";
     public static final String PROP_CLICK_VELOCITY_HIGH = "ClickVelocityHigh";
@@ -108,7 +109,7 @@ public class PlaybackSettings
     public static final String PROP_PLAYBACK_CLICK_ENABLED = "PlaybackClickEnabled";
     public static final String PROP_AUTO_UPDATE_ENABLED = "AutoUpdateEnabled";
     /**
-     * Fired each time a parameter whic can impact music generation is modified .
+     * Fired each time a parameter that can impact music generation is modified .
      * <p>
      * OldValue=the property name that triggered the musical change, newValue=optional data
      */
@@ -161,33 +162,30 @@ public class PlaybackSettings
     }
 
     /**
-     * Get the key transposition applied to all music notation shown in the UI.
+     * Get the key transposition applied to chord symbols shown in the UI.
      *
      * @return [0;-11] Default is 0.
      */
-    public int getDisplayTransposition() // TODO #534 The ints should be positive for showing music, negative for editing
+    public int getChordSymbolsDisplayTransposition() // TODO #534 The ints should be positive for showing music, negative for editing
     {
-        return prefs.getInt(PROP_DISPLAY_TRANSPOSITION, 0);
+        return prefs.getInt(PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION, 0);
     }
 
     /**
-     * Set the key transposition applied all music notation shown in the UI.
+     * Set the key transposition applied to chord symbols shown in the UI.
      * <p>
      * Ex: if transposition=-2, chord=B7 will be shown as C#7.
      *
-     * @param t [0;-11]
+     * @param transposition [0;-11]
      */
-    public void setDisplayTransposition(int t)
+    public void setChordSymbolsDisplayTransposition(int transposition)
     {
-        if (t < -11 || t > 0)
-        {
-            throw new IllegalArgumentException("t=" + t);
-        }
+        Preconditions.checkArgument(transposition >= -11 && transposition <= 0, "transposition=" + transposition);
 
-        int old = getDisplayTransposition();
-        prefs.putInt(PROP_DISPLAY_TRANSPOSITION, t);
-        pcs.firePropertyChange(PROP_DISPLAY_TRANSPOSITION, old, t);
-        fireIsMusicGenerationModified(PROP_DISPLAY_TRANSPOSITION, t);
+        int old = getChordSymbolsDisplayTransposition();
+        prefs.putInt(PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION, transposition);
+        pcs.firePropertyChange(PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION, old, transposition);
+        fireIsMusicGenerationModified(PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION, transposition);
     }
 
     /**
