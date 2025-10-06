@@ -63,7 +63,7 @@ import org.openide.util.*;
  * - chord symbol changes (add/remove/change/moveAll)<br>
  * - rhythm parameter value changes<br>
  * - existing user phrase content changes (but not for add/remove user phrase events)<br>
- * - MidiMix instrument velocity changes, plus drum keymap and drum rerouting changes<br>
+ * - MidiMix instrument transposition/velocity changes, plus drum keymap and drum rerouting changes<br>
  * <p>
  * If change can't be handled as an update (eg a song part tempo factor change or a click setting), session is marked dirty (ie needs regeneration). If session
  * is dirty, editors can still show the playback point using the control track but the "dirty" changes are not heard.
@@ -404,11 +404,6 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
                     case PlaybackSettings.PROP_PLAYBACK_CLICK_ENABLED ->
                     {
                         doUpdate = true;
-                    }
-                    case PlaybackSettings.PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION ->
-                    {
-                        // TODO #534 This should probably not be sent here in the first place, stop it up the chain.
-                        // NO-OP
                     }
 
                     //

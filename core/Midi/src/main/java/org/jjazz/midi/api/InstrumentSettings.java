@@ -47,7 +47,7 @@ import org.openide.util.lookup.ServiceProvider;
 public class InstrumentSettings implements Serializable
 {
 
-    public final static String PROPERTY_TRANSPOSITION = "Transposition"; // ?
+    public final static String PROPERTY_TRANSPOSITION = "Transposition";
     public final static String PROPERTY_VELOCITY_SHIFT = "VelocityShift";
     public final static String PROPERTY_VOLUME = "Volume";
     public final static String PROPERTY_PANORAMIC = "Panoramic";
