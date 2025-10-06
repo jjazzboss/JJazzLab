@@ -44,7 +44,8 @@ import org.openide.windows.WindowManager;
 @ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
         {
-            @ActionReference(path = "Actions/BarInsert", position = 100)
+            @ActionReference(path = "Actions/BarInsert", position = 100),
+            @ActionReference(path = "Shortcuts", name ="I")
         })
 public class InsertBar extends CL_ContextAction 
 {

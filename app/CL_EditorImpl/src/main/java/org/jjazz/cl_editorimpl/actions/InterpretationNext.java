@@ -50,7 +50,8 @@ import org.openide.awt.ActionRegistration;
 @ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
         {
-            @ActionReference(path = "Actions/ChordSymbolInterpretation", position = 5, separatorAfter = 6)
+            @ActionReference(path = "Actions/ChordSymbolInterpretation", position = 5, separatorAfter = 6),
+            @ActionReference(path = "Shortcuts", name="P")
         })
 public final class InterpretationNext extends CL_ContextAction
 {

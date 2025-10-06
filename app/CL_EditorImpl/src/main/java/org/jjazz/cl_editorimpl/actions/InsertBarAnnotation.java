@@ -50,7 +50,8 @@ import org.openide.awt.ActionRegistration;
 @ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
         {
-            @ActionReference(path = "Actions/BarInsert", position = 120)
+            @ActionReference(path = "Actions/BarInsert", position = 120),
+            @ActionReference(path = "Shortcuts", name="O-L")
         })
 public class InsertBarAnnotation extends CL_ContextAction
 {

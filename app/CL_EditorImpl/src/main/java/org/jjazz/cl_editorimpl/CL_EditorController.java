@@ -125,21 +125,11 @@ public class CL_EditorController implements CL_EditorMouseListener
         hearChordAction = Actions.forID("JJazz", "org.jjazz.cl_editor.actions.hearchord");
 
 
-        // Actions created by annotations (equivalent to org.openide.awt.Actions.context())
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(HearChord.KEYSTROKE, "HearChord");
-        editor.getActionMap().put("HearChord", hearChordAction);
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(RemoveBar.KEYSTROKE, "RemoveBar");
-        editor.getActionMap().put("RemoveBar", Actions.forID("JJazz", "org.jjazz.cl_editor.actions.removebar"));
+        // Actions created by annotations without a global shortcut 
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(MoveItemLeft.KEYSTROKE, "MoveItemLeft");
         editor.getActionMap().put("MoveItemLeft", Actions.forID("JJazz", "org.jjazz.cl_editor.actions.moveitemleft"));
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(MoveItemRight.KEYSTROKE, "MoveItemRight");
         editor.getActionMap().put("MoveItemRight", Actions.forID("JJazz", "org.jjazz.cl_editor.actions.moveitemright"));
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(SetEndBar.KEYSTROKE, "SetEndBar");
-        editor.getActionMap().put("SetEndBar", Actions.forID("JJazz", "org.jjazz.cl_editor.actions.setendbar"));
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(InsertBar.KEYSTROKE, "InsertBar");
-        editor.getActionMap().put("InsertBar", Actions.forID("JJazz", "org.jjazz.cl_editor.actions.InsertBar"));
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(InterpretationNext.KEYSTROKE, "NextInterpretation");
-        editor.getActionMap().put("NextInterpretation", Actions.forID("JJazz", "org.jjazz.cl_editor.actions.interpretationnext"));
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(AccentOptionsStronger.KEYSTROKE, "AccentStronger");
         editor.getActionMap().put("AccentStronger", Actions.forID("JJazz", "org.jjazz.cl_editor.actions.accentstronger"));
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(AccentOptionsCrash.KEYSTROKE, "AccentChangeCrash");
@@ -148,10 +138,6 @@ public class CL_EditorController implements CL_EditorMouseListener
         editor.getActionMap().put("ExtendHoldShot", Actions.forID("JJazz", "org.jjazz.cl_editor.actions.extendholdshot"));
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(ToggleBarAnnotations.KEYSTROKE, "ToggleBarAnnotations");
         editor.getActionMap().put("ToggleBarAnnotations", ToggleBarAnnotations.getInstance(editor));
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(InsertBarAnnotation.KEYSTROKE, "InsertBarAnnotation");
-        editor.getActionMap().put("InsertBarAnnotation", Actions.forID("JJazz", "org.jjazz.cl_editor.actions.insertbarannotation"));
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(InsertSection.KEYSTROKE, "InsertSection");
-        editor.getActionMap().put("InsertSection", Actions.forID("JJazz", "org.jjazz.cl_editor.actions.insertsection"));
 
 
         // Our delegates for standard Netbeans callback actions
@@ -180,6 +166,7 @@ public class CL_EditorController implements CL_EditorMouseListener
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("shift G"), "jjazz-edit");
         editor.getActionMap().put("jjazz-edit", editAction);
 
+        
         // Other actions
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("LEFT"), "MoveSelectionLeft");
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("shift TAB"), "MoveSelectionLeft");

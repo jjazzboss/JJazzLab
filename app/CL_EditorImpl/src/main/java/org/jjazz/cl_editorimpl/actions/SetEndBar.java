@@ -46,6 +46,7 @@ import org.jjazz.utilities.api.ResUtil;
 @ActionReferences(
         {
             @ActionReference(path = "Actions/Bar", position = 205),
+            @ActionReference(path = "Shortcuts", name = "D-E")
         })
 public final class SetEndBar extends CL_ContextAction
 {
@@ -58,7 +59,7 @@ public final class SetEndBar extends CL_ContextAction
     {
         putValue(NAME, ResUtil.getString(getClass(), "CTL_SetEndBar"));
         putValue(ACCELERATOR_KEY, KEYSTROKE);
-        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.BAR_SELECTION));                
+        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.BAR_SELECTION));
     }
 
     @Override
@@ -89,7 +90,8 @@ public final class SetEndBar extends CL_ContextAction
         endBar = -1;
         if (selection.getSelectedBars().size() == 1)
         {
-            b = true;
+            int bar = selection.getBarRange().from;
+            b = bar != (getActiveChordLeadSheet().getSizeInBars() - 1);
             endBar = selection.getMinBarIndex();
         }
         setEnabled(b);

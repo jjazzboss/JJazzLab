@@ -46,6 +46,7 @@ import org.openide.awt.ActionRegistration;
 @ActionReferences(
         {
             @ActionReference(path = "Actions/Bar", position = 400),
+            @ActionReference(path = "Shortcuts", name="S-DELETE")
         })
 public class RemoveBar extends CL_ContextAction
 {

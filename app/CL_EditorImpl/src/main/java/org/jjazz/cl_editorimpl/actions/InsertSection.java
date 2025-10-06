@@ -50,7 +50,8 @@ import org.openide.awt.ActionRegistration;
 @ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
         {
-            @ActionReference(path = "Actions/BarInsert", position = 110)
+            @ActionReference(path = "Actions/BarInsert", position = 110),
+            @ActionReference(path = "Shortcuts", name = "T")
         })
 public class InsertSection extends CL_ContextAction
 {
@@ -63,7 +64,7 @@ public class InsertSection extends CL_ContextAction
     {
         putValue(NAME, ResUtil.getString(getClass(), "CTL_InsertSection"));
         putValue(ACCELERATOR_KEY, KEYSTROKE);
-        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.BAR_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES));        
+        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.BAR_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES));
     }
 
     @Override

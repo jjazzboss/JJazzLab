@@ -58,6 +58,7 @@ import org.openide.awt.ActionRegistration;
 @ActionReferences(
         {
             @ActionReference(path = "Actions/ChordSymbol", position = 2010),
+            @ActionReference(path = "Shortcuts", name="M")
         })
 public final class HearChord extends CL_ContextAction
 {
