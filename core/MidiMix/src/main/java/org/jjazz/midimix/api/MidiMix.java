@@ -136,7 +136,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
     /**
      * oldValue=InstumentMix, newValue=transposition value.
      */
-    public static final String PROP_INSTRUMENT_TRANSPOSITION = "InstrumentTransposition"; // ?
+    public static final String PROP_INSTRUMENT_TRANSPOSITION = "InstrumentTransposition";
     /**
      * oldValue=InstumentMix, newValue=velocity shift value.
      */
