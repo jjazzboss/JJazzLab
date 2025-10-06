@@ -95,10 +95,7 @@ public class PlaybackSettings
      */
     public static final String PROP_VETO_PRE_PLAYBACK = "PropVetoPrePlayback";
     public static final String PROP_LOOPCOUNT = "PropLoopCount";
-
-    // TODO #534 This should ideally be moved somewhere not related with music playback.
     public static final String PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION = "DisplayTransposition";
-
     public static final String PROP_CLICK_PITCH_HIGH = "ClickPitchHigh";
     public static final String PROP_CLICK_PITCH_LOW = "ClickPitchLow";
     public static final String PROP_CLICK_VELOCITY_HIGH = "ClickVelocityHigh";
@@ -164,28 +161,27 @@ public class PlaybackSettings
     /**
      * Get the key transposition applied to chord symbols shown in the UI.
      *
-     * @return [0;-11] Default is 0.
+     * @return [0, 12) Default is 0.
      */
-    public int getChordSymbolsDisplayTransposition() // TODO #534 The ints should be positive for showing music, negative for editing
+    public int getChordSymbolsDisplayTransposition()
     {
-        return prefs.getInt(PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION, 0);
+        return - prefs.getInt(PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION, 0); // Saved as negative range for backwards compatibility
     }
 
     /**
      * Set the key transposition applied to chord symbols shown in the UI.
      * <p>
-     * Ex: if transposition=-2, chord=B7 will be shown as C#7.
+     * Ex: if transposition=2, chord=B7 will be shown as C#7.
      *
-     * @param transposition [0;-11]
+     * @param transposition int in range [0, 12)
      */
     public void setChordSymbolsDisplayTransposition(int transposition)
     {
-        Preconditions.checkArgument(transposition >= -11 && transposition <= 0, "transposition=" + transposition);
+        Preconditions.checkArgument(transposition >= 0 && transposition < 12, "transposition=" + transposition);
 
         int old = getChordSymbolsDisplayTransposition();
-        prefs.putInt(PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION, transposition);
+        prefs.putInt(PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION, - transposition); // Save as negative range for backwards compatibility
         pcs.firePropertyChange(PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION, old, transposition);
-        fireIsMusicGenerationModified(PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION, transposition);
     }
 
     /**
