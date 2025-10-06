@@ -63,14 +63,8 @@ public class InsertSection extends CL_ContextAction
     {
         putValue(NAME, ResUtil.getString(getClass(), "CTL_InsertSection"));
         putValue(ACCELERATOR_KEY, KEYSTROKE);
+        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.BAR_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES));        
     }
-
-    @Override
-    protected EnumSet<ListeningTarget> getListeningTargets()
-    {
-        return EnumSet.of(ListeningTarget.BAR_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES);
-    }
-
 
     @Override
     protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)

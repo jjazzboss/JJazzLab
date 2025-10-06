@@ -22,19 +22,12 @@
  */
 package org.jjazz.cl_editorimpl.actions;
 
-import org.jjazz.cl_editor.api.CL_ContextActionListener;
-import org.jjazz.cl_editor.api.CL_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.EnumSet;
 import java.util.logging.Logger;
-import javax.swing.AbstractAction;
 import javax.swing.KeyStroke;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.chordleadsheet.api.ClsChangeListener;
-import org.jjazz.chordleadsheet.api.UnsupportedEditException;
-import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
-import org.jjazz.chordleadsheet.api.event.SizeChangedEvent;
 import org.jjazz.cl_editor.api.CL_ContextAction;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
 import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
@@ -42,8 +35,6 @@ import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.Lookup;
-import org.openide.util.Utilities;
 
 /**
  * Move selected items left.
@@ -65,12 +56,7 @@ public class MoveItemLeft extends CL_ContextAction
     {
         putValue(NAME, ResUtil.getString(getClass(), "CTL_MoveItemLeft"));
         putValue(ACCELERATOR_KEY, KEYSTROKE);
-    }
-
-    @Override
-    protected EnumSet<ListeningTarget> getListeningTargets()
-    {
-        return EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION);
+        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION));        
     }
 
     @Override

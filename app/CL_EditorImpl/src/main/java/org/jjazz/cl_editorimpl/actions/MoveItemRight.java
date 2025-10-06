@@ -67,12 +67,7 @@ public class MoveItemRight extends CL_ContextAction
     {
         putValue(NAME, ResUtil.getString(getClass(), "CTL_MoveItemRight"));
         putValue(ACCELERATOR_KEY, KEYSTROKE);
-    }
-
-    @Override
-    protected EnumSet<ListeningTarget> getListeningTargets()
-    {
-        return EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION);
+        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION));        
     }
 
     @Override

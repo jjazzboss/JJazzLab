@@ -66,12 +66,7 @@ public final class Interpretation extends CL_ContextAction implements Presenter.
     {
         putValue(NAME, ResUtil.getString(getClass(), "CTL_Interpretation"));
         putValue(ACCELERATOR_KEY, KEYSTROKE);
-    }
-
-    @Override
-    protected EnumSet<CL_ContextAction.ListeningTarget> getListeningTargets()
-    {
-        return EnumSet.of(CL_ContextAction.ListeningTarget.CLS_ITEMS_SELECTION);
+        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION));        
     }
 
     @Override

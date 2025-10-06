@@ -59,29 +59,25 @@ import org.openide.util.actions.Presenter;
         })
 public final class AccentShot extends CL_ContextAction implements Presenter.Popup
 {
+
     private JRadioButtonMenuItem rbMenuItem;
     private static final Logger LOGGER = Logger.getLogger(AccentShot.class.getSimpleName());
 
-        @Override
+    @Override
     protected void configureAction()
     {
         putValue(NAME, ResUtil.getString(getClass(), "CTL_AccentShot"));
+        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES));
     }
-    
-    @Override
-    protected EnumSet<ListeningTarget> getListeningTargets()
-    {
-        return EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES);
-    }
-    
+
     @Override
     public void selectionChange(CL_SelectionUtilities selection)
     {
         setEnabled(selection.isChordSymbolSelected());
         updateMenuItem(selection);
     }
-    
-       @Override
+
+    @Override
     public void chordLeadSheetChanged(ClsChangeEvent event)
     {
         var selection = getSelection();
@@ -90,9 +86,9 @@ public final class AccentShot extends CL_ContextAction implements Presenter.Popu
             updateMenuItem(selection);
         }
     }
-    
-      @Override
-    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)            
+
+    @Override
+    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)
     {
         // Nothing
     }
@@ -105,7 +101,7 @@ public final class AccentShot extends CL_ContextAction implements Presenter.Popu
     {
         if (rbMenuItem == null)
         {
-           rbMenuItem = createRadioButtonMenuItem(getActionName(), () -> setAccentShot());
+            rbMenuItem = createRadioButtonMenuItem(getActionName(), () -> setAccentShot());
         }
 
         updateMenuItem(getSelection());
@@ -114,7 +110,7 @@ public final class AccentShot extends CL_ContextAction implements Presenter.Popu
     }
 
 
-     private void setAccentShot()
+    private void setAccentShot()
     {
         ChordLeadSheet cls = getActiveChordLeadSheet();
         JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(getActionName());

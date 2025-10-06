@@ -90,6 +90,7 @@ public class Paste extends CL_ContextAction implements FlavorListener
         putValue(ACCELERATOR_KEY, KEYSTROKE);
         Icon icon = SystemAction.get(PasteAction.class).getIcon();
         putValue(SMALL_ICON, icon);
+        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES, ListeningTarget.BAR_SELECTION));        
 
 
         // Listen to clipboard contents changes        
@@ -97,12 +98,6 @@ public class Paste extends CL_ContextAction implements FlavorListener
         var clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
         FlavorListener weakListener = WeakListeners.create(FlavorListener.class, this, clipboard);
         clipboard.addFlavorListener(weakListener);
-    }
-
-    @Override
-    protected EnumSet<ListeningTarget> getListeningTargets()
-    {
-        return EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION, ListeningTarget.BAR_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES);
     }
 
     @Override

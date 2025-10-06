@@ -91,14 +91,8 @@ public class InsertChordProgression extends CL_ContextAction implements Presente
     protected void configureAction()
     {
         putValue(NAME, ResUtil.getString(getClass(), "CTL_InsertChordProgression"));
+        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.BAR_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES));        
     }
-
-    @Override
-    protected EnumSet<ListeningTarget> getListeningTargets()
-    {
-        return EnumSet.of(ListeningTarget.BAR_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES);
-    }
-
 
     @Override
     protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)

@@ -66,12 +66,7 @@ public final class InterpretationBassPedal extends CL_ContextAction implements P
     protected void configureAction()
     {
         putValue(NAME, ResUtil.getString(getClass(), "CTL_InterpretationBassPedal"));
-    }
-
-    @Override
-    protected EnumSet<CL_ContextAction.ListeningTarget> getListeningTargets()
-    {
-        return EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES);
+        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES));        
     }
 
     @Override

@@ -66,12 +66,7 @@ public final class InterpretationNormal extends CL_ContextAction implements Pres
     protected void configureAction()
     {
         putValue(NAME, ResUtil.getString(getClass(), "CTL_InterpretationNormal"));
-    }
-
-    @Override
-    protected EnumSet<CL_ContextAction.ListeningTarget> getListeningTargets()
-    {
-        return EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES);
+        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES));        
     }
 
     @Override

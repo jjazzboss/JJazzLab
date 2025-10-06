@@ -67,12 +67,7 @@ public final class AccentNormal extends CL_ContextAction implements Presenter.Po
     protected void configureAction()
     {
         putValue(NAME, ResUtil.getString(getClass(), "CTL_AccentDefault"));
-    }
-
-    @Override
-    protected EnumSet<ListeningTarget> getListeningTargets()
-    {
-        return EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES);
+        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES));
     }
 
     @Override

@@ -61,12 +61,7 @@ public final class Insert extends CL_ContextAction implements Presenter.Popup
     protected void configureAction()
     {
         putValue(NAME, ResUtil.getString(getClass(), "CTL_Insert"));
-    }
-
-    @Override
-    protected EnumSet<ListeningTarget> getListeningTargets()
-    {
-        return EnumSet.of(ListeningTarget.BAR_SELECTION);
+        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.BAR_SELECTION));
     }
 
     @Override

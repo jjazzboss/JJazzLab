@@ -63,12 +63,7 @@ public final class SectionAtNewLine extends CL_ContextAction implements Presente
     protected void configureAction()
     {
         putValue(NAME, ResUtil.getString(getClass(), "CTL_SectionAtNewLine"));
-    }
-
-    @Override
-    protected EnumSet<ListeningTarget> getListeningTargets()
-    {
-        return EnumSet.of(ListeningTarget.BAR_SELECTION, ListeningTarget.CLS_ITEMS_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES);
+        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES, ListeningTarget.BAR_SELECTION));
     }
 
     @Override

@@ -79,12 +79,7 @@ public class Cut extends CL_ContextAction implements ClipboardOwner
         Icon icon = SystemAction.get(CutAction.class).getIcon();
         putValue(SMALL_ICON, icon);
         putValue(ACCELERATOR_KEY, KEYSTROKE);
-    }
-
-    @Override
-    protected EnumSet<ListeningTarget> getListeningTargets()
-    {
-        return EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION, ListeningTarget.BAR_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES);
+        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES, ListeningTarget.BAR_SELECTION));                
     }
 
     @Override

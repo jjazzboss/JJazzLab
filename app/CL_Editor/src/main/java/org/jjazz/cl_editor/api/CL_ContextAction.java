@@ -23,25 +23,42 @@
 package org.jjazz.cl_editor.api;
 
 import java.awt.event.ActionEvent;
+import java.lang.reflect.InvocationTargetException;
 import java.util.EnumSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
+import javax.swing.Action;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.ClsChangeListener;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
+import org.openide.util.ContextAwareAction;
+import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.util.Utilities;
 
 
 /**
- * A base class to simplify CL_Editor context aware actions.
+ * A base class for CL_Editor context aware actions.
  * <p>
- * Relies on CL_ContextActionSupport.
+ * To be used by actions which act on the selection (chord symbols, bars, etc.), and whose enabled state depends on this selection.
+ *
+ * @see CL_ContextActionSupport
  */
-public abstract class CL_ContextAction extends AbstractAction implements CL_ContextActionListener, ClsChangeListener
+public abstract class CL_ContextAction extends AbstractAction implements CL_ContextActionListener, ClsChangeListener, ContextAwareAction
 {
+
+    /**
+     * Action property which defines the items listened to.
+     * <p>
+     * Expected value is an EnumSet&lt;ListeningTarget&gt;.
+     *
+     * @see #selectionChange(org.jjazz.cl_editor.api.CL_SelectionUtilities)
+     * @see #chordLeadSheetChanged(org.jjazz.chordleadsheet.api.event.ClsChangeEvent)
+     */
+    public static final String LISTENING_TARGETS = "ListeningTargets";
+
     public enum ListeningTarget
     {
         CLS_ITEMS_SELECTION, // CLI_ChordSymbol, CLI_Section, etc.
@@ -49,23 +66,18 @@ public abstract class CL_ContextAction extends AbstractAction implements CL_Cont
         ACTIVE_CLS_CHANGES   // Changes of the active ChordLeadSheet
     };
 
-    private final Lookup context;
+    private Lookup context;
     private CL_ContextActionSupport cap;
     private static final Logger LOGGER = Logger.getLogger(CL_ContextAction.class.getSimpleName());
 
+    /**
+     * Create an action which listens to all possible ListeningTargets in the global context.
+     *
+     * @see #configureAction()
+     */
     public CL_ContextAction()
     {
-        this(Utilities.actionsGlobalContext());
-    }
-
-    /**
-     * Constructor needed if subclass implements ContextAwareAction.
-     *
-     * @param context
-     */
-    public CL_ContextAction(Lookup context)
-    {
-        this.context = context;
+        context = Utilities.actionsGlobalContext();
         configureAction();
     }
 
@@ -111,7 +123,7 @@ public abstract class CL_ContextAction extends AbstractAction implements CL_Cont
             LOGGER.log(Level.WARNING, "actionPerformed(ActionEvent) cls is null. this={0}", getClass());
         }
     }
-    
+
     /**
      * The latest selection.
      *
@@ -135,24 +147,17 @@ public abstract class CL_ContextAction extends AbstractAction implements CL_Cont
 
 
     /**
-     * Configure the action, typically using Action.putValue().
+     * Let subclass configure the action, typically using Action.putValue().
      * <p>
-     * Called by CL_ContextAction constructors. Default implementation does nothing.
+     * Default implementation sets the listening targets to all possible values.
      * <p>
-     * Override to customize (important if your action is registered with lazy=false).
+     * If the action is registered with lazy=false, you probably need to set at least Action.NAME (and possibly other properties such as Action.ACCELERATOR_KEY,
+     * Action.SMALL_ICON or Action.SHORT_DESCRIPTION).
      */
     protected void configureAction()
     {
-
+        putValue(LISTENING_TARGETS, EnumSet.allOf(ListeningTarget.class));
     }
-
-    /**
-     * Provide the ListeningTarget which needs to be listened to.
-     * <p>
-     *
-     * @return
-     */
-    abstract protected EnumSet<ListeningTarget> getListeningTargets();
 
     /**
      * Perform the action.
@@ -169,10 +174,31 @@ public abstract class CL_ContextAction extends AbstractAction implements CL_Cont
      * Typically used to update the enabled state.
      *
      * @param selection
+     * @see #LISTENING_TARGETS
      */
     @Override
     abstract public void selectionChange(CL_SelectionUtilities selection);
 
+    // ============================================================================================= 
+    // ContextAwareAction
+    // =============================================================================================  
+    @Override
+    public Action createContextAwareInstance(Lookup lkp)
+    {
+        CL_ContextAction res = this;
+        if (context != lkp)
+        {
+            try
+            {
+                res = getClass().getDeclaredConstructor().newInstance();        // So it works with subclass
+            } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex)
+            {
+                Exceptions.printStackTrace(ex);
+            }
+            res.setContext(lkp);
+        }
+        return res;
+    }
 
     // ============================================================================================= 
     // ClsChangeListener implementation
@@ -192,6 +218,7 @@ public abstract class CL_ContextAction extends AbstractAction implements CL_Cont
      * Default implementation does nothing.
      *
      * @param event
+     * @see #LISTENING_TARGETS
      */
     @Override
     public void chordLeadSheetChanged(ClsChangeEvent event)
@@ -224,5 +251,25 @@ public abstract class CL_ContextAction extends AbstractAction implements CL_Cont
         selectionChange(cap.getSelection());
     }
 
+    /**
+     * Convert the Action property into an EnumSet.
+     *
+     * @return
+     */
+    private EnumSet<ListeningTarget> getListeningTargets()
+    {
+        EnumSet<ListeningTarget> res = EnumSet.noneOf(ListeningTarget.class);
+        var value = getValue(LISTENING_TARGETS);
+        if (value instanceof EnumSet es)
+        {
+            res = es;
+        }
+        return res;
+    }
+
+    private void setContext(Lookup context)
+    {
+        this.context = context;
+    }
 
 }

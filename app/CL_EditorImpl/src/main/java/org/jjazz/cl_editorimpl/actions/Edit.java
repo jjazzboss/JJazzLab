@@ -93,12 +93,7 @@ public class Edit extends CL_ContextAction
     {
         putValue(NAME, ResUtil.getString(getClass(), "CTL_Edit"));
         putValue(ACCELERATOR_KEY, KEYSTROKE);
-    }
-
-    @Override
-    protected EnumSet<ListeningTarget> getListeningTargets()
-    {
-        return EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION, ListeningTarget.BAR_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES);
+        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES, ListeningTarget.BAR_SELECTION));                
     }
 
     /**

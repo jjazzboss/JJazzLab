@@ -64,12 +64,7 @@ public final class InterpretationNext extends CL_ContextAction
     {
         putValue(NAME, ResUtil.getString(getClass(), "CTL_InterpretationNext"));
         putValue(ACCELERATOR_KEY, KEYSTROKE);
-    }
-
-    @Override
-    protected EnumSet<CL_ContextAction.ListeningTarget> getListeningTargets()
-    {
-        return EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION);
+        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION));        
     }
 
     @Override

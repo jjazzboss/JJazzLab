@@ -66,13 +66,9 @@ public final class AccentHold extends CL_ContextAction implements Presenter.Popu
     protected void configureAction()
     {
         putValue(NAME, ResUtil.getString(getClass(), "CTL_AccentHold"));
+        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES));
     }
-    
-    @Override
-    protected EnumSet<ListeningTarget> getListeningTargets()
-    {
-        return EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES);
-    }
+   
     
     @Override
     public void selectionChange(CL_SelectionUtilities selection)

@@ -58,12 +58,7 @@ public final class SetEndBar extends CL_ContextAction
     {
         putValue(NAME, ResUtil.getString(getClass(), "CTL_SetEndBar"));
         putValue(ACCELERATOR_KEY, KEYSTROKE);
-    }
-
-    @Override
-    protected EnumSet<ListeningTarget> getListeningTargets()
-    {
-        return EnumSet.of(ListeningTarget.BAR_SELECTION);
+        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.BAR_SELECTION));                
     }
 
     @Override

@@ -74,12 +74,7 @@ public final class AccentOptionsCrash extends CL_ContextAction implements Presen
     {
         putValue(NAME, ResUtil.getString(getClass(), "CTL_AccentChangeCrash"));
         putValue(ACCELERATOR_KEY, KEYSTROKE);
-    }
-
-    @Override
-    protected EnumSet<ListeningTarget> getListeningTargets()
-    {
-        return EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES);
+        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES));
     }
 
     @Override
