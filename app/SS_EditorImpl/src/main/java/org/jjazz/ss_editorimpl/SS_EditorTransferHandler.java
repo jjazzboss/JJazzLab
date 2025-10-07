@@ -41,7 +41,7 @@ import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.songstructure.api.SongPartParameter;
 import org.jjazz.ss_editor.api.SS_Editor;
-import org.jjazz.ss_editor.api.SS_SelectionUtilities;
+import org.jjazz.ss_editor.api.SS_Selection;
 import org.jjazz.ss_editor.sptviewer.api.SptViewer;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
@@ -239,7 +239,7 @@ public class SS_EditorTransferHandler extends TransferHandler
 
 
         // Unselect all, restore at the end
-        SS_SelectionUtilities selection = new SS_SelectionUtilities(editor.getLookup());
+        SS_Selection selection = new SS_Selection(editor.getLookup());
         selection.unselectAll(editor);
 
 
@@ -301,7 +301,7 @@ public class SS_EditorTransferHandler extends TransferHandler
         CLI_Section parentSection = getTransferredSection(info.getTransferable());
         assert parentSection != null;
 
-        SS_SelectionUtilities selection = new SS_SelectionUtilities(editor.getLookup());
+        SS_Selection selection = new SS_Selection(editor.getLookup());
         selection.unselectAll(editor);
 
         // Calculate insertion point

@@ -41,7 +41,7 @@ import org.jjazz.songstructure.api.SongPart;
  * Selected items can be either SongPart or RhythmParameters, but not both in the same time. Returned SongParts or
  * SongPartParameters are ordered by startBarIndex.
  */
-final public class SS_SelectionUtilities
+final public class SS_Selection
 {
 
     private List<SongPart> songParts = new ArrayList<>();
@@ -51,9 +51,9 @@ final public class SS_SelectionUtilities
     private boolean isContiguousSptSelection;
     private boolean isRhythmParameterCompatible;
     private boolean isSameRhythm;
-    private static final Logger LOGGER = Logger.getLogger(SS_SelectionUtilities.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(SS_Selection.class.getSimpleName());
 
-    public SS_SelectionUtilities(List<SongPart> spts)
+    public SS_Selection(List<SongPart> spts)
     {
         refreshSongParts(spts);
     }
@@ -62,7 +62,7 @@ final public class SS_SelectionUtilities
      * @param sptps
      * @param not_used Not used, just to avoid name clash with other constructor !
      */
-    public SS_SelectionUtilities(List<SongPartParameter> sptps, Object not_used)
+    public SS_Selection(List<SongPartParameter> sptps, Object not_used)
     {
         refreshRhythmParameters(sptps);
     }
@@ -73,7 +73,7 @@ final public class SS_SelectionUtilities
      * @param lookup
      * @throws IllegalStateException If lookup contains both SongParts and RhythmParameters
      */
-    public SS_SelectionUtilities(Lookup lookup)
+    public SS_Selection(Lookup lookup)
     {
         if (lookup == null)
         {

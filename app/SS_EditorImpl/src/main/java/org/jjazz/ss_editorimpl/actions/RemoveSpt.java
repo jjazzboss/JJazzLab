@@ -22,29 +22,22 @@
  */
 package org.jjazz.ss_editorimpl.actions;
 
-import org.jjazz.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
+import java.awt.event.KeyEvent;
+import java.util.EnumSet;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
-import static javax.swing.Action.SMALL_ICON;
-import javax.swing.Icon;
 import javax.swing.KeyStroke;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
-import org.jjazz.ss_editor.api.SS_SelectionUtilities;
+import org.jjazz.ss_editor.api.SS_Selection;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
-import org.openide.actions.DeleteAction;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.ContextAwareAction;
-import org.openide.util.Lookup;
-import org.openide.util.Utilities;
-import org.openide.util.actions.SystemAction;
 import org.jjazz.songstructure.api.SongStructure;
-import org.jjazz.ss_editor.api.SS_ContextActionListener;
+import org.jjazz.ss_editor.api.SS_ContextAction;
+import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.utilities.api.ResUtil;
 
@@ -54,37 +47,24 @@ import org.jjazz.utilities.api.ResUtil;
         {
             @ActionReference(path = "Actions/SongPart", position = 400),
         })
-public class RemoveSpt extends AbstractAction implements ContextAwareAction, SS_ContextActionListener
+public class RemoveSpt extends SS_ContextAction
 {
+        public static final KeyStroke KEYSTROKE = getGenericControlKeyStroke(KeyEvent.VK_C);
 
-    private Lookup context;
-    private SS_ContextActionSupport cap;
-    private String undoText = ResUtil.getString(getClass(), "CTL_RemoveSpt");
-
-    public RemoveSpt()
+    @Override
+    protected void configureAction()
     {
-        this(Utilities.actionsGlobalContext());
-    }
-
-    public RemoveSpt(Lookup context)
-    {
-        this.context = context;
-        cap = SS_ContextActionSupport.getInstance(this.context);
-        cap.addListener(this);
-        putValue(NAME, undoText);
-        Icon icon = SystemAction.get(DeleteAction.class).getIcon();
-        putValue(SMALL_ICON, icon);
-        putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke("DELETE"));
-        selectionChange(cap.getSelection());
+        putValue(NAME, ResUtil.getString(getClass(), "CTL_RemoveSpt"));
+        putValue(ACCELERATOR_KEY, KEYSTROKE);
+        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.SONG_PART_SELECTION));
     }
 
     @Override
-    public void actionPerformed(ActionEvent e)
+    protected void actionPerformed(ActionEvent ae, SS_Selection selection)
     {
-        SS_SelectionUtilities selection = cap.getSelection();
         SongStructure sgs = selection.getModel();
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(sgs);
-        um.startCEdit(undoText);;
+        um.startCEdit(getActionName());;
         try
         {
             sgs.removeSongParts(selection.getSelectedSongParts());
@@ -92,21 +72,15 @@ public class RemoveSpt extends AbstractAction implements ContextAwareAction, SS_
         {
             String msg = ResUtil.getString(getClass(), "ERR_CantRemoveSongParts");
             msg += "\n" + ex.getLocalizedMessage();
-            um.abortCEdit(undoText, msg);
+            um.abortCEdit(getActionName(), msg);
             return;
         }
-        um.endCEdit(undoText);
+        um.endCEdit(getActionName());
     }
 
     @Override
-    public void selectionChange(SS_SelectionUtilities selection)
+    public void selectionChange(SS_Selection selection)
     {
         setEnabled(selection.isSongPartSelected());
-    }
-
-    @Override
-    public Action createContextAwareInstance(Lookup context)
-    {
-        return new RemoveSpt(context);
     }
 }

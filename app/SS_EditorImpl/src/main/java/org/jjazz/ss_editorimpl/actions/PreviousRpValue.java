@@ -22,70 +22,53 @@
  */
 package org.jjazz.ss_editorimpl.actions;
 
-import org.jjazz.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import javax.swing.AbstractAction;
+import java.util.EnumSet;
 import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
 import javax.swing.KeyStroke;
 import org.jjazz.rhythm.api.RhythmParameter;
-import org.jjazz.ss_editor.api.SS_SelectionUtilities;
+import org.jjazz.ss_editor.api.SS_Selection;
 import org.jjazz.songstructure.api.SongPartParameter;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
-import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.ss_editor.api.SS_ContextActionListener;
 import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.rhythm.api.RpEnumerable;
+import org.jjazz.ss_editor.api.SS_ContextAction;
 import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ss_editorimpl.actions.previousrpvalue")
-@ActionRegistration(displayName = "#CTL_PreviousRpValue", lazy = false)
+@ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
         {
             @ActionReference(path = "Actions/RhythmParameter", position = 450),
         })
-public final class PreviousRpValue extends AbstractAction implements ContextAwareAction, SS_ContextActionListener
+public final class PreviousRpValue extends SS_ContextAction
 {
 
     public static final KeyStroke KEYSTROKE = getGenericControlKeyStroke(KeyEvent.VK_DOWN);
-    private Lookup context;
-    private SS_ContextActionSupport cap;
-    private String undoText = ResUtil.getString(getClass(), "CTL_PreviousRpValue");
 
-    public PreviousRpValue()
-    {
-        this(Utilities.actionsGlobalContext());
-    }
-
-    public PreviousRpValue(Lookup context)
-    {
-        this.context = context;
-        cap = SS_ContextActionSupport.getInstance(this.context);
-        cap.addListener(this);
-        putValue(NAME, undoText);                          // For popupmenu 
-        putValue(ACCELERATOR_KEY, KEYSTROKE);    // For popupmenu
-    }
-
-    @SuppressWarnings(
-            {
-                "unchecked", "rawtypes"
-            })
     @Override
-    public void actionPerformed(ActionEvent e)
+    protected void configureAction()
     {
-        SS_SelectionUtilities selection = cap.getSelection();
+        putValue(NAME, ResUtil.getString(getClass(), "CTL_PreviousRpValue"));
+        putValue(ACCELERATOR_KEY, KEYSTROKE);
+        putValue(LISTENING_TARGETS, EnumSet.of(SS_ContextAction.ListeningTarget.RHYTHM_PARAMETER_SELECTION));
+    }
+
+    @Override
+    protected void actionPerformed(ActionEvent ae, SS_Selection selection)
+    {
         SongStructure sgs = selection.getModel();
-        JJazzUndoManagerFinder.getDefault().get(sgs).startCEdit(undoText);
+        JJazzUndoManagerFinder.getDefault().get(sgs).startCEdit(getActionName());
         for (SongPartParameter sptp : selection.getSelectedSongPartParameters())
         {
             RhythmParameter rp = sptp.getRp();
@@ -96,18 +79,12 @@ public final class PreviousRpValue extends AbstractAction implements ContextAwar
                 sgs.setRhythmParameterValue(spt, rp, newValue);
             }
         }
-        JJazzUndoManagerFinder.getDefault().get(sgs).endCEdit(undoText);
+        JJazzUndoManagerFinder.getDefault().get(sgs).endCEdit(getActionName());
     }
 
     @Override
-    public void selectionChange(SS_SelectionUtilities selection)
+    public void selectionChange(SS_Selection selection)
     {
         setEnabled(selection.isEnumerableRhythmParameterSelected());
-    }
-
-    @Override
-    public Action createContextAwareInstance(Lookup context)
-    {
-        return new PreviousRpValue(context);
     }
 }

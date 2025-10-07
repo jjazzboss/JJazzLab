@@ -22,107 +22,91 @@
  */
 package org.jjazz.ss_editorimpl.actions;
 
-import org.jjazz.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.ImageIcon;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import org.jjazz.rhythm.api.RhythmParameter;
-import org.jjazz.ss_editor.api.SS_SelectionUtilities;
+import org.jjazz.ss_editor.api.SS_Selection;
 import org.jjazz.songstructure.api.SongPartParameter;
-import org.jjazz.ss_editor.api.RpCustomizeDialog;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.ContextAwareAction;
-import org.openide.util.Lookup;
-import org.openide.util.Utilities;
 import org.openide.util.actions.Presenter;
-import org.openide.windows.WindowManager;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.ss_editor.api.SS_ContextActionListener;
 import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.rhythm.api.RpEnumerable;
+import org.jjazz.ss_editor.api.SS_ContextAction;
+import static org.jjazz.ss_editor.api.SS_ContextAction.LISTENING_TARGETS;
 
+
+@SuppressWarnings(
+        {
+            "rawtypes", "unchecked"
+        })
 @ActionID(category = "JJazz", id = "org.jjazz.ss_editorimpl.actions.adjustrpvalues")
 @ActionRegistration(displayName = "#CTL_AdjustRpValues", lazy = false)
 @ActionReferences(
         {
             @ActionReference(path = "Actions/RhythmParameter", position = 550),
         })
-
-@SuppressWarnings(
-        {
-            "rawtypes", "unchecked"
-        })
-public class AdjustRpValues extends AbstractAction implements ContextAwareAction, SS_ContextActionListener, Presenter.Popup
+public class AdjustRpValues extends SS_ContextAction implements Presenter.Popup
 {
 
-    private Lookup context;
-    private SS_ContextActionSupport cap;
-    static private List<JMenuItem> goingUpItems;
-    static private List<JMenuItem> goingDownItems;
+    static private List<JMenuItem> GoingUpMenuItems;
+    static private List<JMenuItem> GoingDownMenuItems;
     private JMenu subMenu;
     private RpSelectionContext rpData;
 
     private static final Logger LOGGER = Logger.getLogger(AdjustRpValues.class.getSimpleName());
-
-    public AdjustRpValues()
+    BUG!
+    
+    @Override
+    protected void configureAction()
     {
-        this(Utilities.actionsGlobalContext());
-    }
-
-    public AdjustRpValues(Lookup context)
-    {
-        this.context = context;
-        rpData = new RpSelectionContext();
-        cap = SS_ContextActionSupport.getInstance(this.context);
-        cap.addListener(this);
-        buildMenus();
-        selectionChange(cap.getSelection());        // Make sure menu is correctly intialized at creation
-        LOGGER.log(Level.FINE, " AdjustRpValues(context)");   
+        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.RHYTHM_PARAMETER_SELECTION));
+        initItemsMenus();
     }
 
     @Override
-    public Action createContextAwareInstance(Lookup context)
+    protected void configureContextAwareAction()
     {
-        LOGGER.log(Level.FINE, " createContextAwareInstance(context)");   
-        return new AdjustRpValues(context);
+        subMenu = new JMenu();
+        subMenu.setText(ResUtil.getString(getClass(), "CTL_AdjustRpValues"));
+        rpData = new RpSelectionContext();
+        selectionChange(getSelection());
     }
 
     @Override
     public JMenuItem getPopupPresenter()
     {
-        LOGGER.log(Level.FINE, " getPopupPresenter()");   
         return subMenu;
     }
 
     @Override
-    public void actionPerformed(ActionEvent e)
+    protected void actionPerformed(ActionEvent ae, SS_Selection selection)
     {
         // NOT USED
     }
 
     @Override
-    public void selectionChange(SS_SelectionUtilities selection)
+    public void selectionChange(SS_Selection selection)
     {
         boolean b = false;
 
         if (rpData.init(selection))
         {
             subMenu.removeAll();
-            List<JMenuItem> items = (rpData.doubleValue0 > rpData.doubleValue1) ? goingDownItems : goingUpItems;
+            List<JMenuItem> items = (rpData.doubleValue0 > rpData.doubleValue1) ? GoingDownMenuItems : GoingUpMenuItems;
             for (JMenuItem item : items)
             {
                 subMenu.add(item);
@@ -130,9 +114,10 @@ public class AdjustRpValues extends AbstractAction implements ContextAwareAction
             b = true;
         }
 
-        LOGGER.log(Level.FINE, "selectionChange() b={0}", b);           
+        LOGGER.log(Level.FINE, "selectionChange() b={0}", b);
         subMenu.setEnabled(b);
     }
+
 
 //------------------------------------------------------------------------------
 // Private functions
@@ -165,7 +150,7 @@ public class AdjustRpValues extends AbstractAction implements ContextAwareAction
         for (SongPartParameter sptp : rpData.enumerableSptps)
         {
             RhythmParameter rp = sptp.getRp();
-            Object value = ((RpEnumerable) rp).calculateValue(enforceBounds(v));
+            Object value = ((RpEnumerable) rp).calculateValue(enforce0_1Range(v));
             rpData.sgs.setRhythmParameterValue(sptp.getSpt(), rp, value);
             v += step;
         }
@@ -186,9 +171,12 @@ public class AdjustRpValues extends AbstractAction implements ContextAwareAction
         {
             RhythmParameter rp = sptp.getRp();
             double y = (1.0 - ((1 + Math.log((10 - x) * 10 + 0.37)) / 5.7)) * yDiff;
-            LOGGER.log(Level.FINE, "upSlow() rpData.doubleValue0={0} rpData.doubleValue1={1} x={2} y={3}", new Object[]{rpData.doubleValue0,
-                rpData.doubleValue1, x, y});   
-            double d = enforceBounds(rpData.doubleValue0 + y);
+            LOGGER.log(Level.FINE, "upSlow() rpData.doubleValue0={0} rpData.doubleValue1={1} x={2} y={3}", new Object[]
+            {
+                rpData.doubleValue0,
+                rpData.doubleValue1, x, y
+            });
+            double d = enforce0_1Range(rpData.doubleValue0 + y);
             Object value = ((RpEnumerable) rp).calculateValue(d);
             rpData.sgs.setRhythmParameterValue(sptp.getSpt(), rp, value);
             x += 10f / (rpData.enumerableSptps.size() - 1f);
@@ -209,10 +197,13 @@ public class AdjustRpValues extends AbstractAction implements ContextAwareAction
         for (SongPartParameter sptp : rpData.enumerableSptps)
         {
             double y = ((1 + Math.log(x * 10 + 0.37)) / 5.7) * yDiff;
-            LOGGER.log(Level.FINER, "rpData.doubleValue0={0} rpData.doubleValue1={1} x={2} y={3}", new Object[]{rpData.doubleValue0,
-                rpData.doubleValue1, x, y});   
+            LOGGER.log(Level.FINER, "rpData.doubleValue0={0} rpData.doubleValue1={1} x={2} y={3}", new Object[]
+            {
+                rpData.doubleValue0,
+                rpData.doubleValue1, x, y
+            });
             RhythmParameter rp = sptp.getRp();
-            double d = enforceBounds(rpData.doubleValue0 + y);
+            double d = enforce0_1Range(rpData.doubleValue0 + y);
             Object value = ((RpEnumerable) rp).calculateValue(d);
             rpData.sgs.setRhythmParameterValue(sptp.getSpt(), rp, value);
             x += 10f / (rpData.enumerableSptps.size() - 1f);
@@ -232,11 +223,14 @@ public class AdjustRpValues extends AbstractAction implements ContextAwareAction
         for (SongPartParameter sptp : rpData.enumerableSptps)
         {
             double y = ((1 + Math.log((10 - x) * 10 + 0.37)) / 5.7) * yDiff;
-            LOGGER.log(Level.FINER, "rpData.doubleValue0={0} rpData.doubleValue1={1} x={2} y={3}", new Object[]{rpData.doubleValue0,
-                rpData.doubleValue1, x, y});   
+            LOGGER.log(Level.FINER, "rpData.doubleValue0={0} rpData.doubleValue1={1} x={2} y={3}", new Object[]
+            {
+                rpData.doubleValue0,
+                rpData.doubleValue1, x, y
+            });
             RhythmParameter rp = sptp.getRp();
 
-            double d = enforceBounds(rpData.doubleValue1 + y);
+            double d = enforce0_1Range(rpData.doubleValue1 + y);
             Object value = ((RpEnumerable) rp).calculateValue(d);
             rpData.sgs.setRhythmParameterValue(sptp.getSpt(), rp, value);
 
@@ -258,10 +252,13 @@ public class AdjustRpValues extends AbstractAction implements ContextAwareAction
         for (SongPartParameter sptp : rpData.enumerableSptps)
         {
             double y = ((1.0 + Math.log(x * 10 + 0.37)) / 5.7) * yDiff;
-            LOGGER.log(Level.FINER, "rpData.doubleValue0={0} rpData.doubleValue1={1} x={2} y={3}", new Object[]{rpData.doubleValue0,
-                rpData.doubleValue1, x, y});   
+            LOGGER.log(Level.FINER, "rpData.doubleValue0={0} rpData.doubleValue1={1} x={2} y={3}", new Object[]
+            {
+                rpData.doubleValue0,
+                rpData.doubleValue1, x, y
+            });
             RhythmParameter rp = sptp.getRp();
-            double d = enforceBounds(rpData.doubleValue0 - y);
+            double d = enforce0_1Range(rpData.doubleValue0 - y);
             Object value = ((RpEnumerable) rp).calculateValue(d);
             rpData.sgs.setRhythmParameterValue(sptp.getSpt(), rp, value);
             x += 10f / (rpData.enumerableSptps.size() - 1f);
@@ -270,124 +267,63 @@ public class AdjustRpValues extends AbstractAction implements ContextAwareAction
         JJazzUndoManagerFinder.getDefault().get(rpData.sgs).endCEdit(ResUtil.getString(getClass(), "CTL_DownFast"));
     }
 
-    private void buildMenus()
+    private double enforce0_1Range(double d)
     {
-        subMenu = new JMenu();
-        subMenu.setText(ResUtil.getString(getClass(), "CTL_AdjustRpValues"));
-
-        goingUpItems = new ArrayList<>();
-        JMenuItem mi = new JMenuItem(ResUtil.getString(getClass(), "CTL_Flat"));
-        mi.addActionListener((ActionEvent e) ->
-        {
-            sameValue();
-        });
-        java.net.URL imgURL = getClass().getResource("resources/RampFlat.png");
-        ImageIcon icon = null;
-        if (imgURL != null)
-        {
-            icon = new ImageIcon(imgURL);
-            mi.setIcon(icon);
-        }
-
-        goingUpItems.add(mi);
-        mi = new JMenuItem(ResUtil.getString(getClass(), "CTL_UpDirect"));
-        mi.addActionListener((ActionEvent e) ->
-        {
-            rampDirect(ResUtil.getString(getClass(), "CTL_UpDirect"));
-        });
-        imgURL = getClass().getResource("resources/RampDirectUp.png");
-        if (imgURL != null)
-        {
-            icon = new ImageIcon(imgURL);
-            mi.setIcon(icon);
-        }
-        goingUpItems.add(mi);
-        mi = new JMenuItem(ResUtil.getString(getClass(), "CTL_UpSlow"));
-        mi.addActionListener((ActionEvent e) ->
-        {
-            upSlow();
-        });
-        imgURL = getClass().getResource("resources/RampSlowUp.png");
-        if (imgURL != null)
-        {
-            icon = new ImageIcon(imgURL);
-            mi.setIcon(icon);
-        }
-        goingUpItems.add(mi);
-        mi = new JMenuItem(ResUtil.getString(getClass(), "CTL_UpFast"));
-        mi.addActionListener((ActionEvent e) ->
-        {
-            upFast();
-        });
-        imgURL = getClass().getResource("resources/RampFastUp.png");
-        if (imgURL != null)
-        {
-            icon = new ImageIcon(imgURL);
-            mi.setIcon(icon);
-        }
-        goingUpItems.add(mi);
-
-        goingDownItems = new ArrayList<>();
-        mi = new JMenuItem(ResUtil.getString(getClass(), "CTL_Flat"));
-        mi.addActionListener((ActionEvent e) -> sameValue());
-        imgURL = getClass().getResource("resources/RampFlat.png");
-        if (imgURL != null)
-        {
-            icon = new ImageIcon(imgURL);
-            mi.setIcon(icon);
-        }
-        goingDownItems.add(mi);
-        mi = new JMenuItem(ResUtil.getString(getClass(), "CTL_DownDirect"));
-        mi.addActionListener((ActionEvent e) ->
-        {
-            rampDirect(ResUtil.getString(getClass(), "CTL_DownDirect"));
-        });
-        imgURL = getClass().getResource("resources/RampDirectDown.png");
-        if (imgURL != null)
-        {
-            icon = new ImageIcon(imgURL);
-            mi.setIcon(icon);
-        }
-        goingDownItems.add(mi);
-        mi = new JMenuItem(ResUtil.getString(getClass(), "CTL_DownSlow"));
-        mi.addActionListener((ActionEvent e) ->
-        {
-            downSlow();
-        });
-        imgURL = getClass().getResource("resources/RampSlowDown.png");
-        if (imgURL != null)
-        {
-            icon = new ImageIcon(imgURL);
-            mi.setIcon(icon);
-        }
-        goingDownItems.add(mi);
-        mi = new JMenuItem(ResUtil.getString(getClass(), "CTL_DownFast"));
-        mi.addActionListener((ActionEvent e) ->
-        {
-            downFast();
-        });
-        imgURL = getClass().getResource("resources/RampFastDown.png");
-        if (imgURL != null)
-        {
-            icon = new ImageIcon(imgURL);
-            mi.setIcon(icon);
-        }
-        goingDownItems.add(mi);
-
+        return Math.clamp(d, 0, 1);
     }
 
-    private double enforceBounds(double d)
+    private void initItemsMenus()
     {
-        if (d < 0)
+        if (GoingUpMenuItems != null)
         {
-            d = 0;
-        } else if (d > 1)
-        {
-            d = 1;
+            return;
         }
-        return d;
+        GoingUpMenuItems = new ArrayList<>();
+        JMenuItem mi = new JMenuItem(ResUtil.getString(getClass(), "CTL_Flat"));
+        mi.addActionListener(e -> sameValue());
+        setMenuIcon(getClass().getResource("resources/RampFlat.png"), mi);
 
+        GoingUpMenuItems.add(mi);
+        mi = new JMenuItem(ResUtil.getString(getClass(), "CTL_UpDirect"));
+        mi.addActionListener(e -> rampDirect(ResUtil.getString(getClass(), "CTL_UpDirect")));
+        setMenuIcon(getClass().getResource("resources/RampDirectUp.png"), mi);
+        GoingUpMenuItems.add(mi);
+        mi = new JMenuItem(ResUtil.getString(getClass(), "CTL_UpSlow"));
+        mi.addActionListener(e -> upSlow());
+        setMenuIcon(getClass().getResource("resources/RampSlowUp.png"), mi);
+        GoingUpMenuItems.add(mi);
+        mi = new JMenuItem(ResUtil.getString(getClass(), "CTL_UpFast"));
+        mi.addActionListener(e -> upFast());
+        setMenuIcon(getClass().getResource("resources/RampFastUp.png"), mi);
+        GoingUpMenuItems.add(mi);
 
+        GoingDownMenuItems = new ArrayList<>();
+        mi = new JMenuItem(ResUtil.getString(getClass(), "CTL_Flat"));
+        mi.addActionListener(e -> sameValue());
+        setMenuIcon(getClass().getResource("resources/RampFlat.png"), mi);
+        GoingDownMenuItems.add(mi);
+        mi = new JMenuItem(ResUtil.getString(getClass(), "CTL_DownDirect"));
+        mi.addActionListener(e -> rampDirect(ResUtil.getString(getClass(), "CTL_DownDirect")));
+
+        setMenuIcon(getClass().getResource("resources/RampDirectDown.png"), mi);
+        GoingDownMenuItems.add(mi);
+        mi = new JMenuItem(ResUtil.getString(getClass(), "CTL_DownSlow"));
+        mi.addActionListener(e -> downSlow());
+        setMenuIcon(getClass().getResource("resources/RampSlowDown.png"), mi);
+        GoingDownMenuItems.add(mi);
+        mi = new JMenuItem(ResUtil.getString(getClass(), "CTL_DownFast"));
+        mi.addActionListener(e -> downFast());
+        setMenuIcon(getClass().getResource("resources/RampFastDown.png"), mi);
+        GoingDownMenuItems.add(mi);
+    }
+
+    private void setMenuIcon(URL imgURL, JMenuItem mi)
+    {
+        if (imgURL != null)
+        {
+            var icon = new ImageIcon(imgURL);
+            mi.setIcon(icon);
+        }
     }
 
     /**
@@ -410,7 +346,7 @@ public class AdjustRpValues extends AbstractAction implements ContextAwareAction
          * @param selection
          * @return True if selection was valid for our actions.
          */
-        public boolean init(SS_SelectionUtilities selection)
+        public boolean init(SS_Selection selection)
         {
             boolean b = false;
 

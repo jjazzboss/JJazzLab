@@ -47,7 +47,7 @@ import org.jjazz.song.api.Song;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.ss_editor.api.SS_EditorTopComponent;
-import org.jjazz.ss_editor.api.SS_SelectionUtilities;
+import org.jjazz.ss_editor.api.SS_Selection;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.ActionID;
@@ -138,7 +138,7 @@ public class PlayFromHere extends AbstractAction
         SS_EditorTopComponent ssTc = SS_EditorTopComponent.get(ss);
         assert ssTc != null;
         SS_Editor ssEditor = ssTc.getEditor();
-        SS_SelectionUtilities ssSelection = new SS_SelectionUtilities(ssEditor.getLookup());
+        SS_Selection ssSelection = new SS_Selection(ssEditor.getLookup());
 
 
         int playFromBar = -1;
@@ -254,7 +254,7 @@ public class PlayFromHere extends AbstractAction
         // If there are some selected spts, try to match one of them
         SS_EditorTopComponent ssTc = SS_EditorTopComponent.get(ss);
         assert ssTc != null : "sgs=" + ss;
-        SS_SelectionUtilities ssSelection = new SS_SelectionUtilities(ssTc.getLookup());
+        SS_Selection ssSelection = new SS_Selection(ssTc.getLookup());
         for (SongPart spt : ssSelection.getIndirectlySelectedSongParts())
         {
             if (spt.getParentSection() == section)

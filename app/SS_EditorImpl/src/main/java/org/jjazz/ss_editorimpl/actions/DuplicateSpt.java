@@ -22,81 +22,59 @@
  */
 package org.jjazz.ss_editorimpl.actions;
 
-import org.jjazz.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
-import org.jjazz.ss_editor.api.SS_SelectionUtilities;
+import org.jjazz.ss_editor.api.SS_Selection;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.ContextAwareAction;
-import org.openide.util.Lookup;
-import org.openide.util.Utilities;
 import org.openide.windows.WindowManager;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.ss_editor.api.SS_ContextActionListener;
-import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
+import org.jjazz.ss_editor.api.SS_ContextAction;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.utilities.api.ResUtil;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ss_editorimpl.actions.duplicatespt")
-@ActionRegistration(displayName = "#CTL_DuplicateSpt", lazy = false)
+@ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
         {
             @ActionReference(path = "Actions/SongPart", position = 320)
         })
-public class DuplicateSpt extends AbstractAction implements ContextAwareAction, SS_ContextActionListener
+public class DuplicateSpt extends SS_ContextAction
 {
+
     public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("D");
-    private Lookup context;
-    private SS_ContextActionSupport cap;
-    private String undoText = ResUtil.getString(getClass(), "CTL_DuplicateSpt");
     private static final Logger LOGGER = Logger.getLogger(DuplicateSpt.class.getSimpleName());
 
-    public DuplicateSpt()
+    @Override
+    protected void configureAction()
     {
-        this(Utilities.actionsGlobalContext());
-    }
-
-    private DuplicateSpt(Lookup context)
-    {
-        this.context = context;
-        cap = SS_ContextActionSupport.getInstance(this.context);
-        cap.addListener(this);
-        putValue(NAME, undoText);
-        putValue(ACCELERATOR_KEY,KEYSTROKE );
-        selectionChange(cap.getSelection());
+        putValue(NAME, ResUtil.getString(getClass(), "CTL_DuplicateSpt"));
+        putValue(ACCELERATOR_KEY, KEYSTROKE);
+        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.SONG_PART_SELECTION));
     }
 
     @Override
-    public Action createContextAwareInstance(Lookup context)
+    protected void actionPerformed(ActionEvent ae, SS_Selection selection)
     {
-        return new DuplicateSpt(context);
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e)
-    {
+        final String actionName = getActionName();
         Runnable run = new Runnable()
         {
             @Override
             public void run()
             {
-                SS_SelectionUtilities selection = cap.getSelection();
                 SongStructure sgs = selection.getModel();
                 List<SongPart> spts = selection.getIndirectlySelectedSongParts();
                 DuplicateSptDialog dlg = DuplicateSptDialog.getInstance();
@@ -123,7 +101,7 @@ public class DuplicateSpt extends AbstractAction implements ContextAwareAction, 
                     }
 
                     JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(sgs);
-                    um.startCEdit(undoText);
+                    um.startCEdit(actionName);
                     try
                     {
                         sgs.addSongParts(sptCopies);
@@ -132,10 +110,10 @@ public class DuplicateSpt extends AbstractAction implements ContextAwareAction, 
                         // We should not be here, we reuse existing rhythms
                         String msg = ResUtil.getString(getClass(), "ERR_CantDuplicate");
                         msg += "\n" + ex.getLocalizedMessage();
-                        um.abortCEdit(undoText, msg);
+                        um.abortCEdit(actionName, msg);
                         return;
                     }
-                    um.endCEdit(undoText);
+                    um.endCEdit(actionName);
                 }
             }
         };
@@ -148,10 +126,10 @@ public class DuplicateSpt extends AbstractAction implements ContextAwareAction, 
     }
 
     @Override
-    public void selectionChange(SS_SelectionUtilities selection)
+    public void selectionChange(SS_Selection selection)
     {
         boolean b = selection.isContiguousSptSelection();  // True whatever the selection SongParts or RhythmParameters
-        LOGGER.log(Level.FINE, "selectionChange() b={0}", b);   
+        LOGGER.log(Level.FINE, "selectionChange() b={0}", b);
         setEnabled(b);
     }
 }

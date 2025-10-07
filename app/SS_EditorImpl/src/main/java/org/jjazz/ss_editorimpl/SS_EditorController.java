@@ -22,7 +22,7 @@
  */
 package org.jjazz.ss_editorimpl;
 
-import org.jjazz.ss_editor.api.SS_SelectionUtilities;
+import org.jjazz.ss_editor.api.SS_Selection;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.KeyboardFocusManager;
@@ -113,6 +113,7 @@ public class SS_EditorController implements SS_EditorMouseListener
         dragStartRp = null;
 
 
+        // Actions also used via the mouse
         previousRpValueAction = Actions.forID("JJazz", "org.jjazz.ss_editorimpl.actions.previousrpvalue");
         nextRpValueAction = Actions.forID("JJazz", "org.jjazz.ss_editorimpl.actions.nextrpvalue");
         assert previousRpValueAction != null && nextRpValueAction != null;
@@ -191,7 +192,7 @@ public class SS_EditorController implements SS_EditorMouseListener
     @Override
     public void editSongPartRhythm(SongPart spt)
     {
-        SS_SelectionUtilities selection = new SS_SelectionUtilities(editor.getLookup());
+        SS_Selection selection = new SS_Selection(editor.getLookup());
         selection.unselectAll(editor);
         editor.selectSongPart(spt, true);
         editor.setFocusOnSongPart(spt);
@@ -208,7 +209,7 @@ public class SS_EditorController implements SS_EditorMouseListener
     @Override
     public void editSongPartName(SongPart spt)
     {
-        SS_SelectionUtilities selection = new SS_SelectionUtilities(editor.getLookup());
+        SS_Selection selection = new SS_Selection(editor.getLookup());
         selection.unselectAll(editor);
         editor.selectSongPart(spt, true);
         editor.setFocusOnSongPart(spt);
@@ -233,7 +234,7 @@ public class SS_EditorController implements SS_EditorMouseListener
             focusedSpt = sptv.getModel();
         }
 
-        SS_SelectionUtilities selection = new SS_SelectionUtilities(editor.getLookup());
+        SS_Selection selection = new SS_Selection(editor.getLookup());
 
         LOGGER.log(Level.FINE, "songPartClicked() spt={0} multiSelect={1}", new Object[]
         {
@@ -458,7 +459,7 @@ public class SS_EditorController implements SS_EditorMouseListener
             focusedSpt = rpv.getSptModel();
         }
 
-        SS_SelectionUtilities selection = new SS_SelectionUtilities(editor.getLookup());
+        SS_Selection selection = new SS_Selection(editor.getLookup());
 
         LOGGER.log(Level.FINE, "rhythmParameterClicked() -- spt={0} rp={1}", new Object[]
         {
@@ -525,7 +526,7 @@ public class SS_EditorController implements SS_EditorMouseListener
             if (popupRpMenu == null)
             {
                 List<? extends Action> actions = Utilities.actionsForPath("Actions/RhythmParameter");
-                popupRpMenu = Utilities.actionsToPopup(actions.toArray(Action[]::new), editor);
+                popupRpMenu = Utilities.actionsToPopup(actions.toArray(Action[]::new), editor.getLookup());
             }
             popupRpMenu.show(e.getComponent(), e.getX(), e.getY());
         }
@@ -569,7 +570,7 @@ public class SS_EditorController implements SS_EditorMouseListener
             return;
         }
 
-        SS_SelectionUtilities selection = new SS_SelectionUtilities(editor.getLookup());
+        SS_Selection selection = new SS_Selection(editor.getLookup());
         if (!selection.isRhythmParameterSelected(spt, rp) || !(rp instanceof RpEnumerable))
         {
             return;
@@ -634,7 +635,7 @@ public class SS_EditorController implements SS_EditorMouseListener
 
         // LOGGER.log(Level.FINE, "rhythmParameterDragged() -- spt=" + spt + " rp=" + rp);   
 
-        SS_SelectionUtilities selection = new SS_SelectionUtilities(editor.getLookup());
+        SS_Selection selection = new SS_Selection(editor.getLookup());
         List<SongPart> spts = editor.getModel().getSongParts();
         if (dragStartSpt == null)
         {
@@ -688,7 +689,7 @@ public class SS_EditorController implements SS_EditorMouseListener
             spt, rp
         });
         // First set selection on this RP
-        SS_SelectionUtilities selection = new SS_SelectionUtilities(editor.getLookup());
+        SS_Selection selection = new SS_Selection(editor.getLookup());
         selection.unselectAll(editor);
         editor.selectRhythmParameter(spt, rp, true);
         editor.setFocusOnRhythmParameter(spt, rp);

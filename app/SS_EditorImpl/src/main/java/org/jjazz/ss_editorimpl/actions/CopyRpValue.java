@@ -22,33 +22,25 @@
  */
 package org.jjazz.ss_editorimpl.actions;
 
-import org.jjazz.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.logging.Logger;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.ss_editor.api.SS_Editor;
 import org.jjazz.ss_editor.api.SS_EditorTopComponent;
-import org.jjazz.ss_editor.api.SS_SelectionUtilities;
+import org.jjazz.ss_editor.api.SS_Selection;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.ContextAwareAction;
-import org.openide.util.Lookup;
-import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongPartParameter;
-import org.jjazz.ss_editor.api.SS_ContextActionListener;
+import org.jjazz.ss_editor.api.SS_ContextAction;
 import org.jjazz.ss_editorimpl.RpValueCopyBuffer;
-import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
 import org.jjazz.utilities.api.ResUtil;
 
 /**
@@ -58,49 +50,32 @@ import org.jjazz.utilities.api.ResUtil;
  * which reuses some of our methods if needed (when RhythmParameters are selected).
  */
 @ActionID(category = "JJazz", id = "org.jjazz.ss_editorimpl.actions.copyrpvalue")
-@ActionRegistration(displayName = "#CTL_CopyRpValue", lazy = false)
+@ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
         {
             @ActionReference(path = "Actions/RhythmParameter", position = 20),
         })
-public class CopyRpValue extends AbstractAction implements ContextAwareAction, SS_ContextActionListener
+public class CopyRpValue extends SS_ContextAction
 {
-
-    private Lookup context;
-    private SS_ContextActionSupport cap;
-    private String undoText = ResUtil.getString(getClass(), "CTL_CopyRpValue");
     private static final Logger LOGGER = Logger.getLogger(CopyRpValue.class.getSimpleName());
 
-    public CopyRpValue()
+    @Override
+    protected void configureAction()
     {
-        this(Utilities.actionsGlobalContext());
+        putValue(NAME, ResUtil.getString(getClass(), "CTL_CopyRpValue"));
+        // putValue(ACCELERATOR_KEY, KEYSTROKE);
+        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.RHYTHM_PARAMETER_SELECTION));
     }
 
-    private CopyRpValue(Lookup context)
-    {
-        this.context = context;
-        cap = SS_ContextActionSupport.getInstance(this.context);
-        cap.addListener(this);
-        putValue(NAME, undoText);
-        putValue(ACCELERATOR_KEY, getGenericControlKeyStroke(KeyEvent.VK_C));       // Only for display
-        selectionChange(cap.getSelection());
-    }
 
     @Override
-    public Action createContextAwareInstance(Lookup context)
+    protected void actionPerformed(ActionEvent ae, SS_Selection selection)
     {
-        return new CopyRpValue(context);
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e)
-    {
-        SS_SelectionUtilities selection = cap.getSelection();
         performAction(selection);
     }
 
     @Override
-    public void selectionChange(SS_SelectionUtilities selection)
+    public void selectionChange(SS_Selection selection)
     {
         setEnabled(isEnabled(selection));
     }
@@ -109,9 +84,8 @@ public class CopyRpValue extends AbstractAction implements ContextAwareAction, S
      * Make the method accessible to Copy action.
      *
      * @param selection
-     * @return
      */
-    static protected void performAction(SS_SelectionUtilities selection)
+    static protected void performAction(SS_Selection selection)
     {
         assert selection.isRhythmParameterSelected() : "selection=" + selection;
         var sptps = selection.getSelectedSongPartParameters();
@@ -146,7 +120,7 @@ public class CopyRpValue extends AbstractAction implements ContextAwareAction, S
      * @param selection
      * @return
      */
-    static protected boolean isEnabled(SS_SelectionUtilities selection)
+    static protected boolean isEnabled(SS_Selection selection)
     {
         boolean b = false;
         if (selection.isRhythmParameterSelected() && selection.isContiguousSptSelection())

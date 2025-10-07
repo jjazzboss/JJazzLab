@@ -23,76 +23,58 @@
 package org.jjazz.ss_editorimpl.actions;
 
 import java.awt.Toolkit;
-import org.jjazz.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
+import static javax.swing.Action.ACCELERATOR_KEY;
+import static javax.swing.Action.NAME;
 import javax.swing.KeyStroke;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.ss_editorimpl.SongPartCopyBuffer;
 import org.jjazz.ss_editor.api.SS_EditorTopComponent;
-import org.jjazz.ss_editor.api.SS_SelectionUtilities;
+import org.jjazz.ss_editor.api.SS_Selection;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.ContextAwareAction;
-import org.openide.util.Lookup;
-import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.ss_editor.api.SS_ContextActionListener;
-import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
+import org.jjazz.ss_editor.api.SS_ContextAction;
+import static org.jjazz.ss_editor.api.SS_ContextAction.LISTENING_TARGETS;
 import org.jjazz.utilities.api.ResUtil;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ss_editorimpl.actions.pasteappend")
-@ActionRegistration(displayName = "#CTL_PasteAppend", lazy = false)
+@ActionRegistration(displayName = "note_used", lazy = false)
 @ActionReferences(
         {
             @ActionReference(path = "Actions/SS_Editor", position = 900)
         })
-public class PasteAppend extends AbstractAction implements ContextAwareAction, SS_ContextActionListener, ChangeListener
+public class PasteAppend extends SS_ContextAction implements ChangeListener
 {
 
-    public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke(KeyEvent.VK_I,
-            Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() | InputEvent.SHIFT_DOWN_MASK);
-    private Lookup context;
-    private SS_ContextActionSupport cap;
-    private String undoText = ResUtil.getString(getClass(), "CTL_PasteAppend");
+    public static final KeyStroke KEYSTROKE
+            = KeyStroke.getKeyStroke(KeyEvent.VK_I, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() | InputEvent.SHIFT_DOWN_MASK);
 
-    public PasteAppend()
+    @Override
+    protected void configureAction()
     {
-        this(Utilities.actionsGlobalContext());
-    }
-
-    private PasteAppend(Lookup context)
-    {
-        this.context = context;
-        cap = SS_ContextActionSupport.getInstance(this.context);
-        cap.addListener(this);
-        putValue(NAME, undoText);
+        putValue(NAME, ResUtil.getString(getClass(),"CTL_PasteAppend"));
         putValue(ACCELERATOR_KEY, KEYSTROKE);
-        setEnabled(false);
+        putValue(LISTENING_TARGETS, EnumSet.of(SS_ContextAction.ListeningTarget.SONG_PART_SELECTION));
         SongPartCopyBuffer buffer = SongPartCopyBuffer.getInstance();
         buffer.addChangeListener(this);
+        setEnabled(false);
     }
 
     @Override
-    public Action createContextAwareInstance(Lookup context)
-    {
-        return new PasteAppend(context);
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e)
+    protected void actionPerformed(ActionEvent ae, SS_Selection selection)
     {
         // Can not rely on selection to retrieve the model, selection can be empty !
         SS_EditorTopComponent tc = SS_EditorTopComponent.getActive();
@@ -112,7 +94,7 @@ public class PasteAppend extends AbstractAction implements ContextAwareAction, S
         }
 
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(targetSgs);
-        um.startCEdit(undoText);
+        um.startCEdit(getActionName());
         for (SongPart spt : buffer.get(targetSgs, startBarIndex))
         {
             try
@@ -122,15 +104,15 @@ public class PasteAppend extends AbstractAction implements ContextAwareAction, S
             {
                 String msg = ResUtil.getString(getClass(), "ERR_Paste");
                 msg += "\n" + ex.getLocalizedMessage();
-                um.abortCEdit(undoText, msg);
+                um.abortCEdit(getActionName(), msg);
                 return;
             }
         }
-        JJazzUndoManagerFinder.getDefault().get(targetSgs).endCEdit(undoText);
+        JJazzUndoManagerFinder.getDefault().get(targetSgs).endCEdit(getActionName());
     }
 
     @Override
-    public void selectionChange(SS_SelectionUtilities selection)
+    public void selectionChange(SS_Selection selection)
     {
         SongPartCopyBuffer buffer = SongPartCopyBuffer.getInstance();
         setEnabled(!buffer.isEmpty());
@@ -142,7 +124,7 @@ public class PasteAppend extends AbstractAction implements ContextAwareAction, S
         SS_EditorTopComponent tc = SS_EditorTopComponent.getActive();
         if (tc != null)
         {
-            SS_SelectionUtilities selection = new SS_SelectionUtilities(tc.getEditor().getLookup());
+            SS_Selection selection = new SS_Selection(tc.getEditor().getLookup());
             selectionChange(selection);
         }
     }

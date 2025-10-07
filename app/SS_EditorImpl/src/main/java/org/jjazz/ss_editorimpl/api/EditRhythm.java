@@ -51,7 +51,7 @@ import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.rhythmselectiondialog.spi.RhythmPreviewer;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
-import org.jjazz.ss_editor.api.SS_SelectionUtilities;
+import org.jjazz.ss_editor.api.SS_Selection;
 import org.jjazz.rhythmselectiondialog.api.RhythmSelectionDialog;
 import org.jjazz.rhythmselectiondialog.spi.RhythmSelectionDialogProvider;
 import org.jjazz.undomanager.api.JJazzUndoManager;
@@ -101,7 +101,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
     {
         this.context = context;
         cap = SS_ContextActionSupport.getInstance(this.context);
-        cap.addListener(this);
+        cap.addWeakSelectionListener(this);
         putValue(NAME, undoText);
         putValue(ACCELERATOR_KEY, KEYSTROKE);
         selectionChange(cap.getSelection());
@@ -121,7 +121,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
 
 
     @Override
-    public void selectionChange(SS_SelectionUtilities selection)
+    public void selectionChange(SS_Selection selection)
     {
         boolean b;
         b = !selection.isEmpty();

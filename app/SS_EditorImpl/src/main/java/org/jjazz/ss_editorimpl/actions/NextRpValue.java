@@ -22,78 +22,58 @@
  */
 package org.jjazz.ss_editorimpl.actions;
 
-import org.jjazz.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.util.EnumSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
 import javax.swing.KeyStroke;
 import org.jjazz.rhythm.api.RhythmParameter;
-import org.jjazz.ss_editor.api.SS_SelectionUtilities;
+import org.jjazz.ss_editor.api.SS_Selection;
 import org.jjazz.songstructure.api.SongPartParameter;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.ContextAwareAction;
-import org.openide.util.Lookup;
-import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.ss_editor.api.SS_ContextActionListener;
 import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
 import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.rhythm.api.RpEnumerable;
+import org.jjazz.ss_editor.api.SS_ContextAction;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ss_editorimpl.actions.nextrpvalue")
-@ActionRegistration(displayName = "#CTL_NextRpValue", lazy = false)
+@ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
         {
             @ActionReference(path = "Actions/RhythmParameter", position = 400),
         })
-public final class NextRpValue extends AbstractAction implements ContextAwareAction, SS_ContextActionListener
+public final class NextRpValue extends SS_ContextAction
 {
-
     public static final KeyStroke KEYSTROKE = getGenericControlKeyStroke(KeyEvent.VK_UP);
-    private Lookup context;
-    private SS_ContextActionSupport cap;
-    private String undoText = ResUtil.getString(getClass(), "CTL_NextRpValue");
     private static final Logger LOGGER = Logger.getLogger(NextRpValue.class.getSimpleName());
 
-    public NextRpValue()
+  @Override
+    protected void configureAction()
     {
-        this(Utilities.actionsGlobalContext());
+        putValue(NAME, ResUtil.getString(getClass(), "CTL_NextRpValue"));
+        putValue(ACCELERATOR_KEY, KEYSTROKE);
+        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.SONG_PART_SELECTION));
     }
 
-    public NextRpValue(Lookup context)
-    {
-        this.context = context;
-        cap = SS_ContextActionSupport.getInstance(this.context);
-        cap.addListener(this);
-        putValue(NAME, ResUtil.getString(getClass(), "CTL_NextRpValue"));                          // For popupmenu display only
-        putValue(ACCELERATOR_KEY, KEYSTROKE);    // For popupmenu display only
-    }
-
-    @SuppressWarnings(
-            {
-                "unchecked", "rawtypes"
-            })
     @Override
-    public void actionPerformed(ActionEvent e)
+    protected void actionPerformed(ActionEvent ae, SS_Selection selection)
     {
-        SS_SelectionUtilities selection = cap.getSelection();
         SongStructure sgs = selection.getModel();
         assert sgs != null : "selection=" + selection;
         LOGGER.log(Level.FINE, "actionPerformed() sgs={0} selection={1}", new Object[]
         {
             sgs, selection
         });
-        JJazzUndoManagerFinder.getDefault().get(sgs).startCEdit(undoText);
+        JJazzUndoManagerFinder.getDefault().get(sgs).startCEdit(getActionName());
         for (SongPartParameter sptp : selection.getSelectedSongPartParameters())
         {
             RhythmParameter rp = sptp.getRp();
@@ -104,20 +84,14 @@ public final class NextRpValue extends AbstractAction implements ContextAwareAct
                 sgs.setRhythmParameterValue(spt, rp, newValue);
             }
         }
-        JJazzUndoManagerFinder.getDefault().get(sgs).endCEdit(undoText);
+        JJazzUndoManagerFinder.getDefault().get(sgs).endCEdit(getActionName());
     }
 
     @Override
-    public void selectionChange(SS_SelectionUtilities selection)
+    public void selectionChange(SS_Selection selection)
     {
         boolean b = selection.isEnumerableRhythmParameterSelected();
         setEnabled(b);
         LOGGER.log(Level.FINE, "selectionChange() b={0}", b);
-    }
-
-    @Override
-    public Action createContextAwareInstance(Lookup context)
-    {
-        return new NextRpValue(context);
     }
 }

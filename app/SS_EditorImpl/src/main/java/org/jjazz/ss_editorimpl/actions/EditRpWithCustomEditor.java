@@ -26,33 +26,28 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
-import org.jjazz.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 import javax.sound.midi.MidiUnavailableException;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
 import static javax.swing.Action.NAME;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.rhythm.api.RhythmParameter;
-import org.jjazz.ss_editor.api.SS_SelectionUtilities;
+import org.jjazz.ss_editor.api.SS_Selection;
 import org.jjazz.songstructure.api.SongPartParameter;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.ContextAwareAction;
-import org.openide.util.Lookup;
-import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.ss_editor.api.SS_ContextActionListener;
 import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.song.api.Song;
 import org.jjazz.songcontext.api.SongPartContext;
+import org.jjazz.ss_editor.api.SS_ContextAction;
 import org.jjazz.ss_editor.api.SS_Editor;
 import org.jjazz.ss_editor.api.SS_EditorTopComponent;
 import org.openide.util.Exceptions;
@@ -61,29 +56,19 @@ import org.openide.windows.WindowManager;
 import org.jjazz.ss_editor.rpviewer.spi.RpCustomEditorFactory;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ss_editorimpl.actions.editrpwithcustomeditor")
-@ActionRegistration(displayName = "#CTL_EditRhythmParameter", lazy = false)
+@ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
         {
             @ActionReference(path = "Actions/RhythmParameter", position = 10),
         })
-public final class EditRpWithCustomEditor extends AbstractAction implements ContextAwareAction, SS_ContextActionListener
+public final class EditRpWithCustomEditor extends SS_ContextAction
 {
-
-    private Lookup context;
-    private SS_ContextActionSupport cap;
-    private String undoText = ResUtil.getString(getClass(), "CTL_EditRhythmParameter");
-
-    public EditRpWithCustomEditor()
+    @Override
+    protected void configureAction()
     {
-        this(Utilities.actionsGlobalContext());
-    }
-
-    public EditRpWithCustomEditor(Lookup context)
-    {
-        this.context = context;
-        cap = SS_ContextActionSupport.getInstance(this.context);
-        cap.addListener(this);
-        putValue(NAME, undoText);                          // For popupmenu 
+        putValue(NAME, ResUtil.getString(getClass(), "CTL_EditRhythmParameter"));
+        // putValue(ACCELERATOR_KEY, KEYSTROKE);
+        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.RHYTHM_PARAMETER_SELECTION, ListeningTarget.SONG_PART_SELECTION));
     }
 
     @SuppressWarnings(
@@ -91,9 +76,8 @@ public final class EditRpWithCustomEditor extends AbstractAction implements Cont
                 "unchecked", "rawtypes"
             })
     @Override
-    public void actionPerformed(ActionEvent e)
+    protected void actionPerformed(ActionEvent ae, SS_Selection selection)
     {
-        SS_SelectionUtilities selection = cap.getSelection();
         List<SongPartParameter> sptps = selection.getSelectedSongPartParameters();
         RhythmParameter<?> rp0 = sptps.get(0).getRp();
         SongPart spt0 = sptps.get(0).getSpt();
@@ -152,14 +136,14 @@ public final class EditRpWithCustomEditor extends AbstractAction implements Cont
             if (dlgEditor.isExitOk() && !Objects.equals(value, newValue))
             {
                 SongStructure sgs = editor.getModel();
-                JJazzUndoManagerFinder.getDefault().get(sgs).startCEdit(undoText);
+                JJazzUndoManagerFinder.getDefault().get(sgs).startCEdit(getActionName());
 
                 for (SongPartParameter sptp : sptps)
                 {
                     sgs.setRhythmParameterValue(sptp.getSpt(), (RhythmParameter) sptp.getRp(), newValue);
                 }
 
-                JJazzUndoManagerFinder.getDefault().get(sgs).endCEdit(undoText);
+                JJazzUndoManagerFinder.getDefault().get(sgs).endCEdit(getActionName());
             }
 
         } else
@@ -176,15 +160,9 @@ public final class EditRpWithCustomEditor extends AbstractAction implements Cont
     }
 
     @Override
-    public void selectionChange(SS_SelectionUtilities selection)
+    public void selectionChange(SS_Selection selection)
     {
         setEnabled(selection.isRhythmParameterSelected());
-    }
-
-    @Override
-    public Action createContextAwareInstance(Lookup context)
-    {
-        return new EditRpWithCustomEditor(context);
     }
 
 }

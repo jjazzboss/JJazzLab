@@ -95,10 +95,6 @@ public class CL_ContextActionSupport implements ClsChangeListener
 
     private CL_ContextActionSupport(Lookup context)
     {
-        if (context == null)
-        {
-            throw new IllegalArgumentException("context=" + context);
-        }
         this.context = context;
 
         selectionListeners = new ArrayList<>();
@@ -182,12 +178,16 @@ public class CL_ContextActionSupport implements ClsChangeListener
     /**
      * Add a weak reference to the specified listener.
      * <p>
-     * Listener will be notified of selection changes (bars or chord leadsheet items), unless listener is garbage-collected. 
+     * Listener will be notified of selection changes (bars or chord leadsheet items), unless listener is garbage-collected.
+     *
      * @param listener
      */
     public void addWeakSelectionListener(CL_ContextActionListener listener)
     {
-        selectionListeners.add(new WeakReference(listener));
+        if (!getTargetListeners(selectionListeners).contains(listener))
+        {
+            selectionListeners.add(new WeakReference(listener));
+        }
     }
 
     /**
@@ -227,7 +227,6 @@ public class CL_ContextActionSupport implements ClsChangeListener
     // ============================================================================================= 
     // ClsChangeListener implementation
     // =============================================================================================      
-
     @Override
     public void chordLeadSheetChanged(ClsChangeEvent event) throws UnsupportedEditException
     {

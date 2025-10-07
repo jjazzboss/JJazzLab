@@ -40,7 +40,7 @@ import org.openide.awt.ActionRegistration;
  * This is the delegate action for the ZoomFitWidth action of the ZoomableSliders module.
  */
 @ActionID(category = "JJazz", id = "org.jjazz.ss_editorimpl.actions.zoomfitwidth")
-@ActionRegistration(displayName = "#CTL_ZoomFitWidth", lazy = false)  // To have the tooltip
+@ActionRegistration(displayName = "not_used", lazy = false)  // To have the tooltip
 @ActionReferences(
         {
             @ActionReference(path = "Actions/SS_EditorToolBar", position = 100, separatorAfter = 101)

@@ -49,7 +49,7 @@ import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.utilities.api.ResUtil;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ss_editorimpl.actions.appendspt")
-@ActionRegistration(displayName = "#CTL_AppendSpt", lazy = false)
+@ActionRegistration(displayName = "not_used", lazy = false)     // Could be lazy but no because we want to show the accelerator key
 @ActionReferences(
         {
             @ActionReference(path = "Actions/SS_Editor", position = 300)

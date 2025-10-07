@@ -27,7 +27,7 @@ import javax.swing.AbstractAction;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.ss_editor.api.SS_Editor;
-import org.jjazz.ss_editor.api.SS_SelectionUtilities;
+import org.jjazz.ss_editor.api.SS_Selection;
 import org.jjazz.songstructure.api.SongPartParameter;
 import org.jjazz.songstructure.api.SongPart;
 
@@ -43,7 +43,7 @@ public class JumpToHome extends AbstractAction
             return;
         }
         SS_Editor editor = activeTc.getEditor();
-        SS_SelectionUtilities selection = new SS_SelectionUtilities(editor.getLookup());
+        SS_Selection selection = new SS_Selection(editor.getLookup());
         SongPart spt = editor.getModel().getSongParts().get(0);
         if (selection.isSongPartSelected() || selection.isEmpty())
         {

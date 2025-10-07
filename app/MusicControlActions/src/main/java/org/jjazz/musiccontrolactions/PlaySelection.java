@@ -46,7 +46,7 @@ import org.jjazz.song.api.Song;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.ss_editor.api.SS_EditorTopComponent;
-import org.jjazz.ss_editor.api.SS_SelectionUtilities;
+import org.jjazz.ss_editor.api.SS_Selection;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.ActionID;
@@ -131,7 +131,7 @@ public class PlaySelection extends AbstractAction
         SS_EditorTopComponent ssTc = SS_EditorTopComponent.get(ss);
         assert ssTc != null;
         SS_Editor ssEditor = ssTc.getEditor();
-        SS_SelectionUtilities ssSelection = new SS_SelectionUtilities(ssEditor.getLookup());
+        SS_Selection ssSelection = new SS_Selection(ssEditor.getLookup());
 
 
         IntRange rg = null;
@@ -246,7 +246,7 @@ public class PlaySelection extends AbstractAction
      * @param clsRange
      * @return Null if no valid range could be constructed
      */
-    private IntRange toSgsRange(SongStructure ss, ChordLeadSheet cls, IntRange clsRange, SS_SelectionUtilities ssSelection)
+    private IntRange toSgsRange(SongStructure ss, ChordLeadSheet cls, IntRange clsRange, SS_Selection ssSelection)
     {
         if (ss == null || cls == null || clsRange.to > cls.getSizeInBars() - 1)
         {

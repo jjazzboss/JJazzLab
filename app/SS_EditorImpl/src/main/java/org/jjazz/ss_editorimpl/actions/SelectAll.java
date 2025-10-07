@@ -22,26 +22,24 @@
  */
 package org.jjazz.ss_editorimpl.actions;
 
-import org.jjazz.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.util.EnumSet;
 import java.util.logging.Logger;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
+import javax.swing.KeyStroke;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.ss_editor.api.SS_Editor;
 import org.jjazz.ss_editor.api.SS_EditorTopComponent;
-import org.jjazz.ss_editor.api.SS_SelectionUtilities;
+import org.jjazz.ss_editor.api.SS_Selection;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.*;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.ss_editor.api.SS_ContextActionListener;
+import org.jjazz.ss_editor.api.SS_ContextAction;
 import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
 import org.jjazz.utilities.api.ResUtil;
 
@@ -55,30 +53,21 @@ import org.jjazz.utilities.api.ResUtil;
             @ActionReference(path = "Actions/SongPart", position = 1300, separatorBefore = 1290),
             @ActionReference(path = "Actions/RhythmParameter", position = 1300, separatorBefore = 1290),
         })
-public class SelectAll extends AbstractAction implements ContextAwareAction, SS_ContextActionListener
+public class SelectAll extends SS_ContextAction
 {
-
-    private Lookup context;
-    private SS_ContextActionSupport cap;
+    public static final KeyStroke KEYSTROKE = getGenericControlKeyStroke(KeyEvent.VK_A);
     private static final Logger LOGGER = Logger.getLogger(SelectAll.class.getSimpleName());
 
-    public SelectAll()
+    @Override
+    protected void configureAction()
     {
-        this(Utilities.actionsGlobalContext());
-    }
-
-    private SelectAll(Lookup context)
-    {
-        this.context = context;
-        cap = SS_ContextActionSupport.getInstance(this.context);
-        cap.addListener(this);
-        putValue(NAME, ResUtil.getString(getClass(), "CTL_SelectAll"));
-        putValue(ACCELERATOR_KEY, getGenericControlKeyStroke(KeyEvent.VK_A));
-        selectionChange(cap.getSelection());
+        putValue(NAME, ResUtil.getString(getClass(), "CTL_ResetRpValue"));
+        putValue(ACCELERATOR_KEY, KEYSTROKE);
+        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.RHYTHM_PARAMETER_SELECTION, ListeningTarget.SONG_PART_SELECTION));
     }
 
     @Override
-    public void actionPerformed(ActionEvent e)
+    protected void actionPerformed(ActionEvent ae, SS_Selection selection)
     {
         SS_EditorTopComponent tc = SS_EditorTopComponent.getActive();
         if (tc == null)
@@ -87,7 +76,6 @@ public class SelectAll extends AbstractAction implements ContextAwareAction, SS_
         }
         SS_Editor editor = tc.getEditor();
         SongStructure sgs = editor.getModel();
-        SS_SelectionUtilities selection = cap.getSelection(); // Warning: selection can be empty ! 
         if (selection.isEmpty() || selection.isSongPartSelected())
         {
             // Select all SongParts
@@ -111,7 +99,7 @@ public class SelectAll extends AbstractAction implements ContextAwareAction, SS_
     }
 
     @Override
-    public void selectionChange(SS_SelectionUtilities selection)
+    public void selectionChange(SS_Selection selection)
     {
         // Can not rely on selection to retrieve the model, selection can be empty !
         SS_EditorTopComponent tc = SS_EditorTopComponent.getActive();
@@ -124,9 +112,4 @@ public class SelectAll extends AbstractAction implements ContextAwareAction, SS_
         setEnabled(sgs != null && !sgs.getSongParts().isEmpty());
     }
 
-    @Override
-    public Action createContextAwareInstance(Lookup context)
-    {
-        return new SelectAll(context);
-    }
 }

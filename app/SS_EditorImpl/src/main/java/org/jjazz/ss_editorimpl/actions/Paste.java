@@ -22,35 +22,34 @@
  */
 package org.jjazz.ss_editorimpl.actions;
 
-import org.jjazz.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
+import javax.swing.Icon;
+import javax.swing.KeyStroke;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.ss_editorimpl.SongPartCopyBuffer;
 import org.jjazz.ss_editor.api.SS_EditorTopComponent;
-import org.jjazz.ss_editor.api.SS_SelectionUtilities;
+import org.jjazz.ss_editor.api.SS_Selection;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.ContextAwareAction;
-import org.openide.util.Lookup;
-import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.ss_editor.api.SS_ContextActionListener;
+import org.jjazz.ss_editor.api.SS_ContextAction;
 import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
 import org.jjazz.utilities.api.ResUtil;
+import org.openide.actions.PasteAction;
+import org.openide.util.actions.SystemAction;
 
 /**
  * Manage paste of SongParts and RpValues.
@@ -63,40 +62,27 @@ import org.jjazz.utilities.api.ResUtil;
         {
             @ActionReference(path = "Actions/SongPart", position = 1200),
         })
-public class Paste extends AbstractAction implements ContextAwareAction, SS_ContextActionListener, ChangeListener
+public class Paste extends SS_ContextAction implements ChangeListener
 {
 
-    private Lookup context;
-    private SS_ContextActionSupport cap;
-    private String undoText = ResUtil.getCommonString("CTL_Paste");
+    public static final KeyStroke KEYSTROKE = getGenericControlKeyStroke(KeyEvent.VK_V);
 
-    public Paste()
-    {
-        this(Utilities.actionsGlobalContext());
-    }
 
-    private Paste(Lookup context)
+    @Override
+    protected void configureAction()
     {
-        this.context = context;
-        cap = SS_ContextActionSupport.getInstance(this.context);
-        cap.addListener(this);
-        putValue(NAME, undoText);
-        putValue(ACCELERATOR_KEY, getGenericControlKeyStroke(KeyEvent.VK_V));
+        putValue(NAME, ResUtil.getCommonString("CTL_Copy"));
+        Icon icon = SystemAction.get(PasteAction.class).getIcon();
+        putValue(SMALL_ICON, icon);
+        putValue(ACCELERATOR_KEY, KEYSTROKE);
+        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.RHYTHM_PARAMETER_SELECTION, ListeningTarget.SONG_PART_SELECTION));
         SongPartCopyBuffer buffer = SongPartCopyBuffer.getInstance();
         buffer.addChangeListener(this);
-        selectionChange(cap.getSelection());
     }
 
     @Override
-    public Action createContextAwareInstance(Lookup context)
+    protected void actionPerformed(ActionEvent ae, SS_Selection selection)
     {
-        return new Paste(context);
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e)
-    {
-        SS_SelectionUtilities selection = cap.getSelection();
         if (selection.isSongPartSelected())
         {
             performSongPartPasteAction(selection);
@@ -107,7 +93,7 @@ public class Paste extends AbstractAction implements ContextAwareAction, SS_Cont
     }
 
     @Override
-    public void selectionChange(SS_SelectionUtilities selection)
+    public void selectionChange(SS_Selection selection)
     {
         boolean b = false;
         if (selection.isSongPartSelected())
@@ -126,7 +112,7 @@ public class Paste extends AbstractAction implements ContextAwareAction, SS_Cont
         SS_EditorTopComponent tc = SS_EditorTopComponent.getActive();
         if (tc != null)
         {
-            SS_SelectionUtilities selection = new SS_SelectionUtilities(tc.getEditor().getLookup());
+            SS_Selection selection = new SS_Selection(tc.getEditor().getLookup());
             selectionChange(selection);
         }
     }
@@ -135,22 +121,23 @@ public class Paste extends AbstractAction implements ContextAwareAction, SS_Cont
     // Private methods
     // =======================================================================================
 
-    private boolean isSongPartPasteEnabled(SS_SelectionUtilities selection)
+    private boolean isSongPartPasteEnabled(SS_Selection selection)
     {
         SongPartCopyBuffer buffer = SongPartCopyBuffer.getInstance();
         boolean b = selection.isContiguousSptSelection() && !buffer.isEmpty();
         return b;
     }
 
-    private void performSongPartPasteAction(SS_SelectionUtilities selection)
+    private void performSongPartPasteAction(SS_Selection selection)
     {
         SongPartCopyBuffer buffer = SongPartCopyBuffer.getInstance();
         SongStructure targetSgs = selection.getModel();
         List<SongPart> spts = targetSgs.getSongParts();
+
         // Paste before first selected spt
         int startBarIndex = spts.get(selection.getMinStartSptIndex()).getStartBarIndex();
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(targetSgs);
-        um.startCEdit(undoText);
+        um.startCEdit(getActionName());
         for (SongPart spt : buffer.get(targetSgs, startBarIndex))
         {
             try
@@ -160,10 +147,10 @@ public class Paste extends AbstractAction implements ContextAwareAction, SS_Cont
             {
                 String msg = ResUtil.getString(getClass(), "ERR_Paste");
                 msg += "\n" + ex.getLocalizedMessage();
-                um.abortCEdit(undoText, msg);
+                um.abortCEdit(getActionName(), msg);
                 return;
             }
         }
-        um.endCEdit(undoText);
+        um.endCEdit(getActionName());
     }
 }

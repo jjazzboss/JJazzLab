@@ -22,69 +22,73 @@
  */
 package org.jjazz.ss_editor.api;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.WeakHashMap;
 import java.util.logging.Logger;
 import org.jjazz.songstructure.api.SongPartParameter;
 import org.openide.util.Lookup;
 import org.openide.util.LookupEvent;
 import org.openide.util.LookupListener;
-import org.openide.util.Utilities;
 import org.openide.util.WeakListeners;
 import org.jjazz.songstructure.api.SongPart;
 
 /**
  * A helper class to write SS_Editor context aware actions.
  * <p>
- * Listen to RhyhmPart or SongPartParameter presence in the lookup. Fire the corresponding events to listeners.
+ * Listen to changes in the lookup context:<br>
+ * - RhyhmPart or SongPartParameter presence changes are notified to the registered SS_ContextActionListeners.<br>
+ * <p>
+ * SS_ContextActionSupport instances are cached per lookup context. Only weak listeners are used: declaratively registered actions might be transient actions
+ * (e.g. ContextAwareAction instances).
  */
 public class SS_ContextActionSupport
 {
 
-    static private SS_ContextActionSupport INSTANCE;
-    private Lookup context;
-    private Lookup.Result<SongPartParameter> sptpLkpResult;
-    private LookupListener sptpLkpListener;
-    private Lookup.Result<SongPart> sptLkpResult;
-    private LookupListener sptLkpListener;
-    private SS_SelectionUtilities selection;
-    private ArrayList<SS_ContextActionListener> listeners;
+    private final Lookup context;
+    private final Lookup.Result<SongPartParameter> sptpLkpResult;
+    private final LookupListener sptpLkpListener;
+    private final Lookup.Result<SongPart> sptLkpResult;
+    private final LookupListener sptLkpListener;
+    private SS_Selection selection;
+    private final List<WeakReference<SS_ContextActionListener>> selectionListeners;
+    private static WeakHashMap<Lookup, SS_ContextActionSupport> MapContextInstance;
     private static final Logger LOGGER = Logger.getLogger(SS_ContextActionSupport.class.getSimpleName());
 
     /**
-     * If context == Utilities.actionsGlobalContext() return a shared instance. Otherwise return a new specific object.
+     * Get the instance associated to the specified context.
      *
      * @param context
      * @return
      */
     static public SS_ContextActionSupport getInstance(Lookup context)
     {
-        SS_ContextActionSupport o;
+        Objects.requireNonNull(context);
+
+        SS_ContextActionSupport res;
         synchronized (SS_ContextActionSupport.class)
         {
-            if (context == Utilities.actionsGlobalContext())
+            if (MapContextInstance == null)
             {
-                if (INSTANCE == null)
-                {
-                    INSTANCE = new SS_ContextActionSupport(context);
-                }
-                o = INSTANCE;
-            } else
+                MapContextInstance = new WeakHashMap<>();
+            }
+            res = MapContextInstance.get(context);
+            if (res == null)
             {
-                o = new SS_ContextActionSupport(context);
+                res = new SS_ContextActionSupport(context);
+                MapContextInstance.put(context, res);
             }
         }
-        return o;
+        return res;
     }
 
     private SS_ContextActionSupport(Lookup context)
     {
-        if (context == null)
-        {
-            throw new IllegalArgumentException("context=" + context);   
-        }
+        selectionListeners = new ArrayList<>();
         this.context = context;
 
-        listeners = new ArrayList<>();
 
         // For WeakReferences to work, we need to keep a strong reference on the listeners (see WeakListeners java doc).
         sptLkpListener = new LookupListener()
@@ -133,22 +137,22 @@ public class SS_ContextActionSupport
     /**
      * @return The latest selection.
      */
-    public final SS_SelectionUtilities getSelection()
+    public final SS_Selection getSelection()
     {
         return selection;
     }
 
-    public void addListener(SS_ContextActionListener l)
+    public void addWeakSelectionListener(SS_ContextActionListener listener)
     {
-        if (!listeners.contains(l))
+        if (!getTargetListeners(selectionListeners).contains(listener))
         {
-            listeners.add(l);
+            selectionListeners.add(new WeakReference(listener));
         }
     }
 
-    public void removeListener(SS_ContextActionListener l)
+    public void removeWeakListener(SS_ContextActionListener listener)
     {
-        listeners.remove(l);
+        selectionListeners.removeIf(wr -> wr.get() == listener);
     }
 
     //----------------------------------------------------------------------------------------
@@ -164,8 +168,8 @@ public class SS_ContextActionSupport
             })
     private void sptpPresenceChanged()
     {
-        selection = new SS_SelectionUtilities(context);
-        fireSelectionChanged(selection);
+        selection = new SS_Selection(context);
+        fireSelectionChanged(SongPartParameter.class, selection);
     }
 
     /**
@@ -178,15 +182,44 @@ public class SS_ContextActionSupport
             })
     private void sptPresenceChanged()
     {
-        selection = new SS_SelectionUtilities(context);
-        fireSelectionChanged(selection);
+        selection = new SS_Selection(context);
+        fireSelectionChanged(SongPart.class, selection);
     }
 
-    private void fireSelectionChanged(SS_SelectionUtilities selection)
+    /**
+     *
+     * @param itemsClass The class of the items at the origin of the lookup change. Not used for now.
+     * @param selection
+     */
+    private void fireSelectionChanged(Class itemsClass, SS_Selection selection)
     {
-        for (SS_ContextActionListener l : listeners)
+        for (SS_ContextActionListener l : getTargetListeners(selectionListeners))
         {
             l.selectionChange(selection);
         }
+    }
+
+    /**
+     * Get the listeners not yet GC'ed.
+     *
+     * @param <T>
+     * @param wrs
+     * @return
+     */
+    private <T> List<T> getTargetListeners(List<WeakReference<T>> wrs)
+    {
+        List<T> res = new ArrayList<>();
+        for (var it = wrs.iterator(); it.hasNext();)
+        {
+            T o = it.next().get();
+            if (o == null)
+            {
+                it.remove();
+            } else
+            {
+                res.add(o);
+            }
+        }
+        return res;
     }
 }

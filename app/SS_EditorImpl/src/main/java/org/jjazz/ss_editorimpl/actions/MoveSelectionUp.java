@@ -30,7 +30,7 @@ import javax.swing.AbstractAction;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.ss_editor.api.SS_Editor;
 import org.jjazz.ss_editor.api.SS_EditorTopComponent;
-import org.jjazz.ss_editor.api.SS_SelectionUtilities;
+import org.jjazz.ss_editor.api.SS_Selection;
 import org.jjazz.ss_editor.rpviewer.api.RpViewer;
 import org.jjazz.songstructure.api.SongPart;
 
@@ -54,7 +54,7 @@ public class MoveSelectionUp extends AbstractAction
             List<RhythmParameter<?>> rps = rpv.getSptModel().getRhythm().getRhythmParameters();
             int rpIndex = rps.indexOf(rpv.getRpModel());
             assert rpIndex >= 0;
-            SS_SelectionUtilities selection = new SS_SelectionUtilities(editor.getLookup());
+            SS_Selection selection = new SS_Selection(editor.getLookup());
             selection.unselectAll(editor);
             if (rpIndex > 0)
             {

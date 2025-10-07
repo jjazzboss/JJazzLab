@@ -30,7 +30,7 @@ import javax.swing.AbstractAction;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.ss_editor.api.SS_Editor;
 import org.jjazz.ss_editor.api.SS_EditorTopComponent;
-import org.jjazz.ss_editor.api.SS_SelectionUtilities;
+import org.jjazz.ss_editor.api.SS_Selection;
 import org.jjazz.ss_editor.sptviewer.api.SptViewer;
 import org.jjazz.ss_editor.rpviewer.api.RpViewer;
 import org.jjazz.songstructure.api.SongPart;
@@ -89,7 +89,7 @@ public class MoveSelectionLeft extends AbstractAction
             }
             if (!extend)
             {
-                SS_SelectionUtilities selection = new SS_SelectionUtilities(ed.getLookup());
+                SS_Selection selection = new SS_Selection(ed.getLookup());
                 selection.unselectAll(ed);
             }
 
@@ -115,7 +115,7 @@ public class MoveSelectionLeft extends AbstractAction
             SongPart prevSpt = spts.get(index - 1);
             if (!extend)
             {
-                SS_SelectionUtilities selection = new SS_SelectionUtilities(ed.getLookup());
+                SS_Selection selection = new SS_Selection(ed.getLookup());
                 selection.unselectAll(ed);
             }
             ed.selectSongPart(prevSpt, true);

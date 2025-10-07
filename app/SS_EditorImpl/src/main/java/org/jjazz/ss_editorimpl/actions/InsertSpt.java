@@ -25,11 +25,10 @@ package org.jjazz.ss_editorimpl.actions;
 import org.jjazz.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
 import javax.swing.KeyStroke;
@@ -37,20 +36,18 @@ import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.rhythm.api.Rhythm;
-import org.jjazz.ss_editor.api.SS_SelectionUtilities;
+import org.jjazz.ss_editor.api.SS_Selection;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
-import org.openide.util.Utilities;
 import org.openide.windows.WindowManager;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.ss_editor.api.SS_ContextActionListener;
+import org.jjazz.ss_editor.api.SS_ContextAction;
 import org.jjazz.utilities.api.ResUtil;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ss_editorimpl.actions.insertspt")
@@ -59,41 +56,24 @@ import org.jjazz.utilities.api.ResUtil;
         {
             @ActionReference(path = "Actions/SongPart", position = 300)
         })
-public class InsertSpt extends AbstractAction implements ContextAwareAction, SS_ContextActionListener
+public class InsertSpt extends SS_ContextAction
 {
 
     public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("I");
-    private Lookup context;
-    private SS_ContextActionSupport cap;
-    private String undoText = ResUtil.getString(getClass(), "CTL_InsertSpt");
     private static final Logger LOGGER = Logger.getLogger(InsertSpt.class.getSimpleName());
 
-    public InsertSpt()
+   @Override
+    protected void configureAction()
     {
-        this(Utilities.actionsGlobalContext());
-    }
-
-    private InsertSpt(Lookup context)
-    {
-        this.context = context;
-        cap = SS_ContextActionSupport.getInstance(this.context);
-        cap.addListener(this);
-        putValue(NAME, undoText);
+        putValue(NAME, ResUtil.getString(getClass(), "CTL_InsertSpt"));
         putValue(ACCELERATOR_KEY, KEYSTROKE);
-        selectionChange(cap.getSelection());
+        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.SONG_PART_SELECTION));
     }
 
     @Override
-    public Action createContextAwareInstance(Lookup context)
-    {
-        return new InsertSpt(context);
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e)
+    protected void actionPerformed(ActionEvent ae, SS_Selection selection)
     {
         // Prepare data
-        SS_SelectionUtilities selection = cap.getSelection();
         SongStructure sgs = selection.getModel();
         List<SongPart> spts = sgs.getSongParts();
         ChordLeadSheet cls = null;
@@ -126,7 +106,7 @@ public class InsertSpt extends AbstractAction implements ContextAwareAction, SS_
 
 
             JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(sgs);
-            um.startCEdit(undoText);
+            um.startCEdit(getActionName());
 
 
             try
@@ -136,17 +116,17 @@ public class InsertSpt extends AbstractAction implements ContextAwareAction, SS_
             } catch (UnsupportedEditException ex)
             {
                 String msg = ResUtil.getString(getClass(), "ERR_InsertSpt") + "\n" + ex.getLocalizedMessage();
-                um.abortCEdit(undoText, msg);
+                um.abortCEdit(getActionName(), msg);
                 return;
             }
 
-            um.endCEdit(undoText);
+            um.endCEdit(getActionName());
         }
         dlg.cleanup();
     }
 
     @Override
-    public void selectionChange(SS_SelectionUtilities selection)
+    public void selectionChange(SS_Selection selection)
     {
         boolean b = selection.isContiguousSptSelection();
         LOGGER.log(Level.FINE, "selectionChange() b={0}", b);

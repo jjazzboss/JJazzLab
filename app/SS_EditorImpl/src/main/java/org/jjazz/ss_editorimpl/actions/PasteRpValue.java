@@ -39,7 +39,7 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ss_editor.api.SS_EditorTopComponent;
-import org.jjazz.ss_editor.api.SS_SelectionUtilities;
+import org.jjazz.ss_editor.api.SS_Selection;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.openide.awt.ActionID;
@@ -83,7 +83,7 @@ public class PasteRpValue extends AbstractAction implements ContextAwareAction, 
     {
         this.context = context;
         cap = SS_ContextActionSupport.getInstance(this.context);
-        cap.addListener(this);
+        cap.addWeakSelectionListener(this);
         putValue(NAME, UNDO_TEXT);
         putValue(ACCELERATOR_KEY, getGenericControlKeyStroke(KeyEvent.VK_V));
         RpValueCopyBuffer buffer = RpValueCopyBuffer.getInstance();
@@ -100,13 +100,13 @@ public class PasteRpValue extends AbstractAction implements ContextAwareAction, 
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        SS_SelectionUtilities selection = cap.getSelection();
+        SS_Selection selection = cap.getSelection();
         performAction(selection);
     
     }
 
     @Override
-    public void selectionChange(SS_SelectionUtilities selection)
+    public void selectionChange(SS_Selection selection)
     {
         setEnabled(isEnabled(selection));
     }
@@ -117,7 +117,7 @@ public class PasteRpValue extends AbstractAction implements ContextAwareAction, 
      * @param selection
      * @return
      */
-    static protected boolean isEnabled(SS_SelectionUtilities selection)
+    static protected boolean isEnabled(SS_Selection selection)
     {
         RpValueCopyBuffer buffer = RpValueCopyBuffer.getInstance();
         boolean b = !getPastableSongParts(selection, buffer.getRhythm(), buffer.getRhythmParameter()).isEmpty();
@@ -129,7 +129,7 @@ public class PasteRpValue extends AbstractAction implements ContextAwareAction, 
      *
      * @param selection
      */
-    static protected void performAction(SS_SelectionUtilities selection)
+    static protected void performAction(SS_Selection selection)
     {
             SongStructure sgs = selection.getModel();
 
@@ -205,7 +205,7 @@ public class PasteRpValue extends AbstractAction implements ContextAwareAction, 
         SS_EditorTopComponent tc = SS_EditorTopComponent.getActive();
         if (tc != null)
         {
-            SS_SelectionUtilities selection = new SS_SelectionUtilities(tc.getEditor().getLookup());
+            SS_Selection selection = new SS_Selection(tc.getEditor().getLookup());
             selectionChange(selection);
         }
     }
@@ -214,7 +214,7 @@ public class PasteRpValue extends AbstractAction implements ContextAwareAction, 
     // =======================================================================
     // Private methods
     // =======================================================================
-    static private List<SongPart> getPastableSongParts(SS_SelectionUtilities selection, Rhythm r, RhythmParameter<?> rp)
+    static private List<SongPart> getPastableSongParts(SS_Selection selection, Rhythm r, RhythmParameter<?> rp)
     {
         List<SongPart> res;
 

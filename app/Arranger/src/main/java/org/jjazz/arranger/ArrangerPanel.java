@@ -63,7 +63,7 @@ import org.jjazz.instrumentcomponents.keyboard.api.KeyboardComponent.Orientation
 import org.jjazz.instrumentcomponents.keyboard.api.KeyboardRange;
 import org.jjazz.ss_editor.api.SS_Editor;
 import org.jjazz.ss_editor.api.SS_EditorTopComponent;
-import org.jjazz.ss_editor.api.SS_SelectionUtilities;
+import org.jjazz.ss_editor.api.SS_Selection;
 import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
@@ -278,7 +278,7 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
             // Check everything is OK
             String errorMessage = null;
             SS_Editor ssEditor = null;
-            SS_SelectionUtilities selection = null;
+            SS_Selection selection = null;
             var spts = song.getSongStructure().getSongParts();
 
 
@@ -308,7 +308,7 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
 
             SS_EditorTopComponent ssTc = SS_EditorTopComponent.get(song.getSongStructure());
             ssEditor = ssTc.getEditor();
-            selection = new SS_SelectionUtilities(ssEditor.getLookup());
+            selection = new SS_Selection(ssEditor.getLookup());
             if (selection.isEmpty())
             {
                 // Use first song part

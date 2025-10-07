@@ -33,5 +33,5 @@ public interface SS_ContextActionListener
      *
      * @param selection
      */
-    public void selectionChange(SS_SelectionUtilities selection);
+    public void selectionChange(SS_Selection selection);
 }

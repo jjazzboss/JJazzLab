@@ -20,18 +20,14 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.cl_editor.api;
+package org.jjazz.ss_editor.api;
 
 import java.awt.event.ActionEvent;
 import java.lang.reflect.InvocationTargetException;
 import java.util.EnumSet;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import org.jjazz.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.chordleadsheet.api.ClsChangeListener;
-import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
 import org.openide.util.ContextAwareAction;
 import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
@@ -39,13 +35,13 @@ import org.openide.util.Utilities;
 
 
 /**
- * A base class for CL_Editor context aware actions.
+ * A base class for SS_Editor context aware actions.
  * <p>
- * To be used by actions which act on the selection (chord symbols, bars, etc.), and whose enabled state depends on this selection.
+ * To be used by actions which act on the selection (SongPart, SongPartRhythmParameter), and whose enabled state depends on this selection.
  *
- * @see CL_ContextActionSupport
+ * @see SS_ContextActionSupport
  */
-public abstract class CL_ContextAction extends AbstractAction implements CL_ContextActionListener, ClsChangeListener, ContextAwareAction
+public abstract class SS_ContextAction extends AbstractAction implements SS_ContextActionListener, ContextAwareAction
 {
 
     /**
@@ -53,28 +49,26 @@ public abstract class CL_ContextAction extends AbstractAction implements CL_Cont
      * <p>
      * Expected value is an EnumSet&lt;ListeningTarget&gt;.
      *
-     * @see #selectionChange(org.jjazz.cl_editor.api.CL_SelectionUtilities)
-     * @see #chordLeadSheetChanged(org.jjazz.chordleadsheet.api.event.ClsChangeEvent)
+     * @see #selectionChange(org.jjazz.ss_editor.api.SS_Selection)
      */
     public static final String LISTENING_TARGETS = "ListeningTargets";
 
     public enum ListeningTarget
     {
-        CLS_ITEMS_SELECTION, // CLI_ChordSymbol, CLI_Section, etc.
-        BAR_SELECTION,
-        ACTIVE_CLS_CHANGES   // Changes of the active ChordLeadSheet
+        SONG_PART_SELECTION,
+        RHYTHM_PARAMETER_SELECTION
     };
 
     private Lookup context;
-    private CL_ContextActionSupport cap;
-    private static final Logger LOGGER = Logger.getLogger(CL_ContextAction.class.getSimpleName());
+    private SS_ContextActionSupport cap;
+    private static final Logger LOGGER = Logger.getLogger(SS_ContextAction.class.getSimpleName());
 
     /**
      * Create an action which listens to all possible ListeningTargets in the global context.
      *
      * @see #configureAction()
      */
-    public CL_ContextAction()
+    public SS_ContextAction()
     {
         context = Utilities.actionsGlobalContext();
         configureAction();
@@ -113,14 +107,7 @@ public abstract class CL_ContextAction extends AbstractAction implements CL_Cont
     public void actionPerformed(ActionEvent ae)
     {
         init();
-        var cls = cap.getActiveChordLeadSheet();
-        if (cls != null)
-        {
-            actionPerformed(ae, cls, cap.getSelection());
-        } else
-        {
-            LOGGER.log(Level.WARNING, "actionPerformed(ActionEvent) cls is null. this={0}", getClass());
-        }
+        actionPerformed(ae, cap.getSelection());
     }
 
     /**
@@ -128,20 +115,10 @@ public abstract class CL_ContextAction extends AbstractAction implements CL_Cont
      *
      * @return
      */
-    protected CL_SelectionUtilities getSelection()
+    protected SS_Selection getSelection()
     {
         init();
         return cap.getSelection();
-    }
-
-    /**
-     *
-     * @return Can be null
-     */
-    protected ChordLeadSheet getActiveChordLeadSheet()
-    {
-        init();
-        return cap.getActiveChordLeadSheet();
     }
 
 
@@ -158,7 +135,7 @@ public abstract class CL_ContextAction extends AbstractAction implements CL_Cont
         putValue(LISTENING_TARGETS, EnumSet.allOf(ListeningTarget.class));
     }
 
-    /**
+  /**
      * Let subclass do additional configuration for instances created via createContextAwareInstance().
      * <p>
      * ContextAwareAction are used by Utilities.actionsForPath() and Utilities.actionsToPopup().
@@ -177,10 +154,9 @@ public abstract class CL_ContextAction extends AbstractAction implements CL_Cont
      * Perform the action.
      *
      * @param ae        The source ActionEvent
-     * @param cls       Can not be null
      * @param selection Can not be null
      */
-    abstract protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection);
+    abstract protected void actionPerformed(ActionEvent ae, SS_Selection selection);
 
     /**
      * Called when selection in the provided context has changed.
@@ -191,15 +167,16 @@ public abstract class CL_ContextAction extends AbstractAction implements CL_Cont
      * @see #LISTENING_TARGETS
      */
     @Override
-    abstract public void selectionChange(CL_SelectionUtilities selection);
+    abstract public void selectionChange(SS_Selection selection);
+
 
     // ============================================================================================= 
-    // ContextAwareAction
+    // ContextAwareAction   
     // =============================================================================================  
     @Override
     public Action createContextAwareInstance(Lookup lkp)
     {
-        CL_ContextAction res = this;
+        SS_ContextAction res = this;
         if (context != lkp)
         {
             try
@@ -215,21 +192,6 @@ public abstract class CL_ContextAction extends AbstractAction implements CL_Cont
         return res;
     }
 
-    // ============================================================================================= 
-    // ClsChangeListener implementation
-    // =============================================================================================      
-
-    /**
-     * Default implementation does nothing.
-     *
-     * @param event
-     * @see #LISTENING_TARGETS
-     */
-    @Override
-    public void chordLeadSheetChanged(ClsChangeEvent event)
-    {
-    }
-
 
     // ============================================================================================= 
     // Private methods
@@ -243,13 +205,9 @@ public abstract class CL_ContextAction extends AbstractAction implements CL_Cont
         {
             return;
         }
-        cap = CL_ContextActionSupport.getInstance(context);
+        cap = SS_ContextActionSupport.getInstance(context);
         var targets = getListeningTargets();
-        if (targets.contains(ListeningTarget.ACTIVE_CLS_CHANGES))
-        {
-            cap.addWeakActiveClsChangeListener(this);
-        }
-        if (targets.contains(ListeningTarget.BAR_SELECTION) || targets.contains(ListeningTarget.CLS_ITEMS_SELECTION))
+        if (targets.contains(ListeningTarget.RHYTHM_PARAMETER_SELECTION) || targets.contains(ListeningTarget.SONG_PART_SELECTION))
         {
             cap.addWeakSelectionListener(this);
         }

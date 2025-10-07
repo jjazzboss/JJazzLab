@@ -23,7 +23,7 @@
 package org.jjazz.ss_editorimpl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import org.jjazz.ss_editor.api.SS_SelectionUtilities;
+import org.jjazz.ss_editor.api.SS_Selection;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -326,7 +326,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     public void cleanup()
     {
         // Unselect everything
-        SS_SelectionUtilities selection = new SS_SelectionUtilities(selectionLookup);
+        SS_Selection selection = new SS_Selection(selectionLookup);
         selection.unselectAll(this);
 
         settings.removePropertyChangeListener(this);
@@ -786,7 +786,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
 
 
                 // Save selection so we can restore it the best we can after replacing
-                SS_SelectionUtilities previousSelection = new SS_SelectionUtilities(selectionLookup);
+                SS_Selection previousSelection = new SS_Selection(selectionLookup);
 
                 // Update the viewers
                 for (int i = 0; i < oldSpts.size(); i++)

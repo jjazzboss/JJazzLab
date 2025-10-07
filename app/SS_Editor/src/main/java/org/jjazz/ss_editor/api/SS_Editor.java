@@ -199,6 +199,6 @@ public abstract class SS_Editor extends JPanel implements Lookup.Provider
      */
     public void unselectAll()
     {
-        new SS_SelectionUtilities(getLookup()).unselectAll(this);
+        new SS_Selection(getLookup()).unselectAll(this);
     }
 }

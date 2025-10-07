@@ -27,6 +27,7 @@ import org.jjazz.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -35,7 +36,7 @@ import javax.swing.Action;
 import static javax.swing.Action.NAME;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
-import org.jjazz.ss_editor.api.SS_SelectionUtilities;
+import org.jjazz.ss_editor.api.SS_Selection;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -45,6 +46,7 @@ import org.openide.util.Lookup;
 import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.cl_editor.api.CL_EditorClientProperties;
+import org.jjazz.ss_editor.api.SS_ContextAction;
 import org.jjazz.uisettings.api.ColorSetManager;
 import org.jjazz.ss_editor.api.SS_ContextActionListener;
 import org.jjazz.utilities.api.ResUtil;
@@ -56,43 +58,27 @@ import org.openide.util.actions.Presenter;
         {
             @ActionReference(path = "Actions/SongPart", position = 1400)
         })
-public class SetParentSectionColor extends AbstractAction implements ContextAwareAction, SS_ContextActionListener, Presenter.Popup
+public class SetParentSectionColor extends SS_ContextAction implements Presenter.Popup
 {
-
     private ColorMenu menu;
-    private Lookup context;
-    private SS_ContextActionSupport cap;
-    private String undoText = ResUtil.getString(getClass(), "CTL_SetParentSectionColor");
     private static final Logger LOGGER = Logger.getLogger(SetParentSectionColor.class.getSimpleName());
 
-    public SetParentSectionColor()
+   @Override
+    protected void configureAction()
     {
-        this(Utilities.actionsGlobalContext());
-    }
-
-    private SetParentSectionColor(Lookup context)
-    {
-        this.context = context;
-        cap = SS_ContextActionSupport.getInstance(this.context);
-        cap.addListener(this);
-        putValue(NAME, undoText);
-        selectionChange(cap.getSelection());
+        putValue(NAME, ResUtil.getString(getClass(), "CTL_SetParentSectionColor"));
+        // putValue(ACCELERATOR_KEY, KEYSTROKE);
+        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.SONG_PART_SELECTION));
     }
 
     @Override
-    public Action createContextAwareInstance(Lookup context)
-    {
-        return new SetParentSectionColor(context);
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e)
+    protected void actionPerformed(ActionEvent ae, SS_Selection selection)
     {
         // Not used
     }
 
     @Override
-    public void selectionChange(SS_SelectionUtilities selection)
+    public void selectionChange(SS_Selection selection)
     {
         boolean b = selection.isSongPartSelected();
         LOGGER.log(Level.FINE, "selectionChange() b={0}", b);
@@ -108,7 +94,7 @@ public class SetParentSectionColor extends AbstractAction implements ContextAwar
     {
         if (menu == null)
         {
-            menu = new ColorMenu(undoText);
+            menu = new ColorMenu(getActionName());
         }
         return menu;
     }
@@ -118,7 +104,7 @@ public class SetParentSectionColor extends AbstractAction implements ContextAwar
     // =============================================================================================    
     private void setColorOfSelectedSpts(Color c)
     {
-        SS_SelectionUtilities selection = cap.getSelection();
+        SS_Selection selection = getSelection();
         List<SongPart> spts = selection.getIndirectlySelectedSongParts();
         for (var spt : spts)
         {

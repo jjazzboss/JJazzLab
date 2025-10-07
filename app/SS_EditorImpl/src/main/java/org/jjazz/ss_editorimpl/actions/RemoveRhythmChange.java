@@ -22,27 +22,22 @@
  */
 package org.jjazz.ss_editorimpl.actions;
 
-import org.jjazz.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.logging.Logger;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.ss_editor.api.SS_SelectionUtilities;
+import org.jjazz.ss_editor.api.SS_Selection;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.ContextAwareAction;
-import org.openide.util.Lookup;
-import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongStructure;
+import org.jjazz.ss_editor.api.SS_ContextAction;
 import org.jjazz.ss_editorimpl.HideIfDisabledAction;
-import org.jjazz.ss_editor.api.SS_ContextActionListener;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.utilities.api.ResUtil;
 
@@ -52,32 +47,22 @@ import org.jjazz.utilities.api.ResUtil;
         {
             @ActionReference(path = "Actions/SongPart", position = 90),
         })
-public class RemoveRhythmChange extends AbstractAction implements ContextAwareAction, SS_ContextActionListener, HideIfDisabledAction
+public class RemoveRhythmChange extends SS_ContextAction implements HideIfDisabledAction
 {
 
-    private Lookup context;
-    private SS_ContextActionSupport cap;
-    private String undoText = ResUtil.getString(getClass(), "CTL_RemoveRhythmChange");
     private static final Logger LOGGER = Logger.getLogger(RemoveRhythmChange.class.getSimpleName());
 
-    public RemoveRhythmChange()
+    @Override
+    protected void configureAction()
     {
-        this(Utilities.actionsGlobalContext());
-    }
-
-    public RemoveRhythmChange(Lookup context)
-    {
-        this.context = context;
-        cap = SS_ContextActionSupport.getInstance(this.context);
-        cap.addListener(this);
-        putValue(NAME, undoText);
-        selectionChange(cap.getSelection());
+        putValue(NAME, ResUtil.getString(getClass(), "CTL_RemoveRhythmChange"));
+        // putValue(ACCELERATOR_KEY, KEYSTROKE);
+        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.SONG_PART_SELECTION));
     }
 
     @Override
-    public void actionPerformed(ActionEvent e)
+    protected void actionPerformed(ActionEvent ae, SS_Selection selection)
     {
-        SS_SelectionUtilities selection = cap.getSelection();
         SongStructure sgs = selection.getModel();
         var spts = sgs.getSongParts();
         SongPart spt0 = selection.getSelectedSongParts().get(0);
@@ -105,7 +90,7 @@ public class RemoveRhythmChange extends AbstractAction implements ContextAwareAc
 
 
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(sgs);
-        um.startCEdit(undoText);
+        um.startCEdit(getActionName());
         try
         {
             sgs.replaceSongParts(oldSpts, newSpts);
@@ -114,14 +99,14 @@ public class RemoveRhythmChange extends AbstractAction implements ContextAwareAc
             // We possibly removed 1 rhythm, can't be here
             String msg = ResUtil.getString(getClass(), "ERR_CantRemoveRhythmChange");
             msg += "\n" + ex.getLocalizedMessage();
-            um.abortCEdit(undoText, msg);
+            um.abortCEdit(getActionName(), msg);
             return;
         }
-        um.endCEdit(undoText);
+        um.endCEdit(getActionName());
     }
 
     @Override
-    public void selectionChange(SS_SelectionUtilities selection)
+    public void selectionChange(SS_Selection selection)
     {
         boolean b = false;
         if (selection.getSelectedSongParts().size() == 1)
@@ -142,9 +127,4 @@ public class RemoveRhythmChange extends AbstractAction implements ContextAwareAc
         setEnabled(b);
     }
 
-    @Override
-    public Action createContextAwareInstance(Lookup context)
-    {
-        return new RemoveRhythmChange(context);
-    }
 }

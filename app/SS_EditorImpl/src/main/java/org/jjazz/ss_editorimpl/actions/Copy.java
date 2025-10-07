@@ -22,29 +22,30 @@
  */
 package org.jjazz.ss_editorimpl.actions;
 
-import org.jjazz.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.util.EnumSet;
 import java.util.List;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
+import javax.swing.Icon;
+import javax.swing.KeyStroke;
 import org.jjazz.ss_editor.api.SS_Editor;
 import org.jjazz.ss_editor.api.SS_EditorTopComponent;
-import org.jjazz.ss_editor.api.SS_SelectionUtilities;
+import org.jjazz.ss_editor.api.SS_Selection;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.ContextAwareAction;
-import org.openide.util.Lookup;
-import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.ss_editor.api.SS_ContextActionListener;
+import org.jjazz.ss_editor.api.SS_ContextAction;
+import static org.jjazz.ss_editor.api.SS_ContextAction.LISTENING_TARGETS;
+import org.jjazz.ss_editor.api.SS_ContextAction.ListeningTarget;
 import org.jjazz.ss_editorimpl.SongPartCopyBuffer;
 import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
 import org.jjazz.utilities.api.ResUtil;
+import org.openide.actions.CopyAction;
+import org.openide.util.actions.SystemAction;
 
 
 /**
@@ -58,38 +59,25 @@ import org.jjazz.utilities.api.ResUtil;
         {
             @ActionReference(path = "Actions/SongPart", position = 1100),     // CopyRpValue action will also insert its own entry in Actions/RhythmParameter
         })
-public class Copy extends AbstractAction implements ContextAwareAction, SS_ContextActionListener
+public class Copy extends SS_ContextAction
 {
 
-    private Lookup context;
-    private SS_ContextActionSupport cap;
-    private String undoText = ResUtil.getCommonString("CTL_Copy");
+    public static final KeyStroke KEYSTROKE = getGenericControlKeyStroke(KeyEvent.VK_C);
 
-    public Copy()
-    {
-        this(Utilities.actionsGlobalContext());
-    }
 
-    private Copy(Lookup context)
+    @Override
+    protected void configureAction()
     {
-        this.context = context;
-        cap = SS_ContextActionSupport.getInstance(this.context);
-        cap.addListener(this);
-        putValue(NAME, undoText);
-        putValue(ACCELERATOR_KEY, getGenericControlKeyStroke(KeyEvent.VK_C));
-        selectionChange(cap.getSelection());
+        putValue(NAME, ResUtil.getCommonString("CTL_Copy"));
+        Icon icon = SystemAction.get(CopyAction.class).getIcon();
+        putValue(SMALL_ICON, icon);
+        putValue(ACCELERATOR_KEY, KEYSTROKE);
+        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.RHYTHM_PARAMETER_SELECTION, ListeningTarget.SONG_PART_SELECTION));
     }
 
     @Override
-    public Action createContextAwareInstance(Lookup context)
+    protected void actionPerformed(ActionEvent ae, SS_Selection selection)
     {
-        return new Copy(context);
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e)
-    {
-        SS_SelectionUtilities selection = cap.getSelection();
         if (selection.isSongPartSelected())
         {
             performSongPartCopyAction(selection);
@@ -100,7 +88,7 @@ public class Copy extends AbstractAction implements ContextAwareAction, SS_Conte
     }
 
     @Override
-    public void selectionChange(SS_SelectionUtilities selection)
+    public void selectionChange(SS_Selection selection)
     {
         boolean b = false;
         if (selection.isSongPartSelected())
@@ -117,12 +105,12 @@ public class Copy extends AbstractAction implements ContextAwareAction, SS_Conte
     // Private methods
     // =======================================================================================
 
-    private boolean isSongPartCopyEnabled(SS_SelectionUtilities selection)
+    private boolean isSongPartCopyEnabled(SS_Selection selection)
     {
         return selection.isSongPartSelected() && selection.isContiguousSptSelection();
     }
 
-    private void performSongPartCopyAction(SS_SelectionUtilities selection)
+    private void performSongPartCopyAction(SS_Selection selection)
     {
         SongPartCopyBuffer buffer = SongPartCopyBuffer.getInstance();
         List<SongPart> spts = selection.getSelectedSongParts();
