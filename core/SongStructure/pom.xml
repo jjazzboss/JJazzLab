@@ -1,4 +1,3 @@
-
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -12,102 +11,87 @@
     <artifactId>songstructure</artifactId>
     <name>SongStructure</name>
     <packaging>nbm</packaging>
-    
+
     <properties>
         <jjazzlab.surefire.skipTests>false</jjazzlab.surefire.skipTests>
-    </properties>     
-    
+    </properties>
+
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.netbeans.utilities</groupId>
                 <artifactId>nbm-maven-plugin</artifactId>
                 <configuration>
-                    <publicPackages>                      
+                    <publicPackages>
                         <publicPackage>org.jjazz.songstructure.api</publicPackage>
                         <publicPackage>org.jjazz.songstructure.api.event</publicPackage>
                     </publicPackages>
                 </configuration>
                 <extensions>true</extensions>
             </plugin>
-            
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <additionalClasspathDependencies>
-                        <!-- Add those modules only for test runtime so that RhythmDatabase is populated -->
-                        <additionalClasspathDependency>
-                            <groupId>org.jjazzlab.plugins</groupId>
-                            <artifactId>yamjjazz</artifactId>       
-                            <version>${project.version}</version>
-                        </additionalClasspathDependency>
-                        <additionalClasspathDependency>
-                            <groupId>org.jjazzlab.core</groupId>
-                            <artifactId>rhythmstubs</artifactId>       
-                            <version>${project.version}</version>
-                        </additionalClasspathDependency>                        
-                    </additionalClasspathDependencies>
-                </configuration>
-            </plugin>            
-            
+            </plugin>
         </plugins>
     </build>
-    <dependencies>      
-        <dependency> 
-            <groupId>org.jjazzlab.core</groupId> 
-            <artifactId>harmony</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.jjazzlab.core</groupId> 
-            <artifactId>chordleadsheet</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.jjazzlab.core</groupId> 
-            <artifactId>rhythm</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.jjazzlab.core</groupId> 
-            <artifactId>rhythmdatabase</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.jjazzlab.core</groupId> 
-            <artifactId>undomanager</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.jjazzlab.core</groupId> 
-            <artifactId>utilities</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
+
+    <dependencies>
+        <dependency>
+            <groupId>org.jjazzlab.core</groupId>
+            <artifactId>harmony</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jjazzlab.core</groupId>
+            <artifactId>chordleadsheet</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jjazzlab.core</groupId>
+            <artifactId>rhythm</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jjazzlab.core</groupId>
+            <artifactId>rhythmdatabase</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jjazzlab.core</groupId>
+            <artifactId>undomanager</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jjazzlab.core</groupId>
+            <artifactId>utilities</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.jjazzlab.core</groupId>
             <artifactId>xstream</artifactId>
             <version>${project.version}</version>
-        </dependency>        
+        </dependency>
         <dependency>
             <groupId>org.jjazzlab.core</groupId>
             <artifactId>guava</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-openide-dialogs</artifactId> 
-            <version>${netbeans.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-openide-util</artifactId> 
-            <version>${netbeans.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.netbeans.api</groupId> 
-            <artifactId>org-openide-util-lookup</artifactId> 
-            <version>${netbeans.version}</version>  
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-openide-dialogs</artifactId>
+            <version>${netbeans.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-openide-util</artifactId>
+            <version>${netbeans.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-openide-util-lookup</artifactId>
+            <version>${netbeans.version}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -123,4 +107,3 @@
         </dependency>
     </dependencies>
 </project>
-

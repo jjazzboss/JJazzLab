@@ -25,7 +25,6 @@ package org.jjazz.harmony.api;
 import com.google.common.base.Preconditions;
 import java.text.ParseException;
 import java.util.List;
-import java.util.Objects;
 import java.util.logging.Logger;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.ResUtil;
