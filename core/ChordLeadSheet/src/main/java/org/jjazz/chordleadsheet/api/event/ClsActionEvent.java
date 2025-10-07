@@ -30,9 +30,9 @@ import java.util.Objects;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 
 /**
- * An event to indicate that a high-level action, i.e. a call to a public API method that mutates the chord leadsheet, has started or is complete.
+ * A special event to indicate that a high-level action, i.e. a call to a public API method that mutates the chord leadsheet, has started or is complete.
  * <p>
- * All lowl-level ClsChangeEvents fired by a ChordLeadSheet are always preceded and followed by start and complete ClsActionEvents. The complete ClsActionEvent
+ * All low-level ClsChangeEvents fired by a ChordLeadSheet are always preceded and followed by start and complete ClsActionEvents. The complete ClsActionEvent
  * contains the low-level ClsChangeEvents.
  * <p>
  *
