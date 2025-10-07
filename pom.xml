@@ -256,6 +256,7 @@
         <module>core/RhythmDatabase</module>
         <module>core/RhythmMusicGeneration</module>
         <module>core/RhythmStubs</module>
+        <module>core/rhythmstubssimple</module>
         <module>core/Song</module>
         <module>core/SongContext</module>
         <module>core/SongStructure</module>
@@ -306,7 +307,6 @@
         <module>plugins/FluidSynthEmbeddedSynth</module>        
         <module>plugins/JJSwing</module>
         <module>plugins/YamJJazz</module>
-        
     </modules>    
     
 </project>
