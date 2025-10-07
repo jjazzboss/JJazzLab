@@ -108,7 +108,6 @@ import org.openide.util.lookup.ServiceProvider;
  * also fired.
  * <p>
  */
-
 public class MidiMix implements SgsChangeListener, PropertyChangeListener, VetoableChangeListener, Serializable
 {
 
@@ -1081,7 +1080,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      *
      * @param f
      * @param isCopy
-     * @return False if a problem occured
+     * @return False if a problem occurred
      */
     public boolean saveToFileNotify(File f, boolean isCopy)
     {

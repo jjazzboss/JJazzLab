@@ -32,7 +32,6 @@ import org.jjazz.flatcomponents.api.CrossShape;
  */
 public interface IR_Copiable
 {
-
     /**
      * If true, ItemRenderer should represent the copy mode, possibly using the provided CopyIndicator.
      *
@@ -45,7 +44,6 @@ public interface IR_Copiable
      */
     static public class CopyIndicator
     {
-
         private static final CrossShape crossShape = new CrossShape(3, 2);
 
         static public void drawCopyIndicator(Graphics2D g2)

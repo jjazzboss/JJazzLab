@@ -29,6 +29,7 @@ import java.awt.font.FontRenderContext;
 import java.awt.font.TextAttribute;
 import java.awt.font.TextLayout;
 import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.text.AttributedString;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -49,6 +50,7 @@ import org.jjazz.cl_editor.itemrenderer.api.IR_Copiable;
 import org.jjazz.cl_editor.itemrenderer.api.IR_Type;
 import org.jjazz.cl_editor.itemrenderer.api.ItemRenderer;
 import org.jjazz.cl_editor.itemrenderer.api.ItemRendererSettings;
+import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.uiutilities.api.TextLayoutUtils;
 import org.jjazz.utilities.api.ResUtil;
 
@@ -56,12 +58,14 @@ import org.jjazz.utilities.api.ResUtil;
  * An ItemRenderer for ChordSymbols.
  * <p>
  */
-public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
+public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable, PropertyChangeListener
 {
-
     private final static int OPTION_LINE_V_PADDING = 1;   // Additional space for the option line
     private final static int OPTION_LINE_THICKNESS = 1;   // Additional space for the option line
+    private static final Logger LOGGER = Logger.getLogger(IR_ChordSymbol.class.getSimpleName());
+
     private AttributedString attChordString;
+    private int transposition;
     private boolean copyMode;
     private final IR_ChordSymbolSettings settings;
     private int zoomFactor = 50;
@@ -76,7 +80,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
     private ChordRenderingInfo cri;
     private Timer timer;
     private Color optionLineColor;
-    private static final Logger LOGGER = Logger.getLogger(IR_ChordSymbol.class.getSimpleName());
+    private final PlaybackSettings playbackSettings;
 
     @SuppressWarnings("LeakingThisInConstructor")
     public IR_ChordSymbol(CLI_ChordSymbol item, ItemRendererSettings irSettings)
@@ -84,24 +88,54 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
         super(item, IR_Type.ChordSymbol);
         LOGGER.log(Level.FINE, "IR_ChordSymbol() item={0}", item);
 
-
         // Apply settings and listen to their changes
         settings = irSettings.getIR_ChordSymbolSettings();
         settings.addPropertyChangeListener(this);
         setFont(settings.getFont());
 
+        // Listen to transposition option changes
+        playbackSettings = PlaybackSettings.getInstance();
+        playbackSettings.addPropertyChangeListener(PlaybackSettings.PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION, this);
+        setTransposition(playbackSettings.getChordSymbolsDisplayTransposition());
 
         // Listen to color change
         getModel().getClientProperties().addPropertyChangeListener(this);
 
         updateForegroundColor();
 
-        modelChanged();
+        modelChanged(); // Shown chord changes
+    }
 
+    /**
+     * Sets a transposition to be applied before rendering the chord.
+     * 
+     * @param newTransposition 
+     */
+    private void setTransposition(int newTransposition)
+    {
+        transposition = newTransposition;
+        var chord = getModel().getData();
+        if (chord != null)
+        {
+            ExtChordSymbol modelChord = (ExtChordSymbol) chord;
+            ExtChordSymbol newChord = modelChord.getTransposedChordSymbol(transposition, null);
+            updateRendering(newChord);
+        }
     }
 
     @Override
     public void modelChanged()
+    {
+        var chord = getModel().getData();
+        if (chord != null)
+        {
+            ExtChordSymbol modelChord = (ExtChordSymbol) getModel().getData();
+            ExtChordSymbol newChord = modelChord.getTransposedChordSymbol(transposition, null);
+            updateRendering(newChord);
+        }
+    }
+
+    private void updateRendering(ExtChordSymbol newChord)
     {
         // Save previous state
         ExtChordSymbol oldEcs = ecs;
@@ -109,9 +143,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
         String oldChordSymbolString = chordSymbolString;
         ChordSymbol oldAltChordSymbol = altChordSymbol;
 
-
-        // Update our state
-        ecs = (ExtChordSymbol) getModel().getData();
+        ecs = newChord;
         cri = ecs.getRenderingInfo();
         chordSymbolString = ecs.getOriginalName();
         altChordSymbol = ecs.getAlternateChordSymbol();
@@ -262,6 +294,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
         super.cleanup();
         getModel().getClientProperties().removePropertyChangeListener(this);
         settings.removePropertyChangeListener(this);
+        playbackSettings.removePropertyChangeListener(PlaybackSettings.PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION, this);
     }
 
     private void updateToolTipText()
@@ -451,6 +484,9 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
             {
                 updateForegroundColor();
             }
+        } else if (PlaybackSettings.PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION.equals(e.getPropertyName()))
+        {
+            setTransposition((int) e.getNewValue());
         }
     }
 
@@ -484,5 +520,4 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
         optionLineColor = c;
         setForeground(c);
     }
-
 }
