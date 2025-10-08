@@ -9,11 +9,11 @@
     </parent>
 
     <groupId>org.jjazzlab.core</groupId>
-    <artifactId>rhythmstubssimple</artifactId>
-    <name>RhythmStubsSimple</name>
+    <artifactId>rhythmtestmocks</artifactId>
+    <name>RhythmTestMocks</name>
     <packaging>nbm</packaging>
 
-    <description>Rhthm Stubs that do not include music generation. These can be used for models and operations that need
+    <description>Rhthm Mocks that do not include music generation. These can be used for models and operations that need
         rhythms defined but cannot generate music.</description>
 
     <build>

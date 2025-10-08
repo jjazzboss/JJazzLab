@@ -81,7 +81,7 @@
 
         <dependency>
             <groupId>org.jjazzlab.core</groupId>
-            <artifactId>rhythmstubssimple</artifactId>
+            <artifactId>rhythmtestmocks</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
