@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazzlab.rhythmstubssimple;
+package org.jjazzlab.rhythmmocks;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,33 +35,28 @@ import org.jjazz.rhythm.api.TempoRange;
 import org.jjazz.rhythm.spi.RhythmProvider;
 import org.jjazz.rhythm.spi.StubRhythmProvider;
 import org.jjazz.utilities.api.MultipleErrorsReport;
-import org.jjazz.utilities.api.ResUtil;
 import org.openide.util.lookup.ServiceProvider;
 import org.openide.util.lookup.ServiceProviders;
 
-/**
- * 
- */
 @ServiceProviders(value =
 {
     @ServiceProvider(service = StubRhythmProvider.class),
-    @ServiceProvider(service = RhythmProvider.class)            // So that it appears in the Rhythm selection dialog box
+    @ServiceProvider(service = RhythmProvider.class)            // So it's collected by the rhythmdatabase
 })
-public  class RhythmStubSimpleProviderImpl implements StubRhythmProvider
+public  class RhythmMocksProviderImpl implements StubRhythmProvider
 {
+    public static final String ID = "RhythmMocksProviderID";
+    private final Info info;
+    private final ArrayList<Rhythm> rhythms = new ArrayList<>();
 
-    public static final String ID = "StubRhythmProviderID";
-    private Info info;
-    private ArrayList<Rhythm> rhythms = new ArrayList<>();
-
-    public RhythmStubSimpleProviderImpl()
+    public RhythmMocksProviderImpl()
     {
-        info = new Info(ID, ResUtil.getString(getClass(), "DUMMY_RHYTHMS"), ResUtil.getString(getClass(), "DUMMY_RHYTHMS_DESC"), "JL", "1.0");
+        info = new Info(ID, "DUMMY_RHYTHMS", "DUMMY_RHYTHMS_DESC", "JL", "1.0");
         for (Division div : Division.values())
         {
             for (TimeSignature ts : TimeSignature.values())
             {
-                rhythms.add(new RhythmStubSimple("RhythmStubID-" + ts.toString(), ts,
+                rhythms.add(new RhythmMocks("RhythmStubID-" + ts.toString(), ts,
                         new RhythmFeatures(Genre.BALLROOM, div, TempoRange.ALL_TEMPO)));
             }
         }
@@ -143,9 +138,9 @@ public  class RhythmStubSimpleProviderImpl implements StubRhythmProvider
     }
 
     @Override
-    public AdaptedRhythmStubSimple getAdaptedRhythm(Rhythm r, TimeSignature ts)
+    public AdaptedRhythmMocks getAdaptedRhythm(Rhythm r, TimeSignature ts)
     {
-        var res = (r instanceof RhythmStubSimple rs) ? new AdaptedRhythmStubSimple(rs, ts) : null;
+        var res = (r instanceof RhythmMocks rs) ? new AdaptedRhythmMocks(rs, ts) : null;
         return res;
     }
 }

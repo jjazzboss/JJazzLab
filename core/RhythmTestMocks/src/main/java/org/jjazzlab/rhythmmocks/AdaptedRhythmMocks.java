@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazzlab.rhythmstubssimple;
+package org.jjazzlab.rhythmmocks;
 
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -34,14 +34,14 @@ import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythm.api.RhythmVoice;
 
 /**
- * 
+ * An adapted rhythm for {@link RhythmMocks}.
  */
-public class AdaptedRhythmStubSimple implements AdaptedRhythm
+public class AdaptedRhythmMocks implements AdaptedRhythm
 {
-    private final RhythmStubSimple sourceRhythm;
+    private final RhythmMocks sourceRhythm;
     private final TimeSignature timeSignature;
 
-    public AdaptedRhythmStubSimple(RhythmStubSimple r, TimeSignature ts)
+    public AdaptedRhythmMocks(RhythmMocks r, TimeSignature ts)
     {
         if (r.getTimeSignature().equals(ts))
         {
@@ -60,7 +60,7 @@ public class AdaptedRhythmStubSimple implements AdaptedRhythm
     @Override
     public String getUniqueId()
     {
-        return AdaptedRhythm.buildUniqueId(RhythmStubSimpleProviderImpl.ID, sourceRhythm, timeSignature);
+        return AdaptedRhythm.buildUniqueId(RhythmMocksProviderImpl.ID, sourceRhythm, timeSignature);
     }
 
     @Override

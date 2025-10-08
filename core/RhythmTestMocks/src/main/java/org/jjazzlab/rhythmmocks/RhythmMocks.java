@@ -20,14 +20,13 @@
  * 
  *  Contributor(s):
  */
-package org.jjazzlab.rhythmstubssimple;
+package org.jjazzlab.rhythmmocks;
 
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.logging.Logger;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midi.api.DrumKit.Type;
@@ -42,10 +41,10 @@ import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
 
 /**
- * 
- * 
+ * Test mock for {@link Rhythm} that does not implement MusicGeneratorProvider. This class can be used
+ * when testing with rhythms without the need of music generation; e.g. SongStructure.
  */
-public class RhythmStubSimple implements Rhythm
+public class RhythmMocks implements Rhythm
 {
     private final String uniqueId;
     private final TimeSignature timeSignature;
@@ -58,7 +57,6 @@ public class RhythmStubSimple implements Rhythm
      * The supported RhythmVoices.
      */
     private final ArrayList<RhythmVoice> rhythmVoices = new ArrayList<>();
-    private static final Logger LOGGER = Logger.getLogger(RhythmStubSimple.class.getSimpleName());
 
     /**
      * Create a dummy rhythm for specified time signature.
@@ -66,7 +64,7 @@ public class RhythmStubSimple implements Rhythm
      * @param uniqueId
      * @param ts
      */
-    public RhythmStubSimple(String uniqueId, TimeSignature ts, RhythmFeatures fs)
+    public RhythmMocks(String uniqueId, TimeSignature ts, RhythmFeatures fs)
     {
         if (uniqueId == null || uniqueId.trim().isEmpty() || ts == null|| fs == null)
         {
@@ -95,9 +93,8 @@ public class RhythmStubSimple implements Rhythm
     public boolean equals(Object o)
     {
         boolean res = false;
-        if (o instanceof RhythmStubSimple)
+        if (o instanceof RhythmMocks rs)
         {
-            RhythmStubSimple rs = (RhythmStubSimple) o;
             res = rs.uniqueId.equals(uniqueId);
         }
         return res;

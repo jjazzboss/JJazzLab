@@ -39,7 +39,7 @@ import org.openide.util.lookup.ServiceProviders;
 @ServiceProviders(value =
 {
     @ServiceProvider(service = StubRhythmProvider.class),
-    @ServiceProvider(service = RhythmProvider.class)            // So that it appears in the Rhythm selection dialog box
+    @ServiceProvider(service = RhythmProvider.class)            // So it's collected by the rhythmdatabase
 }
 )
 public class RhythmStubProviderImpl implements StubRhythmProvider
