@@ -25,10 +25,12 @@ package org.jjazz.ss_editorimpl.actions;
 import java.awt.event.ActionEvent;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.ImageIcon;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -45,45 +47,68 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.rhythm.api.RpEnumerable;
-import org.jjazz.ss_editor.api.SS_ContextAction;
-import static org.jjazz.ss_editor.api.SS_ContextAction.LISTENING_TARGETS;
+import org.openide.util.ContextAwareAction;
+import org.openide.util.Lookup;
 
 
+/**
+ * Show a submenu with menu items to interpolate values on rhythm parameters between 2 left and right rhythm parameters.
+ * <p>
+ * Simplified implementation because action is only used in a popup menu, with no shortcut key.
+ */
 @SuppressWarnings(
         {
             "rawtypes", "unchecked"
         })
 @ActionID(category = "JJazz", id = "org.jjazz.ss_editorimpl.actions.adjustrpvalues")
-@ActionRegistration(displayName = "#CTL_AdjustRpValues", lazy = false)
+@ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
         {
             @ActionReference(path = "Actions/RhythmParameter", position = 550),
         })
-public class AdjustRpValues extends SS_ContextAction implements Presenter.Popup
+public class AdjustRpValues extends AbstractAction implements Presenter.Popup, ContextAwareAction
 {
 
-    static private List<JMenuItem> GoingUpMenuItems;
-    static private List<JMenuItem> GoingDownMenuItems;
     private JMenu subMenu;
     private RpSelectionContext rpData;
 
+
     private static final Logger LOGGER = Logger.getLogger(AdjustRpValues.class.getSimpleName());
-    BUG!
-    
-    @Override
-    protected void configureAction()
+
+    public AdjustRpValues()
     {
-        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.RHYTHM_PARAMETER_SELECTION));
-        initItemsMenus();
+        // Not used besides for creating the ContextAwareAction
+    }
+
+    public AdjustRpValues(Lookup context)
+    {
+        Objects.requireNonNull(context);
+        subMenu = new JMenu();
+        subMenu.setText(ResUtil.getString(getClass(), "CTL_AdjustRpValues"));
+
+
+        var selection = new SS_Selection(context);
+        rpData = new RpSelectionContext();
+        boolean b = rpData.init(selection);     // Compute context data
+        setEnabled(b);
+        subMenu.setEnabled(b);
+        if (!b)
+        {
+            return;
+        }
+
+        // Add the menu items
+        List<JMenuItem> items = (rpData.doubleValue0 > rpData.doubleValue1) ? getGoingDownItems() : getGoingUpItems();
+        for (JMenuItem item : items)
+        {
+            subMenu.add(item);
+        }
     }
 
     @Override
-    protected void configureContextAwareAction()
+    public Action createContextAwareInstance(Lookup lkp)
     {
-        subMenu = new JMenu();
-        subMenu.setText(ResUtil.getString(getClass(), "CTL_AdjustRpValues"));
-        rpData = new RpSelectionContext();
-        selectionChange(getSelection());
+        return new AdjustRpValues(lkp);
     }
 
     @Override
@@ -93,29 +118,9 @@ public class AdjustRpValues extends SS_ContextAction implements Presenter.Popup
     }
 
     @Override
-    protected void actionPerformed(ActionEvent ae, SS_Selection selection)
+    public void actionPerformed(ActionEvent ae)
     {
         // NOT USED
-    }
-
-    @Override
-    public void selectionChange(SS_Selection selection)
-    {
-        boolean b = false;
-
-        if (rpData.init(selection))
-        {
-            subMenu.removeAll();
-            List<JMenuItem> items = (rpData.doubleValue0 > rpData.doubleValue1) ? GoingDownMenuItems : GoingUpMenuItems;
-            for (JMenuItem item : items)
-            {
-                subMenu.add(item);
-            }
-            b = true;
-        }
-
-        LOGGER.log(Level.FINE, "selectionChange() b={0}", b);
-        subMenu.setEnabled(b);
     }
 
 
@@ -272,49 +277,50 @@ public class AdjustRpValues extends SS_ContextAction implements Presenter.Popup
         return Math.clamp(d, 0, 1);
     }
 
-    private void initItemsMenus()
+    private List<JMenuItem> getGoingUpItems()
     {
-        if (GoingUpMenuItems != null)
-        {
-            return;
-        }
-        GoingUpMenuItems = new ArrayList<>();
+        List<JMenuItem> menuItems = new ArrayList<>();
         JMenuItem mi = new JMenuItem(ResUtil.getString(getClass(), "CTL_Flat"));
         mi.addActionListener(e -> sameValue());
         setMenuIcon(getClass().getResource("resources/RampFlat.png"), mi);
-
-        GoingUpMenuItems.add(mi);
+        menuItems.add(mi);
         mi = new JMenuItem(ResUtil.getString(getClass(), "CTL_UpDirect"));
         mi.addActionListener(e -> rampDirect(ResUtil.getString(getClass(), "CTL_UpDirect")));
         setMenuIcon(getClass().getResource("resources/RampDirectUp.png"), mi);
-        GoingUpMenuItems.add(mi);
+        menuItems.add(mi);
         mi = new JMenuItem(ResUtil.getString(getClass(), "CTL_UpSlow"));
         mi.addActionListener(e -> upSlow());
         setMenuIcon(getClass().getResource("resources/RampSlowUp.png"), mi);
-        GoingUpMenuItems.add(mi);
+        menuItems.add(mi);
         mi = new JMenuItem(ResUtil.getString(getClass(), "CTL_UpFast"));
         mi.addActionListener(e -> upFast());
         setMenuIcon(getClass().getResource("resources/RampFastUp.png"), mi);
-        GoingUpMenuItems.add(mi);
+        menuItems.add(mi);
 
-        GoingDownMenuItems = new ArrayList<>();
-        mi = new JMenuItem(ResUtil.getString(getClass(), "CTL_Flat"));
+        return menuItems;
+    }
+
+    private List<JMenuItem> getGoingDownItems()
+    {
+        List<JMenuItem> menuItems = new ArrayList<>();
+        var mi = new JMenuItem(ResUtil.getString(getClass(), "CTL_Flat"));
         mi.addActionListener(e -> sameValue());
         setMenuIcon(getClass().getResource("resources/RampFlat.png"), mi);
-        GoingDownMenuItems.add(mi);
+        menuItems.add(mi);
         mi = new JMenuItem(ResUtil.getString(getClass(), "CTL_DownDirect"));
         mi.addActionListener(e -> rampDirect(ResUtil.getString(getClass(), "CTL_DownDirect")));
-
         setMenuIcon(getClass().getResource("resources/RampDirectDown.png"), mi);
-        GoingDownMenuItems.add(mi);
+        menuItems.add(mi);
         mi = new JMenuItem(ResUtil.getString(getClass(), "CTL_DownSlow"));
         mi.addActionListener(e -> downSlow());
         setMenuIcon(getClass().getResource("resources/RampSlowDown.png"), mi);
-        GoingDownMenuItems.add(mi);
+        menuItems.add(mi);
         mi = new JMenuItem(ResUtil.getString(getClass(), "CTL_DownFast"));
         mi.addActionListener(e -> downFast());
         setMenuIcon(getClass().getResource("resources/RampFastDown.png"), mi);
-        GoingDownMenuItems.add(mi);
+        menuItems.add(mi);
+
+        return menuItems;
     }
 
     private void setMenuIcon(URL imgURL, JMenuItem mi)
@@ -327,24 +333,24 @@ public class AdjustRpValues extends SS_ContextAction implements Presenter.Popup
     }
 
     /**
-     * Store precomputed data on each selection change, to be used by menu actions.
+     * Compute context data used.
+     * <p>
+     * Used to choose which menu items (up or down), and to help perform the menu items actions.
      */
     private class RpSelectionContext
     {
 
         SongPart spt0, spt1;    // First and last select SongParts
         RhythmParameter rp0, rp1;
-        double doubleValue0, doubleValue1;  // First and last value as a percentage [0;1]
         List<SongPartParameter> enumerableSptps;    // Only the enumerable ones
         SongStructure sgs;
+        double doubleValue0, doubleValue1;  // First and last value as a percentage [0;1]        
 
         /**
          * Initialize the fields.
          * <p>
-         * Fields will be null if selection is not valid for our actions.
-         *
          * @param selection
-         * @return True if selection was valid for our actions.
+         * @return True if selection is valid for our actions.
          */
         public boolean init(SS_Selection selection)
         {
@@ -365,16 +371,6 @@ public class AdjustRpValues extends SS_ContextAction implements Presenter.Popup
                     enumerableSptps = sptps.stream().filter(sptp -> sptp.isEnumerableRp()).toList();
                     b = enumerableSptps.size() > 2;
                 }
-            }
-
-            if (!b)
-            {
-                // Make sure code can not use the unitialized fields
-                spt0 = spt1 = null;
-                rp0 = rp1 = null;
-                doubleValue0 = doubleValue1 = -1;
-                enumerableSptps = null;
-                sgs = null;
             }
 
             return b;

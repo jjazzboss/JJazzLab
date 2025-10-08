@@ -23,17 +23,12 @@
 package org.jjazz.ss_editorimpl.actions;
 
 import java.awt.Color;
-import org.jjazz.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.util.EnumSet;
 import java.util.List;
-import java.util.logging.Level;
+import java.util.Objects;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import static javax.swing.Action.NAME;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import org.jjazz.ss_editor.api.SS_Selection;
@@ -41,50 +36,66 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.ContextAwareAction;
-import org.openide.util.Lookup;
-import org.openide.util.Utilities;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.cl_editor.api.CL_EditorClientProperties;
-import org.jjazz.ss_editor.api.SS_ContextAction;
 import org.jjazz.uisettings.api.ColorSetManager;
-import org.jjazz.ss_editor.api.SS_ContextActionListener;
 import org.jjazz.utilities.api.ResUtil;
+import org.openide.util.ContextAwareAction;
+import org.openide.util.Lookup;
 import org.openide.util.actions.Presenter;
 
+
+/**
+ * Show a submenu to update the parent section color (and the linked song parts).
+ * <p>
+ * Simplified implementation because action is only used in a popup menu, with no shortcut key.
+ */
 @ActionID(category = "JJazz", id = "org.jjazz.ss_editorimpl.actions.setparentsectioncolor")
-@ActionRegistration(displayName = "#CTL_SetParentSectionColor", lazy = false)
+@ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
         {
             @ActionReference(path = "Actions/SongPart", position = 1400)
         })
-public class SetParentSectionColor extends SS_ContextAction implements Presenter.Popup
+public class SetParentSectionColor extends AbstractAction implements Presenter.Popup, ContextAwareAction
 {
-    private ColorMenu menu;
+
+    private JMenu menu;
     private static final Logger LOGGER = Logger.getLogger(SetParentSectionColor.class.getSimpleName());
 
-   @Override
-    protected void configureAction()
+    public SetParentSectionColor()
     {
-        putValue(NAME, ResUtil.getString(getClass(), "CTL_SetParentSectionColor"));
-        // putValue(ACCELERATOR_KEY, KEYSTROKE);
-        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.SONG_PART_SELECTION));
+        // Not used besides for creating the ContextAwareAction
+    }
+
+    public SetParentSectionColor(Lookup context)
+    {
+        Objects.requireNonNull(context);
+        menu = new JMenu(ResUtil.getString(getClass(), "CTL_SetParentSectionColor"));
+
+        
+        var selection = new SS_Selection(context);
+        boolean b = selection.isSongPartSelected();
+        setEnabled(b);
+        menu.setEnabled(b);
+        if (!b)
+        {
+            return;
+        }
+
+        prepareMenu(menu, context);
     }
 
     @Override
-    protected void actionPerformed(ActionEvent ae, SS_Selection selection)
+    public Action createContextAwareInstance(Lookup lkp)
+    {
+        return new SetParentSectionColor(lkp);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent ae)
     {
         // Not used
     }
-
-    @Override
-    public void selectionChange(SS_Selection selection)
-    {
-        boolean b = selection.isSongPartSelected();
-        LOGGER.log(Level.FINE, "selectionChange() b={0}", b);
-        setEnabled(b);
-    }
-
 
     // ============================================================================================= 
     // Presenter.Popup implementation
@@ -92,70 +103,34 @@ public class SetParentSectionColor extends SS_ContextAction implements Presenter
     @Override
     public JMenuItem getPopupPresenter()
     {
-        if (menu == null)
-        {
-            menu = new ColorMenu(getActionName());
-        }
         return menu;
     }
 
     // ============================================================================================= 
     // Private methods
     // =============================================================================================    
-    private void setColorOfSelectedSpts(Color c)
+    private void prepareMenu(JMenu menu, Lookup context)
     {
-        SS_Selection selection = getSelection();
+        ColorSetManager csm = ColorSetManager.getDefault();
+        for (final Color c : csm.getReferenceColors())
+        {
+            JMenuItem mi = new JMenuItem("    ");
+            mi.setEnabled(true);
+            mi.setOpaque(true);
+            mi.setBackground(c);
+            mi.addActionListener(ae -> setColorOfSelectedSpts(c, context));
+            menu.add(mi);
+        }
+    }
+
+    private void setColorOfSelectedSpts(Color c, Lookup context)
+    {
+        SS_Selection selection = new SS_Selection(context);
         List<SongPart> spts = selection.getIndirectlySelectedSongParts();
         for (var spt : spts)
         {
             var parentSection = spt.getParentSection();
             CL_EditorClientProperties.setSectionColor(parentSection, c);
-        }
-    }
-
-    // ============================================================================================= 
-    // Private class
-    // =============================================================================================    
-    private class ColorMenu extends JMenu implements PropertyChangeListener
-    {
-
-        public ColorMenu(String title)
-        {
-            super(title);
-
-            prepareMenu();
-            ColorSetManager.getDefault().addPropertyChangeListener(this);
-        }
-
-        @Override
-        public void propertyChange(PropertyChangeEvent e)
-        {
-            // We may be outside the EDT
-            if (e.getSource() == ColorSetManager.getDefault())
-            {
-                if (e.getPropertyName().equals(ColorSetManager.PROP_REF_COLOR_CHANGED))
-                {
-                    org.jjazz.uiutilities.api.UIUtilities.invokeLaterIfNeeded(() -> prepareMenu());
-                }
-            }
-        }
-
-
-        private void prepareMenu()
-        {
-            removeAll();
-
-            ColorSetManager csm = ColorSetManager.getDefault();
-
-            for (final Color c : csm.getReferenceColors())
-            {
-                JMenuItem mi = new JMenuItem("    ");
-                mi.setEnabled(true);
-                mi.setOpaque(true);
-                mi.setBackground(c);
-                mi.addActionListener(ae -> setColorOfSelectedSpts(c));
-                add(mi);
-            }
         }
     }
 }

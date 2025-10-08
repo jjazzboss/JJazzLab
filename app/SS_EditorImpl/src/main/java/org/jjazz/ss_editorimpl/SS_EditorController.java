@@ -37,7 +37,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.JComponent;
-import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import org.jjazz.rhythm.api.RhythmParameter;
@@ -72,6 +71,7 @@ import org.jjazz.ss_editorimpl.actions.PreviousRpValue;
 import org.jjazz.ss_editorimpl.actions.PasteAppend;
 import org.jjazz.ss_editorimpl.actions.ResetRpValue;
 import org.jjazz.ss_editorimpl.actions.ToggleCompactView;
+import org.openide.util.Lookup;
 
 /**
  * Controller implementation of a SS_Editor.
@@ -86,12 +86,6 @@ public class SS_EditorController implements SS_EditorMouseListener
     private final Action nextRpValueAction;
     private final Action previousRpValueAction;
 
-    /**
-     * The various righ-click popupmenu depending on the selection.
-     */
-    private JPopupMenu popupSptMenu;
-    private JPopupMenu popupRpMenu;
-    private JPopupMenu popupEditorMenu;
     /**
      * The SongPart on which a drag was started.
      */
@@ -333,18 +327,7 @@ public class SS_EditorController implements SS_EditorMouseListener
                 editor.setFocusOnSongPart(spt);
             }
 
-
-            // Reconstruct popupmenu when required
-            List<? extends Action> actions = Utilities.actionsForPath("Actions/SongPart");
-            actions = actions.stream().filter(a -> !(a instanceof HideIfDisabledAction) || a.isEnabled()).toList();
-            int nbNonNullActions = (int) actions.stream().filter(a -> a != null).count();
-            if (popupSptMenu == null || popupSptMenu.getSubElements().length != nbNonNullActions)
-            {
-                popupSptMenu = Utilities.actionsToPopup(actions.toArray(Action[]::new), editor);
-            }
-
-            // Display popupmenu
-            popupSptMenu.show(e.getComponent(), e.getX(), e.getY());
+            buildAndShowPopupMenu(e, "Actions/SongPart", editor.getLookup());
         }
     }
 
@@ -379,12 +362,8 @@ public class SS_EditorController implements SS_EditorMouseListener
 
         if (e.getClickCount() == 1 && SwingUtilities.isRightMouseButton(e))
         {
-            if (popupEditorMenu == null)
-            {
-                List<? extends Action> actions = Utilities.actionsForPath("Actions/SS_Editor");
-                popupEditorMenu = Utilities.actionsToPopup(actions.toArray(Action[]::new), editor);
-            }
-            popupEditorMenu.show(e.getComponent(), e.getX(), e.getY());
+            buildAndShowPopupMenu(e, "Actions/SS_Editor", editor.getLookup());
+
             // Try to restore focus           
             if (focusedRp != null)
             {
@@ -401,6 +380,7 @@ public class SS_EditorController implements SS_EditorMouseListener
             }
         }
     }
+
 
     @Override
     public void editorWheelMoved(MouseWheelEvent e)
@@ -423,7 +403,8 @@ public class SS_EditorController implements SS_EditorMouseListener
         SS_EditorTopComponent ssTc = SS_EditorTopComponent.get(sgs);
         ssTc.requestActive();
 
-        int factor = e.isShiftDown() ? SS_EditorClientProperties.getZoomYFactor(editor.getSongModel()) : SS_EditorClientProperties.getZoomYFactor(editor.getSongModel());
+        int factor = e.isShiftDown() ? SS_EditorClientProperties.getZoomYFactor(editor.getSongModel()) : SS_EditorClientProperties.getZoomYFactor(
+                editor.getSongModel());
         if (e.getWheelRotation() < 0)
         {
             factor = Math.min(100, factor + STEP);
@@ -523,12 +504,8 @@ public class SS_EditorController implements SS_EditorMouseListener
                 editor.selectRhythmParameter(spt, rp, true);
                 editor.setFocusOnRhythmParameter(spt, rp);
             }
-            if (popupRpMenu == null)
-            {
-                List<? extends Action> actions = Utilities.actionsForPath("Actions/RhythmParameter");
-                popupRpMenu = Utilities.actionsToPopup(actions.toArray(Action[]::new), editor.getLookup());
-            }
-            popupRpMenu.show(e.getComponent(), e.getX(), e.getY());
+
+            buildAndShowPopupMenu(e, "Actions/RhythmParameter", editor.getLookup());
         }
     }
 
@@ -761,6 +738,14 @@ public class SS_EditorController implements SS_EditorMouseListener
         {
             action.actionPerformed(null);
         }
+    }
+
+    private void buildAndShowPopupMenu(MouseEvent e, String actionsPath, Lookup context)
+    {
+        var actions = Utilities.actionsForPath(actionsPath);
+        actions.removeIf(a -> a instanceof HideIfDisabledAction && a.isEnabled());
+        var popupMenu = Utilities.actionsToPopup(actions.toArray(Action[]::new), context);   // This might use ContextAwareAction instances
+        popupMenu.show(e.getComponent(), e.getX(), e.getY());
     }
 
 }
