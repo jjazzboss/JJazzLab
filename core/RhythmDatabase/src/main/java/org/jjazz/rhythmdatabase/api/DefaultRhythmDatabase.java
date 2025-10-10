@@ -33,12 +33,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
+import java.util.stream.Collectors;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jjazz.harmony.api.TimeSignature;
@@ -349,25 +351,6 @@ public class DefaultRhythmDatabase implements RhythmDatabase
 
         // Store the uniqueId of the Rhythm as a preference
         prefs.put(getPrefString(ts), ri.rhythmUniqueId());
-    }
-
-
-    @Override
-    public List<TimeSignature> getTimeSignatures()
-    {
-        List<TimeSignature> res = new ArrayList<>();
-        for (RhythmProvider rp : mmapRpRinfos.keySet())
-        {
-            for (RhythmInfo ri : mmapRpRinfos.get(rp))
-            {
-                TimeSignature ts = ri.timeSignature();
-                if (!res.contains(ts))
-                {
-                    res.add(ts);
-                }
-            }
-        }
-        return res;
     }
 
 

@@ -33,7 +33,6 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RP_State;
-import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.spteditor.api.RpEditor;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.spteditor.spi.RpEditorComponent;
@@ -51,11 +50,7 @@ public class RpEditorCombo extends RpEditorComponent<String> implements ActionLi
 
     public RpEditorCombo(SongPart spt, RP_State rp)
     {
-        super(spt, rp);     
-
-        // Listen to rhythm resource load event, as it might impact our tooltip
-        spt.getRhythm().addPropertyChangeListener(this);
-
+        super(spt, rp);
 
         // Prepare our editor component
         combo_rpValue = new JComboBox<>();
@@ -69,6 +64,10 @@ public class RpEditorCombo extends RpEditorComponent<String> implements ActionLi
         // Add it
         setLayout(new BorderLayout());
         add(combo_rpValue);
+
+        
+        // Listen to rhythm resource load event, as it might impact our tooltip
+        spt.getRhythm().addPropertyChangeListener(this);
     }
 
     @Override

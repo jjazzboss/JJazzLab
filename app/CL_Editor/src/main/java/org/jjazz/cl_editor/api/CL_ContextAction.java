@@ -41,7 +41,9 @@ import org.openide.util.Utilities;
 /**
  * A base class for CL_Editor context aware actions.
  * <p>
- * To be used by actions which act on the selection (chord symbols, bars, etc.), and whose enabled state depends on this selection.
+ * To be used by actions associated to static menus, buttons or keyboard shortcuts, which act on the selection (chord symbols, bars, etc.), and whose enabled
+ * state depends on this selection. If your action is only used in a transient popupmenu created by Utilities.actionsToPopup() with no keyboard shorcut, you
+ * might prefer to use a simple AbstractAction+ContextAwareAction.
  *
  * @see CL_ContextActionSupport
  */
@@ -200,7 +202,7 @@ public abstract class CL_ContextAction extends AbstractAction implements CL_Cont
     public Action createContextAwareInstance(Lookup lkp)
     {
         CL_ContextAction res = this;
-        if (context != lkp)
+        if (context != lkp )
         {
             try
             {

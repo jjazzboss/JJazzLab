@@ -24,26 +24,26 @@ package org.jjazz.cl_editorimpl.actions;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;
-import java.util.EnumSet;
+import java.util.Objects;
 import java.util.logging.Logger;
+import javax.swing.AbstractAction;
 import javax.swing.Action;
-import static javax.swing.Action.NAME;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
-import org.jjazz.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.cl_editor.api.CL_ContextAction;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
+import org.openide.util.ContextAwareAction;
+import org.openide.util.Lookup;
 import org.openide.util.actions.Presenter;
 
 /**
- * Allow user to insert via a submenu various stuff when a bar is selected.
+ * Action menu to insert bars, section, chord progressions, etc.
  * <p>
- * Actions displayed in the menu are the ones found in the layer.xml Actions/Bar/Insert folder.
+ * Relies on the actions found in layer.xml Actions/Bar/Insert folder.
  */
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.insert")
 @ActionRegistration(displayName = "not_used", lazy = false)
@@ -51,30 +51,46 @@ import org.openide.util.actions.Presenter;
         {
             @ActionReference(path = "Actions/Bar", position = 200)
         })
-public final class Insert extends CL_ContextAction implements Presenter.Popup
+public final class InsertActionMenu extends AbstractAction implements Presenter.Popup, ContextAwareAction
 {
 
-    private JMenu subMenu;
-    private static final Logger LOGGER = Logger.getLogger(Insert.class.getSimpleName());
+    private JMenu menu;
+    private static final Logger LOGGER = Logger.getLogger(InsertActionMenu.class.getSimpleName());
 
-    @Override
-    protected void configureAction()
+    public InsertActionMenu()
     {
-        putValue(NAME, ResUtil.getString(getClass(), "CTL_Insert"));
-        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.BAR_SELECTION));
+        // Not used besides for creating the ContextAwareAction
+    }
+
+    public InsertActionMenu(Lookup context)
+    {
+        Objects.requireNonNull(context);
+        menu = new JMenu(ResUtil.getString(getClass(), "CTL_Insert"));
+
+        var selection = new CL_SelectionUtilities(context);
+        boolean b = selection.isBarSelected();
+        setEnabled(b);
+        menu.setEnabled(b);
+        if (!b)
+        {
+            return;
+        }
+
+        prepareMenu(menu, context);
     }
 
     @Override
-    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)
+    public Action createContextAwareInstance(Lookup lkp)
     {
-        // Nothing
+        return new InsertActionMenu(lkp);
     }
 
     @Override
-    public void selectionChange(CL_SelectionUtilities selection)
+    public void actionPerformed(ActionEvent ae)
     {
-        setEnabled(selection.isBarSelected());
+        // Not used
     }
+
 
     // ============================================================================================= 
     // Presenter.Popup implementation
@@ -82,27 +98,22 @@ public final class Insert extends CL_ContextAction implements Presenter.Popup
     @Override
     public JMenuItem getPopupPresenter()
     {
-        if (subMenu == null)
-        {
-            subMenu = new JMenu(getActionName());
-            var actions = org.openide.util.Utilities.actionsForPath("Actions/BarInsert");
-            for (Action action : actions)
-            {
-                for (Component c : org.jjazz.uiutilities.api.UIUtilities.actionToMenuItems(action, getContext()))
-                {
-                    subMenu.add(c);
-                }
-            }
-        }
-        subMenu.setEnabled(isEnabled());
-        return subMenu;
+        return menu;
     }
 
     // ============================================================================================= 
     // Private methods
     // =============================================================================================    
 
-    // ============================================================================================= 
-    // Private class
-    // =============================================================================================    
+    private void prepareMenu(JMenu menu, Lookup context)
+    {
+        var actions = org.openide.util.Utilities.actionsForPath("Actions/BarInsert");
+        for (Action action : actions)
+        {
+            for (Component c : org.jjazz.uiutilities.api.UIUtilities.actionToMenuItems(action, context))
+            {
+                menu.add(c);
+            }
+        }
+    }
 }

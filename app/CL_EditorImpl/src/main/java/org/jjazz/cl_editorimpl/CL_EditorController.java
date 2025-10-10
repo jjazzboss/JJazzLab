@@ -48,11 +48,6 @@ import org.jjazz.harmony.api.Position;
 import org.jjazz.cl_editorimpl.actions.AccentOptionsCrash;
 import org.jjazz.cl_editorimpl.actions.AccentOptionsExtendHoldShot;
 import org.jjazz.cl_editorimpl.actions.AccentOptionsStronger;
-import org.jjazz.cl_editorimpl.actions.InsertBarAnnotation;
-import org.jjazz.cl_editorimpl.actions.InsertSection;
-import org.jjazz.cl_editorimpl.actions.InterpretationNext;
-import org.jjazz.cl_editorimpl.actions.RemoveBar;
-import org.jjazz.cl_editorimpl.actions.SetEndBar;
 import org.jjazz.cl_editorimpl.actions.ToggleBarAnnotations;
 import org.jjazz.cl_editorimpl.actions.ExtendSelectionRight;
 import org.jjazz.cl_editorimpl.actions.JumpToHome;
@@ -67,20 +62,20 @@ import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.api.CL_EditorMouseListener;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
-import org.jjazz.cl_editorimpl.actions.InsertBar;
 import org.jjazz.cl_editorimpl.actions.MoveItemLeft;
 import org.jjazz.cl_editorimpl.actions.MoveItemRight;
 import org.jjazz.flatcomponents.api.FlatComponentsGlobalSettings;
 import org.jjazz.cl_editor.itemrenderer.api.IR_Type;
 import org.jjazz.cl_editor.itemrenderer.api.ItemRenderer;
-import org.jjazz.cl_editorimpl.actions.HearChord;
 import org.jjazz.uiutilities.api.Zoomable;
 import org.openide.awt.Actions;
+import org.openide.util.Lookup;
 import org.openide.util.Utilities;
 
 /**
  * Controller for the CL_Editor.
  */
+
 public class CL_EditorController implements CL_EditorMouseListener
 {
 
@@ -91,14 +86,6 @@ public class CL_EditorController implements CL_EditorMouseListener
     private final Action transposeUpAction;
     private final Action transposeDownAction;
     private final Action hearChordAction;
-
-    /**
-     * Popupmenus depending of selection.
-     */
-    private JPopupMenu popupChordSymbolMenu;
-    private JPopupMenu popupSectionMenu;
-    private JPopupMenu popupBarMenu;
-    private JPopupMenu popupBarAnnotationMenu;
 
     /**
      * The graphical editor we control.
@@ -166,7 +153,7 @@ public class CL_EditorController implements CL_EditorMouseListener
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("shift G"), "jjazz-edit");
         editor.getActionMap().put("jjazz-edit", editAction);
 
-        
+
         // Other actions
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("LEFT"), "MoveSelectionLeft");
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("shift TAB"), "MoveSelectionLeft");
@@ -289,31 +276,18 @@ public class CL_EditorController implements CL_EditorMouseListener
                 editor.selectItem(item, true);
                 editor.setFocusOnItem(item, irType);
             }
-            if (item instanceof CLI_ChordSymbol)
+
+            String actionsPath = switch (item)
             {
-                if (popupChordSymbolMenu == null)
-                {
-                    List<? extends Action> actions = Utilities.actionsForPath("Actions/ChordSymbol");
-                    popupChordSymbolMenu = Utilities.actionsToPopup(actions.toArray(Action[]::new), editor); 
-                }
-                popupChordSymbolMenu.show(e.getComponent(), e.getX(), e.getY());
-            } else if (item instanceof CLI_Section)
-            {
-                if (popupSectionMenu == null)
-                {
-                    List<? extends Action> actions = Utilities.actionsForPath("Actions/Section");
-                    popupSectionMenu = Utilities.actionsToPopup(actions.toArray(Action[]::new), editor);
-                }
-                popupSectionMenu.show(e.getComponent(), e.getX(), e.getY());
-            } else if (item instanceof CLI_BarAnnotation)
-            {
-                if (popupBarAnnotationMenu == null)
-                {
-                    List<? extends Action> actions = Utilities.actionsForPath("Actions/BarAnnotation");
-                    popupBarAnnotationMenu = Utilities.actionsToPopup(actions.toArray(Action[]::new), editor);
-                }
-                popupBarAnnotationMenu.show(e.getComponent(), e.getX(), e.getY());
-            }
+                case CLI_ChordSymbol it ->
+                    "Actions/ChordSymbol";
+                case CLI_Section it ->
+                    "Actions/Section";
+                case CLI_BarAnnotation it ->
+                    "Actions/BarAnnotation";
+                default -> throw new IllegalStateException("item=" + item);
+            };
+            buildAndShowPopupMenu(e, actionsPath, editor.getLookup());
         }
     }
 
@@ -440,12 +414,8 @@ public class CL_EditorController implements CL_EditorMouseListener
                 editor.selectBars(barIndex, barIndex, true);
                 editor.setFocusOnBar(barIndex);
             }
-            if (popupBarMenu == null)
-            {
-                List<? extends Action> actions = Utilities.actionsForPath("Actions/Bar");
-                popupBarMenu = Utilities.actionsToPopup(actions.toArray(Action[]::new), editor);
-            }
-            popupBarMenu.show(e.getComponent(), e.getX(), e.getY());
+            
+            buildAndShowPopupMenu(e, "Actions/Bar", editor.getLookup());
         }
     }
 
@@ -549,4 +519,12 @@ public class CL_EditorController implements CL_EditorMouseListener
     // ------------------------------------------------------------------------------
     // Private functions
     // ------------------------------------------------------------------------------   
+
+    private void buildAndShowPopupMenu(MouseEvent e, String actionsPath, Lookup context)
+    {
+        var actions = Utilities.actionsForPath(actionsPath);
+        var popupMenu = Utilities.actionsToPopup(actions.toArray(Action[]::new), context);   // This might use ContextAwareAction instances
+        popupMenu.show(e.getComponent(), e.getX(), e.getY());
+    }
+
 }

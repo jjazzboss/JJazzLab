@@ -31,6 +31,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+import org.jjazz.analytics.api.Analytics;
 import org.jjazz.ss_editor.api.SS_Selection;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -38,6 +39,7 @@ import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.cl_editor.api.CL_EditorClientProperties;
+import org.jjazz.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.uisettings.api.ColorSetManager;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.util.ContextAwareAction;
@@ -58,20 +60,19 @@ import org.openide.util.actions.Presenter;
         })
 public class SetParentSectionColor extends AbstractAction implements Presenter.Popup, ContextAwareAction
 {
-
+    
     private JMenu menu;
     private static final Logger LOGGER = Logger.getLogger(SetParentSectionColor.class.getSimpleName());
-
+    
     public SetParentSectionColor()
     {
         // Not used besides for creating the ContextAwareAction
     }
-
+    
     public SetParentSectionColor(Lookup context)
     {
         Objects.requireNonNull(context);
         menu = new JMenu(ResUtil.getString(getClass(), "CTL_SetParentSectionColor"));
-
         
         var selection = new SS_Selection(context);
         boolean b = selection.isSongPartSelected();
@@ -81,16 +82,16 @@ public class SetParentSectionColor extends AbstractAction implements Presenter.P
         {
             return;
         }
-
-        prepareMenu(menu, context);
+        
+        prepareMenu(menu, selection.getSelectedSongParts());
     }
-
+    
     @Override
     public Action createContextAwareInstance(Lookup lkp)
     {
         return new SetParentSectionColor(lkp);
     }
-
+    
     @Override
     public void actionPerformed(ActionEvent ae)
     {
@@ -109,7 +110,7 @@ public class SetParentSectionColor extends AbstractAction implements Presenter.P
     // ============================================================================================= 
     // Private methods
     // =============================================================================================    
-    private void prepareMenu(JMenu menu, Lookup context)
+    private void prepareMenu(JMenu menu, List<SongPart> spts)
     {
         ColorSetManager csm = ColorSetManager.getDefault();
         for (final Color c : csm.getReferenceColors())
@@ -118,19 +119,18 @@ public class SetParentSectionColor extends AbstractAction implements Presenter.P
             mi.setEnabled(true);
             mi.setOpaque(true);
             mi.setBackground(c);
-            mi.addActionListener(ae -> setColorOfSelectedSpts(c, context));
+            mi.addActionListener(ae -> setColor(c, spts));
             menu.add(mi);
         }
     }
-
-    private void setColorOfSelectedSpts(Color c, Lookup context)
+    
+    private void setColor(Color c, List<SongPart> spts)
     {
-        SS_Selection selection = new SS_Selection(context);
-        List<SongPart> spts = selection.getIndirectlySelectedSongParts();
         for (var spt : spts)
         {
-            var parentSection = spt.getParentSection();
-            CL_EditorClientProperties.setSectionColor(parentSection, c);
+            CL_EditorClientProperties.setSectionColor(spt.getParentSection(), c);
         }
+        SS_EditorTopComponent.getActive().getEditor().getSongModel().setSaveNeeded(true);
+        Analytics.logEvent("Set parent section color");
     }
 }

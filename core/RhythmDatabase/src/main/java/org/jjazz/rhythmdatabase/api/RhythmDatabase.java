@@ -25,8 +25,10 @@ package org.jjazz.rhythmdatabase.api;
 import org.jjazz.rhythmdatabase.spi.RhythmDatabaseFactory;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.swing.event.ChangeListener;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.rhythm.api.AdaptedRhythm;
@@ -246,7 +248,13 @@ public interface RhythmDatabase
     /**
      * @return The list of TimeSignature for which we have at least 1 rhythm in the database
      */
-    List<TimeSignature> getTimeSignatures();
+    default Set<TimeSignature> getTimeSignatures()
+    {
+        Set<TimeSignature> res = getRhythms(ri -> true).stream()
+                .map(ri -> ri.timeSignature())
+                .collect(Collectors.toSet());
+        return res;
+    }
 
     /**
      * Get the default Rhythm for TimeSignature ts.

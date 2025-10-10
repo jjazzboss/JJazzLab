@@ -34,6 +34,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
 import static javax.swing.Action.SMALL_ICON;
@@ -60,28 +61,56 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.WeakListeners;
+import org.openide.util.Lookup;
 import org.openide.util.actions.SystemAction;
 
 /**
  * Paste items chordsymbols or sections, possibly across songs, also manage the case of pasting a copied string representing a song.
  */
-@ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.paste")
-@ActionRegistration(displayName = "not_used", lazy = false)
-@ActionReferences(
-        {
-            @ActionReference(path = "Actions/Section", position = 1200),
-            @ActionReference(path = "Actions/ChordSymbol", position = 1200),
-            @ActionReference(path = "Actions/Bar", position = 1200),
-            @ActionReference(path = "Actions/BarAnnotation", position = 1020)
-        })
 public class Paste extends CL_ContextAction implements FlavorListener
 {
 
+    private static Paste INSTANCE;
     public static final KeyStroke KEYSTROKE = getGenericControlKeyStroke(KeyEvent.VK_V);
     private static final List<DataFlavor> SUPPORTED_FLAVORS = Arrays.asList(ItemsTransferable.DATA_FLAVOR, BarsTransferable.DATA_FLAVOR, DataFlavor.stringFlavor);
     protected static final Logger LOGGER = Logger.getLogger(Paste.class.getName());
 
+    /**
+     * We want a singleton because we need to listen to the system clipboard (and not obvious to find an event to unregister the listener).
+     */
+    @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.paste")
+    @ActionRegistration(displayName = "not_used", lazy = false)
+    @ActionReferences(
+            {
+                @ActionReference(path = "Actions/Section", position = 1200),
+                @ActionReference(path = "Actions/ChordSymbol", position = 1200),
+                @ActionReference(path = "Actions/Bar", position = 1200),
+                @ActionReference(path = "Actions/BarAnnotation", position = 1020)
+            })
+    public static Paste getInstance()
+    {
+        if (INSTANCE == null)
+        {
+            INSTANCE = new Paste();
+        }
+        return INSTANCE;
+    }
+
+    /**
+     * Enforce singleton
+     */
+    private Paste()
+    {
+    }
+
+    /**
+     * Enforce singleton
+     */
+    @Override
+    public Action createContextAwareInstance(Lookup lkp)
+    {
+        return this;
+    }
 
     @Override
     protected void configureAction()
@@ -90,14 +119,12 @@ public class Paste extends CL_ContextAction implements FlavorListener
         putValue(ACCELERATOR_KEY, KEYSTROKE);
         Icon icon = SystemAction.get(PasteAction.class).getIcon();
         putValue(SMALL_ICON, icon);
-        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES, ListeningTarget.BAR_SELECTION));        
+        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES, ListeningTarget.BAR_SELECTION));
 
 
         // Listen to clipboard contents changes        
-        // Use WeakListener because no simple way to know when to remove listener
         var clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-        FlavorListener weakListener = WeakListeners.create(FlavorListener.class, this, clipboard);
-        clipboard.addFlavorListener(weakListener);
+        clipboard.addFlavorListener(this);      // Never unregister, but it's ok we're singleton
     }
 
     @Override
@@ -269,7 +296,7 @@ public class Paste extends CL_ContextAction implements FlavorListener
     {
         selectionChange(getSelection());
     }
-    
+
     // =================================================================================================
     // Private
     // =================================================================================================    

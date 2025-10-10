@@ -70,7 +70,7 @@ public class AdjustRpValues extends AbstractAction implements Presenter.Popup, C
 {
 
     private JMenu subMenu;
-    private RpSelectionContext rpData;
+    private RpSelectionContext rpSelectionContext;
 
 
     private static final Logger LOGGER = Logger.getLogger(AdjustRpValues.class.getSimpleName());
@@ -88,8 +88,8 @@ public class AdjustRpValues extends AbstractAction implements Presenter.Popup, C
 
 
         var selection = new SS_Selection(context);
-        rpData = new RpSelectionContext();
-        boolean b = rpData.init(selection);     // Compute context data
+        rpSelectionContext = new RpSelectionContext();
+        boolean b = rpSelectionContext.init(selection);     // Compute context data
         setEnabled(b);
         subMenu.setEnabled(b);
         if (!b)
@@ -98,7 +98,7 @@ public class AdjustRpValues extends AbstractAction implements Presenter.Popup, C
         }
 
         // Add the menu items
-        List<JMenuItem> items = (rpData.doubleValue0 > rpData.doubleValue1) ? getGoingDownItems() : getGoingUpItems();
+        List<JMenuItem> items = (rpSelectionContext.doubleValue0 > rpSelectionContext.doubleValue1) ? getGoingDownItems() : getGoingUpItems();
         for (JMenuItem item : items)
         {
             subMenu.add(item);
@@ -132,144 +132,144 @@ public class AdjustRpValues extends AbstractAction implements Presenter.Popup, C
      */
     private void sameValue()
     {
-        JJazzUndoManagerFinder.getDefault().get(rpData.sgs).startCEdit(ResUtil.getString(getClass(), "CTL_Flat"));
+        JJazzUndoManagerFinder.getDefault().get(rpSelectionContext.sgs).startCEdit(ResUtil.getString(getClass(), "CTL_Flat"));
 
-        for (SongPartParameter sptp : rpData.enumerableSptps)
+        for (SongPartParameter sptp : rpSelectionContext.enumerableSptps)
         {
             RhythmParameter rp = sptp.getRp();
-            Object value = ((RpEnumerable<?>) rp).calculateValue(rpData.doubleValue0);
-            rpData.sgs.setRhythmParameterValue(sptp.getSpt(), rp, value);
+            Object value = ((RpEnumerable<?>) rp).calculateValue(rpSelectionContext.doubleValue0);
+            rpSelectionContext.sgs.setRhythmParameterValue(sptp.getSpt(), rp, value);
         }
 
-        JJazzUndoManagerFinder.getDefault().get(rpData.sgs).endCEdit(ResUtil.getString(getClass(), "CTL_Flat"));
+        JJazzUndoManagerFinder.getDefault().get(rpSelectionContext.sgs).endCEdit(ResUtil.getString(getClass(), "CTL_Flat"));
     }
 
     private void rampDirect(String undoText)
     {
 
-        JJazzUndoManagerFinder.getDefault().get(rpData.sgs).startCEdit(undoText);
+        JJazzUndoManagerFinder.getDefault().get(rpSelectionContext.sgs).startCEdit(undoText);
 
-        double step = (rpData.doubleValue1 - rpData.doubleValue0) / (rpData.enumerableSptps.size() - 1);
-        double v = rpData.doubleValue0;
+        double step = (rpSelectionContext.doubleValue1 - rpSelectionContext.doubleValue0) / (rpSelectionContext.enumerableSptps.size() - 1);
+        double v = rpSelectionContext.doubleValue0;
 
-        for (SongPartParameter sptp : rpData.enumerableSptps)
+        for (SongPartParameter sptp : rpSelectionContext.enumerableSptps)
         {
             RhythmParameter rp = sptp.getRp();
             Object value = ((RpEnumerable) rp).calculateValue(enforce0_1Range(v));
-            rpData.sgs.setRhythmParameterValue(sptp.getSpt(), rp, value);
+            rpSelectionContext.sgs.setRhythmParameterValue(sptp.getSpt(), rp, value);
             v += step;
         }
 
-        JJazzUndoManagerFinder.getDefault().get(rpData.sgs).endCEdit(undoText);
+        JJazzUndoManagerFinder.getDefault().get(rpSelectionContext.sgs).endCEdit(undoText);
     }
 
     private void upSlow()
     {
         // 1-((1+ln((10-x)*10+0.37))/5.7)
 
-        double yDiff = rpData.doubleValue1 - rpData.doubleValue0;
+        double yDiff = rpSelectionContext.doubleValue1 - rpSelectionContext.doubleValue0;
         double x = 0;
 
-        JJazzUndoManagerFinder.getDefault().get(rpData.sgs).startCEdit(ResUtil.getString(getClass(), "CTL_UpSlow"));
+        JJazzUndoManagerFinder.getDefault().get(rpSelectionContext.sgs).startCEdit(ResUtil.getString(getClass(), "CTL_UpSlow"));
 
-        for (SongPartParameter sptp : rpData.enumerableSptps)
+        for (SongPartParameter sptp : rpSelectionContext.enumerableSptps)
         {
             RhythmParameter rp = sptp.getRp();
             double y = (1.0 - ((1 + Math.log((10 - x) * 10 + 0.37)) / 5.7)) * yDiff;
             LOGGER.log(Level.FINE, "upSlow() rpData.doubleValue0={0} rpData.doubleValue1={1} x={2} y={3}", new Object[]
             {
-                rpData.doubleValue0,
-                rpData.doubleValue1, x, y
+                rpSelectionContext.doubleValue0,
+                rpSelectionContext.doubleValue1, x, y
             });
-            double d = enforce0_1Range(rpData.doubleValue0 + y);
+            double d = enforce0_1Range(rpSelectionContext.doubleValue0 + y);
             Object value = ((RpEnumerable) rp).calculateValue(d);
-            rpData.sgs.setRhythmParameterValue(sptp.getSpt(), rp, value);
-            x += 10f / (rpData.enumerableSptps.size() - 1f);
+            rpSelectionContext.sgs.setRhythmParameterValue(sptp.getSpt(), rp, value);
+            x += 10f / (rpSelectionContext.enumerableSptps.size() - 1f);
         }
 
-        JJazzUndoManagerFinder.getDefault().get(rpData.sgs).endCEdit(ResUtil.getString(getClass(), "CTL_UpSlow"));
+        JJazzUndoManagerFinder.getDefault().get(rpSelectionContext.sgs).endCEdit(ResUtil.getString(getClass(), "CTL_UpSlow"));
     }
 
     private void upFast()
     {
         // (1+ln(x*10+0.37))/5.7  = function x[0-10] y[0-1]
 
-        double yDiff = rpData.doubleValue1 - rpData.doubleValue0;
+        double yDiff = rpSelectionContext.doubleValue1 - rpSelectionContext.doubleValue0;
         double x = 0;
 
-        JJazzUndoManagerFinder.getDefault().get(rpData.sgs).startCEdit(ResUtil.getString(getClass(), "CTL_UpFast"));
+        JJazzUndoManagerFinder.getDefault().get(rpSelectionContext.sgs).startCEdit(ResUtil.getString(getClass(), "CTL_UpFast"));
 
-        for (SongPartParameter sptp : rpData.enumerableSptps)
+        for (SongPartParameter sptp : rpSelectionContext.enumerableSptps)
         {
             double y = ((1 + Math.log(x * 10 + 0.37)) / 5.7) * yDiff;
             LOGGER.log(Level.FINER, "rpData.doubleValue0={0} rpData.doubleValue1={1} x={2} y={3}", new Object[]
             {
-                rpData.doubleValue0,
-                rpData.doubleValue1, x, y
+                rpSelectionContext.doubleValue0,
+                rpSelectionContext.doubleValue1, x, y
             });
             RhythmParameter rp = sptp.getRp();
-            double d = enforce0_1Range(rpData.doubleValue0 + y);
+            double d = enforce0_1Range(rpSelectionContext.doubleValue0 + y);
             Object value = ((RpEnumerable) rp).calculateValue(d);
-            rpData.sgs.setRhythmParameterValue(sptp.getSpt(), rp, value);
-            x += 10f / (rpData.enumerableSptps.size() - 1f);
+            rpSelectionContext.sgs.setRhythmParameterValue(sptp.getSpt(), rp, value);
+            x += 10f / (rpSelectionContext.enumerableSptps.size() - 1f);
         }
 
-        JJazzUndoManagerFinder.getDefault().get(rpData.sgs).endCEdit(ResUtil.getString(getClass(), "CTL_UpFast"));
+        JJazzUndoManagerFinder.getDefault().get(rpSelectionContext.sgs).endCEdit(ResUtil.getString(getClass(), "CTL_UpFast"));
     }
 
     private void downSlow()
     {
         // ((1+ln((10-x)*10+0.37))/5.7)        
-        double yDiff = rpData.doubleValue0 - rpData.doubleValue1;
+        double yDiff = rpSelectionContext.doubleValue0 - rpSelectionContext.doubleValue1;
         double x = 0;
 
-        JJazzUndoManagerFinder.getDefault().get(rpData.sgs).startCEdit(ResUtil.getString(getClass(), "CTL_DownSlow"));
+        JJazzUndoManagerFinder.getDefault().get(rpSelectionContext.sgs).startCEdit(ResUtil.getString(getClass(), "CTL_DownSlow"));
 
-        for (SongPartParameter sptp : rpData.enumerableSptps)
+        for (SongPartParameter sptp : rpSelectionContext.enumerableSptps)
         {
             double y = ((1 + Math.log((10 - x) * 10 + 0.37)) / 5.7) * yDiff;
             LOGGER.log(Level.FINER, "rpData.doubleValue0={0} rpData.doubleValue1={1} x={2} y={3}", new Object[]
             {
-                rpData.doubleValue0,
-                rpData.doubleValue1, x, y
+                rpSelectionContext.doubleValue0,
+                rpSelectionContext.doubleValue1, x, y
             });
             RhythmParameter rp = sptp.getRp();
 
-            double d = enforce0_1Range(rpData.doubleValue1 + y);
+            double d = enforce0_1Range(rpSelectionContext.doubleValue1 + y);
             Object value = ((RpEnumerable) rp).calculateValue(d);
-            rpData.sgs.setRhythmParameterValue(sptp.getSpt(), rp, value);
+            rpSelectionContext.sgs.setRhythmParameterValue(sptp.getSpt(), rp, value);
 
-            x += 10f / (rpData.enumerableSptps.size() - 1f);
+            x += 10f / (rpSelectionContext.enumerableSptps.size() - 1f);
         }
 
-        JJazzUndoManagerFinder.getDefault().get(rpData.sgs).endCEdit(ResUtil.getString(getClass(), "CTL_DownSlow"));
+        JJazzUndoManagerFinder.getDefault().get(rpSelectionContext.sgs).endCEdit(ResUtil.getString(getClass(), "CTL_DownSlow"));
     }
 
     private void downFast()
     {
         // (1+ln(x*10+0.37))/5.7  = function x[0-10] y[0-1]
 
-        double yDiff = rpData.doubleValue0 - rpData.doubleValue1;
+        double yDiff = rpSelectionContext.doubleValue0 - rpSelectionContext.doubleValue1;
         double x = 0;
 
-        JJazzUndoManagerFinder.getDefault().get(rpData.sgs).startCEdit(ResUtil.getString(getClass(), "CTL_DownFast"));
+        JJazzUndoManagerFinder.getDefault().get(rpSelectionContext.sgs).startCEdit(ResUtil.getString(getClass(), "CTL_DownFast"));
 
-        for (SongPartParameter sptp : rpData.enumerableSptps)
+        for (SongPartParameter sptp : rpSelectionContext.enumerableSptps)
         {
             double y = ((1.0 + Math.log(x * 10 + 0.37)) / 5.7) * yDiff;
             LOGGER.log(Level.FINER, "rpData.doubleValue0={0} rpData.doubleValue1={1} x={2} y={3}", new Object[]
             {
-                rpData.doubleValue0,
-                rpData.doubleValue1, x, y
+                rpSelectionContext.doubleValue0,
+                rpSelectionContext.doubleValue1, x, y
             });
             RhythmParameter rp = sptp.getRp();
-            double d = enforce0_1Range(rpData.doubleValue0 - y);
+            double d = enforce0_1Range(rpSelectionContext.doubleValue0 - y);
             Object value = ((RpEnumerable) rp).calculateValue(d);
-            rpData.sgs.setRhythmParameterValue(sptp.getSpt(), rp, value);
-            x += 10f / (rpData.enumerableSptps.size() - 1f);
+            rpSelectionContext.sgs.setRhythmParameterValue(sptp.getSpt(), rp, value);
+            x += 10f / (rpSelectionContext.enumerableSptps.size() - 1f);
         }
 
-        JJazzUndoManagerFinder.getDefault().get(rpData.sgs).endCEdit(ResUtil.getString(getClass(), "CTL_DownFast"));
+        JJazzUndoManagerFinder.getDefault().get(rpSelectionContext.sgs).endCEdit(ResUtil.getString(getClass(), "CTL_DownFast"));
     }
 
     private double enforce0_1Range(double d)

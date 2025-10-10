@@ -24,7 +24,6 @@ package org.jjazz.cl_editorimpl.actions;
 
 import java.awt.Color;
 import java.awt.event.ActionEvent;
-import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
@@ -32,12 +31,10 @@ import javax.swing.Action;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import org.jjazz.analytics.api.Analytics;
-import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.cl_editor.api.CL_EditorTopComponent;
-import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.api.CL_EditorClientProperties;
+import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
-import org.jjazz.cl_editor.itemrenderer.api.IR_ChordSymbolSettings;
+import org.jjazz.uisettings.api.ColorSetManager;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -48,40 +45,32 @@ import org.openide.util.Lookup;
 import org.openide.util.actions.Presenter;
 
 /**
- * Allow user to change color of selected chords via a JPopupMenu.
+ * Action menu to change the color of selected sections.
  */
-@ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.SetChordColor")
+@ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.SetSectionColor")
 @ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
         {
-            @ActionReference(path = "Actions/ChordSymbol", position = 2000, separatorBefore = 1999)
+            @ActionReference(path = "Actions/Section", position = 2100, separatorBefore = 2099)
         })
-public final class SetChordColor extends AbstractAction implements Presenter.Popup, ContextAwareAction
+public final class SetSectionColorActionMenu extends AbstractAction implements Presenter.Popup, ContextAwareAction
 {
 
-    public static final Color[] COLORS =
-    {
-        IR_ChordSymbolSettings.getDefault().getColor(),
-        new Color(0x026a2e),
-        new Color(0xb73003),
-        new Color(0x004699)
-    };
     private JMenu menu;
-    private static final Logger LOGGER = Logger.getLogger(SetChordColor.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(SetSectionColorActionMenu.class.getSimpleName());
 
-    public SetChordColor()
+    public SetSectionColorActionMenu()
     {
         // Not used besides for creating the ContextAwareAction
     }
 
-    public SetChordColor(Lookup context)
+    public SetSectionColorActionMenu(Lookup context)
     {
         Objects.requireNonNull(context);
-        menu = new JMenu(ResUtil.getString(getClass(), "CTL_SetChordColor"));
-
+        menu = new JMenu(ResUtil.getString(getClass(), "CTL_SetSectionColor"));
 
         var selection = new CL_SelectionUtilities(context);
-        boolean b = selection.isChordSymbolSelected();
+        boolean b = selection.isSectionSelected();
         setEnabled(b);
         menu.setEnabled(b);
         if (!b)
@@ -89,13 +78,13 @@ public final class SetChordColor extends AbstractAction implements Presenter.Pop
             return;
         }
 
-        prepareMenu(menu, selection.getSelectedChordSymbols());
+        prepareMenu(menu, selection);
     }
 
     @Override
     public Action createContextAwareInstance(Lookup lkp)
     {
-        return new SetChordColor(lkp);
+        return new SetSectionColorActionMenu(lkp);
     }
 
     @Override
@@ -103,7 +92,6 @@ public final class SetChordColor extends AbstractAction implements Presenter.Pop
     {
         // Not used
     }
-
 
     // ============================================================================================= 
     // Presenter.Popup implementation
@@ -114,33 +102,30 @@ public final class SetChordColor extends AbstractAction implements Presenter.Pop
         return menu;
     }
 
-
     // ============================================================================================= 
     // Private methods
     // =============================================================================================    
-    private void prepareMenu(JMenu menu, List<CLI_ChordSymbol> chordSymbols)
+    private void prepareMenu(JMenu menu, CL_SelectionUtilities selection)
     {
-        for (final Color c : COLORS)
+        ColorSetManager csm = ColorSetManager.getDefault();
+        for (final Color c : csm.getReferenceColors())
         {
             JMenuItem mi = new JMenuItem("    ");
             mi.setEnabled(true);
             mi.setOpaque(true);
             mi.setBackground(c);
-            mi.addActionListener(ae -> setColor(c, chordSymbols));
+            mi.addActionListener(ae -> setColor(c, selection));
             menu.add(mi);
         }
     }
 
-    private void setColor(Color c, List<CLI_ChordSymbol> chordSymbols)
+    private void setColor(Color c, CL_SelectionUtilities selection)
     {
-        CL_Editor editor = CL_EditorTopComponent.getActive().getEditor();
-        for (var cliCs : chordSymbols)
+        for (var section : selection.getSelectedSections())
         {
-            Color cc = c == IR_ChordSymbolSettings.getDefault().getColor() ? null : c;
-            CL_EditorClientProperties.setChordSymbolColor(cliCs, cc);
+            CL_EditorClientProperties.setSectionColor(section, c);
         }
-        editor.getSongModel().setSaveNeeded(true);
-        Analytics.logEvent("Set chord color");
+        CL_EditorTopComponent.get(selection.getChordLeadSheet()).getEditor().getSongModel().setSaveNeeded(true);
+        Analytics.logEvent("Set section color");
     }
-
 }

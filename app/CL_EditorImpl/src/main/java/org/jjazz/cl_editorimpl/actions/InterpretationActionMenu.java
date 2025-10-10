@@ -25,7 +25,9 @@ package org.jjazz.cl_editorimpl.actions;
 import java.awt.event.ActionEvent;
 import java.awt.Component;
 import java.util.EnumSet;
+import java.util.Objects;
 import java.util.logging.Logger;
+import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
@@ -43,11 +45,15 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
+import org.openide.util.ContextAwareAction;
+import org.openide.util.Lookup;
 import org.openide.util.Utilities;
 import org.openide.util.actions.Presenter;
 
 /**
- * A submenu to let user update chord symbol interpretation options via a popupmenu.
+ * Action menu to update chord symbol interpretation
+ * <p>
+ * Relies on actions found in layer.xml "Actions/ChordSymbolInterpretation".
  */
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.interpretation")
 @ActionRegistration(displayName = "not_used", lazy = false)
@@ -55,33 +61,42 @@ import org.openide.util.actions.Presenter;
         {
             @ActionReference(path = "Actions/ChordSymbol", position = 470)
         })
-public final class Interpretation extends CL_ContextAction implements Presenter.Popup
+public final class InterpretationActionMenu extends AbstractAction implements Presenter.Popup, ContextAwareAction
 {
 
-    JMenu subMenu;
-    private static final Logger LOGGER = Logger.getLogger(Interpretation.class.getSimpleName());
+    JMenu menu;
+    private static final Logger LOGGER = Logger.getLogger(InterpretationActionMenu.class.getSimpleName());
 
-    @Override
-    protected void configureAction()
+    public InterpretationActionMenu()
     {
-        putValue(NAME, ResUtil.getString(getClass(), "CTL_Interpretation"));
-        putValue(ACCELERATOR_KEY, KEYSTROKE);
-        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION));        
+        // Not used besides for creating the ContextAwareAction
     }
 
-    @Override
-    public void selectionChange(CL_SelectionUtilities selection)
+    public InterpretationActionMenu(Lookup context)
     {
+        Objects.requireNonNull(context);
+        menu = new JMenu(ResUtil.getString(getClass(), "CTL_Interpretation"));
+
+        var selection = new CL_SelectionUtilities(context);
         boolean b = selection.isChordSymbolSelected();
         setEnabled(b);
-        if (subMenu != null)
+        menu.setEnabled(b);
+        if (!b)
         {
-            // subMenu.setEnabled(b);   testing if useless
+            return;
         }
+
+        prepareMenu(menu, context);
     }
 
     @Override
-    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)
+    public Action createContextAwareInstance(Lookup lkp)
+    {
+        return new InterpretationActionMenu(lkp);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent ae)
     {
         // Not used
     }
@@ -92,31 +107,29 @@ public final class Interpretation extends CL_ContextAction implements Presenter.
     @Override
     public JMenuItem getPopupPresenter()
     {
-        if (subMenu == null)
-        {
-            assert SwingUtilities.isEventDispatchThread();
-            subMenu = new JMenu(getActionName());
-            var actions = Utilities.actionsForPath("Actions/ChordSymbolInterpretation");
-            for (Action action : actions)
-            {
-                if (action == null)
-                {
-                    subMenu.add(new JSeparator());
-                } else
-                {
-                    for (Component c : UIUtilities.actionToMenuItems(action, getContext()))
-                    {
-                        subMenu.add(c);
-                    }
-                }
-            }
-        }
-        subMenu.setEnabled(isEnabled());
-        return subMenu;
+        return menu;
     }
 
     // ============================================================================================= 
     // Private methods
-    // =============================================================================================     
+    // =============================================================================================    
+
+    private void prepareMenu(JMenu menu, Lookup context)
+    {
+        var actions = org.openide.util.Utilities.actionsForPath("Actions/ChordSymbolInterpretation");
+        for (Action action : actions)
+        {
+            if (action == null)
+            {
+                menu.add(new JSeparator());
+            } else
+            {
+                for (Component c : UIUtilities.actionToMenuItems(action, context))
+                {
+                    menu.add(c);
+                }
+            }
+        }
+    }
 
 }

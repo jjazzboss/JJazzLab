@@ -26,11 +26,14 @@ import java.awt.event.ActionEvent;
 import java.util.EnumSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static javax.swing.Action.ACCELERATOR_KEY;
+import static javax.swing.Action.NAME;
 import javax.swing.KeyStroke;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
 import org.jjazz.chordleadsheet.api.event.SizeChangedEvent;
 import org.jjazz.cl_editor.api.CL_ContextAction;
+import static org.jjazz.cl_editor.api.CL_ContextAction.LISTENING_TARGETS;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.utilities.api.ResUtil;
@@ -60,7 +63,7 @@ public class InsertBar extends CL_ContextAction
     {
         putValue(NAME, ResUtil.getString(getClass(), "CTL_InsertBar"));
         putValue(ACCELERATOR_KEY, KEYSTROKE);
-        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.BAR_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES));        
+        putValue(LISTENING_TARGETS, EnumSet.of(CL_ContextAction.ListeningTarget.BAR_SELECTION, CL_ContextAction.ListeningTarget.ACTIVE_CLS_CHANGES));        
     }
 
     @Override
@@ -83,10 +86,10 @@ public class InsertBar extends CL_ContextAction
     @Override
     public void selectionChange(CL_SelectionUtilities selection)
     {
-        boolean b = false;
+        boolean b = selection.isBarSelected();
         insertModelBarIndex = -1;
         insertNbBars = -1;
-        if (selection.isBarSelected())
+        if (b)
         {
             b = true;
             if (selection.isBarSelectedWithinCls())

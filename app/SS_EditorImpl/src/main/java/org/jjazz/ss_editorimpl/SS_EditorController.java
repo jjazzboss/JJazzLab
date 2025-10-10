@@ -111,7 +111,7 @@ public class SS_EditorController implements SS_EditorMouseListener
         previousRpValueAction = Actions.forID("JJazz", "org.jjazz.ss_editorimpl.actions.previousrpvalue");
         nextRpValueAction = Actions.forID("JJazz", "org.jjazz.ss_editorimpl.actions.nextrpvalue");
         assert previousRpValueAction != null && nextRpValueAction != null;
-
+        
 
         // Actions created by annotations (equivalent to org.openide.awt.Actions.context())
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(PreviousRpValue.KEYSTROKE, "PreviousRpValue");

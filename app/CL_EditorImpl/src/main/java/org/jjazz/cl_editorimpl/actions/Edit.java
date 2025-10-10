@@ -293,7 +293,7 @@ public class Edit extends CL_ContextAction
                     try
                     {
                         // Manage the case where we change initial section, user prompt to apply to whole song
-                        SetTimeSignature.changeTimeSignaturePossiblyForWholeSong(cls, resultSection.getData().getTimeSignature(), Arrays.asList(currentSection));
+                        SetTimeSignatureActionMenu.changeTimeSignaturePossiblyForWholeSong(cls, resultSection.getData().getTimeSignature(), Arrays.asList(currentSection));
                     } catch (UnsupportedEditException ex)
                     {
                         String msg = ResUtil.getString(Edit.class, "ERR_ChangeSection", resultSection.getData());

@@ -25,19 +25,17 @@ package org.jjazz.cl_editorimpl.actions;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
-import org.jjazz.cl_editor.api.CL_EditorTopComponent;
-import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
@@ -48,10 +46,12 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
+import org.openide.util.ContextAwareAction;
+import org.openide.util.Lookup;
 import org.openide.util.actions.Presenter;
 
 /**
- * Allow user to select a timesignature in a JPopupMenu when a CLI_Section is selected.
+ * Action menu to set time signature of sections.
  */
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.SetTimeSignature")
 @ActionRegistration(displayName = "not_used", lazy = false)
@@ -59,17 +59,45 @@ import org.openide.util.actions.Presenter;
         {
             @ActionReference(path = "Actions/Section", position = 200)
         })
-public final class SetTimeSignature extends AbstractAction implements Presenter.Popup
+public final class SetTimeSignatureActionMenu extends AbstractAction implements Presenter.Popup, ContextAwareAction
 {
 
-    private MyDynamicMenu menu;
-    private final String undoText = ResUtil.getString(getClass(), "CTL_SetTimeSignature");
-    private static final Logger LOGGER = Logger.getLogger(SetTimeSignature.class.getSimpleName());
+    private JMenu menu;
+    private static final Logger LOGGER = Logger.getLogger(SetTimeSignatureActionMenu.class.getSimpleName());
+
+    public SetTimeSignatureActionMenu()
+    {
+        // Not used besides for creating the ContextAwareAction
+    }
+
+    public SetTimeSignatureActionMenu(Lookup context)
+    {
+        Objects.requireNonNull(context);
+        menu = new JMenu(ResUtil.getString(getClass(), "CTL_SetTimeSignature"));
+
+
+        var selection = new CL_SelectionUtilities(context);
+        boolean b = selection.isSectionSelected();
+        setEnabled(b);
+        menu.setEnabled(b);
+        if (!b)
+        {
+            return;
+        }
+
+        prepareMenu(menu, selection);
+    }
 
     @Override
-    public void actionPerformed(ActionEvent e)
+    public Action createContextAwareInstance(Lookup lkp)
     {
-        // Useless
+        return new SetTimeSignatureActionMenu(lkp);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent ae)
+    {
+        // Not used
     }
 
     /**
@@ -106,7 +134,7 @@ public final class SetTimeSignature extends AbstractAction implements Presenter.
                 return;
             }
 
-            String msg = ResUtil.getString(SetTimeSignature.class, "CTL_SetTimeSignatureForWholeSong", ts);
+            String msg = ResUtil.getString(SetTimeSignatureActionMenu.class, "CTL_SetTimeSignatureForWholeSong", ts);
             NotifyDescriptor d = new NotifyDescriptor.Confirmation(msg, NotifyDescriptor.YES_NO_CANCEL_OPTION);
             Object result = DialogDisplayer.getDefault().notify(d);
 
@@ -139,91 +167,46 @@ public final class SetTimeSignature extends AbstractAction implements Presenter.
     @Override
     public JMenuItem getPopupPresenter()
     {
-        if (menu == null)
-        {
-            menu = new MyDynamicMenu();
-            updateMenu(menu);
-        }
         return menu;
     }
 
     // ============================================================================================= 
     // Private methods
     // =============================================================================================    
-    private void updateMenu(JMenu menu)
+    private void prepareMenu(JMenu menu, CL_SelectionUtilities selection)
     {
-        // Prepare the TimeSignature subMenu      
-
-
-        menu.removeAll();
-
-
-        for (final TimeSignature ts : TimeSignature.values())
+        var rdb = RhythmDatabase.getDefault();
+        var sortedTs = new ArrayList<>(rdb.getTimeSignatures());
+        sortedTs.sort((ts1, ts2) -> Integer.compare(ts1.getUpper(), ts2.getUpper()));
+        for (var ts : sortedTs)
         {
             JMenuItem mi = new JMenuItem(ts.toString());
-
-
-            mi.addActionListener((ActionEvent e) -> 
-            {
-                CL_Editor editor = CL_EditorTopComponent.getActive().getEditor();
-                CL_SelectionUtilities selection = new CL_SelectionUtilities(editor.getLookup());
-                ChordLeadSheet cls = editor.getModel();
-
-
-                JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(cls);
-                um.startCEdit(undoText);
-
-                try
-                {
-                    changeTimeSignaturePossiblyForWholeSong(cls, ts, selection.getSelectedSections());
-                } catch (UnsupportedEditException ex)
-                {
-                    String msg = ResUtil.getString(getClass(), "ERR_SetTimeSignature", ts);
-                    msg += "\n" + ex.getLocalizedMessage();
-                    um.abortCEdit(undoText, msg);
-                    return;
-                }
-
-                um.endCEdit(undoText);
-
-            });
-
-
-            mi.setEnabled(true);
+            mi.addActionListener(ae -> updateSections(ts, selection));
             menu.add(mi);
         }
     }
 
-    // ============================================================================================= 
-    // Private class
-    // =============================================================================================    
-    class MyDynamicMenu extends JMenu implements ChangeListener
+    private void updateSections(TimeSignature ts, CL_SelectionUtilities selection)
     {
+        var cls = selection.getChordLeadSheet();
+        JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(cls);
 
-        public MyDynamicMenu()
+        um.startCEdit(menu.getText());
+
+        try
         {
-            super(undoText);
-            RhythmDatabase rdb = RhythmDatabase.getDefault();
-            rdb.addChangeListener(this);
+            changeTimeSignaturePossiblyForWholeSong(cls, ts, selection.getSelectedSections());
+        } catch (UnsupportedEditException ex)
+        {
+            String msg = ResUtil.getString(getClass(), "ERR_SetTimeSignature", ts);
+            msg += "\n" + ex.getLocalizedMessage();
+            um.abortCEdit(menu.getText(), msg);
+            return;
         }
 
-        @Override
-        public void stateChanged(ChangeEvent e)
-        {
-            // We can be outside the EDT
-            RhythmDatabase rdb = RhythmDatabase.getDefault();
-            if (e.getSource() == rdb)
-            {
-                Runnable run = new Runnable()
-                {
-                    @Override
-                    public void run()
-                    {
-                        updateMenu(MyDynamicMenu.this);
-                    }
-                };
-                org.jjazz.uiutilities.api.UIUtilities.invokeLaterIfNeeded(run);
-            }
-        }
+        um.endCEdit(menu.getText());
+
     }
+
+
 }
