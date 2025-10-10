@@ -182,17 +182,14 @@
                 </plugin>   
             </plugins>
         </pluginManagement>
-                
+
         <plugins>                       
         </plugins>
-        
     </build>
     
     
-
-        
+       
     <profiles>
-        
         
         <profile>
             <!-- Use mvn -Pprepare-deploy install. Prepare a javadoc jar and a sources jar, gpg signing when needed, for each module, gpg when  -->
@@ -256,6 +253,7 @@
         <module>core/RhythmDatabase</module>
         <module>core/RhythmMusicGeneration</module>
         <module>core/RhythmStubs</module>
+        <module>core/RhythmTestMocks</module>
         <module>core/Song</module>
         <module>core/SongContext</module>
         <module>core/SongStructure</module>
@@ -306,7 +304,6 @@
         <module>plugins/FluidSynthEmbeddedSynth</module>        
         <module>plugins/JJSwing</module>
         <module>plugins/YamJJazz</module>
-        
     </modules>    
     
 </project>

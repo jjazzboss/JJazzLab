@@ -1,38 +1,40 @@
 /*
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- *
- *  Copyright @2019 Jerome Lelasseux. All rights reserved.
+ * 
+ *  Copyright @2025 Jerome Lelasseux. All rights reserved.
  *
  *  This file is part of the JJazzLab software.
- *
+ *   
  *  JJazzLab is free software: you can redistribute it and/or modify
- *  it under the terms of the Lesser GNU General Public License (LGPLv3)
- *  as published by the Free Software Foundation, either version 3 of the License,
+ *  it under the terms of the Lesser GNU General Public License (LGPLv3) 
+ *  as published by the Free Software Foundation, either version 3 of the License, 
  *  or (at your option) any later version.
  *
  *  JJazzLab is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Lesser General Public License for more details.
- *
+ * 
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with JJazzLab.  If not, see <https://www.gnu.org/licenses/>
- *
- *  Contributor(s):
+ * 
+ *  Contributor(s): 
  */
-package org.jjazz.rhythmstubs;
+package org.jjazzlab.rhythmmocks;
 
-import org.jjazz.rhythmstubs.api.RhythmStub;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import org.jjazz.harmony.api.TimeSignature;
+import org.jjazz.rhythm.api.Division;
+import org.jjazz.rhythm.api.Genre;
 import org.jjazz.rhythm.api.Rhythm;
+import org.jjazz.rhythm.api.RhythmFeatures;
+import org.jjazz.rhythm.api.TempoRange;
 import org.jjazz.rhythm.spi.RhythmProvider;
-import org.jjazz.utilities.api.MultipleErrorsReport;
 import org.jjazz.rhythm.spi.StubRhythmProvider;
-import org.jjazz.utilities.api.ResUtil;
+import org.jjazz.utilities.api.MultipleErrorsReport;
 import org.openide.util.lookup.ServiceProvider;
 import org.openide.util.lookup.ServiceProviders;
 
@@ -40,22 +42,25 @@ import org.openide.util.lookup.ServiceProviders;
 {
     @ServiceProvider(service = StubRhythmProvider.class),
     @ServiceProvider(service = RhythmProvider.class)            // So it's collected by the rhythmdatabase
-}
-)
-public class RhythmStubProviderImpl implements StubRhythmProvider
+})
+public  class RhythmMocksProviderImpl implements StubRhythmProvider
 {
+    public static final String ID = "RhythmMocksProviderID";
+    private final Info info;
+    private final ArrayList<Rhythm> rhythms = new ArrayList<>();
 
-    public static final String ID = "StubRhythmProviderID";
-    private Info info;
-    private ArrayList<Rhythm> rhythms = new ArrayList<>();
-
-    public RhythmStubProviderImpl()
+    public RhythmMocksProviderImpl()
     {
-        info = new Info(ID, ResUtil.getString(getClass(), "DUMMY_RHYTHMS"), ResUtil.getString(getClass(), "DUMMY_RHYTHMS_DESC"), "JL", "1.0");
-        for (TimeSignature ts : TimeSignature.values())
+        info = new Info(ID, "DUMMY_RHYTHMS", "DUMMY_RHYTHMS_DESC", "JL", "1.0");
+        for (Division div : Division.values())
         {
-            rhythms.add(new RhythmStub("RhythmStubID-" + ts.toString(), ts));
+            for (TimeSignature ts : TimeSignature.values())
+            {
+                rhythms.add(new RhythmMocks("RhythmStubID-" + ts.toString(), ts,
+                        new RhythmFeatures(Genre.BALLROOM, div, TempoRange.ALL_TEMPO)));
+            }
         }
+        System.out.println("=================== RHYTHMS CREATED =============================");
     }
 
     @Override
@@ -133,10 +138,9 @@ public class RhythmStubProviderImpl implements StubRhythmProvider
     }
 
     @Override
-    public AdaptedRhythmStub getAdaptedRhythm(Rhythm r, TimeSignature ts)
+    public AdaptedRhythmMocks getAdaptedRhythm(Rhythm r, TimeSignature ts)
     {
-        var res = (r instanceof RhythmStub rs) ? new AdaptedRhythmStub(rs, ts) : null;
+        var res = (r instanceof RhythmMocks rs) ? new AdaptedRhythmMocks(rs, ts) : null;
         return res;
     }
-
 }
