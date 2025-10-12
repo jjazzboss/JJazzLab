@@ -22,6 +22,9 @@
  */
 package org.jjazz.ss_editor.api;
 
+import java.awt.Component;
+import java.awt.KeyboardFocusManager;
+import java.awt.event.KeyEvent;
 import org.jjazz.ss_editor.spi.SS_EditorSettings;
 import org.jjazz.ss_editor.spi.SS_EditorFactory;
 import java.beans.PropertyChangeEvent;
@@ -30,17 +33,24 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Action;
+import javax.swing.JComponent;
 import javax.swing.JToolBar;
 import org.jjazz.activesong.spi.ActiveSongManager;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.song.api.Song;
+import org.jjazz.songstructure.api.SongPart;
 import org.openide.awt.UndoRedo;
 import org.openide.util.Lookup;
 import org.openide.util.Utilities;
 import org.openide.windows.TopComponent;
 import org.jjazz.songstructure.api.SongStructure;
+import org.jjazz.ss_editor.rpviewer.api.RpViewer;
+import org.jjazz.ss_editor.sptviewer.api.SptViewer;
 import org.jjazz.ss_editor.sptviewer.spi.SptViewerFactory;
+import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -105,20 +115,12 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
         ssEditor = ssef.createEditor(songModel, SS_EditorSettings.getDefault(), SptViewerFactory.getDefault());
 
 
-
         // Create the toolbar
         ssToolBar = ssef.createEditorToolbar(ssEditor);
 
         initComponents();
 
         updateTabName();
-
-
-        // Note: since NB 17 (?), these actions also need to be in the TopComponent ActionMap, in addition to the ActionMap in Lookup (see SS_EditorController.java).        
-        getActionMap().put("cut-to-clipboard", Actions.forID("JJazz", "org.jjazz.ss_editor.actions.cut"));
-        getActionMap().put("copy-to-clipboard", Actions.forID("JJazz", "org.jjazz.ss_editor.actions.copy"));
-        getActionMap().put("paste-from-clipboard", Actions.forID("JJazz", "org.jjazz.ss_editor.actions.paste"));
-
 
     }
 
@@ -144,7 +146,6 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
     @Override
     public Lookup getLookup()
     {
-        // Use the editor's lookup as our lookup        
         return ssEditor.getLookup();
     }
 
@@ -163,6 +164,18 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
     public UndoRedo getUndoRedo()
     {
         return ssEditor.getUndoManager();
+    }
+
+    /**
+     * Overridden to set focus on editor when user clicked on the TopComponent tab to activate it.
+     * <p>
+     * Part of the fix for issue #582.
+     */
+    @Override
+    public void componentActivated()
+    {
+        // Note that even if user directly clicks on a SongPart (or RP) viewer, this method is called before dispatching the SongPart viewer mouse events.
+        ssEditor.requestFocusInWindow();
     }
 
     /**
@@ -224,7 +237,6 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
         setLayout(new java.awt.BorderLayout());
         add(scrollPane_SS_Editor, java.awt.BorderLayout.CENTER);
 
-        toolbar.setFloatable(false);
         toolbar.setOrientation(javax.swing.SwingConstants.VERTICAL);
         toolbar.setRollover(true);
         add(toolbar, java.awt.BorderLayout.EAST);
@@ -285,8 +297,6 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
 //        String version = p.getProperty("version");
 //        // TO DO read your settings according to their version
 //    }
-    
-    
     @Override
     public void propertyChange(final PropertyChangeEvent evt)
     {

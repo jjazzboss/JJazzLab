@@ -28,7 +28,7 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.EnumSet;
-import java.util.List;
+import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
 import javax.swing.KeyStroke;
@@ -49,23 +49,62 @@ import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ss_editor.api.SS_ContextAction;
 import static org.jjazz.ss_editor.api.SS_ContextAction.LISTENING_TARGETS;
 import org.jjazz.utilities.api.ResUtil;
+import org.openide.util.Lookup;
 
-@ActionID(category = "JJazz", id = "org.jjazz.ss_editorimpl.actions.pasteappend")
-@ActionRegistration(displayName = "note_used", lazy = false)
-@ActionReferences(
-        {
-            @ActionReference(path = "Actions/SS_Editor", position = 900)
-        })
+/**
+ * Paste clipboard's SongParts at the end of the song structure.
+ */
 public class PasteAppend extends SS_ContextAction implements ChangeListener
 {
 
-    public static final KeyStroke KEYSTROKE
-            = KeyStroke.getKeyStroke(KeyEvent.VK_I, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() | InputEvent.SHIFT_DOWN_MASK);
+    private static PasteAppend INSTANCE;
+    public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke(
+            KeyEvent.VK_V, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() | InputEvent.SHIFT_DOWN_MASK);
+
+
+    /**
+     * We want a singleton because we need to listen to the system clipboard (and not obvious to find an event to unregister the listener).
+     *
+     * @return
+     */
+    @ActionID(category = "JJazz", id = "org.jjazz.ss_editorimpl.actions.pasteappend")
+    @ActionRegistration(displayName = "note_used", lazy = false)
+    @ActionReferences(
+            {
+                @ActionReference(path = "Actions/SS_Editor", position = 900)
+            })
+    public static PasteAppend getInstance()
+    {
+        if (INSTANCE == null)
+        {
+            INSTANCE = new PasteAppend();
+        }
+        return INSTANCE;
+    }
+
+    /**
+     * Enforce singleton
+     */
+    private PasteAppend()
+    {
+    }
+
+    /**
+     * Enforce singleton.
+     *
+     * @param lkp
+     * @return
+     */
+    @Override
+    public Action createContextAwareInstance(Lookup lkp)
+    {
+        return this;
+    }
 
     @Override
     protected void configureAction()
     {
-        putValue(NAME, ResUtil.getString(getClass(),"CTL_PasteAppend"));
+        putValue(NAME, ResUtil.getString(getClass(), "CTL_PasteAppend"));
         putValue(ACCELERATOR_KEY, KEYSTROKE);
         putValue(LISTENING_TARGETS, EnumSet.of(SS_ContextAction.ListeningTarget.SONG_PART_SELECTION));
         SongPartCopyBuffer buffer = SongPartCopyBuffer.getInstance();
@@ -76,26 +115,21 @@ public class PasteAppend extends SS_ContextAction implements ChangeListener
     @Override
     protected void actionPerformed(ActionEvent ae, SS_Selection selection)
     {
-        // Can not rely on selection to retrieve the model, selection can be empty !
-        SS_EditorTopComponent tc = SS_EditorTopComponent.getActive();
+        SS_EditorTopComponent tc = SS_EditorTopComponent.getActive();   // Prefer this method because selection can be empty
         if (tc == null)
         {
             return;
         }
-        SongStructure targetSgs = tc.getEditor().getModel();
-        SongPartCopyBuffer buffer = SongPartCopyBuffer.getInstance();
-        List<SongPart> spts = targetSgs.getSongParts();
-        int startBarIndex = 0;
-        if (!spts.isEmpty())
-        {
-            // Paste at the end
-            SongPart lastSpt = spts.get(spts.size() - 1);
-            startBarIndex = lastSpt.getStartBarIndex() + lastSpt.getNbBars();
-        }
 
+        SongStructure targetSgs = tc.getEditor().getModel();
+        int targetBarIndex = targetSgs.getSizeInBars();
+
+        
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(targetSgs);
         um.startCEdit(getActionName());
-        for (SongPart spt : buffer.get(targetSgs, startBarIndex))
+
+        SongPartCopyBuffer buffer = SongPartCopyBuffer.getInstance();
+        for (SongPart spt : buffer.get(targetSgs, targetBarIndex))
         {
             try
             {

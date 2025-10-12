@@ -44,6 +44,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TooManyListenersException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
@@ -53,7 +54,6 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
@@ -171,7 +171,8 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     private static final Logger LOGGER = Logger.getLogger(SS_EditorImpl.class.getSimpleName());
 
     /**
-     * Creates new form SS_EditorImpl
+     * Creates new form SS_EditorImpl.
+     *
      *
      * @param song
      * @param settings
@@ -179,22 +180,29 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
      */
     public SS_EditorImpl(Song song, SS_EditorSettings settings, SptViewerFactory factory)
     {
-        if (song == null || settings == null || factory == null)
-        {
-            throw new IllegalArgumentException("song=" + song + " settings=" + settings + " factory=" + factory);
-        }
+        Objects.requireNonNull(song);
+        Objects.requireNonNull(settings);
+        Objects.requireNonNull(factory);
+
+
+        // This is the main part to fix Issue #582 (see also SS_EditorController.editorClicked() and SS_EditorTopComponent.componentActivated())
+        // It allows the editor to get the focus when e.g. a focused child is removed (no more selected component), thus making the editor's InputMap/ActionMap still 
+        // active: this way always-enabled actions like ToggleCompactView can still be activated via their keyboard shortcut.
+        setFocusable(true);
+
+
         this.settings = settings;
         songModel = song;
         sgsModel = song.getSongStructure();
         sptViewerFactory = factory;
-     
-        
+
+
         // Make sure all Rhythms have a default list of visible RPs in compact view mode
         storeVisibleRPsInCompactModeIfRequired(song.getSongStructure().getUniqueRhythms(false, true));
 
-        
+
         songModel.getClientProperties().addPropertyChangeListener(this);
-        
+
 
         // Listen to settings changes
         this.settings.addPropertyChangeListener(this);
@@ -277,8 +285,6 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         }
         updateSptsVisibleRhythmAndTimeSignature();
         updateSptMultiSelectMode();
-
-
     }
 
     @Override

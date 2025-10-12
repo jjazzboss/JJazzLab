@@ -43,7 +43,11 @@ import org.openide.util.Utilities;
  * <p>
  * To be used by actions associated to static menus, buttons or keyboard shortcuts, which act on the selection (chord symbols, bars, etc.), and whose enabled
  * state depends on this selection. If your action is only used in a transient popupmenu created by Utilities.actionsToPopup() with no keyboard shorcut, you
- * might prefer to use a simple AbstractAction+ContextAwareAction.
+ * might prefer to use a simple AbstractAction+ContextAwareAction (see SetChordColor.java for example).
+ * <p>
+ * If your action is used in a transient popup menu (created by Utilities.actionsToPopup()) and needs to listen to a shared service, use a WeakListener or make
+ * your action a singleton (see Paste.java for example).
+ * <p>
  *
  * @see CL_ContextActionSupport
  */
@@ -202,7 +206,7 @@ public abstract class CL_ContextAction extends AbstractAction implements CL_Cont
     public Action createContextAwareInstance(Lookup lkp)
     {
         CL_ContextAction res = this;
-        if (context != lkp )
+        if (context != lkp)
         {
             try
             {

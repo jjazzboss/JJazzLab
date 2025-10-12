@@ -26,6 +26,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import static javax.swing.Action.ACCELERATOR_KEY;
@@ -49,15 +50,16 @@ import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.utilities.api.ResUtil;
 
 @ActionID(category = "JJazz", id = "org.jjazz.ss_editorimpl.actions.appendspt")
-@ActionRegistration(displayName = "not_used", lazy = false)     // Could be lazy but no because we want to show the accelerator key
+@ActionRegistration(displayName = "not_used", lazy = false) // always enabled action, lazy could be true but we want to show the accelerator key in the popupmenu
 @ActionReferences(
         {
             @ActionReference(path = "Actions/SS_Editor", position = 300)
         })
 public class AppendSpt extends AbstractAction
 {
+
     public static final KeyStroke KEYSTROKE = getGenericControlKeyStroke(KeyEvent.VK_I);
-    private String undoText = ResUtil.getString(getClass(), "CTL_AppendSpt");
+    private final String undoText = ResUtil.getString(getClass(), "CTL_AppendSpt");
     private static final Logger LOGGER = Logger.getLogger(AppendSpt.class.getSimpleName());
 
     public AppendSpt()
@@ -67,41 +69,46 @@ public class AppendSpt extends AbstractAction
     }
 
     @Override
+    public boolean isEnabled()
+    {
+        return super.isEnabled();
+    }
+    
+    @Override
     public void actionPerformed(ActionEvent e)
     {
-        // LOGGER.log(Level.FINE, "actionPerformed()");
         SS_EditorTopComponent tc = SS_EditorTopComponent.getActive();
+        LOGGER.log(Level.SEVERE, "actionPerformed() -- tc={0}", tc);
         if (tc == null)
         {
             return;
         }
-        
-        
+
+
         // Prepare data
         SongStructure sgs = tc.getEditor().getModel();
         List<SongPart> spts = sgs.getSongParts();
         ChordLeadSheet cls = sgs.getParentChordLeadSheet();
         if (cls == null)
         {
-            throw new IllegalStateException("sgs=" + sgs);   
+            throw new IllegalStateException("sgs=" + sgs);
         }
-        
-        
+
+
         // Show dialog
         InsertSptDialog dlg = InsertSptDialog.getInstance();
         dlg.setClsModel(cls);
         dlg.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
         dlg.setVisible(true);
-        
-        
-        
+
+
         if (dlg.isExitOk())
         {
             // Perform change
             CLI_Section parentSection = dlg.getParentSection();
-            assert parentSection != null;   
-                                   
-            
+            assert parentSection != null;
+
+
             // Create the song part
             int startBarIndex = 0;
             if (!spts.isEmpty())
@@ -109,23 +116,23 @@ public class AppendSpt extends AbstractAction
                 SongPart lastSpt = spts.get(spts.size() - 1);
                 startBarIndex = lastSpt.getStartBarIndex() + lastSpt.getNbBars();
             }
-            
+
             // Choose rhythm
             Rhythm r = sgs.getRecommendedRhythm(parentSection.getData().getTimeSignature(), startBarIndex);
 
-            
+
             int nbBars = cls.getBarRange(parentSection).size();
-            SongPart newSpt = sgs.createSongPart(r, parentSection.getData().getName(), startBarIndex, nbBars, parentSection, true);            
-            
-            
+            SongPart newSpt = sgs.createSongPart(r, parentSection.getData().getName(), startBarIndex, nbBars, parentSection, true);
+
+
             JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(sgs);
             um.startCEdit(undoText);
-                        
+
 
             try
             {
                 sgs.addSongParts(Arrays.asList(newSpt));
-                
+
             } catch (UnsupportedEditException ex)
             {
                 // We should not be here, we reuse an existing rhythm
@@ -134,10 +141,10 @@ public class AppendSpt extends AbstractAction
                 um.abortCEdit(undoText, msg);
                 return;
             }
-            
+
             um.endCEdit(undoText);
         }
-        
+
         dlg.cleanup();
     }
 

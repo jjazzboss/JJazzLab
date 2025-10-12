@@ -77,6 +77,8 @@ public class Paste extends CL_ContextAction implements FlavorListener
 
     /**
      * We want a singleton because we need to listen to the system clipboard (and not obvious to find an event to unregister the listener).
+     *
+     * @return
      */
     @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.paste")
     @ActionRegistration(displayName = "not_used", lazy = false)
@@ -104,7 +106,10 @@ public class Paste extends CL_ContextAction implements FlavorListener
     }
 
     /**
-     * Enforce singleton
+     * Enforce singleton.
+     *
+     * @param lkp
+     * @return
      */
     @Override
     public Action createContextAwareInstance(Lookup lkp)

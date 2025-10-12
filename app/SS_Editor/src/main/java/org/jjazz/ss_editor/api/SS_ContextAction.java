@@ -37,7 +37,13 @@ import org.openide.util.Utilities;
 /**
  * A base class for SS_Editor context aware actions.
  * <p>
- * To be used by actions which act on the selection (SongPart, SongPartRhythmParameter), and whose enabled state depends on this selection.
+ * To be used by actions associated to static menus, buttons or keyboard shortcuts, which act on the selection (chord symbols, bars, etc.), and whose enabled
+ * state depends on this selection. If your action is only used in a transient popupmenu (created by Utilities.actionsToPopup()) with no keyboard shorcut, you
+ * might prefer to use a simple AbstractAction+ContextAwareAction (see SetParentSectionColor.java for example).
+ * <p>
+ * If your action is used in a transient popup menu (created by Utilities.actionsToPopup()) and needs to listen to a shared service, use a WeakListener or
+ * make your action a singleton (see Paste.java for example).
+ * <p>
  *
  * @see SS_ContextActionSupport
  */
@@ -135,7 +141,7 @@ public abstract class SS_ContextAction extends AbstractAction implements SS_Cont
         putValue(LISTENING_TARGETS, EnumSet.allOf(ListeningTarget.class));
     }
 
-  /**
+    /**
      * Let subclass do additional configuration for instances created via createContextAwareInstance().
      * <p>
      * ContextAwareAction are used by Utilities.actionsForPath() and Utilities.actionsToPopup().

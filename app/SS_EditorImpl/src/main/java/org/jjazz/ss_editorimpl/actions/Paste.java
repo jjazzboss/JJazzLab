@@ -27,6 +27,7 @@ import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
+import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
 import javax.swing.Icon;
@@ -49,33 +50,67 @@ import org.jjazz.ss_editor.api.SS_ContextAction;
 import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.actions.PasteAction;
+import org.openide.util.Lookup;
 import org.openide.util.actions.SystemAction;
 
 /**
- * Manage paste of SongParts and RpValues.
+ * Manage pasting of SongParts and RpValues.
  * <p>
- * Triggered by the SongPart menu entry and the CTRL-V keyboard shortcut. If RhythmParameters are selected reuse PasteRpValue methods.
  */
-@ActionID(category = "JJazz", id = "org.jjazz.ss_editorimpl.actions.paste")
-@ActionRegistration(displayName = "paste-not-used", lazy = false)
-@ActionReferences(
-        {
-            @ActionReference(path = "Actions/SongPart", position = 1200),
-        })
 public class Paste extends SS_ContextAction implements ChangeListener
 {
 
+    private static Paste INSTANCE;
     public static final KeyStroke KEYSTROKE = getGenericControlKeyStroke(KeyEvent.VK_V);
 
+    /**
+     * We want a singleton because we need to listen to the system clipboard (and not obvious to find an event to unregister the listener).
+     *
+     * @return
+     */
+    @ActionID(category = "JJazz", id = "org.jjazz.ss_editorimpl.actions.paste")
+    @ActionRegistration(displayName = "paste-not-used", lazy = false)
+    @ActionReferences(
+            {
+                @ActionReference(path = "Actions/SongPart", position = 1200),
+            })
+    public static Paste getInstance()
+    {
+        if (INSTANCE == null)
+        {
+            INSTANCE = new Paste();
+        }
+        return INSTANCE;
+    }
+
+    /**
+     * Enforce singleton
+     */
+    private Paste()
+    {
+    }
+
+    /**
+     * Enforce singleton.
+     *
+     * @param lkp
+     * @return
+     */
+    @Override
+    public Action createContextAwareInstance(Lookup lkp)
+    {
+        return this;
+    }
 
     @Override
     protected void configureAction()
     {
-        putValue(NAME, ResUtil.getCommonString("CTL_Copy"));
+        putValue(NAME, ResUtil.getCommonString("CTL_Paste"));
         Icon icon = SystemAction.get(PasteAction.class).getIcon();
         putValue(SMALL_ICON, icon);
         putValue(ACCELERATOR_KEY, KEYSTROKE);
         putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.RHYTHM_PARAMETER_SELECTION, ListeningTarget.SONG_PART_SELECTION));
+
         SongPartCopyBuffer buffer = SongPartCopyBuffer.getInstance();
         buffer.addChangeListener(this);
     }
@@ -83,10 +118,10 @@ public class Paste extends SS_ContextAction implements ChangeListener
     @Override
     protected void actionPerformed(ActionEvent ae, SS_Selection selection)
     {
-        if (selection.isSongPartSelected())
+        if (selection.isEmpty() || selection.isSongPartSelected())
         {
             performSongPartPasteAction(selection);
-        } else
+        } else if (selection.isRhythmParameterSelected())
         {
             PasteRpValue.performAction(selection);
         }
@@ -96,9 +131,13 @@ public class Paste extends SS_ContextAction implements ChangeListener
     public void selectionChange(SS_Selection selection)
     {
         boolean b = false;
-        if (selection.isSongPartSelected())
+        SongPartCopyBuffer sptBuffer = SongPartCopyBuffer.getInstance();
+        if (selection.isEmpty())
         {
-            b = isSongPartPasteEnabled(selection);
+            b = !sptBuffer.isEmpty();
+        } else if (selection.isSongPartSelected())
+        {
+            b = selection.isContiguousSptSelection() && !sptBuffer.isEmpty();
         } else if (selection.isRhythmParameterSelected())
         {
             b = PasteRpValue.isEnabled(selection);
@@ -121,21 +160,21 @@ public class Paste extends SS_ContextAction implements ChangeListener
     // Private methods
     // =======================================================================================
 
-    private boolean isSongPartPasteEnabled(SS_Selection selection)
-    {
-        SongPartCopyBuffer buffer = SongPartCopyBuffer.getInstance();
-        boolean b = selection.isContiguousSptSelection() && !buffer.isEmpty();
-        return b;
-    }
-
     private void performSongPartPasteAction(SS_Selection selection)
     {
-        SongPartCopyBuffer buffer = SongPartCopyBuffer.getInstance();
-        SongStructure targetSgs = selection.getModel();
-        List<SongPart> spts = targetSgs.getSongParts();
+        SS_EditorTopComponent tc = SS_EditorTopComponent.getActive();   // Prefer this method because selection can be empty
+        if (tc == null)
+        {
+            return;
+        }
 
-        // Paste before first selected spt
-        int startBarIndex = spts.get(selection.getMinStartSptIndex()).getStartBarIndex();
+        SongPartCopyBuffer buffer = SongPartCopyBuffer.getInstance();
+        SongStructure targetSgs = tc.getEditor().getModel();
+        List<SongPart> targetSpts = targetSgs.getSongParts();
+
+        // Paste before first selected SongPart, or after last one if no selection
+        int startBarIndex = !selection.isEmpty() ? targetSpts.get(selection.getMinStartSptIndex()).getStartBarIndex() : targetSgs.getSizeInBars();
+
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(targetSgs);
         um.startCEdit(getActionName());
         for (SongPart spt : buffer.get(targetSgs, startBarIndex))

@@ -111,7 +111,7 @@ public class SS_EditorController implements SS_EditorMouseListener
         previousRpValueAction = Actions.forID("JJazz", "org.jjazz.ss_editorimpl.actions.previousrpvalue");
         nextRpValueAction = Actions.forID("JJazz", "org.jjazz.ss_editorimpl.actions.nextrpvalue");
         assert previousRpValueAction != null && nextRpValueAction != null;
-        
+
 
         // Actions created by annotations (equivalent to org.openide.awt.Actions.context())
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(PreviousRpValue.KEYSTROKE, "PreviousRpValue");
@@ -135,7 +135,6 @@ public class SS_EditorController implements SS_EditorMouseListener
 
 
         // Set the delegate actions for standard Netbeans copy/cut/paste actions
-        // Note: since NB 17 (?), these actions need also to be in the TopComponent ActionMap!        
         editor.getActionMap().put("cut-to-clipboard", Actions.forID("JJazz", "org.jjazz.ss_editorimpl.actions.cut"));
         editor.getActionMap().put("copy-to-clipboard", Actions.forID("JJazz", "org.jjazz.ss_editorimpl.actions.copy"));
         editor.getActionMap().put("paste-from-clipboard", Actions.forID("JJazz", "org.jjazz.ss_editorimpl.actions.paste"));
@@ -149,37 +148,24 @@ public class SS_EditorController implements SS_EditorMouseListener
 
 
 //        // Add keybindings which would be otherwise consumed by enclosing JScrollPane or other enclosing components
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
-                .put(KeyStroke.getKeyStroke("LEFT"), "MoveSelectionLeft");
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
-                .put(KeyStroke.getKeyStroke("shift TAB"), "MoveSelectionLeft");
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("LEFT"), "MoveSelectionLeft");
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("shift TAB"), "MoveSelectionLeft");
         editor.getActionMap().put("MoveSelectionLeft", new MoveSelectionLeft());
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("RIGHT"), "MoveSelectionRight");
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("TAB"), "MoveSelectionRight");
         editor.getActionMap().put("MoveSelectionRight", new MoveSelectionRight());
         editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("shift LEFT"), "ExtendSelectionLeft");
-        editor.getActionMap()
-                .put("ExtendSelectionLeft", new ExtendSelectionLeft());
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
-                .put(KeyStroke.getKeyStroke("shift RIGHT"), "ExtendSelectionRight");
-        editor.getActionMap()
-                .put("ExtendSelectionRight", new ExtendSelectionRight());
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
-                .put(KeyStroke.getKeyStroke("UP"), "MoveSelectionUp");
-        editor.getActionMap()
-                .put("MoveSelectionUp", new MoveSelectionUp());
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
-                .put(KeyStroke.getKeyStroke("DOWN"), "MoveSelectionDown");
-        editor.getActionMap()
-                .put("MoveSelectionDown", new MoveSelectionDown());
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
-                .put(KeyStroke.getKeyStroke("HOME"), "JumpToHome");
-        editor.getActionMap()
-                .put("JumpToHome", new JumpToHome());
-        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
-                .put(KeyStroke.getKeyStroke("END"), "JumpToEnd");
-        editor.getActionMap()
-                .put("JumpToEnd", new JumpToEnd());
+        editor.getActionMap().put("ExtendSelectionLeft", new ExtendSelectionLeft());
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("shift RIGHT"), "ExtendSelectionRight");
+        editor.getActionMap().put("ExtendSelectionRight", new ExtendSelectionRight());
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("UP"), "MoveSelectionUp");
+        editor.getActionMap().put("MoveSelectionUp", new MoveSelectionUp());
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("DOWN"), "MoveSelectionDown");
+        editor.getActionMap().put("MoveSelectionDown", new MoveSelectionDown());
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("HOME"), "JumpToHome");
+        editor.getActionMap().put("JumpToHome", new JumpToHome());
+        editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("END"), "JumpToEnd");
+        editor.getActionMap().put("JumpToEnd", new JumpToEnd());
 
     }
 
@@ -348,37 +334,13 @@ public class SS_EditorController implements SS_EditorMouseListener
     @Override
     public void editorClicked(MouseEvent e)
     {
-        Component c = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
-        SongPart focusedSpt = null;
-        RhythmParameter<?> focusedRp = null;
-        if (c instanceof RpViewer rpv)
-        {
-            focusedRp = rpv.getRpModel();
-            focusedSpt = rpv.getSptModel();
-        } else if (c instanceof SptViewer sptv)
-        {
-            focusedSpt = sptv.getModel();
-        }
-
         if (e.getClickCount() == 1 && SwingUtilities.isRightMouseButton(e))
         {
             buildAndShowPopupMenu(e, "Actions/SS_Editor", editor.getLookup());
-
-            // Try to restore focus           
-            if (focusedRp != null)
-            {
-                if (editor.getModel().getSongParts().indexOf(focusedSpt) >= 0)
-                {
-                    editor.setFocusOnRhythmParameter(focusedSpt, focusedRp);
-                }
-            } else if (focusedSpt != null)
-            {
-                if (editor.getModel().getSongParts().indexOf(focusedSpt) >= 0)
-                {
-                    editor.setFocusOnSongPart(focusedSpt);
-                }
-            }
         }
+
+        // Part of the fix for Issue #582
+        editor.requestFocusInWindow();
     }
 
 

@@ -40,7 +40,7 @@ import org.openide.util.Utilities;
 public class SS_EditorToolBar extends JToolBar
 {
 
-    private static Filler FILLER_GLUE = new Filler(new java.awt.Dimension(1, 0), new java.awt.Dimension(1, 0), new java.awt.Dimension(1, 32767));
+    private static final Filler FILLER_GLUE = new Filler(new java.awt.Dimension(1, 0), new java.awt.Dimension(1, 0), new java.awt.Dimension(1, 32767));
     private boolean alignRight = false;
     private SS_Editor editor;
 
@@ -72,7 +72,6 @@ public class SS_EditorToolBar extends JToolBar
         // Add song-specific actions
         FlatToggleButton ftb = new FlatToggleButton(ToggleCompactView.getInstance(editor));             // Compact/Full view switching button
         add(ftb);
-
 
         add(FILLER_GLUE);    // At the end
     }
