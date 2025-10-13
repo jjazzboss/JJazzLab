@@ -40,6 +40,7 @@ import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -179,10 +180,17 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     @SuppressWarnings("LeakingThisInConstructor")
     public CL_EditorImpl(Song song, CL_EditorSettings settings, BarRendererFactory brf)
     {
-        if (song == null || settings == null || brf == null)
-        {
-            throw new IllegalArgumentException("song=" + song + " settings=" + settings + " brf=" + brf);
-        }
+        Objects.requireNonNull(song);
+        Objects.requireNonNull(settings);
+        Objects.requireNonNull(brf);
+        
+
+        // This is the main part to fix Issue #582 (see also CL_EditorTopComponent.componentActivated())
+        // It allows the editor to get the focus when a child component lost focus (no more selection), thus making the editor's InputMap/ActionMap still 
+        // active: this way always-enabled actions like ToggleBarAnnotations can still be activated via their keyboard shortcut.
+        setFocusable(true);
+
+
         songModel = song;
         songModel.getClientProperties().addPropertyChangeListener(this);     // Listen to CL_Editor client properties changes
 
@@ -199,7 +207,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         // Graphical stuff
         int zxf = CL_EditorClientProperties.getZoomXFactor(songModel);
         nbColumns = zxf > -1 ? computeNbColsFromXZoomFactor(zxf) : 4;
-        
+
         gridLayout = new GridLayout(0, nbColumns);   // Nb of lines adjusted to number of bars
         setLayout(gridLayout);
         setBackground(settings.getBackgroundColor());

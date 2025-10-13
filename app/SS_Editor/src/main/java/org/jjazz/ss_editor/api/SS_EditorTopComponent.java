@@ -174,7 +174,8 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
     @Override
     public void componentActivated()
     {
-        // Note that even if user directly clicks on a SongPart (or RP) viewer, this method is called before dispatching the SongPart viewer mouse events.
+        // Note that even if user directly clicks on a SongPart (or rhythm parameter) viewer while another window had the focus, this method is called before 
+        // dispatching the mouse event to the bar viewer        
         ssEditor.requestFocusInWindow();
     }
 

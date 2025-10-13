@@ -188,6 +188,19 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
     }
 
     /**
+     * Overridden to set focus on editor when user clicked on the TopComponent tab to activate it.
+     * <p>
+     * Part of the fix for issue #582.
+     */
+    @Override
+    public void componentActivated()
+    {
+        // Note that even if user directly clicks on a bar (or chord leadsheet item) viewer while another window had the focus, this method is called before 
+        // dispatching the mouse event to the bar viewer        
+        clEditor.requestFocusInWindow();
+    }
+
+    /**
      * Return the active (i.e. focused or ancestor of the focused component) CL_EditorTopComponent.
      *
      * @return Can be null
