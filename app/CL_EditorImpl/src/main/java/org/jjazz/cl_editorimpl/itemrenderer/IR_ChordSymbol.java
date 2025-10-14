@@ -46,6 +46,7 @@ import org.jjazz.chordleadsheet.api.item.NCExtChordSymbol;
 import org.jjazz.chordleadsheet.api.item.VoidAltExtChordSymbol;
 import org.jjazz.cl_editor.itemrenderer.api.IR_ChordSymbolSettings;
 import org.jjazz.cl_editor.itemrenderer.api.IR_Copiable;
+import org.jjazz.cl_editor.itemrenderer.api.IR_DisplayTransposable;
 import org.jjazz.cl_editor.itemrenderer.api.IR_Type;
 import org.jjazz.cl_editor.itemrenderer.api.ItemRenderer;
 import org.jjazz.cl_editor.itemrenderer.api.ItemRendererSettings;
@@ -56,11 +57,12 @@ import org.jjazz.utilities.api.ResUtil;
  * An ItemRenderer for ChordSymbols.
  * <p>
  */
-public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
+public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable, IR_DisplayTransposable
 {
-
     private final static int OPTION_LINE_V_PADDING = 1;   // Additional space for the option line
     private final static int OPTION_LINE_THICKNESS = 1;   // Additional space for the option line
+    private static final Logger LOGGER = Logger.getLogger(IR_ChordSymbol.class.getSimpleName());
+
     private AttributedString attChordString;
     private boolean copyMode;
     private final IR_ChordSymbolSettings settings;
@@ -76,14 +78,13 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
     private ChordRenderingInfo cri;
     private Timer timer;
     private Color optionLineColor;
-    private static final Logger LOGGER = Logger.getLogger(IR_ChordSymbol.class.getSimpleName());
+    private int dislayTransposition = 0;
 
     @SuppressWarnings("LeakingThisInConstructor")
     public IR_ChordSymbol(CLI_ChordSymbol item, ItemRendererSettings irSettings)
     {
         super(item, IR_Type.ChordSymbol);
         LOGGER.log(Level.FINE, "IR_ChordSymbol() item={0}", item);
-
 
         // Apply settings and listen to their changes
         settings = irSettings.getIR_ChordSymbolSettings();
@@ -97,11 +98,47 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
         updateForegroundColor();
 
         modelChanged();
+    }
 
+    /**
+     * Sets a transposition to be applied before rendering the chord.
+     * 
+     * @param newTransposition 
+     */
+    @Override
+    public void setDisplayTransposition(int newTransposition)
+    {
+        dislayTransposition = newTransposition;
+
+        var chord = getModel().getData();
+        if (chord != null)
+        {
+            ExtChordSymbol modelChord = (ExtChordSymbol) chord;
+            updateRendering(modelChord.getTransposedChordSymbol(dislayTransposition, null));
+        }
+    }
+
+    @Override
+    public int getDisplayTransposition()
+    {
+        return dislayTransposition;
     }
 
     @Override
     public void modelChanged()
+    {
+        var chord = getModel().getData();
+        if (chord != null)
+        {
+            ExtChordSymbol modelChord = (ExtChordSymbol) getModel().getData();
+            updateRendering(modelChord.getTransposedChordSymbol(dislayTransposition, null));
+        }
+    }
+
+    /**
+     * Updates the rendering.
+     */
+    private void updateRendering(ExtChordSymbol newModel)
     {
         // Save previous state
         ExtChordSymbol oldEcs = ecs;
@@ -109,9 +146,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
         String oldChordSymbolString = chordSymbolString;
         ChordSymbol oldAltChordSymbol = altChordSymbol;
 
-
-        // Update our state
-        ecs = (ExtChordSymbol) getModel().getData();
+        ecs = newModel;
         cri = ecs.getRenderingInfo();
         chordSymbolString = ecs.getOriginalName();
         altChordSymbol = ecs.getAlternateChordSymbol();
@@ -484,5 +519,4 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
         optionLineColor = c;
         setForeground(c);
     }
-
 }

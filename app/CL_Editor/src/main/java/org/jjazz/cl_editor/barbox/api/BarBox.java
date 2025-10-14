@@ -180,10 +180,8 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
      */
     public List<ItemRenderer> addItem(ChordLeadSheetItem<?> item)
     {
-        if (item == null)
-        {
-            throw new IllegalArgumentException("item=" + item);
-        }
+        Preconditions.checkNotNull(item, "item=" + item);
+
         ArrayList<ItemRenderer> result = new ArrayList<>();
         for (BarRenderer br : getBarRenderers())
         {

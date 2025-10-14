@@ -77,8 +77,10 @@ import org.jjazz.cl_editor.api.CL_EditorClientProperties;
 import org.jjazz.song.api.Song;
 import org.jjazz.cl_editor.api.SelectedBar;
 import org.jjazz.cl_editor.api.SelectedCLI;
+import org.jjazz.cl_editor.itemrenderer.api.IR_DisplayTransposable;
 import org.jjazz.cl_editor.spi.BarRendererFactory;
 import org.jjazz.cl_editor.spi.BarRendererProvider;
+import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.openide.awt.UndoRedo;
 import org.jjazz.uisettings.api.ColorSetManager;
 import org.jjazz.utilities.api.StringProperties;
@@ -152,6 +154,10 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
      * An optional container for this ChordLeadSheet.
      */
     private Song songModel;
+    /**
+     * Chord Symbol Display Transposition to be used in this editor.
+     */
+    private int dislayTransposition;
     /**
      * The number of columns.
      */
@@ -261,6 +267,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         // Used to zoom in / zoom out
         addMouseWheelListener(this);
 
+        PlaybackSettings.getInstance().addPropertyChangeListener(PlaybackSettings.PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION, this);
+        setDisplayTransposition(PlaybackSettings.getInstance().getChordSymbolsDisplayTransposition());
     }
 
     @Override
@@ -332,6 +340,9 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
                 removePaddingBox(pBox);
             }
         }
+
+        PlaybackSettings.getInstance()
+                .removePropertyChangeListener(PlaybackSettings.PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION, this);
 
         // We're not showing playback or insertion point anymore
         playbackPointLastPos = null;
@@ -870,10 +881,43 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
                         songModel.setSaveNeeded(true);
                     }
                 }
+
+            } else if (evt.getSource() == PlaybackSettings.getInstance())
+            {
+                if (evt.getPropertyName().equals(PlaybackSettings.PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION))
+                {
+                    setDisplayTransposition((int) evt.getNewValue());
+                }
             }
         });
     }
 
+    private void setDisplayTransposition(int dt)
+    {
+        dislayTransposition = dt;
+        transposeChordSymbols(dislayTransposition);
+    }
+    
+    public int getDisplayTransposition()
+    {
+        return dislayTransposition;
+    }
+    
+    /**
+     * Sets transposition in all IR_ChordSymbol in this Leadsheet.
+     * 
+     * @param dt 
+     */
+    private void transposeChordSymbols(int dt)
+    {
+        barBoxes.stream()
+                .flatMap(bb -> bb.getBarRenderers().stream())
+                .flatMap(br -> br.getItemRenderers().stream())
+                .filter(IR_DisplayTransposable.class::isInstance)
+                .map(IR_DisplayTransposable.class::cast)
+                .forEach(it -> it.setDisplayTransposition(dt));
+    }
+    
     @Override
     public String toString()
     {
@@ -1435,6 +1479,10 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             }
             // Listen to sectionOnNewLine changes
             cliSection.getClientProperties().addPropertyChangeListener(this);
+        }
+        if (item instanceof IR_DisplayTransposable transposableItem)
+        {
+            transposableItem.setDisplayTransposition(getDisplayTransposition());
         }
     }
 

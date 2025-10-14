@@ -87,6 +87,13 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <!-- This is only needed for one setting used in the transposition feature (saved with PlaybackSettings). 
+                 If the dependency needs to be removed, it should be easy to move somewhere else. -->
+            <groupId>org.jjazzlab.core</groupId>
+            <artifactId>musiccontrol</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.jjazzlab.app</groupId>
             <artifactId>analytics</artifactId>
             <version>${project.version}</version>
