@@ -897,12 +897,12 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         dislayTransposition = dt;
         transposeChordSymbols(dislayTransposition);
     }
-    
-    public int getDisplayTransposition()
+
+    private int getDisplayTransposition()
     {
         return dislayTransposition;
     }
-    
+
     /**
      * Sets transposition in all IR_ChordSymbol in this Leadsheet.
      * 

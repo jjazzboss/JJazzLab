@@ -72,6 +72,7 @@ import org.jjazz.cl_editor.barbox.api.BarBoxConfig;
 import org.jjazz.cl_editor.spi.BarBoxSettings;
 import org.jjazz.cl_editor.spi.BarRendererFactory;
 import org.jjazz.cl_editor.itemrenderer.api.IR_ChordSymbolSettings;
+import org.jjazz.cl_editor.itemrenderer.api.IR_DisplayTransposable;
 import org.jjazz.uiutilities.api.UIUtilities;
 import org.openide.util.NbPreferences;
 
@@ -88,6 +89,9 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
     private static final Pattern P_SHARP = Pattern.compile("#\\s+(\\w.*)");              // "# Hello dolly "
     private static final Pattern P_SHARP_EMPTY = Pattern.compile("#\\s*$");            // "#"    
 
+    private static final Preferences prefs = NbPreferences.forModule(EasyReaderPanel.class);
+    private static final Logger LOGGER = Logger.getLogger(EasyReaderPanel.class.getSimpleName());
+
     private Song song;
     private final Position songPosition, clsPosition;
     private SongPart songPart;
@@ -97,13 +101,12 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
     private final Font defaultAnnotationFont;
     private final Font defaultNextChordFont;
     private final JLabel lbl_annotation;
-    private static final Preferences prefs = NbPreferences.forModule(EasyReaderPanel.class);
-    private static final Logger LOGGER = Logger.getLogger(EasyReaderPanel.class.getSimpleName());
+    private int displayTransposition = 0;
+
 
     public EasyReaderPanel()
     {
         initComponents();
-
 
         lbl_annotation = new JLabel();
         defaultAnnotationFont = lbl_annotation.getFont().deriveFont(Font.ITALIC, lbl_annotation.getFont().getSize2D() + 5f);
@@ -156,7 +159,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         this.song = song;
         this.songPart = null;
         this.nextSongPart = null;
-
+        
 
         // Update data
         songPosition.reset();
@@ -184,13 +187,21 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
             createBarBoxes(this.song);
             stopped();
         }
-
     }
 
 
     public Song getModel()
     {
         return song;
+    }
+
+    void setDisplayTransposition(int dt)
+    {
+        displayTransposition = dt;
+        if (barBox != null && nextBarBox != null)
+        {
+            transposeBarBoxes();
+        }
     }
 
     @Override
@@ -554,10 +565,13 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         var next1SongBarPos = new Position(next1SongBar);
         var next1ClsBarPos = song.getSongStructure().toClsPosition(next1SongBarPos);
         var next1ClsBar = next1ClsBarPos != null ? next1ClsBarPos.getBar() : -1;
+
         barBox.setBarIndex(songBar);
         barBox.setModelBarIndex(clsBar);
         nextBarBox.setBarIndex(next1SongBar);
         nextBarBox.setModelBarIndex(next1ClsBar);
+        transposeBarBoxes();
+
         LOGGER.log(Level.FINE, "updateBarBoxes() songBar={0} => barBox.modelBarIndex={1} nextBarBox.modelBarIndex={2}", new Object[]
         {
             songBar, clsBar, next1ClsBar
@@ -625,6 +639,21 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
     {
         barBox.showPlaybackPoint(!useNextBarBox, clsPos);
         nextBarBox.showPlaybackPoint(useNextBarBox, clsPos);
+        transposeBarBoxes();
+    }
+
+    private void transposeBarBoxes()
+    {
+        barBox.getBarRenderers().stream()
+                .flatMap(br -> br.getItemRenderers().stream())
+                .filter(IR_DisplayTransposable.class::isInstance)
+                .map(IR_DisplayTransposable.class::cast)
+                .forEach(it -> it.setDisplayTransposition(displayTransposition));
+        nextBarBox.getBarRenderers().stream()
+                .flatMap(br -> br.getItemRenderers().stream())
+                .filter(IR_DisplayTransposable.class::isInstance)
+                .map(IR_DisplayTransposable.class::cast)
+                .forEach(it -> it.setDisplayTransposition(displayTransposition));
     }
 
     private void updateAnnotation()
