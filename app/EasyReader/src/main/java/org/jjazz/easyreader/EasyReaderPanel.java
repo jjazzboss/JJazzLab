@@ -29,7 +29,9 @@ import java.awt.Font;
 import java.awt.LayoutManager;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
@@ -73,6 +75,7 @@ import org.jjazz.cl_editor.spi.BarBoxSettings;
 import org.jjazz.cl_editor.spi.BarRendererFactory;
 import org.jjazz.cl_editor.itemrenderer.api.IR_ChordSymbolSettings;
 import org.jjazz.cl_editor.itemrenderer.api.IR_DisplayTransposable;
+import org.jjazz.cl_editor.itemrenderer.api.ItemRenderer;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.uiutilities.api.UIUtilities;
 import org.openide.util.NbPreferences;
@@ -200,6 +203,11 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         return song;
     }
 
+    final int getDisplayTransposition()
+    {
+        return displayTransposition;
+    }
+    
     final void setDisplayTransposition(int dt)
     {
         displayTransposition = dt;
@@ -378,12 +386,21 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
                 for (var item : e.getItems())
                 {
                     int itemBar = item.getPosition().getBar();
+                    List<ItemRenderer> renderers = new ArrayList();
                     if (barBox.getModelBarIndex() == itemBar)
                     {
-                        barBox.addItem(item);
+                        renderers.addAll(barBox.addItem(item));
+
                     } else if (nextBarBox.getModelBarIndex() == itemBar)
                     {
-                        nextBarBox.addItem(item);
+                        renderers.addAll(nextBarBox.addItem(item));
+                    }
+                    for (ItemRenderer ir : renderers)
+                    {
+                        if (ir instanceof IR_DisplayTransposable transposableItem)
+                        {
+                            transposableItem.setDisplayTransposition(getDisplayTransposition());
+                        }
                     }
                     if (item instanceof CLI_BarAnnotation && itemBar == clsPosition.getBar())
                     {

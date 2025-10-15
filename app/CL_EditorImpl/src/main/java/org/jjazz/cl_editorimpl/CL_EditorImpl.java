@@ -1469,7 +1469,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         for (ItemRenderer ir : getBarBox(barIndex).addItem(item))
         {
             registerItemRenderer(ir);
-            if (item instanceof IR_DisplayTransposable transposableItem)
+            if (ir instanceof IR_DisplayTransposable transposableItem)
             {
                 transposableItem.setDisplayTransposition(getDisplayTransposition());
             }
