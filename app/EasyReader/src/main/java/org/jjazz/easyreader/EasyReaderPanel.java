@@ -73,6 +73,7 @@ import org.jjazz.cl_editor.spi.BarBoxSettings;
 import org.jjazz.cl_editor.spi.BarRendererFactory;
 import org.jjazz.cl_editor.itemrenderer.api.IR_ChordSymbolSettings;
 import org.jjazz.cl_editor.itemrenderer.api.IR_DisplayTransposable;
+import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.uiutilities.api.UIUtilities;
 import org.openide.util.NbPreferences;
 
@@ -101,7 +102,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
     private final Font defaultAnnotationFont;
     private final Font defaultNextChordFont;
     private final JLabel lbl_annotation;
-    private int displayTransposition = 0;
+    private int displayTransposition;
 
 
     public EasyReaderPanel()
@@ -125,6 +126,10 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
 
         // Some labels have text value in the designer 
         clearLabels();
+
+        PlaybackSettings ps = PlaybackSettings.getInstance();
+        ps.addPropertyChangeListener(PlaybackSettings.PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION, this);
+        setDisplayTransposition(ps.getChordSymbolsDisplayTransposition());
     }
 
     public void cleanup()
@@ -195,7 +200,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         return song;
     }
 
-    void setDisplayTransposition(int dt)
+    final void setDisplayTransposition(int dt)
     {
         displayTransposition = dt;
         if (barBox != null && nextBarBox != null)
@@ -344,6 +349,12 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
                     default -> throw new AssertionError(((MusicController.State) evt.getNewValue()).name());
 
                 }
+            }
+        } else if (evt.getSource() == PlaybackSettings.getInstance())
+        {
+            if (evt.getPropertyName().equals(PlaybackSettings.PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION))
+            {
+                setDisplayTransposition((int) evt.getNewValue());
             }
         }
     }
@@ -571,7 +582,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         nextBarBox.setBarIndex(next1SongBar);
         nextBarBox.setModelBarIndex(next1ClsBar);
         transposeBarBoxes();
-
+        
         LOGGER.log(Level.FINE, "updateBarBoxes() songBar={0} => barBox.modelBarIndex={1} nextBarBox.modelBarIndex={2}", new Object[]
         {
             songBar, clsBar, next1ClsBar
@@ -639,7 +650,6 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
     {
         barBox.showPlaybackPoint(!useNextBarBox, clsPos);
         nextBarBox.showPlaybackPoint(useNextBarBox, clsPos);
-        transposeBarBoxes();
     }
 
     private void transposeBarBoxes()

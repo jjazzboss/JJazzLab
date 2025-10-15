@@ -27,7 +27,6 @@ import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
 import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
-import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.song.api.Song;
 import org.jjazz.utilities.api.ResUtil;
 import org.netbeans.api.settings.ConvertAsProperties;
@@ -51,7 +50,6 @@ public final class EasyReaderTopComponent extends TopComponent implements Proper
 {
     private static final Logger LOGGER = Logger.getLogger(EasyReaderTopComponent.class.getSimpleName());
     private final EasyReaderPanel editor;
-    private int displayTransposition = 0;
 
 
     public EasyReaderTopComponent()
@@ -65,10 +63,6 @@ public final class EasyReaderTopComponent extends TopComponent implements Proper
 
         editor = new EasyReaderPanel();
         add(editor);
-
-        PlaybackSettings.getInstance().addPropertyChangeListener(PlaybackSettings.PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION, this);
-        displayTransposition = PlaybackSettings.getInstance().getChordSymbolsDisplayTransposition();
-        editor.setDisplayTransposition(displayTransposition);
     }
     
     @Override
@@ -98,12 +92,7 @@ public final class EasyReaderTopComponent extends TopComponent implements Proper
         return (EasyReaderTopComponent) WindowManager.getDefault().findTopComponent("EasyReaderTopComponent");
     }
 
-    private void setDisplayTransposition(int dt)
-    {
-        displayTransposition = dt;
-        editor.setDisplayTransposition(dt);
-    }
-    
+
     // ======================================================================
     // PropertyChangeListener interface
     // ======================================================================   
@@ -123,12 +112,6 @@ public final class EasyReaderTopComponent extends TopComponent implements Proper
                 {
                     editor.setModel(song);
                 }
-            }
-        } else if (evt.getSource() == PlaybackSettings.getInstance())
-        {
-            if (evt.getPropertyName().equals(PlaybackSettings.PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION))
-            {
-                setDisplayTransposition((int) evt.getNewValue());
             }
         }
     } 

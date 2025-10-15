@@ -76,8 +76,6 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable, IR_Disp
     private ChordRenderingInfo cri;
     private Timer timer;
     private Color optionLineColor;
-    private FontRenderContext frc;
-    private String strChord2;
     private int dislayTransposition = 0;
 
     @SuppressWarnings("LeakingThisInConstructor")
@@ -111,11 +109,9 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable, IR_Disp
         dislayTransposition = newTransposition;
 
         var chord = getModel().getData();
-        if (chord != null)
-        {
-            ExtChordSymbol modelChord = (ExtChordSymbol) chord;
-            updateRendering(modelChord.getTransposedChordSymbol(dislayTransposition, null));
-        }
+        ExtChordSymbol modelChord = (ExtChordSymbol) chord;
+        updateRendering(modelChord.getTransposedChordSymbol(dislayTransposition, null));
+
         if (attChordString != null)
         {
             addTextItalicStyle();
@@ -230,7 +226,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable, IR_Disp
 
 
         // The fonts to be used
-        frc = g2.getFontRenderContext();
+        FontRenderContext frc = g2.getFontRenderContext();
         Font font = getFont();
         Font musicFont = settings.getMusicFont();
 
@@ -243,7 +239,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable, IR_Disp
 
         // Create the AttributedString from the strings
         String strChord = chordSymbolBase + chordSymbolExtension + chordSymbolBass;
-        strChord2 = strChord.replace('#', settings.getSharpCharInMusicFont()).replace('b', settings.getFlatCharInMusicFont());
+        String strChord2 = strChord.replace('#', settings.getSharpCharInMusicFont()).replace('b', settings.getFlatCharInMusicFont());
         attChordString = new AttributedString(strChord2, font.getAttributes());
         attChordString.addAttribute(TextAttribute.SIZE, zFontSize);                 // Override
 //        if (needOptionDots())
@@ -268,9 +264,9 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable, IR_Disp
         }
         addTextItalicStyle();
 
-        return evaluateTextRepresentation();
+        return evaluateTextDimension(frc, strChord2);
     }
-
+    
 
     private void addTextItalicStyle()
     {
@@ -280,7 +276,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable, IR_Disp
         attChordString.addAttribute(TextAttribute.POSTURE, fontPosture);
     }
 
-    private Dimension evaluateTextRepresentation()
+    private Dimension evaluateTextDimension(FontRenderContext frc, String strChord2)
     {
         // Create the TextLayout to get its dimension       
         TextLayout textLayout = new TextLayout(attChordString.getIterator(), frc);

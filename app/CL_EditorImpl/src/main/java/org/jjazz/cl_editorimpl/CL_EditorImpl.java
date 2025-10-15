@@ -1469,6 +1469,10 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         for (ItemRenderer ir : getBarBox(barIndex).addItem(item))
         {
             registerItemRenderer(ir);
+            if (item instanceof IR_DisplayTransposable transposableItem)
+            {
+                transposableItem.setDisplayTransposition(getDisplayTransposition());
+            }
         }
         if (item instanceof CLI_Section cliSection)
         {
@@ -1479,10 +1483,6 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             }
             // Listen to sectionOnNewLine changes
             cliSection.getClientProperties().addPropertyChangeListener(this);
-        }
-        if (item instanceof IR_DisplayTransposable transposableItem)
-        {
-            transposableItem.setDisplayTransposition(getDisplayTransposition());
         }
     }
 
