@@ -72,12 +72,12 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable, IR_Disp
     private String chordSymbolExtension;
     private String chordSymbolBass;
     private ChordSymbol altChordSymbol;
-    private int chordSymbolWidth;
-    private int chordSymbolHeight;
     private ExtChordSymbol ecs;
     private ChordRenderingInfo cri;
     private Timer timer;
     private Color optionLineColor;
+    private FontRenderContext frc;
+    private String strChord2;
     private int dislayTransposition = 0;
 
     @SuppressWarnings("LeakingThisInConstructor")
@@ -115,6 +115,10 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable, IR_Disp
         {
             ExtChordSymbol modelChord = (ExtChordSymbol) chord;
             updateRendering(modelChord.getTransposedChordSymbol(dislayTransposition, null));
+        }
+        if (attChordString != null)
+        {
+            addTextItalicStyle();
         }
     }
 
@@ -218,7 +222,6 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable, IR_Disp
     @Override
     public Dimension getPreferredSize()
     {
-
         // Prepare the graphics context
         Graphics2D g2 = (Graphics2D) getGraphics();
         assert g2 != null;
@@ -227,7 +230,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable, IR_Disp
 
 
         // The fonts to be used
-        FontRenderContext frc = g2.getFontRenderContext();
+        frc = g2.getFontRenderContext();
         Font font = getFont();
         Font musicFont = settings.getMusicFont();
 
@@ -240,7 +243,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable, IR_Disp
 
         // Create the AttributedString from the strings
         String strChord = chordSymbolBase + chordSymbolExtension + chordSymbolBass;
-        String strChord2 = strChord.replace('#', settings.getSharpCharInMusicFont()).replace('b', settings.getFlatCharInMusicFont());
+        strChord2 = strChord.replace('#', settings.getSharpCharInMusicFont()).replace('b', settings.getFlatCharInMusicFont());
         attChordString = new AttributedString(strChord2, font.getAttributes());
         attChordString.addAttribute(TextAttribute.SIZE, zFontSize);                 // Override
 //        if (needOptionDots())
@@ -263,24 +266,37 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable, IR_Disp
             attChordString.addAttribute(TextAttribute.SUPERSCRIPT, TextAttribute.SUPERSCRIPT_SUPER, chordSymbolBase.length(),
                     chordSymbolBase.length() + chordSymbolExtension.length());
         }
+        addTextItalicStyle();
+
+        return evaluateTextRepresentation();
+    }
 
 
+    private void addTextItalicStyle()
+    {
+        Float fontPosture = dislayTransposition == 0
+                ? TextAttribute.POSTURE_REGULAR
+                : TextAttribute.POSTURE_OBLIQUE;
+        attChordString.addAttribute(TextAttribute.POSTURE, fontPosture);
+    }
+
+    private Dimension evaluateTextRepresentation()
+    {
         // Create the TextLayout to get its dimension       
         TextLayout textLayout = new TextLayout(attChordString.getIterator(), frc);
-        chordSymbolWidth = (int) TextLayoutUtils.getWidth(textLayout, strChord2, false);
-        chordSymbolHeight = TextLayoutUtils.getHeight(textLayout, frc);
+        int chordSymbolWidth = (int) TextLayoutUtils.getWidth(textLayout, strChord2, dislayTransposition == 0);
+        int chordSymbolHeight = TextLayoutUtils.getHeight(textLayout, frc);
+
         Insets in = getInsets();
         final int PADDING = 1;
         int wFinal = chordSymbolWidth + 2 * PADDING + in.left + in.right; //  + (needOptionDots(ecs) ? CORNER_SIZE : 0);
         int hFinal = chordSymbolHeight + PADDING + OPTION_LINE_THICKNESS + 2 * OPTION_LINE_V_PADDING + in.top + in.bottom;
         Dimension d = new Dimension(wFinal, hFinal);
 
-
-        LOGGER.log(Level.FINE, "getPreferredSize()    result d={0}   (insets={1})", new Object[]
+        LOGGER.log(Level.FINE, "evaluateTextRepresentation()    result d={0}   (insets={1})", new Object[]
         {
             d, in
         });
-
 
         return d;
     }
