@@ -66,6 +66,9 @@ public class ChordSymbol implements Cloneable
 
     private static final Logger LOGGER = Logger.getLogger(ChordSymbol.class.getSimpleName());
 
+    /**
+     * A "C" chord symbol.
+     */
     public ChordSymbol()
     {
         this(new Note(0), ChordTypeDatabase.getDefault().getChordType(0));
@@ -544,9 +547,6 @@ public class ChordSymbol implements Cloneable
     /**
      * @return E.g. for D7 return "[D, F#, A, C]"
      */
-    /**
-     * @return E.g. for D7 return "[D, F#, A, C]"
-     */
     public String toNoteString()
     {
         return getChord().toRelativeNoteString(rootNote.getAccidental());
@@ -685,8 +685,8 @@ public class ChordSymbol implements Cloneable
         int rootPitch = (int) Math.round(Math.random() * 11);
         int bassPitch = Math.round(1) > 0.7 ? rootPitch : (int) Math.round(Math.random() * 11);
         var chordTypes = ChordTypeDatabase.getDefault().getChordTypes();
-        int index = (int) Math.round(Math.random() * (chordTypes.length - 1));
-        ChordType ct = chordTypes[index];
+        int index = (int) Math.round(Math.random() * (chordTypes.size() - 1));
+        ChordType ct = chordTypes.get(index);
         ChordSymbol res = new ChordSymbol(new Note(rootPitch), new Note(bassPitch), ct);
         return res;
     }

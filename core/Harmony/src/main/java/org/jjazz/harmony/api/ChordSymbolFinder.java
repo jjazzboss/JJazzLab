@@ -78,7 +78,7 @@ public class ChordSymbolFinder
     {
         if (allChordTypes == null)
         {
-            allChordTypes = Arrays.asList(ChordTypeDatabase.getDefault().getChordTypes());
+            allChordTypes = ChordTypeDatabase.getDefault().getChordTypes();
             buildPositionsDatabase();
         }
     }

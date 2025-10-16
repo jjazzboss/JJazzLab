@@ -175,7 +175,7 @@ public class WbpSourceDatabase
         // All the base ChordTypes should have at least a 1-bar WbpSource
         ChordTypeDatabase ctdb = ChordTypeDatabase.getDefault();
         Set<ChordType> allChordTypes = new HashSet<>();
-        Stream.of(ctdb.getChordTypes()).forEach(ct -> allChordTypes.add(getSimplified(ct)));
+        ctdb.getChordTypes().forEach(ct -> allChordTypes.add(getSimplified(ct)));
 
         var clif = CLI_Factory.getDefault();
         final var C_NOTE = new Note();

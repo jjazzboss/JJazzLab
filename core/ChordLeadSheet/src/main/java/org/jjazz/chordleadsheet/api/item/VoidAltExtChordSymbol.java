@@ -70,7 +70,7 @@ public class VoidAltExtChordSymbol extends AltExtChordSymbol implements Serializ
 
     private VoidAltExtChordSymbol() throws ParseException
     {
-        super(new ChordSymbol("C"), new ChordRenderingInfo());
+        super(new ChordSymbol(), new ChordRenderingInfo());
     }
 
     @Override

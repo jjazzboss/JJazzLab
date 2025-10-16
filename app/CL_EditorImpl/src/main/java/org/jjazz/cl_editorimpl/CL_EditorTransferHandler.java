@@ -419,6 +419,8 @@ public class CL_EditorTransferHandler extends TransferHandler
                     um.endCEdit(editName);
                 }
             }
+
+
         }
 
         LOGGER.fine("importData() EXIT with success");

@@ -121,9 +121,9 @@ public interface ChordTypeDatabase
     /**
      * Get all the ChordTypes of the database.
      *
-     * @return
+     * @return An unmodifiable list.
      */
-    ChordType[] getChordTypes();
+    List<ChordType> getChordTypes();
 
     /**
      * Get the number of chord types in the database.

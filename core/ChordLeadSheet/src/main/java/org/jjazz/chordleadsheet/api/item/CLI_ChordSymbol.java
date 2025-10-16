@@ -75,11 +75,12 @@ public interface CLI_ChordSymbol extends ChordLeadSheetItem<ExtChordSymbol>
      * - scale name case does not matter. Scale must be compatible with the chord symbol, otherwise it is ignored.<br>
      * <p>
      *
-     * @param str        As produced by ChordSymboInput.toString(CLI_ChordSymbol).
+     * @param str        As produced by toString(CLI_ChordSymbol).
      * @param defaultPos Used when position data is missing in str.
      * @param cls        The container for this CLI_ChordSymbol. Can be null.
      * @return
      * @throws ParseException
+     * @see #toString(org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol, org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol.PositionDisplay)
      */
     public static CLI_ChordSymbol toCLI_ChordSymbol(String str, Position defaultPos, ChordLeadSheet cls) throws ParseException
     {
@@ -299,14 +300,13 @@ public interface CLI_ChordSymbol extends ChordLeadSheetItem<ExtChordSymbol>
     }
 
     /**
-     * Make a string representing the bar chord symbols.<br>
+     * Build a string representing the bar chord symbols.<br>
      * This string can be used as input for toCLI_ChordSymbols().
      *
      * @param ts    The TimeSignature of the bar.
      * @param items The chord symbols in the bar.
      *
      * @return
-     *
      */
     public static String toBarString(TimeSignature ts, List<? extends CLI_ChordSymbol> items)
     {
@@ -383,11 +383,14 @@ public interface CLI_ChordSymbol extends ChordLeadSheetItem<ExtChordSymbol>
     }
 
     /**
-     * Return a CLI_ChordSymbol as a string. Returned String can be used as an input for toCLI_ChordSymbol().
+     * Return a CLI_ChordSymbol as a string.
      * <p>
+     * Returned String can be used as an input for toCLI_ChordSymbol().
+     *
      * @param cli
      * @param pDisplay Define how position is represented.
      * @return
+     * @see #toCLI_ChordSymbol(java.lang.String, org.jjazz.harmony.api.Position, org.jjazz.chordleadsheet.api.ChordLeadSheet)
      */
     public static String toString(CLI_ChordSymbol cli, PositionDisplay pDisplay)
     {

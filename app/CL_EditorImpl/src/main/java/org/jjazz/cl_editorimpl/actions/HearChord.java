@@ -37,6 +37,7 @@ import org.jjazz.cl_editor.api.CL_ContextAction;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.harmony.api.ChordSymbol;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.midi.api.synths.InstrumentFamily;
 import org.jjazz.midimix.api.MidiMix;
@@ -81,7 +82,10 @@ public final class HearChord extends CL_ContextAction
 
         TestPlayer tp = TestPlayer.getDefault();
         int channel = findChannel(editor.getSongModel());
-        Phrase p = createChordSamplePhrase(selection.getSelectedChordSymbols(), channel);
+        var csList = selection.getSelectedChordSymbols().stream()
+                .map(cliCs -> cliCs.getData())
+                .toList();
+        Phrase p = createChordSamplePhrase(csList, channel);
         try
         {
             tp.playTestNotes(p, null);
@@ -151,29 +155,27 @@ public final class HearChord extends CL_ContextAction
     }
 
     /**
-     * Create a Phrase to hear the chord(s).
+     * Create a Phrase to hear the specified chords.
      * <p>
      * A 120 tempo is assumed.
      *
-     * @param cliCsList
+     * @param csList
      * @param channel
      * @return
      */
-    static public Phrase createChordSamplePhrase(List<CLI_ChordSymbol> cliCsList, int channel)
+    static public Phrase createChordSamplePhrase(List<? extends ChordSymbol> csList, int channel)
     {
         // Create a phrase with all selected chord symbols
         Phrase p = new Phrase(channel);
         float beatAdvance = 0.5f;
         float beat = 0;
 
-        for (CLI_ChordSymbol cliCs : cliCsList)
+        for (var cs : csList)
         {
-            var ecs = cliCs.getData();
-
-            var rootRelPitch = ecs.getRootNote().getRelativePitch();
+            var rootRelPitch = cs.getRootNote().getRelativePitch();
             var rootPitch = rootRelPitch < 7 ? rootRelPitch + 60 : rootRelPitch + 38;  // 4th or 5th octave
             var rootNote = new Note(rootPitch);
-            List<Integer> chordPitches = new ArrayList<>(ecs.getChord().getNotes().stream()
+            List<Integer> chordPitches = new ArrayList<>(cs.getChord().getNotes().stream()
                     .map(n -> rootNote.getUpperPitch(n.getRelativePitch(), true))
                     .toList());
             Collections.sort(chordPitches);

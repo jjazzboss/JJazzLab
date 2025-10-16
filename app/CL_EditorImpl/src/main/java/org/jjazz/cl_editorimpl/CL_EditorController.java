@@ -31,12 +31,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.JComponent;
-import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
@@ -208,46 +206,66 @@ public class CL_EditorController implements CL_EditorMouseListener
 
         if (e.getClickCount() == 1 && SwingUtilities.isLeftMouseButton(e))
         {
-            if (selection.isBarSelected() || selection.isEmpty() || focusedItem == null || item.getClass() != focusedItem.getClass()
-                    || (e.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0)
+            if (focusedItem != null && item.getClass() == focusedItem.getClass())
             {
-                // SIMPLE CLICK, or no previous selection set on a similar item
+                // Updating an existing selection                
+                if (!e.isShiftDown() && !e.isControlDown())
+                {
+                    // Simple CLICK
+                    selection.unselectAll(editor);
+                    editor.selectItem(item, true);
+                    editor.setFocusOnItem(item, irType);
+
+                } else if (e.isShiftDown() && e.isControlDown() && hearChordAction.isEnabled())
+                {
+                    // SHIFT+CTRL CLICK
+                    selection.unselectAll(editor);
+                    editor.selectItem(item, true);
+                    editor.setFocusOnItem(item, irType);
+                    hearChordAction.actionPerformed(null);
+
+                } else if (!e.isShiftDown() && e.isControlDown())
+                {
+                    // CTRL CLICK
+                    // Just add selection, don't change focus
+                    if (item != focusedItem)
+                    {
+                        editor.selectItem(item, !selection.isItemSelected(item));
+                    }
+
+                } else if (e.isShiftDown() && !e.isControlDown())
+                {
+                    // SHIFT CLICK
+                    // Select items between the focused one and this item
+                    Position maxPosition = item.getPosition();
+                    Position minPosition = focusedItem.getPosition();
+                    if (minPosition.compareTo(maxPosition) > 0)
+                    {
+                        maxPosition = focusedItem.getPosition();
+                        minPosition = item.getPosition();
+                    }
+                    selection.unselectAll(editor);
+                    var items = editor.getModel().getItems(minPosition.getBar(), maxPosition.getBar(), focusedItem.getClass());
+                    for (var iitem : items)
+                    {
+                        Position pos = iitem.getPosition();
+                        if (pos.compareTo(minPosition) >= 0 && pos.compareTo(maxPosition) <= 0)
+                        {
+                            editor.selectItem(iitem, true);
+                        }
+                    }
+
+                }
+            } else
+            {
+                // No selection, or selection is from a different type
                 selection.unselectAll(editor);
                 editor.selectItem(item, true);
                 editor.setFocusOnItem(item, irType);
-                if (e.isAltDown() && hearChordAction.isEnabled())
+
+                if (e.isShiftDown() && e.isControlDown() && hearChordAction.isEnabled())
                 {
                     hearChordAction.actionPerformed(null);
-                }
-
-            } else if ((e.getModifiersEx() & (InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK)) == InputEvent.CTRL_DOWN_MASK)
-            {
-                // CTRL CLICK
-                // Just add selection, don't change focus
-                if (item != focusedItem)
-                {
-                    editor.selectItem(item, !selection.isItemSelected(item));
-                }
-            } else if ((e.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == InputEvent.SHIFT_DOWN_MASK)
-            {
-                // SHIFT CLICK
-                // Select items between the focused one and this item
-                Position maxPosition = item.getPosition();
-                Position minPosition = focusedItem.getPosition();
-                if (minPosition.compareTo(maxPosition) > 0)
-                {
-                    maxPosition = focusedItem.getPosition();
-                    minPosition = item.getPosition();
-                }
-                selection.unselectAll(editor);
-                var items = editor.getModel().getItems(minPosition.getBar(), maxPosition.getBar(), focusedItem.getClass());
-                for (var iitem : items)
-                {
-                    Position pos = iitem.getPosition();
-                    if (pos.compareTo(minPosition) >= 0 && pos.compareTo(maxPosition) <= 0)
-                    {
-                        editor.selectItem(iitem, true);
-                    }
                 }
             }
         } else if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e) && (e.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0)
@@ -414,7 +432,7 @@ public class CL_EditorController implements CL_EditorMouseListener
                 editor.selectBars(barIndex, barIndex, true);
                 editor.setFocusOnBar(barIndex);
             }
-            
+
             buildAndShowPopupMenu(e, "Actions/Bar", editor.getLookup());
         }
     }

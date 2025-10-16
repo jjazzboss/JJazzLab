@@ -34,13 +34,11 @@ import javax.swing.JComponent;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
-import javax.swing.MenuElement;
 import org.jjazz.harmony.api.ChordSymbol;
 import org.jjazz.harmony.api.ChordType;
 import org.jjazz.harmony.spi.ChordTypeDatabase;
 import org.jjazz.harmony.api.StandardScaleInstance;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
@@ -100,12 +98,7 @@ public final class SetChordTypeActionMenu extends AbstractAction implements Pres
 
         // Update menu
         var ctSelector = ChordTypeSelectorUIProvider.getDefault();
-        if (ctSelector == null)
-        {
-            // Use menu items
-            updateMenuStd(menu);
-
-        } else
+        if (ctSelector != null)
         {
             // Construct a menu item using the selector component
             var cliCs0 = selection.getSelectedChordSymbols().get(0);
@@ -113,7 +106,10 @@ public final class SetChordTypeActionMenu extends AbstractAction implements Pres
             var selectorComp = ctSelector.getUI(cliCs0, new MyChordTypeSetter(miCustom));
             updateMenuItemCustom(miCustom, selectorComp);
             menu.add(miCustom);
-
+        } else
+        {
+            // Use standard menu items
+            updateMenuStd(menu);
         }
 
     }
@@ -190,7 +186,10 @@ public final class SetChordTypeActionMenu extends AbstractAction implements Pres
         mi.removeAll();
         mi.setLayout(new BorderLayout());
         mi.add(selectorComp);
-        mi.setPreferredSize(selectorComp.getPreferredSize());
+        var pd = selectorComp.getPreferredSize();
+        pd.width += 15;     // Required otherwise selectorComp is always a bit too small due to the JScrollBars
+        pd.height += 15;
+        mi.setPreferredSize(pd);      
     }
 
     // =============================================================================================================================
@@ -206,6 +205,11 @@ public final class SetChordTypeActionMenu extends AbstractAction implements Pres
             this.menuItem = mi;
         }
 
+        /**
+         * Perform the action if ct is not null.
+         *
+         * @param ct
+         */
         @Override
         public void accept(ChordType ct)
         {
@@ -219,6 +223,8 @@ public final class SetChordTypeActionMenu extends AbstractAction implements Pres
                 setChordType(selection, ct);
                 JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(menu.getText());
             }
+
+
             if (menuItem != null)
             {
                 // Close the whole popup menu -tried various things, this is the only way to do it
@@ -240,17 +246,14 @@ public final class SetChordTypeActionMenu extends AbstractAction implements Pres
 
         private void setChordType(CL_SelectionUtilities selection, ChordType ct)
         {
-            if (selection.isItemSelected() && (selection.getSelectedItems().get(0) instanceof CLI_ChordSymbol))
+            var cls = selection.getChordLeadSheet();        // not null if not empty
+            for (var cliCs : selection.getSelectedChordSymbols())
             {
-                var cls = selection.getChordLeadSheet();
-                for (var cliCs : selection.getSelectedChordSymbols())
-                {
-                    ExtChordSymbol oldEcs = cliCs.getData();
-                    ChordSymbol newCs = new ChordSymbol(oldEcs.getRootNote(), oldEcs.getBassNote(), ct);
-                    ChordRenderingInfo newCri = new ChordRenderingInfo(oldEcs.getRenderingInfo(), (StandardScaleInstance) null); // Discard scale             
-                    ExtChordSymbol newEcs = oldEcs.getCopy(newCs, newCri, null, null);
-                    cls.changeItem(cliCs, newEcs);
-                }
+                ExtChordSymbol oldEcs = cliCs.getData();
+                ChordSymbol newCs = new ChordSymbol(oldEcs.getRootNote(), oldEcs.getBassNote(), ct);
+                ChordRenderingInfo newCri = new ChordRenderingInfo(oldEcs.getRenderingInfo(), (StandardScaleInstance) null); // Discard scale             
+                ExtChordSymbol newEcs = oldEcs.getCopy(newCs, newCri, null, null);
+                cls.changeItem(cliCs, newEcs);
             }
         }
     }

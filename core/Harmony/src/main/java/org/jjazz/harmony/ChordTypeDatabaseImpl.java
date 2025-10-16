@@ -69,7 +69,7 @@ public class ChordTypeDatabaseImpl implements ChordTypeDatabase
         int NP = ChordType.NOT_PRESENT;
         ChordType.Family MAJ = ChordType.Family.MAJOR;
         ChordType.Family MIN = ChordType.Family.MINOR;
-        ChordType.Family S = ChordType.Family.SEVENTH;
+        ChordType.Family SEV = ChordType.Family.SEVENTH;
         ChordType.Family DIM = ChordType.Family.DIMINISHED;
         ChordType.Family SUS = ChordType.Family.SUS;
 
@@ -90,30 +90,30 @@ public class ChordTypeDatabaseImpl implements ChordTypeDatabase
         addBuiltin("M13", "#11", MAJ, ":maj13#11:13M#11:ma13#11:Maj13#11:", 0, 0, +1, 0, 0, 0);
 
         // SEVENTH
-        addBuiltin("7", "", S, ":7th:", NP, 0, NP, 0, NP, -1);
-        addBuiltin("9", "", S, ":79:7(9):", 0, 0, NP, 0, NP, -1);
-        addBuiltin("13", "", S, ":713:7(13):7add6:7add13:67:", NP, 0, NP, 0, 0, -1);
-        addBuiltin("7", "b5", S, ":7-5:", NP, 0, NP, -1, NP, -1);
-        addBuiltin("9", "b5", S, ":9-5:79b5:79-5:", 0, 0, NP, -1, NP, -1);
-        addBuiltin("7", "#5", S, ":7+5:+7:7+:7(b13):7aug:aug7:7b13:", NP, 0, NP, +1, NP, -1);
-        addBuiltin("9", "#5", S, ":9+5:79#5:9+:", 0, 0, NP, +1, NP, -1);
-        addBuiltin("7", "b9", S, ":7-9:7(b9):", -1, 0, NP, 0, NP, -1);
-        addBuiltin("7", "#9", S, ":7+9:7(#9):", +1, 0, NP, 0, NP, -1);
-        addBuiltin("7", "#9#5", S, ":7+5+9:7#5#9:7alt:", +1, 0, NP, +1, NP, -1);
-        addBuiltin("7", "b9#5", S, ":7+5-9:7#5b9:7b9b13:", -1, 0, NP, +1, NP, -1);
-        addBuiltin("7", "b9b5", S, ":7-5-9:7b5b9:", -1, 0, NP, -1, NP, -1);
-        addBuiltin("7", "#9b5", S, ":7-5+9:7b5#9:", +1, 0, NP, -1, NP, -1);
-        addBuiltin("7", "#11", S, ":7+11:", NP, 0, +1, 0, NP, -1);
-        addBuiltin("9", "#11", S, ":9+11:", 0, 0, +1, 0, NP, -1);
-        addBuiltin("7", "b9#11", S, ":7-9+11:", -1, 0, +1, 0, NP, -1);
-        addBuiltin("7", "#9#11", S, ":7+9+11:", +1, 0, +1, 0, NP, -1);
-        addBuiltin("13", "b5", S, ":13-5:713b5:713-5:", NP, 0, NP, -1, 0, -1);
-        addBuiltin("13", "b9", S, ":13-9:713b9:713-9:", -1, 0, NP, 0, 0, -1);
-        addBuiltin("13", "b9b5", S, ":13-9-5:13b5b9:", -1, 0, NP, -1, 0, -1);
-        addBuiltin("13", "#9", S, ":13+9:713#9:713+9:", +1, 0, NP, 0, 0, -1);
-        addBuiltin("13", "#9b5", S, ":13+9-5:13b5#9:", +1, 0, NP, -1, 0, -1);
-        addBuiltin("13", "#11", S, ":13+11:713#11:713+11:", 0, 0, +1, 0, 0, -1);
-        addBuiltin("13", "b9#11", S, ":13-9+11:", -1, 0, +1, 0, 0, -1);
+        addBuiltin("7", "", SEV, ":7th:", NP, 0, NP, 0, NP, -1);
+        addBuiltin("9", "", SEV, ":79:7(9):", 0, 0, NP, 0, NP, -1);
+        addBuiltin("13", "", SEV, ":713:7(13):7add6:7add13:67:", NP, 0, NP, 0, 0, -1);
+        addBuiltin("7", "b5", SEV, ":7-5:", NP, 0, NP, -1, NP, -1);
+        addBuiltin("9", "b5", SEV, ":9-5:79b5:79-5:", 0, 0, NP, -1, NP, -1);
+        addBuiltin("7", "#5", SEV, ":7+5:+7:7+:7(b13):7aug:aug7:7b13:", NP, 0, NP, +1, NP, -1);
+        addBuiltin("9", "#5", SEV, ":9+5:79#5:9+:", 0, 0, NP, +1, NP, -1);
+        addBuiltin("7", "b9", SEV, ":7-9:7(b9):", -1, 0, NP, 0, NP, -1);
+        addBuiltin("7", "#9", SEV, ":7+9:7(#9):", +1, 0, NP, 0, NP, -1);
+        addBuiltin("7", "#9#5", SEV, ":7+5+9:7#5#9:7alt:", +1, 0, NP, +1, NP, -1);
+        addBuiltin("7", "b9#5", SEV, ":7+5-9:7#5b9:7b9b13:", -1, 0, NP, +1, NP, -1);
+        addBuiltin("7", "b9b5", SEV, ":7-5-9:7b5b9:", -1, 0, NP, -1, NP, -1);
+        addBuiltin("7", "#9b5", SEV, ":7-5+9:7b5#9:", +1, 0, NP, -1, NP, -1);
+        addBuiltin("7", "#11", SEV, ":7+11:", NP, 0, +1, 0, NP, -1);
+        addBuiltin("9", "#11", SEV, ":9+11:", 0, 0, +1, 0, NP, -1);
+        addBuiltin("7", "b9#11", SEV, ":7-9+11:", -1, 0, +1, 0, NP, -1);
+        addBuiltin("7", "#9#11", SEV, ":7+9+11:", +1, 0, +1, 0, NP, -1);
+        addBuiltin("13", "b5", SEV, ":13-5:713b5:713-5:", NP, 0, NP, -1, 0, -1);
+        addBuiltin("13", "b9", SEV, ":13-9:713b9:713-9:", -1, 0, NP, 0, 0, -1);
+        addBuiltin("13", "b9b5", SEV, ":13-9-5:13b5b9:", -1, 0, NP, -1, 0, -1);
+        addBuiltin("13", "#9", SEV, ":13+9:713#9:713+9:", +1, 0, NP, 0, 0, -1);
+        addBuiltin("13", "#9b5", SEV, ":13+9-5:13b5#9:", +1, 0, NP, -1, 0, -1);
+        addBuiltin("13", "#11", SEV, ":13+11:713#11:713+11:", 0, 0, +1, 0, 0, -1);
+        addBuiltin("13", "b9#11", SEV, ":13-9+11:", -1, 0, +1, 0, 0, -1);
 
         // MINOR
         addBuiltin("m", "", MIN, ":min:mi:-:", NP, -1, NP, 0, NP, NP);
@@ -300,9 +300,9 @@ public class ChordTypeDatabaseImpl implements ChordTypeDatabase
      * @return
      */
     @Override
-    public ChordType[] getChordTypes()
+    public List<ChordType>  getChordTypes()
     {
-        return chordTypes.toArray(new ChordType[0]);
+        return Collections.unmodifiableList(chordTypes);
     }
 
     /**

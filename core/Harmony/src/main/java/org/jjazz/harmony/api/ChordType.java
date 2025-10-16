@@ -26,7 +26,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -56,6 +55,16 @@ final public class ChordType
     public enum Family
     {
         MAJOR, SEVENTH, MINOR, DIMINISHED, SUS;
+        
+        /**
+         * @return "Major", "Seventh", etc.
+         */
+        @Override
+        public String toString()
+        {
+            var s = name();
+            return s.charAt(0) + s.substring(1).toLowerCase();
+        }
     }
 
     /**
