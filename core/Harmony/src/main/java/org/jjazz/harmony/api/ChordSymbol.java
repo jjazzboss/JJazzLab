@@ -91,14 +91,14 @@ public class ChordSymbol implements Cloneable
         Objects.requireNonNull(rootDg);
         Objects.requireNonNull(ct);
 
-        rootNote = buildStdNote(rootDg);
-        bassNote = (bassDg != null) ? buildStdNote(bassDg) : rootNote;
+        rootNote = buildStdRootNote(rootDg);
+        bassNote = (bassDg != null) ? buildStdRootNote(bassDg) : rootNote;
         if (bassNote != rootNote && bassNote.equalsRelativePitch(rootNote))
         {
             bassNote = rootNote;
         }
         chordType = ct;
-        name = computeName();
+        name = computeName(rootNote, bassNote, chordType);
         originalName = name;
     }
 
@@ -123,7 +123,8 @@ public class ChordSymbol implements Cloneable
     /**
      * Construct a ChordSymbol from a string.
      * <p>
-     * All notes are made uppercase. Unusual notes Cb/B#/E#/Fb are renamed to B/C/F/E. Bass note is removed if identical to root note.
+     * All notes are made uppercase. Unusual notes Cb/B#/E#/Fb are renamed to B/C/F/E. Bass note is removed if identical to root note. Root accidental for
+     * natural notes is set based on usage (e.g. sharp for a D chord, flat for an F chord).
      * <p>
      * Note that the special "NC" chord is not supported (see ExtChordSymbol.get()).
      *
@@ -163,6 +164,8 @@ public class ChordSymbol implements Cloneable
         }
 
 
+        Note nBass = null;
+        Note nRoot = null;
         StringBuilder sb = new StringBuilder(originalName);
 
         // Get the optional bass note
@@ -171,7 +174,7 @@ public class ChordSymbol implements Cloneable
             // There is a bass degree e.g. "Am7/D"
             try
             {
-                bassNote = buildStdNote(new Note(originalName.substring(slashIndex + 1)));
+                nBass = new Note(originalName.substring(slashIndex + 1));
             } catch (ParseException e)
             {
                 throw new ParseException(errorInvalidCs + ": " + originalName + ". " + e.getLocalizedMessage(), 0);
@@ -184,7 +187,7 @@ public class ChordSymbol implements Cloneable
         // Get the root note
         try
         {
-            rootNote = buildStdNote(new Note(sb.toString()));
+            nRoot = new Note(sb.toString());
         } catch (ParseException e)
         {
             throw new ParseException(errorInvalidCs + ": " + originalName + ". " + e.getLocalizedMessage(), 0);
@@ -198,10 +201,11 @@ public class ChordSymbol implements Cloneable
         }
 
         // if no bass specified, bass degree = root degree
-        if (bassNote == null || bassNote.equalsRelativePitch(rootNote))
+        if (nBass == null || nBass.equalsRelativePitch(nRoot))
         {
-            bassNote = rootNote;
+            nBass = nRoot;
         }
+
 
         // Find the ChordType of the chord
         chordType = ChordTypeDatabase.getDefault().getChordType(sb.toString());
@@ -209,10 +213,12 @@ public class ChordSymbol implements Cloneable
         {
             // Chord type not recognized
             throw new ParseException(errorInvalidCs + ": " + originalName, 0);
-        } else
-        {
-            name = computeName();
         }
+
+        
+        rootNote = buildStdRootNote(nRoot);
+        bassNote = buildStdRootNote(nBass);
+        name = computeName(rootNote, bassNote, chordType);
 
 
         // Update originalName in the case bassNote is specified but identical to rootNote
@@ -404,10 +410,10 @@ public class ChordSymbol implements Cloneable
 
         Chord c = new Chord();      // Use flats by default        
 
-        Accidental defaultAlt = Accidental.FLAT;
+        Accidental defaultAcc = Accidental.FLAT;
         if (name.length() >= 2 && name.charAt(1) == '#')
         {
-            defaultAlt = Accidental.SHARP;
+            defaultAcc = Accidental.SHARP;
             for (var n : c.getNotes().toArray(Note[]::new))
             {
                 // Change all notes
@@ -419,7 +425,7 @@ public class ChordSymbol implements Cloneable
 
         for (Degree d : chordType.getDegrees())
         {
-            Accidental alt = defaultAlt;
+            Accidental acc = defaultAcc;
             int extensionOffset = 0;
             switch (d)
             {
@@ -434,23 +440,23 @@ public class ChordSymbol implements Cloneable
                 case NINTH ->
                 {
                     extensionOffset = 12;
-                    alt = switch (rootNote.getRelativePitch())
+                    acc = switch (rootNote.getRelativePitch())
                     {
                         case E, B ->
                             Accidental.SHARP;
                         default ->
-                            defaultAlt;
+                            defaultAcc;
                     };
                 }
                 case NINTH_SHARP ->
                 {
                     extensionOffset = 12;
-                    alt = switch (rootNote.getRelativePitch())
+                    acc = switch (rootNote.getRelativePitch())
                     {
                         case C, Eb, G, Bb ->
                             Accidental.SHARP;
                         default ->
-                            defaultAlt;
+                            defaultAcc;
                     };
                 }
                 case THIRD_FLAT ->
@@ -459,12 +465,12 @@ public class ChordSymbol implements Cloneable
                 }
                 case THIRD ->
                 {
-                    alt = switch (rootNote.getRelativePitch())
+                    acc = switch (rootNote.getRelativePitch())
                     {
                         case D, E, A, B ->
                             Accidental.SHARP;
                         default ->
-                            defaultAlt;
+                            defaultAcc;
                     };
                 }
                 case FOURTH_OR_ELEVENTH ->
@@ -474,12 +480,12 @@ public class ChordSymbol implements Cloneable
                 case ELEVENTH_SHARP ->
                 {
                     extensionOffset = 12;
-                    alt = switch (rootNote.getRelativePitch())
+                    acc = switch (rootNote.getRelativePitch())
                     {
                         case C, D, E, G, A ->
                             Accidental.SHARP;
                         default ->
-                            defaultAlt;
+                            defaultAcc;
                     };
                 }
                 case FIFTH_FLAT ->
@@ -488,22 +494,22 @@ public class ChordSymbol implements Cloneable
                 }
                 case FIFTH ->
                 {
-                    alt = switch (rootNote.getRelativePitch())
+                    acc = switch (rootNote.getRelativePitch())
                     {
                         case B ->
                             Accidental.SHARP;
                         default ->
-                            defaultAlt;
+                            defaultAcc;
                     };
                 }
                 case FIFTH_SHARP ->
                 {
-                    alt = switch (rootNote.getRelativePitch())
+                    acc = switch (rootNote.getRelativePitch())
                     {
                         case C, D, F, G, Bb ->
                             Accidental.SHARP;
                         default ->
-                            defaultAlt;
+                            defaultAcc;
                     };
                 }
                 case THIRTEENTH_FLAT ->
@@ -513,26 +519,26 @@ public class ChordSymbol implements Cloneable
                 case SIXTH_OR_THIRTEENTH ->
                 {
                     extensionOffset = 12;
-                    alt = switch (rootNote.getRelativePitch())
+                    acc = switch (rootNote.getRelativePitch())
                     {
                         case E, A, B ->
                             Accidental.SHARP;
                         default ->
-                            defaultAlt;
+                            defaultAcc;
                     };
                 }
                 case SEVENTH_FLAT ->
                 {
-                    // NOthing
+                    // Nothing
                 }
                 case SEVENTH ->
                 {
-                    alt = switch (rootNote.getRelativePitch())
+                    acc = switch (rootNote.getRelativePitch())
                     {
                         case D, E, G, A, B ->
                             Accidental.SHARP;
                         default ->
-                            defaultAlt;
+                            defaultAcc;
                     };
                 }
                 default -> throw new AssertionError(d.name());
@@ -541,7 +547,7 @@ public class ChordSymbol implements Cloneable
 
 
             int pitch = d.getPitch() + rootNote.getRelativePitch() + extensionOffset;
-            c.add(new Note(pitch, 1f, 64, alt));
+            c.add(new Note(pitch, 1f, 64, acc));
         }
 
         return c;
@@ -552,7 +558,7 @@ public class ChordSymbol implements Cloneable
      */
     public String toNoteString()
     {
-        return getChord().toRelativeNoteString(rootNote.getAccidental());
+        return getChord().toRelativeNoteString(null);
     }
 
     /**
@@ -698,20 +704,27 @@ public class ChordSymbol implements Cloneable
     // Private methods
     // ---------------------------------------------------------------------
     /**
-     * Compute default name from ChordSymbol components.
+     * Compute default name.
      *
      * @return
      */
-    protected String computeName()
+    protected String computeName(Note root, Note bass, ChordType ct)
     {
-        String s = rootNote.toRelativeNoteString() + chordType.getName() + (bassNote.equalsRelativePitch(rootNote) ? "" : ("/" + bassNote.
-                toRelativeNoteString()));
+        String s = root.toRelativeNoteString() + ct.getName() + (bass.equalsRelativePitch(root) ? "" : ("/" + bass.toRelativeNoteString()));
         return s;
     }
 
-    private Note buildStdNote(Note n)
+    /**
+     * Use standard pitch and velocity.
+     * <p>
+     *
+     * @param n
+     * @return
+     */
+    private Note buildStdRootNote(Note n)
     {
-        return new Note(n.getRelativePitch(), 1, 64, n.getAccidental());
+        int relPitch = n.getRelativePitch();
+        return new Note(relPitch, 1, 64, n.getAccidental());
     }
 
 

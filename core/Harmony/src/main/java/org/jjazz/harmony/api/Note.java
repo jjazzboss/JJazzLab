@@ -710,13 +710,13 @@ public class Note implements Comparable<Note>, Cloneable
     }
 
     /**
-     * @param alt Use the specified accidental.
+     * @param acc Use the specified accidental.
      *
-     * @return E.g. "Db" if alt=FLAT, "C#" if alt=SHARP.
+     * @return E.g. "Db" if acc=FLAT, "C#" if acc=SHARP.
      */
-    public String toRelativeNoteString(Accidental alt)
+    public String toRelativeNoteString(Accidental acc)
     {
-        if (alt == Accidental.FLAT)
+        if (acc == Accidental.FLAT)
         {
             return notesFlat[getRelativePitch()];
         } else

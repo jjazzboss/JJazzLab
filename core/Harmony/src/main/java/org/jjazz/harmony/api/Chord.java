@@ -466,26 +466,18 @@ public class Chord implements Cloneable
     }
 
     /**
-     * @param flatOrSharp Accidental display (if required) = Note.FLAT or Note.SHARP
-     * @return E.g. the string "[D,F#,C,E,D,A#]".
+     * A string like "[D,F#,A,E]".
+     * <p>
+     * Notes are sorted by ascending absolute pitch.
+     *
+     * @param acc If not null, force all notes to use acc.
+     * @return
      */
-    public String toRelativeNoteString(Note.Accidental flatOrSharp)
+    public String toRelativeNoteString(Note.Accidental acc)
     {
-        StringBuilder sb = new StringBuilder("[");
-        for (Note n : notes)
-        {
-            sb.append(n.toRelativeNoteString(flatOrSharp)).append(",");
-        }
-
-        if (!notes.isEmpty())
-        {
-            // Remove trailing coma
-            sb.setLength(sb.length() - 1);
-        }
-
-        sb.append("]");
-
-        return sb.toString();
+        StringJoiner joiner = new StringJoiner(",", "[", "]");
+        notes.forEach(n -> joiner.add(acc == null ? n.toRelativeNoteString() : n.toRelativeNoteString(acc)));
+        return joiner.toString();
     }
 
     /**

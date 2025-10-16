@@ -1110,7 +1110,7 @@ final public class ChordType
     }
 
     /**
-     * @return A copy of the corresponding Chord with a default C root and flat (if accidental is needed).
+     * @return A copy of the corresponding Chord with a default C root and flat accidental (if accidental is needed).
      */
     public Chord getChord()
     {
