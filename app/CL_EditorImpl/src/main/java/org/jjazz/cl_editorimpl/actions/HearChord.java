@@ -36,7 +36,7 @@ import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.cl_editor.api.CL_ContextAction;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
-import org.jjazz.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.cl_editor.api.CL_Selection;
 import org.jjazz.harmony.api.ChordSymbol;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.midi.api.synths.InstrumentFamily;
@@ -76,7 +76,7 @@ public final class HearChord extends CL_ContextAction
     }
 
     @Override
-    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)
+    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_Selection selection)
     {
         CL_Editor editor = CL_EditorTopComponent.getActive().getEditor();
 
@@ -96,7 +96,7 @@ public final class HearChord extends CL_ContextAction
     }
 
     @Override
-    public void selectionChange(CL_SelectionUtilities selection)
+    public void selectionChange(CL_Selection selection)
     {
         setEnabled(selection.isChordSymbolSelected());
     }

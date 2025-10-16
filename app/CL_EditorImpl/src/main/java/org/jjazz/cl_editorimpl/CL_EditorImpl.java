@@ -60,7 +60,7 @@ import org.jjazz.cl_editor.barrenderer.api.BarRenderer;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.api.CL_EditorMouseListener;
 import org.jjazz.cl_editor.spi.CL_EditorSettings;
-import org.jjazz.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.cl_editor.api.CL_Selection;
 import org.jjazz.cl_editor.itemrenderer.api.IR_Type;
 import org.jjazz.cl_editor.itemrenderer.api.ItemRenderer;
 import org.jjazz.uiutilities.api.Zoomable;
@@ -303,7 +303,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     public void cleanup()
     {
         // Unselect everything
-        CL_SelectionUtilities selection = new CL_SelectionUtilities(selectionLookup);
+        CL_Selection selection = new CL_Selection(selectionLookup);
         selection.unselectAll(this);
 
 
@@ -1562,7 +1562,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         }
 
         // Save selection
-        CL_SelectionUtilities selection = new CL_SelectionUtilities(getLookup());
+        CL_Selection selection = new CL_Selection(getLookup());
         int bar = 0;
         if (selection.isBarSelected())
         {

@@ -36,7 +36,7 @@ import org.jjazz.cl_editor.api.CL_ContextAction;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.api.CL_EditorClientProperties;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
-import org.jjazz.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.cl_editor.api.CL_Selection;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -67,7 +67,7 @@ public final class SectionAtNewLine extends CL_ContextAction implements Presente
     }
 
     @Override
-    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)
+    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_Selection selection)
     {
         assert cliSection != null && editor != null :
                 "cliSection=" + cliSection + " editor=" + editor + " getSelection()=" + getSelection();
@@ -76,7 +76,7 @@ public final class SectionAtNewLine extends CL_ContextAction implements Presente
     }
 
     @Override
-    public void selectionChange(CL_SelectionUtilities selection)
+    public void selectionChange(CL_Selection selection)
     {
         editor = null;
         cliSection = null;

@@ -43,7 +43,7 @@ import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.cl_editor.api.CL_Editor;
-import org.jjazz.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.cl_editor.api.CL_Selection;
 import static org.jjazz.harmony.api.ChordType.Family.DIMINISHED;
 import static org.jjazz.harmony.api.ChordType.Family.MAJOR;
 import static org.jjazz.harmony.api.ChordType.Family.MINOR;
@@ -86,7 +86,7 @@ public final class SetChordTypeActionMenu extends AbstractAction implements Pres
         menu = new JMenu(ResUtil.getString(SetChordTypeActionMenu.class, "CTL_SetChordType"));
 
 
-        var selection = new CL_SelectionUtilities(context);
+        var selection = new CL_Selection(context);
         boolean b = selection.isChordSymbolSelected();
         setEnabled(b);
         menu.setEnabled(b);
@@ -217,7 +217,7 @@ public final class SetChordTypeActionMenu extends AbstractAction implements Pres
             {
                 CL_Editor editor = CL_EditorTopComponent.getActive().getEditor();
                 ChordLeadSheet cls = editor.getModel();
-                CL_SelectionUtilities selection = new CL_SelectionUtilities(editor.getLookup());
+                CL_Selection selection = new CL_Selection(editor.getLookup());
 
                 JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(menu.getText());
                 setChordType(selection, ct);
@@ -244,7 +244,7 @@ public final class SetChordTypeActionMenu extends AbstractAction implements Pres
             }
         }
 
-        private void setChordType(CL_SelectionUtilities selection, ChordType ct)
+        private void setChordType(CL_Selection selection, ChordType ct)
         {
             var cls = selection.getChordLeadSheet();        // not null if not empty
             for (var cliCs : selection.getSelectedChordSymbols())

@@ -31,7 +31,7 @@ import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.cl_editor.barbox.api.BarBox;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.cl_editor.api.CL_Editor;
-import org.jjazz.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.cl_editor.api.CL_Selection;
 import org.jjazz.cl_editor.itemrenderer.api.ItemRenderer;
 
 public class MoveSelectionLeft extends AbstractAction
@@ -74,7 +74,7 @@ public class MoveSelectionLeft extends AbstractAction
             var item = items.get(index - 1);
             if (!extend)
             {
-                CL_SelectionUtilities selection = new CL_SelectionUtilities(ed.getLookup());
+                CL_Selection selection = new CL_Selection(ed.getLookup());
                 selection.unselectAll(ed);
             }
             ed.selectItem(item, true);
@@ -95,7 +95,7 @@ public class MoveSelectionLeft extends AbstractAction
         {
             if (!extend)
             {
-                CL_SelectionUtilities selection = new CL_SelectionUtilities(ed.getLookup());
+                CL_Selection selection = new CL_Selection(ed.getLookup());
                 selection.unselectAll(ed);
             }
             ed.selectBars(barIndex - 1, barIndex - 1, true);

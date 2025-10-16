@@ -43,7 +43,7 @@ import org.jjazz.cl_editorimpl.ItemsTransferable;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.cl_editor.api.CL_ContextAction;
 import org.jjazz.cl_editorimpl.BarsTransferable;
-import org.jjazz.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.cl_editor.api.CL_Selection;
 import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
 import org.jjazz.utilities.api.IntRange;
 import org.jjazz.utilities.api.ResUtil;
@@ -79,7 +79,7 @@ public class Copy extends CL_ContextAction implements ClipboardOwner
     }
 
     @Override
-    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)
+    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_Selection selection)
     {
         Transferable t = null;
         List<ChordLeadSheetItem> items = new ArrayList<>();
@@ -113,7 +113,7 @@ public class Copy extends CL_ContextAction implements ClipboardOwner
     }
 
     @Override
-    public void selectionChange(CL_SelectionUtilities selection)
+    public void selectionChange(CL_Selection selection)
     {
         boolean b = false;
         if (selection.isItemSelected() || selection.isContiguousBarboxSelectionWithinCls())

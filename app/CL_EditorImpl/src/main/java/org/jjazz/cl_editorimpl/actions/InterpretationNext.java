@@ -34,7 +34,7 @@ import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.cl_editor.api.CL_ContextAction;
 import org.jjazz.cl_editor.api.CL_ContextActionSupport;
-import org.jjazz.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.cl_editor.api.CL_Selection;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.ActionID;
@@ -69,7 +69,7 @@ public final class InterpretationNext extends CL_ContextAction
     }
 
     @Override
-    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)
+    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_Selection selection)
     {
         JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(undoText);
 
@@ -87,7 +87,7 @@ public final class InterpretationNext extends CL_ContextAction
     }
 
     @Override
-    public void selectionChange(CL_SelectionUtilities selection)
+    public void selectionChange(CL_Selection selection)
     {
         setEnabled(selection.isChordSymbolSelected());
     }

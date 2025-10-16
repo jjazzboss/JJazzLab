@@ -35,7 +35,7 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.jjazz.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.cl_editor.api.CL_Selection;
 import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
@@ -63,7 +63,7 @@ public final class SetEndBar extends CL_ContextAction
     }
 
     @Override
-    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)
+    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_Selection selection)
     {
 
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(cls);
@@ -84,7 +84,7 @@ public final class SetEndBar extends CL_ContextAction
 
 
     @Override
-    public void selectionChange(CL_SelectionUtilities selection)
+    public void selectionChange(CL_Selection selection)
     {
         boolean b = false;
         endBar = -1;

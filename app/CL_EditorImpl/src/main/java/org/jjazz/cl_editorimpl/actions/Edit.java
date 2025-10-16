@@ -50,7 +50,7 @@ import org.jjazz.cl_editor.spi.Preset;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.api.CL_EditorClientProperties;
-import org.jjazz.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.cl_editor.api.CL_Selection;
 import org.jjazz.cl_editor.spi.SectionEditorDialog;
 import org.jjazz.cl_editor.spi.ChordSymbolEditorDialog;
 import org.jjazz.cl_editorimpl.BR_Annotation;
@@ -105,7 +105,7 @@ public class Edit extends CL_ContextAction
      * @param ae
      */
     @Override
-    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)
+    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_Selection selection)
     {
         final CL_Editor editor = CL_EditorTopComponent.getActive().getEditor();
         char key = (char) 0;
@@ -170,7 +170,7 @@ public class Edit extends CL_ContextAction
     }
 
     @Override
-    public void selectionChange(CL_SelectionUtilities selection)
+    public void selectionChange(CL_Selection selection)
     {
         boolean b;
         if (selection.isItemSelected())
@@ -336,7 +336,7 @@ public class Edit extends CL_ContextAction
             boolean change = !resultAddedItems.isEmpty() || !resultRemovedItems.isEmpty() || !mapChanged.isEmpty();
             if (barIndex < cls.getSizeInBars() - 1 && change)
             {
-                CL_SelectionUtilities selection = new CL_SelectionUtilities(editor.getLookup());
+                CL_Selection selection = new CL_Selection(editor.getLookup());
                 selection.unselectAll(editor);
                 editor.setFocusOnBar(barIndex + 1);
                 editor.selectBars(barIndex + 1, barIndex + 1, true);

@@ -37,7 +37,7 @@ import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.cl_editor.api.CL_ContextAction;
 import org.jjazz.cl_editor.api.CL_ContextAction.ListeningTarget;
-import org.jjazz.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.cl_editor.api.CL_Selection;
 import org.jjazz.harmony.api.Position;
 import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
@@ -71,13 +71,13 @@ public class MoveItemRight extends CL_ContextAction
     }
 
     @Override
-    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)
+    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_Selection selection)
     {
         MoveItemRight.performMove(selection, getActionName(), true);
     }
 
     @Override
-    public void selectionChange(CL_SelectionUtilities selection)
+    public void selectionChange(CL_Selection selection)
     {
         boolean b = selection.isItemSelected();
         setEnabled(b);
@@ -87,7 +87,7 @@ public class MoveItemRight extends CL_ContextAction
     // Private methods
     // ===========================================================================================================    
 
-    static protected void performMove(CL_SelectionUtilities selection, String actionText, boolean moveRight)
+    static protected void performMove(CL_Selection selection, String actionText, boolean moveRight)
     {
         ChordLeadSheet cls = selection.getChordLeadSheet();
 

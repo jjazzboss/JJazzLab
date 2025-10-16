@@ -49,7 +49,7 @@ import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.cl_editor.api.CL_ContextAction;
 import org.jjazz.cl_editorimpl.BarsTransferable;
-import org.jjazz.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.cl_editor.api.CL_Selection;
 import org.jjazz.importers.api.TextReader;
 import org.jjazz.song.api.Song;
 import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
@@ -142,7 +142,7 @@ public class Paste extends CL_ContextAction implements FlavorListener
     }
 
     @Override
-    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)
+    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_Selection selection)
     {
         int targetBarIndex = selection.getMinBarIndex();
         assert targetBarIndex >= 0;
@@ -269,7 +269,7 @@ public class Paste extends CL_ContextAction implements FlavorListener
     }
 
     @Override
-    public void selectionChange(CL_SelectionUtilities selection)
+    public void selectionChange(CL_Selection selection)
     {
         boolean b = false;
 

@@ -37,7 +37,7 @@ import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.api.CL_EditorClientProperties;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
-import org.jjazz.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.cl_editor.api.CL_Selection;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -66,7 +66,7 @@ public class ChangeQuantization extends CL_ContextAction
     }
 
     @Override
-    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)
+    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_Selection selection)
     {
         CL_Editor editor = CL_EditorTopComponent.get(cls).getEditor();
 
@@ -142,7 +142,7 @@ public class ChangeQuantization extends CL_ContextAction
      * If bars are selected, enable the action only if all selected bars belong to only one section.
      */
     @Override
-    public void selectionChange(CL_SelectionUtilities selection)
+    public void selectionChange(CL_Selection selection)
     {
         ChordLeadSheet cls = selection.getChordLeadSheet();
         boolean b = false;

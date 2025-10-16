@@ -44,7 +44,7 @@ import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.Song;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
-import org.jjazz.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.cl_editor.api.CL_Selection;
 import org.jjazz.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.ss_editor.api.SS_Selection;
 import org.openide.DialogDisplayer;
@@ -124,7 +124,7 @@ public class PlaySelection extends AbstractAction
         CL_EditorTopComponent clTc = CL_EditorTopComponent.get(cls);
         assert clTc != null;
         CL_Editor clEditor = clTc.getEditor();
-        CL_SelectionUtilities clSelection = new CL_SelectionUtilities(clEditor.getLookup());
+        CL_Selection clSelection = new CL_Selection(clEditor.getLookup());
 
 
         SongStructure ss = song.getSongStructure();

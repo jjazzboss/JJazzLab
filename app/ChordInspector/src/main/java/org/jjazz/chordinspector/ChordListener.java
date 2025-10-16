@@ -30,7 +30,7 @@ import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.cl_editor.api.CL_ContextActionListener;
 import org.jjazz.cl_editor.api.CL_ContextActionSupport;
-import org.jjazz.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.cl_editor.api.CL_Selection;
 import org.openide.util.Utilities;
 
 /**
@@ -66,7 +66,7 @@ public class ChordListener implements CL_ContextActionListener, PropertyChangeLi
     // CL_ContextActionListener interface
     // -----------------------------------------------------------------------------   
     @Override
-    public final void selectionChange(CL_SelectionUtilities selection)
+    public final void selectionChange(CL_Selection selection)
     {
         CLI_ChordSymbol newSelectedChordSymbol = null;
 

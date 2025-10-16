@@ -30,7 +30,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
-import org.jjazz.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.cl_editor.api.CL_Selection;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -67,7 +67,7 @@ public final class InsertActionMenu extends AbstractAction implements Presenter.
         Objects.requireNonNull(context);
         menu = new JMenu(ResUtil.getString(getClass(), "CTL_Insert"));
 
-        var selection = new CL_SelectionUtilities(context);
+        var selection = new CL_Selection(context);
         boolean b = selection.isBarSelected();
         setEnabled(b);
         menu.setEnabled(b);

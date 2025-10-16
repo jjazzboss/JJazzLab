@@ -36,7 +36,7 @@ import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.api.CL_EditorClientProperties;
-import org.jjazz.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.cl_editor.api.CL_Selection;
 import org.jjazz.cl_editor.itemrenderer.api.IR_ChordSymbolSettings;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.ActionID;
@@ -80,7 +80,7 @@ public final class SetChordColor extends AbstractAction implements Presenter.Pop
         menu = new JMenu(ResUtil.getString(getClass(), "CTL_SetChordColor"));
 
 
-        var selection = new CL_SelectionUtilities(context);
+        var selection = new CL_Selection(context);
         boolean b = selection.isChordSymbolSelected();
         setEnabled(b);
         menu.setEnabled(b);

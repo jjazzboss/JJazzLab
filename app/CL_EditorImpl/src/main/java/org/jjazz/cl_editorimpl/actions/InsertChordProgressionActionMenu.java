@@ -42,7 +42,7 @@ import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
-import org.jjazz.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.cl_editor.api.CL_Selection;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.importers.api.TextReader;
@@ -98,7 +98,7 @@ public final class InsertChordProgressionActionMenu extends AbstractAction imple
         menu = new JMenu(ResUtil.getString(getClass(), "CTL_InsertChordProgression"));
 
 
-        var selection = new CL_SelectionUtilities(context);
+        var selection = new CL_Selection(context);
         boolean b = selection.getSelectedBarIndexesWithinCls().size() == 1;
         setEnabled(b);
         menu.setEnabled(b);
@@ -136,7 +136,7 @@ public final class InsertChordProgressionActionMenu extends AbstractAction imple
     // Private methods
     // =============================================================================================    
 
-    private JMenu prepareMenu(JMenu menu, CL_SelectionUtilities selection)
+    private JMenu prepareMenu(JMenu menu, CL_Selection selection)
     {
 
         File chordProgressionFile = getChordProgressionTextFile();
@@ -252,7 +252,7 @@ public final class InsertChordProgressionActionMenu extends AbstractAction imple
      * @param selection
      * @param cSeq
      */
-    private void insertChordProgression(CL_SelectionUtilities selection, ChordSequence cSeq)
+    private void insertChordProgression(CL_Selection selection, ChordSequence cSeq)
     {
         var cls = selection.getChordLeadSheet();
         var modelBarIndex = selection.getMinBarIndexWithinCls();

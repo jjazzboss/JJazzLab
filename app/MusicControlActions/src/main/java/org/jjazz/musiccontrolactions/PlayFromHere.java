@@ -45,7 +45,7 @@ import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.Song;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
-import org.jjazz.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.cl_editor.api.CL_Selection;
 import org.jjazz.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.ss_editor.api.SS_Selection;
 import org.openide.DialogDisplayer;
@@ -131,7 +131,7 @@ public class PlayFromHere extends AbstractAction
         CL_EditorTopComponent clTc = CL_EditorTopComponent.get(cls);
         assert clTc != null;
         CL_Editor clEditor = clTc.getEditor();
-        CL_SelectionUtilities clSelection = new CL_SelectionUtilities(clEditor.getLookup());
+        CL_Selection clSelection = new CL_Selection(clEditor.getLookup());
 
 
         SongStructure ss = song.getSongStructure();
@@ -292,7 +292,7 @@ public class PlayFromHere extends AbstractAction
      * @param cliSection The parent section of the selected song part.
      * @return 0 (=start of the section) if no selection in the section
      */
-    private int getSelectedBarIndexRelativeToSection(CLI_Section cliSection, CL_SelectionUtilities clSelection)
+    private int getSelectedBarIndexRelativeToSection(CLI_Section cliSection, CL_Selection clSelection)
     {
         int sectionStartBar = cliSection.getPosition().getBar();
         int sectionEndBar = sectionStartBar + cliSection.getContainer().getBarRange(cliSection).size() - 1;

@@ -31,7 +31,7 @@ import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
-import org.jjazz.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.cl_editor.api.CL_Selection;
 import org.jjazz.cl_editor.itemrenderer.api.IR_Type;
 import org.jjazz.cl_editor.itemrenderer.api.ItemRenderer;
 import org.openide.awt.ActionID;
@@ -68,7 +68,7 @@ public class SelectAllChordSymbols implements ActionListener
     {
         assert cls != null;   
         CL_Editor editor = CL_EditorTopComponent.get(cls).getEditor();
-        CL_SelectionUtilities selection = new CL_SelectionUtilities(editor.getLookup());
+        CL_Selection selection = new CL_Selection(editor.getLookup());
         var items = cls.getItems(CLI_ChordSymbol.class);
         if (items.isEmpty())
         {

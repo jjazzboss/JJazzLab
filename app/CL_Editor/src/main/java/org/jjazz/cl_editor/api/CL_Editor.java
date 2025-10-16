@@ -228,7 +228,7 @@ public abstract class CL_Editor extends JPanel implements Lookup.Provider
      */
     public void unselectAll()
     {
-        new CL_SelectionUtilities(getLookup()).unselectAll(this);
+        new CL_Selection(getLookup()).unselectAll(this);
     }
 
 

@@ -29,7 +29,7 @@ import javax.swing.AbstractAction;
 import org.jjazz.cl_editor.barbox.api.BarBox;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.cl_editor.api.CL_Editor;
-import org.jjazz.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.cl_editor.api.CL_Selection;
 
 public class MoveSelectionUp extends AbstractAction
 {
@@ -44,7 +44,7 @@ public class MoveSelectionUp extends AbstractAction
             int barIndex = ((BarBox) c).getBarIndex();
             if (barIndex >= editor.getNbColumns())
             {
-                CL_SelectionUtilities selection = new CL_SelectionUtilities(editor.getLookup());
+                CL_Selection selection = new CL_Selection(editor.getLookup());
                 selection.unselectAll(editor);
                 int newBarIndex = barIndex - editor.getNbColumns();
                 editor.selectBars(newBarIndex, newBarIndex, true);

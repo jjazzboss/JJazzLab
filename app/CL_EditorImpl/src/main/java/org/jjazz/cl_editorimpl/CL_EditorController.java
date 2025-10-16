@@ -59,7 +59,7 @@ import org.jjazz.cl_editor.barbox.api.BarBox;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.api.CL_EditorMouseListener;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
-import org.jjazz.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.cl_editor.api.CL_Selection;
 import org.jjazz.cl_editorimpl.actions.MoveItemLeft;
 import org.jjazz.cl_editorimpl.actions.MoveItemRight;
 import org.jjazz.flatcomponents.api.FlatComponentsGlobalSettings;
@@ -197,7 +197,7 @@ public class CL_EditorController implements CL_EditorMouseListener
             focusedItem = ir.getModel();
         }
 
-        CL_SelectionUtilities selection = new CL_SelectionUtilities(editor.getLookup());
+        CL_Selection selection = new CL_Selection(editor.getLookup());
 
         LOGGER.log(Level.FINE, "itemClicked() item={0} selection={1}", new Object[]
         {
@@ -312,7 +312,7 @@ public class CL_EditorController implements CL_EditorMouseListener
     @Override
     public void itemWheelMoved(MouseWheelEvent e, ChordLeadSheetItem<?> item, IR_Type irType)
     {
-        CL_SelectionUtilities selection = new CL_SelectionUtilities(editor.getLookup());
+        CL_Selection selection = new CL_Selection(editor.getLookup());
         var items = selection.getSelectedItems();
         if (items.isEmpty() || !(items.get(0) instanceof CLI_ChordSymbol))
         {
@@ -376,7 +376,7 @@ public class CL_EditorController implements CL_EditorMouseListener
 
         LOGGER.log(Level.FINE, "barClicked() barIndex{0}", barIndex);
 
-        CL_SelectionUtilities selection = new CL_SelectionUtilities(editor.getLookup());
+        CL_Selection selection = new CL_Selection(editor.getLookup());
 
         if (e.getClickCount() == 1 && SwingUtilities.isLeftMouseButton(e))
         {
@@ -445,7 +445,7 @@ public class CL_EditorController implements CL_EditorMouseListener
             // Ctrl or Shift not allowed
             return;
         }
-        CL_SelectionUtilities selection = new CL_SelectionUtilities(editor.getLookup());
+        CL_Selection selection = new CL_Selection(editor.getLookup());
         if (dragStartBbIndex == -1)
         {
             // Start drag operation by selecting the current barbox

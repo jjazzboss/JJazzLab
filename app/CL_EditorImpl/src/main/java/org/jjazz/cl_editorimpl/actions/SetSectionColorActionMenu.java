@@ -33,7 +33,7 @@ import javax.swing.JMenuItem;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.cl_editor.api.CL_EditorClientProperties;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
-import org.jjazz.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.cl_editor.api.CL_Selection;
 import org.jjazz.uisettings.api.ColorSetManager;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.ActionID;
@@ -69,7 +69,7 @@ public final class SetSectionColorActionMenu extends AbstractAction implements P
         Objects.requireNonNull(context);
         menu = new JMenu(ResUtil.getString(getClass(), "CTL_SetSectionColor"));
 
-        var selection = new CL_SelectionUtilities(context);
+        var selection = new CL_Selection(context);
         boolean b = selection.isSectionSelected();
         setEnabled(b);
         menu.setEnabled(b);
@@ -105,7 +105,7 @@ public final class SetSectionColorActionMenu extends AbstractAction implements P
     // ============================================================================================= 
     // Private methods
     // =============================================================================================    
-    private void prepareMenu(JMenu menu, CL_SelectionUtilities selection)
+    private void prepareMenu(JMenu menu, CL_Selection selection)
     {
         ColorSetManager csm = ColorSetManager.getDefault();
         for (final Color c : csm.getReferenceColors())
@@ -119,7 +119,7 @@ public final class SetSectionColorActionMenu extends AbstractAction implements P
         }
     }
 
-    private void setColor(Color c, CL_SelectionUtilities selection)
+    private void setColor(Color c, CL_Selection selection)
     {
         for (var section : selection.getSelectedSections())
         {

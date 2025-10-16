@@ -34,7 +34,7 @@ import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
 import org.jjazz.chordleadsheet.api.event.SizeChangedEvent;
 import org.jjazz.cl_editor.api.CL_ContextAction;
 import static org.jjazz.cl_editor.api.CL_ContextAction.LISTENING_TARGETS;
-import org.jjazz.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.cl_editor.api.CL_Selection;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.ActionID;
@@ -67,7 +67,7 @@ public class InsertBar extends CL_ContextAction
     }
 
     @Override
-    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)
+    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_Selection selection)
     {
         assert insertModelBarIndex >= 0;
         InsertBarDialog dlg = InsertBarDialog.getInstance();
@@ -84,7 +84,7 @@ public class InsertBar extends CL_ContextAction
     }
 
     @Override
-    public void selectionChange(CL_SelectionUtilities selection)
+    public void selectionChange(CL_Selection selection)
     {
         boolean b = selection.isBarSelected();
         insertModelBarIndex = -1;

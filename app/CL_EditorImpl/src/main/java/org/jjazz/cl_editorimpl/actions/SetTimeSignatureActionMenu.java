@@ -36,7 +36,7 @@ import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
-import org.jjazz.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.cl_editor.api.CL_Selection;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.utilities.api.ResUtil;
@@ -76,7 +76,7 @@ public final class SetTimeSignatureActionMenu extends AbstractAction implements 
         menu = new JMenu(ResUtil.getString(getClass(), "CTL_SetTimeSignature"));
 
 
-        var selection = new CL_SelectionUtilities(context);
+        var selection = new CL_Selection(context);
         boolean b = selection.isSectionSelected();
         setEnabled(b);
         menu.setEnabled(b);
@@ -173,7 +173,7 @@ public final class SetTimeSignatureActionMenu extends AbstractAction implements 
     // ============================================================================================= 
     // Private methods
     // =============================================================================================    
-    private void prepareMenu(JMenu menu, CL_SelectionUtilities selection)
+    private void prepareMenu(JMenu menu, CL_Selection selection)
     {
         var rdb = RhythmDatabase.getDefault();
         var sortedTs = new ArrayList<>(rdb.getTimeSignatures());
@@ -186,7 +186,7 @@ public final class SetTimeSignatureActionMenu extends AbstractAction implements 
         }
     }
 
-    private void updateSections(TimeSignature ts, CL_SelectionUtilities selection)
+    private void updateSections(TimeSignature ts, CL_Selection selection)
     {
         var cls = selection.getChordLeadSheet();
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(cls);

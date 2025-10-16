@@ -35,7 +35,7 @@ import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.cl_editor.api.CL_ContextAction;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.cl_editor.api.CL_Editor;
-import org.jjazz.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.cl_editor.api.CL_Selection;
 import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.ActionID;
@@ -71,7 +71,7 @@ public class SelectAll extends CL_ContextAction
     }
 
     @Override
-    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)
+    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_Selection selection)
     {
         CL_Editor editor = CL_EditorTopComponent.get(cls).getEditor();
         if (selection.isEmpty())
@@ -89,7 +89,7 @@ public class SelectAll extends CL_ContextAction
     }
 
     @Override
-    public void selectionChange(CL_SelectionUtilities selection)
+    public void selectionChange(CL_Selection selection)
     {
         setEnabled(true);
     }
@@ -112,7 +112,7 @@ public class SelectAll extends CL_ContextAction
      * @param editor
      * @param selection Will be non empty
      */
-    private void selectBarsIn2Steps(CL_Editor editor, CL_SelectionUtilities selection)
+    private void selectBarsIn2Steps(CL_Editor editor, CL_Selection selection)
     {
         ChordLeadSheet cls = editor.getModel();
         int clsSize = cls.getSizeInBars();
@@ -144,7 +144,7 @@ public class SelectAll extends CL_ContextAction
             {
                 "unchecked", "rawtypes"
             })
-    private void selectItemsIn2Steps(CL_Editor editor, CL_SelectionUtilities selection)
+    private void selectItemsIn2Steps(CL_Editor editor, CL_Selection selection)
     {
         ChordLeadSheet cls = editor.getModel();
         int minBarIndex = selection.getMinBarIndexWithinCls();

@@ -53,7 +53,7 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.jjazz.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.cl_editor.api.CL_Selection;
 import org.jjazz.cl_editor.api.SelectedBar;
 import org.jjazz.songeditormanager.spi.SongEditorManager;
 import org.jjazz.utilities.api.IntRange;
@@ -107,7 +107,7 @@ public final class CreatePracticeSong extends AbstractAction implements ContextA
     {
         Song song = CL_EditorTopComponent.getActive().getSongModel();
         assert song != null;
-        CL_SelectionUtilities selection = cap.getSelection();
+        CL_Selection selection = cap.getSelection();
         ChordLeadSheet cls = selection.getChordLeadSheet();
         var selectedBars = selection.getSelectedBarsWithinCls();
         assert !selectedBars.isEmpty() : "selection=" + selection;
@@ -180,7 +180,7 @@ public final class CreatePracticeSong extends AbstractAction implements ContextA
     // ========================================================================================
 
     @Override
-    public void selectionChange(CL_SelectionUtilities selection)
+    public void selectionChange(CL_Selection selection)
     {
         boolean b = selection.isContiguousBarboxSelectionWithinCls();
         setEnabled(b);

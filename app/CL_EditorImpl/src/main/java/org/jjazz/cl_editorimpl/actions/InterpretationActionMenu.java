@@ -37,7 +37,7 @@ import javax.swing.JSeparator;
 import javax.swing.SwingUtilities;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.cl_editor.api.CL_ContextAction;
-import org.jjazz.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.cl_editor.api.CL_Selection;
 import static org.jjazz.cl_editorimpl.actions.AccentOptionsStronger.KEYSTROKE;
 import org.jjazz.uiutilities.api.UIUtilities;
 import org.jjazz.utilities.api.ResUtil;
@@ -77,7 +77,7 @@ public final class InterpretationActionMenu extends AbstractAction implements Pr
         Objects.requireNonNull(context);
         menu = new JMenu(ResUtil.getString(getClass(), "CTL_Interpretation"));
 
-        var selection = new CL_SelectionUtilities(context);
+        var selection = new CL_Selection(context);
         boolean b = selection.isChordSymbolSelected();
         setEnabled(b);
         menu.setEnabled(b);

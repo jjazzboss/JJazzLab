@@ -35,5 +35,5 @@ public interface CL_ContextActionListener extends EventListener
      *
      * @param selection
      */
-    public void selectionChange(CL_SelectionUtilities selection);
+    public void selectionChange(CL_Selection selection);
 }

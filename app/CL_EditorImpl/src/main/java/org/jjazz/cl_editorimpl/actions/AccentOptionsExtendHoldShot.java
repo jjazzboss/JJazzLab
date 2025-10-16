@@ -37,7 +37,7 @@ import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
-import org.jjazz.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.cl_editor.api.CL_Selection;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.ActionID;
@@ -73,7 +73,7 @@ public final class AccentOptionsExtendHoldShot extends CL_ContextAction implemen
 
 
     @Override
-    public void selectionChange(CL_SelectionUtilities selection)
+    public void selectionChange(CL_Selection selection)
     {
         boolean b = selection.getSelectedChordSymbols().stream()
                 .map(cliCs -> cliCs.getData().getRenderingInfo())
@@ -100,7 +100,7 @@ public final class AccentOptionsExtendHoldShot extends CL_ContextAction implemen
     @Override
     public void actionPerformed(ActionEvent ev)
     {
-        CL_SelectionUtilities selection = getSelection();
+        CL_Selection selection = getSelection();
         if (selection.isChordSymbolSelected())
         {
             var cliCs0 = selection.getSelectedChordSymbols().get(0);
@@ -116,7 +116,7 @@ public final class AccentOptionsExtendHoldShot extends CL_ContextAction implemen
      * @param selection
      */
     @Override
-    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)
+    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_Selection selection)
     {
     }
 
@@ -170,7 +170,7 @@ public final class AccentOptionsExtendHoldShot extends CL_ContextAction implemen
         JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(getActionName());
     }
 
-    private void updateMenuItem(CL_SelectionUtilities selection)
+    private void updateMenuItem(CL_Selection selection)
     {
         if (cbMenuItem == null)
         {

@@ -46,7 +46,7 @@ import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.cl_editor.api.CL_EditorClientProperties;
-import org.jjazz.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.cl_editor.api.CL_Selection;
 import org.jjazz.cl_editor.barbox.api.BarBox;
 import org.jjazz.cl_editor.itemrenderer.api.IR_Type;
 import org.jjazz.cl_editor.itemrenderer.api.ItemRenderer;
@@ -284,7 +284,7 @@ public class CL_EditorTransferHandler extends TransferHandler
                 }
 
                 // Unselect everything: we will select the target item
-                CL_SelectionUtilities selection = new CL_SelectionUtilities(editorImpl.getLookup());
+                CL_Selection selection = new CL_Selection(editorImpl.getLookup());
                 selection.unselectAll(editorImpl);
 
                 CLI_Section curSection = cls.getSection(newBarIndex);
@@ -361,7 +361,7 @@ public class CL_EditorTransferHandler extends TransferHandler
                 }
 
                 // Unselect everything: we will select the target item
-                CL_SelectionUtilities selection = new CL_SelectionUtilities(editorImpl.getLookup());
+                CL_Selection selection = new CL_Selection(editorImpl.getLookup());
                 selection.unselectAll(editorImpl);
 
 
@@ -403,7 +403,7 @@ public class CL_EditorTransferHandler extends TransferHandler
                 if (info.getDropAction() == COPY)
                 {
                     String editName = ResUtil.getString(getClass(), "COPY_ITEM");
-                    CL_SelectionUtilities selection = new CL_SelectionUtilities(editorImpl.getLookup());
+                    CL_Selection selection = new CL_Selection(editorImpl.getLookup());
                     selection.unselectAll(editorImpl);
                     um.startCEdit(editName);
                     ChordLeadSheetItem<?> itemCopy = sourceItem.getCopy(null, newPos);
@@ -419,6 +419,7 @@ public class CL_EditorTransferHandler extends TransferHandler
                     um.endCEdit(editName);
                 }
             }
+
 
 
         }

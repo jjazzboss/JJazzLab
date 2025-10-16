@@ -60,7 +60,7 @@ public class CL_ContextActionSupport implements ClsChangeListener
     private final Lookup.Result<ChordLeadSheet> clsLkpResult;
     private final LookupListener clsLkpListener;
     private ChordLeadSheet model;
-    private CL_SelectionUtilities selection;
+    private CL_Selection selection;
     private final List<WeakReference<CL_ContextActionListener>> selectionListeners;
     private final List<WeakReference<ClsChangeListener>> clsListeners;
     private static WeakHashMap<Lookup, CL_ContextActionSupport> MapContextInstance;
@@ -161,7 +161,7 @@ public class CL_ContextActionSupport implements ClsChangeListener
     /**
      * @return The latest selection.
      */
-    public final CL_SelectionUtilities getSelection()
+    public final CL_Selection getSelection()
     {
         return selection;
     }
@@ -248,7 +248,7 @@ public class CL_ContextActionSupport implements ClsChangeListener
      */
     private void lookupContentChanged(Class itemsClass)
     {
-        selection = new CL_SelectionUtilities(context);
+        selection = new CL_Selection(context);
         LOGGER.log(Level.FINE, "lookupContentChanged() model={0} selection.getSelectedItems()={1}", new Object[]
         {
             model,
@@ -278,7 +278,7 @@ public class CL_ContextActionSupport implements ClsChangeListener
      * @param itemsClass The class of the items at the origin of the lookup change. Not used for now.
      * @param selection
      */
-    private void fireSelectionChanged(Class itemsClass, CL_SelectionUtilities selection)
+    private void fireSelectionChanged(Class itemsClass, CL_Selection selection)
     {
         for (CL_ContextActionListener l : getTargetListeners(selectionListeners))
         {

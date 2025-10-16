@@ -38,7 +38,7 @@ import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
-import org.jjazz.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.cl_editor.api.CL_Selection;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.ActionID;
@@ -78,7 +78,7 @@ public final class AccentOptionsCrash extends CL_ContextAction implements Presen
     }
 
     @Override
-    public void selectionChange(CL_SelectionUtilities selection)
+    public void selectionChange(CL_Selection selection)
     {
         boolean b = selection.getSelectedChordSymbols().stream()
                 .map(cliCs -> cliCs.getData().getRenderingInfo())
@@ -109,7 +109,7 @@ public final class AccentOptionsCrash extends CL_ContextAction implements Presen
     @Override
     public void actionPerformed(ActionEvent ev)
     {
-        CL_SelectionUtilities selection = getSelection();
+        CL_Selection selection = getSelection();
         if (selection.isChordSymbolSelected())
         {
             var cri = selection.getSelectedChordSymbols().get(0).getData().getRenderingInfo();
@@ -124,7 +124,7 @@ public final class AccentOptionsCrash extends CL_ContextAction implements Presen
      * @param selection
      */
     @Override
-    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)
+    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_Selection selection)
     {
     }
 
@@ -239,7 +239,7 @@ public final class AccentOptionsCrash extends CL_ContextAction implements Presen
         {
 
             boolean actionEnabled = AccentOptionsCrash.this.isEnabled();
-            CL_SelectionUtilities selection = getSelection();
+            CL_Selection selection = getSelection();
 
             boolean crashAlways = selection.getSelectedChordSymbols().stream()
                     .map(cliCs -> cliCs.getData().getRenderingInfo())

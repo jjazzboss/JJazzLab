@@ -134,7 +134,7 @@ public abstract class CL_ContextAction extends AbstractAction implements CL_Cont
      *
      * @return
      */
-    protected CL_SelectionUtilities getSelection()
+    protected CL_Selection getSelection()
     {
         init();
         return cap.getSelection();
@@ -186,7 +186,7 @@ public abstract class CL_ContextAction extends AbstractAction implements CL_Cont
      * @param cls       Can not be null
      * @param selection Can not be null
      */
-    abstract protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection);
+    abstract protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_Selection selection);
 
     /**
      * Called when selection in the provided context has changed.
@@ -197,7 +197,7 @@ public abstract class CL_ContextAction extends AbstractAction implements CL_Cont
      * @see #LISTENING_TARGETS
      */
     @Override
-    abstract public void selectionChange(CL_SelectionUtilities selection);
+    abstract public void selectionChange(CL_Selection selection);
 
     // ============================================================================================= 
     // ContextAwareAction

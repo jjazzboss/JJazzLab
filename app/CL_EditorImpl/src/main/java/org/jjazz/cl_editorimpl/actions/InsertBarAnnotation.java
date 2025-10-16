@@ -36,7 +36,7 @@ import static org.jjazz.cl_editor.api.CL_ContextAction.LISTENING_TARGETS;
 import org.jjazz.cl_editor.spi.Preset;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.cl_editor.api.CL_Editor;
-import org.jjazz.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.cl_editor.api.CL_Selection;
 import org.jjazz.cl_editor.spi.Preset.Type;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.ActionID;
@@ -70,7 +70,7 @@ public class InsertBarAnnotation extends CL_ContextAction
     }
 
      @Override
-    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)
+    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_Selection selection)
     {
         CL_Editor editor = CL_EditorTopComponent.get(cls).getEditor();
         int barIndex = selection.getMinBarIndexWithinCls();
@@ -79,7 +79,7 @@ public class InsertBarAnnotation extends CL_ContextAction
     }
 
     @Override
-    public void selectionChange(CL_SelectionUtilities selection)
+    public void selectionChange(CL_Selection selection)
     {
         boolean b = selection.getSelectedBarIndexesWithinCls().size() == 1;
         setEnabled(b);

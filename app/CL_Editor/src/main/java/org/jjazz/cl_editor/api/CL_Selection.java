@@ -42,12 +42,12 @@ import org.openide.util.Lookup;
  * Selected items can be either ChordLeadSheetItems or SelectedBars, but not both in the same time.
  */
 @SuppressWarnings("unchecked")
-final public class CL_SelectionUtilities
+final public class CL_Selection
 {
 
     private final List<ChordLeadSheetItem> items;
     private final List<SelectedBar> selectedBars;
-    private static final Logger LOGGER = Logger.getLogger(CL_SelectionUtilities.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(CL_Selection.class.getSimpleName());
 
     /**
      * Refresh the selection with selected objects in the specified lookup.
@@ -60,7 +60,7 @@ final public class CL_SelectionUtilities
                 "rawtypes",
                 "unchecked"
             })
-    public CL_SelectionUtilities(Lookup lookup)
+    public CL_Selection(Lookup lookup)
     {
         if (lookup == null)
         {

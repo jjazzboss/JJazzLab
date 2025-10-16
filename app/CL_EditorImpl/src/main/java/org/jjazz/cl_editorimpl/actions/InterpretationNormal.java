@@ -36,7 +36,7 @@ import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.cl_editor.api.CL_ContextAction;
-import org.jjazz.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.cl_editor.api.CL_Selection;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.ActionID;
@@ -70,13 +70,13 @@ public final class InterpretationNormal extends CL_ContextAction implements Pres
     }
 
     @Override
-    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)
+    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_Selection selection)
     {
         // Not used
     }
 
     @Override
-    public void selectionChange(CL_SelectionUtilities selection)
+    public void selectionChange(CL_Selection selection)
     {
         setEnabled(selection.isChordSymbolSelected());
         updateMenuItem(selection);
@@ -134,7 +134,7 @@ public final class InterpretationNormal extends CL_ContextAction implements Pres
         JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(getActionName());
     }
 
-    private void updateMenuItem(CL_SelectionUtilities selection)
+    private void updateMenuItem(CL_Selection selection)
     {
         if (rbMenuItem == null)
         {

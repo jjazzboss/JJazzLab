@@ -36,7 +36,7 @@ import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
-import org.jjazz.cl_editor.api.CL_SelectionUtilities;
+import org.jjazz.cl_editor.api.CL_Selection;
 import static org.jjazz.cl_editorimpl.actions.AccentNormal.createRadioButtonMenuItem;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.utilities.api.ResUtil;
@@ -71,7 +71,7 @@ public final class AccentShot extends CL_ContextAction implements Presenter.Popu
     }
 
     @Override
-    public void selectionChange(CL_SelectionUtilities selection)
+    public void selectionChange(CL_Selection selection)
     {
         setEnabled(selection.isChordSymbolSelected());
         updateMenuItem(selection);
@@ -88,7 +88,7 @@ public final class AccentShot extends CL_ContextAction implements Presenter.Popu
     }
 
     @Override
-    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_SelectionUtilities selection)
+    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_Selection selection)
     {
         // Nothing
     }
@@ -135,7 +135,7 @@ public final class AccentShot extends CL_ContextAction implements Presenter.Popu
         JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(getActionName());
     }
 
-    private void updateMenuItem(CL_SelectionUtilities selection)
+    private void updateMenuItem(CL_Selection selection)
     {
         if (rbMenuItem == null)
         {
