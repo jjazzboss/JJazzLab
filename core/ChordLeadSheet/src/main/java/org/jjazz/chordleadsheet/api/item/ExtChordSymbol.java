@@ -51,7 +51,8 @@ import org.openide.util.lookup.ServiceProvider;
  * An extended chord symbol with additional features:
  * <p>
  * - Chord rendering information<br>
- * - An optional conditionally-enabled alternate chord symbol.
+ * - An optional conditionally-enabled alternate chord symbol<br>
+ * - Special NC chord
  * <p>
  * This is an immutable class.
  */

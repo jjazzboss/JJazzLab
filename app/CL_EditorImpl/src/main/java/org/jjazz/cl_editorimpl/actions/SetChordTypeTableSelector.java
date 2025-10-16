@@ -203,7 +203,7 @@ public class SetChordTypeTableSelector extends JPanel implements ChordTypeSelect
         try
         {
             String s = presetChordSymbol.getRootNote().toRelativeNoteString() + ct.getName();
-            cs = new ChordSymbol(s);
+            cs = new ChordSymbol(s);        // Can not be NC, so no need to use ExtChordSymbol.get()
         } catch (ParseException ex)
         {
             // Should never happen

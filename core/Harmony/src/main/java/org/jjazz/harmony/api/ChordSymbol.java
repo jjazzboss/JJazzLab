@@ -22,6 +22,7 @@
  */
 package org.jjazz.harmony.api;
 
+import com.google.common.base.Preconditions;
 import java.text.ParseException;
 import java.util.Objects;
 import java.util.logging.Logger;
@@ -123,16 +124,18 @@ public class ChordSymbol implements Cloneable
      * Construct a ChordSymbol from a string.
      * <p>
      * All notes are made uppercase. Unusual notes Cb/B#/E#/Fb are renamed to B/C/F/E. Bass note is removed if identical to root note.
+     * <p>
+     * Note that the special "NC" chord is not supported (see ExtChordSymbol.get()).
      *
      * @param str A string like "Cm7", "Abmaj7", "Bm7b5", "G#MAJ7", "cm/eb"
      * @throws ParseException
      */
     public ChordSymbol(String str) throws ParseException
     {
-        if (str == null || str.isBlank())
-        {
-            throw new IllegalArgumentException("str=\"" + str + "\"");
-        }
+        Objects.requireNonNull(str);
+        Preconditions.checkArgument(!str.isBlank());
+
+
         final String errorInvalidCs = ResUtil.getString(getClass(), "CTL_InvalidChordSymbol");
 
 

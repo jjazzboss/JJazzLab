@@ -129,18 +129,18 @@ public interface CLI_ChordSymbol extends ChordLeadSheetItem<ExtChordSymbol>
             newPos.setFromString(s.substring(openIndex, closeIndex + 1), defaultPos.getBar(), true);
 
         }
-
-        // Chord Symbol
+        
+        
         String csStr = s.substring(0, openIndex);
-        ChordSymbol cs = new ChordSymbol(csStr);
+        ExtChordSymbol ecs = ExtChordSymbol.get(csStr);
 
-
-        // Check scale         
+        
+        // Check scale       
         StandardScaleInstance stdScaleInstance = null;
         if (scaleName != null && !scaleName.isBlank())
         {
             var sm = ScaleManager.getDefault();
-            var stdScaleInstances = sm.getMatchingScales(cs);
+            var stdScaleInstances = sm.getMatchingScales(ecs);
             var scaleNameLc = scaleName.toLowerCase();
             stdScaleInstance = stdScaleInstances.stream()
                     .filter(sc -> sc.getScale().getName().toLowerCase().startsWith(scaleNameLc))
@@ -170,7 +170,7 @@ public interface CLI_ChordSymbol extends ChordLeadSheetItem<ExtChordSymbol>
 
         // Build the CLI_ChordSymbol
         ChordRenderingInfo cri = new ChordRenderingInfo(stdScaleInstance);
-        ExtChordSymbol ecs = new ExtChordSymbol(cs, cri, null, null);
+        ecs = ecs.getCopy(null, cri, null, null);
         CLI_ChordSymbol cli = CLI_Factory.getDefault().createChordSymbol(ecs, newPos);
         return cli;
     }
