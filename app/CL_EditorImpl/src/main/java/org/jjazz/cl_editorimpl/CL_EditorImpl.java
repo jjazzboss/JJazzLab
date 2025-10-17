@@ -77,7 +77,6 @@ import org.jjazz.cl_editor.api.CL_EditorClientProperties;
 import org.jjazz.song.api.Song;
 import org.jjazz.cl_editor.api.SelectedBar;
 import org.jjazz.cl_editor.api.SelectedCLI;
-import org.jjazz.cl_editor.itemrenderer.api.IR_DisplayTransposable;
 import org.jjazz.cl_editor.spi.BarRendererFactory;
 import org.jjazz.cl_editor.spi.BarRendererProvider;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
@@ -154,10 +153,6 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
      * An optional container for this ChordLeadSheet.
      */
     private final Song songModel;
-    /**
-     * Chord Symbol Display Transposition to be used in this editor.
-     */
-    private int dislayTransposition;
     /**
      * The number of columns.
      */
@@ -876,31 +871,9 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 
     private void setDisplayTransposition(int dt)
     {
-        dislayTransposition = dt;
-
-        transposeChordSymbols(dislayTransposition);
+        barBoxes.forEach(bb -> bb.setDisplayTransposition(dt));
     }
 
-    private int getDisplayTransposition()
-    {
-        return dislayTransposition;
-    }
-
-    /**
-     * Sets transposition in all IR_ChordSymbol in this Leadsheet.
-     * 
-     * @param dt 
-     */
-    private void transposeChordSymbols(int dt)
-    {
-        barBoxes.stream()
-                .flatMap(bb -> bb.getBarRenderers().stream())
-                .flatMap(br -> br.getItemRenderers().stream())
-                .filter(IR_DisplayTransposable.class::isInstance)
-                .map(IR_DisplayTransposable.class::cast)
-                .forEach(it -> it.setDisplayTransposition(dt));
-    }
-    
     @Override
     public String toString()
     {
@@ -911,26 +884,22 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     // Implementation of the MouseListener interface
     //-----------------------------------------------------------------------
     @Override
-    public void mouseClicked(MouseEvent e
-    )
+    public void mouseClicked(MouseEvent e)
     {
     }
 
     @Override
-    public void mouseEntered(MouseEvent e
-    )
+    public void mouseEntered(MouseEvent e)
     {
     }
 
     @Override
-    public void mouseExited(MouseEvent e
-    )
+    public void mouseExited(MouseEvent e)
     {
     }
 
     @Override
-    public void mousePressed(MouseEvent e
-    )
+    public void mousePressed(MouseEvent e)
     {
         Component c = (Component) e.getSource();
         if (c instanceof ItemRenderer ir)
@@ -947,8 +916,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     }
 
     @Override
-    public void mouseReleased(MouseEvent e
-    )
+    public void mouseReleased(MouseEvent e)
     {
         Component c = (Component) e.getSource();
         if (c instanceof BarRenderer)
@@ -965,8 +933,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     // Implement the MouseMotionListener interface
     //------------------------------------------------------------------
     @Override
-    public void mouseDragged(MouseEvent e
-    )
+    public void mouseDragged(MouseEvent e)
     {
         if (!SwingUtilities.isLeftMouseButton(e))
         {
@@ -981,8 +948,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     }
 
     @Override
-    public void mouseMoved(MouseEvent e
-    )
+    public void mouseMoved(MouseEvent e)
     {
     }
 
@@ -990,8 +956,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 // Implements MouseWheelListener interface
 // ---------------------------------------------------------------
     @Override
-    public void mouseWheelMoved(MouseWheelEvent e
-    )
+    public void mouseWheelMoved(MouseWheelEvent e)
     {
         Component c = (Component) e.getSource();
         if (c instanceof ItemRenderer ir)
@@ -1449,10 +1414,6 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         for (ItemRenderer ir : getBarBox(barIndex).addItem(item))
         {
             registerItemRenderer(ir);
-            if (ir instanceof IR_DisplayTransposable transposableItem)
-            {
-                transposableItem.setDisplayTransposition(getDisplayTransposition());
-            }
         }
         if (item instanceof CLI_Section cliSection)
         {

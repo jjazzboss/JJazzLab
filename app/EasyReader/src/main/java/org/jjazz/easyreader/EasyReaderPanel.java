@@ -165,7 +165,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         this.song = song;
         this.songPart = null;
         this.nextSongPart = null;
-        
+
 
         // Update data
         songPosition.reset();
@@ -185,10 +185,8 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
             this.song.getChordLeadSheet().addClsChangeListener(this);
             this.song.getSongStructure().addSgsChangeListener(this);
 
-
             songPart = song.getSongStructure().getSongPart(0);  // Might be null            
             lbl_songPart.setText(songPart != null ? songPart.getName() : "");
-
 
             createBarBoxes(this.song);
             stopped();
