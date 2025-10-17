@@ -27,10 +27,12 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
+import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.cl_editor.api.CL_ContextActionListener;
 import org.jjazz.cl_editor.api.CL_ContextActionSupport;
 import org.jjazz.cl_editor.api.CL_Selection;
+import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.openide.util.Utilities;
 
 /**
@@ -40,7 +42,9 @@ public class ChordListener implements CL_ContextActionListener, PropertyChangeLi
 {
     private final CL_ContextActionSupport cap;
     private CLI_ChordSymbol chordSymbol;
+    private int transposition;
     private final ChordInspectorPanel editor;
+    private final PlaybackSettings playbackSettings;
 
     public ChordListener(ChordInspectorPanel editor)
     {
@@ -51,20 +55,43 @@ public class ChordListener implements CL_ContextActionListener, PropertyChangeLi
         cap = CL_ContextActionSupport.getInstance(Utilities.actionsGlobalContext());
         cap.addWeakSelectionListener(this);
         selectionChange(cap.getSelection());
+
+        // Listen to transposition option changes
+        playbackSettings = PlaybackSettings.getInstance();
+        playbackSettings.addPropertyChangeListener(PlaybackSettings.PROP_DISPLAY_TRANSPOSITION, this);
+        setTransposition(playbackSettings.getDisplayTransposition());
     }
 
     public void cleanup()
     {
         cap.removeWeakSelectionListener(this);
+
+        playbackSettings.removePropertyChangeListener(PlaybackSettings.PROP_DISPLAY_TRANSPOSITION, this);
         if (chordSymbol != null)
         {
             chordSymbol.removePropertyChangeListener(this);
         }
     }
 
-    // -----------------------------------------------------------------------------
-    // CL_ContextActionListener interface
-    // -----------------------------------------------------------------------------   
+    private void setTransposition(int newTransposition)
+    {
+        transposition = newTransposition;
+        if (chordSymbol != null)
+        {
+            useTransposedChord(chordSymbol.getData(), transposition);
+        }
+    }
+
+    private void useTransposedChord(ExtChordSymbol currentChord, int currentTransposition)
+    {
+        editor.setModel(currentChord.getTransposedChordSymbol(currentTransposition, null));
+    }
+    
+    /**
+     * Call from {@link CL_ContextActionSupport} to their {@link CL_ContextActionListener}, as this class implements.
+     * 
+     * @param selection gives access to current selection
+     */
     @Override
     public final void selectionChange(CL_Selection selection)
     {
@@ -88,8 +115,7 @@ public class ChordListener implements CL_ContextActionListener, PropertyChangeLi
             }
         } else
         {
-            // Not a valid selection
-            // Do nothing
+            // Not a valid selection, do nothing
             // Note: an empty selection is received when switching from a CL_Editor TopComponent to a different TopComponent
             return;
         }
@@ -100,21 +126,21 @@ public class ChordListener implements CL_ContextActionListener, PropertyChangeLi
             chordSymbol.removePropertyChangeListener(this);
         }
         chordSymbol = newSelectedChordSymbol;
+
         if (chordSymbol != null)
         {
             chordSymbol.addPropertyChangeListener(this);
-        }
-
-        if (chordSymbol != null)
-        {
-            editor.setModel(chordSymbol.getData());
+            useTransposedChord(chordSymbol.getData(), transposition);
         }
     }
 
-
-    // =================================================================================
-    // PropertyChangeListener implementation
-    // =================================================================================
+    /**
+     * Call from either {@link CLI_ChordSymbol} or the {@link PlaybackSettings}. Objects of this class add themselves
+     * as listeners to be notified of changes that require the chord displayed in the inspector to change. At the moment
+     * that is the selection in the lead sheet and the transposition option.
+     * 
+     * @param evt 
+     */
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
@@ -124,6 +150,9 @@ public class ChordListener implements CL_ContextActionListener, PropertyChangeLi
             {
                 editor.setModel(chordSymbol.getData());
             }
+        } else if (PlaybackSettings.PROP_DISPLAY_TRANSPOSITION.equals(evt.getPropertyName()))
+        {
+            setTransposition((int) evt.getNewValue());
         }
     }
 }

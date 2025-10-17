@@ -52,7 +52,7 @@ import org.openide.util.NbPreferences;
 import org.jjazz.songstructure.api.SongPart;
 
 /**
- * Playback settings (click, precount, looping, playback transposition, auto-update mode) and related helper methods.
+ * Playback settings (click, precount, looping, transposition, auto-update mode) and related helper methods.
  * <p>
  * Property change events are fired when settings are modified.
  */
@@ -94,7 +94,10 @@ public class PlaybackSettings
      */
     public static final String PROP_VETO_PRE_PLAYBACK = "PropVetoPrePlayback";
     public static final String PROP_LOOPCOUNT = "PropLoopCount";
-    public static final String PROP_PLAYBACK_KEY_TRANSPOSITION = "PlaybackTransposition";
+    
+    // TODO #534 This should go away
+    public static final String PROP_DISPLAY_TRANSPOSITION = "DisplayTransposition";
+    
     public static final String PROP_CLICK_PITCH_HIGH = "ClickPitchHigh";
     public static final String PROP_CLICK_PITCH_LOW = "ClickPitchLow";
     public static final String PROP_CLICK_VELOCITY_HIGH = "ClickVelocityHigh";
@@ -158,36 +161,33 @@ public class PlaybackSettings
     }
 
     /**
-     * Get the key transposition applied to chord symbols when playing a song.
-     * <p>
+     * Get the key transposition applied to all music notation shown in the UI.
      *
      * @return [0;-11] Default is 0.
      */
-    public int getPlaybackKeyTransposition()
+    public int getDisplayTransposition() // TODO #534 The ints should be positive for showing music, negative for editing
     {
-        return prefs.getInt(PROP_PLAYBACK_KEY_TRANSPOSITION, 0);
+        return prefs.getInt(PROP_DISPLAY_TRANSPOSITION, 0);
     }
 
     /**
-     * Set the key transposition applied to chord symbols when playing a song.
+     * Set the key transposition applied all music notation shown in the UI.
      * <p>
-     * Ex: if transposition=-2, chord=C#7 will be replaced by B7.
-     * <p>
-     * Note that to have some effect the current PlaybackSession must take into account this parameter.
+     * Ex: if transposition=-2, chord=B7 will be shown as C#7.
      *
      * @param t [0;-11]
      */
-    public void setPlaybackKeyTransposition(int t)
+    public void setDisplayTransposition(int t)
     {
         if (t < -11 || t > 0)
         {
             throw new IllegalArgumentException("t=" + t);
         }
 
-        int old = getPlaybackKeyTransposition();
-        prefs.putInt(PROP_PLAYBACK_KEY_TRANSPOSITION, t);
-        pcs.firePropertyChange(PROP_PLAYBACK_KEY_TRANSPOSITION, old, t);
-        fireIsMusicGenerationModified(PROP_PLAYBACK_KEY_TRANSPOSITION, t);
+        int old = getDisplayTransposition();
+        prefs.putInt(PROP_DISPLAY_TRANSPOSITION, t);
+        pcs.firePropertyChange(PROP_DISPLAY_TRANSPOSITION, old, t);
+        fireIsMusicGenerationModified(PROP_DISPLAY_TRANSPOSITION, t);
     }
 
     /**
@@ -225,7 +225,6 @@ public class PlaybackSettings
         prefs.putBoolean(PROP_PLAYBACK_CLICK_ENABLED, b);
         pcs.firePropertyChange(PROP_PLAYBACK_CLICK_ENABLED, old, b);
         fireIsMusicGenerationModified(PROP_PLAYBACK_CLICK_ENABLED, b);
-
     }
 
     public boolean isPlaybackClickEnabled()
@@ -703,6 +702,4 @@ public class PlaybackSettings
     {
         pcs.firePropertyChange(PROP_MUSIC_GENERATION, id, data);
     }
-
-
 }

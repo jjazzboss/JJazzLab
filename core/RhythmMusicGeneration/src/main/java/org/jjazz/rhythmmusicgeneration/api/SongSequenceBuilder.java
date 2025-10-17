@@ -134,6 +134,8 @@ public class SongSequenceBuilder
      * @param playbackKeyTranspose Optional chord symbols transposition (use 0 for no transposition)
      */
     public SongSequenceBuilder(SongContext sgContext, int playbackKeyTranspose)
+    // TODO #534 Probably get rid of the transpose param here, not sure if it will be used at all
+    // >>>>> public SongSequenceBuilder(SongContext sgContext) <<<<<
     {
         Objects.requireNonNull(sgContext);
         this.songContextOriginal = sgContext;
@@ -1127,6 +1129,7 @@ public class SongSequenceBuilder
                 continue;
             }
             InstrumentSettings insSet = insMix.getSettings();
+            // ALERT! What is that transposition over there??? May not be relevant
             if (insSet.getTransposition() != 0)
             {
                 p.processPitch(pitch -> pitch + insSet.getTransposition());

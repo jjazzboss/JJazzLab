@@ -68,14 +68,8 @@ public class ChordInspectorPanel extends javax.swing.JPanel
 
     public final void setModel(ExtChordSymbol model)
     {
-        // TODO #534 - Apply transposition here, pass to chordViewer and to updateChordsSymbol
-        // This is where the model gets to the UI
-        var transposedModel = model == null
-                ? null
-                : model.getTransposedChordSymbol(0, null);
-
-        chordViewer.setModel(transposedModel);
-        updateChordSymbolUI(transposedModel);
+        chordViewer.setModel(model);
+        updateChordSymbolUI(model);
     }
 
     public ExtChordSymbol getModel()

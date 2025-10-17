@@ -30,7 +30,6 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.chordleadsheet.api.event.ClsActionEvent;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.UserRhythmVoice;
@@ -49,7 +48,6 @@ import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongMetaEvents.ClsSourceActionEvent;
 import org.jjazz.song.api.SongMetaEvents.SgsSourceActionEvent;
 import org.jjazz.songcontext.api.SongContext;
-import org.jjazz.songstructure.api.event.SgsActionEvent;
 import static org.jjazz.songstructure.api.event.SgsActionEvent.API_ID.AddSongParts;
 import static org.jjazz.songstructure.api.event.SgsActionEvent.API_ID.RemoveSongParts;
 import static org.jjazz.songstructure.api.event.SgsActionEvent.API_ID.ReplaceSongParts;
@@ -393,7 +391,6 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
                     //
                     // MidiMix source events
                     //                
-
                     case MidiMix.PROP_RHYTHM_VOICE_CHANNEL, MidiMix.PROP_RHYTHM_VOICE ->
                     {
                         doDisableUpdates = true;
@@ -414,7 +411,6 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
                         doUpdate = true;
                     }
 
-
                     //
                     // PlaybackSettings source events
                     //       
@@ -422,11 +418,15 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
                     {
                         dirty = true;
                     }
-                    case PlaybackSettings.PROP_PLAYBACK_KEY_TRANSPOSITION, PlaybackSettings.PROP_PLAYBACK_CLICK_ENABLED ->
+                    case PlaybackSettings.PROP_PLAYBACK_CLICK_ENABLED ->
                     {
                         doUpdate = true;
                     }
-
+                    case PlaybackSettings.PROP_DISPLAY_TRANSPOSITION ->
+                    {
+                        // TODO #534 This should probably not be sent here in the first place, stop it up the chain.
+                        // NO-OP
+                    }
 
                     //
                     // Song property events
@@ -448,8 +448,6 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
                     {
                         doUpdate = true;
                     }
-
-
                     default ->
                     {
                         throw new IllegalArgumentException("s=" + s);
