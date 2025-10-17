@@ -32,6 +32,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -45,6 +46,7 @@ import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.barrenderer.api.BarRenderer;
 import org.jjazz.cl_editor.spi.BarRendererFactory;
 import org.jjazz.cl_editor.barrenderer.api.BeatBasedBarRenderer;
+import org.jjazz.cl_editor.itemrenderer.api.IR_DisplayTransposable;
 import org.jjazz.cl_editor.itemrenderer.api.IR_Type;
 import org.jjazz.cl_editor.itemrenderer.api.ItemRenderer;
 
@@ -53,6 +55,8 @@ import org.jjazz.cl_editor.itemrenderer.api.ItemRenderer;
  */
 public class BarBox extends JPanel implements FocusListener, PropertyChangeListener
 {
+    private static final Logger LOGGER = Logger.getLogger(BarBox.class.getSimpleName());
+
     // GUI
 
     private final CL_Editor editor;
@@ -85,6 +89,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     private boolean showPlaybackPoint;
     private int zoomVFactor = 50;
     private final BarRendererFactory barRendererFactory;
+    private int displayTransposition;
 
     /**
      * Construct a BarBox.
@@ -104,6 +109,8 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
             BarBoxSettings settings,
             BarRendererFactory brf)
     {
+        // TODO #534 Add transposition param in constructor?
+
         Preconditions.checkNotNull(model);
         Preconditions.checkNotNull(config);
         Preconditions.checkNotNull(settings);
@@ -146,6 +153,21 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
         refreshBackground();
     }
 
+    public void setDisplayTransposition(int dt)
+    {
+        displayTransposition = dt;
+        transposeItemRenderers();
+    }
+
+    private void transposeItemRenderers()
+    {
+        this.getBarRenderers().stream()
+                    .flatMap(br -> br.getItemRenderers().stream())
+                    .filter(IR_DisplayTransposable.class::isInstance)
+                    .map(IR_DisplayTransposable.class::cast)
+                    .forEach(it -> it.setDisplayTransposition(displayTransposition));
+    }
+
     /**
      * Set the model for this BarBox.
      *
@@ -165,6 +187,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
         {
             br.setModel(this.modelBarIndex, this.model);
         }
+        transposeItemRenderers();
 
         refreshBackground();
     }
@@ -179,6 +202,9 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
      */
     public List<ItemRenderer> addItem(ChordLeadSheetItem<?> item)
     {
+        LOGGER.info("CALL TO BarBox.addItem. Trp is: " + displayTransposition);
+        // It works after setting transposition but it's not getting init value (open jjazzlab w/pref saved != 0)
+
         Preconditions.checkNotNull(item, "item=" + item);
 
         ArrayList<ItemRenderer> result = new ArrayList<>();
@@ -189,6 +215,9 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
                 result.add(br.addItemRenderer(item));
             }
         }
+        // TODO #534 This can be applied to only renderers in "result"
+        transposeItemRenderers();
+
         return result;
     }
 
@@ -385,6 +414,9 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
         {
             br.setModelBarIndex(modelBarIndex);
         }
+        // TODO #534 Is this necessary? Is this the method called when playing the song?
+        // Also Can be applied to only bar renderers updated
+        transposeItemRenderers();
 
         refreshBackground();
     }
@@ -428,6 +460,8 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
                 br.moveItemRenderer(item);
             }
         }
+        // TODO #534 Is this triggered when moving bars in CLS that are in the easy read "window"?
+        transposeItemRenderers();
     }
 
     /**
@@ -532,7 +566,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
         {
             return;
         }
-        Preconditions.checkArgument(b || pos.getBar() == getModelBarIndex(),
+        Preconditions.checkArgument( ! (b && pos.getBar() != getModelBarIndex() ),
                 "b=" + b + " pos=" + pos + " getModelBarIndex()=" + getModelBarIndex());
 
         showPlaybackPoint = b;
@@ -648,5 +682,4 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
             setBackground(isSelected ? bbSettings.getSelectedColor() : bbSettings.getDefaultColor());
         }
     }
-
 }

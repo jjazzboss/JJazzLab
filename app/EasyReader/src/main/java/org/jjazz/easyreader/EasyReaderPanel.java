@@ -29,9 +29,7 @@ import java.awt.Font;
 import java.awt.LayoutManager;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
@@ -54,6 +52,7 @@ import org.jjazz.chordleadsheet.api.event.SizeChangedEvent;
 import org.jjazz.chordleadsheet.api.item.CLI_BarAnnotation;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackListener;
@@ -75,7 +74,6 @@ import org.jjazz.cl_editor.spi.BarBoxSettings;
 import org.jjazz.cl_editor.spi.BarRendererFactory;
 import org.jjazz.cl_editor.itemrenderer.api.IR_ChordSymbolSettings;
 import org.jjazz.cl_editor.itemrenderer.api.IR_DisplayTransposable;
-import org.jjazz.cl_editor.itemrenderer.api.ItemRenderer;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.uiutilities.api.UIUtilities;
 import org.openide.util.NbPreferences;
@@ -105,7 +103,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
     private final Font defaultAnnotationFont;
     private final Font defaultNextChordFont;
     private final JLabel lbl_annotation;
-    private int displayTransposition;
+    private int displayTransposition; // TODO #534 Is this needed with transposition moved to BarBox?
 
 
     public EasyReaderPanel()
@@ -207,13 +205,21 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
     {
         return displayTransposition;
     }
-    
+
     final void setDisplayTransposition(int dt)
     {
         displayTransposition = dt;
-        if (barBox != null && nextBarBox != null)
+
+        // TODO #534 Avoid this check: When is it null?
+        if (barBox != null)
         {
-            transposeItemRenderers();
+            LOGGER.info("Setting trans from ERPanel");
+            barBox.setDisplayTransposition(dt);
+        }
+        if (nextBarBox != null)
+        {
+            LOGGER.info("Setting trans from ERPanel");
+            nextBarBox.setDisplayTransposition(dt);
         }
     }
 
@@ -386,22 +392,21 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
                 for (var item : e.getItems())
                 {
                     int itemBar = item.getPosition().getBar();
-                    List<ItemRenderer> renderers = new ArrayList();
                     if (barBox.getModelBarIndex() == itemBar)
                     {
-                        renderers.addAll(barBox.addItem(item));
+                        barBox.addItem(item);
 
                     } else if (nextBarBox.getModelBarIndex() == itemBar)
                     {
-                        renderers.addAll(nextBarBox.addItem(item));
+                        nextBarBox.addItem(item);
                     }
-                    for (ItemRenderer ir : renderers)
-                    {
-                        if (ir instanceof IR_DisplayTransposable transposableItem)
-                        {
-                            transposableItem.setDisplayTransposition(getDisplayTransposition());
-                        }
-                    }
+//                    for (ItemRenderer ir : renderers)
+//                    {
+//                        if (ir instanceof IR_DisplayTransposable transposableItem)
+//                        {
+//                            transposableItem.setDisplayTransposition(getDisplayTransposition());
+//                        }
+//                    }
                     if (item instanceof CLI_BarAnnotation && itemBar == clsPosition.getBar())
                     {
                         updateAnnotation();
@@ -567,6 +572,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
                 new BarBoxConfig(BarRendererFactory.BR_CHORD_SYMBOL, BarRendererFactory.BR_CHORD_POSITION, BarRendererFactory.BR_SECTION),
                 BarBoxSettings.getDefault(), 
                 BarRendererFactory.getDefault());
+        barBox.setDisplayTransposition(displayTransposition);
         pnl_barBox.add(barBox);
 
 
@@ -576,6 +582,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         nextBarBox = new BarBox(clEditor, 1, modelBarIndex, cls,
                 new BarBoxConfig(BarRendererFactory.BR_CHORD_SYMBOL, BarRendererFactory.BR_CHORD_POSITION, BarRendererFactory.BR_SECTION),
                 BarBoxSettings.getDefault(), BarRendererFactory.getDefault());
+        nextBarBox.setDisplayTransposition(displayTransposition);
         pnl_barBox.add(nextBarBox);
 
         setZoomY(prefs.getInt(PREF_ZOOM_Y, 50));
@@ -642,8 +649,9 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         if (nextChord != null)
         {
             var nextChordPos = nextChord.getPosition();
+            ExtChordSymbol ecs = nextChord.getData().getTransposedChordSymbol(displayTransposition, null);
             String strDistantChord = new Position(next2SongBar, 1).compareTo(nextChordPos) <= 0 ? "..." : " ";
-            str += ">" + strDistantChord + nextChord.getData().getOriginalName();
+            str += ">" + strDistantChord + ecs.getOriginalName();
         }
         lbl_nextChord.setText(str);
 
