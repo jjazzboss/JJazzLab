@@ -219,6 +219,10 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
             LOGGER.info("Setting trans from ERPanel");
             nextBarBox.setDisplayTransposition(dt);
         }
+        if (song != null)
+        {
+            updateNextStuff(songPosition.getBar());
+        }
     }
 
     @Override
