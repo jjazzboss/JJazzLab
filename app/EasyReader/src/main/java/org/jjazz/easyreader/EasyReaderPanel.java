@@ -213,7 +213,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         displayTransposition = dt;
         if (barBox != null && nextBarBox != null)
         {
-            transposeBarBoxes();
+            transposeItemRenderers();
         }
     }
 
@@ -598,7 +598,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         barBox.setModelBarIndex(clsBar);
         nextBarBox.setBarIndex(next1SongBar);
         nextBarBox.setModelBarIndex(next1ClsBar);
-        transposeBarBoxes();
+        transposeItemRenderers();
         
         LOGGER.log(Level.FINE, "updateBarBoxes() songBar={0} => barBox.modelBarIndex={1} nextBarBox.modelBarIndex={2}", new Object[]
         {
@@ -669,7 +669,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         nextBarBox.showPlaybackPoint(useNextBarBox, clsPos);
     }
 
-    private void transposeBarBoxes()
+    private void transposeItemRenderers()
     {
         barBox.getBarRenderers().stream()
                 .flatMap(br -> br.getItemRenderers().stream())

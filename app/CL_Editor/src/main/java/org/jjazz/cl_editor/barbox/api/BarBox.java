@@ -154,10 +154,9 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
      */
     public final void setModel(int modelBarIndex, ChordLeadSheet model)
     {
-        if (model == null || modelBarIndex >= model.getSizeInBars())
-        {
-            throw new IllegalArgumentException("model=" + model);
-        }
+        Preconditions.checkNotNull(model, "model=" + model);
+        Preconditions.checkElementIndex(modelBarIndex, model.getSizeInBars(), "model=" + model);
+
         this.modelBarIndex = modelBarIndex;
         this.model = model;
 
@@ -203,10 +202,8 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
      */
     public List<ItemRenderer> removeItem(ChordLeadSheetItem<?> item)
     {
-        if (item == null)
-        {
-            throw new IllegalArgumentException("item=" + item);
-        }
+        Preconditions.checkNotNull(item, "item=" + item);
+
         ArrayList<ItemRenderer> result = new ArrayList<>();
         for (BarRenderer br : getBarRenderers())
         {
@@ -254,10 +251,8 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
      */
     public void selectItem(ChordLeadSheetItem<?> item, boolean b)
     {
-        if (item == null)
-        {
-            throw new IllegalArgumentException("item=" + item);
-        }
+        Preconditions.checkNotNull(item, "item=" + item);
+
         for (BarRenderer br : getBarRenderers())
         {
             if (br.isRegisteredItemClass(item))
@@ -377,10 +372,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
      */
     public void setModelBarIndex(int bar)
     {
-        if (bar >= model.getSizeInBars())
-        {
-            throw new IllegalArgumentException("bar=" + bar);
-        }
+        Preconditions.checkElementIndex(bar, model.getSizeInBars(), "bar=" + bar);
 
         if (bar == modelBarIndex)
         {
@@ -455,10 +447,8 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
      */
     public void setSection(CLI_Section section)
     {
-        if (section != getSection())
-        {
-            throw new IllegalArgumentException("section=" + section + " getSection()=" + getSection());
-        }
+        Preconditions.checkArgument(section == getSection(), "section=" + section + " getSection()=" + getSection());
+
         for (BarRenderer br : getBarRenderers())
         {
             br.setSection(section);
@@ -480,10 +470,8 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
      */
     public final boolean setConfig(BarBoxConfig bbConfig)
     {
-        if (bbConfig == null || bbConfig.getActiveBarRenderers().isEmpty())
-        {
-            throw new IllegalArgumentException("bbConfig=" + bbConfig);
-        }
+        Preconditions.checkNotNull(bbConfig, "bbConfig=" + bbConfig);
+        Preconditions.checkArgument(!bbConfig.getActiveBarRenderers().isEmpty(), "bbConfig=" + bbConfig);
 
         if (bbConfig.equals(barBoxConfig))
         {
@@ -544,10 +532,9 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
         {
             return;
         }
-        if (b && pos.getBar() != getModelBarIndex())
-        {
-            throw new IllegalArgumentException("b=" + b + " pos=" + pos + " getModelBarIndex()=" + getModelBarIndex());
-        }
+        Preconditions.checkArgument(b || pos.getBar() == getModelBarIndex(),
+                "b=" + b + " pos=" + pos + " getModelBarIndex()=" + getModelBarIndex());
+
         showPlaybackPoint = b;
         refreshBackground();
         for (BarRenderer br : getBarRenderers())
