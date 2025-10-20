@@ -25,6 +25,7 @@
 package org.jjazz.midi.api.sequencer;
 
 import java.util.ArrayList;
+import java.util.logging.Logger;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MetaMessage;
@@ -43,6 +44,8 @@ import static javax.sound.midi.SysexMessage.SYSTEM_EXCLUSIVE;
  * Some utilities for MIDI (some stuff is used from javax.sound.midi)
  *
  * @author Florian Bomers
+ * 
+ * Minor update for JJazzLab.
  */
 public final class MidiUtils
 {
@@ -50,6 +53,7 @@ public final class MidiUtils
     public static final int DEFAULT_TEMPO_MPQ = 500000; // 120bpm
     public static final int META_END_OF_TRACK_TYPE = 0x2F;
     public static final int META_TEMPO_TYPE = 0x51;
+    private static final Logger LOGGER = Logger.getLogger(MidiUtils.class.getSimpleName());
 
     /**
      * Suppresses default constructor, ensuring non-instantiability.
@@ -73,7 +77,7 @@ public final class MidiUtils
     /**
      * Checks the status byte for the system exclusive message.
      *
-     * @param data the system exclusive message data
+     * @param data   the system exclusive message data
      * @param length the length of the valid message data in the array
      * @throws InvalidMidiDataException if the status byte is invalid for a system exclusive message
      */
@@ -307,9 +311,9 @@ public final class MidiUtils
     /**
      * Binary search for the event indexes of the track
      *
-     * @param tick tick number of index to be found in array
-     * @return index in track which is on or after "tick". if no entries are found that follow after tick, track.size() is
-     * returned
+     * @param track
+     * @param tick  tick number of index to be found in array
+     * @return index in track which is on or after "tick". if no entries are found that follow after tick, track.size() is returned
      */
     public static int tick2index(Track track, long tick)
     {
@@ -322,6 +326,17 @@ public final class MidiUtils
             {
                 // take the middle event as estimate
                 ret = (low + high) >> 1;
+                // JJAZZLAB => 
+                if (ret >= track.size())
+                {
+                    // Robustness check added because track.get(ret) triggered once (in several years) an "ArrayIndexOutOfBoundsException: Index 1291 out of bounds for length 1255"
+                    // => race condition ? In this case reset binary search
+                    low = 0;
+                    high = track.size();
+                    ret = (low + high) >> 1;
+                    LOGGER.warning("tick2index() probable race condition occured");
+                }
+                // <== JJAZZLAB
                 // tick of estimate
                 long t = track.get(ret).getTick();
                 if (t == tick)
