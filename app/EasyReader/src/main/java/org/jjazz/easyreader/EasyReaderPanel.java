@@ -73,7 +73,6 @@ import org.jjazz.cl_editor.barbox.api.BarBoxConfig;
 import org.jjazz.cl_editor.spi.BarBoxSettings;
 import org.jjazz.cl_editor.spi.BarRendererFactory;
 import org.jjazz.cl_editor.itemrenderer.api.IR_ChordSymbolSettings;
-import org.jjazz.cl_editor.itemrenderer.api.IR_DisplayTransposable;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.uiutilities.api.UIUtilities;
 import org.openide.util.NbPreferences;
@@ -103,7 +102,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
     private final Font defaultAnnotationFont;
     private final Font defaultNextChordFont;
     private final JLabel lbl_annotation;
-    private int displayTransposition; // TODO #534 Is this needed with transposition moved to BarBox?
+    private int displayTransposition;
 
 
     public EasyReaderPanel()
@@ -607,8 +606,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         barBox.setModelBarIndex(clsBar);
         nextBarBox.setBarIndex(next1SongBar);
         nextBarBox.setModelBarIndex(next1ClsBar);
-        transposeItemRenderers();
-        
+
         LOGGER.log(Level.FINE, "updateBarBoxes() songBar={0} => barBox.modelBarIndex={1} nextBarBox.modelBarIndex={2}", new Object[]
         {
             songBar, clsBar, next1ClsBar
@@ -677,20 +675,6 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
     {
         barBox.showPlaybackPoint(!useNextBarBox, clsPos);
         nextBarBox.showPlaybackPoint(useNextBarBox, clsPos);
-    }
-
-    private void transposeItemRenderers()
-    {
-        barBox.getBarRenderers().stream()
-                .flatMap(br -> br.getItemRenderers().stream())
-                .filter(IR_DisplayTransposable.class::isInstance)
-                .map(IR_DisplayTransposable.class::cast)
-                .forEach(it -> it.setDisplayTransposition(displayTransposition));
-        nextBarBox.getBarRenderers().stream()
-                .flatMap(br -> br.getItemRenderers().stream())
-                .filter(IR_DisplayTransposable.class::isInstance)
-                .map(IR_DisplayTransposable.class::cast)
-                .forEach(it -> it.setDisplayTransposition(displayTransposition));
     }
 
     private void updateAnnotation()

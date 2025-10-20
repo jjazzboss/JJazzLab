@@ -78,13 +78,14 @@ public class ChordListener implements CL_ContextActionListener, PropertyChangeLi
         transposition = newTransposition;
         if (chordSymbol != null)
         {
-            useTransposedChord(chordSymbol.getData(), transposition);
+            useTransposedChord();
         }
     }
 
-    private void useTransposedChord(ExtChordSymbol currentChord, int currentTransposition)
+    private void useTransposedChord()
     {
-        editor.setModel(currentChord.getTransposedChordSymbol(currentTransposition, null));
+        ExtChordSymbol transposedChord = chordSymbol.getData().getTransposedChordSymbol(transposition, null);
+        editor.setModel(transposedChord);
     }
     
     /**
@@ -130,7 +131,7 @@ public class ChordListener implements CL_ContextActionListener, PropertyChangeLi
         if (chordSymbol != null)
         {
             chordSymbol.addPropertyChangeListener(this);
-            useTransposedChord(chordSymbol.getData(), transposition);
+            useTransposedChord();
         }
     }
 

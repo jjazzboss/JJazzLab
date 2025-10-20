@@ -156,10 +156,10 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     public void setDisplayTransposition(int dt)
     {
         displayTransposition = dt;
-        transposeItemRenderers();
+        transposeBarRenderers();
     }
 
-    private void transposeItemRenderers()
+    private void transposeBarRenderers()
     {
         this.getBarRenderers().stream()
                     .flatMap(br -> br.getItemRenderers().stream())
@@ -168,6 +168,15 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
                     .forEach(it -> it.setDisplayTransposition(displayTransposition));
     }
 
+    private void transposeItemRenderers(ArrayList<ItemRenderer> irs)
+    {
+        irs.stream()
+                .filter(IR_DisplayTransposable.class::isInstance)
+                .map(IR_DisplayTransposable.class::cast)
+                .forEach(it -> it.setDisplayTransposition(displayTransposition));
+    }
+
+    
     /**
      * Set the model for this BarBox.
      *
@@ -176,7 +185,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
      */
     public final void setModel(int modelBarIndex, ChordLeadSheet model)
     {
-        Preconditions.checkNotNull(model, "model=" + model);
+        Preconditions.checkNotNull(model);
         Preconditions.checkElementIndex(modelBarIndex, model.getSizeInBars(), "model=" + model);
 
         this.modelBarIndex = modelBarIndex;
@@ -187,7 +196,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
         {
             br.setModel(this.modelBarIndex, this.model);
         }
-        transposeItemRenderers();
+        transposeBarRenderers();
 
         refreshBackground();
     }
@@ -205,7 +214,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
         LOGGER.info("CALL TO BarBox.addItem. Trp is: " + displayTransposition);
         // It works after setting transposition but it's not getting init value (open jjazzlab w/pref saved != 0)
 
-        Preconditions.checkNotNull(item, "item=" + item);
+        Preconditions.checkNotNull(item);
 
         ArrayList<ItemRenderer> result = new ArrayList<>();
         for (BarRenderer br : getBarRenderers())
@@ -215,8 +224,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
                 result.add(br.addItemRenderer(item));
             }
         }
-        // TODO #534 This can be applied to only renderers in "result"
-        transposeItemRenderers();
+        transposeItemRenderers(result);
 
         return result;
     }
@@ -231,7 +239,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
      */
     public List<ItemRenderer> removeItem(ChordLeadSheetItem<?> item)
     {
-        Preconditions.checkNotNull(item, "item=" + item);
+        Preconditions.checkNotNull(item);
 
         ArrayList<ItemRenderer> result = new ArrayList<>();
         for (BarRenderer br : getBarRenderers())
@@ -280,7 +288,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
      */
     public void selectItem(ChordLeadSheetItem<?> item, boolean b)
     {
-        Preconditions.checkNotNull(item, "item=" + item);
+        Preconditions.checkNotNull(item);
 
         for (BarRenderer br : getBarRenderers())
         {
@@ -414,9 +422,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
         {
             br.setModelBarIndex(modelBarIndex);
         }
-        // TODO #534 Is this necessary? Is this the method called when playing the song?
-        // Also Can be applied to only bar renderers updated
-        transposeItemRenderers();
+        transposeBarRenderers();
 
         refreshBackground();
     }
@@ -460,8 +466,6 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
                 br.moveItemRenderer(item);
             }
         }
-        // TODO #534 Is this triggered when moving bars in CLS that are in the easy read "window"?
-        transposeItemRenderers();
     }
 
     /**
@@ -504,7 +508,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
      */
     public final boolean setConfig(BarBoxConfig bbConfig)
     {
-        Preconditions.checkNotNull(bbConfig, "bbConfig=" + bbConfig);
+        Preconditions.checkNotNull(bbConfig);
         Preconditions.checkArgument(!bbConfig.getActiveBarRenderers().isEmpty(), "bbConfig=" + bbConfig);
 
         if (bbConfig.equals(barBoxConfig))
