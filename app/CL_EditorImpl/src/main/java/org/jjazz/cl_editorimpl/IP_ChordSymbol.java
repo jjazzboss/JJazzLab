@@ -22,6 +22,7 @@
  */
 package org.jjazz.cl_editorimpl;
 
+import com.google.common.base.Preconditions;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.beans.PropertyChangeListener;
@@ -56,10 +57,8 @@ public class IP_ChordSymbol implements CLI_ChordSymbol
 
     public IP_ChordSymbol(CLI_ChordSymbol item)
     {
-        if (item == null)
-        {
-            throw new NullPointerException("item=" + item);
-        }
+        Preconditions.checkNotNull(item);
+
         cli = item;
         position = cli.getPosition();
     }
@@ -177,6 +176,4 @@ public class IP_ChordSymbol implements CLI_ChordSymbol
             throw new UnsupportedFlavorException(fl);
         }
     }
-
-
 }

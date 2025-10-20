@@ -46,9 +46,9 @@ import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.barrenderer.api.BarRenderer;
 import org.jjazz.cl_editor.spi.BarRendererFactory;
 import org.jjazz.cl_editor.barrenderer.api.BeatBasedBarRenderer;
-import org.jjazz.cl_editor.itemrenderer.api.IR_DisplayTransposable;
 import org.jjazz.cl_editor.itemrenderer.api.IR_Type;
 import org.jjazz.cl_editor.itemrenderer.api.ItemRenderer;
+import org.jjazz.cl_editor.api.DisplayTransposableRenderer;
 
 /**
  * This object groups several BarRenderers in a "stack view" that represent one leadSheet bar.
@@ -109,8 +109,6 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
             BarBoxSettings settings,
             BarRendererFactory brf)
     {
-        // TODO #534 Add transposition param in constructor?
-
         Preconditions.checkNotNull(model);
         Preconditions.checkNotNull(config);
         Preconditions.checkNotNull(settings);
@@ -163,16 +161,16 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     {
         this.getBarRenderers().stream()
                     .flatMap(br -> br.getItemRenderers().stream())
-                    .filter(IR_DisplayTransposable.class::isInstance)
-                    .map(IR_DisplayTransposable.class::cast)
+                    .filter(DisplayTransposableRenderer.class::isInstance)
+                    .map(DisplayTransposableRenderer.class::cast)
                     .forEach(it -> it.setDisplayTransposition(displayTransposition));
     }
 
     private void transposeItemRenderers(ArrayList<ItemRenderer> irs)
     {
         irs.stream()
-                .filter(IR_DisplayTransposable.class::isInstance)
-                .map(IR_DisplayTransposable.class::cast)
+                .filter(DisplayTransposableRenderer.class::isInstance)
+                .map(DisplayTransposableRenderer.class::cast)
                 .forEach(it -> it.setDisplayTransposition(displayTransposition));
     }
 
@@ -211,9 +209,6 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
      */
     public List<ItemRenderer> addItem(ChordLeadSheetItem<?> item)
     {
-        LOGGER.info("CALL TO BarBox.addItem. Trp is: " + displayTransposition);
-        // It works after setting transposition but it's not getting init value (open jjazzlab w/pref saved != 0)
-
         Preconditions.checkNotNull(item);
 
         ArrayList<ItemRenderer> result = new ArrayList<>();
@@ -547,13 +542,17 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
         return true;
     }
 
-    public void showInsertionPoint(boolean b, ChordLeadSheetItem<?> item, Position pos, boolean copyMode)
+    public void showInsertionPoint(boolean showIP, ChordLeadSheetItem<?> item, Position pos, boolean copyMode)
     {
         for (BarRenderer br : getBarRenderers())
         {
             if (br.isRegisteredItemClass(item))
             {
-                br.showInsertionPoint(b, item, pos, copyMode);
+                if (br instanceof DisplayTransposableRenderer trans)
+                {
+                    trans.setDisplayTransposition(displayTransposition);
+                }
+                br.showInsertionPoint(showIP, item, pos, copyMode);
             }
         }
     }
@@ -578,6 +577,8 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
         for (BarRenderer br : getBarRenderers())
         {
             br.showPlaybackPoint(b, pos);
+            // if br instanceof transposable
+            //      it.transpose(displayTransposition);
         }
     }
 

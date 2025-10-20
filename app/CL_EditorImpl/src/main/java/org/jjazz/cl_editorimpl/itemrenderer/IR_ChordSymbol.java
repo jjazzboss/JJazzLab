@@ -46,18 +46,18 @@ import org.jjazz.chordleadsheet.api.item.NCExtChordSymbol;
 import org.jjazz.chordleadsheet.api.item.VoidAltExtChordSymbol;
 import org.jjazz.cl_editor.itemrenderer.api.IR_ChordSymbolSettings;
 import org.jjazz.cl_editor.itemrenderer.api.IR_Copiable;
-import org.jjazz.cl_editor.itemrenderer.api.IR_DisplayTransposable;
 import org.jjazz.cl_editor.itemrenderer.api.IR_Type;
 import org.jjazz.cl_editor.itemrenderer.api.ItemRenderer;
 import org.jjazz.cl_editor.itemrenderer.api.ItemRendererSettings;
 import org.jjazz.uiutilities.api.TextLayoutUtils;
 import org.jjazz.utilities.api.ResUtil;
+import org.jjazz.cl_editor.api.DisplayTransposableRenderer;
 
 /**
  * An ItemRenderer for ChordSymbols.
  * <p>
  */
-public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable, IR_DisplayTransposable
+public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable, DisplayTransposableRenderer
 {
     private final static int OPTION_LINE_V_PADDING = 1;   // Additional space for the option line
     private final static int OPTION_LINE_THICKNESS = 1;   // Additional space for the option line

@@ -22,6 +22,7 @@
  */
 package org.jjazz.cl_editorimpl;
 
+import com.google.common.base.Preconditions;
 import java.awt.*;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
@@ -54,20 +55,22 @@ import org.jjazz.cl_editor.itemrenderer.api.IR_Type;
 import org.jjazz.cl_editor.itemrenderer.api.ItemRenderer;
 import org.jjazz.cl_editor.itemrenderer.api.ItemRendererFactory;
 import org.openide.util.Exceptions;
+import org.jjazz.cl_editor.api.DisplayTransposableRenderer;
 
 /**
  * A BarRenderer that show Chord and TimeSignature items.
  * <p>
  */
-public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, ComponentListener
+public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, ComponentListener, DisplayTransposableRenderer
 {
+    private static final Logger LOGGER = Logger.getLogger(BR_Chords.class.getSimpleName());
 
     /**
      * Special shared JPanel instances per editor, used to calculate the preferred size for a BarRenderer subclass..
      */
     private static final Map<Integer, PrefSizePanel> mapEditorPrefSizePanel = new HashMap<>();
-
     private static final Dimension MIN_SIZE = new Dimension(10, 4);
+
     /**
      * The last TimeSignature we used to layout the items.
      */
@@ -82,7 +85,8 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
     private ItemRenderer irIP;
     private final BR_ChordsLayoutManager layoutManager;
     private int zoomVFactor = 50;
-    private static final Logger LOGGER = Logger.getLogger(BR_Chords.class.getSimpleName());
+    private int displayTransposition = 0;
+
 
     @SuppressWarnings("LeakingThisInConstructor")
     public BR_Chords(CL_Editor editor, int barIndex, BarRendererSettings settings, ItemRendererFactory irf)
@@ -102,7 +106,6 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
         setPreferredSize(getPrefSizePanelSharedInstance().getPreferredSize());
         getPrefSizePanelSharedInstance().addComponentListener(this);
         setMinimumSize(MIN_SIZE);
-
     }
 
     /**
@@ -158,13 +161,25 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
     }
 
     @Override
-    public void showInsertionPoint(boolean b, ChordLeadSheetItem<?> item, Position pos, boolean copyMode)
+    public int getDisplayTransposition()
     {
-        LOGGER.log(Level.FINE, "showInsertionPoint() b={0} item={1} pos={2} copyMode={3}", new Object[]
+        return displayTransposition;
+    }
+
+    @Override
+    public void setDisplayTransposition(int dt)
+    {
+        displayTransposition = dt;
+    }
+
+    @Override
+    public void showInsertionPoint(boolean showIP, ChordLeadSheetItem<?> item, Position pos, boolean copyMode)
+    {
+        LOGGER.log(Level.FINE, "showInsertionPoint() showIP={0} item={1} pos={2} copyMode={3}", new Object[]
         {
-            b, item, pos, copyMode
+            showIP, item, pos, copyMode
         });
-        if (!b)
+        if (!showIP)
         {
             // Remove the insertion point
             if (irIP != null)
@@ -181,7 +196,10 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
         {
             if (cliIP == null)
             {
-                cliIP = new IP_ChordSymbol(cliCs);
+                var traCliCs = CLI_Factory.getDefault().createChordSymbol(
+                        cliCs.getData().getTransposedChordSymbol(displayTransposition, null), cliCs.getPosition());
+
+                cliIP = new IP_ChordSymbol(traCliCs);
                 ((IP_ChordSymbol) cliIP).setPosition(pos);
                 irIP = addItemRenderer(cliIP);
                 irIP.setSelected(true);
@@ -267,10 +285,8 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
     @Override
     protected ItemRenderer createItemRenderer(ChordLeadSheetItem<?> item)
     {
-        if (!isRegisteredItemClass(item))
-        {
-            throw new IllegalArgumentException("item=" + item);
-        }
+        Preconditions.checkArgument(isRegisteredItemClass(item), "item=" + item);
+
         ItemRenderer ir;
         ItemRendererFactory irf = getItemRendererFactory();
         if (item instanceof CLI_ChordSymbol cliCs)

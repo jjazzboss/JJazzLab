@@ -198,24 +198,16 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         return song;
     }
 
-    final int getDisplayTransposition()
-    {
-        return displayTransposition;
-    }
-
     final void setDisplayTransposition(int dt)
     {
         displayTransposition = dt;
 
-        // TODO #534 Avoid this check: When is it null?
         if (barBox != null)
         {
-            LOGGER.info("Setting trans from ERPanel");
             barBox.setDisplayTransposition(dt);
         }
         if (nextBarBox != null)
         {
-            LOGGER.info("Setting trans from ERPanel");
             nextBarBox.setDisplayTransposition(dt);
         }
         if (song != null)

@@ -871,7 +871,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 
     private void setDisplayTransposition(int dt)
     {
-        barBoxes.forEach(bb -> bb.setDisplayTransposition(dt));
+        getBarBoxes().forEach(bb -> bb.setDisplayTransposition(dt));
     }
 
     @Override
