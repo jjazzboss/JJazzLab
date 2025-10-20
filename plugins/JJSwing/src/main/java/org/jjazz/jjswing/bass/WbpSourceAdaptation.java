@@ -66,7 +66,11 @@ public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
     private static final Logger LOGGER = Logger.getLogger(WbpSourceAdaptation.class.getSimpleName());
 
     /**
-     * Get an instance from the specified parameters.
+     * Get an instance (possibly cached) from the specified parameters.
+     * <p>
+     * An instance created for the first time will have its compatibility score set to 0. A cached instance may have a compatibility score &gt; 0 (harmonic and
+     * transposibility values) if already evaluated by a WbpsaScorer (though the tempo/pre/post-target values will be 0 since they depend on the evaluation
+     * context).
      *
      * @param wbpSource
      * @param scs
@@ -89,7 +93,7 @@ public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
             {
                 wbpSource, key, res.getBeatRange()
             });
-        } else 
+        } else
         {
             // Reuse wbpsa harmonic/transposability scores
             res = new WbpSourceAdaptation(wbpSource, scs);
@@ -103,10 +107,10 @@ public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
                 res.adaptedPhrase.shiftAllEvents(shift, true);
             }
             res.targetPitch = wbpsa.targetPitch;
-            LOGGER.log(Level.FINE, "of() reusing values for {0}  key={1}  wbpsaBr={2}  resBr={3}", new Object[]
-            {
-                wbpSource, key, wbpsa.getBeatRange(), res.getBeatRange()
-            });
+//            LOGGER.log(Level.SEVERE, "of() reusing values for {0}  key={1}  wbpsaBr={2}  resBr={3}", new Object[]
+//            {
+//                wbpSource, key, wbpsa.getBeatRange(), res.getBeatRange()
+//            });
         }
 
         return res;
@@ -155,7 +159,7 @@ public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
         Collections.sort(res, (o1, o2) -> o2.compareTo(o1));  // Descending score       
         return res;
     }
-    
+
     static public void clearCacheData()
     {
         MAP_KEYSTR_WBPSA.clear();

@@ -29,6 +29,8 @@ import org.jjazz.jjswing.bass.db.WbpSourceDatabase;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.SortedSetMultimap;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -47,6 +49,13 @@ import org.jjazz.utilities.api.IntRange;
  */
 public class WbpTiling
 {
+
+    /**
+     * Property change event fired when a new WbpSourceAdaptation is added.
+     * <p>
+     * newValue=the added WbpSourceAdaptation.
+     */
+    private static final String PROP_WBPSA_ADDED = "PropWbpsaAdded";
 
     /**
      * An interface to create custom WbpSources.
@@ -69,10 +78,11 @@ public class WbpTiling
     private final List<SimpleChordSequence> scsList;
     private final List<Integer> usableBars;
     private final WbpSourceAdaptation[] wbpsas;
+    private final transient PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(WbpTiling.class.getSimpleName());
 
     /**
-     * Create a WbpTiling for a list of SimpleChordSequence using the same style.
+     * Create an empty WbpTiling for a list of SimpleChordSequence using the same style.
      *
      * @param scsList
      */
@@ -110,6 +120,8 @@ public class WbpTiling
     /**
      * Add a WbpSourceAdaptation.
      * <p>
+     * Fire a PROP_WBPSA_ADDED change event.
+     *
      * @param wbpsa
      * @throws IllegalArgumentException If wbpsa's bar zone is not empty nor usable.
      */
@@ -119,6 +131,7 @@ public class WbpTiling
         var br = wbpsa.getBarRange();
         Preconditions.checkArgument(isUsableAndFree(br), "wbpsa=%s  this=%s", wbpsa, this);
         wbpsas[br.from] = wbpsa;
+        pcs.firePropertyChange(PROP_WBPSA_ADDED, null, wbpsa);
     }
 
     /**
@@ -386,6 +399,18 @@ public class WbpTiling
     }
 
     /**
+     * Helper method which just delegates to isUsable(IntRange).
+     *
+     * @param bar
+     * @return
+     * @see #isUsable(org.jjazz.utilities.api.IntRange)
+     */
+    public boolean isUsable(int bar)
+    {
+        return isUsable(new IntRange(bar, bar));
+    }
+
+    /**
      * Check if barRange is within one of the SimpleChordSequence bar ranges managed by this tiling.
      *
      * @param barRange
@@ -460,8 +485,8 @@ public class WbpTiling
     /**
      * For each chord sequence corresponding to an untiled zone, try to create WbpSources using wbpSourcesBuilder.
      * <p>
-     * It might happen than some returned WbpSources could not be added in the WbpSourceDatabase, because the database will consider there are redundant (transposition-wise and using
-     * simplified chord symbols).
+     * It might happen than some returned WbpSources could not be added in the WbpSourceDatabase, because the database will consider there are redundant
+     * (transposition-wise and using simplified chord symbols).
      *
      * @param wbpSourcesBuilder Generate a list (possibly empty) of WbpSources for a SimpleChordSequence.
      * @param size              The size in bars of the WbpSources to be created.
@@ -498,6 +523,16 @@ public class WbpTiling
         }
 
         return res;
+    }
+
+    public void addPropertyChangeListener(PropertyChangeListener l)
+    {
+        pcs.addPropertyChangeListener(l);
+    }
+
+    public void removePropertyChangeListener(PropertyChangeListener l)
+    {
+        pcs.removePropertyChangeListener(l);
     }
 
     @Override
@@ -574,6 +609,6 @@ public class WbpTiling
     // =================================================================================================================
     private void checkBarIsValid(int bar)
     {
-        Preconditions.checkArgument(bar >= 0 && isUsable(new IntRange(bar, bar)), "bar=%s usableBars=%s", bar, usableBars);
+        Preconditions.checkArgument(bar >= 0 && isUsable(bar), "bar=%s usableBars=%s", bar, usableBars);
     }
 }

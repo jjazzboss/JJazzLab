@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javax.swing.JList;
@@ -43,7 +44,6 @@ import org.jjazz.jjswing.api.BassStyle;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.jjswing.bass.db.WbpSourceDatabase;
 import org.jjazz.jjswing.bass.db.WbpSource;
-import org.jjazz.jjswing.bass.WbpsaScorer;
 import org.jjazz.jjswing.bass.Score;
 import org.jjazz.jjswing.bass.WbpSourceAdaptation;
 import org.jjazz.jjswing.bass.db.RootProfile;
@@ -159,6 +159,7 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
         List<WbpSource> wbpSources;
         if (scs.isEmpty())
         {
+            // Take all WbpSources
             wbpSources = wbpDb.getWbpSources(getNbBars(), bassStyles);
 
         } else
@@ -167,6 +168,7 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
             wbpSources = Stream.of(bassStyles)
                     .flatMap(bs -> wbpDb.getWbpSources(bs, rootProfile).stream())
                     .toList();
+
         }
 
 
@@ -244,6 +246,8 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
         tbl_wbpSources.getColumnModel().getColumn(MyModel.COL_CHORDS).setMinWidth(150);
         tbl_wbpSources.getColumnModel().getColumn(MyModel.COL_PHRASE).setPreferredWidth(400);
         tbl_wbpSources.getColumnModel().getColumn(MyModel.COL_PHRASE).setMinWidth(200);
+        tbl_wbpSources.getColumnModel().getColumn(MyModel.COL_START_ON_CHORD_BASS).setPreferredWidth(50);
+        tbl_wbpSources.getColumnModel().getColumn(MyModel.COL_START_ON_CHORD_BASS).setMinWidth(50);
 
 
         tbl_wbpSources.setAutoCreateRowSorter(true);
@@ -289,7 +293,8 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
         public static final int COL_PHRASE = 6;
         public static final int COL_TARGET_NOTE = 7;
         public static final int COL_FIRST_NOTE_SHIFT = 8;
-        private static final int NB_COLS = 9;
+        public static final int COL_START_ON_CHORD_BASS = 9;
+        private static final int NB_COLS = 10;
 
 
         private final List<WbpSourceAdaptation> wbpsas = new ArrayList<>();
@@ -361,7 +366,7 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
         {
             var res = switch (col)
             {
-                case COL_ID, COL_SCORE_DETAILS, COL_CHORDS, COL_PHRASE, COL_STYLE, COL_STATS, COL_TARGET_NOTE ->
+                case COL_ID, COL_SCORE_DETAILS, COL_CHORDS, COL_PHRASE, COL_STYLE, COL_STATS, COL_TARGET_NOTE, COL_START_ON_CHORD_BASS ->
                     String.class;
                 case COL_SCORE, COL_FIRST_NOTE_SHIFT ->
                     Float.class;
@@ -393,6 +398,8 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
                     "Target note";
                 case COL_FIRST_NOTE_SHIFT ->
                     "1st note shift";
+                case COL_START_ON_CHORD_BASS ->
+                    "ChordBassStart";
                 default -> throw new IllegalStateException("columnIndex=" + col);
             };
             return s;
@@ -425,6 +432,8 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
                     new ArrayList<>(wbpSource.getSimpleChordSequence()).toString();
                 case COL_FIRST_NOTE_SHIFT ->
                     wbpSource.getFirstNoteBeatShift();
+                case COL_START_ON_CHORD_BASS ->
+                    wbpSource.isStartingOnChordBass();
                 case COL_TARGET_NOTE ->
                 {
                     var note = wbpsa.getWbpSource().getTargetNote();

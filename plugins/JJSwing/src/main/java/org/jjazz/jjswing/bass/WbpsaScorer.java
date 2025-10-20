@@ -24,21 +24,26 @@
  */
 package org.jjazz.jjswing.bass;
 
+import com.google.common.base.Preconditions;
 import org.jjazz.jjswing.bass.db.WbpSource;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.rhythm.api.TempoRange;
+import org.jjazz.utilities.api.IntRange;
 
 /**
  * Compute the compatibility Score of a WbpSourceAdaptation.
  * <p>
  * @see Score
  */
+
 public class WbpsaScorer
 {
 
@@ -48,7 +53,7 @@ public class WbpsaScorer
     private static final Logger LOGGER = Logger.getLogger(WbpsaScorer.class.getSimpleName());
 
     /**
-     * @param sourceAdapter          If null target note matching score will not impact the overall score
+     * @param sourceAdapter          If null, target note matching score can not be done, in this case pre/post target notes scores are 0
      * @param minCompatibilityTester If null use Score.DEFAULT_TESTER.
      * @see Score#DEFAULT_TESTER
      */
@@ -61,12 +66,13 @@ public class WbpsaScorer
     /**
      * Compute and update the compatibility Score of a WbpSourceAdaptation using chord type, transposition, tempo, pre/post target notes.
      * <p>
-     * Score is computed only for wbpsa score elements which are equal to 0, i.e. non-zero elements are directly reused in the resulting Score. Result is
-     * Score.ZERO if the resulting Score does not satisfy the minCompatibilityTester predicate. The passed wbpsa instance is updated with the new Score.
+     * Score is computed only for wbpsa score elements which are equal to 0, i.e. non-zero elements are directly reused in the resulting Score. The pre/post
+     * targing matching scores are 0 if tiling is null or wbpSourceAdapter is null. Result is Score.ZERO if the resulting Score does not satisfy the
+     * minCompatibilityTester predicate. The passed wbpsa instance is updated with the new Score.
      * <p>
      *
      * @param wbpsa
-     * @param tiling Can be null, in this case pre/post target notes scores are 0
+     * @param tiling Can be null. If null pre/post target notes scores are 0 (same if wbpSourceAdapter is null)
      * @param tempo  If &lt;= 0 tempo is ignored in score computing
      * @return The wbpsa Score
      */
@@ -74,18 +80,25 @@ public class WbpsaScorer
     {
         Objects.requireNonNull(wbpsa);
 
+        LOGGER.log(Level.FINE, "updateCompatibilityScore() -- wbpsa={0} ", new Object[]
+        {
+            wbpsa
+        });
         Score res = wbpsa.getCompatibilityScore();
-
         var wbpSource = wbpsa.getWbpSource();
 
         if (BassGeneratorSettings.getInstance().isAcceptNonChordBassStartNote() || wbpSource.isStartingOnChordBass())
         {
-            float preTargetNoteScore = DEFAULT_TARGET_NOTE_SCORE;
-            float postTargetNoteScore = DEFAULT_TARGET_NOTE_SCORE;
 
-            if (wbpSourceAdapter != null && tiling != null)
+            float preTargetNoteScore = 0;
+            float postTargetNoteScore = 0;
+            boolean isPrePostTargetScoreComputable = wbpSourceAdapter != null && tiling != null;
+
+
+            if (isPrePostTargetScoreComputable)
             {
-                // We can evaluate pre/post notes matching
+
+                // Compute adapted phrase and adapted target pitch
                 if (wbpsa.getAdaptedPhrase() == null)
                 {
                     wbpsa.setAdaptedPhrase(wbpSourceAdapter.getPhrase(wbpsa));
@@ -94,24 +107,75 @@ public class WbpsaScorer
                 {
                     wbpsa.setAdaptedTargetPitch(wbpSourceAdapter.getTargetPitch(wbpsa));        // Can be -1
                 }
+
+
                 if (res.preTargetNoteMatch() == 0)
                 {
-                    preTargetNoteScore = computePreTargetNoteScore(wbpsa, tiling, wbpsa.getAdaptedPhrase().first().getPitch());
+                    WbpSourceAdaptation prevWbpsa = getPrevWbpsa(wbpsa, tiling);
+                    if (prevWbpsa == null)
+                    {
+                        // Tiling contains no previous WbpSourceAdaptation right now
+                        int prevBar = wbpsa.getBarRange().from - 1;
+                        if (prevBar >= 0 && tiling.isUsable(prevBar))
+                        {
+                            // Can not compute pre-target score now, maybe later when a previous WbpSourceAdaptation is present
+                            isPrePostTargetScoreComputable = false;
+                        } else
+                        {
+                            // There will never be a previous WbpSourceAdaptation
+                            preTargetNoteScore = DEFAULT_TARGET_NOTE_SCORE;
+                        }
+                    } else
+                    {
+                        // Compute the pre-target note score
+                        int firstNotePitch = wbpsa.getAdaptedPhrase().first().getPitch();
+                        preTargetNoteScore = computePreTargetNoteScore(prevWbpsa, wbpsa, firstNotePitch);
+//                        if (!wbpSource.isStartingOnChordBass() && preTargetNoteScore == 100f)
+//                        {
+//                            LOGGER.log(Level.SEVERE, "updateCompatibilityScore() NON START ON CHORD NOTE BUT OK !! wbpsa={0}", wbpsa);
+//                        }
+
+                    }
                 }
+
+
                 if (res.postTargetNoteMatch() == 0)
                 {
-                    postTargetNoteScore = computePostTargetNoteScore(wbpsa, tiling);
+                    WbpSourceAdaptation nextWbpsa = getNextWbpsa(wbpsa, tiling);
+                    if (nextWbpsa == null)
+                    {
+                        // Tiling contains no next WbpSourceAdaptation right now
+                        int nextBar = wbpsa.getBarRange().to + 1;
+                        if (tiling.isUsable(nextBar))
+                        {
+                            // Can not compute post-target score now, maybe later when a next WbpSourceAdaptation is present
+                            isPrePostTargetScoreComputable = false;
+                        } else
+                        {
+                            // There will never be a previous WbpSourceAdaptation
+                            postTargetNoteScore = DEFAULT_TARGET_NOTE_SCORE;
+                        }
+                    } else
+                    {
+                        // Compute the post-target note score
+                        postTargetNoteScore = computePostTargetNoteScore(wbpsa, nextWbpsa);
+//                        if (!wbpSource.isEndingOnChordTone() && postTargetNoteScore == 100f)
+//                        {
+//                            LOGGER.log(Level.SEVERE, "updateCompatibilityScore() NON ENDING ON CHORD NOTE BUT OK !! wbpsa={0}", wbpsa);
+//                        }
+                    }
                 }
             }
 
-            // Check constraints on non-root start note and non-chord-tone last note: 
+            // If pre/post target scores can be computed then check constraints on non-root start note and non-chord-tone last note: 
             // - if start note is not root, make sure it's the target note of the previous wbpsa
             // - if last note is not a chord tone, make sure next wbpsa matches our target note
-            boolean startAndEndNotesCheck = (wbpSource.isStartingOnChordBass() || preTargetNoteScore == 100f) && (wbpSource.isEndingOnChordTone() || postTargetNoteScore == 100f);
+            boolean criticalPrePostTargetScoreIssue = isPrePostTargetScoreComputable
+                    && ((!wbpSource.isStartingOnChordBass() && preTargetNoteScore < 100f) || (!wbpSource.isEndingOnChordTone() && postTargetNoteScore < 100f));
 
-            if (startAndEndNotesCheck)
+
+            if (!criticalPrePostTargetScoreIssue)
             {
-
                 // Harmonic compatibility
                 float ctScore = res.harmonicCompatibility();
                 if (ctScore == 0)
@@ -140,19 +204,7 @@ public class WbpsaScorer
                 var s = new Score(ctScore, trScore, teScore, preTargetNoteScore, postTargetNoteScore);
                 res = minCompatibilityTester.test(s) ? s : Score.ZERO;
 
-            } else
-            {
-//                if (wbpsaTargetPitch > -1 && nextWbpsaFirstPitch > -1)
-//                {
-//                    LOGGER.log(Level.SEVERE, "computeCompatibilityScore() DBG last note tone/mismatch wbpsaTargetPitch={0} nextWbpsaFirstPitch={1}",
-//                            new Object[]
-//                            {
-//                                wbpsaTargetPitch,
-//                                nextWbpsaFirstPitch
-//                            });
-//                }
-            }
-
+            } 
         }
 
         wbpsa.setCompatibilityScore(res);
@@ -164,52 +216,80 @@ public class WbpsaScorer
     // Private methods
     // ==========================================================================================================
     /**
-     * Depend on target note matching + same-pitch notes between wbpsas.
+     * Compute the pre-target note score.
+     * <p>
+     * Score:<br>
+     * 100 if previous WbpSourceAdaptation's targetNote matches wbpsa's first note.<br>
+     * 0 if previous WbpSourceAdaptation's last note is the same than wbpsa's first note.<br>
+     * DEFAULT_TARGET_NOTE_SCORE for other cases.
      *
+     * @param prevWbpsa
      * @param wbpsa
-     * @param tiling
      * @param firstNotePitch
      * @return
      */
-    private float computePreTargetNoteScore(WbpSourceAdaptation wbpsa, WbpTiling tiling, int firstNotePitch)
+    private float computePreTargetNoteScore(WbpSourceAdaptation prevWbpsa, WbpSourceAdaptation wbpsa, int firstNotePitch)
     {
+        Objects.requireNonNull(prevWbpsa);
+        Objects.requireNonNull(wbpsa);
+        Preconditions.checkArgument(firstNotePitch > 0, "firstNotePitch=%s", firstNotePitch);
+
         float score;
-        if (getPrevWbpsaTargetPitch(wbpsa, tiling) == firstNotePitch)
+
+        int prevWbpsaTargetPitch = prevWbpsa.getAdaptedTargetPitch();       // Can be -1 for some WbpSources (eg the last one of a WbpSession)
+        var pPrev = prevWbpsa.getAdaptedPhrase();
+        if (prevWbpsaTargetPitch == firstNotePitch)
         {
             // Perfect
             score = 100f;
-        } else if (getPrevWbpsaLastPitch(wbpsa, tiling) == firstNotePitch)
+            // LOGGER.severe("computePreTargetNoteScore() PERFECT MATCH");
+        } else if (pPrev != null && pPrev.getLast().getPitch() == firstNotePitch)
         {
-            // Worst case
+            // Bad case
             score = 0f;
+            // LOGGER.severe("computePreTargetNoteScore() WORST CASE");
         } else
         {
-            // Default
             score = DEFAULT_TARGET_NOTE_SCORE;
         }
+
         return score;
     }
 
     /**
-     * Depend on target note matching + same-pitch notes between wbpsas.
+     * Compute the post-target note score.
+     * <p>
+     * Score:<br>
+     * 100 if wbpsa's targetNote matches next WbpSourceAdaptation's first note.<br>
+     * 0 if last wbpsa's note is the same than WbpSourceAdaptation's first note.<br>
+     * DEFAULT_TARGET_NOTE_SCORE for other cases.
      *
      * @param wbpsa
-     * @param tiling
+     * @param nextWbpsa Must have its adapted phrase set
      * @return
      */
-    private float computePostTargetNoteScore(WbpSourceAdaptation wbpsa, WbpTiling tiling)
+    private float computePostTargetNoteScore(WbpSourceAdaptation wbpsa, WbpSourceAdaptation nextWbpsa)
     {
-        int nextWbpsaFirstPitch = getNextWbpsaFirstPitch(wbpsa, tiling);        // Can be -1
-        int targetPitch = wbpsa.getAdaptedTargetPitch();
+        Objects.requireNonNull(wbpsa);
+        Objects.requireNonNull(nextWbpsa);
+        Preconditions.checkArgument(nextWbpsa.getAdaptedPhrase() != null, "nextWbpsa=%s", nextWbpsa);
+
         float score;
-        if (targetPitch != -1 && nextWbpsaFirstPitch == targetPitch)
+        int targetPitch = wbpsa.getAdaptedTargetPitch();
+        var p = wbpsa.getAdaptedPhrase();
+        assert p != null;
+        int nextWbpsaFirstPitch = nextWbpsa.getAdaptedPhrase().first().getPitch();
+
+        if (targetPitch == nextWbpsaFirstPitch)
         {
             // Perfect
             score = 100f;
-        } else if (nextWbpsaFirstPitch == wbpsa.getAdaptedPhrase().last().getPitch())
+            // LOGGER.severe("computePostTargetNoteScore() PERFECT MATCH");
+        } else if (p.getLast().getPitch() == nextWbpsaFirstPitch)
         {
             // Worst case
             score = 0f;
+            // LOGGER.severe("computePostTargetNoteScore() WORST CASE");
         } else
         {
             // Default
@@ -218,57 +298,6 @@ public class WbpsaScorer
         return score;
     }
 
-    /**
-     * Get the (optional) target pitch of the previous WbpSourceAdaptation.
-     *
-     * @param wbpsa
-     * @param tiling
-     * @return -1 if no target note available
-     */
-    private int getPrevWbpsaTargetPitch(WbpSourceAdaptation wbpsa, WbpTiling tiling)
-    {
-        WbpSourceAdaptation prevWbpsa = getPrevWbpsa(wbpsa, tiling);
-        int res = prevWbpsa == null ? -1 : prevWbpsa.getAdaptedTargetPitch();
-        return res;
-    }
-
-    /**
-     * Get the (optional) last pitch of previous WbpSourceAdaptation.
-     *
-     * @param wbpsa
-     * @param tiling
-     * @return -1 if no note available
-     */
-    private int getPrevWbpsaLastPitch(WbpSourceAdaptation wbpsa, WbpTiling tiling)
-    {
-        int res = -1;
-        WbpSourceAdaptation prevWbpsa = getPrevWbpsa(wbpsa, tiling);
-        if (prevWbpsa != null)
-        {
-            var p = prevWbpsa.getAdaptedPhrase();
-            res = p != null ? p.last().getPitch() : -1;
-        }
-        return res;
-    }
-
-    /**
-     * Get the (optional) first pitch of next WbpSourceAdaptation.
-     *
-     * @param wbpsa
-     * @param tiling
-     * @return -1 if no target note available
-     */
-    private int getNextWbpsaFirstPitch(WbpSourceAdaptation wbpsa, WbpTiling tiling)
-    {
-        int res = -1;
-        WbpSourceAdaptation nextWbpsa = getNextWbpsa(wbpsa, tiling);
-        if (nextWbpsa != null)
-        {
-            var p = nextWbpsa.getAdaptedPhrase();
-            res = p != null ? p.first().getPitch() : -1;
-        }
-        return res;
-    }
 
     /**
      * Get the WbpSourceAdaptation just before wbpsa.

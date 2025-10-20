@@ -40,6 +40,7 @@ import org.jjazz.rhythmdatabase.api.RhythmInfo;
 import org.jjazz.utilities.api.Utilities;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.util.Lookup;
+import org.openide.windows.WindowManager;
 
 
 /**
@@ -83,13 +84,15 @@ public class JJSwingRhythmProvider implements RhythmProvider
     @Override
     public void showUserSettingsDialog()
     {
-        // Nothing
+        JJSwingRhythmProviderSettingsDialog dlg = new JJSwingRhythmProviderSettingsDialog();
+        dlg.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
+        dlg.setVisible(true);
     }
 
     @Override
     public boolean hasUserSettings()
     {
-        return false;
+        return true;
     }
 
     @Override

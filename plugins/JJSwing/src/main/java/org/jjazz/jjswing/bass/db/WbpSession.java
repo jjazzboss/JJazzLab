@@ -105,6 +105,11 @@ class WbpSession extends Wbp
      */
     public List<WbpSource> extractWbpSources(boolean disallowNonRootStartNote, boolean disallowNonChordToneLastNote)
     {
+        LOGGER.log(Level.FINE, "extractWbpSources() -- disallowNonRootStartNote={0} disallowNonChordToneLastNote={1}", new Object[]
+        {
+            disallowNonRootStartNote,
+            disallowNonChordToneLastNote
+        });
         List<WbpSource> res = new ArrayList<>();
         int sessionSizeInBars = getSizedPhrase().getSizeInBars();
 
@@ -129,6 +134,15 @@ class WbpSession extends Wbp
                 if (bStart && bFirst && bLast)
                 {
                     res.add(wbpSource);
+                } else
+                {
+                    LOGGER.log(Level.FINE, "extractWbpSources() Discarding isStartingOnChordBass={0}  isEndingOnChordTone={1}   wbpSource={2} p={3}", new Object[]
+                    {
+                        wbpSource.isStartingOnChordBass(),
+                        wbpSource.isEndingOnChordTone(),
+                        wbpSource,
+                        p
+                    });
                 }
             }
         }
@@ -265,7 +279,7 @@ class WbpSession extends Wbp
             });
             throw e;
         }
-        
+
         return wbpSource;
     }
 

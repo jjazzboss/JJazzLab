@@ -32,13 +32,17 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.StringJoiner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.jjswing.api.BassStyle;
 import org.jjazz.utilities.api.IntRange;
+import org.jjazz.utilities.api.Utilities;
 
 /**
- * Create and store all compatible (compatibility Score &gt; 0) WbpSourceAdaptations of all sizes for each non-tiled bar of a tiling.
+ * Stores all compatible (compatibility Score &gt; 0) WbpSourceAdaptations of all sizes for each non-tiled bar of a tiling.
+ * <p>
+ * When a WbpSourceAdaptation is added to the tiling, possibly update the WbpSourceAdaptation lists for the above/below bars.
  */
 public class WbpsaStore
 {
@@ -49,8 +53,9 @@ public class WbpsaStore
     /**
      * [0] not used, [1] for size=1 bar, ... [4] for size=4 bars.
      */
-    private final ListMultimap<Integer, WbpSourceAdaptation>[] mmapWbpsAdaptations = new ListMultimap[WbpSourceDatabase.SIZE_MAX + 1];
+    private final ListMultimap<Integer, WbpSourceAdaptation>[] mmapWbpsAdaptations;
     private final WbpsaScorer wbpsaScorer;
+    private final int tempo;
     private static final Logger LOGGER = Logger.getLogger(WbpsaStore.class.getSimpleName());
 
     /**
@@ -58,13 +63,16 @@ public class WbpsaStore
      * <p>
      *
      * @param tiling The store will ignore already tiled bars
+     * @param tempo  If &lt;0 tempo is ignored in the selection and ranking of WbpSourceAdaptations
      * @see #populate(int, java.util.List)
      */
-    public WbpsaStore(WbpTiling tiling)
+    public WbpsaStore(WbpTiling tiling, int tempo)
     {
         Objects.requireNonNull(tiling);
-
+        this.tempo = tempo;
+        this.mmapWbpsAdaptations = new ListMultimap[WbpSourceDatabase.SIZE_MAX + 1];
         this.tiling = tiling;
+        this.tiling.addPropertyChangeListener(e -> tilingUpdated((WbpSourceAdaptation) e.getNewValue()));
         this.wbpsaScorer = new WbpsaScorer(new DefaultPhraseAdapter(), Score.DEFAULT_TESTER);
         for (int size = WbpSourceDatabase.SIZE_MIN; size <= WbpSourceDatabase.SIZE_MAX; size++)
         {
@@ -76,24 +84,23 @@ public class WbpsaStore
     }
 
     /**
-     * Create and store compatible WbpSourceAdaptations for the non-tiled bars with the specified parameters.
+     * Populate the specified bars (if usable and free) with compatible WbpSourceAdaptations from WbpSourceDatabase.
      * <p>
      *
-     * @param tempo      If &lt;0 tempo is ignored
+     * @param bars       Tiling bars
      * @param bassStyles Can not be empty
      * @see WbpSourceAdaptation#getWbpSourceAdaptations(org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence, org.jjazz.jjswing.walkingbass.WbpsaScorer,
      * org.jjazz.jjswing.walkingbass.WbpTiling, int, java.util.List)
      * @see #addWbpSourceAdaptations(int, java.util.List)
      */
-    public void populate(int tempo, List<BassStyle> bassStyles)
+    public void populate(List<Integer> bars, List<BassStyle> bassStyles)
     {
         Objects.requireNonNull(bassStyles);
         Preconditions.checkArgument(!bassStyles.isEmpty(), "bassStyles=" + bassStyles);
 
-        var nonTiledBars = tiling.getNonTiledBars();
-        LOGGER.log(Level.FINE, "initialize() nonTiledBars={0}", nonTiledBars);
+        LOGGER.log(Level.FINE, "initialize() bars={0}", bars);
 
-        for (int bar : nonTiledBars)
+        for (int bar : bars)
         {
             for (int size = WbpSourceDatabase.SIZE_MAX; size >= WbpSourceDatabase.SIZE_MIN; size--)
             {
@@ -107,18 +114,61 @@ public class WbpsaStore
                 // Get all possible wbpsas for the sub sequence
                 var subSeq = tiling.getSimpleChordSequence(br, true);
                 var wbpsas = WbpSourceAdaptation.getWbpSourceAdaptations(subSeq, wbpsaScorer, tiling, tempo, bassStyles);
-                if (wbpsas.isEmpty())
+                if (!wbpsas.isEmpty())
+                {
+                    addWbpSourceAdaptations(bar, wbpsas);
+                } else
                 {
                     LOGGER.log(Level.FINE, "populate() No {0}-bar compatible WbpSources found for {1}", new Object[]
                     {
                         size, subSeq
                     });
-                } else
-                {
-                    addWbpSourceAdaptations(bar, wbpsas);
                 }
             }
         }
+    }
+
+    /**
+     * Repopulate the specified bar/size with WbpSourceAdaptations from WbpSourceDatabase.
+     * <p>
+     * Do nothing if the tiling bars are not usable and free.
+     *
+     * @param bar
+     * @param size
+     * @param bassStyles
+     */
+    public void repopulate(int bar, int size, List<BassStyle> bassStyles)
+    {
+        IntRange br = new IntRange(bar, bar + size - 1);
+        if (!tiling.isUsableAndFree(br))
+        {
+            return;
+        }
+
+        LOGGER.log(Level.FINE, "repopulate() -- bar={0} size={1}", new Object[]
+        {
+            bar, size
+        });
+
+
+        clearWbpSourceAdaptations(bar, size);
+        var subSeq = tiling.getSimpleChordSequence(br, true);
+        var wbpsas = WbpSourceAdaptation.getWbpSourceAdaptations(subSeq, wbpsaScorer, tiling, tempo, bassStyles);
+        addWbpSourceAdaptations(bar, wbpsas);
+
+    }
+
+    /**
+     * Remove all the current WbpSourceAdaptations for the specified bar/size.
+     *
+     * @param bar
+     * @param size
+     */
+    public void clearWbpSourceAdaptations(int bar, int size)
+    {
+        Preconditions.checkArgument(tiling.isUsable(bar), "bar=%s usableBars=%s", bar, tiling.getUsableBars());
+        Preconditions.checkArgument(WbpSourceDatabase.checkWbpSourceSize(size), "size=%s", size);
+        mmapWbpsAdaptations[size].removeAll(bar);
     }
 
     /**
@@ -132,8 +182,12 @@ public class WbpsaStore
      */
     public void addWbpSourceAdaptations(int bar, List<WbpSourceAdaptation> wbpsas)
     {
-        Preconditions.checkArgument(tiling.isUsable(new IntRange(bar, bar)), "bar=%s usableBars=%s", bar, tiling.getUsableBars());
-        Preconditions.checkArgument(wbpsas != null && !wbpsas.isEmpty());
+        Objects.requireNonNull(wbpsas);
+        Preconditions.checkArgument(tiling.isUsable(bar), "bar=%s usableBars=%s", bar, tiling.getUsableBars());
+        if (wbpsas.isEmpty())
+        {
+            return;
+        }
         int size = wbpsas.get(0).getBarRange().size();
         Preconditions.checkArgument(wbpsas.stream().allMatch(wbpsa -> wbpsa.getBarRange().size() == size), "wbpsas=%s", wbpsas);
 
@@ -166,15 +220,15 @@ public class WbpsaStore
      *
      * @param bar  Must be a usable bar
      * @param size The bar size of returned WbpSourceAdaptations.
-     * @return Can be empty. List is ordered by descending Score with some possible partial randomization depending on {@link BassGeneratorSettings#isWbpsaStoreRandomized()
-     *         }
+     * @return Can be empty. List is ordered by descending Score with some possible partial randomization depending on
+     *         {@link BassGeneratorSettings#isWbpsaStoreRandomized()}
      */
     public List<WbpSourceAdaptation> getWbpSourceAdaptations(int bar, int size)
     {
         Preconditions.checkArgument(tiling.getUsableBars().contains(bar), "bar=%s", bar);
         Preconditions.checkArgument(WbpSourceDatabase.checkWbpSourceSize(size), "size=%s", size);
 
-        var res = Collections.unmodifiableList(mmapWbpsAdaptations[size].get(bar));
+        var res = new ArrayList<>(mmapWbpsAdaptations[size].get(bar));
 
         return res;
     }
@@ -263,5 +317,35 @@ public class WbpsaStore
 
         return res;
     }
+
+    /**
+     * A new WbpSourceAdaptation was added to the tiling.
+     * <p>
+     * Possibly repopulate WbpSourceAdaptations for the before/after tiling bars.
+     *
+     * @param wbpsa
+     */
+    private void tilingUpdated(WbpSourceAdaptation wbpsa)
+    {
+        var bassStyle = wbpsa.getWbpSource().getBassStyle();
+        if (bassStyle.isCustom())
+        {
+            // Don't bother
+            return;
+        }
+
+
+        // repopulate bars before and after
+        var br = wbpsa.getBarRange();
+        for (int size = WbpSourceDatabase.SIZE_MIN; size <= WbpSourceDatabase.SIZE_MAX; size++)
+        {
+            if (br.from >= size)
+            {
+                repopulate(br.from - size, size, List.of(bassStyle));
+            }
+            repopulate(br.to + 1, size, List.of(bassStyle));
+        }
+    }
+
 
 }

@@ -69,8 +69,8 @@ public class WalkingPhraseBuilder implements PhraseBuilder
 
 
         WbpTiling tiling = new WbpTiling(scsList);
-        WbpsaStore store = new WbpsaStore(tiling);
-        store.populate(tempo, List.of(STYLE));
+        WbpsaStore store = new WbpsaStore(tiling, tempo);
+        store.populate(tiling.getNonTiledBars(), List.of(STYLE));          // pre/post target matching scores of WbpSourceAdaptations will be all zero since tiling is empty
 
 
         Predicate<WbpSourceAdaptation> premiumWbpsaTester = wbpsa -> Score.PREMIUM_ONLY_TESTER.test(wbpsa.getCompatibilityScore());
@@ -82,7 +82,10 @@ public class WalkingPhraseBuilder implements PhraseBuilder
         LOGGER.log(PhraseBuilderLogLevel, "build() ================  tiling PREMIUM LongestFirstNoRepeat");
         var tilerLongestPremium = new TilerLongestFirstNoRepeat(premiumWbpsaTester);
         tilerLongestPremium.tile(tiling, store);
-        LOGGER.log(PhraseBuilderLogLevel, tiling.toMultiLineString());
+        if (LOGGER.isLoggable(PhraseBuilderLogLevel))
+        {
+            LOGGER.log(PhraseBuilderLogLevel, tiling.toMultiLineString());      // takes time to build
+        }
         int nbTiledBars = tiling.getTiledBars().size();
 
 
@@ -127,7 +130,7 @@ public class WalkingPhraseBuilder implements PhraseBuilder
         untiled = !tiling.isFullyTiled();
         if (untiled)
         {
-            store.populate(tempo, List.of(STYLE.getCustomStyle()));
+            store.populate(tiling.getNonTiledBars(), List.of(STYLE.getCustomStyle()));
 
             LOGGER.log(PhraseBuilderLogLevel, "\n");
             LOGGER.log(PhraseBuilderLogLevel, "build() ================  tiling EXISTING CUSTOM MaxDistance");
@@ -164,7 +167,7 @@ public class WalkingPhraseBuilder implements PhraseBuilder
             // Update the store to use these new WbpSources
             if (!customWbpSources.isEmpty())
             {
-                store.populate(tempo, List.of(STYLE.getCustomStyle()));
+                store.populate(tiling.getNonTiledBars(), List.of(STYLE.getCustomStyle()));
             }
 
             // Redo a tiling
@@ -437,8 +440,11 @@ public class WalkingPhraseBuilder implements PhraseBuilder
     private int logTilingIfChanged(WbpTiling tiling, int oldNbTiledBars)
     {
         int newNbTiledBars = tiling.getTiledBars().size();
-        String txt = oldNbTiledBars != newNbTiledBars ? tiling.toMultiLineString() : "tiling unchanged";
-        LOGGER.log(PhraseBuilderLogLevel, txt);
+        if (LOGGER.isLoggable(PhraseBuilderLogLevel))
+        {
+            String txt = oldNbTiledBars != newNbTiledBars ? tiling.toMultiLineString() : "tiling unchanged";        // takes time to build
+            LOGGER.log(PhraseBuilderLogLevel, txt);
+        }
         return newNbTiledBars;
     }
 }

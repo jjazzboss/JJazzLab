@@ -24,7 +24,7 @@ import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.utilities.api.IntRange;
 
 /**
- * A 1, 2 or 4-bar bass phrase with meta-data meant to be managed of a WbpDatabase.
+ * A 1, 2 or 4-bar bass phrase with meta-data meant to be managed by a WbpDatabase.
  * <p>
  */
 public class WbpSource extends Wbp

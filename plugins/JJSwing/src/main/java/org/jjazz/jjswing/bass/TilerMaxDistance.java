@@ -31,7 +31,6 @@ import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.jjswing.bass.db.WbpSourceDatabase;
-import org.jjazz.utilities.api.IntRange;
 
 /**
  * Tile in bar order the most compatible WbpSourceAdaptation whose WbpSource was never used or was used the furthest from current bar.

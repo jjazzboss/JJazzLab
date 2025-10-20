@@ -25,6 +25,7 @@
 package org.jjazz.jjswing.api;
 
 import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -102,7 +103,7 @@ public class JJSwingRhythm implements YamJJazzRhythm
     private MusicGenerator musicGenerator;
     private final List<RhythmParameter<?>> rhythmParameters;
     private final List<RhythmVoice> rhythmVoices;
-    private final transient SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private final transient PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(JJSwingRhythm.class.getSimpleName());
 
 
@@ -234,12 +235,12 @@ public class JJSwingRhythm implements YamJJazzRhythm
         // dpsDB.checkConsistency();
 
 
-        LOGGER.log(Level.WARNING, "loadResources() DEBUG forcing randomization OFF");
-        BassGeneratorSettings.getInstance().setWbpsaStoreRandomized(false);
+        // LOGGER.log(Level.WARNING, "loadResources() DEBUG forcing randomization OFF");
+        // BassGeneratorSettings.getInstance().setWbpsaStoreRandomized(false);
 
         LOGGER.log(Level.INFO, "loadResources() isWbpsaStoreRandomized={0}", BassGeneratorSettings.getInstance().isWbpsaStoreRandomized());
 
-
+                
         pcs.firePropertyChange(PROP_RESOURCES_LOADED, false, true);
     }
 

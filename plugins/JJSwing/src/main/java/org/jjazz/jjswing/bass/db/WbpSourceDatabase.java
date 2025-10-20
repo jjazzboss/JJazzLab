@@ -452,6 +452,7 @@ public class WbpSourceDatabase
      */
     private void processWbpSession(WbpSession wbpSession)
     {
+        LOGGER.log(Level.FINE, "processWbpSession() -- wbpSession={0}", wbpSession);
         var wbpSources = wbpSession.extractWbpSources(false, false);
         for (var wbpSource : wbpSources)
         {
@@ -500,7 +501,7 @@ public class WbpSourceDatabase
 
         // Get all markers at the appropriate resolution
         var markerEvents = DpSourceDatabase.getMarkersSorted(sequence);
-        
+
 
         // Verify the presence of the end session marker
         var lastMarker = markerEvents.getLast();
