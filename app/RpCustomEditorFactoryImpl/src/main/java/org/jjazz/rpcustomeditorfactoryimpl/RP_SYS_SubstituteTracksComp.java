@@ -33,6 +33,7 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JCheckBox;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.KeyStroke;
@@ -233,6 +234,7 @@ public class RP_SYS_SubstituteTracksComp extends RealTimeRpEditorComponent<RP_SY
         var rv = oldRvDest == null ? rvSrc : oldRvDest;
         var ri = rdb.getRhythm(rv.getContainer().getUniqueId());
         dlg.preset(ri, null);
+        dlg.setCustomComponent(new JLabel(" "));    
         dlg.setTitleText(ResUtil.getString(getClass(), "SelectSubstituteRhythm", ri.timeSignature()));
         dlg.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
         dlg.setVisible(true);

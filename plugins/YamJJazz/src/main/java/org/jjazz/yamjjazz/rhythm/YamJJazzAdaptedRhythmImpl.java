@@ -26,13 +26,13 @@ import com.google.common.base.Preconditions;
 import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythmGenerator;
 import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythm;
 import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.MusicGenerationException;
@@ -76,7 +76,7 @@ public class YamJJazzAdaptedRhythmImpl implements YamJJazzAdaptedRhythm
     private final TimeSignature newTs;                  // The new time signature
     private Style newStyle;                             // The style copy adapted to new time signature
     MusicGenerator generator;
-    private final transient SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private final transient PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(YamJJazzAdaptedRhythmImpl.class.getSimpleName());
 
     public YamJJazzAdaptedRhythmImpl(String rhythmProviderId, YamJJazzRhythm sourceRhythm, TimeSignature ts)

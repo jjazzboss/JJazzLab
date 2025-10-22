@@ -100,12 +100,8 @@ public class RP_BassStyle extends RP_State
                 BassStyle.ENDING;                
             case "Main A-1", "Main A-2" ->
                 BassStyle.TWO_FEEL;
-            case "Main B-1", "Main B-2" ->
-                BassStyle.WALKING;
-            case "Main C-1", "Main C-2" ->
+            case "Main E-1" -> 
                 BassStyle.WALKING_DOUBLE_NOTE;
-            case "Main D-1", "Main D-2", "Main E-1" ->
-                BassStyle.WALKING;
             case "Main E-2" ->
                 BassStyle.WALKING_DOUBLE_TIME;
             default ->

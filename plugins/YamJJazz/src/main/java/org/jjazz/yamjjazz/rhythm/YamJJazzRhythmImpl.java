@@ -27,6 +27,7 @@ import com.google.common.collect.Lists;
 import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythm;
 import org.jjazz.yamjjazz.rhythm.api.YamJJazzDefaultRhythms;
 import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -36,7 +37,6 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.InvalidMidiDataException;
-import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midi.api.Instrument;
@@ -105,7 +105,7 @@ public class YamJJazzRhythmImpl implements YamJJazzRhythm
     private List<RhythmVoice> rhythmVoices;
     private Style style;
     private boolean isExtendedRhythm;
-    private final transient SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private final transient PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(YamJJazzRhythm.class.getSimpleName());
 
     /**
