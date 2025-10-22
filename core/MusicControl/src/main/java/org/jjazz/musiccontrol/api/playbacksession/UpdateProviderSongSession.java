@@ -30,7 +30,6 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.chordleadsheet.api.event.ClsActionEvent;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.UserRhythmVoice;
@@ -49,7 +48,6 @@ import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongMetaEvents.ClsSourceActionEvent;
 import org.jjazz.song.api.SongMetaEvents.SgsSourceActionEvent;
 import org.jjazz.songcontext.api.SongContext;
-import org.jjazz.songstructure.api.event.SgsActionEvent;
 import static org.jjazz.songstructure.api.event.SgsActionEvent.API_ID.AddSongParts;
 import static org.jjazz.songstructure.api.event.SgsActionEvent.API_ID.RemoveSongParts;
 import static org.jjazz.songstructure.api.event.SgsActionEvent.API_ID.ReplaceSongParts;
@@ -65,7 +63,6 @@ import org.openide.util.*;
  * - chord symbol changes (add/remove/change/moveAll)<br>
  * - rhythm parameter value changes<br>
  * - existing user phrase content changes (but not for add/remove user phrase events)<br>
- * - PlaybackSettings playback transposition changes<br>
  * - MidiMix instrument transposition/velocity changes, plus drum keymap and drum rerouting changes<br>
  * <p>
  * If change can't be handled as an update (eg a song part tempo factor change or a click setting), session is marked dirty (ie needs regeneration). If session
@@ -107,7 +104,6 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
      * <p>
      *
      * @param sgContext
-     * @param enablePlaybackTransposition If true apply the playback transposition
      * @param includeClickTrack           If true add the click track, and its muted/unmuted state will depend on the PlaybackSettings
      * @param includePrecountTrack        If true add the precount track, and loopStartTick will depend on the PlaybackSettings
      * @param includeControlTrack         if true add a control track (beat positions + chord symbol markers)
@@ -117,27 +113,19 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
      * @return A session in the NEW or GENERATED state.
      */
     static public UpdateProviderSongSession getSession(SongContext sgContext,
-            boolean enablePlaybackTransposition, boolean includeClickTrack, boolean includePrecountTrack, boolean includeControlTrack,
-            boolean enableUpdateControl,
-            int loopCount,
-            ActionListener endOfPlaybackAction)
+            boolean includeClickTrack, boolean includePrecountTrack, boolean includeControlTrack,
+            boolean enableUpdateControl, int loopCount, ActionListener endOfPlaybackAction)
     {
         if (sgContext == null)
         {
             throw new IllegalArgumentException("sgContext=" + sgContext);
         }
-        UpdateProviderSongSession session = findSession(sgContext,
-                enablePlaybackTransposition, includeClickTrack, includePrecountTrack, includeControlTrack,
-                enableUpdateControl,
-                loopCount,
-                endOfPlaybackAction);
+        UpdateProviderSongSession session = findSession(sgContext, includeClickTrack,
+                includePrecountTrack, includeControlTrack, enableUpdateControl, loopCount, endOfPlaybackAction);
         if (session == null)
         {
-            final UpdateProviderSongSession newSession = new UpdateProviderSongSession(sgContext,
-                    enablePlaybackTransposition, includeClickTrack, includePrecountTrack, includeControlTrack,
-                    enableUpdateControl,
-                    loopCount,
-                    endOfPlaybackAction);
+            final UpdateProviderSongSession newSession = new UpdateProviderSongSession(sgContext, includeClickTrack,
+                    includePrecountTrack, includeControlTrack, enableUpdateControl, loopCount, endOfPlaybackAction);
 
             sessions.add(newSession);
             LOGGER.fine("getSession() create new session");
@@ -158,20 +146,14 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
      */
     static public UpdateProviderSongSession getSession(SongContext sgContext)
     {
-        return getSession(sgContext, true, true, true, true, true, PLAYBACK_SETTINGS_LOOP_COUNT, null);
+        return getSession(sgContext, true, true, true, true, PLAYBACK_SETTINGS_LOOP_COUNT, null);
     }
 
 
-    private UpdateProviderSongSession(SongContext sgContext,
-            boolean enablePlaybackTransposition,
-            boolean includeClickTrack, boolean includePrecountTrack, boolean includeControlTrack,
-            boolean enableUpdateControl,
-            int loopCount, ActionListener endOfPlaybackAction)
+    private UpdateProviderSongSession(SongContext sgContext, boolean includeClickTrack, boolean includePrecountTrack,
+            boolean includeControlTrack, boolean enableUpdateControl, int loopCount, ActionListener endOfPlaybackAction)
     {
-        super(sgContext,
-                enablePlaybackTransposition,
-                includeClickTrack, includePrecountTrack, includeControlTrack,
-                loopCount, endOfPlaybackAction, true);
+        super(sgContext, includeClickTrack, includePrecountTrack, includeControlTrack, loopCount, endOfPlaybackAction, true);
 
         isUpdateControlEnabled = enableUpdateControl;
         userErrorExceptionHandler = e -> StatusDisplayer.getDefault().setStatusText(e.getLocalizedMessage());
@@ -182,7 +164,6 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
     {
         var newContext = sgContext == null ? getSongContext().clone() : sgContext;
         UpdateProviderSongSession newSession = new UpdateProviderSongSession(newContext,
-                isPlaybackTranspositionEnabled(),
                 isClickTrackIncluded(),
                 isPrecountTrackIncluded(),
                 isControlTrackIncluded(),
@@ -393,7 +374,6 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
                     //
                     // MidiMix source events
                     //                
-
                     case MidiMix.PROP_RHYTHM_VOICE_CHANNEL, MidiMix.PROP_RHYTHM_VOICE ->
                     {
                         doDisableUpdates = true;
@@ -414,7 +394,6 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
                         doUpdate = true;
                     }
 
-
                     //
                     // PlaybackSettings source events
                     //       
@@ -422,11 +401,10 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
                     {
                         dirty = true;
                     }
-                    case PlaybackSettings.PROP_PLAYBACK_KEY_TRANSPOSITION, PlaybackSettings.PROP_PLAYBACK_CLICK_ENABLED ->
+                    case PlaybackSettings.PROP_PLAYBACK_CLICK_ENABLED ->
                     {
                         doUpdate = true;
                     }
-
 
                     //
                     // Song property events
@@ -448,8 +426,6 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
                     {
                         doUpdate = true;
                     }
-
-
                     default ->
                     {
                         throw new IllegalArgumentException("s=" + s);
@@ -668,7 +644,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
      * @return Null if not found
      */
     static private UpdateProviderSongSession findSession(SongContext sgContext,
-            boolean enablePlaybackTransposition, boolean includeClickTrack, boolean includePrecount, boolean includeControlTrack,
+            boolean includeClickTrack, boolean includePrecount, boolean includeControlTrack,
             boolean enableUpdateControl,
             int loopCount,
             ActionListener endOfPlaybackAction)
@@ -678,7 +654,6 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
             if ((session.getState().equals(PlaybackSession.State.GENERATED) || session.getState().equals(PlaybackSession.State.NEW))
                     && !session.isDirty()
                     && sgContext.equals(session.getSongContext())
-                    && enablePlaybackTransposition == session.isPlaybackTranspositionEnabled()
                     && includeClickTrack == session.isClickTrackIncluded()
                     && includePrecount == session.isPrecountTrackIncluded()
                     && includeControlTrack == session.isControlTrackIncluded()
@@ -717,5 +692,4 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
         }
         return sb.toString();
     }
-
 }

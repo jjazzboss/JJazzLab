@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.harmony.api.ChordSymbol;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.harmony.api.StandardScaleInstance;
 import org.jjazz.harmony.api.TimeSignature;

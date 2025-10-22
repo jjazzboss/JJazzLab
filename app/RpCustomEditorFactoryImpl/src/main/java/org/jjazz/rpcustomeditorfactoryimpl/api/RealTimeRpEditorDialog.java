@@ -300,7 +300,6 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditorDialog<E> implement
 
         // UpdateProviderSongSession automatically generates updates if a RhythmParameter value changes
         var dynSession = UpdateProviderSongSession.getSession(songPartContextpreview,
-                true,
                 false,
                 false,
                 true,

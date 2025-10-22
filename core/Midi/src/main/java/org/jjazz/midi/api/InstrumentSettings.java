@@ -18,7 +18,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with JJazzLab.  If not, see <https://www.gnu.org/licenses/>
  * 
- *  Contributor(s): 
+ *  Contributor(s):
  */
 package org.jjazz.midi.api;
 
@@ -328,7 +328,7 @@ public class InstrumentSettings implements Serializable
     }
 
     /**
-     * Set the transposition value in semi-tons.
+     * Set the transposition value in semitones.
      *
      * @param t [-36; +36]
      */
@@ -429,13 +429,13 @@ public class InstrumentSettings implements Serializable
     {
         return "(v=" + volume + " t=" + transposition + " r=" + reverb + " c=" + chorus + " p=" + panoramic + ")";
     }
- /**
+
+    /**
      * This enables XStream instance configuration even for private classes or classes from non-public packages of Netbeans modules.
      */
     @ServiceProvider(service = XStreamConfigurator.class)
     public static class XStreamConfig implements XStreamConfigurator
     {
-
         @Override
         public void configure(XStreamConfigurator.InstanceId instanceId, XStream xstream)
         {
@@ -480,7 +480,6 @@ public class InstrumentSettings implements Serializable
      */
     private static class SerializationProxy implements Serializable
     {
-
         private static final long serialVersionUID = -297226301726L;
         private int spVERSION = 2;      // Do not make final!
         private int spTransposition;
@@ -518,5 +517,4 @@ public class InstrumentSettings implements Serializable
             return is;
         }
     }
-
 }

@@ -79,7 +79,6 @@ final public class CL_Selection
 
         Collections.sort(items);
         Collections.sort(selectedBars);
-
     }
 
     /**

@@ -22,6 +22,7 @@
  */
 package org.jjazz.musiccontrol.api;
 
+import com.google.common.base.Preconditions;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyVetoException;
 import java.beans.VetoableChangeListener;
@@ -52,7 +53,7 @@ import org.openide.util.NbPreferences;
 import org.jjazz.songstructure.api.SongPart;
 
 /**
- * Playback settings (click, precount, looping, playback transposition, auto-update mode) and related helper methods.
+ * Playback settings (click, precount, looping, transposition, auto-update mode) and related helper methods.
  * <p>
  * Property change events are fired when settings are modified.
  */
@@ -94,7 +95,7 @@ public class PlaybackSettings
      */
     public static final String PROP_VETO_PRE_PLAYBACK = "PropVetoPrePlayback";
     public static final String PROP_LOOPCOUNT = "PropLoopCount";
-    public static final String PROP_PLAYBACK_KEY_TRANSPOSITION = "PlaybackTransposition";
+    public static final String PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION = "DisplayTransposition";
     public static final String PROP_CLICK_PITCH_HIGH = "ClickPitchHigh";
     public static final String PROP_CLICK_PITCH_LOW = "ClickPitchLow";
     public static final String PROP_CLICK_VELOCITY_HIGH = "ClickVelocityHigh";
@@ -105,7 +106,7 @@ public class PlaybackSettings
     public static final String PROP_PLAYBACK_CLICK_ENABLED = "PlaybackClickEnabled";
     public static final String PROP_AUTO_UPDATE_ENABLED = "AutoUpdateEnabled";
     /**
-     * Fired each time a parameter whic can impact music generation is modified .
+     * Fired each time a parameter that can impact music generation is modified .
      * <p>
      * OldValue=the property name that triggered the musical change, newValue=optional data
      */
@@ -158,36 +159,29 @@ public class PlaybackSettings
     }
 
     /**
-     * Get the key transposition applied to chord symbols when playing a song.
-     * <p>
+     * Get the key transposition applied to chord symbols shown in the UI.
      *
-     * @return [0;-11] Default is 0.
+     * @return [0, 12) Default is 0.
      */
-    public int getPlaybackKeyTransposition()
+    public int getChordSymbolsDisplayTransposition()
     {
-        return prefs.getInt(PROP_PLAYBACK_KEY_TRANSPOSITION, 0);
+        return - prefs.getInt(PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION, 0); // Saved as negative range for backwards compatibility
     }
 
     /**
-     * Set the key transposition applied to chord symbols when playing a song.
+     * Set the key transposition applied to chord symbols shown in the UI.
      * <p>
-     * Ex: if transposition=-2, chord=C#7 will be replaced by B7.
-     * <p>
-     * Note that to have some effect the current PlaybackSession must take into account this parameter.
+     * Ex: if transposition=2, chord=B7 will be shown as C#7.
      *
-     * @param t [0;-11]
+     * @param transposition int in range [0, 12)
      */
-    public void setPlaybackKeyTransposition(int t)
+    public void setChordSymbolsDisplayTransposition(int transposition)
     {
-        if (t < -11 || t > 0)
-        {
-            throw new IllegalArgumentException("t=" + t);
-        }
+        Preconditions.checkArgument(transposition >= 0 && transposition < 12, "transposition=" + transposition);
 
-        int old = getPlaybackKeyTransposition();
-        prefs.putInt(PROP_PLAYBACK_KEY_TRANSPOSITION, t);
-        pcs.firePropertyChange(PROP_PLAYBACK_KEY_TRANSPOSITION, old, t);
-        fireIsMusicGenerationModified(PROP_PLAYBACK_KEY_TRANSPOSITION, t);
+        int old = getChordSymbolsDisplayTransposition();
+        prefs.putInt(PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION, - transposition); // Save as negative range for backwards compatibility
+        pcs.firePropertyChange(PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION, old, transposition);
     }
 
     /**
@@ -225,7 +219,6 @@ public class PlaybackSettings
         prefs.putBoolean(PROP_PLAYBACK_CLICK_ENABLED, b);
         pcs.firePropertyChange(PROP_PLAYBACK_CLICK_ENABLED, old, b);
         fireIsMusicGenerationModified(PROP_PLAYBACK_CLICK_ENABLED, b);
-
     }
 
     public boolean isPlaybackClickEnabled()
@@ -703,6 +696,4 @@ public class PlaybackSettings
     {
         pcs.firePropertyChange(PROP_MUSIC_GENERATION, id, data);
     }
-
-
 }

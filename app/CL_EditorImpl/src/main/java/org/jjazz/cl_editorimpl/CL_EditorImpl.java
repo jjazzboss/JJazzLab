@@ -22,6 +22,7 @@
  */
 package org.jjazz.cl_editorimpl;
 
+import com.google.common.base.Preconditions;
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.awt.Color;
 import java.awt.Component;
@@ -40,7 +41,6 @@ import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -79,6 +79,7 @@ import org.jjazz.cl_editor.api.SelectedBar;
 import org.jjazz.cl_editor.api.SelectedCLI;
 import org.jjazz.cl_editor.spi.BarRendererFactory;
 import org.jjazz.cl_editor.spi.BarRendererProvider;
+import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.openide.awt.UndoRedo;
 import org.jjazz.uisettings.api.ColorSetManager;
 import org.jjazz.utilities.api.StringProperties;
@@ -106,7 +107,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     /**
      * Our LayoutManager.
      */
-    private GridLayout gridLayout;
+    private final GridLayout gridLayout;
     /**
      * Keep a list of BarBox components.
      */
@@ -114,44 +115,44 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     /**
      * Our graphical settings.
      */
-    private CL_EditorSettings settings;
+    private final CL_EditorSettings settings;
     // APPLICATION variables
     /**
      * Our UndoManager.
      */
-    private JJazzUndoManager undoManager;
+    private final JJazzUndoManager undoManager;
     /**
      * Our global lookup.
      */
-    private Lookup lookup;
+    private final Lookup lookup;
     /**
      * The lookup for the selection.
      */
-    private Lookup selectionLookup;
+    private final Lookup selectionLookup;
     /**
      * Store the selected items or bars.
      */
-    private InstanceContent selectionLookupContent;
+    private final InstanceContent selectionLookupContent;
     /**
      * Last snapshot of objects in selectionLookupContent: we assume it's faster to check than checking the lookup (?)
      */
-    private List<Object> selectionLastContent;
+    private final List<Object> selectionLastContent;
     /**
      * The lookup for non-selection stuff.
      */
-    private Lookup generalLookup;
+    private final Lookup generalLookup;
     /**
      * Store non-selection stuff.
      */
-    private InstanceContent generalLookupContent;
+    private final InstanceContent generalLookupContent;
     /**
      * The leadsheet clsModel.
      */
-    private ChordLeadSheet clsModel;
+    private final ChordLeadSheet clsModel;
     /**
      * An optional container for this ChordLeadSheet.
      */
-    private Song songModel;
+    private final Song songModel;
     /**
      * The number of columns.
      */
@@ -164,7 +165,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
      * The last playback point.
      */
     private Position playbackPointLastPos;
-    private BarRendererFactory barRendererFactory;
+    private final BarRendererFactory barRendererFactory;
     /**
      * Receiver for mouse events.
      */
@@ -172,7 +173,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     /**
      * Our Drag and Drop handler.
      */
-    private CL_EditorTransferHandler transferHandler;
+    private final CL_EditorTransferHandler transferHandler;
     private final CL_EditorZoomable editorZoomable;
     private static final Logger LOGGER = Logger.getLogger(CL_EditorImpl.class.getSimpleName());
 
@@ -180,9 +181,9 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     @SuppressWarnings("LeakingThisInConstructor")
     public CL_EditorImpl(Song song, CL_EditorSettings settings, BarRendererFactory brf)
     {
-        Objects.requireNonNull(song);
-        Objects.requireNonNull(settings);
-        Objects.requireNonNull(brf);
+        Preconditions.checkNotNull(song ,   "song=" + song + " settings=" + settings + " brf=" + brf);
+        Preconditions.checkNotNull(settings,"song=" + song + " settings=" + settings + " brf=" + brf);
+        Preconditions.checkNotNull(brf,     "song=" + song + " settings=" + settings + " brf=" + brf);
         
 
         // This is the main part to fix Issue #582 (see also CL_EditorTopComponent.componentActivated())
@@ -261,6 +262,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         // Used to zoom in / zoom out
         addMouseWheelListener(this);
 
+        PlaybackSettings.getInstance().addPropertyChangeListener(PlaybackSettings.PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION, this);
+        setDisplayTransposition(PlaybackSettings.getInstance().getChordSymbolsDisplayTransposition());
     }
 
     @Override
@@ -333,6 +336,9 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             }
         }
 
+        PlaybackSettings.getInstance()
+                .removePropertyChangeListener(PlaybackSettings.PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION, this);
+
         // We're not showing playback or insertion point anymore
         playbackPointLastPos = null;
         insertionPointLastPos = null;
@@ -374,10 +380,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     @Override
     public void setNbColumns(int nbCols)
     {
-        if (nbCols < 1 || nbCols > 16)
-        {
-            throw new IllegalArgumentException("nbCols=" + nbCols);
-        }
+        Preconditions.checkArgument(nbCols >= 1 && nbCols <= 16, "nbCols=" + nbCols);
+
         if (nbCols == nbColumns)
         {
             return;
@@ -448,10 +452,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     @Override
     public void makeBarVisible(int barIndex)
     {
-        if (barIndex < 0 || barIndex >= getNbBarBoxes())
-        {
-            throw new IllegalArgumentException("barIndex=" + barIndex + " getNbBars()=" + getNbBarBoxes());
-        }
+        Preconditions.checkElementIndex(barIndex, getNbBarBoxes(), "barIndex=" + barIndex + " getNbBars()=" + getNbBarBoxes());
 
         // Check how many rows are visible
         float nbVisibleRows = (float) getVisibleRect().height / getBarBox(0).getHeight();
@@ -471,16 +472,13 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             Component c = getComponent(compIndex + getNbColumns());
             scrollRectToVisible(c.getBounds());
         }
-
     }
 
     @Override
     public Rectangle getBarRectangle(int barIndex)
     {
-        if (barIndex < 0 || barIndex >= getNbBarBoxes())
-        {
-            throw new IllegalArgumentException("barIndex=" + barIndex);
-        }
+        Preconditions.checkElementIndex(barIndex, getNbBarBoxes(), "barIndex=" + barIndex);
+
         BarBox bb = getBarBox(barIndex);
         Point p = bb.getLocation();
         Rectangle r = new Rectangle(p);
@@ -492,11 +490,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     @Override
     public void selectBars(int bbIndexFrom, int bbIndexTo, boolean b)
     {
-        if (bbIndexFrom < 0 || bbIndexTo >= getNbBarBoxes() || bbIndexFrom > bbIndexTo)
-        {
-            throw new IllegalArgumentException(
-                    "bbIndexFrom=" + bbIndexFrom + " bbIndexTo=" + bbIndexTo + " getNbBarBoxes()=" + getNbBarBoxes());
-        }
+        Preconditions.checkPositionIndexes(bbIndexFrom, bbIndexTo, getNbBarBoxes() -1); // -1 because it's inclusive on both ends
+
 //        LOGGER.log(Level.FINE, "Before selectBar() b={0} bbIndexFrom={1} selectionLookup={2}", new Object[]
 //        {
 //            b, bbIndexFrom, selectionLookup
@@ -537,11 +532,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     @Override
     public void selectBarsExcept(int bbIndexFrom, int bbIndexTo, boolean b)
     {
-        if (bbIndexFrom < 0 || bbIndexTo >= getNbBarBoxes() || bbIndexFrom > bbIndexTo)
-        {
-            throw new IllegalArgumentException(
-                    "bbIndexFrom=" + bbIndexFrom + " bbIndexTo=" + bbIndexTo + " getNbBarBoxes()=" + getNbBarBoxes());
-        }
+        Preconditions.checkPositionIndexes(bbIndexFrom, bbIndexTo, getNbBarBoxes() -1); // -1 because it's inclusive on both ends
+
 //        selectionLastContent.clear();
 //        selectionLookup.lookupAll(Object.class).forEach(o -> selectionLastContent.add(o));
         int barMax = Math.min(bbIndexFrom - 1, getNbBarBoxes() - 1);
@@ -692,10 +684,10 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     @Override
     public void showInsertionPoint(boolean show, ChordLeadSheetItem<?> item, Position pos, boolean copyMode)
     {
-        if (item == null || (show && pos == null))
-        {
-            throw new NullPointerException("show=" + show + " item=" + item + " pos=" + pos + " copyMode=" + copyMode);
-        }
+        Preconditions.checkNotNull(item,
+                "show=" + show + " item=" + item + " pos=" + pos + " copyMode=" + copyMode);
+        Preconditions.checkArgument( !(show && pos == null),
+                "show=" + show + " item=" + item + " pos=" + pos + " copyMode=" + copyMode);
 
         LOGGER.log(Level.FINER, "showInsertionPoint() b={0} item={1} pos={2} copyMode={3}", new Object[]
         {
@@ -732,10 +724,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         {
             show, pos
         });
-        if (show && pos == null)
-        {
-            throw new IllegalArgumentException("show=" + show + " pos=" + pos);
-        }
+        Preconditions.checkArgument( !(show && pos == null), "show=" + show + " pos=" + pos);
+
         if (playbackPointLastPos != null)
         {
             // Playback point is already shown, switch it off at old location
@@ -774,10 +764,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     @Override
     public void requestAttention(ChordLeadSheetItem<?> item)
     {
-        if (!clsModel.contains(item))
-        {
-            throw new IllegalArgumentException("item=" + item + " clsModel=" + clsModel);
-        }
+        Preconditions.checkArgument(clsModel.contains(item), "item=" + item + " clsModel=" + clsModel);
+
         BarBox bb = getBarBox(item.getPosition().getBar());
         for (BarRenderer br : bb.getBarRenderers())
         {
@@ -870,8 +858,20 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
                         songModel.setSaveNeeded(true);
                     }
                 }
+
+            } else if (evt.getSource() == PlaybackSettings.getInstance())
+            {
+                if (evt.getPropertyName().equals(PlaybackSettings.PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION))
+                {
+                    setDisplayTransposition((int) evt.getNewValue());
+                }
             }
         });
+    }
+
+    private void setDisplayTransposition(int dt)
+    {
+        getBarBoxes().forEach(bb -> bb.setDisplayTransposition(dt));
     }
 
     @Override
@@ -884,26 +884,22 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     // Implementation of the MouseListener interface
     //-----------------------------------------------------------------------
     @Override
-    public void mouseClicked(MouseEvent e
-    )
+    public void mouseClicked(MouseEvent e)
     {
     }
 
     @Override
-    public void mouseEntered(MouseEvent e
-    )
+    public void mouseEntered(MouseEvent e)
     {
     }
 
     @Override
-    public void mouseExited(MouseEvent e
-    )
+    public void mouseExited(MouseEvent e)
     {
     }
 
     @Override
-    public void mousePressed(MouseEvent e
-    )
+    public void mousePressed(MouseEvent e)
     {
         Component c = (Component) e.getSource();
         if (c instanceof ItemRenderer ir)
@@ -920,8 +916,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     }
 
     @Override
-    public void mouseReleased(MouseEvent e
-    )
+    public void mouseReleased(MouseEvent e)
     {
         Component c = (Component) e.getSource();
         if (c instanceof BarRenderer)
@@ -938,8 +933,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     // Implement the MouseMotionListener interface
     //------------------------------------------------------------------
     @Override
-    public void mouseDragged(MouseEvent e
-    )
+    public void mouseDragged(MouseEvent e)
     {
         if (!SwingUtilities.isLeftMouseButton(e))
         {
@@ -954,8 +948,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     }
 
     @Override
-    public void mouseMoved(MouseEvent e
-    )
+    public void mouseMoved(MouseEvent e)
     {
     }
 
@@ -963,8 +956,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 // Implements MouseWheelListener interface
 // ---------------------------------------------------------------
     @Override
-    public void mouseWheelMoved(MouseWheelEvent e
-    )
+    public void mouseWheelMoved(MouseWheelEvent e)
     {
         Component c = (Component) e.getSource();
         if (c instanceof ItemRenderer ir)
@@ -1207,11 +1199,9 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
      */
     private int computeNbBarBoxes(int nbExtraLines)
     {
-        assert clsModel != null;
-        if (nbExtraLines < 1 || nbExtraLines > 100)
-        {
-            throw new IllegalArgumentException("nbExtraLines=" + nbExtraLines);
-        }
+        Preconditions.checkNotNull(clsModel);
+        Preconditions.checkArgument(nbExtraLines >= 1 && nbExtraLines <= 100, "nbExtraLines=" + nbExtraLines);
+
         int modelSize = clsModel.getSizeInBars() + nbExtraLines * nbColumns;
         int bars = ((modelSize / nbColumns) + 1) * nbColumns;
         return bars;
@@ -1256,7 +1246,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 
     private BarBox getBarBox(int bbIndex)
     {
-        assert bbIndex >= 0 && bbIndex < barBoxes.size() : "bbIndex=" + bbIndex + " barBoxes=" + barBoxes;
+        Preconditions.checkElementIndex(bbIndex, barBoxes.size(), "bbIndex=" + bbIndex + " barBoxes=" + barBoxes);
+
         return barBoxes.get(bbIndex);
     }
 
@@ -1307,10 +1298,9 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
      */
     private int getComponentIndex(int barBoxIndex)
     {
-        if (barBoxIndex < 0 || barBoxIndex > getBarBoxes().size())
-        {
-            throw new IllegalArgumentException("barBoxIndex=" + barBoxIndex + " getBarBoxes().size()=" + getBarBoxes().size());
-        }
+        Preconditions.checkPositionIndex(barBoxIndex, getBarBoxes().size(),
+                "barBoxIndex=" + barBoxIndex + " getBarBoxes().size()=" + getBarBoxes().size());
+
         // getComponents() should be called on EDT, otherwise need treeLock
         assert SwingUtilities.isEventDispatchThread() : "Not running in the EDT! barBoxIndex=" + barBoxIndex;
         int bbIndex = 0;
@@ -1353,7 +1343,6 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         {
             registerBarRenderer(br);
         }
-
     }
 
     /**

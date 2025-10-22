@@ -166,7 +166,7 @@ public final class TestMusicGenerationOnSongFiles implements ActionListener
                         // Generate music
                         LOGGER.log(Level.INFO, "  Generating music...");
                         var midiMix = MidiMixManager.getDefault().findMix(song);      // Can raise MidiUnavailableException      
-                        SongSequenceBuilder seqBuilder = new SongSequenceBuilder(new SongContext(song, midiMix), 0);
+                        SongSequenceBuilder seqBuilder = new SongSequenceBuilder(new SongContext(song, midiMix));
                         seqBuilder.buildMapRvPhrase(true);
                     }
 

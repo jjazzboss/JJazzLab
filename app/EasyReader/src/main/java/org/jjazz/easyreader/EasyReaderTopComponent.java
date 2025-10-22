@@ -51,6 +51,7 @@ public final class EasyReaderTopComponent extends TopComponent implements Proper
     private static final Logger LOGGER = Logger.getLogger(EasyReaderTopComponent.class.getSimpleName());
     private final EasyReaderPanel editor;
 
+
     public EasyReaderTopComponent()
     {
         setName(ResUtil.getString(getClass(), "CTL_EasyReader"));
@@ -58,16 +59,12 @@ public final class EasyReaderTopComponent extends TopComponent implements Proper
         putClientProperty(TopComponent.PROP_DRAGGING_DISABLED, Boolean.TRUE);
         // putClientProperty(TopComponent.PROP_SLIDING_DISABLED, Boolean.TRUE);
 
-
         initComponents();
-
 
         editor = new EasyReaderPanel();
         add(editor);
-
-
     }
-
+    
     @Override
     public void componentClosed()
     {
@@ -95,6 +92,7 @@ public final class EasyReaderTopComponent extends TopComponent implements Proper
         return (EasyReaderTopComponent) WindowManager.getDefault().findTopComponent("EasyReaderTopComponent");
     }
 
+
     // ======================================================================
     // PropertyChangeListener interface
     // ======================================================================   
@@ -116,7 +114,7 @@ public final class EasyReaderTopComponent extends TopComponent implements Proper
                 }
             }
         }
-    }
+    } 
 
     // ===========================================================================
     // Private methods

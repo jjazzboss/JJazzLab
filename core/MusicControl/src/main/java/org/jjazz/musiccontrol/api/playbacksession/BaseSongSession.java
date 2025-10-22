@@ -70,7 +70,6 @@ import org.jjazz.utilities.api.ResUtil;
  */
 public class BaseSongSession implements PropertyChangeListener, PlaybackSession, ControlTrackProvider, SongContextProvider, EndOfPlaybackActionProvider
 {
-
     public static final int PLAYBACK_SETTINGS_LOOP_COUNT = -1298;
     private State state = State.NEW;
     private boolean isDirty;
@@ -83,7 +82,6 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     private long loopStartTick = 0;
     private long loopEndTick = -1;
     protected int loopCount = PLAYBACK_SETTINGS_LOOP_COUNT;         // Need to be accessible from subclass, because of getLoopCount() implementation
-    private boolean isPlaybackTranspositionEnabled = true;
     private boolean isClickTrackIncluded = true;
     private boolean isPrecountTrackIncluded = true;
     private boolean isControlTrackIncluded = true;
@@ -97,9 +95,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     /**
      * Create a session with the specified parameters.
      * <p>
-     *
      * @param sgContext
-     * @param enablePlaybackTransposition
      * @param enableClickTrack
      * @param enablePrecountTrack
      * @param enableControlTrack
@@ -107,19 +103,14 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
      * @param endOfPlaybackAction
      * @param useActiveSongBackgroundMusicBuilder If true use ActiveSongBackgroundMusicBuilder when possible to speed up music generation
      */
-    public BaseSongSession(SongContext sgContext,
-            boolean enablePlaybackTransposition, boolean enableClickTrack, boolean enablePrecountTrack, boolean enableControlTrack,
-            int loopCount,
-            ActionListener endOfPlaybackAction,
-            boolean useActiveSongBackgroundMusicBuilder
-    )
+    public BaseSongSession(SongContext sgContext, boolean enableClickTrack, boolean enablePrecountTrack, boolean enableControlTrack,
+            int loopCount, ActionListener endOfPlaybackAction, boolean useActiveSongBackgroundMusicBuilder)
     {
         if (sgContext == null)
         {
             throw new IllegalArgumentException("sgContext=" + sgContext);
         }
         this.songContext = sgContext;
-        this.isPlaybackTranspositionEnabled = enablePlaybackTransposition;
         this.isClickTrackIncluded = enableClickTrack;
         this.isPrecountTrackIncluded = enablePrecountTrack;
         this.isControlTrackIncluded = enableControlTrack;
@@ -134,7 +125,6 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     {
         var newContext = sgContext == null ? getSongContext().clone() : sgContext;
         BaseSongSession res = new BaseSongSession(newContext,
-                isPlaybackTranspositionEnabled(),
                 isClickTrackIncluded(),
                 isPrecountTrackIncluded(),
                 isControlTrackIncluded(),
@@ -393,11 +383,6 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
         return precountClickTrackId;
     }
 
-    public boolean isPlaybackTranspositionEnabled()
-    {
-        return isPlaybackTranspositionEnabled;
-    }
-
     public boolean isClickTrackIncluded()
     {
         return isClickTrackIncluded;
@@ -482,7 +467,6 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
                         pcs.firePropertyChange(PROP_MUTED_TRACKS, false, true);
                     }
                 }
-
                 default ->
                 {
                 }
@@ -498,7 +482,6 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
                     mapTrackIdMuted.put(playbackClickTrackId, !PlaybackSettings.getInstance().isPlaybackClickEnabled());
                     pcs.firePropertyChange(PROP_MUTED_TRACKS, false, true);
                 }
-
                 case PlaybackSettings.PROP_LOOPCOUNT ->
                 {
                     if (loopCount == PLAYBACK_SETTINGS_LOOP_COUNT)
@@ -506,15 +489,12 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
                         pcs.firePropertyChange(PROP_LOOP_COUNT, (Integer) e.getOldValue(), (Integer) e.getNewValue());
                     }
                 }
-
-                default -> // E.g. PROP_PLAYBACK_KEY_TRANSPOSITION
+                default -> // E.g. PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION
                 {
                 }
             }
-            // E.g. PROP_PLAYBACK_KEY_TRANSPOSITION
+            // E.g. PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION
             // Nothing
-
-
         }
     }
 
@@ -583,7 +563,6 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     // ==========================================================================================================
 
     /**
-     *
      * @param sgContext
      * @param silent
      * @param useBackgroundMusicBuilder
@@ -593,11 +572,8 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     private SongSequenceBuilder.SongSequence generateSongSequence(SongContext sgContext, boolean silent, boolean useBackgroundMusicBuilder) throws MusicGenerationException
     {
         SongSequenceBuilder.SongSequence res = null;
-        
-        
-        int playbackKeyTranspose = isPlaybackTranspositionEnabled() ? PlaybackSettings.getInstance().getPlaybackKeyTransposition() : 0;        
-        SongSequenceBuilder seqBuilder = new SongSequenceBuilder(sgContext, playbackKeyTranspose);      // Will work on a deep copy of sgContext
 
+        SongSequenceBuilder seqBuilder = new SongSequenceBuilder(sgContext); // Will work on a deep copy of sgContext
 
         // Reuse ActiveSongBackgroundMusicBuilder result when possible
         var asbmb = ActiveSongBackgroundMusicBuilder.getDefault();
@@ -627,8 +603,6 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
             throw new MusicGenerationException(ResUtil.getString(getClass(), "ERR_BuildSeqError"));
         }
 
-
         return res;
     }
-
 }

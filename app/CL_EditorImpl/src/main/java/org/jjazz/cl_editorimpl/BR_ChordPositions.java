@@ -348,13 +348,13 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
     }
 
     @Override
-    public void showInsertionPoint(boolean b, ChordLeadSheetItem<?> item, Position pos, boolean copyMode)
+    public void showInsertionPoint(boolean showInsertionPoint, ChordLeadSheetItem<?> item, Position pos, boolean copyMode)
     {
-        LOGGER.log(Level.FINE, "showInsertionPoint() b={0} item={1} pos={2} copyMode={3}", new Object[]
+        LOGGER.log(Level.FINE, "showInsertionPoint() showInsertionPoint={0} item={1} pos={2} copyMode={3}", new Object[]
         {
-            b, item, pos, copyMode
+            showInsertionPoint, item, pos, copyMode
         });
-        if (!b)
+        if (!showInsertionPoint)
         {
             // Remove the insertion point
             if (irIP != null)
@@ -367,14 +367,15 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
         }
 
         // Add or move the insertion point
-        if (item instanceof CLI_ChordSymbol)
+        if (item instanceof CLI_ChordSymbol chordSymbol)
         {
             if (cliIP == null)
             {
-                cliIP = new IP_ChordSymbol((CLI_ChordSymbol) item);
-                ((IP_ChordSymbol) cliIP).setPosition(pos);
-                irIP = addItemRenderer(cliIP);
+                IP_ChordSymbol newCliIP = new IP_ChordSymbol(chordSymbol);
+                newCliIP.setPosition(pos);
+                irIP = addItemRenderer(newCliIP);
                 irIP.setSelected(true);
+                cliIP = newCliIP;
             } else
             {
                 ((IP_ChordSymbol) cliIP).setPosition(pos);
@@ -382,24 +383,24 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
             }
         }
 
-        if (irIP instanceof IR_Copiable)
+        if (irIP instanceof IR_Copiable copiable)
         {
-            ((IR_Copiable) irIP).showCopyMode(copyMode);
+            copiable.showCopyMode(copyMode);
         }
     }
 
     @Override
-    public void showPlaybackPoint(boolean b, Position pos)
+    public void showPlaybackPoint(boolean showPlaybackPoint, Position pos)
     {
-        LOGGER.log(Level.FINE, "showPlaybackPoint() b={0} pos={1}", new Object[]
+        LOGGER.log(Level.FINE, "showPlaybackPoint() showPlaybackPoint={0} pos={1}", new Object[]
         {
-            b, pos
+            showPlaybackPoint, pos
         });
-        if (b && pos.getBar() != getModelBarIndex())
+        if (showPlaybackPoint && pos.getBar() != getModelBarIndex())
         {
-            throw new IllegalArgumentException("b=" + b + " pos=" + pos + "  getModelBarIndex()=" + getModelBarIndex());
+            throw new IllegalArgumentException("b=" + showPlaybackPoint + " pos=" + pos + "  getModelBarIndex()=" + getModelBarIndex());
         }
-        if (!b)
+        if (!showPlaybackPoint)
         {
             playbackPosition = null;
         } else if (playbackPosition == null)

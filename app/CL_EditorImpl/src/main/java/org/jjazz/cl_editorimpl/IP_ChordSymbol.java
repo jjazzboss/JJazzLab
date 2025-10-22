@@ -22,6 +22,7 @@
  */
 package org.jjazz.cl_editorimpl;
 
+import com.google.common.base.Preconditions;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.beans.PropertyChangeListener;
@@ -40,11 +41,10 @@ import org.jjazz.utilities.api.StringProperties;
  */
 public class IP_ChordSymbol implements CLI_ChordSymbol
 {
-
     /**
-     * The decorated object.
+     * The decorated chord.
      */
-    private CLI_ChordSymbol cli;
+    private final CLI_ChordSymbol cli;
     /**
      * The position which can be changed via the public method setPosition().
      */
@@ -54,12 +54,11 @@ public class IP_ChordSymbol implements CLI_ChordSymbol
      */
     protected transient SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
 
+
     public IP_ChordSymbol(CLI_ChordSymbol item)
     {
-        if (item == null)
-        {
-            throw new NullPointerException("item=" + item);
-        }
+        Preconditions.checkNotNull(item);
+
         cli = item;
         position = cli.getPosition();
     }
@@ -154,12 +153,7 @@ public class IP_ChordSymbol implements CLI_ChordSymbol
     @Override
     public boolean isDataFlavorSupported(DataFlavor fl)
     {
-        if (fl.equals(flavor)
-                || fl.equals(DataFlavor.stringFlavor))
-        {
-            return true;
-        }
-        return false;
+        return fl.equals(flavor) || fl.equals(DataFlavor.stringFlavor);
     }
 
     @Override
@@ -177,6 +171,4 @@ public class IP_ChordSymbol implements CLI_ChordSymbol
             throw new UnsupportedFlavorException(fl);
         }
     }
-
-
 }

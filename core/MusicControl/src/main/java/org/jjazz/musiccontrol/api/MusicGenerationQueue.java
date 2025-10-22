@@ -200,6 +200,7 @@ public class MusicGenerationQueue implements Runnable
 
             if (incoming != null)
             {
+                // DON'T REMOVE commented logging! A few recurrent bugs have shown up and it helps to troubleshoot them.
 //                LOGGER.log(Level.FINE, "MusicGenerationQueue.run() handling incoming={0} nanoTime()={1}", new Object[]
 //                {
 //                    incoming, System.nanoTime()
@@ -218,7 +219,6 @@ public class MusicGenerationQueue implements Runnable
                     pendingSongContext = null;
                 }
             }
-
 
             try
             {
@@ -292,20 +292,20 @@ public class MusicGenerationQueue implements Runnable
      */
     private boolean handleContext(SongContext sgContext)
     {
-        boolean b;
+        boolean newContextAccepted;
         if (generationFuture == null)
         {
             // No generation task created yet, start one
             // LOGGER.fine("handleContext() start generation FIRST TIME");
             startGenerationTask(sgContext);
-            b = true;
+            newContextAccepted = true;
 
         } else if (generationFuture.isDone())
         {
             // There is a generation task but it is complete, restart one
             // LOGGER.fine("handleContext() start generation");
             startGenerationTask(sgContext);
-            b = true;
+            newContextAccepted = true;
 
         } else
         {
@@ -315,16 +315,16 @@ public class MusicGenerationQueue implements Runnable
             {
                 // LOGGER.fine("handleContext() changed context of current generation task");
                 // OK, task was waiting, we're done
-                b = true;
+                newContextAccepted = true;
 
             } else
             {
                 // NOK, task is generating music
-                b = false;
+                newContextAccepted = false;
             }
         }
 
-        return b;
+        return newContextAccepted;
     }
 
 
@@ -402,14 +402,13 @@ public class MusicGenerationQueue implements Runnable
                 started = true;
             }
 
-
             long startTime = System.nanoTime();
             LOGGER.log(Level.FINE, "UpdateGenerationTask.run() >>> STARTING generation nanoTime()={0}", startTime);
             //LOGGER.info("UpdateGenerationTask.run() >>> STARTING generation cls=" + toDebugString(songContext.getSong().getChordLeadSheet()));
 
+            // Recompute the RhythmVoice mapRvPhrases
+            SongSequenceBuilder sgBuilder = new SongSequenceBuilder(songContext);
 
-            // Recompute the RhythmVoice mapRvPhrases      
-            SongSequenceBuilder sgBuilder = new SongSequenceBuilder(songContext, PlaybackSettings.getInstance().getPlaybackKeyTransposition());
             Throwable throwable = null;
             Map<RhythmVoice, Phrase> map = null;
             try
@@ -445,18 +444,13 @@ public class MusicGenerationQueue implements Runnable
             // Notify listeners
             cs.fireChange();
 
-
             try
             {
                 Thread.sleep(postUpdateSleepTime);
             } catch (InterruptedException ex)
             {
                 LOGGER.log(Level.FINE, "UpdateGenerator.run() UpdateGenerator thread.sleep interrupted ex={0}", ex.getMessage());
-                return;
             }
-
-
         }
-
     }
 }

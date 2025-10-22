@@ -51,16 +51,18 @@ import org.jjazz.cl_editor.itemrenderer.api.ItemRenderer;
 import org.jjazz.cl_editor.itemrenderer.api.ItemRendererSettings;
 import org.jjazz.uiutilities.api.TextLayoutUtils;
 import org.jjazz.utilities.api.ResUtil;
+import org.jjazz.cl_editor.api.DisplayTransposableRenderer;
 
 /**
  * An ItemRenderer for ChordSymbols.
  * <p>
  */
-public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
+public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable, DisplayTransposableRenderer
 {
-
     private final static int OPTION_LINE_V_PADDING = 1;   // Additional space for the option line
     private final static int OPTION_LINE_THICKNESS = 1;   // Additional space for the option line
+    private static final Logger LOGGER = Logger.getLogger(IR_ChordSymbol.class.getSimpleName());
+
     private AttributedString attChordString;
     private boolean copyMode;
     private final IR_ChordSymbolSettings settings;
@@ -70,13 +72,13 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
     private String chordSymbolExtension;
     private String chordSymbolBass;
     private ChordSymbol altChordSymbol;
-    private int chordSymbolWidth;
-    private int chordSymbolHeight;
     private ExtChordSymbol ecs;
     private ChordRenderingInfo cri;
     private Timer timer;
     private Color optionLineColor;
-    private static final Logger LOGGER = Logger.getLogger(IR_ChordSymbol.class.getSimpleName());
+    private int dislayTransposition;
+    private String strChordReplacedAccidentals;
+
 
     @SuppressWarnings("LeakingThisInConstructor")
     public IR_ChordSymbol(CLI_ChordSymbol item, ItemRendererSettings irSettings)
@@ -84,24 +86,53 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
         super(item, IR_Type.ChordSymbol);
         LOGGER.log(Level.FINE, "IR_ChordSymbol() item={0}", item);
 
-
         // Apply settings and listen to their changes
         settings = irSettings.getIR_ChordSymbolSettings();
         settings.addPropertyChangeListener(this);
         setFont(settings.getFont());
 
-
         // Listen to color change
         getModel().getClientProperties().addPropertyChangeListener(this);
-
         updateForegroundColor();
 
-        modelChanged();
+        dislayTransposition = 0;
 
+        modelChanged();
+        addTextItalicStyle();
+    }
+
+    /**
+     * Sets a transposition to be applied before rendering the chord.
+     * 
+     * @param newTransposition 
+     */
+    @Override
+    public void setDisplayTransposition(int newTransposition)
+    {
+        dislayTransposition = newTransposition;
+        modelChanged();
+        addTextItalicStyle();
     }
 
     @Override
-    public void modelChanged()
+    public int getDisplayTransposition()
+    {
+        return dislayTransposition;
+    }
+
+    @Override
+    public final void modelChanged()
+    {
+        var chord = getModel().getData();
+        ExtChordSymbol modelChord = (ExtChordSymbol) chord;
+        updateRendering(modelChord.getTransposedChordSymbol(dislayTransposition, null));
+        createAttrString();
+    }
+
+    /**
+     * Updates the rendering.
+     */
+    private void updateRendering(ExtChordSymbol newModel)
     {
         // Save previous state
         ExtChordSymbol oldEcs = ecs;
@@ -109,9 +140,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
         String oldChordSymbolString = chordSymbolString;
         ChordSymbol oldAltChordSymbol = altChordSymbol;
 
-
-        // Update our state
-        ecs = (ExtChordSymbol) getModel().getData();
+        ecs = newModel;
         cri = ecs.getRenderingInfo();
         chordSymbolString = ecs.getOriginalName();
         altChordSymbol = ecs.getAlternateChordSymbol();
@@ -177,41 +206,26 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
     }
 
     /**
-     * Calculate the preferredSize() depending on chord symbol, font and zoomFactor.
-     * <p>
+     * Creates the attChordString based on chordSymbolBase, chordSymbolExtension and chordSymbolBass.
      */
-    @Override
-    public Dimension getPreferredSize()
+    private void createAttrString()
     {
-
-        // Prepare the graphics context
-        Graphics2D g2 = (Graphics2D) getGraphics();
-        assert g2 != null;
-        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-
         // The fonts to be used
-        FontRenderContext frc = g2.getFontRenderContext();
         Font font = getFont();
         Font musicFont = settings.getMusicFont();
-
 
         // Make font size depend on the zoom factor
         float factor = 0.5f + (getZoomFactor() / 100f);
         float zFontSize = factor * font.getSize2D();
         zFontSize = Math.max(zFontSize, 12);
 
-
         // Create the AttributedString from the strings
         String strChord = chordSymbolBase + chordSymbolExtension + chordSymbolBass;
-        String strChord2 = strChord.replace('#', settings.getSharpCharInMusicFont()).replace('b', settings.getFlatCharInMusicFont());
-        attChordString = new AttributedString(strChord2, font.getAttributes());
+        strChordReplacedAccidentals = strChord
+                .replace('#', settings.getSharpCharInMusicFont())
+                .replace('b', settings.getFlatCharInMusicFont());
+        attChordString = new AttributedString(strChordReplacedAccidentals, font.getAttributes());
         attChordString.addAttribute(TextAttribute.SIZE, zFontSize);                 // Override
-//        if (needOptionDots())
-//        {
-//            attChordString.addAttribute(TextAttribute.POSTURE, TextAttribute.POSTURE_OBLIQUE);      // Default attribute
-//        }
 
         // Use the music font for all the # and b symbols
         for (int i = 0; i < strChord.length(); i++)
@@ -228,26 +242,53 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
             attChordString.addAttribute(TextAttribute.SUPERSCRIPT, TextAttribute.SUPERSCRIPT_SUPER, chordSymbolBase.length(),
                     chordSymbolBase.length() + chordSymbolExtension.length());
         }
+    }
 
+    /**
+     * Calculate the preferredSize() depending on chord symbol, font and zoomFactor.
+     * <p>
+     */
+    @Override
+    public Dimension getPreferredSize()
+    {
+        // Prepare the graphics context
+        Graphics2D g2 = (Graphics2D) getGraphics();
+        assert g2 != null;
+        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        // The fonts to be used
+        FontRenderContext frc = g2.getFontRenderContext();
 
         // Create the TextLayout to get its dimension       
         TextLayout textLayout = new TextLayout(attChordString.getIterator(), frc);
-        chordSymbolWidth = (int) TextLayoutUtils.getWidth(textLayout, strChord2, false);
-        chordSymbolHeight = TextLayoutUtils.getHeight(textLayout, frc);
+        int chordSymbolWidth = (int) TextLayoutUtils.getWidth(textLayout, strChordReplacedAccidentals, dislayTransposition == 0);
+        int chordSymbolHeight = TextLayoutUtils.getHeight(textLayout, frc);
+
         Insets in = getInsets();
         final int PADDING = 1;
         int wFinal = chordSymbolWidth + 2 * PADDING + in.left + in.right; //  + (needOptionDots(ecs) ? CORNER_SIZE : 0);
         int hFinal = chordSymbolHeight + PADDING + OPTION_LINE_THICKNESS + 2 * OPTION_LINE_V_PADDING + in.top + in.bottom;
-        Dimension d = new Dimension(wFinal, hFinal);
+        Dimension dimension = new Dimension(wFinal, hFinal);
 
-
-        LOGGER.log(Level.FINE, "getPreferredSize()    result d={0}   (insets={1})", new Object[]
+        LOGGER.log(Level.FINE, "evaluateTextRepresentation()    result d={0}   (insets={1})", new Object[]
         {
-            d, in
+            dimension, in
         });
 
+        return dimension;
+    }
 
-        return d;
+
+    /**
+     * Adds the correct italics style to represent the chord. Transposed chords are represented in italics.
+     */
+    private void addTextItalicStyle()
+    {
+        Float fontPosture = dislayTransposition == 0
+                ? TextAttribute.POSTURE_REGULAR
+                : TextAttribute.POSTURE_OBLIQUE;
+        attChordString.addAttribute(TextAttribute.POSTURE, fontPosture);
     }
 
     @Override
@@ -484,5 +525,4 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable
         optionLineColor = c;
         setForeground(c);
     }
-
 }
