@@ -170,6 +170,11 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
     public void setDisplayTransposition(int dt)
     {
         displayTransposition = dt;
+
+        getItemRenderers().stream()
+                .filter(DisplayTransposableRenderer.class::isInstance)
+                .map(DisplayTransposableRenderer.class::cast)
+                .forEach(ir -> ir.setDisplayTransposition(displayTransposition));
     }
 
     @Override
@@ -196,13 +201,11 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
         {
             if (cliIP == null)
             {
-                var traCliCs = CLI_Factory.getDefault().createChordSymbol(
-                        cliCs.getData().getTransposedChordSymbol(displayTransposition, null), cliCs.getPosition());
-
-                cliIP = new IP_ChordSymbol(traCliCs);
-                ((IP_ChordSymbol) cliIP).setPosition(pos);
-                irIP = addItemRenderer(cliIP);
+                IP_ChordSymbol newCliIP = new IP_ChordSymbol(cliCs);
+                newCliIP.setPosition(pos);
+                irIP = addItemRenderer(newCliIP);
                 irIP.setSelected(true);
+                cliIP = newCliIP;
             } else
             {
                 ((IP_ChordSymbol) cliIP).setPosition(pos);
@@ -300,6 +303,10 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
         {
             // CLI_BarAnnotation
             ir = irf.createItemRenderer(IR_Type.BarAnnotationPaperNote, item, getSettings().getItemRendererSettings());
+        }
+        if (ir instanceof DisplayTransposableRenderer transposable)
+        {
+            transposable.setDisplayTransposition(displayTransposition);
         }
         return ir;
     }

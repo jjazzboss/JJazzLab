@@ -25,6 +25,7 @@ package org.jjazz.cl_editor.spi;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.barrenderer.api.BarRenderer;
 import org.jjazz.cl_editor.itemrenderer.api.ItemRendererFactory;
+import org.netbeans.api.annotations.common.NonNull;
 import org.openide.util.Lookup;
 
 /**
@@ -95,6 +96,7 @@ public interface BarRendererFactory
      * @param irf
      * @return
      */
+    @NonNull
     BarRenderer createBarRenderer(CL_Editor editor, String brType, int barIndex, BarRendererSettings settings, ItemRendererFactory irf);
 
 }

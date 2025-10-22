@@ -41,11 +41,10 @@ import org.jjazz.utilities.api.StringProperties;
  */
 public class IP_ChordSymbol implements CLI_ChordSymbol
 {
-
     /**
-     * The decorated object.
+     * The decorated chord.
      */
-    private CLI_ChordSymbol cli;
+    private final CLI_ChordSymbol cli;
     /**
      * The position which can be changed via the public method setPosition().
      */
@@ -54,6 +53,7 @@ public class IP_ChordSymbol implements CLI_ChordSymbol
      * The listeners for changes in this ChordLeadSheetItem.
      */
     protected transient SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+
 
     public IP_ChordSymbol(CLI_ChordSymbol item)
     {
@@ -153,12 +153,7 @@ public class IP_ChordSymbol implements CLI_ChordSymbol
     @Override
     public boolean isDataFlavorSupported(DataFlavor fl)
     {
-        if (fl.equals(flavor)
-                || fl.equals(DataFlavor.stringFlavor))
-        {
-            return true;
-        }
-        return false;
+        return fl.equals(flavor) || fl.equals(DataFlavor.stringFlavor);
     }
 
     @Override

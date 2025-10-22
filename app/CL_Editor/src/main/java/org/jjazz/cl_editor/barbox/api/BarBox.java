@@ -32,7 +32,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -55,8 +54,6 @@ import org.jjazz.cl_editor.api.DisplayTransposableRenderer;
  */
 public class BarBox extends JPanel implements FocusListener, PropertyChangeListener
 {
-    private static final Logger LOGGER = Logger.getLogger(BarBox.class.getSimpleName());
-
     // GUI
 
     private final CL_Editor editor;
@@ -154,24 +151,11 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     public void setDisplayTransposition(int dt)
     {
         displayTransposition = dt;
-        transposeBarRenderers();
-    }
-
-    private void transposeBarRenderers()
-    {
+        
         this.getBarRenderers().stream()
-                    .flatMap(br -> br.getItemRenderers().stream())
                     .filter(DisplayTransposableRenderer.class::isInstance)
                     .map(DisplayTransposableRenderer.class::cast)
-                    .forEach(it -> it.setDisplayTransposition(displayTransposition));
-    }
-
-    private void transposeItemRenderers(ArrayList<ItemRenderer> irs)
-    {
-        irs.stream()
-                .filter(DisplayTransposableRenderer.class::isInstance)
-                .map(DisplayTransposableRenderer.class::cast)
-                .forEach(it -> it.setDisplayTransposition(displayTransposition));
+                    .forEach(br -> br.setDisplayTransposition(displayTransposition));
     }
 
     
@@ -194,7 +178,6 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
         {
             br.setModel(this.modelBarIndex, this.model);
         }
-        transposeBarRenderers();
 
         refreshBackground();
     }
@@ -219,7 +202,6 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
                 result.add(br.addItemRenderer(item));
             }
         }
-        transposeItemRenderers(result);
 
         return result;
     }
@@ -417,7 +399,6 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
         {
             br.setModelBarIndex(modelBarIndex);
         }
-        transposeBarRenderers();
 
         refreshBackground();
     }
@@ -532,6 +513,10 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
         {
             BarRenderer br = barRendererFactory.createBarRenderer(editor, brType, barIndex, bbSettings.getBarRendererSettings(),
                     barRendererFactory.getItemRendererFactory());
+            if (br instanceof DisplayTransposableRenderer transposable)
+            {
+                transposable.setDisplayTransposition(displayTransposition);
+            }
             br.setModelBarIndex(modelBarIndex);
             br.setZoomVFactor(zoomVFactor);
             br.setEnabled(isEnabled());
@@ -548,10 +533,6 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
         {
             if (br.isRegisteredItemClass(item))
             {
-                if (br instanceof DisplayTransposableRenderer trans)
-                {
-                    trans.setDisplayTransposition(displayTransposition);
-                }
                 br.showInsertionPoint(showIP, item, pos, copyMode);
             }
         }
@@ -577,8 +558,6 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
         for (BarRenderer br : getBarRenderers())
         {
             br.showPlaybackPoint(b, pos);
-            // if br instanceof transposable
-            //      it.transpose(displayTransposition);
         }
     }
 
