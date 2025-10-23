@@ -29,7 +29,8 @@ import org.openide.util.Lookup;
 
 public interface IR_ChordSymbolSettings
 {
-        /**
+
+    /**
      * The CLI_ChordSymbol client property used to store a user-defined color.
      * <p>
      * Do not change the value string "SongPropUserFontColor" as it was used in CLI_ChordSymbol serialization since JJazzLab 4.
@@ -37,8 +38,7 @@ public interface IR_ChordSymbolSettings
      * TODO: should be in IR_ChordSymbol. To be moved once ItemRenderer module deleted and content transfer to CL_EditorImpl.
      */
     public static final String PROP_CHORD_SYMBOL_USER_FONT_COLOR = "SongPropUserFontColor";
-    
-    
+
     public static String PROP_FONT = "ItemFont";
     public static String PROP_FONT_COLOR = "ItemFontColor";
 
@@ -78,7 +78,6 @@ public interface IR_ChordSymbolSettings
      */
     Color getColor();
 
-  
     /**
      * The font to display musical symbols like sharp and flat symbols.
      *

@@ -45,11 +45,12 @@ import org.openide.windows.WindowManager;
 @ActionID(category = "MusicControls", id = "org.jjazz.musiccontrolactions.transposedisplay")
 @ActionRegistration(displayName = "#CTL_TransposeDisplay", lazy = false)
 @ActionReferences(
-        {
-            @ActionReference(path = "Actions/ExtendedToolbar", position = 10)    
-        })
+    {
+        @ActionReference(path = "Actions/ExtendedToolbar", position = 10)
+    })
 public class TransposeDisplayedChordSymbols extends AbstractAction implements PropertyChangeListener
 {
+
     @StaticResource(relative = true)
     private static final String OFF_ICON = "resources/Sax-OFF-24x24.png";
     @StaticResource(relative = true)
@@ -68,17 +69,18 @@ public class TransposeDisplayedChordSymbols extends AbstractAction implements Pr
     public void actionPerformed(ActionEvent e)
     {
         var ps = PlaybackSettings.getInstance();
-        var dlg = TransposeDisplayDialog.getInstance();
-
-        dlg.preset(ps.getChordSymbolsDisplayTransposition());
+        int tOld = ps.getChordSymbolsDisplayTransposition();
+        
+        
+        var dlg = TransposeDisplayedChordSymbolsDialog.getInstance();
         dlg.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
         dlg.setVisible(true);
 
-        if (dlg.isExitOk())
+        
+        int tNew = ps.getChordSymbolsDisplayTransposition();
+        if (tNew != 0 && tNew != tOld)
         {
-            ps.setChordSymbolsDisplayTransposition(dlg.getDisplayTransposition());
-
-            Analytics.setProperties(Analytics.buildMap("Chord symbol display transposition", dlg.getDisplayTransposition()));
+            Analytics.setProperties(Analytics.buildMap("Chord symbol display transposition", tNew));
         }
     }
 
@@ -103,7 +105,7 @@ public class TransposeDisplayedChordSymbols extends AbstractAction implements Pr
     // ======================================================================   
     private void updateButtonUI()
     {
-        int t = PlaybackSettings.getInstance().getChordSymbolsDisplayTransposition();
+        int t = -PlaybackSettings.getInstance().getChordSymbolsDisplayTransposition();
 
         String iconPath = t == 0 ? OFF_ICON : ON_ICON;
         putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource(iconPath)));

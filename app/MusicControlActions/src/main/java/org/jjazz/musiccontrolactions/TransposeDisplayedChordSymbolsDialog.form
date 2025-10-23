@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <Form version="1.5" maxVersion="1.9" type="org.netbeans.modules.form.forminfo.JDialogFormInfo">
+  <Properties>
+    <Property name="title" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+      <ResourceString bundle="org/jjazz/musiccontrolactions/Bundle.properties" key="TransposeDisplayedChordSymbolsDialog.title" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+    </Property>
+  </Properties>
   <SyntheticProperties>
     <SyntheticProperty name="formSizePolicy" type="int" value="1"/>
     <SyntheticProperty name="generateCenter" type="boolean" value="false"/>
@@ -71,7 +76,7 @@
     <Component class="javax.swing.JButton" name="btn_Ok">
       <Properties>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/musiccontrolactions/Bundle.properties" key="TransposeDisplayDialog.btn_Ok.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+          <ResourceString bundle="org/jjazz/musiccontrolactions/Bundle.properties" key="TransposeDisplayedChordSymbolsDialog.btn_Ok.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
       </Properties>
       <Events>
@@ -81,7 +86,7 @@
     <Component class="javax.swing.JButton" name="btn_Cancel">
       <Properties>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/musiccontrolactions/Bundle.properties" key="TransposeDisplayDialog.btn_Cancel.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+          <ResourceString bundle="org/jjazz/musiccontrolactions/Bundle.properties" key="TransposeDisplayedChordSymbolsDialog.btn_Cancel.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
       </Properties>
       <Events>
@@ -108,6 +113,7 @@
         <Property name="selectedIndex" type="int" value="1"/>
       </Properties>
       <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="cmb_transpositionActionPerformed"/>
         <EventHandler event="keyPressed" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="cmb_transpositionKeyPressed"/>
       </Events>
       <AuxValues>
@@ -131,7 +137,7 @@
             <Property name="columns" type="int" value="20"/>
             <Property name="rows" type="int" value="2"/>
             <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="org/jjazz/musiccontrolactions/Bundle.properties" key="TransposeDisplayDialog.helpTextArea1.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+              <ResourceString bundle="org/jjazz/musiccontrolactions/Bundle.properties" key="TransposeDisplayedChordSymbolsDialog.helpTextArea1.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
             </Property>
           </Properties>
           <AuxValues>
@@ -143,11 +149,11 @@
     <Component class="javax.swing.JCheckBox" name="cb_enableTransposition">
       <Properties>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/musiccontrolactions/Bundle.properties" key="TransposeDisplayDialog.cb_enableTransposition.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+          <ResourceString bundle="org/jjazz/musiccontrolactions/Bundle.properties" key="TransposeDisplayedChordSymbolsDialog.cb_enableTransposition.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
       </Properties>
       <Events>
-        <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="cb_enableTranspositionStateChanged"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="cb_enableTranspositionActionPerformed"/>
       </Events>
     </Component>
   </SubComponents>

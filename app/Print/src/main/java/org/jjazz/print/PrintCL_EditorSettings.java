@@ -40,6 +40,7 @@ import org.jjazz.cl_editor.itemrenderer.api.ItemRendererSettings;
  * <p>
  * Embeds all the sub settings.
  * <p>
+ * @todo use ItemRendererSettingsAdapter and IR_ChordSymbolSettingsAdapter (and possibly create Adapters for other settings)
  */
 public class PrintCL_EditorSettings implements CL_EditorSettings
 {

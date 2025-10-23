@@ -56,7 +56,7 @@ public class ChordListener implements CL_ContextActionListener, PropertyChangeLi
         cap.addWeakSelectionListener(this);
         selectionChange(cap.getSelection());
 
-        // Listen to transposition option changes
+        // Listen to display transposition changes
         playbackSettings = PlaybackSettings.getInstance();
         playbackSettings.addPropertyChangeListener(PlaybackSettings.PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION, this);
         setTransposition(playbackSettings.getChordSymbolsDisplayTransposition());
@@ -78,11 +78,11 @@ public class ChordListener implements CL_ContextActionListener, PropertyChangeLi
         transposition = newTransposition;
         if (chordSymbol != null)
         {
-            useTransposedChord();
+            updateEditorModel();
         }
     }
 
-    private void useTransposedChord()
+    private void updateEditorModel()
     {
         ExtChordSymbol transposedChord = chordSymbol.getData().getTransposedChordSymbol(transposition, null);
         editor.setModel(transposedChord);
@@ -118,7 +118,6 @@ public class ChordListener implements CL_ContextActionListener, PropertyChangeLi
         {
             // Not a valid selection, do nothing
             // Note: an empty selection is received when switching from a CL_Editor TopComponent to a different TopComponent
-            return;
         }
 
         // Replace current chord symbol
@@ -131,7 +130,7 @@ public class ChordListener implements CL_ContextActionListener, PropertyChangeLi
         if (chordSymbol != null)
         {
             chordSymbol.addPropertyChangeListener(this);
-            useTransposedChord();
+            updateEditorModel();
         }
     }
 
@@ -149,7 +148,7 @@ public class ChordListener implements CL_ContextActionListener, PropertyChangeLi
         {
             if (ChordLeadSheetItem.PROP_ITEM_DATA.equals(evt.getPropertyName()))
             {
-                editor.setModel(chordSymbol.getData());
+                updateEditorModel();
             }
         } else if (PlaybackSettings.PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION.equals(evt.getPropertyName()))
         {

@@ -22,129 +22,102 @@
  */
 package org.jjazz.musiccontrolactions;
 
-import com.google.common.base.Preconditions;
-import java.awt.event.ActionEvent;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.KeyEvent;
-import javax.swing.AbstractAction;
-import javax.swing.JComponent;
-import javax.swing.JRootPane;
-import javax.swing.KeyStroke;
+import org.jjazz.musiccontrol.api.PlaybackSettings;
+import org.jjazz.uiutilities.api.UIUtilities;
 import org.openide.windows.WindowManager;
 
 /**
  * Dialog to select transposition.
+ * <p>
+ * PlaybackSettings is directly updated when user interacts with UI -so he can immediatly understand the changes.
  */
-public class TransposeDisplayDialog extends javax.swing.JDialog
+public class TransposeDisplayedChordSymbolsDialog extends javax.swing.JDialog
 {
-    static private TransposeDisplayDialog INSTANCE;
-    private boolean exitOk;
 
-    public static TransposeDisplayDialog getInstance()
+    static private TransposeDisplayedChordSymbolsDialog INSTANCE;
+    private int lastNonZeroTransposition = 2;
+    private int cancelTransposition;
+
+    public static TransposeDisplayedChordSymbolsDialog getInstance()
     {
-        synchronized (TransposeDisplayDialog.class)
+        synchronized (TransposeDisplayedChordSymbolsDialog.class)
         {
             if (INSTANCE == null)
             {
-                INSTANCE = new TransposeDisplayDialog(WindowManager.getDefault().getMainWindow(), true);
+                INSTANCE = new TransposeDisplayedChordSymbolsDialog(WindowManager.getDefault().getMainWindow(), true);
             }
         }
         return INSTANCE;
     }
 
-    /**
-     * Private constructor for Singleton pattern.
-     * @param parent
-     * @param modal 
-     */
-    private TransposeDisplayDialog(java.awt.Frame parent, boolean modal)
+    private TransposeDisplayedChordSymbolsDialog(java.awt.Frame parent, boolean modal)
     {
         super(parent, modal);
         initComponents();
-    }
 
-    /**
-     * @param transposeBy int in range [0, 12)
-     */
-    public void preset(int transposeBy)
-    {
-        Preconditions.checkArgument(transposeBy >= 0 && transposeBy < 12, "transposition=" + transposeBy);
+        UIUtilities.installEnterKeyAction(this, () -> actionOK());
+        UIUtilities.installEscapeKeyAction(this, () -> actionCancel());
 
-        cb_enableTransposition.setSelected(transposeBy != 0);
-        cmb_transposition.setEnabled(transposeBy != 0);
-        if (transposeBy != 0)
-        {
-            cmb_transposition.setSelectedIndex(transposeBy - 1);
-        }
+        PlaybackSettings.getInstance().addPropertyChangeListener(PlaybackSettings.PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION, e -> transpositionChanged());
+        transpositionChanged();
+
         pack();
-        cb_enableTransposition.requestFocusInWindow();       // After pack
-    }
 
-    public boolean isExitOk()
-    {
-        return exitOk;
-    }
+        addComponentListener(new ComponentAdapter()
+        {
+            @Override
+            public void componentShown(ComponentEvent e)
+            {
+                cb_enableTransposition.requestFocusInWindow();
+                cancelTransposition = PlaybackSettings.getInstance().getChordSymbolsDisplayTransposition();
+            }
+        });
 
-    /**
-     * Get the key transposition value.
-     * <p>
-     * Note that value is meaningless if isExitOk() returns false.
-     *
-     * @return
-     */
-    public int getDisplayTransposition()
-    {
-        return !cb_enableTransposition.isSelected() ? 0 : cmb_transposition.getSelectedIndex() + 1;
-    }    
+    }
 
     // ====================================================================================================
     // Private methods
     // ====================================================================================================
     /**
-     * Overridden to add global key bindings
+     * Get the key transposition value.
+     * <p>
      *
      * @return
      */
-    @Override
-    protected JRootPane createRootPane()
+    private int getDisplayTransposition()
     {
-        JRootPane contentPane = new JRootPane();
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");   
-        contentPane.getActionMap().put("actionOk", new AbstractAction("OK")
-        {
-            @Override
-            public void actionPerformed(ActionEvent e)
-            {
-                actionOK();
-            }
-        });
+        return !cb_enableTransposition.isSelected() ? 0 : cmb_transposition.getSelectedIndex() + 1;
+    }
 
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");   
-        contentPane.getActionMap().put("actionCancel", new AbstractAction("Cancel")
+    private void transpositionChanged()
+    {
+        int t = PlaybackSettings.getInstance().getChordSymbolsDisplayTransposition();
+        cb_enableTransposition.setSelected(t != 0);
+        cmb_transposition.setEnabled(t != 0);
+        if (t != 0)
         {
-            @Override
-            public void actionPerformed(ActionEvent e)
-            {
-                actionCancel();
-            }
-        });
-        return contentPane;
+            lastNonZeroTransposition = t;
+            cmb_transposition.setSelectedIndex(t - 1);
+        }
     }
 
     private void actionOK()
     {
-        exitOk = true;
         setVisible(false);
     }
 
     private void actionCancel()
     {
-        exitOk = false;
+        PlaybackSettings.getInstance().setChordSymbolsDisplayTransposition(cancelTransposition);
         setVisible(false);
     }
 
     /**
-     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of
-     * this method is always regenerated by the Form Editor.
+     * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of this method is
+     * always regenerated by the Form Editor.
      */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -158,7 +131,9 @@ public class TransposeDisplayDialog extends javax.swing.JDialog
         helpTextArea1 = new org.jjazz.flatcomponents.api.HelpTextArea();
         cb_enableTransposition = new javax.swing.JCheckBox();
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_Ok, org.openide.util.NbBundle.getMessage(TransposeDisplayDialog.class, "TransposeDisplayDialog.btn_Ok.text")); // NOI18N
+        setTitle(org.openide.util.NbBundle.getMessage(TransposeDisplayedChordSymbolsDialog.class, "TransposeDisplayedChordSymbolsDialog.title")); // NOI18N
+
+        org.openide.awt.Mnemonics.setLocalizedText(btn_Ok, org.openide.util.NbBundle.getMessage(TransposeDisplayedChordSymbolsDialog.class, "TransposeDisplayedChordSymbolsDialog.btn_Ok.text")); // NOI18N
         btn_Ok.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -167,7 +142,7 @@ public class TransposeDisplayDialog extends javax.swing.JDialog
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_Cancel, org.openide.util.NbBundle.getMessage(TransposeDisplayDialog.class, "TransposeDisplayDialog.btn_Cancel.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_Cancel, org.openide.util.NbBundle.getMessage(TransposeDisplayedChordSymbolsDialog.class, "TransposeDisplayedChordSymbolsDialog.btn_Cancel.text")); // NOI18N
         btn_Cancel.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -178,6 +153,13 @@ public class TransposeDisplayDialog extends javax.swing.JDialog
 
         cmb_transposition.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "-1", "-2   (sax tenor Bb, trumpet Bb, ...)", "-3 ", "-4 ", "-5  (flute alto G, ...)", "-6 ", "-7", "-8", "-9   (sax alto Eb, ...)", "-10", "-11  (piccolo Db, ...)" }));
         cmb_transposition.setSelectedIndex(1);
+        cmb_transposition.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                cmb_transpositionActionPerformed(evt);
+            }
+        });
         cmb_transposition.addKeyListener(new java.awt.event.KeyAdapter()
         {
             public void keyPressed(java.awt.event.KeyEvent evt)
@@ -190,15 +172,15 @@ public class TransposeDisplayDialog extends javax.swing.JDialog
 
         helpTextArea1.setColumns(20);
         helpTextArea1.setRows(2);
-        helpTextArea1.setText(org.openide.util.NbBundle.getMessage(TransposeDisplayDialog.class, "TransposeDisplayDialog.helpTextArea1.text")); // NOI18N
+        helpTextArea1.setText(org.openide.util.NbBundle.getMessage(TransposeDisplayedChordSymbolsDialog.class, "TransposeDisplayedChordSymbolsDialog.helpTextArea1.text")); // NOI18N
         jScrollPane1.setViewportView(helpTextArea1);
 
-        org.openide.awt.Mnemonics.setLocalizedText(cb_enableTransposition, org.openide.util.NbBundle.getMessage(TransposeDisplayDialog.class, "TransposeDisplayDialog.cb_enableTransposition.text")); // NOI18N
-        cb_enableTransposition.addChangeListener(new javax.swing.event.ChangeListener()
+        org.openide.awt.Mnemonics.setLocalizedText(cb_enableTransposition, org.openide.util.NbBundle.getMessage(TransposeDisplayedChordSymbolsDialog.class, "TransposeDisplayedChordSymbolsDialog.cb_enableTransposition.text")); // NOI18N
+        cb_enableTransposition.addActionListener(new java.awt.event.ActionListener()
         {
-            public void stateChanged(javax.swing.event.ChangeEvent evt)
+            public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                cb_enableTranspositionStateChanged(evt);
+                cb_enableTranspositionActionPerformed(evt);
             }
         });
 
@@ -266,10 +248,15 @@ public class TransposeDisplayDialog extends javax.swing.JDialog
         actionCancel();
     }//GEN-LAST:event_btn_CancelActionPerformed
 
-    private void cb_enableTranspositionStateChanged(javax.swing.event.ChangeEvent evt)//GEN-FIRST:event_cb_enableTranspositionStateChanged
-    {//GEN-HEADEREND:event_cb_enableTranspositionStateChanged
-        cmb_transposition.setEnabled(cb_enableTransposition.isSelected());
-    }//GEN-LAST:event_cb_enableTranspositionStateChanged
+    private void cb_enableTranspositionActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cb_enableTranspositionActionPerformed
+    {//GEN-HEADEREND:event_cb_enableTranspositionActionPerformed
+        PlaybackSettings.getInstance().setChordSymbolsDisplayTransposition(getDisplayTransposition());
+    }//GEN-LAST:event_cb_enableTranspositionActionPerformed
+
+    private void cmb_transpositionActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cmb_transpositionActionPerformed
+    {//GEN-HEADEREND:event_cmb_transpositionActionPerformed
+        PlaybackSettings.getInstance().setChordSymbolsDisplayTransposition(getDisplayTransposition());
+    }//GEN-LAST:event_cmb_transpositionActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -280,4 +267,5 @@ public class TransposeDisplayDialog extends javax.swing.JDialog
     private org.jjazz.flatcomponents.api.HelpTextArea helpTextArea1;
     private javax.swing.JScrollPane jScrollPane1;
     // End of variables declaration//GEN-END:variables
+
 }

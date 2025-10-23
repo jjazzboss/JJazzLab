@@ -65,7 +65,7 @@ public class CheckLowQualitySynthTask implements OnStartTask, PropertyChangeList
     @Override
     public String getName()
     {
-        return "RegisterLowQualityTask";
+        return "CheckLowQualitySynthTask";
     }
 
     @Override
