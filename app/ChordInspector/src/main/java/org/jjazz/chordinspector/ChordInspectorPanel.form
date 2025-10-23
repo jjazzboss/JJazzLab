@@ -67,9 +67,7 @@
               <SubComponents>
                 <Component class="javax.swing.JLabel" name="lbl_dummyChord">
                   <Properties>
-                    <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                      <ResourceString bundle="org/jjazz/chordinspector/Bundle.properties" key="ChordInspectorPanel.lbl_dummyChord.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-                    </Property>
+                    <Property name="text" type="java.lang.String" value="C7" noResource="true"/>
                   </Properties>
                 </Component>
               </SubComponents>

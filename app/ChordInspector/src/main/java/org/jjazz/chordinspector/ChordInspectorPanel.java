@@ -201,7 +201,7 @@ public class ChordInspectorPanel extends javax.swing.JPanel
 
         pnl_chord.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 0));
 
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_dummyChord, org.openide.util.NbBundle.getMessage(ChordInspectorPanel.class, "ChordInspectorPanel.lbl_dummyChord.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_dummyChord, "C7"); // NOI18N
         pnl_chord.add(lbl_dummyChord);
 
         pnl_chord_scale.add(pnl_chord, java.awt.BorderLayout.CENTER);
