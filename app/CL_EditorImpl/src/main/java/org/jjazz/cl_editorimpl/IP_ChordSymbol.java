@@ -41,6 +41,7 @@ import org.jjazz.utilities.api.StringProperties;
  */
 public class IP_ChordSymbol implements CLI_ChordSymbol
 {
+
     /**
      * The decorated chord.
      */
@@ -58,7 +59,6 @@ public class IP_ChordSymbol implements CLI_ChordSymbol
     public IP_ChordSymbol(CLI_ChordSymbol item)
     {
         Preconditions.checkNotNull(item);
-
         cli = item;
         position = cli.getPosition();
     }

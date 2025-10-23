@@ -23,11 +23,13 @@
 package org.jjazz.cl_editor.api;
 
 /**
- * Renderers implementing this interface can be transposed. If transposition
- * is set then they should reflect that in the rendered item.
+ * Renderers implementing this interface can be transposed.
+ * <p>
+ * If transposition is set then they should reflect that in the rendered item.
  */
 public interface DisplayTransposableRenderer
 {
+
     void setDisplayTransposition(int dt);
 
     int getDisplayTransposition();

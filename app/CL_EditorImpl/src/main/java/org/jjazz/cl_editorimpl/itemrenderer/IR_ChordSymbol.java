@@ -59,6 +59,7 @@ import org.jjazz.cl_editor.api.DisplayTransposableRenderer;
  */
 public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable, DisplayTransposableRenderer
 {
+
     private final static int OPTION_LINE_V_PADDING = 1;   // Additional space for the option line
     private final static int OPTION_LINE_THICKNESS = 1;   // Additional space for the option line
     private static final Logger LOGGER = Logger.getLogger(IR_ChordSymbol.class.getSimpleName());
@@ -68,15 +69,12 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable, Display
     private final IR_ChordSymbolSettings settings;
     private int zoomFactor = 50;
     private String chordSymbolString;
-    private String chordSymbolBase;
-    private String chordSymbolExtension;
-    private String chordSymbolBass;
     private ChordSymbol altChordSymbol;
-    private ExtChordSymbol ecs;
     private ChordRenderingInfo cri;
     private Timer timer;
     private Color optionLineColor;
     private int dislayTransposition;
+    private ExtChordSymbol ecsModel;
     private String strChordReplacedAccidentals;
 
 
@@ -98,20 +96,18 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable, Display
         dislayTransposition = 0;
 
         modelChanged();
-        addTextItalicStyle();
     }
 
     /**
      * Sets a transposition to be applied before rendering the chord.
-     * 
-     * @param newTransposition 
+     *
+     * @param newTransposition
      */
     @Override
     public void setDisplayTransposition(int newTransposition)
     {
         dislayTransposition = newTransposition;
         modelChanged();
-        addTextItalicStyle();
     }
 
     @Override
@@ -123,65 +119,62 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable, Display
     @Override
     public final void modelChanged()
     {
-        var chord = getModel().getData();
-        ExtChordSymbol modelChord = (ExtChordSymbol) chord;
-        updateRendering(modelChord.getTransposedChordSymbol(dislayTransposition, null));
-        createAttrString();
-    }
-
-    /**
-     * Updates the rendering.
-     */
-    private void updateRendering(ExtChordSymbol newModel)
-    {
         // Save previous state
-        ExtChordSymbol oldEcs = ecs;
+        ExtChordSymbol oldEcsModel = ecsModel;
         ChordRenderingInfo oldCri = cri;
         String oldChordSymbolString = chordSymbolString;
         ChordSymbol oldAltChordSymbol = altChordSymbol;
 
-        ecs = newModel;
-        cri = ecs.getRenderingInfo();
-        chordSymbolString = ecs.getOriginalName();
-        altChordSymbol = ecs.getAlternateChordSymbol();
+
+        // New state
+        ecsModel = (ExtChordSymbol) getModel().getData();
+        ExtChordSymbol ecsTransposed = getPossiblyTransposedModel();
+        cri = ecsTransposed.getRenderingInfo();
+        chordSymbolString = ecsTransposed.getOriginalName();
+        altChordSymbol = ecsTransposed.getAlternateChordSymbol();
 
 
         // Get the strings making up the chord symbol : base extension [/bass]
-        if (ecs instanceof NCExtChordSymbol)
+        String chordSymbolBase;
+        String chordSymbolExtension;
+        String chordSymbolBass;
+        if (ecsTransposed instanceof NCExtChordSymbol)
         {
-            chordSymbolBase = ecs.getName();
+            chordSymbolBase = ecsTransposed.getName();
             chordSymbolExtension = "";
-        } else if (ecs.getName().equals(chordSymbolString))
+        } else if (ecsTransposed.getName().equals(chordSymbolString))
         {
             // Easy
-            chordSymbolBase = ecs.getRootNote().toRelativeNoteString() + ecs.getChordType().getBase();
-            chordSymbolExtension = ecs.getChordType().getExtension();
+            chordSymbolBase = ecsTransposed.getRootNote().toRelativeNoteString() + ecsTransposed.getChordType().getBase();
+            chordSymbolExtension = ecsTransposed.getChordType().getExtension();
         } else
         {
             // Chord symbol alias used, need to guess where the extension starts
-            int rootNoteLength = ecs.getRootNote().toRelativeNoteString().length();
+            int rootNoteLength = ecsTransposed.getRootNote().toRelativeNoteString().length();
             String ctString = chordSymbolString.substring(rootNoteLength).replaceFirst("/.*", "");  // Remove root note possible bass note
             int extStart = ChordTypeDatabase.getDefault().guessExtension(ctString);
             if (extStart == -1)
             {
                 // No extension found, use major chord symbol by default
-                chordSymbolBase = ecs.getRootNote().toRelativeNoteString();
+                chordSymbolBase = ecsTransposed.getRootNote().toRelativeNoteString();
                 chordSymbolExtension = "";
             } else
             {
-                chordSymbolBase = ecs.getRootNote().toRelativeNoteString() + ctString.substring(0, extStart);
+                chordSymbolBase = ecsTransposed.getRootNote().toRelativeNoteString() + ctString.substring(0, extStart);
                 chordSymbolExtension = ctString.substring(extStart);
             }
         }
         chordSymbolBass = "";
-        if (!ecs.getBassNote().equalsRelativePitch(ecs.getRootNote()))
+        if (!ecsTransposed.getBassNote().equalsRelativePitch(ecsTransposed.getRootNote()))
         {
-            chordSymbolBass = "/" + ecs.getBassNote().toRelativeNoteString();
+            chordSymbolBass = "/" + ecsTransposed.getBassNote().toRelativeNoteString();
         }
+
+        // Now we can compute the AttributedString used by getPreferredSize() and paintComponent()
+        attChordString = createAttrString(chordSymbolBase, chordSymbolExtension, chordSymbolBass, dislayTransposition > 0);
 
 
         // Update UI
-        updateToolTipText();
         revalidate();
         repaint();
 
@@ -190,8 +183,8 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable, Display
         // crash/no crash/extended holdshot/scale/pedalBass/altChord
         if (oldCri != null
                 && oldChordSymbolString.equals(chordSymbolString)
-                && needOptionMark(ecs, cri)
-                && needOptionMark(oldEcs, oldCri)
+                && needOptionMark(ecsTransposed, cri)
+                && needOptionMark(oldEcsModel, oldCri)
                 && (oldAltChordSymbol != altChordSymbol
                 || !Objects.equals(cri.getScaleInstance(), oldCri.getScaleInstance())
                 || cri.hasOneFeature(Feature.ACCENT_STRONGER) != oldCri.hasOneFeature(Feature.ACCENT_STRONGER)
@@ -203,46 +196,10 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable, Display
             // UI won't be updated so request attention to assure user that something happened indeed
             flashOptionLine();
         }
+
+        updateToolTipText();
     }
 
-    /**
-     * Creates the attChordString based on chordSymbolBase, chordSymbolExtension and chordSymbolBass.
-     */
-    private void createAttrString()
-    {
-        // The fonts to be used
-        Font font = getFont();
-        Font musicFont = settings.getMusicFont();
-
-        // Make font size depend on the zoom factor
-        float factor = 0.5f + (getZoomFactor() / 100f);
-        float zFontSize = factor * font.getSize2D();
-        zFontSize = Math.max(zFontSize, 12);
-
-        // Create the AttributedString from the strings
-        String strChord = chordSymbolBase + chordSymbolExtension + chordSymbolBass;
-        strChordReplacedAccidentals = strChord
-                .replace('#', settings.getSharpCharInMusicFont())
-                .replace('b', settings.getFlatCharInMusicFont());
-        attChordString = new AttributedString(strChordReplacedAccidentals, font.getAttributes());
-        attChordString.addAttribute(TextAttribute.SIZE, zFontSize);                 // Override
-
-        // Use the music font for all the # and b symbols
-        for (int i = 0; i < strChord.length(); i++)
-        {
-            if (strChord.charAt(i) == '#' || strChord.charAt(i) == 'b')
-            {
-                attChordString.addAttribute(TextAttribute.FAMILY, musicFont.getFontName(), i, i + 1);
-            }
-        }
-
-        // Superscript for the extension
-        if (!chordSymbolExtension.isEmpty())
-        {
-            attChordString.addAttribute(TextAttribute.SUPERSCRIPT, TextAttribute.SUPERSCRIPT_SUPER, chordSymbolBase.length(),
-                    chordSymbolBase.length() + chordSymbolExtension.length());
-        }
-    }
 
     /**
      * Calculate the preferredSize() depending on chord symbol, font and zoomFactor.
@@ -280,17 +237,6 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable, Display
     }
 
 
-    /**
-     * Adds the correct italics style to represent the chord. Transposed chords are represented in italics.
-     */
-    private void addTextItalicStyle()
-    {
-        Float fontPosture = dislayTransposition == 0
-                ? TextAttribute.POSTURE_REGULAR
-                : TextAttribute.POSTURE_OBLIQUE;
-        attChordString.addAttribute(TextAttribute.POSTURE, fontPosture);
-    }
-
     @Override
     public void modelMoved()
     {
@@ -305,57 +251,6 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable, Display
         settings.removePropertyChangeListener(this);
     }
 
-    private void updateToolTipText()
-    {
-        String tt = null;
-
-        if (ecs instanceof NCExtChordSymbol)
-        {
-            tt = NCExtChordSymbol.DESCRIPTION;
-
-        } else if (ecs != null)
-        {
-            // Chord Symbol
-            ChordRenderingInfo cri = ecs.getRenderingInfo();
-            StringBuilder sb = new StringBuilder(ecs.getChord().toRelativeNoteString(null));
-
-
-            // Rendering info
-            String criStr = cri.toUserString();
-            if (!criStr.isBlank())
-            {
-                sb.append(" - ").append(criStr);
-            }
-
-            // Alt chord symbol if any
-            AltExtChordSymbol altSymbol = ecs.getAlternateChordSymbol();
-            if (altSymbol != null)
-            {
-                sb.append("   ").append(ResUtil.getString(getClass(), "IR_ChordSymbol.ALTERNATE")).append(": ");
-                if (altSymbol == VoidAltExtChordSymbol.getInstance())
-                {
-                    sb.append(ResUtil.getString(getClass(), "IR_ChordSymbol.void"));
-                } else
-                {
-                    sb.append(altSymbol);
-                    cri = altSymbol.getRenderingInfo();
-                    criStr = cri.toUserString();
-                    if (!criStr.isBlank())
-                    {
-                        sb.append(" - ").append(criStr);
-                    }
-                }
-                sb.append(" - ").append(ResUtil.getString(getClass(), "IR_ChordSymbol.condition")).append("=");
-                AltDataFilter altFilter = ecs.getAlternateFilter();
-                assert altFilter != null;
-                sb.append(altFilter.isRandom() ? ResUtil.getString(getClass(), "IR_ChordSymbol.random") : altFilter.getValues());
-            }
-            tt = sb.toString();
-        }
-
-
-        setToolTipText(tt);
-    }
 
     /**
      * Zoom factor.
@@ -409,7 +304,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable, Display
 
 
         // Draw the option mark if needed
-        if (needOptionMark(ecs, cri))
+        if (needOptionMark(ecsModel, cri))       // Does not depend on displayTransposition
         {
             int length = (int) Math.round(8 * (0.7f + 0.6 * zoomFactor / 100f));
             int x1 = getWidth() / 2 - length / 2;
@@ -508,6 +403,9 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable, Display
         }
     }
 
+    //-------------------------------------------------------------------------------
+    // Private methods
+    //-------------------------------------------------------------------------------
     private boolean needOptionMark(ExtChordSymbol extCs, ChordRenderingInfo cri)
     {
         return (cri.getAccentFeature() != null && cri.hasOneFeature(Feature.ACCENT_STRONGER, Feature.CRASH, Feature.EXTENDED_HOLD_SHOT, Feature.NO_CRASH)
@@ -524,5 +422,126 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable, Display
         Color c = getModel().getClientProperties().getColor(IR_ChordSymbolSettings.PROP_CHORD_SYMBOL_USER_FONT_COLOR, settings.getColor());
         optionLineColor = c;
         setForeground(c);
+    }
+
+    /**
+     * Updates the rendering.
+     */
+    private void updateRendering()
+    {
+
+    }
+
+    private ExtChordSymbol getPossiblyTransposedModel()
+    {
+        ExtChordSymbol ecs = (ExtChordSymbol) getModel().getData();
+        var res = ecs.getTransposedChordSymbol(dislayTransposition, null);
+        return res;
+    }
+
+    private void updateToolTipText()
+    {
+        String tt = null;
+
+        var ecs = getPossiblyTransposedModel();
+        if (ecs instanceof NCExtChordSymbol)
+        {
+            tt = NCExtChordSymbol.DESCRIPTION;
+
+        } else if (ecs != null)
+        {
+            // Chord Symbol
+            ChordRenderingInfo cri = ecs.getRenderingInfo();
+            StringBuilder sb = new StringBuilder(ecs.getChord().toRelativeNoteString(null));
+
+
+            // Rendering info
+            String criStr = cri.toUserString();
+            if (!criStr.isBlank())
+            {
+                sb.append(" - ").append(criStr);
+            }
+
+            // Alt chord symbol if any
+            AltExtChordSymbol altSymbol = ecs.getAlternateChordSymbol();
+            if (altSymbol != null)
+            {
+                sb.append("   ").append(ResUtil.getString(getClass(), "IR_ChordSymbol.ALTERNATE")).append(": ");
+                if (altSymbol == VoidAltExtChordSymbol.getInstance())
+                {
+                    sb.append(ResUtil.getString(getClass(), "IR_ChordSymbol.void"));
+                } else
+                {
+                    sb.append(altSymbol);
+                    cri = altSymbol.getRenderingInfo();
+                    criStr = cri.toUserString();
+                    if (!criStr.isBlank())
+                    {
+                        sb.append(" - ").append(criStr);
+                    }
+                }
+                sb.append(" - ").append(ResUtil.getString(getClass(), "IR_ChordSymbol.condition")).append("=");
+                AltDataFilter altFilter = ecs.getAlternateFilter();
+                assert altFilter != null;
+                sb.append(altFilter.isRandom() ? ResUtil.getString(getClass(), "IR_ChordSymbol.random") : altFilter.getValues());
+            }
+            tt = sb.toString();
+        }
+
+
+        setToolTipText(tt);
+    }
+
+    /**
+     * Create the AttributedString depending on the parameters.
+     *
+     * @param chordSymbolBase
+     * @param chordSymbolExtension
+     * @param chordSymbolBass
+     * @param isTransposed
+     * @return
+     */
+    private AttributedString createAttrString(String chordSymbolBase, String chordSymbolExtension, String chordSymbolBass, boolean isTransposed)
+    {
+        AttributedString res;
+
+        // The fonts to be used
+        Font font = getFont();
+        Font musicFont = settings.getMusicFont();
+
+        // Make font size depend on the zoom factor
+        float factor = 0.5f + (getZoomFactor() / 100f);
+        float zFontSize = factor * font.getSize2D();
+        zFontSize = Math.max(zFontSize, 12);
+
+        // Create the AttributedString from the strings
+        String strChord = chordSymbolBase + chordSymbolExtension + chordSymbolBass;
+        strChordReplacedAccidentals = strChord
+                .replace('#', settings.getSharpCharInMusicFont())
+                .replace('b', settings.getFlatCharInMusicFont());
+        res = new AttributedString(strChordReplacedAccidentals, font.getAttributes());
+        res.addAttribute(TextAttribute.SIZE, zFontSize);                 // Override
+
+        // Use the music font for all the # and b symbols
+        for (int i = 0; i < strChord.length(); i++)
+        {
+            if (strChord.charAt(i) == '#' || strChord.charAt(i) == 'b')
+            {
+                res.addAttribute(TextAttribute.FAMILY, musicFont.getFontName(), i, i + 1);
+            }
+        }
+
+        // Superscript for the extension
+        if (!chordSymbolExtension.isEmpty())
+        {
+            res.addAttribute(TextAttribute.SUPERSCRIPT, TextAttribute.SUPERSCRIPT_SUPER, chordSymbolBase.length(),
+                    chordSymbolBase.length() + chordSymbolExtension.length());
+        }
+
+        // Italics if transposed
+        Float fontPosture = !isTransposed ? TextAttribute.POSTURE_REGULAR : TextAttribute.POSTURE_OBLIQUE;
+        res.addAttribute(TextAttribute.POSTURE, fontPosture);
+
+        return res;
     }
 }
