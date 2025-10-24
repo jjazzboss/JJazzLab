@@ -123,7 +123,7 @@ public class ChordListener implements CL_ContextActionListener, PropertyChangeLi
             // Note: an empty selection is received when switching from a CL_Editor TopComponent to a different TopComponent
         }
 
-        LOGGER.log(Level.SEVERE, "newSelectedChordSymbol={0}", newSelectedChordSymbol);
+        LOGGER.log(Level.FINE, "newSelectedChordSymbol={0}", newSelectedChordSymbol);
 
 
         // Replace current chord symbol
