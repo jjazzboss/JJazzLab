@@ -25,6 +25,8 @@ package org.jjazz.chordinspector;
 import com.google.common.base.Preconditions;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
@@ -40,11 +42,13 @@ import org.openide.util.Utilities;
  */
 public class ChordListener implements CL_ContextActionListener, PropertyChangeListener
 {
+
     private final CL_ContextActionSupport cap;
     private CLI_ChordSymbol chordSymbol;
     private int transposition;
     private final ChordInspectorPanel editor;
     private final PlaybackSettings playbackSettings;
+    private static final Logger LOGGER = Logger.getLogger(ChordListener.class.getSimpleName());
 
     public ChordListener(ChordInspectorPanel editor)
     {
@@ -84,14 +88,17 @@ public class ChordListener implements CL_ContextActionListener, PropertyChangeLi
 
     private void updateEditorModel()
     {
-        ExtChordSymbol transposedChord = chordSymbol.getData().getTransposedChordSymbol(transposition, null);
+        ExtChordSymbol transposedChord = chordSymbol == null ? null : chordSymbol.getData().getTransposedChordSymbol(transposition, null);
         editor.setModel(transposedChord);
     }
-    
+
     /**
-     * Call from {@link CL_ContextActionSupport} to their {@link CL_ContextActionListener}, as this class implements.
-     * 
-     * @param selection gives access to current selection
+     * Update editor model only when a new non-null chordsymbol is identified.
+     * <p>
+     * This lets user activates other TopComponents (including this ChordInspector when switching to a different ChordViewer) while still viewing the
+     * last selected chord.
+     *
+     * @param selection
      */
     @Override
     public final void selectionChange(CL_Selection selection)
@@ -107,24 +114,24 @@ public class ChordListener implements CL_ContextActionListener, PropertyChangeLi
         {
             // Find the last chord valid for this bar
             var cls = selection.getChordLeadSheet();
-            newSelectedChordSymbol = cls.getLastItemBefore(new Position(selection.getMinBarIndex() + 1),
-                    false, CLI_ChordSymbol.class, cli -> true);
-            if (newSelectedChordSymbol == null)
-            {
-                // Can happen if user temporarily remove all chord symbols!
-                return;
-            }
+          
+            newSelectedChordSymbol = cls.getLastItemBefore(new Position(selection.getMinBarIndex() + 1),    // Might be null if user temporarily removes all chord symbols
+                false, CLI_ChordSymbol.class, cli -> true);
         } else
         {
             // Not a valid selection, do nothing
             // Note: an empty selection is received when switching from a CL_Editor TopComponent to a different TopComponent
         }
 
+        LOGGER.log(Level.SEVERE, "newSelectedChordSymbol={0}", newSelectedChordSymbol);
+
+
         // Replace current chord symbol
         if (chordSymbol != null)
         {
             chordSymbol.removePropertyChangeListener(this);
         }
+
         chordSymbol = newSelectedChordSymbol;
 
         if (chordSymbol != null)
@@ -135,11 +142,11 @@ public class ChordListener implements CL_ContextActionListener, PropertyChangeLi
     }
 
     /**
-     * Call from either {@link CLI_ChordSymbol} or the {@link PlaybackSettings}. Objects of this class add themselves
-     * as listeners to be notified of changes that require the chord displayed in the inspector to change. At the moment
-     * that is the selection in the lead sheet and the transposition option.
-     * 
-     * @param evt 
+     * Call from either {@link CLI_ChordSymbol} or the {@link PlaybackSettings}. Objects of this class add themselves as listeners to be notified of
+     * changes that require the chord displayed in the inspector to change. At the moment that is the selection in the lead sheet and the
+     * transposition option.
+     *
+     * @param evt
      */
     @Override
     public void propertyChange(PropertyChangeEvent evt)
