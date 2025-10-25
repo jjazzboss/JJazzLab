@@ -36,6 +36,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -90,12 +91,11 @@ public class WbpTiling
     {
         this.scsList = scsList;
         usableBars = scsList.stream()
-                .map(scs -> scs.getBarRange())
-                .flatMap(br -> br.stream().boxed())
-                .toList();
+            .map(scs -> scs.getBarRange())
+            .flatMap(br -> br.stream().boxed())
+            .toList();
         wbpsas = new WbpSourceAdaptation[usableBars.getLast() + 1];
     }
-
 
     /**
      * The list of SimpleChordSequences passed to constructor.
@@ -208,7 +208,8 @@ public class WbpTiling
      * Indirect reference: wbpSource (1/2/3-bar) is a (enclosed or not) related WbpSource of a tiling's WbpSourceAdaptation (2/3/4-bar)<br>
      *
      * @param wbpSource
-     * @param enclosedRelatedOnly If true, an indirect reference requires that wbpSource is an enclosed related WbpSource of a tiling's WbpSourceAdaptation
+     * @param enclosedRelatedOnly If true, an indirect reference requires that wbpSource is an enclosed related WbpSource of a tiling's
+     * WbpSourceAdaptation
      * @return A list ordered by ascending start bar
      * @see WbpSourceDatabase#getRelatedWbpSources(org.jjazz.test.walkingbass.WbpSource)
      */
@@ -420,8 +421,8 @@ public class WbpTiling
     public boolean isUsable(IntRange barRange)
     {
         boolean b = scsList.stream()
-                .map(scs -> scs.getBarRange())
-                .anyMatch(br -> br.contains(barRange));
+            .map(scs -> scs.getBarRange())
+            .anyMatch(br -> br.contains(barRange));
         return b;
     }
 
@@ -439,7 +440,7 @@ public class WbpTiling
             return false;
         }
         boolean b = barRange.stream()
-                .allMatch(bar -> wbpsas[bar] == null);
+            .allMatch(bar -> wbpsas[bar] == null);
         if (b)
         {
             int index = barRange.from - 1;
@@ -461,7 +462,7 @@ public class WbpTiling
     /**
      * Get a new SimpleChordSequence corresponding to barRange.
      *
-     * @param barRange           Must be a subRange of one of the SimpleChordSequences
+     * @param barRange Must be a subRange of one of the SimpleChordSequences
      * @param addInitChordSympol
      * @return
      * @see #isUsable(org.jjazz.utilities.api.IntRange)
@@ -471,9 +472,9 @@ public class WbpTiling
         Objects.requireNonNull(barRange);
 
         SimpleChordSequence scs = scsList.stream()
-                .filter(cs -> cs.getBarRange().contains(barRange))
-                .findAny()
-                .orElse(null);
+            .filter(cs -> cs.getBarRange().contains(barRange))
+            .findAny()
+            .orElse(null);
         if (scs == null)
         {
             throw new IllegalArgumentException("barRange=" + barRange + " this=" + this);
@@ -485,11 +486,11 @@ public class WbpTiling
     /**
      * For each chord sequence corresponding to an untiled zone, try to create WbpSources using wbpSourcesBuilder.
      * <p>
-     * It might happen than some returned WbpSources could not be added in the WbpSourceDatabase, because the database will consider there are redundant
-     * (transposition-wise and using simplified chord symbols).
+     * It might happen than some returned WbpSources could not be added in the WbpSourceDatabase, because the database will consider there are
+     * redundant (transposition-wise and using simplified chord symbols).
      *
      * @param wbpSourcesBuilder Generate a list (possibly empty) of WbpSources for a SimpleChordSequence.
-     * @param size              The size in bars of the WbpSources to be created.
+     * @param size The size in bars of the WbpSources to be created.
      * @return The created WbpSources
      */
     public List<WbpSource> buildMissingWbpSources(CustomWbpSourcesBuilder wbpSourcesBuilder, int size)
@@ -565,8 +566,8 @@ public class WbpTiling
         {
             final int fi = i;
             var sizeList = sortedSources.stream()
-                    .filter(s -> s.getBarRange().size() == fi)
-                    .toList();
+                .filter(s -> s.getBarRange().size() == fi)
+                .toList();
             sb.append(">>> ").append(sizeList.size()).append(" * ").append(i).append("-bar:\n");
             for (var source : sizeList)
             {
@@ -593,7 +594,19 @@ public class WbpTiling
             var wbpsaStart = getWbpSourceAdaptationStartingAt(bar);
             if (wbpsaStart != null)
             {
-                s = wbpsaStart.toString() + " " + "note0BeatShift=" + wbpsaStart.getWbpSource().getFirstNoteBeatShift();
+                StringJoiner joiner = new StringJoiner(",", " [", "]");
+                joiner.setEmptyValue("");
+                var wbps = wbpsaStart.getWbpSource();
+                if (!wbps.isStartingOnChordBass())
+                {
+                    joiner.add("nonRootToneStart");
+                }
+                if (!wbps.isEndingOnChordTone())
+                {
+                    joiner.add("nonChordToneEnd");
+                }
+                s = wbpsaStart.toString() + joiner.toString() + " note0BeatShift="
+                    + wbpsaStart.getWbpSource().getFirstNoteBeatShift();
             } else if (getWbpSourceAdaptation(bar) != null)
             {
                 s = "  (repeat)";
