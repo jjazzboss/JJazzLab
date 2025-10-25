@@ -39,15 +39,15 @@ import org.openide.awt.ActionReference;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.NbBundle.Messages;
 
-@ActionID(
-        category = "Edit",
-        id = "org.jjazz.jjswing.WbpSourceDbStats"
-)
-@ActionRegistration(
-        displayName = "#CTL_WbpSourceDbStats"
-)
-@ActionReference(path = "Menu/Edit", position = 60100)
-@Messages("CTL_WbpSourceDbStats=WbpSourceDatabase stats")
+//@ActionID(
+//        category = "Edit",
+//        id = "org.jjazz.jjswing.WbpSourceDbStats"
+//)
+//@ActionRegistration(
+//        displayName = "#CTL_WbpSourceDbStats"
+//)
+//@ActionReference(path = "Menu/Edit", position = 60100)
+//@Messages("CTL_WbpSourceDbStats=WbpSourceDatabase stats")
 public final class WbpSourceDbStats implements ActionListener
 {
 

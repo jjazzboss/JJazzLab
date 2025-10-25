@@ -358,7 +358,6 @@ public class RP_SYS_SubstituteTracksComp extends RealTimeRpEditorComponent<RP_SY
         jScrollPane1.setViewportView(table);
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_clear, org.openide.util.NbBundle.getMessage(RP_SYS_SubstituteTracksComp.class, "RP_SYS_SubstituteTracksComp.btn_clear.text")); // NOI18N
-        btn_clear.setToolTipText(org.openide.util.NbBundle.getMessage(RP_SYS_SubstituteTracksComp.class, "RP_SYS_SubstituteTracksComp.btn_clear.toolTipText")); // NOI18N
         btn_clear.setEnabled(false);
         btn_clear.addActionListener(new java.awt.event.ActionListener()
         {

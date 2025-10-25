@@ -59,12 +59,12 @@ import org.openide.windows.WindowManager;
 /**
  * Test music generation of a rhythm in batch on all selected song files.
  */
-@ActionID(category = "JJazz", id = "org.jjazz.test.TestMusicGenerationOnSongFiles")
-@ActionRegistration(displayName = "Test music generation on multiple songs")
-@ActionReferences(
-        {
-            @ActionReference(path = "Menu/Edit", position = 50220),
-        })
+//@ActionID(category = "JJazz", id = "org.jjazz.test.TestMusicGenerationOnSongFiles")
+//@ActionRegistration(displayName = "Test music generation on multiple songs")
+//@ActionReferences(
+//        {
+//            @ActionReference(path = "Menu/Edit", position = 50220),
+//        })
 public final class TestMusicGenerationOnSongFiles implements ActionListener
 {
 

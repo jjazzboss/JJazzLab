@@ -22,17 +22,10 @@
  */
 package org.jjazz.jjswing.bass.explorer;
 
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.MultimapBuilder;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
-import org.jjazz.jjswing.bass.db.WbpSourceDatabase;
-import org.jjazz.jjswing.bass.db.WbpSource;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -41,12 +34,12 @@ import org.openide.awt.ActionRegistration;
 /**
  * For debug purposes...
  */
-@ActionID(category = "JJazz", id = "org.jjazz.test.wbpdatabaseexploreraction")
-@ActionRegistration(displayName = "WbpDatabase Explorer")
-@ActionReferences(
-        {
-            @ActionReference(path = "Menu/Edit", position = 60000)
-        })
+//@ActionID(category = "JJazz", id = "org.jjazz.test.wbpdatabaseexploreraction")
+//@ActionRegistration(displayName = "WbpDatabase Explorer")
+//@ActionReferences(
+//        {
+//            @ActionReference(path = "Menu/Edit", position = 60000)
+//        })
 public final class WbpDatabaseExplorerAction implements ActionListener
 {
 
