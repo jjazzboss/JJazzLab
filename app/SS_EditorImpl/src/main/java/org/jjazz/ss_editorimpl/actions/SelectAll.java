@@ -61,7 +61,7 @@ public class SelectAll extends SS_ContextAction
     @Override
     protected void configureAction()
     {
-        putValue(NAME, ResUtil.getString(getClass(), "CTL_ResetRpValue"));
+        putValue(NAME, ResUtil.getString(getClass(), "CTL_SelectAll"));
         putValue(ACCELERATOR_KEY, KEYSTROKE);
         putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.RHYTHM_PARAMETER_SELECTION, ListeningTarget.SONG_PART_SELECTION));
     }

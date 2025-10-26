@@ -22,11 +22,6 @@
  */
 package org.jjazz.ss_editorimpl.api;
 
-import com.google.common.base.Preconditions;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.LayoutManager;
 import org.jjazz.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
@@ -38,8 +33,6 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
-import javax.swing.JCheckBox;
-import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.undo.UndoableEdit;
@@ -67,8 +60,7 @@ import org.openide.windows.WindowManager;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ss_editor.api.SS_ContextActionListener;
-import org.jjazz.ss_editorimpl.rhythmselectiondialog.RhythmSelectionDialogImpl;
-import org.jjazz.uiutilities.api.ColumnLeftAlignedLayoutManager;
+import org.jjazz.ss_editorimpl.rhythmselectiondialog.RhythmSelectionDialogCustomComp;
 import org.jjazz.undomanager.api.SimpleEdit;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
@@ -77,9 +69,9 @@ import org.openide.NotifyDescriptor;
 @ActionID(category = "JJazz", id = "org.jjazz.ss_editorimpl.actions.editrhythm")
 @ActionRegistration(displayName = "#CTL_EditRhythm", lazy = false)
 @ActionReferences(
-        {
-            @ActionReference(path = "Actions/SongPart", position = 80)
-        })
+    {
+        @ActionReference(path = "Actions/SongPart", position = 80)
+    })
 public class EditRhythm extends AbstractAction implements ContextAwareAction, SS_ContextActionListener
 {
 
@@ -88,7 +80,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
     private static String undoText = ResUtil.getString(EditRhythm.class, "CTL_EditRhythm");
     private Lookup context;
     private SS_ContextActionSupport cap;
-    private static RhythmSelectionDialogCustomerComp customComp;
+    private static RhythmSelectionDialogCustomComp customComp;
 
     private static final Logger LOGGER = Logger.getLogger(EditRhythm.class.getSimpleName());
 
@@ -118,7 +110,6 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
     {
         changeSongPartsRhythm(cap.getSelection().getIndirectlySelectedSongParts());
     }
-
 
     @Override
     public void selectionChange(SS_Selection selection)
@@ -150,7 +141,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
 
         // Initialize and show dialog
         RhythmSelectionDialog dlg = RhythmSelectionDialogProvider.getDefault().getDialog();
-        var customComp = RhythmSelectionDialogCustomerComp.getInstance();
+        var customComp = RhythmSelectionDialogCustomComp.getInstance();
         dlg.setCustomComponent(customComp);
         Rhythm rSelSpt0 = selSpt0.getRhythm();
         RhythmPreviewer previewer = RhythmPreviewer.getDefault();
@@ -298,52 +289,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
     // ================================================================================
     // Private methods
     // ================================================================================
-
     // ================================================================================
     // Private classes
     // ================================================================================
-    static private class RhythmSelectionDialogCustomerComp extends JPanel
-    {
-
-        private final JCheckBox cb_applyRhythmToNextSpts;
-        private final JCheckBox cb_useRhythmTempo;
-        private static RhythmSelectionDialogCustomerComp INSTANCE;
-
-
-        private RhythmSelectionDialogCustomerComp()
-        {
-            cb_useRhythmTempo = new JCheckBox();
-            cb_useRhythmTempo.setText(ResUtil.getString(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.cb_useRhythmTempo.text"));
-            cb_useRhythmTempo.setToolTipText(ResUtil.getString(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.cb_useRhythmTempo.toolTipText"));
-            cb_useRhythmTempo.setSelected(true);
-            cb_applyRhythmToNextSpts = new JCheckBox();
-            cb_applyRhythmToNextSpts.setText(ResUtil.getString(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.cb_applyRhythmToNextSpts.text"));
-            cb_applyRhythmToNextSpts.setToolTipText(
-                    ResUtil.getString(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.cb_applyRhythmToNextSpts.toolTipText"));
-            cb_applyRhythmToNextSpts.setSelected(true);
-
-            setLayout(new ColumnLeftAlignedLayoutManager());
-            add(cb_useRhythmTempo);
-            add(cb_applyRhythmToNextSpts);
-        }
-
-        static public RhythmSelectionDialogCustomerComp getInstance()
-        {
-            if (INSTANCE == null)
-            {
-                INSTANCE = new RhythmSelectionDialogCustomerComp();
-            }
-            return INSTANCE;
-        }
-
-        public boolean isUseRhythmTempo()
-        {
-            return cb_useRhythmTempo.isSelected();
-        }
-
-        public boolean isApplyRhythmToNextSongParts()
-        {
-            return cb_applyRhythmToNextSpts.isSelected();
-        }
-    }
 }
