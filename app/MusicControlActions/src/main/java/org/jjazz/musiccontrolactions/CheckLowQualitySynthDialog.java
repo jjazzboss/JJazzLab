@@ -26,7 +26,6 @@ import javax.swing.JComponent;
 import javax.swing.JRootPane;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
-import org.jjazz.outputsynth.api.OutputSynth;
 import org.jjazz.uiutilities.api.UIUtilities;
 import org.jjazz.utilities.api.ResUtil;
 
@@ -38,10 +37,9 @@ public class CheckLowQualitySynthDialog extends javax.swing.JDialog
 
     private final String text;
     /**
-     * Creates new form BiabImportNotification
      * @param parent
      * @param modal
-     * @param midiDeviceName
+     * @param midiDeviceName The low-quality device name
      */
     public CheckLowQualitySynthDialog(java.awt.Frame parent, boolean modal, String midiDeviceName)
     {
@@ -121,7 +119,7 @@ public class CheckLowQualitySynthDialog extends javax.swing.JDialog
                     .addComponent(jScrollPane2)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(cb_doNotShowAgain)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 269, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 423, Short.MAX_VALUE)
                         .addComponent(btn_ok, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
@@ -129,7 +127,7 @@ public class CheckLowQualitySynthDialog extends javax.swing.JDialog
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 101, Short.MAX_VALUE)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 92, Short.MAX_VALUE)
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(cb_doNotShowAgain)
