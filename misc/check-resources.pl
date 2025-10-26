@@ -28,7 +28,7 @@ use File::Basename;
 use Getopt::Long qw(GetOptions);
 use File::Find qw(find);
 use File::Temp qw(tempfile);
-use File::Spec qw(abs2rel);
+#use File::Spec qw(abs2rel);       # not needed anymore in perl 5.40 (got a warning)
 use Cwd qw();
 
 binmode(STDOUT, ":utf8");          # treat as if it is UTF-8

@@ -7,9 +7,7 @@
   </NonVisualComponents>
   <Properties>
     <Property name="defaultCloseOperation" type="int" value="2"/>
-    <Property name="title" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-      <ResourceString bundle="org/jjazz/test/walkingbass/Bundle.properties" key="WbpDatabaseExplorerDialog.title" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-    </Property>
+    <Property name="title" type="java.lang.String" value="Walking Bass Phrase Database Explorer" noResource="true"/>
   </Properties>
   <SyntheticProperties>
     <SyntheticProperty name="formSizePolicy" type="int" value="1"/>
@@ -161,9 +159,7 @@
     </Component>
     <Component class="javax.swing.JTextField" name="tf_bar0">
       <Properties>
-        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/jjswing/bass/explorer/Bundle.properties" key="WbpDatabaseExplorerDialog.tf_bar0.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-        </Property>
+        <Property name="text" type="java.lang.String" value="Cm7" noResource="true"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="tf_bar0ActionPerformed"/>
@@ -171,9 +167,7 @@
     </Component>
     <Component class="javax.swing.JTextField" name="tf_bar1">
       <Properties>
-        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/jjswing/bass/explorer/Bundle.properties" key="WbpDatabaseExplorerDialog.tf_bar1.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-        </Property>
+        <Property name="text" type="java.lang.String" value="F7" noResource="true"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="tf_bar1ActionPerformed"/>
@@ -181,9 +175,7 @@
     </Component>
     <Component class="javax.swing.JTextField" name="tf_bar2">
       <Properties>
-        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/jjswing/bass/explorer/Bundle.properties" key="WbpDatabaseExplorerDialog.tf_bar2.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-        </Property>
+        <Property name="text" type="java.lang.String" value="Bb7M" noResource="true"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="tf_bar2ActionPerformed"/>
@@ -191,9 +183,7 @@
     </Component>
     <Component class="javax.swing.JTextField" name="tf_bar3">
       <Properties>
-        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/jjswing/bass/explorer/Bundle.properties" key="WbpDatabaseExplorerDialog.tf_bar3.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-        </Property>
+        <Property name="text" type="java.lang.String" value="Eb7M" noResource="true"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="tf_bar3ActionPerformed"/>
@@ -235,9 +225,7 @@
     </Container>
     <Component class="javax.swing.JLabel" name="lbl_info">
       <Properties>
-        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/jjswing/bass/explorer/Bundle.properties" key="WbpDatabaseExplorerDialog.lbl_info.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-        </Property>
+        <Property name="text" type="java.lang.String" value="-" noResource="true"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JButton" name="btn_update">
@@ -307,9 +295,7 @@
     </Container>
     <Component class="javax.swing.JCheckBox" name="cb_premiumOnly">
       <Properties>
-        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/jjswing/bass/explorer/Bundle.properties" key="WbpDatabaseExplorerDialog.cb_premiumOnly.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-        </Property>
+        <Property name="text" type="java.lang.String" value="Premium only" noResource="true"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="cb_premiumOnlyActionPerformed"/>
@@ -317,9 +303,7 @@
     </Component>
     <Component class="javax.swing.JCheckBox" name="cb_rootProfileOnly">
       <Properties>
-        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-          <ResourceString bundle="org/jjazz/jjswing/bass/explorer/Bundle.properties" key="WbpDatabaseExplorerDialog.cb_rootProfileOnly.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-        </Property>
+        <Property name="text" type="java.lang.String" value="Root profile only" noResource="true"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="cb_rootProfileOnlyActionPerformed"/>

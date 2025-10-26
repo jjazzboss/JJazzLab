@@ -494,7 +494,7 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
         cb_rootProfileOnly = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle(org.openide.util.NbBundle.getMessage(WbpDatabaseExplorerDialog.class, "WbpDatabaseExplorerDialog.title")); // NOI18N
+        setTitle("Walking Bass Phrase Database Explorer"); // NOI18N
 
         spn_barSize.setModel(new javax.swing.SpinnerNumberModel(4, 1, 4, 1));
         spn_barSize.addChangeListener(new javax.swing.event.ChangeListener()
@@ -507,7 +507,7 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel1, "WbpSource size in bars"); // NOI18N
 
-        tf_bar0.setText(org.openide.util.NbBundle.getMessage(WbpDatabaseExplorerDialog.class, "WbpDatabaseExplorerDialog.tf_bar0.text")); // NOI18N
+        tf_bar0.setText("Cm7"); // NOI18N
         tf_bar0.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -516,7 +516,7 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
             }
         });
 
-        tf_bar1.setText(org.openide.util.NbBundle.getMessage(WbpDatabaseExplorerDialog.class, "WbpDatabaseExplorerDialog.tf_bar1.text")); // NOI18N
+        tf_bar1.setText("F7"); // NOI18N
         tf_bar1.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -525,7 +525,7 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
             }
         });
 
-        tf_bar2.setText(org.openide.util.NbBundle.getMessage(WbpDatabaseExplorerDialog.class, "WbpDatabaseExplorerDialog.tf_bar2.text")); // NOI18N
+        tf_bar2.setText("Bb7M"); // NOI18N
         tf_bar2.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -534,7 +534,7 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
             }
         });
 
-        tf_bar3.setText(org.openide.util.NbBundle.getMessage(WbpDatabaseExplorerDialog.class, "WbpDatabaseExplorerDialog.tf_bar3.text")); // NOI18N
+        tf_bar3.setText("Eb7M"); // NOI18N
         tf_bar3.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -558,7 +558,7 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
         tbl_wbpSources.setModel(new MyModel());
         jScrollPane1.setViewportView(tbl_wbpSources);
 
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_info, org.openide.util.NbBundle.getMessage(WbpDatabaseExplorerDialog.class, "WbpDatabaseExplorerDialog.lbl_info.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_info, "-"); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_update, "Update"); // NOI18N
         btn_update.addActionListener(new java.awt.event.ActionListener()
@@ -601,7 +601,7 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
 
         jScrollPane2.setViewportView(list_Styles);
 
-        org.openide.awt.Mnemonics.setLocalizedText(cb_premiumOnly, org.openide.util.NbBundle.getMessage(WbpDatabaseExplorerDialog.class, "WbpDatabaseExplorerDialog.cb_premiumOnly.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(cb_premiumOnly, "Premium only"); // NOI18N
         cb_premiumOnly.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -610,7 +610,7 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(cb_rootProfileOnly, org.openide.util.NbBundle.getMessage(WbpDatabaseExplorerDialog.class, "WbpDatabaseExplorerDialog.cb_rootProfileOnly.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(cb_rootProfileOnly, "Root profile only"); // NOI18N
         cb_rootProfileOnly.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
