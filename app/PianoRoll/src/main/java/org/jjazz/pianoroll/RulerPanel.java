@@ -30,6 +30,7 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -72,7 +73,7 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
     private static final int BAR_TICK_LENGTH = 7;
     private static final int BEAT_TICK_LENGTH = 5;
     private static final int SIXTEENTH_TICK_LENGTH = 3;
-    private static final Color COLOR_LOOP_ZONE = new Color(112, 110, 110);
+    private static final Color COLOR_LOOP_ZONE = new Color(113, 142, 169);
     private static final Color COLOR_BAR_FONT = new Color(176, 199, 220);
     private static final Color COLOR_BEAT_FONT = new Color(80, 80, 80);
     private static final Color COLOR_TIME_SIGNATURE_FONT = COLOR_BAR_FONT;
@@ -86,7 +87,6 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
     private final int TIME_SIGNATURE_LANE_HEIGHT;
     private final int CHORD_SYMBOL_LANE_HEIGHT;
     private final int BAR_LANE_HEIGHT;
-
 
     private final NotesPanel notesPanel;
     private final NotesPanel.XMapper xMapper;
@@ -114,6 +114,7 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
         this.editor.getSettings().addPropertyChangeListener(this);
 
         setToolTipText(ResUtil.getString(getClass(), "RulerPanelTooltip"));
+        setAutoscrolls(true);   // needed for autoscroll when dragging beyond ruler left/right bounds
 
 
         // Repaint ourself when notesPanel is resized
@@ -148,7 +149,6 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
         BAR_LANE_HEIGHT = Math.round(BASE_FONT_HEIGHT + BAR_TICK_LENGTH + 1);
         SMALL_FONT = f.deriveFont(f.getSize2D() - 2f);
     }
-
 
     /**
      * Use the specified song to show additional info: chord symbols, song parts.
@@ -200,13 +200,11 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
             {
                 x0 = xPos - PLAYBACK_POINT_HALF_SIZE;
                 x1 = xPos + PLAYBACK_POINT_HALF_SIZE;
-            }
-            else if (playbackPointX == -1)
+            } else if (playbackPointX == -1)
             {
                 x0 = oldX - PLAYBACK_POINT_HALF_SIZE;
                 x1 = oldX + PLAYBACK_POINT_HALF_SIZE;
-            }
-            else
+            } else
             {
                 x0 = Math.min(playbackPointX, oldX) - PLAYBACK_POINT_HALF_SIZE;
                 x1 = Math.max(playbackPointX, oldX) + PLAYBACK_POINT_HALF_SIZE;
@@ -286,8 +284,7 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
                         x += 1;
                     }
                     g2.drawString(aStr.getIterator(), x, y);
-                }
-                else
+                } else
                 {
                     // No room to draw several chord symbols per bar
                     continue;
@@ -343,8 +340,8 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
                     String sptName = spt.getName();
                     String secName = spt.getParentSection().getData().getName();
                     String sptLabel = sptName.equals(secName)
-                            ? sptName
-                            : sptName + "(" + secName + ")";
+                        ? sptName
+                        : sptName + "(" + secName + ")";
                     StringMetrics sm = new StringMetrics(g2, SMALL_FONT);
                     var bounds = sm.getLogicalBoundsNoLeadingNoDescent(sptLabel);
 
@@ -375,8 +372,7 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
                 int tickLength = BAR_TICK_LENGTH;
                 g2.setColor(c);
                 g2.drawLine(x, yTopBarLane, x, yTopBarLane + tickLength - 1);
-            }
-            else if (paintBeatTicks)
+            } else if (paintBeatTicks)
             {
                 Color c = COLOR_BEAT_TICK;
                 int tickLength = BEAT_TICK_LENGTH;
@@ -403,7 +399,7 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
             // Draw the loop zone
             if (loopZone != null)
             {
-                final int SIDE_LENGTH = 12;
+                final int SIDE_LENGTH = 14;
                 g2.setColor(COLOR_LOOP_ZONE);
                 int y = yBottomBarLane;
                 int bar = pos.getBar();
@@ -423,8 +419,7 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
                     p.addPoint(x2 - SIDE_LENGTH + 1, y);
                     g2.draw(p);
                     g2.fill(p);
-                }
-                else if (bar == loopZone.to && pos.isLastBarBeat(ts))
+                } else if (bar == loopZone.to && pos.isLastBarBeat(ts))
                 {
                     // Loop zone end
 
@@ -460,8 +455,7 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
                 aStr = new AttributedString(strBar, baseFont.getAttributes());
                 aStr.addAttribute(TextAttribute.FOREGROUND, COLOR_BAR_FONT);
 
-            }
-            else if (paintSixteenthTicks)
+            } else if (paintSixteenthTicks)
             {
                 var strBeat = String.valueOf(offsettedBar) + "." + String.valueOf((int) pos.getBeat() + 1);
                 aStr = new AttributedString(strBeat, SMALL_FONT.getAttributes());
@@ -496,7 +490,6 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
         }
     }
 
-
     public void cleanup()
     {
         editor.removePropertyChangeListener(this);
@@ -517,8 +510,7 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
         if (evt.getSource() == editor.getSettings())
         {
             settingsChanged();
-        }
-        else if (evt.getSource() == editor)
+        } else if (evt.getSource() == editor)
         {
             switch (evt.getPropertyName())
             {
@@ -529,7 +521,6 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
             }
         }
     }
-
 
     // ==========================================================================================================
     // Private methods
@@ -550,6 +541,7 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
     {
 
         private int xOrigin = Integer.MIN_VALUE;    // If MIN_VALUE drag has not started
+        private int notesPanelVisibleY = -1;          // Needed for autoscroll
         private int loopZoneBarOrigin = -1;         // If >= 0 it's a drag to set the loop zone
 
         @Override
@@ -567,18 +559,18 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
                     {
                         loopZoneBarOrigin = loopZone.to;
                         editor.setLoopZone(new IntRange(bar, loopZoneBarOrigin));
-                    }
-                    else
+                    } else
                     {
                         loopZoneBarOrigin = loopZone.from;
                         editor.setLoopZone(new IntRange(loopZoneBarOrigin, bar));
                     }
-                }
-                else
+                } else
                 {
                     // Start setting new loop zone
                     loopZoneBarOrigin = bar;
                 }
+
+                notesPanelVisibleY = notesPanel.getVisibleRect().y;
             }
             setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         }
@@ -641,6 +633,7 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
         {
             xOrigin = Integer.MIN_VALUE;
             loopZoneBarOrigin = -1;
+            notesPanelVisibleY = -1;
             setCursor(Cursor.getDefaultCursor());
         }
 
@@ -653,10 +646,20 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
             }
 
             // Set loop zone
-            int bar = xMapper.getPositionFromX(e.getX()).getBar();
-            int min = Math.min(bar, loopZoneBarOrigin);
-            int max = Math.max(bar, loopZoneBarOrigin);
-            editor.setLoopZone(new IntRange(min, max));
+            Position pos = xMapper.getPositionFromX(e.getX());
+            if (pos != null)
+            {
+                int bar = xMapper.getPositionFromX(e.getX()).getBar();
+                int min = Math.min(bar, loopZoneBarOrigin);
+                int max = Math.max(bar, loopZoneBarOrigin);
+                editor.setLoopZone(new IntRange(min, max));
+            }
+
+            if (notesPanelVisibleY != -1)
+            {
+                Rectangle r = new Rectangle(e.getX(), notesPanelVisibleY, 1, 1);
+                notesPanel.scrollRectToVisible(r);
+            }
         }
     }
 }

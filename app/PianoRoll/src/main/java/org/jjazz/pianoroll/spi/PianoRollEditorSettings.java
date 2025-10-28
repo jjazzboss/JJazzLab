@@ -31,8 +31,10 @@ public interface PianoRollEditorSettings
 {
 
     public static String PROP_BAR_LINE_COLOR = "BarLineColor";
-    public static String PROP_BACKGROUND_COLOR1 = "BackgroundColor1";
-    public static String PROP_BACKGROUND_COLOR2 = "BackgroundColor2";
+    public static String PROP_BLACK_KEY_LANE_BACKGROUND_COLOR = "BlackKeyLaneBackgroundColor";
+    public static String PROP_WHITE_KEY_LANE_BACKGROUND_COLOR = "WhiteKeyLaneBackgroundColor";
+    public static String PROP_LOOP_ZONE_WHITE_KEY_LANE_BACKGROUND_COLOR = "LoopZoneWhiteKeyLaneBackgroundColor";
+    public static String PROP_LOOP_ZONE_BLACK_KEY_LANE_BACKGROUND_COLOR = "LoopZoneBlackKeyLaneBackgroundColor";
     public static String PROP_RULER_BACKGROUND_COLOR = "RulerBackgroundColor";
     public static String PROP_RULER_TS_LANE_BACKGROUND_COLOR = "RulerTsLaneBackgroundColor";
     public static String PROP_RULER_BAR_TICK_COLOR = "RulerBarTickColor";
@@ -52,13 +54,21 @@ public interface PianoRollEditorSettings
 
     void setBarLineColor(Color color);
 
-    Color getBackgroundColor1();
+    Color getBlackKeyLaneBackgroundColor();
 
-    void setBackgroundColor1(Color color);
+    void setBlackKeyLaneBackgroundColor(Color color);
 
-    Color getBackgroundColor2();
+    Color getWhiteKeyLaneBackgroundColor();
 
-    void setBackgroundColor2(Color color);
+    void setWhiteKeyLaneBackgroundColor(Color color);
+
+    Color getLoopZoneWhiteKeyLaneBackgroundColor();
+
+    void setLoopZoneWhiteKeyLaneBackgroundColor(Color color);
+
+    Color getLoopZoneBlackKeyLaneBackgroundColor();
+
+    void setLoopZoneBlackKeyLaneBackgroundColor(Color color);
 
     Color getRulerBackgroundColor();
 
@@ -66,16 +76,15 @@ public interface PianoRollEditorSettings
 
     Color getRulerTsLaneBackgroundColor();
 
-    void setRulerTsLaneBackgroundColor(Color color);       
-    
+    void setRulerTsLaneBackgroundColor(Color color);
+
     Color getRulerBarTickColor();
 
     void setRulerBarTickColor(Color color);
-    
+
     Font getRulerBaseFont();
-    
+
     void setRulerBaseFont(Font font);
-            
 
     Color getNoteColor();
 

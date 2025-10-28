@@ -29,6 +29,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -90,7 +91,6 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
     private final int baseChordFontHeight;
 
     private static final Logger LOGGER = Logger.getLogger(ScorePanel.class.getSimpleName());
-
 
     public ScorePanel(PianoRollEditor editor, NotesPanel notesPanel)
     {
@@ -186,7 +186,6 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
         return null;
     }
 
-
     @Override
     public List<NoteView> getNoteViews()
     {
@@ -224,12 +223,13 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
         }
 
         // Fill background
-        Color c = editor.getSettings().getBackgroundColor2();
+        Color c = editor.getSettings().getWhiteKeyLaneBackgroundColor();
         g2.setColor(c);
         g2.fillRect(clip.x, clip.y, clip.width, clip.height);
 
 
-        notesPanel.paintLoopZone(this, g2);
+        paintLoopZone(g2);
+        
 
         notesPanel.paintVerticalGrid(g2, 0, getHeight() - 1);
 
@@ -253,6 +253,155 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
         {
             g2.setColor(NotesPanelLayerUI.COLOR_PLAYBACK_LINE);
             g2.drawLine(playbackPointX, 0, playbackPointX, getHeight() - 1);
+        }
+    }
+
+    @Override
+    public void showPlaybackPoint(int xPos)
+    {
+        Preconditions.checkArgument(xPos >= -1, "xPos=%s", xPos);
+
+        int oldX = playbackPointX;
+        playbackPointX = xPos;
+        if (playbackPointX != oldX)
+        {
+            int x0, x1;
+            if (oldX == -1)
+            {
+                x0 = playbackPointX - 1;
+                x1 = playbackPointX + 1;
+            } else if (playbackPointX == -1)
+            {
+                x0 = oldX - 1;
+                x1 = oldX + 1;
+            } else
+            {
+                x0 = Math.min(playbackPointX, oldX) - 1;
+                x1 = Math.max(playbackPointX, oldX) + 1;
+            }
+            x0 = Math.max(0, x0);
+            repaint(x0, 0, x1 - x0 + 1, getHeight());
+        }
+    }
+
+    /**
+     * Set the X scale factor.
+     * <p>
+     * Impact the width of the notes.
+     *
+     * @param factorX A value &gt; 0
+     */
+    @Override
+    public void setScaleFactorX(float factorX)
+    {
+        Preconditions.checkArgument(factorX > 0);
+
+        if (this.scaleFactorX != factorX)
+        {
+            scaleFactorX = factorX;
+            revalidate();
+            repaint();
+        }
+    }
+
+    /**
+     * Get the current scale factor on the X axis.
+     *
+     * @return
+     */
+    @Override
+    public float getScaleFactorX()
+    {
+        return scaleFactorX;
+    }
+
+    /**
+     * Try to restore the octave transposition, or compute the preferred one.
+     *
+     * @param song
+     */
+    public void setSong(Song song)
+    {
+        Objects.requireNonNull(song);
+        this.song = song;
+        updateOctaveTransposition();
+    }
+
+    @Override
+    public void cleanup()
+    {
+        editor.removePropertyChangeListener(this);
+        editor.getSettings().removePropertyChangeListener(this);
+    }
+
+    // ==========================================================================================================
+    // PropertyChangeListener interface
+    // ==========================================================================================================    
+    @Override
+    public void propertyChange(PropertyChangeEvent evt)
+    {
+//        LOGGER.log(Level.INFO, "propertyChange() evt.source.class={0} prop={1} old={2} new={3}", new Object[]
+//        {
+//            evt.getSource().getClass().getSimpleName(), evt.getPropertyName(), evt.getOldValue(), evt.getNewValue()
+//        });
+
+
+        if (evt.getSource() == editor.getSettings())
+        {
+            settingsChanged();
+        } else if (evt.getSource() == editor)
+        {
+            switch (evt.getPropertyName())
+            {
+                case PianoRollEditor.PROP_CHORD_SEQUENCE ->
+                    repaint();
+                case PianoRollEditor.PROP_SELECTED_NOTE_VIEWS ->
+                {
+                    var xMapper = notesPanel.getXMapper();
+                    if (!xMapper.isUptodate())
+                    {
+                        repaint();
+                    } else
+                    {
+                        // We can probably do a much smaller repaint
+                        final int EXTRA = 100;   // Need to cover for note width, tie, shift, accidentals, ...
+                        List<NoteView> nes = (List<NoteView>) evt.getOldValue();
+                        NoteEvent neFirst = nes.get(0).getModel();
+                        NoteEvent neLast = nes.get(nes.size() - 1).getModel();
+                        int xFirst = Math.max(xMapper.getX(neFirst.getPositionInBeats()) - EXTRA, 0);
+                        int xLast = Math.min(xMapper.getX(neLast.getPositionInBeats()) + EXTRA, getWidth() - 1);
+                        repaint(xFirst, 0, xLast - xFirst + 1, getHeight());
+                    }
+                }
+                case PianoRollEditor.PROP_MODEL_PHRASE ->
+                    updateOctaveTransposition();
+                default ->
+                {
+                }
+            }
+
+        }
+    }
+
+    // ==========================================================================================================
+    // Private methods
+    // ==========================================================================================================    
+    private void settingsChanged()
+    {
+        repaint();
+    }
+
+    private void paintLoopZone(Graphics g)
+    {
+        IntRange loopZone = editor.getLoopZone();
+        if (loopZone != null)
+        {
+            var loopZoneXRange = notesPanel.getXMapper().getXRange(loopZone);
+            var lZone = new Rectangle(loopZoneXRange.from, 0, loopZoneXRange.size(), getHeight());
+            lZone = lZone.intersection(g.getClipBounds());
+            Color c = editor.getSettings().getLoopZoneWhiteKeyLaneBackgroundColor();
+            g.setColor(c);
+            g.fillRect(lZone.x, lZone.y, lZone.width, lZone.height);
         }
     }
 
@@ -284,7 +433,7 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
                 AttributedString aStr;
                 aStr = new AttributedString(cliCs.getData().getOriginalName(), baseChordFont.getAttributes());
                 aStr.addAttribute(TextAttribute.FOREGROUND, COLOR_CHORD_SYMBOL_FONT);
-                aStr.addAttribute(TextAttribute.BACKGROUND, editor.getSettings().getBackgroundColor2());
+                aStr.addAttribute(TextAttribute.BACKGROUND, editor.getSettings().getWhiteKeyLaneBackgroundColor());
                 if (posCliCs.isFirstBarBeat())
                 {
                     x += 1;
@@ -375,143 +524,6 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
 
     }
 
-    @Override
-    public void showPlaybackPoint(int xPos)
-    {
-        Preconditions.checkArgument(xPos >= -1, "xPos=%s", xPos);
-
-        int oldX = playbackPointX;
-        playbackPointX = xPos;
-        if (playbackPointX != oldX)
-        {
-            int x0, x1;
-            if (oldX == -1)
-            {
-                x0 = playbackPointX - 1;
-                x1 = playbackPointX + 1;
-            } else if (playbackPointX == -1)
-            {
-                x0 = oldX - 1;
-                x1 = oldX + 1;
-            } else
-            {
-                x0 = Math.min(playbackPointX, oldX) - 1;
-                x1 = Math.max(playbackPointX, oldX) + 1;
-            }
-            x0 = Math.max(0, x0);
-            repaint(x0, 0, x1 - x0 + 1, getHeight());
-        }
-    }
-
-    /**
-     * Set the X scale factor.
-     * <p>
-     * Impact the width of the notes.
-     *
-     * @param factorX A value &gt; 0
-     */
-    @Override
-    public void setScaleFactorX(float factorX)
-    {
-        Preconditions.checkArgument(factorX > 0);
-
-        if (this.scaleFactorX != factorX)
-        {
-            scaleFactorX = factorX;
-            revalidate();
-            repaint();
-        }
-    }
-
-
-    /**
-     * Get the current scale factor on the X axis.
-     *
-     * @return
-     */
-    @Override
-    public float getScaleFactorX()
-    {
-        return scaleFactorX;
-    }
-
-    /**
-     * Try to restore the octave transposition, or compute the preferred one.
-     *
-     * @param song
-     */
-    public void setSong(Song song)
-    {
-        Objects.requireNonNull(song);
-        this.song = song;
-        updateOctaveTransposition();
-    }
-
-
-    @Override
-    public void cleanup()
-    {
-        editor.removePropertyChangeListener(this);
-        editor.getSettings().removePropertyChangeListener(this);
-    }
-
-    // ==========================================================================================================
-    // PropertyChangeListener interface
-    // ==========================================================================================================    
-
-    @Override
-    public void propertyChange(PropertyChangeEvent evt)
-    {
-//        LOGGER.log(Level.INFO, "propertyChange() evt.source.class={0} prop={1} old={2} new={3}", new Object[]
-//        {
-//            evt.getSource().getClass().getSimpleName(), evt.getPropertyName(), evt.getOldValue(), evt.getNewValue()
-//        });
-
-
-        if (evt.getSource() == editor.getSettings())
-        {
-            settingsChanged();
-        } else if (evt.getSource() == editor)
-        {
-            switch (evt.getPropertyName())
-            {
-                case PianoRollEditor.PROP_CHORD_SEQUENCE -> repaint();
-                case PianoRollEditor.PROP_SELECTED_NOTE_VIEWS ->
-                {
-                    var xMapper = notesPanel.getXMapper();
-                    if (!xMapper.isUptodate())
-                    {
-                        repaint();
-                    } else
-                    {
-                        // We can probably do a much smaller repaint
-                        final int EXTRA = 100;   // Need to cover for note width, tie, shift, accidentals, ...
-                        List<NoteView> nes = (List<NoteView>) evt.getOldValue();
-                        NoteEvent neFirst = nes.get(0).getModel();
-                        NoteEvent neLast = nes.get(nes.size() - 1).getModel();
-                        int xFirst = Math.max(xMapper.getX(neFirst.getPositionInBeats()) - EXTRA, 0);
-                        int xLast = Math.min(xMapper.getX(neLast.getPositionInBeats()) + EXTRA, getWidth() - 1);
-                        repaint(xFirst, 0, xLast - xFirst + 1, getHeight());
-                    }
-                }
-                case PianoRollEditor.PROP_MODEL_PHRASE -> updateOctaveTransposition();
-                default ->
-                {
-                }
-            }
-
-        }
-    }
-
-    // ==========================================================================================================
-    // Private methods
-    // ==========================================================================================================    
-
-    private void settingsChanged()
-    {
-        repaint();
-    }
-
     /**
      * Paint one ScoreNote.
      *
@@ -539,9 +551,9 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
      * Paint one or more notes at same position.
      *
      * @param neBuffer
-     * @param x        x coordinate where to draw the notes
+     * @param x x coordinate where to draw the notes
      * @param mContext
-     * @param cs       Optional chord symbol
+     * @param cs Optional chord symbol
      */
     private void paintChordNotes(NoteEventBuffer neBuffer, int x, MeasureContext mContext, ChordSymbol cs)
     {
@@ -572,7 +584,6 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
         }
 
     }
-
 
     /**
      * Try to restore transposition from song client properties, otherwise compute it from phrase
@@ -613,8 +624,8 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
         int res = 0;
 
         var stats = p.stream()
-                .mapToInt(ne -> ne.getPitch())
-                .summaryStatistics();
+            .mapToInt(ne -> ne.getPitch())
+            .summaryStatistics();
         var avg = stats.getAverage();
 
         if (avg < 43f)
@@ -633,8 +644,8 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
      * Compute which notes must be painted depending on clip.
      * <p>
      * We need to paint ALL the notes from the bar corresponding to clip.x, so that MeasureContext works consistently across repaints (otherwise staff
-     * line/accidentals may vary). Also add some extra room on the left and right of the clip to possibly render accidentals of first-beat notes and of notes
-     * which start right after the clip.
+     * line/accidentals may vary). Also add some extra room on the left and right of the clip to possibly render accidentals of first-beat notes and
+     * of notes which start right after the clip.
      *
      * @param g2
      * @return
@@ -660,7 +671,7 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
             toPosInBeats = editor.getPhraseBeatRange().clamp(toPosInBeats + 4f, 0.001f);
 
             var br = new FloatRange(fromPosInBeats, toPosInBeats);
-            Predicate<NoteEvent> tester = ne -> 
+            Predicate<NoteEvent> tester = ne ->
             {
                 var brNe = ne.getBeatRange();
                 return brNe.to <= br.to && br.intersects(brNe);
@@ -675,7 +686,6 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
         return res;
     }
 
-
     private NoteEvent transpose(NoteEvent ne)
     {
         return octaveTransposition == 0 ? ne : ne.setPitch(MidiConst.clamp(ne.getPitch() + octaveTransposition * 12), false);
@@ -684,11 +694,11 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
     /**
      * Get the active ChordSymbol at specified pos.
      * <p>
-     * Manage the case of a real time played note for which the relevant chord symbol is actually after the note. For example in a 4/4 bar, the note at
-     * pos=[bar=0,beat=3.98] must be linked to the chord symbol at start of bar 1.
+     * Manage the case of a real time played note for which the relevant chord symbol is actually after the note. For example in a 4/4 bar, the note
+     * at pos=[bar=0,beat=3.98] must be linked to the chord symbol at start of bar 1.
      *
      * @param pos
-     * @param ts  The TimeSignature at pos
+     * @param ts The TimeSignature at pos
      * @return
      */
     private ChordSymbol findChordSymbol(Position pos, TimeSignature ts)
@@ -709,7 +719,6 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
         }
         return res;
     }
-
 
 // ==========================================================================================================
 // Inner classes

@@ -30,6 +30,7 @@ import java.util.prefs.Preferences;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.jjazz.uisettings.api.GeneralUISettings;
+import org.jjazz.uiutilities.api.HSLColor;
 import org.jjazz.utilities.api.Utilities;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
@@ -54,47 +55,90 @@ public class PianoRollEditorSettingsImpl implements PianoRollEditorSettings
         // GeneralUISettings.getInstance().addPropertyChangeListener(this);
     }
 
-
     @Override
-    public Color getBackgroundColor1()
+    public Color getLoopZoneWhiteKeyLaneBackgroundColor()
     {
-        return new Color(prefs.getInt(PROP_BACKGROUND_COLOR1, new Color(182, 195, 210).getRGB()));
+        var def = HSLColor.changeLuminance(getWhiteKeyLaneBackgroundColor(), -7);
+        return new Color(prefs.getInt(PROP_LOOP_ZONE_WHITE_KEY_LANE_BACKGROUND_COLOR, def.getRGB()));
     }
 
     @Override
-    public void setBackgroundColor1(Color color)
+    public void setLoopZoneWhiteKeyLaneBackgroundColor(Color color)
     {
-        Color old = getBackgroundColor1();
+        Color old = getLoopZoneWhiteKeyLaneBackgroundColor();
         if (color == null)
         {
-            prefs.remove(PROP_BACKGROUND_COLOR1);
-            color = getBackgroundColor1();
+            prefs.remove(PROP_LOOP_ZONE_WHITE_KEY_LANE_BACKGROUND_COLOR);
+            color = getLoopZoneWhiteKeyLaneBackgroundColor();
         } else
         {
-            prefs.putInt(PROP_BACKGROUND_COLOR1, color.getRGB());
+            prefs.putInt(PROP_LOOP_ZONE_WHITE_KEY_LANE_BACKGROUND_COLOR, color.getRGB());
         }
-        pcs.firePropertyChange(PROP_BACKGROUND_COLOR1, old, color);
+        pcs.firePropertyChange(PROP_LOOP_ZONE_WHITE_KEY_LANE_BACKGROUND_COLOR, old, color);
     }
 
     @Override
-    public Color getBackgroundColor2()
+    public Color getLoopZoneBlackKeyLaneBackgroundColor()
     {
-        return new Color(prefs.getInt(PROP_BACKGROUND_COLOR2, new Color(193, 206, 220).getRGB()));
+        var def = HSLColor.changeLuminance(getBlackKeyLaneBackgroundColor(), -7);
+        return new Color(prefs.getInt(PROP_LOOP_ZONE_BLACK_KEY_LANE_BACKGROUND_COLOR, def.getRGB()));
     }
 
     @Override
-    public void setBackgroundColor2(Color color)
+    public void setLoopZoneBlackKeyLaneBackgroundColor(Color color)
     {
-        Color old = getBackgroundColor2();
+        Color old = getLoopZoneBlackKeyLaneBackgroundColor();
         if (color == null)
         {
-            prefs.remove(PROP_BACKGROUND_COLOR2);
-            color = getBackgroundColor2();
+            prefs.remove(PROP_LOOP_ZONE_BLACK_KEY_LANE_BACKGROUND_COLOR);
+            color = getLoopZoneWhiteKeyLaneBackgroundColor();
         } else
         {
-            prefs.putInt(PROP_BACKGROUND_COLOR2, color.getRGB());
+            prefs.putInt(PROP_LOOP_ZONE_BLACK_KEY_LANE_BACKGROUND_COLOR, color.getRGB());
         }
-        pcs.firePropertyChange(PROP_BACKGROUND_COLOR2, old, color);
+        pcs.firePropertyChange(PROP_LOOP_ZONE_BLACK_KEY_LANE_BACKGROUND_COLOR, old, color);
+    }
+
+    @Override
+    public Color getBlackKeyLaneBackgroundColor()
+    {
+        return new Color(prefs.getInt(PROP_BLACK_KEY_LANE_BACKGROUND_COLOR, new Color(182, 195, 210).getRGB()));
+    }
+
+    @Override
+    public void setBlackKeyLaneBackgroundColor(Color color)
+    {
+        Color old = getBlackKeyLaneBackgroundColor();
+        if (color == null)
+        {
+            prefs.remove(PROP_BLACK_KEY_LANE_BACKGROUND_COLOR);
+            color = getBlackKeyLaneBackgroundColor();
+        } else
+        {
+            prefs.putInt(PROP_BLACK_KEY_LANE_BACKGROUND_COLOR, color.getRGB());
+        }
+        pcs.firePropertyChange(PROP_BLACK_KEY_LANE_BACKGROUND_COLOR, old, color);
+    }
+
+    @Override
+    public Color getWhiteKeyLaneBackgroundColor()
+    {
+        return new Color(prefs.getInt(PROP_WHITE_KEY_LANE_BACKGROUND_COLOR, new Color(193, 206, 220).getRGB()));
+    }
+
+    @Override
+    public void setWhiteKeyLaneBackgroundColor(Color color)
+    {
+        Color old = getWhiteKeyLaneBackgroundColor();
+        if (color == null)
+        {
+            prefs.remove(PROP_WHITE_KEY_LANE_BACKGROUND_COLOR);
+            color = getWhiteKeyLaneBackgroundColor();
+        } else
+        {
+            prefs.putInt(PROP_WHITE_KEY_LANE_BACKGROUND_COLOR, color.getRGB());
+        }
+        pcs.firePropertyChange(PROP_WHITE_KEY_LANE_BACKGROUND_COLOR, old, color);
     }
 
     @Override
@@ -133,7 +177,7 @@ public class PianoRollEditorSettingsImpl implements PianoRollEditorSettings
         if (color == null)
         {
             prefs.remove(PROP_RULER_BACKGROUND_COLOR);
-            color = getBackgroundColor1();
+            color = getBlackKeyLaneBackgroundColor();
         } else
         {
             prefs.putInt(PROP_RULER_BACKGROUND_COLOR, color.getRGB());
@@ -267,7 +311,6 @@ public class PianoRollEditorSettingsImpl implements PianoRollEditorSettings
         pcs.firePropertyChange(PROP_BAR_LINE_COLOR, old, color);
     }
 
-
     @Override
     public Color getFocusedNoteContourColor()
     {
@@ -289,7 +332,6 @@ public class PianoRollEditorSettingsImpl implements PianoRollEditorSettings
         pcs.firePropertyChange(PROP_FOCUSED_NOTE_CONTOUR_COLOR, old, color);
     }
 
-
     @Override
     public synchronized void addPropertyChangeListener(PropertyChangeListener listener)
     {
@@ -301,7 +343,5 @@ public class PianoRollEditorSettingsImpl implements PianoRollEditorSettings
     {
         pcs.removePropertyChangeListener(listener);
     }
-
-
 
 }

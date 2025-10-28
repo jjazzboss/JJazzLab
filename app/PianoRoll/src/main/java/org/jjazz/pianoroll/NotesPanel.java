@@ -81,7 +81,6 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
     private static final int GHOST_NOTE_ALPHA = 90;
     private static final int ONE_BEAT_SIZE_IN_PIXELS_AT_ZOOM_ONE = 50;
 
-
     private final KeyboardComponent keyboard;
     private final YMapper yMapper;
     private final XMapper xMapper;
@@ -96,7 +95,6 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
     private final Map<Integer, Color> mapNameGhostNoteColor = new HashMap<>();
 
     private static final Logger LOGGER = Logger.getLogger(NotesPanel.class.getSimpleName());
-
 
     public NotesPanel(PianoRollEditor editor, KeyboardComponent keyboard)
     {
@@ -124,8 +122,8 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
     /**
      * Early detection of size changes in order to update xMapper as soon as possible.
      * <p>
-     * Overridden because this method is called (by parent's layoutManager) before component is painted and before the component resized/moved event is fired.
-     * This lets us update xMapper as soon as possible.
+     * Overridden because this method is called (by parent's layoutManager) before component is painted and before the component resized/moved event
+     * is fired. This lets us update xMapper as soon as possible.
      *
      * @param x
      * @param y
@@ -226,7 +224,6 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
 
     }
 
-
     @Override
     public Dimension getPreferredSize()
     {
@@ -237,12 +234,11 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
         return res;
     }
 
-
     /**
      * Set the X scale factor.
      * <p>
-     * This methods impacts the preferred size then calls revalidate() (and repaint()). Hence the notesPanel size is NOT directly updated right after exiting
-     * method. Size will be updated once the EDT has finished processing the revalidate.
+     * This methods impacts the preferred size then calls revalidate() (and repaint()). Hence the notesPanel size is NOT directly updated right after
+     * exiting method. Size will be updated once the EDT has finished processing the revalidate.
      * <p>
      *
      * @param factorX A value &gt; 0
@@ -259,7 +255,6 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
             repaint();
         }
     }
-
 
     /**
      * Get the current scale factor on the X axis.
@@ -363,7 +358,6 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
 //        });
     }
 
-
     @Override
     public void showPlaybackPoint(int xPos)
     {
@@ -459,7 +453,6 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
         mapNoteViews.put(newNe, nv);
     }
 
-
     /**
      * Get the NoteView corresponding to ne.
      *
@@ -483,7 +476,6 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
     {
         return new ArrayList<>(mapNoteViews.values());
     }
-
 
     /**
      * Adjust the enclosing scrollPane so that the first note is visible.
@@ -528,7 +520,6 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
         editor.getSettings().removePropertyChangeListener(this);
     }
 
-
     /**
      * Get the NoteViews which intersect with the specified Rectangle, sorted by NoteEvent natural order.
      *
@@ -558,8 +549,8 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
         }
 
         var res = nvs.stream()
-                .filter(nv -> nv.getBounds().intersects(r))
-                .toList();
+            .filter(nv -> nv.getBounds().intersects(r))
+            .toList();
 
         return res;
     }
@@ -618,7 +609,6 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
         }
     }
 
-
     // ==========================================================================================================
     // PropertyChangeListener interface
     // ==========================================================================================================    
@@ -641,27 +631,6 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
     // Private methods
     // ========================================================================================
 
-    /**
-     * Used by ScorePanel, VelocityPanel.
-     *
-     * @param jc
-     * @param g
-     */
-    protected void paintLoopZone(JComponent jc, Graphics g)
-    {
-        IntRange loopZone = editor.getLoopZone();
-        if (loopZone != null)
-        {
-            var loopZoneXRange = xMapper.getXRange(loopZone);
-            var lZone = new Rectangle(loopZoneXRange.from, 0, loopZoneXRange.size(), jc.getHeight() - 1);
-            lZone = lZone.intersection(g.getClipBounds());
-            Color c = editor.getSettings().getBackgroundColor2();
-            c = HSLColor.changeLuminance(c, -6);
-            g.setColor(c);
-            g.fillRect(lZone.x, lZone.y, lZone.width, lZone.height);
-        }
-    }
-
     private void paintHorizontalGrid(Graphics2D g2)
     {
         var settings = PianoRollEditorSettings.getDefault();
@@ -670,20 +639,21 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
             return;
         }
         var clip = g2.getClipBounds();
+        int w = getWidth();
+        
 
-
-        Color cb1 = settings.getBackgroundColor1();
-        Color cb2 = settings.getBackgroundColor2();
+        Color blackKeyLaneColor = settings.getBlackKeyLaneBackgroundColor();
+        Color whiteKeyLaneColor = settings.getWhiteKeyLaneBackgroundColor();
         Color cB_C = settings.getBarLineColor();
         Color cE_F = HSLColor.changeLuminance(cB_C, 8);
-        int w = getWidth();
+
 
 
         // prepare LoopZone data
         IntRange loopZone = editor.getLoopZone();
         IntRange loopZoneXRange = loopZone == null ? null : xMapper.getXRange(loopZone);
-        Color cb1_loopZone = loopZone != null ? HSLColor.changeLuminance(cb1, -6) : null;
-        Color cb2_loopZone = loopZone != null ? HSLColor.changeLuminance(cb2, -6) : null;
+        Color blackKeyLaneColorLoopZone = settings.getLoopZoneBlackKeyLaneBackgroundColor();
+        Color whiteKeyLaneColorLoopZone = settings.getLoopZoneWhiteKeyLaneBackgroundColor();
 
 
         // only draw what's visible
@@ -694,7 +664,7 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
         for (int p = pitchRange.from; p <= pitchRange.to; p++)
         {
             int pp = p % 12;
-            Color c = (pp == 0 || pp == 2 || pp == 4 || pp == 5 || pp == 7 || pp == 9 || pp == 11) ? cb2 : cb1;
+            Color c = (pp == 0 || pp == 2 || pp == 4 || pp == 5 || pp == 7 || pp == 9 || pp == 11) ? whiteKeyLaneColor : blackKeyLaneColor;
             g2.setColor(c);
             var yRange = yMapper.getNoteViewChannelYRange(p);
             var rPitch = new Rectangle(0, yRange.from, w, yRange.size());
@@ -705,9 +675,9 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
             // Draw loop zone if any
             if (loopZoneXRange != null)
             {
-                Color cLz = (c == cb1) ? cb1_loopZone : cb2_loopZone;
+                Color cLz = (c == blackKeyLaneColor) ? blackKeyLaneColorLoopZone : whiteKeyLaneColorLoopZone;
                 g2.setColor(cLz);
-                var rZone = new Rectangle(loopZoneXRange.from, 0, loopZoneXRange.size(), yRange.size());
+                var rZone = new Rectangle(loopZoneXRange.from, yRange.from, loopZoneXRange.size(), yRange.size());
                 rZone = rZone.intersection(clip);
                 g2.fillRect(rZone.x, rZone.y, rZone.width, rZone.height);
             }
@@ -722,7 +692,6 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
         }
 
     }
-
 
     private void paintGhostPhrases(Graphics2D g2)
     {
@@ -808,7 +777,6 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
         return (int) (editor.getPhraseBeatRange().size() * ONE_BEAT_SIZE_IN_PIXELS_AT_ZOOM_ONE * scaleVFactor);
     }
 
-
     // =====================================================================================
     // Inner classes
     // =====================================================================================
@@ -831,7 +799,7 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
 
         private XMapper()
         {
-            editor.addPropertyChangeListener(PianoRollEditor.PROP_QUANTIZATION, e -> 
+            editor.addPropertyChangeListener(PianoRollEditor.PROP_QUANTIZATION, e ->
             {
                 refresh();
                 repaint();
@@ -852,7 +820,6 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
         {
             return lastWidth;
         }
-
 
         /**
          * To be called when this panel width or model has changed.
@@ -1004,7 +971,7 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
          */
         public float getBeatPosition(int xPos)
         {
-            if (xPos < 0 && xPos >= getWidth())
+            if (xPos < 0 || xPos >= getWidth())
             {
                 return -1;
             }
@@ -1070,7 +1037,7 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
                 if (posInBeatsFrom >= 0 && posInBeatsTo >= 0)
                 {
                     res = posInBeatsFrom == posInBeatsTo ? new FloatRange(posInBeatsFrom, posInBeatsFrom + getOnePixelBeatSize() - 0.01f)
-                            : new FloatRange(posInBeatsFrom, posInBeatsTo);
+                        : new FloatRange(posInBeatsFrom, posInBeatsTo);
                 }
             }
             return res;
@@ -1114,7 +1081,6 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
         {
             return new IntRange(getX(fr.from), getX(fr.to));
         }
-
 
         /**
          *
@@ -1163,7 +1129,6 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
             return posInBeats;
         }
     }
-
 
     /**
      * Conversion methods between keyboard's Y coordinate, pitch and NoteView line's Y coordinate.
@@ -1244,8 +1209,8 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
                 tmapPixelPitch.put(yi, p);
                 int pp = p % 12;
                 float yUp = (pp == 0 || pp == 4 || pp == 5 || pp == 11 || p == kbdRange.getHighestPitch())
-                        ? adjustedLargeHeight
-                        : adjustedSmallHeight;
+                    ? adjustedLargeHeight
+                    : adjustedSmallHeight;
                 IntRange channelNoteYRange = new IntRange(Math.round(y - yUp + 1), yi);
                 mapPitchChannelYRange.put(p, channelNoteYRange);
                 y -= yUp;
@@ -1370,8 +1335,6 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
             return new IntRange(yTop, yBottom);
         }
 
-
     }
-
 
 }

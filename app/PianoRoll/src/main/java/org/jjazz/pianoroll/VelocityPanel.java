@@ -29,6 +29,7 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
@@ -42,13 +43,16 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
+import org.jjazz.harmony.api.Position;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.pianoroll.api.NoteView;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.uiutilities.api.RedispatchingMouseAdapter;
 import org.jjazz.utilities.api.FloatRange;
+import org.jjazz.utilities.api.IntRange;
 
 /**
  * Show the velocity of notes in the bottom side of the editor.
@@ -64,7 +68,6 @@ public class VelocityPanel extends EditorPanel implements PropertyChangeListener
     private int playbackPointX = -1;
     private final RedispatchingMouseAdapter mouseRedispatcher;
     private static final Logger LOGGER = Logger.getLogger(VelocityPanel.class.getSimpleName());
-
 
     public VelocityPanel(PianoRollEditor editor, NotesPanel notesPanel)
     {
@@ -215,7 +218,7 @@ public class VelocityPanel extends EditorPanel implements PropertyChangeListener
         // Make sure clip is restricted to a valid area
         g2.clipRect(0, 0, notesPanel.getWidth(), getHeight());
         var clip = g2.getClipBounds();
-        
+
         var xMapper = notesPanel.getXMapper();
         if (!xMapper.isUptodate())
         {
@@ -223,13 +226,13 @@ public class VelocityPanel extends EditorPanel implements PropertyChangeListener
         }
 
         // Fill background corresponding to notesPanel width
-        Color c = editor.getSettings().getBackgroundColor2();
+        Color c = editor.getSettings().getWhiteKeyLaneBackgroundColor();
         g2.setColor(c);
         g2.fillRect(clip.x, clip.y, clip.width, clip.height);
 
 
         // Paint loop zone
-        notesPanel.paintLoopZone(this, g);
+        paintLoopZone(g);
 
 
         // Grid
@@ -258,13 +261,11 @@ public class VelocityPanel extends EditorPanel implements PropertyChangeListener
             {
                 x0 = xPos - 1;
                 x1 = xPos + 1;
-            }
-            else if (playbackPointX == -1)
+            } else if (playbackPointX == -1)
             {
                 x0 = oldX - 1;
                 x1 = oldX + 1;
-            }
-            else
+            } else
             {
                 x0 = Math.min(playbackPointX, oldX) - 1;
                 x1 = Math.max(playbackPointX, oldX) + 1;
@@ -319,7 +320,6 @@ public class VelocityPanel extends EditorPanel implements PropertyChangeListener
         }
     }
 
-
     /**
      * Get the current scale factor on the X axis.
      *
@@ -344,7 +344,6 @@ public class VelocityPanel extends EditorPanel implements PropertyChangeListener
     // ==========================================================================================================
     // PropertyChangeListener interface
     // ==========================================================================================================    
-
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
@@ -362,12 +361,24 @@ public class VelocityPanel extends EditorPanel implements PropertyChangeListener
     // ==========================================================================================================
     // Private methods
     // ==========================================================================================================    
-
     private void settingsChanged()
     {
         repaint();
     }
 
+    private void paintLoopZone(Graphics g)
+    {
+        IntRange loopZone = editor.getLoopZone();
+        if (loopZone != null)
+        {
+            var loopZoneXRange = notesPanel.getXMapper().getXRange(loopZone);
+            var lZone = new Rectangle(loopZoneXRange.from, 0, loopZoneXRange.size(), getHeight());
+            lZone = lZone.intersection(g.getClipBounds());
+            Color c = editor.getSettings().getLoopZoneWhiteKeyLaneBackgroundColor();
+            g.setColor(c);
+            g.fillRect(lZone.x, lZone.y, lZone.width, lZone.height);
+        }
+    }
 
     // ==========================================================================================================
     // Inner classes
@@ -390,7 +401,6 @@ public class VelocityPanel extends EditorPanel implements PropertyChangeListener
          */
         private NavigableSet<NoteEvent> impactedNotes = new TreeSet<>();
 
-
         @Override
         public void mouseClicked(MouseEvent e)
         {
@@ -403,7 +413,6 @@ public class VelocityPanel extends EditorPanel implements PropertyChangeListener
 
             }
         }
-
 
         @Override
         public void mouseMoved(MouseEvent e)
@@ -418,13 +427,11 @@ public class VelocityPanel extends EditorPanel implements PropertyChangeListener
             if (impactedNotes.isEmpty() && startDraggingPoint == null)
             {
                 setCursor(Cursor.getDefaultCursor());
-            }
-            else
+            } else
             {
                 setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             }
         }
-
 
         @Override
         public void mouseDragged(MouseEvent e)
@@ -438,8 +445,7 @@ public class VelocityPanel extends EditorPanel implements PropertyChangeListener
                     setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
                     editor.getUndoManager().startCEdit(editor, UNDO_TEXT);
-                }
-                else
+                } else
                 {
                     // LOGGER.severe("mouseDragged() continue");
                     if (contains(e.getX(), e.getY()))
@@ -451,7 +457,6 @@ public class VelocityPanel extends EditorPanel implements PropertyChangeListener
             }
         }
 
-
         @Override
         public void mouseReleased(MouseEvent e)
         {
@@ -462,13 +467,12 @@ public class VelocityPanel extends EditorPanel implements PropertyChangeListener
                 setCursor(Cursor.getDefaultCursor());
                 editor.getUndoManager().endCEdit(UNDO_TEXT);
             }
-            
+
         }
 
         // ============================================================================================
         // Private methods
         // ============================================================================================
-
         private int getVelocity(Point p)
         {
             int v = Math.round((127 * (getHeight() - 1f - p.y)) / (getHeight() - TOP_PADDING));
@@ -511,6 +515,5 @@ public class VelocityPanel extends EditorPanel implements PropertyChangeListener
             }
         }
     }
-
 
 }
