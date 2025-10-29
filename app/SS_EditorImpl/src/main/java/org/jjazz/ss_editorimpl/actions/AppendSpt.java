@@ -78,7 +78,7 @@ public class AppendSpt extends AbstractAction
     public void actionPerformed(ActionEvent e)
     {
         SS_EditorTopComponent tc = SS_EditorTopComponent.getActive();
-        LOGGER.log(Level.SEVERE, "actionPerformed() -- tc={0}", tc);
+        LOGGER.log(Level.FINE, "actionPerformed() -- tc={0}", tc);
         if (tc == null)
         {
             return;

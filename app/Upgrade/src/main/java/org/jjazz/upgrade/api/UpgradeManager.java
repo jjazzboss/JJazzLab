@@ -43,7 +43,8 @@ import org.openide.util.lookup.ServiceProvider;
 /**
  * Manage the tasks to upgrade settings from a previous version of JJazzLab to the current version.
  * <p>
- * Find the source import JJazzLab version. Call all the UpgradeTasks found in the global Lookup upon fresh start at module install (UI is not yet ready!).
+ * Find the source import JJazzLab version. Call all the UpgradeTasks found in the global Lookup upon fresh start at module install (UI is not yet
+ * ready!).
  * <p>
  */
 public class UpgradeManager
@@ -54,8 +55,8 @@ public class UpgradeManager
      */
     public static final String[] PREVIOUS_VERSIONS = new String[]
     {
-        
-        "4.1.1", "4.1.0a", "4.1.0", "4.0.2", "4.0.1",
+
+        "4.1.2", "4.1.1", "4.1.0a", "4.1.0", "4.0.2", "4.0.1",
         "3.2.1", "3.2.0", "3.1.0", "3.0.3", "3.0.2a", "3.0.2", "3.0.1", "3.0.beta1",
         "2.3.1", "2.3.beta", "2.2.0", "2.2.beta3", "2.2.beta2", "2.1.2a", "2.1.2", "2.1.1", "2.1.0", "2.0.1", "2.0.0"
     };
@@ -108,7 +109,7 @@ public class UpgradeManager
     }
 
     /**
-     * @return True if it's the first run of this JJazzLab version (netbeans user dir. was cleaned)
+     * @return True if it's the first run of this JJazzLab version (or if this module's preferences file could not be found in the Netbeans user directory).
      */
     public boolean isFreshStart()
     {
@@ -163,12 +164,12 @@ public class UpgradeManager
         return prop;
     }
 
-
     /**
-     * Copy into modulePrefs all the "old" key/value pairs from the corresponding Properties file found in the getImportSourceVersion() directory structure.
+     * Copy into modulePrefs all the "old" key/value pairs from the corresponding Properties file found in the getImportSourceVersion() directory
+     * structure.
      * <p>
-     * To be used when module codebase has not changed between 2 versions. But note that app-level codebase name changes, which impacted *all* (or almost all)
-     * module, are handled by this method via adaptPropertiesFileRelativePath().
+     * To be used when module codebase has not changed between 2 versions. But note that app-level codebase name changes, which impacted *all* (or
+     * almost all) module, are handled by this method via adaptPropertiesFileRelativePath().
      *
      * @param modulePrefs The Netbeans preferences of a module.
      * @see #adaptPropertiesFileRelativePath(java.lang.String)
@@ -239,7 +240,7 @@ public class UpgradeManager
      * <p>
      * To be used when package codebase has changed between versions.
      *
-     * @param modulePrefs          The Netbeans preferences of a module.
+     * @param modulePrefs The Netbeans preferences of a module.
      * @param relPathToOldPrefFile Relative path from ...config/Preferences, eg "org/jjazz/rhythm/database.properties"
      */
     public void duplicateOldPreferences(Preferences modulePrefs, String relPathToOldPrefFile)
@@ -289,7 +290,6 @@ public class UpgradeManager
         }
     }
 
-
     /**
      * Get the JJazzLab version from which to import settings.
      * <p>
@@ -335,7 +335,6 @@ public class UpgradeManager
     // =============================================================================================================
     // Private methods
     // =============================================================================================================
-
     private void resetImportSourceVersion()
     {
         importSourceVersion = null;
@@ -352,7 +351,6 @@ public class UpgradeManager
         String relPath = nbPrefs.absolutePath().substring(1);
         return relPath + ".properties";
     }
-
 
     // =============================================================================================================
     // Internal class

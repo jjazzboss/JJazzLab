@@ -175,7 +175,6 @@ public class CompositeRhythm implements YamJJazzRhythm
     @Override
     public void loadResources() throws MusicGenerationException
     {
-        LOGGER.severe("loadResources() DEBUG TODO load other rhythms ressources too");
         baseRhythm.loadResources();
 
         // Load resources from other rhythm instances
@@ -190,7 +189,6 @@ public class CompositeRhythm implements YamJJazzRhythm
     @Override
     public void releaseResources()
     {
-        LOGGER.severe("releaseResources() DEBUG TODO release other rhythms ressources too");
         baseRhythm.releaseResources();
 
         // Release resources from other rhythm instances

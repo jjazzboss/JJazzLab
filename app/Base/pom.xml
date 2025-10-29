@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.jjazzlab</groupId>
         <artifactId>jjazzlab-parent</artifactId>
-        <version>4.1.3-SNAPSHOT</version>
+        <version>5.0.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <groupId>org.jjazzlab.app</groupId>
@@ -45,6 +45,11 @@
         <dependency> 
             <groupId>org.jjazzlab.plugins</groupId> 
             <artifactId>fluidsynthembeddedsynth</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>           
+        <dependency> 
+            <groupId>org.jjazzlab.plugins</groupId> 
+            <artifactId>jjswing</artifactId> 
             <version>${project.version}</version>  
         </dependency>           
         <dependency> 
