@@ -26,6 +26,7 @@ import java.util.logging.*;
 import org.jjazz.flatcomponents.api.FlatComponentsGlobalSettings;
 import org.jjazz.fluidsynthembeddedsynth.api.FluidSynthEmbeddedSynth;
 import org.jjazz.harmony.spi.ChordTypeDatabase;
+import org.jjazz.jjswing.api.JJSwingRhythm;
 import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.outputsynth.api.DefaultOutputSynthManager;
@@ -34,15 +35,14 @@ import org.jjazz.upgrade.api.UpgradeTask;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
 
-
 /**
  * Upgrade the preferences of JJazzLab core or plugins components (which do not have access to the UpgradeManager/UpgradeTask service).
  */
 @ServiceProvider(service = UpgradeTask.class)
-public class UpgradeCorePreferencesUpgradeTask implements UpgradeTask
+public class UpgradeCoreAndPluginsPreferencesUpgradeTask implements UpgradeTask
 {
 
-    private static final Logger LOGGER = Logger.getLogger(UpgradeCorePreferencesUpgradeTask.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(UpgradeCoreAndPluginsPreferencesUpgradeTask.class.getSimpleName());
 
     @Override
     public void upgrade(String oldVersion)
@@ -94,8 +94,12 @@ public class UpgradeCorePreferencesUpgradeTask implements UpgradeTask
         {
             prefs = NbPreferences.forModule(FluidSynthEmbeddedSynth.class);
             um.duplicateOldPreferences(prefs);
-        }             
+        }
 
+
+        // jjSwing
+        prefs = NbPreferences.forModule(JJSwingRhythm.class);
+        um.duplicateOldPreferences(prefs);
     }
 
 }

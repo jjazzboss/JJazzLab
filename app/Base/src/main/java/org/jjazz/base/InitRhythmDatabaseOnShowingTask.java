@@ -24,13 +24,18 @@
  */
 package org.jjazz.base;
 
+import java.util.concurrent.ExecutionException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jjazz.harmony.api.TimeSignature;
+import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.spi.RhythmDatabaseFactory;
 import org.jjazz.startup.spi.OnShowingTask;
+import org.jjazz.upgrade.api.UpgradeManager;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
- * Initialize the RhythmDatabase.
+ * Initialize the RhythmDatabase and set default rhythms on first run.
  * <p>
  */
 @ServiceProvider(service = OnShowingTask.class)
@@ -46,7 +51,51 @@ public class InitRhythmDatabaseOnShowingTask implements OnShowingTask
     @Override
     public void run()
     {
-        RhythmDatabaseFactory.getDefault().initialize();
+        var future = RhythmDatabaseFactory.getDefault().initialize();
+
+        if (UpgradeManager.getInstance().isFreshStart())
+        {
+            try
+            {
+                if (future.get() == null)           // Blocks until rdb initialization is complete
+                {
+                    LOGGER.log(Level.INFO, "run() Setting default 4/4 and 3/4 rhythms upon fresh start");
+
+
+                    var rdb = RhythmDatabase.getDefault();
+                    String rId = "jjSwing-ID";
+                    var ri44 = rdb.getRhythm(rId);
+                    if (ri44 != null)
+                    {
+                        rdb.setDefaultRhythm(TimeSignature.FOUR_FOUR, ri44);
+
+                    } else
+                    {
+                        LOGGER.log(Level.WARNING, "run() Could not find 4/4 default rhythm rId={0}", rId);
+                    }
+
+
+                    rId = "JazzWaltzMed.S351.sst-ID";
+
+                    var ri34 = rdb.getRhythm(rId);
+                    if (ri34 != null)
+                    {
+                        rdb.setDefaultRhythm(TimeSignature.THREE_FOUR, ri34);
+                    } else
+                    {
+                        LOGGER.log(Level.WARNING, "run() Could not find 3/4 default rhythm rId={0}", rId);
+                    }
+
+                }
+            } catch (InterruptedException | ExecutionException ex)
+            {
+                LOGGER.log(Level.SEVERE, "run() Could not retrieve the rhythm database. ex={0}", ex.getMessage());
+            }
+        }
+
+        var rdb = RhythmDatabase.getDefault();
+        LOGGER.log(Level.INFO, "run() Default 4/4 rhythm: {0}", rdb.getDefaultRhythm(TimeSignature.FOUR_FOUR).name());
+        LOGGER.log(Level.INFO, "run() Default 3/4 rhythm: {0}", rdb.getDefaultRhythm(TimeSignature.THREE_FOUR).name());
     }
 
     @Override
@@ -60,6 +109,5 @@ public class InitRhythmDatabaseOnShowingTask implements OnShowingTask
     {
         return "Initialize rhythm database";
     }
-
 
 }
