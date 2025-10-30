@@ -385,9 +385,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
      * @throws IllegalArgumentException If bar is &gt; or equals to model's size.
      */
     public void setModelBarIndex(int bar)
-    {
-        Preconditions.checkElementIndex(bar, model.getSizeInBars(), "bar=" + bar);
-
+    {        
         if (bar == modelBarIndex)
         {
             return;
