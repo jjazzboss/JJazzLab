@@ -15,7 +15,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.Sequence;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
@@ -51,6 +50,8 @@ import org.jjazz.jjswing.bass.WbpsaScorer;
  * <p>
  * Example: If we have Cm7-F7-E7-Em7 in the database, then we also have Cm7-F7, F7-E7, E7-Em7, Cm7, F7, E7, Em7 phrases in the database.
  * <p>
+ * The implementation is thread safe: this is required because sometimes 2 threads might call it with concurrent read/write access, for example when a
+ * background music generation is performed and user wants to preview-hear a change from RP_SYS_SubstituteTracks editor.
  */
 public class WbpSourceDatabase
 {
@@ -69,11 +70,8 @@ public class WbpSourceDatabase
     private static final String MIDI_FILE_2FEEL_A_RESOURCE_PATH = "WalkingBass2feelAMidiDB.mid";
     @StaticResource(relative = true)
     private static final String MIDI_FILE_2FEEL_B_RESOURCE_PATH = "WalkingBass2feelBMidiDB.mid";
-
     private final Map<String, String> mapSessionIdResource;
-    private final ListMultimap<String, WbpSource> mmapSessionIdWbpSources;
-    private final ListMultimap<StyleAndProfile, WbpSource> mmapSapWbpSources;
-    private final Map<String, WbpSource> mapIdWbpSource;
+    private final Database database;
 
     private static final Logger LOGGER = Logger.getLogger(WbpSourceDatabase.class.getSimpleName());
 
@@ -95,9 +93,7 @@ public class WbpSourceDatabase
         LOGGER.log(Level.FINE, "WbpSourceDatabase() initializing...");
 
 
-        mmapSapWbpSources = MultimapBuilder.hashKeys().arrayListValues().build();
-        mmapSessionIdWbpSources = MultimapBuilder.hashKeys().arrayListValues().build();
-        mapIdWbpSource = new HashMap<>();
+        database = new Database();
         mapSessionIdResource = new HashMap<>();
 
         // Extract the WbpSources from the WbpSessions
@@ -135,10 +131,10 @@ public class WbpSourceDatabase
     public boolean addWbpSource(WbpSource wbps)
     {
         boolean b = false;
-        if (mapIdWbpSource.get(wbps.getId()) == null
+        if (!database.exists(wbps.getId())
                 && getFirstCompatibleWbpSource(wbps.getBassStyle(), wbps.getSimpleChordSequence(), wbps.getSizedPhrase(), true) == null)
         {
-            addWbpSourceImpl(wbps);
+            database.add(wbps);
             b = true;
         }
         return b;
@@ -153,9 +149,9 @@ public class WbpSourceDatabase
     public boolean removeWbpSource(WbpSource wbps)
     {
         boolean b = false;
-        if (mapIdWbpSource.get(wbps.getId()) != null)
+        if (database.exists(wbps.getId()))
         {
-            removeWbpSourceImpl(wbps);
+            database.remove(wbps);
             b = true;
         }
         return b;
@@ -299,40 +295,6 @@ public class WbpSourceDatabase
         }
     }
 
-    /**
-     * Get all the WbpSources from the database (in no particular order).
-     *
-     * @return An unmodifiable list
-     */
-    public List<WbpSource> getWbpSources()
-    {
-        return new ArrayList<>(mapIdWbpSource.values());
-    }
-
-    /**
-     * The number of WbpSources in the database matching the specified parameters.
-     *
-     * @param nbBars WbpSource size in bars. [1;4] or -1. If -1 all sizes are counted.
-     * @param styles If empty, all BassStyles are counted.
-     * @return
-     */
-    public int getNbWbpSources(int nbBars, BassStyle... styles)
-    {
-        Preconditions.checkArgument(nbBars == -1 || checkWbpSourceSize(nbBars), "nbBars=%s", nbBars);
-        List<BassStyle> bassStyles = List.of(styles);
-        int res;
-        if (nbBars == -1 && bassStyles.isEmpty())
-        {
-            res = mapIdWbpSource.size();
-        } else
-        {
-            res = (int) mapIdWbpSource.values().stream()
-                    .filter(wbps -> (nbBars == -1 || wbps.getSimpleChordSequence().getBarRange().size() == nbBars)
-                    && (bassStyles.isEmpty() || bassStyles.contains(wbps.getBassStyle())))
-                    .count();
-        }
-        return res;
-    }
 
     /**
      * Get the WbpSources matching the specified parameters.
@@ -346,19 +308,7 @@ public class WbpSourceDatabase
     public List<WbpSource> getWbpSources(int nbBars, BassStyle... styles)
     {
         Preconditions.checkArgument(nbBars == -1 || checkWbpSourceSize(nbBars), "nbBars=%s", nbBars);
-        List<BassStyle> bassStyles = List.of(styles);
-        List<WbpSource> res;
-        if (nbBars == -1 && bassStyles.isEmpty())
-        {
-            res = new ArrayList<>(mapIdWbpSource.values());
-        } else
-        {
-            res = mapIdWbpSource.values().stream()
-                    .filter(wbps -> (nbBars == -1 || wbps.getSimpleChordSequence().getBarRange().size() == nbBars)
-                    && (bassStyles.isEmpty() || bassStyles.contains(wbps.getBassStyle())))
-                    .toList();
-        }
-        return res;
+        return database.getWbpSources(nbBars, styles);
     }
 
     /**
@@ -374,8 +324,9 @@ public class WbpSourceDatabase
     {
         Objects.requireNonNull(style);
         Objects.requireNonNull(rootProfile);
-        List<WbpSource> res = mmapSapWbpSources.get(new StyleAndProfile(style, rootProfile));
-        return Collections.unmodifiableList(res);
+        var sap = new StyleAndProfile(style, rootProfile);
+        var res = Collections.unmodifiableList(database.getWbpSources(sap));
+        return res;
     }
 
     /**
@@ -397,7 +348,7 @@ public class WbpSourceDatabase
      */
     public List<WbpSource> getSessionWbpSources(String sessionId)
     {
-        return mmapSessionIdWbpSources.get(sessionId);
+        return Collections.unmodifiableList(database.getSessionWbpSources(sessionId));
     }
 
     /**
@@ -435,7 +386,7 @@ public class WbpSourceDatabase
     public void dump()
     {
         LOGGER.info("WbpDatabase dump =========================================");
-        for (var wbps : getWbpSources())
+        for (var wbps : getWbpSources(-1))
         {
             LOGGER.log(Level.INFO, " {0}", wbps.toLongString());
         }
@@ -459,7 +410,7 @@ public class WbpSourceDatabase
             if (getFirstCompatibleWbpSource(wbpSource.getBassStyle(), wbpSource.getSimpleChordSequence(), wbpSource.getSizedPhrase(), true) == null)
             {
                 // Add only non redundant phrases                
-                addWbpSourceImpl(wbpSource);
+                database.add(wbpSource);
             }
         }
     }
@@ -676,44 +627,6 @@ public class WbpSourceDatabase
         return res;
     }
 
-    private void addWbpSourceImpl(WbpSource wbpSource)
-    {
-        var old = mapIdWbpSource.put(wbpSource.getId(), wbpSource);
-        if (old != null)
-        {
-            throw new IllegalStateException("Duplicate WbpSource.id found: wbpSource=" + wbpSource + " old=" + old);
-        }
-        if (!mmapSessionIdWbpSources.put(wbpSource.getSessionId(), wbpSource))
-        {
-            throw new IllegalStateException("Adding to mmapSessionIdWbpSources failed for " + wbpSource + " mmapSessionIdWbpSources=" + mmapSessionIdWbpSources);
-        }
-
-        StyleAndProfile sap = new StyleAndProfile(wbpSource.getBassStyle(), wbpSource.getRootProfile());
-        if (!mmapSapWbpSources.put(sap, wbpSource))
-        {
-            throw new IllegalStateException("Adding to mmapBsrpWbpSources failed for " + wbpSource + " mmapBsrpWbpSources=" + mmapSapWbpSources);
-        }
-    }
-
-    private void removeWbpSourceImpl(WbpSource wbpSource)
-    {
-        var old = mapIdWbpSource.remove(wbpSource.getId());
-        if (old == null)
-        {
-            throw new IllegalStateException("Removing non-existing WbpSourceId=" + wbpSource.getId());
-        }
-        if (!mmapSessionIdWbpSources.remove(wbpSource.getSessionId(), wbpSource))
-        {
-            throw new IllegalStateException("Removing non-existing WbpSource=" + wbpSource + " mmapSessionIdWbpSources=" + mmapSessionIdWbpSources);
-        }
-
-        StyleAndProfile bsRp = new StyleAndProfile(wbpSource.getBassStyle(), wbpSource.getRootProfile());
-        if (!mmapSapWbpSources.remove(bsRp, wbpSource))
-        {
-            throw new IllegalStateException("Removing non-existing WbpSource=" + wbpSource + " mmapBsrpWbpSources=" + mmapSapWbpSources);
-        }
-    }
-
 
     // =================================================================================================================================
     // Inner classes
@@ -729,7 +642,91 @@ public class WbpSourceDatabase
             Objects.requireNonNull(bassStyle);
             Objects.requireNonNull(rootProfile);
         }
+    }
 
+    /**
+     * Manage the real data in a synchronized way.
+     * <p>
+     * Just use synchronized methods: tried finer grain syncrhonization but it's not worth it.
+     */
+    static private class Database
+    {
+
+        private final ListMultimap<String, WbpSource> mmapSessionIdWbpSources;
+        private final ListMultimap<StyleAndProfile, WbpSource> mmapSapWbpSources;
+        private final Map<String, WbpSource> mapIdWbpSource;
+
+        protected Database()
+        {
+            mmapSapWbpSources = MultimapBuilder.hashKeys().arrayListValues().build();
+            mmapSessionIdWbpSources = MultimapBuilder.hashKeys().arrayListValues().build();
+            mapIdWbpSource = new HashMap<>();
+        }
+
+        public synchronized boolean exists(String wbpSourceId)
+        {
+            return mapIdWbpSource.containsKey(wbpSourceId);
+        }
+
+        public synchronized List<WbpSource> getSessionWbpSources(String sessionId)
+        {
+            return mmapSessionIdWbpSources.get(sessionId);
+        }
+
+        public synchronized List<WbpSource> getWbpSources(int nbBars, BassStyle... styles)
+        {
+            List<BassStyle> bassStyles = List.of(styles);
+            List<WbpSource> res;
+            res = mapIdWbpSource.values().stream()
+                    .filter(wbps -> (nbBars == -1 || wbps.getSimpleChordSequence().getBarRange().size() == nbBars)
+                    && (bassStyles.isEmpty() || bassStyles.contains(wbps.getBassStyle())))
+                    .toList();
+            return res;
+        }
+
+        public synchronized List<WbpSource> getWbpSources(StyleAndProfile sap)
+        {
+            return mmapSapWbpSources.get(sap);
+        }
+
+        public synchronized void add(WbpSource wbpSource)
+        {
+            var old = mapIdWbpSource.put(wbpSource.getId(), wbpSource);
+            if (old != null)
+            {
+                throw new IllegalStateException("Duplicate WbpSource.id found: wbpSource=" + wbpSource + " old=" + old);
+            }
+            if (!mmapSessionIdWbpSources.put(wbpSource.getSessionId(), wbpSource))
+            {
+                throw new IllegalStateException(
+                        "Adding to mmapSessionIdWbpSources failed for " + wbpSource + " mmapSessionIdWbpSources=" + mmapSessionIdWbpSources);
+            }
+
+            StyleAndProfile sap = new StyleAndProfile(wbpSource.getBassStyle(), wbpSource.getRootProfile());
+            if (!mmapSapWbpSources.put(sap, wbpSource))
+            {
+                throw new IllegalStateException("Adding to mmapBsrpWbpSources failed for " + wbpSource + " mmapBsrpWbpSources=" + mmapSapWbpSources);
+            }
+        }
+
+        public synchronized void remove(WbpSource wbpSource)
+        {
+            var old = mapIdWbpSource.remove(wbpSource.getId());
+            if (old == null)
+            {
+                throw new IllegalStateException("Removing non-existing WbpSourceId=" + wbpSource.getId());
+            }
+            if (!mmapSessionIdWbpSources.remove(wbpSource.getSessionId(), wbpSource))
+            {
+                throw new IllegalStateException("Removing non-existing WbpSource=" + wbpSource + " mmapSessionIdWbpSources=" + mmapSessionIdWbpSources);
+            }
+
+            StyleAndProfile bsRp = new StyleAndProfile(wbpSource.getBassStyle(), wbpSource.getRootProfile());
+            if (!mmapSapWbpSources.remove(bsRp, wbpSource))
+            {
+                throw new IllegalStateException("Removing non-existing WbpSource=" + wbpSource + " mmapBsrpWbpSources=" + mmapSapWbpSources);
+            }
+        }
 
     }
 }
