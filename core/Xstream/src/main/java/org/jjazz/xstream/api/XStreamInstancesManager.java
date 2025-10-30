@@ -160,7 +160,6 @@ public class XStreamInstancesManager
     private XStream getSecuredXStreamInstance()
     {
         XStream xstream = new XStream();
-        XStream.setupDefaultSecurity(xstream);
         xstream.allowTypesByWildcard(new String[]
         {
             "org.jjazz.**"
