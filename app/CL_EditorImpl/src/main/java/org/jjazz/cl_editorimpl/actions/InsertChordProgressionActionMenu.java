@@ -53,6 +53,7 @@ import org.jjazz.song.api.Song;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.utilities.api.IntRange;
 import org.jjazz.utilities.api.ResUtil;
+import org.jjazz.utilities.api.Utilities;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -137,13 +138,19 @@ public final class InsertChordProgressionActionMenu extends AbstractAction imple
     // =============================================================================================    
 
     private JMenu prepareMenu(JMenu menu, CL_Selection selection)
-    {
-
+    {               
         File chordProgressionFile = getChordProgressionTextFile();
         if (chordProgressionFile == null)
         {
             return menu;
         }
+        
+        // First menu entry opens the chord progressino text file in an editor
+        String txt=ResUtil.getString(getClass(),"OpenChordProgressionFile" , chordProgressionFile.getAbsolutePath());
+        JMenuItem mi = new JMenuItem(txt);
+        mi.addActionListener(e -> Utilities.openFile(chordProgressionFile, false));
+        menu.add(mi);
+        
 
         // Read file
         List<String> lines;
@@ -182,7 +189,7 @@ public final class InsertChordProgressionActionMenu extends AbstractAction imple
                 var cSeq = getChordSequence(line);
                 if (checkChordSequence(cSeq))
                 {
-                    var mi = new JMenuItem(line);
+                    mi = new JMenuItem(line);
                     mi.setFont(new java.awt.Font("Courier New", 0, 11)); // NOI18N
                     mi.addActionListener(ae -> insertChordProgression(selection, cSeq));
                     (currentSubMenu == null ? menu : currentSubMenu).add(mi);
@@ -196,6 +203,11 @@ public final class InsertChordProgressionActionMenu extends AbstractAction imple
     }
 
 
+    /**
+     * File is expected to be at the root of the JJazzLab user directory -if not present, create one from CHORD_PROGRESSION_RESOURCE.
+     * <p>
+     * @return
+     */
     private File getChordProgressionTextFile()
     {
         if (CHORD_PROGRESSION_TEXT_FILE == null)
@@ -219,6 +231,7 @@ public final class InsertChordProgressionActionMenu extends AbstractAction imple
 
         return CHORD_PROGRESSION_TEXT_FILE;
     }
+
 
     /**
      * Convert the line in a chord sequence.
