@@ -30,6 +30,7 @@ import java.io.*;
 import java.lang.reflect.Modifier;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.FileVisitOption;
@@ -365,8 +366,9 @@ public class Utilities
         {
             String str = r.group();
             try
-            {
-                URL url = new URL(str);
+            {                
+                URI uri = URI.create(str);
+                URL url = uri.toURL();
                 res.add(url);
             } catch (MalformedURLException ex)
             {
@@ -400,9 +402,10 @@ public class Utilities
             String str = r.group();
             try
             {
-                File f = new File(new URL(str).toURI());
+                URI uri = URI.create(str);                
+                File f = new File(uri);
                 res.add(f);
-            } catch (MalformedURLException | URISyntaxException ex)
+            } catch (IllegalArgumentException ex)
             {
                 LOGGER.log(Level.WARNING, "extractFileURIsAsFiles() Invalid file URL/URI={0} in text={1}, ex={2}", new Object[]
                 {
@@ -1027,7 +1030,8 @@ public class Utilities
 
         try
         {
-            return new URL(path);
+            var uri = URI.create(path);
+            return uri.toURL();
         } catch (final MalformedURLException e)
         {
             e.printStackTrace();
@@ -1072,11 +1076,8 @@ public class Utilities
             {
                 path = "file:/" + path.substring(5);
             }
-            return new File(new URL(path).toURI());
-        } catch (final MalformedURLException e)
-        {
-            // NB: URL is not completely well-formed.
-        } catch (final URISyntaxException e)
+            return new File(URI.create(path));
+        } catch (final IllegalArgumentException e)
         {
             // NB: URL is not completely well-formed.
         }

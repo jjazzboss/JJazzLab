@@ -25,6 +25,7 @@ package org.jjazz.base.api.actions;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import org.jjazz.utilities.api.Utilities;
 import org.openide.awt.ActionID;
@@ -45,7 +46,8 @@ public final class OnlineDoc implements ActionListener
          URL url = null;
         try
         {
-            url = new URL(DOC_URL);
+            var uri = URI.create(DOC_URL);
+            url = uri.toURL();
         } catch (MalformedURLException ex)
         {
             Exceptions.printStackTrace(ex);

@@ -72,15 +72,15 @@ public class GeneralUISettings
      * The list of currently supported locales by the application.
      */
     public static final Locale[] SUPPORTED_LOCALES = new Locale[]
-    {
-        new Locale("en", "US"),
-        new Locale("fr", "FR"),
-        new Locale("de", "DE"),
-        new Locale("zh", "CN"),
-        new Locale("es", "ES"),
-        new Locale("pt", "BR"),
-        new Locale("ja", "JP"),
-        new Locale("uk", "UA")
+    {        
+        new Locale.Builder().setLanguage("en").setRegion("US").build(),
+        new Locale.Builder().setLanguage("fr").setRegion("FR").build(),
+        new Locale.Builder().setLanguage("de").setRegion("DE").build(),
+        new Locale.Builder().setLanguage("zh").setRegion("CN").build(),
+        new Locale.Builder().setLanguage("es").setRegion("ES").build(),
+        new Locale.Builder().setLanguage("pt").setRegion("BR").build(),
+        new Locale.Builder().setLanguage("ja").setRegion("JP").build(),
+        new Locale.Builder().setLanguage("uk").setRegion("UA").build(),
     };
 
     protected enum LookAndFeelId

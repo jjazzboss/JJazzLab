@@ -101,7 +101,8 @@ public class InsertLinkDialog extends javax.swing.JDialog
         URL url = null;
         try
         {
-            url = new URL(txt);
+            var uri = URI.create(txt);
+            url = uri.toURL();
         } catch (MalformedURLException ex)
         {
             String msg = ResUtil.getString(getClass(), "InsertLinkDialog.ERR_InvalidURL");
