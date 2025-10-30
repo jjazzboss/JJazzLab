@@ -34,7 +34,7 @@ import org.openide.awt.ActionRegistration;
 @ActionRegistration(displayName = "#CTL_PrintAction", lazy = true)
 @ActionReferences(
         {
-            @ActionReference(path = "Menu/File", position = 1600),
+            @ActionReference(path = "Menu/File", position = 1600, separatorBefore = 1599),
             @ActionReference(path = "Shortcuts", name = "D-P")
         })
 public final class PrintAction implements ActionListener
