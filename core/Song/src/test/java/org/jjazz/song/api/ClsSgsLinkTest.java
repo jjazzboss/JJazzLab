@@ -176,6 +176,7 @@ public class ClsSgsLinkTest
         assertEquals(9, sgs.getSizeInBars());
         var saveSptSection2 = sgs.getSongPart(0);
         String saveSection2Name = section2.getData().getName();
+        var saveSection2ChordSymbols = cls1.getItems(section2, CLI_ChordSymbol.class);
 
         cls1.insertBars(0, 1);
         System.out.println(" sgs after=" + sgs);
@@ -191,6 +192,7 @@ public class ClsSgsLinkTest
         assertSame(s1, sgs.getSongPart(9).getParentSection());
         assertEquals(saveSptSection2.getNbBars(), sgs.getSongPart(9).getNbBars());
         assertSame(saveSptSection2.getRhythm(), sgs.getSongPart(9).getRhythm());        
+        assertEquals(saveSection2ChordSymbols, cls1.getItems(s1, CLI_ChordSymbol.class));
     }
     
     @Test
