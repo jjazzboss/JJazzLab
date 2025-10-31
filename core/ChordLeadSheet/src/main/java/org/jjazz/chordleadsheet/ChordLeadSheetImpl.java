@@ -178,7 +178,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 {
                     size = oldSize;
                 }
-                fireAuthorizedChangeEvent(new SizeChangedEvent(ChordLeadSheetImpl.this, newSize, oldSize));
+                fireNonVetoableChangeEvent(new SizeChangedEvent(ChordLeadSheetImpl.this, newSize, oldSize));
             }
 
             @Override
@@ -189,13 +189,13 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 {
                     size = newSize;
                 }
-                fireAuthorizedChangeEvent(new SizeChangedEvent(ChordLeadSheetImpl.this, oldSize, newSize));
+                fireNonVetoableChangeEvent(new SizeChangedEvent(ChordLeadSheetImpl.this, oldSize, newSize));
             }
         };
 
         fireUndoableEditHappened(edit);
 
-        fireAuthorizedChangeEvent(event);
+        fireNonVetoableChangeEvent(event);
 
         fireClsActionEventComplete(ClsActionEvent.API_ID.SetSizeInBars);
     }
@@ -264,7 +264,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 removeItemChecked(wItem);
                 wItem.setPosition(oldPos);
                 wItem.setContainer(oldContainer);
-                fireAuthorizedChangeEvent(new ItemRemovedEvent(ChordLeadSheetImpl.this, wItem));
+                fireNonVetoableChangeEvent(new ItemRemovedEvent(ChordLeadSheetImpl.this, wItem));
             }
 
             @Override
@@ -274,14 +274,14 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 wItem.setPosition(newAdjustedPos);
                 wItem.setContainer(newContainer);
                 addItemChecked(wItem);
-                fireAuthorizedChangeEvent(new ItemAddedEvent(ChordLeadSheetImpl.this, wItem));
+                fireNonVetoableChangeEvent(new ItemAddedEvent(ChordLeadSheetImpl.this, wItem));
             }
         };
 
         fireUndoableEditHappened(edit);
 
         // Fire ItemChange event
-        fireAuthorizedChangeEvent(new ItemAddedEvent(ChordLeadSheetImpl.this, wItem));
+        fireNonVetoableChangeEvent(new ItemAddedEvent(ChordLeadSheetImpl.this, wItem));
 
         fireClsActionEventComplete(ClsActionEvent.API_ID.AddItem);
 
@@ -363,7 +363,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                     LOGGER.log(Level.FINER, "addSection.undoBody() cliSection={0}", cliSection);
                     removeItemChecked(wSection);
                     wSection.setContainer(oldContainer);
-                    fireAuthorizedChangeEvent(new ItemRemovedEvent(ChordLeadSheetImpl.this, wSection));
+                    fireNonVetoableChangeEvent(new ItemRemovedEvent(ChordLeadSheetImpl.this, wSection));
                 }
 
                 @Override
@@ -372,14 +372,14 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                     LOGGER.log(Level.FINER, "addSection.redoBody() cliSection={0}", cliSection);
                     wSection.setContainer(newContainer);
                     addItemChecked(wSection);
-                    fireAuthorizedChangeEvent(new ItemAddedEvent(ChordLeadSheetImpl.this, wSection));
+                    fireNonVetoableChangeEvent(new ItemAddedEvent(ChordLeadSheetImpl.this, wSection));
                 }
             };
 
             // Must be fired BEFORE the vetoable change
             fireUndoableEditHappened(edit);
 
-            fireAuthorizedChangeEvent(event);
+            fireNonVetoableChangeEvent(event);
 
             fireClsActionEventComplete(ClsActionEvent.API_ID.AddSection);
 
@@ -432,7 +432,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             {
                 LOGGER.log(Level.FINER, "removeSection.undoBody() cliSection={0}", cliSection);
                 addItemChecked(cliSection);
-                fireAuthorizedChangeEvent(new ItemAddedEvent(ChordLeadSheetImpl.this, cliSection));
+                fireNonVetoableChangeEvent(new ItemAddedEvent(ChordLeadSheetImpl.this, cliSection));
             }
 
             @Override
@@ -440,14 +440,14 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             {
                 LOGGER.log(Level.FINER, "removeSection.redoBody() cliSection={0}", cliSection);
                 removeItemChecked(cliSection);
-                fireAuthorizedChangeEvent(new ItemRemovedEvent(ChordLeadSheetImpl.this, cliSection));
+                fireNonVetoableChangeEvent(new ItemRemovedEvent(ChordLeadSheetImpl.this, cliSection));
             }
         };
 
         fireUndoableEditHappened(edit);
 
         // Fire ItemChange event
-        fireAuthorizedChangeEvent(event);
+        fireNonVetoableChangeEvent(event);
 
 
         fireClsActionEventComplete(ClsActionEvent.API_ID.RemoveSection);
@@ -525,7 +525,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                     cliSection, newBarIndex
                 });
                 changeItemPositionChecked(cliSection, new Position(oldBarIndex));
-                fireAuthorizedChangeEvent(new SectionMovedEvent(ChordLeadSheetImpl.this, cliSection, newBarIndex, oldBarIndex));
+                fireNonVetoableChangeEvent(new SectionMovedEvent(ChordLeadSheetImpl.this, cliSection, newBarIndex, oldBarIndex));
             }
 
             @Override
@@ -536,14 +536,14 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                     cliSection, newBarIndex
                 });
                 changeItemPositionChecked(cliSection, new Position(newBarIndex));
-                fireAuthorizedChangeEvent(new SectionMovedEvent(ChordLeadSheetImpl.this, cliSection, oldBarIndex, newBarIndex));
+                fireNonVetoableChangeEvent(new SectionMovedEvent(ChordLeadSheetImpl.this, cliSection, oldBarIndex, newBarIndex));
             }
         };
 
         fireUndoableEditHappened(edit);
 
         // Fire ItemChange event
-        fireAuthorizedChangeEvent(event);
+        fireNonVetoableChangeEvent(event);
 
         fireClsActionEventComplete(ClsActionEvent.API_ID.MoveSection);
     }
@@ -572,7 +572,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             {
                 LOGGER.log(Level.FINER, "removeItem.undoBody() item={0}", item);
                 addItemChecked(item);
-                fireAuthorizedChangeEvent(new ItemAddedEvent(ChordLeadSheetImpl.this, item));
+                fireNonVetoableChangeEvent(new ItemAddedEvent(ChordLeadSheetImpl.this, item));
             }
 
             @Override
@@ -580,14 +580,14 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             {
                 LOGGER.log(Level.FINER, "removeItem.redoBody() item={0}", item);
                 removeItemChecked(item);
-                fireAuthorizedChangeEvent(new ItemRemovedEvent(ChordLeadSheetImpl.this, item));
+                fireNonVetoableChangeEvent(new ItemRemovedEvent(ChordLeadSheetImpl.this, item));
             }
         };
 
         fireUndoableEditHappened(edit);
 
         // Fire ItemChange event
-        fireAuthorizedChangeEvent(new ItemRemovedEvent(ChordLeadSheetImpl.this, item));
+        fireNonVetoableChangeEvent(new ItemRemovedEvent(ChordLeadSheetImpl.this, item));
 
 
         fireClsActionEventComplete(ClsActionEvent.API_ID.RemoveItem);
@@ -633,7 +633,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                     newAdjustedPos
                 });
                 changeItemPositionChecked(item, oldPos);
-                fireAuthorizedChangeEvent(new ItemMovedEvent(ChordLeadSheetImpl.this, item, newAdjustedPos, oldPos));
+                fireNonVetoableChangeEvent(new ItemMovedEvent(ChordLeadSheetImpl.this, item, newAdjustedPos, oldPos));
             }
 
             @Override
@@ -645,13 +645,13 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                     newAdjustedPos
                 });
                 changeItemPositionChecked(item, newAdjustedPos);
-                fireAuthorizedChangeEvent(new ItemMovedEvent(ChordLeadSheetImpl.this, item, oldPos, newAdjustedPos));
+                fireNonVetoableChangeEvent(new ItemMovedEvent(ChordLeadSheetImpl.this, item, oldPos, newAdjustedPos));
             }
         };
         fireUndoableEditHappened(edit);
 
         // Fire ItemChange event
-        fireAuthorizedChangeEvent(new ItemMovedEvent(ChordLeadSheetImpl.this, item, oldPos, newAdjustedPos));
+        fireNonVetoableChangeEvent(new ItemMovedEvent(ChordLeadSheetImpl.this, item, oldPos, newAdjustedPos));
 
         fireClsActionEventComplete(ClsActionEvent.API_ID.MoveItem);
 
@@ -697,7 +697,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 });
 
                 changeItemDataChecked(item, oldData);
-                fireAuthorizedChangeEvent(new ItemChangedEvent(ChordLeadSheetImpl.this, item, newData, oldData));
+                fireNonVetoableChangeEvent(new ItemChangedEvent(ChordLeadSheetImpl.this, item, newData, oldData));
             }
 
             @Override
@@ -711,13 +711,13 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 {
                     changeItemDataChecked(item, newData);
                 }
-                fireAuthorizedChangeEvent(new ItemChangedEvent(ChordLeadSheetImpl.this, item, oldData, newData));
+                fireNonVetoableChangeEvent(new ItemChangedEvent(ChordLeadSheetImpl.this, item, oldData, newData));
             }
         };
         fireUndoableEditHappened(edit);
 
         // Fire ItemChange event
-        fireAuthorizedChangeEvent(new ItemChangedEvent(ChordLeadSheetImpl.this, item, oldData, newData));
+        fireNonVetoableChangeEvent(new ItemChangedEvent(ChordLeadSheetImpl.this, item, oldData, newData));
 
         fireClsActionEventComplete(ClsActionEvent.API_ID.ChangeItem);
 
@@ -1195,7 +1195,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                     {
                         removedItems.forEach(item -> addItemChecked(item));
                     }
-                    fireAuthorizedChangeEvent(new ItemAddedEvent(ChordLeadSheetImpl.this, removedItems));
+                    fireNonVetoableChangeEvent(new ItemAddedEvent(ChordLeadSheetImpl.this, removedItems));
                 }
 
                 @Override
@@ -1206,13 +1206,13 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                     {
                         removedItems.forEach(item -> removeItemChecked(item));
                     }
-                    fireAuthorizedChangeEvent(new ItemRemovedEvent(ChordLeadSheetImpl.this, removedItems));
+                    fireNonVetoableChangeEvent(new ItemRemovedEvent(ChordLeadSheetImpl.this, removedItems));
                 }
             };
             fireUndoableEditHappened(edit);
 
             // Fire the change
-            fireAuthorizedChangeEvent(new ItemRemovedEvent(ChordLeadSheetImpl.this, removedItems));
+            fireNonVetoableChangeEvent(new ItemRemovedEvent(ChordLeadSheetImpl.this, removedItems));
         }
 
 
@@ -1323,7 +1323,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                         changeItemPositionChecked(item, oldPos);
                     }
                 }
-                fireAuthorizedChangeEvent(new ItemBarShiftedEvent(ChordLeadSheetImpl.this, shiftedItems, -nbBars));
+                fireNonVetoableChangeEvent(new ItemBarShiftedEvent(ChordLeadSheetImpl.this, shiftedItems, -nbBars));
             }
 
             @Override
@@ -1342,13 +1342,13 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                         changeItemPositionChecked(item, newPos);
                     }
                 }
-                fireAuthorizedChangeEvent(new ItemBarShiftedEvent(ChordLeadSheetImpl.this, shiftedItems, nbBars));
+                fireNonVetoableChangeEvent(new ItemBarShiftedEvent(ChordLeadSheetImpl.this, shiftedItems, nbBars));
             }
         };
         fireUndoableEditHappened(edit);
 
         // Fire the change
-        fireAuthorizedChangeEvent(new ItemBarShiftedEvent(ChordLeadSheetImpl.this, shiftedItems, nbBars));
+        fireNonVetoableChangeEvent(new ItemBarShiftedEvent(ChordLeadSheetImpl.this, shiftedItems, nbBars));
     }
 
 
@@ -1403,7 +1403,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                     newData
                 });
                 changeItemDataChecked(cliSection, oldData);
-                fireAuthorizedChangeEvent(new ItemChangedEvent(ChordLeadSheetImpl.this, cliSection, newData, oldData));
+                fireNonVetoableChangeEvent(new ItemChangedEvent(ChordLeadSheetImpl.this, cliSection, newData, oldData));
             }
 
             @Override
@@ -1415,14 +1415,14 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                     newData
                 });
                 changeItemDataChecked(cliSection, newData);
-                fireAuthorizedChangeEvent(new ItemChangedEvent(ChordLeadSheetImpl.this, cliSection, oldData, newData));
+                fireNonVetoableChangeEvent(new ItemChangedEvent(ChordLeadSheetImpl.this, cliSection, oldData, newData));
             }
         };
 
         fireUndoableEditHappened(edit);
 
         // Notify listeners
-        fireAuthorizedChangeEvent(event);
+        fireNonVetoableChangeEvent(event);
     }
 
     private void removeInitialSection() throws UnsupportedEditException
@@ -1446,7 +1446,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             {
                 LOGGER.log(Level.FINER, "removeInitialSection.undoBody() cliSection={0}", cliSection);
                 addItemChecked(cliSection);
-                fireAuthorizedChangeEvent(new ItemAddedEvent(ChordLeadSheetImpl.this, cliSection));
+                fireNonVetoableChangeEvent(new ItemAddedEvent(ChordLeadSheetImpl.this, cliSection));
             }
 
             @Override
@@ -1454,14 +1454,14 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             {
                 LOGGER.log(Level.FINER, "removeInitialSection.redoBody() cliSection={0}", cliSection);
                 removeItemChecked(cliSection);
-                fireAuthorizedChangeEvent(new ItemRemovedEvent(ChordLeadSheetImpl.this, cliSection));
+                fireNonVetoableChangeEvent(new ItemRemovedEvent(ChordLeadSheetImpl.this, cliSection));
             }
         };
 
         fireUndoableEditHappened(edit);
 
         // Fire ItemChange event
-        fireAuthorizedChangeEvent(event);
+        fireNonVetoableChangeEvent(event);
     }
 
     /**
@@ -1524,7 +1524,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
      *
      * @param event Can not be a ClsVetoableChangeEvent
      */
-    protected void fireAuthorizedChangeEvent(ClsChangeEvent event)
+    protected void fireNonVetoableChangeEvent(ClsChangeEvent event)
     {
         Objects.requireNonNull(event);
         Preconditions.checkArgument(!(event instanceof ClsVetoableChangeEvent), "event=%s", event);
@@ -1588,25 +1588,25 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             @Override
             public void undoBody()
             {
-                assert activeClsActionEvent != null;
+                assert activeClsActionEvent != null;        // previously set by undo from fireClsActionEventComplete()
                 activeClsActionEvent.complete();
-                fireAuthorizedChangeEvent(activeClsActionEvent);
+                fireNonVetoableChangeEvent(activeClsActionEvent);
                 activeClsActionEvent = null;
             }
 
             @Override
             public void redoBody()
             {
-                assert activeClsActionEvent == null : "activeClsActionEvent" + activeClsActionEvent;
+                assert activeClsActionEvent == null : "activeClsActionEvent" + activeClsActionEvent;        // previously set by undoBody()
                 activeClsActionEvent = new ClsActionEvent(ChordLeadSheetImpl.this, apiId, data);
-                fireAuthorizedChangeEvent(activeClsActionEvent);
+                fireNonVetoableChangeEvent(activeClsActionEvent);
             }
         };
         fireUndoableEditHappened(edit);
 
 
         activeClsActionEvent = new ClsActionEvent(this, apiId, data);
-        fireAuthorizedChangeEvent(activeClsActionEvent);
+        fireNonVetoableChangeEvent(activeClsActionEvent);
     }
 
     /**
@@ -1632,17 +1632,17 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             @Override
             public void undoBody()
             {
-                assert activeClsActionEvent == null : "activeClsActionEvent=" + activeClsActionEvent;
+                assert activeClsActionEvent == null : "activeClsActionEvent=" + activeClsActionEvent;   // previously set by fireClsActionEventComplete()
                 activeClsActionEvent = new ClsActionEvent(ChordLeadSheetImpl.this, apiId, data);
-                fireAuthorizedChangeEvent(activeClsActionEvent);
+                fireNonVetoableChangeEvent(activeClsActionEvent);
             }
 
             @Override
             public void redoBody()
             {
-                assert activeClsActionEvent != null;
+                assert activeClsActionEvent != null;            // previously set by undoBody
                 activeClsActionEvent.complete();
-                fireAuthorizedChangeEvent(activeClsActionEvent);
+                fireNonVetoableChangeEvent(activeClsActionEvent);
                 activeClsActionEvent = null;
             }
         };
@@ -1650,7 +1650,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
 
         activeClsActionEvent.complete();
-        fireAuthorizedChangeEvent(activeClsActionEvent);
+        fireNonVetoableChangeEvent(activeClsActionEvent);
         activeClsActionEvent = null;
 
     }

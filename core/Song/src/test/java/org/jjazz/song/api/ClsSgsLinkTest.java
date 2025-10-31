@@ -168,6 +168,32 @@ public class ClsSgsLinkTest
     }
 
     @Test
+    public void testInsertAtBar0() throws UnsupportedEditException
+    {
+        System.out.println("\n============ testInsertAtBar0");
+        cls1.deleteBars(0, 1);      // So that section2, which is used by 2 song parts, becomes the init section
+        assertEquals(section2, cls1.getSection(0));
+        assertEquals(9, sgs.getSizeInBars());
+        var saveSptSection2 = sgs.getSongPart(0);
+        String saveSection2Name = section2.getData().getName();
+
+        cls1.insertBars(0, 1);
+        System.out.println(" sgs after=" + sgs);
+        
+        var s0 = cls1.getSection(0);
+        var s1 = cls1.getSection(1);
+        assertEquals(10, sgs.getSizeInBars());
+        assertEquals(saveSection2Name, s1.getData().getName());
+        assertSame(s0, sgs.getSongPart(0).getParentSection());
+        assertSame(s1, sgs.getSongPart(1).getParentSection());
+        assertEquals(saveSptSection2.getNbBars(), sgs.getSongPart(1).getNbBars());
+        assertSame(saveSptSection2.getRhythm(), sgs.getSongPart(1).getRhythm());
+        assertSame(s1, sgs.getSongPart(9).getParentSection());
+        assertEquals(saveSptSection2.getNbBars(), sgs.getSongPart(9).getNbBars());
+        assertSame(saveSptSection2.getRhythm(), sgs.getSongPart(9).getRhythm());        
+    }
+    
+    @Test
     public void testAddAndRemove()
     {
         System.out.println("\n============ Test testAddAndRemove add chord symbol");

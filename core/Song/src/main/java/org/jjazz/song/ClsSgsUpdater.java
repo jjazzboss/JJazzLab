@@ -175,7 +175,7 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
     // =============================================================================================      
     private void processClsChangeEvent(ClsChangeEvent evt, boolean authorizeOnly) throws UnsupportedEditException
     {
-        LOGGER.log(Level.FINE, "processChangeEvent() evt={0} authorizeOnly={1}", new Object[]
+        LOGGER.log(Level.FINE, "processClsChangeEvent() evt={0} authorizeOnly={1}", new Object[]
         {
             evt, authorizeOnly
         });
@@ -186,7 +186,6 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
                 .filter(cli -> cli instanceof CLI_Section)
                 .map(cli -> (CLI_Section) cli)
                 .toList();
-
 
         switch (state)
         {
@@ -201,6 +200,7 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
                     // This leads to song structure not updated as the user would expect (see Issue #459).
                     // So it's better to wait for the "insert initial bars ClsActionEvent" to be completed then update song structure properly.                    
                     state = State.INSERT_INIT_BARS;
+                    
                 } else if (evt instanceof SizeChangedEvent)
                 {
                     processSizeChanged(authorizeOnly);
@@ -233,18 +233,17 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
 
                 } else
                 {
-                    LOGGER.fine("processChangeEvent() -> evt not handled");
+                    LOGGER.fine("processClsChangeEvent() -> evt not handled");
                 }
             }
 
             case INSERT_INIT_BARS ->
             {
                 if (evt instanceof ClsActionEvent cae
-                        && cae.getApiId().equals("insertBars")
+                        && cae.getApiId() == ClsActionEvent.API_ID.InsertBars
                         && cae.isComplete())
                 {
                     // Now we can update the song structure
-
 
                     // Reaffect the parent section of the song parts that were assigned to the initial section (before the insert bars action)
                     var initSection = chordLeadSheet.getSection(0);
