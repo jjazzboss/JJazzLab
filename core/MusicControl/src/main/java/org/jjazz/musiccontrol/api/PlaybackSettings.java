@@ -177,7 +177,7 @@ public class PlaybackSettings
      */
     public void setChordSymbolsDisplayTransposition(int transposition)
     {
-        Preconditions.checkArgument(transposition >= 0 && transposition < 12, "transposition=" + transposition);
+        Preconditions.checkArgument(transposition >= 0 && transposition < 12, "transposition=%s", transposition);
 
         int old = getChordSymbolsDisplayTransposition();
         prefs.putInt(PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION, - transposition); // Save as negative range for backwards compatibility

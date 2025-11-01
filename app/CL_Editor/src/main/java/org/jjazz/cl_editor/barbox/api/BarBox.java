@@ -563,7 +563,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
         {
             return;
         }
-        Preconditions.checkArgument(!(b && (pos.getBar() != getModelBarIndex())), "b=%s pos=%s this=%s", b, pos, this);
+        Preconditions.checkArgument(!b || pos.getBar() == getModelBarIndex(), "b=%s pos=%s this=%s", b, pos, this);
 
         showPlaybackPoint = b;
         refreshBackground();
