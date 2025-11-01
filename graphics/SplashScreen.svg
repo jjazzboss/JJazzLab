@@ -7,9 +7,9 @@
    viewBox="0 0 475 300"
    version="1.1"
    id="svg8"
-   inkscape:version="1.1 (c68e22c387, 2021-05-23)"
+   inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
    sodipodi:docname="SplashScreen.svg"
-   inkscape:export-filename="D:\JeromeDocs\JJazzLab\src\JJazzLab\graphics\SplashScreen475x300.png"
+   inkscape:export-filename="SplashScreen475x300.png"
    inkscape:export-xdpi="25.389999"
    inkscape:export-ydpi="25.389999"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
@@ -236,9 +236,9 @@
        style="color-interpolation-filters:sRGB;"
        inkscape:label="Drop Shadow"
        id="filter7824"
-       x="-0.008635149"
+       x="-0.0086350294"
        y="-0.31445516"
-       width="1.0244663"
+       width="1.0244659"
        height="1.8909563">
       <feFlood
          flood-opacity="0.498039"
@@ -750,7 +750,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.40924347"
-     inkscape:cx="631.65332"
+     inkscape:cx="632.8751"
      inkscape:cy="827.13598"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
@@ -763,7 +763,9 @@
      inkscape:lockguides="true"
      inkscape:pagecheckerboard="0"
      inkscape:snap-bbox="false"
-     inkscape:snap-page="true" />
+     inkscape:snap-page="true"
+     inkscape:showpageshadow="2"
+     inkscape:deskcolor="#d1d1d1" />
   <metadata
      id="metadata5">
     <rdf:RDF>
@@ -1184,14 +1186,14 @@
        xml:space="preserve"
        transform="matrix(2.1022231,0,0,2.1022231,-828.91765,-1582.7717)"
        id="text14400"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.54382px;line-height:1.25;font-family:'Eras Medium ITC';-inkscape-font-specification:'Eras Medium ITC, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;white-space:pre;shape-inside:url(#rect14402);vector-effect:none;fill:#f9f921;fill-opacity:1;stroke:none;stroke-width:0.475685;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000"><tspan
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.54382px;line-height:1.25;font-family:'Eras Medium ITC';-inkscape-font-specification:'Eras Medium ITC, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;white-space:pre;shape-inside:url(#rect14402);display:inline;vector-effect:none;fill:#f9f921;fill-opacity:1;stroke:none;stroke-width:0.475685;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000"><tspan
          x="496.99414"
          y="836.61064"
-         id="tspan73996"><tspan
+         id="tspan2"><tspan
            style="stroke-width:0.654292"
-           id="tspan73994">YOU CAN PLAY!</tspan></tspan></text>
+           id="tspan1">YOU CAN PLAY!</tspan></tspan></text>
     <flowRoot
-       transform="matrix(0.55254824,0,0,0.57519363,59.637471,-53.046658)"
+       transform="matrix(0.55254824,0,0,0.57519363,-88.987373,-53.046658)"
        style="font-style:normal;font-variant:normal;font-weight:200;font-stretch:normal;font-size:17.3958px;line-height:1.25;font-family:'DejaVu Sans';-inkscape-font-specification:'DejaVu Sans, Ultra-Light';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;opacity:0.75;fill:#808080;fill-opacity:1;stroke:#ffffff;stroke-width:0.728723;stroke-opacity:1"
        id="flowRoot1037"
        xml:space="preserve"
@@ -1229,20 +1231,20 @@
     <flowRoot
        xml:space="preserve"
        id="flowRoot34083"
-       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:39.0145px;line-height:1.25;font-family:Alef;-inkscape-font-specification:'Alef, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;font-variation-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#2b3f76;fill-opacity:1;stroke:#f9f921;stroke-width:0.74262679;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000"
-       transform="matrix(0.64538408,0,0,0.63725097,-172.61395,-179.34412)"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:39.0145px;line-height:1.25;font-family:Alef;-inkscape-font-specification:'Alef, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;font-variation-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#2b3f76;fill-opacity:1;stroke:#f9f921;stroke-width:0.507241;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000"
+       transform="matrix(0.94265166,0,0,0.9351694,-31.009027,-527.97547)"
        inkscape:export-xdpi="25.389999"
        inkscape:export-ydpi="25.389999"
        inkscape:export-filename="D:\JeromeDocs\JJazzLab\src\JJazzLab\graphics\SplashScreen475x300-3.0.png"><flowRegion
          id="flowRegion34079"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:39.0145px;font-family:Alef;-inkscape-font-specification:'Alef, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;font-variation-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#2b3f76;fill-opacity:1;stroke:#f9f921;stroke-width:0.74262679;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000;stop-opacity:1"><rect
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:39.0145px;font-family:Alef;-inkscape-font-specification:'Alef, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;font-variation-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#2b3f76;fill-opacity:1;stroke:#f9f921;stroke-width:0.507241;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000;stop-opacity:1"><rect
            id="rect34077"
            width="311.12698"
            height="78.791924"
            x="453.5585"
            y="568.95612"
-           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:39.0145px;font-family:Alef;-inkscape-font-specification:'Alef, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;font-variation-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#2b3f76;fill-opacity:1;stroke:#f9f921;stroke-width:0.74262679;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000;stop-opacity:1" /></flowRegion><flowPara
+           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:39.0145px;font-family:Alef;-inkscape-font-specification:'Alef, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;font-variation-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#2b3f76;fill-opacity:1;stroke:#f9f921;stroke-width:0.507241;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000;stop-opacity:1" /></flowRegion><flowPara
          id="flowPara34081"
-         style="font-variation-settings:normal;fill:#2b3f76;fill-opacity:1;stroke:#f9f921;stroke-width:0.74262679;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000;stop-opacity:1">5.0</flowPara></flowRoot>
+         style="font-variation-settings:normal;fill:#2b3f76;fill-opacity:1;stroke:#f9f921;stroke-width:0.507241;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000;stop-opacity:1">5.0</flowPara></flowRoot>
   </g>
 </svg>
