@@ -554,8 +554,8 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     /**
      * Change background to represent the playback point in this bar. Then delegate to BarRenderers to render the point.
      *
-     * @param b
-     * @param pos
+     * @param b   Show if true, hide if false
+     * @param pos Used if b is true
      */
     public void showPlaybackPoint(boolean b, Position pos)
     {
