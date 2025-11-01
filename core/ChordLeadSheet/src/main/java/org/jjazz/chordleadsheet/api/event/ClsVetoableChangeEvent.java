@@ -61,4 +61,9 @@ public class ClsVetoableChangeEvent extends ClsChangeEvent
         return changeEvent;
     }
 
+    @Override
+    public String toString()
+    {
+        return "ClsVetoableChangeEvent->" + changeEvent;
+    }
 }

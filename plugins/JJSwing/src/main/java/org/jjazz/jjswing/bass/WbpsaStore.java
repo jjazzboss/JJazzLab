@@ -96,7 +96,7 @@ public class WbpsaStore
     public void populate(List<Integer> bars, List<BassStyle> bassStyles)
     {
         Objects.requireNonNull(bassStyles);
-        Preconditions.checkArgument(!bassStyles.isEmpty(), "bassStyles=" + bassStyles);
+        Preconditions.checkArgument(!bassStyles.isEmpty());
 
         LOGGER.log(Level.FINE, "initialize() bars={0}", bars);
 

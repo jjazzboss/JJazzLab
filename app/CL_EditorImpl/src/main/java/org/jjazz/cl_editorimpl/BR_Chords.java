@@ -288,7 +288,7 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
     @Override
     protected ItemRenderer createItemRenderer(ChordLeadSheetItem<?> item)
     {
-        Preconditions.checkArgument(isRegisteredItemClass(item), "item=" + item);
+        Preconditions.checkArgument(isRegisteredItemClass(item), "item=%s", item);
 
         ItemRenderer ir;
         ItemRendererFactory irf = getItemRendererFactory();

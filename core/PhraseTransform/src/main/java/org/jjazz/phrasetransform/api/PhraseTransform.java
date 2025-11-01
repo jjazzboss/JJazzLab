@@ -244,8 +244,8 @@ public interface PhraseTransform extends Comparable<PhraseTransform>
         public Info(String id, String name, String description, PhraseTransformCategory category, Icon icon)
         {
             checkArgument(id != null && !id.isBlank(), "id=%s", id);
-            checkArgument(name != null && !name.isBlank(), "name=%s" + name);
-            checkArgument(description != null && !description.isBlank(), "description=%s" + description);
+            checkArgument(name != null && !name.isBlank(), "name=%s", name);
+            checkArgument(description != null && !description.isBlank(), "description=%s", description);
             checkNotNull(category);
 
             this.id = id;

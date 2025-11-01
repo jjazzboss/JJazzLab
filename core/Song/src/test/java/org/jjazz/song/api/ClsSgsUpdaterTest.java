@@ -53,7 +53,7 @@ import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructureFactory;
 import org.jjazz.utilities.api.Utilities;
 
-public class ClsSgsLinkTest
+public class ClsSgsUpdaterTest
 {
 
     private static final String UT_EDIT_NAME = "UTedit";
@@ -71,7 +71,7 @@ public class ClsSgsLinkTest
     SongPart u_spt1, u_spt2, u_spt3, u_spt4;
     JJazzUndoManager undoManager;
 
-    public ClsSgsLinkTest()
+    public ClsSgsUpdaterTest()
     {
 
     }
