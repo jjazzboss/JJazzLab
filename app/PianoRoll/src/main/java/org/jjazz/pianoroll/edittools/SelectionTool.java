@@ -509,7 +509,11 @@ public class SelectionTool implements EditTool
     @Override
     public void noteExited(MouseEvent e, NoteView nv)
     {
-        if (isDragging)
+        // Adding SwingUtilities.isLeftMouseButton(e) check to fix #602 
+        // We don't change the state if mouse is being pressed, because it probably means that user has initiated a drag. But on Linux, drag threshold can be bigger (5 pixels ?)
+        // than on Windows (2 pixels), so on Linux you need to move the mouse more to get the first call to mouseDragged().
+        // When drag will be over, this method should be called again and this time we will switch state to EDITOR.
+        if (isDragging || SwingUtilities.isLeftMouseButton(e))
         {
             return;
         }
@@ -593,8 +597,8 @@ public class SelectionTool implements EditTool
     private boolean isNearLeftSide(MouseEvent e, NoteView nv)
     {
         int w = nv.getWidth();
-        int limit = Math.min(w / 3, RESIZE_PIXEL_LIMIT);
-        limit = Math.max(1, limit);
+        int limit = Math.min(w / 2, RESIZE_PIXEL_LIMIT);
+        limit = Math.max(2, limit);
         boolean res = e.getX() < limit;
         return res;
     }
@@ -602,8 +606,8 @@ public class SelectionTool implements EditTool
     private boolean isNearRightSide(MouseEvent e, NoteView nv)
     {
         int w = nv.getWidth();
-        int limit = Math.min(w / 3, RESIZE_PIXEL_LIMIT);
-        limit = Math.max(1, limit);
+        int limit = Math.min(w / 2, RESIZE_PIXEL_LIMIT);
+        limit = Math.max(2, limit);
         boolean res = e.getX() >= w - limit - 1;
         return res;
     }
