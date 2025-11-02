@@ -34,8 +34,14 @@ import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Soundbank;
 import javax.sound.midi.Synthesizer;
+import org.jjazz.harmony.spi.ChordTypeDatabase;
 import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.rhythm.spi.RhythmDirsLocator;
+import org.jjazz.yamjjazz.rhythm.api.YamChord;
+import org.openide.awt.ActionID;
+import org.openide.awt.ActionReference;
+import org.openide.awt.ActionReferences;
+import org.openide.awt.ActionRegistration;
 import org.openide.util.Exceptions;
 
 /**
@@ -45,7 +51,7 @@ import org.openide.util.Exceptions;
 //@ActionRegistration(displayName = "Test Action")
 //@ActionReferences(
 //        {
-//           @ActionReference(path = "Menu/Edit", position = 50000)
+//            @ActionReference(path = "Menu/Edit", position = 50000)
 //        })
 public final class TestAction implements ActionListener
 {
@@ -55,11 +61,23 @@ public final class TestAction implements ActionListener
     @Override
     public void actionPerformed(ActionEvent ae)
     {
-        LOGGER.log(Level.INFO, "TestAction.actionPerformed() called");
-          
+        testYamChords();
     }
 
-  
+    private void testYamChords()
+    {
+        LOGGER.log(Level.INFO, "testYamChords() -- ");
+        var ctDb = ChordTypeDatabase.getDefault();
+        for (var ct : ctDb.getChordTypes())
+        {
+            YamChord yc = YamChord.get(ct.getName());
+            if (yc == null)
+            {
+                LOGGER.log(Level.SEVERE, "Missing yc for ct={0}", ct);
+            }
+        }
+    }
+
     private class MyRun implements Runnable
     {
 
