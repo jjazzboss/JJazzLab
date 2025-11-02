@@ -22,6 +22,7 @@
  */
 package org.jjazz.test;
 
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -61,7 +62,22 @@ public final class TestAction implements ActionListener
     @Override
     public void actionPerformed(ActionEvent ae)
     {
-        testYamChords();
+        showDraggingThreshold();
+    }
+
+    private void showDraggingThreshold()
+    {
+        LOGGER.log(Level.INFO, "showDraggingThreshold() -- ");
+        var toolkit = Toolkit.getDefaultToolkit();
+        Object o = toolkit.getDesktopProperty("DnD.gestureMotionThreshold");
+        LOGGER.log(Level.INFO, "getDesktopProperty(DnD.gestureMotionThreshold)={0}", o);
+        String s = System.getProperty("awt.dnd.drag.threshold");
+        LOGGER.log(Level.INFO, "SystemProperty(awt.dnd.drag.threshold)={0}", s);
+        if (s != null)
+        {
+            int t = Integer.parseInt(s) - 2;
+            System.setProperty("awt.dnd.drag.threshold", String.valueOf(t));
+        }
     }
 
     private void testYamChords()
