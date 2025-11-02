@@ -283,7 +283,6 @@
         <module>app/MusicControlActions</module>
         <module>app/Options</module>
         <module>app/PianoRoll</module>
-        <module>app/PopupWindowMenuPatch</module>
         <module>app/Print</module>        
         <module>app/RhythmDatabaseImpl</module>        
         <module>app/RhythmSelectionDialog</module>

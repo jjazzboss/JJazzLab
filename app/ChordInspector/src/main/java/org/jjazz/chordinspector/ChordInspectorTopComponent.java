@@ -22,7 +22,12 @@
  */
 package org.jjazz.chordinspector;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.Action;
+import org.jjazz.uiutilities.api.UIUtilities;
 import org.jjazz.utilities.api.ResUtil;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
@@ -67,6 +72,26 @@ public final class ChordInspectorTopComponent extends TopComponent
 
         editor = new ChordInspectorPanel();
         add(editor);
+    }
+
+    /**
+     * @return The actions to be shown in the TopComponent popup menu.
+     */
+    @Override
+    public Action[] getActions()
+    {
+        List<Action> res = new ArrayList<>();
+        // Add the Netbeans standard actions such as Close, Close All, Close Others, MoveWindowWithinModeAction, while filtering unanted ones (Clone, Move, NewTabGroup, SizeGroup, ...).
+        for (var a : super.getActions())
+        {
+            LOGGER.log(Level.FINE, "getActions() a={0}", a);
+            if (a == null || UIUtilities.isNetbeansTopComponentTabActionUsed(a))
+            {
+                res.add(a);
+            }
+        }
+
+        return res.toArray(Action[]::new);
     }
 
     @Override

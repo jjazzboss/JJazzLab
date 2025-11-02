@@ -23,14 +23,18 @@
 package org.jjazz.mixconsole.api;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.MissingResourceException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.Action;
 import org.jjazz.song.api.SongCreationException;
 import org.jjazz.song.spi.SongImporter;
 import org.jjazz.songeditormanager.spi.SongEditorManager;
 import org.jjazz.uiutilities.api.SingleFileDragInTransferHandler;
+import org.jjazz.uiutilities.api.UIUtilities;
 import org.jjazz.utilities.api.ResUtil;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.DialogDisplayer;
@@ -39,6 +43,7 @@ import org.openide.awt.ActionID;
 import org.openide.awt.UndoRedo;
 import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
+import org.openide.util.Utilities;
 import org.openide.windows.TopComponent;
 
 /**
@@ -143,6 +148,26 @@ public final class MixConsoleTopComponent extends TopComponent
     }
 
     /**
+     * @return The actions to be shown in the TopComponent popup menu.
+     */
+    @Override
+    public Action[] getActions()
+    {
+        List<Action> res = new ArrayList<>();
+        // Add the Netbeans standard actions such as Close, Close All, Close Others, MoveWindowWithinModeAction, while filtering unanted ones (Clone, Move, NewTabGroup, SizeGroup, ...).
+        for (var a : super.getActions())
+        {
+            LOGGER.log(Level.FINE, "getActions() a={0}", a);
+            if (a == null || UIUtilities.isNetbeansTopComponentTabActionUsed(a))
+            {
+                res.add(a);
+            }
+        }
+
+        return res.toArray(Action[]::new);
+    }
+
+    /**
      * Override to proxy the undoManager of the editor.
      *
      * @return
@@ -186,8 +211,8 @@ public final class MixConsoleTopComponent extends TopComponent
         // TODO add custom code on component closing
     }
 
-    
-  @Override
+
+    @Override
     public boolean canClose()
     {
         // fix Issue #549  MixConsoleTopComponent and SptEditorTopComponent can be closed by middle-click      
@@ -197,7 +222,7 @@ public final class MixConsoleTopComponent extends TopComponent
         // Note1: in branding we have View.TopComponent.Closing.Enabled=true (applies to non-editor windows) because we want tools like ChordInspector TopComponents to be closable.
         // Note2: another approach would have been to try manging user events on TopComponent tabs using https://bits.netbeans.org/dev/javadoc/org-netbeans-swing-tabcontrol/org/netbeans/swing/tabcontrol/TabbedContainer.html
     }
-    
+
     void writeProperties(java.util.Properties p)
     {
         // better to version settings since initial version as advocated at

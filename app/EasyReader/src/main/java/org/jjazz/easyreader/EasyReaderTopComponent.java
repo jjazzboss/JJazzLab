@@ -24,10 +24,15 @@ package org.jjazz.easyreader;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.Action;
 import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.song.api.Song;
+import org.jjazz.uiutilities.api.UIUtilities;
 import org.jjazz.utilities.api.ResUtil;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.windows.TopComponent;
@@ -48,6 +53,7 @@ import org.openide.windows.WindowManager;
 @TopComponent.Registration(mode = "jlnavigator", openAtStartup = false, position = 25)
 public final class EasyReaderTopComponent extends TopComponent implements PropertyChangeListener
 {
+
     private static final Logger LOGGER = Logger.getLogger(EasyReaderTopComponent.class.getSimpleName());
     private final EasyReaderPanel editor;
 
@@ -64,7 +70,27 @@ public final class EasyReaderTopComponent extends TopComponent implements Proper
         editor = new EasyReaderPanel();
         add(editor);
     }
-    
+
+    /**
+     * @return The actions to be shown in the TopComponent popup menu.
+     */
+    @Override
+    public Action[] getActions()
+    {
+        List<Action> res = new ArrayList<>();
+        // Add the Netbeans standard actions such as Close, Close All, Close Others, MoveWindowWithinModeAction, while filtering unanted ones (Clone, Move, NewTabGroup, SizeGroup, ...).
+        for (var a : super.getActions())
+        {
+            LOGGER.log(Level.FINE, "getActions() a={0}", a);
+            if (a == null || UIUtilities.isNetbeansTopComponentTabActionUsed(a))
+            {
+                res.add(a);
+            }
+        }
+
+        return res.toArray(Action[]::new);
+    }
+
     @Override
     public void componentClosed()
     {
@@ -114,7 +140,7 @@ public final class EasyReaderTopComponent extends TopComponent implements Proper
                 }
             }
         }
-    } 
+    }
 
     // ===========================================================================
     // Private methods
