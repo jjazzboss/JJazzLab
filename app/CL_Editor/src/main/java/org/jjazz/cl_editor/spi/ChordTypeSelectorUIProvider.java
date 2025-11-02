@@ -26,7 +26,7 @@ package org.jjazz.cl_editor.spi;
 
 import java.util.function.Consumer;
 import javax.swing.JComponent;
-import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.harmony.api.ChordSymbol;
 import org.jjazz.harmony.api.ChordType;
 import org.openide.util.Lookup;
 
@@ -50,9 +50,9 @@ public interface ChordTypeSelectorUIProvider
     /**
      * Get the UI component to select a chord type.
      *
-     * @param presetCliCs     The chord symbol to initialize the UI. Can be null.
+     * @param chordSymbol     The chord symbol to initialize the UI. Can be null.
      * @param chordTypeSetter The consumer to be called when user selected a chord type. A null parameter indicates that user cancelled the action.
      * @return
      */
-    JComponent getUI(CLI_ChordSymbol presetCliCs, Consumer<ChordType> chordTypeSetter);
+    JComponent getUI(ChordSymbol chordSymbol, Consumer<ChordType> chordTypeSetter);
 }

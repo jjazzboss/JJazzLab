@@ -52,7 +52,6 @@ import org.jjazz.chordleadsheet.api.event.SizeChangedEvent;
 import org.jjazz.chordleadsheet.api.item.CLI_BarAnnotation;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackListener;
@@ -185,7 +184,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
             this.song.getSongStructure().addSgsChangeListener(this);
 
             songPart = song.getSongStructure().getSongPart(0);  // Might be null            
-            lbl_songPart.setText(songPart != null ? songPart.getName() : "");
+            lbl_songPart.setText(songPart != null ? songPart.getName() : " ");
 
             createBarBoxes(this.song);
             stopped();
@@ -605,7 +604,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         }
         int nextSongBar = barBox.getBarIndex() + 2;
         var nextClsBarPos = song.getSongStructure().toClsPosition(new Position(nextSongBar));
-        String str = "";
+        String str = " ";
         if (nextClsBarPos != null)
         {
             var nextChord = song.getChordLeadSheet().getBarFirstItem(nextClsBarPos.getBar(), CLI_ChordSymbol.class, cli -> true);
@@ -643,7 +642,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
             return;
         }
         var cliBa = song.getChordLeadSheet().getBarFirstItem(clsPosition.getBar(), CLI_BarAnnotation.class, cli -> true);
-        String res = "";
+        String res = " ";
         if (cliBa != null)
         {
             res = extractCurrentAnnotation(songPart, cliBa.getData());
@@ -654,15 +653,15 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
 
     private void clearLabels()
     {
-        lbl_nextChord.setText("");
-        lbl_nextSongPart.setText("");
-        lbl_songPart.setText("");
-        lbl_annotation.setText("");
+        lbl_nextChord.setText(" ");
+        lbl_nextSongPart.setText(" ");
+        lbl_songPart.setText(" ");
+        lbl_annotation.setText(" ");
     }
 
     private String buildNextSongPartString(SongPart nextSongPart)
     {
-        return nextSongPart == null ? "" : "> " + nextSongPart.getName();
+        return nextSongPart == null ? " " : "> " + nextSongPart.getName();
     }
 
     private void removeBarBoxes()
@@ -715,7 +714,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         if (sptIndex == -1)
         {
             // Special case, SongPart got deleted
-            return "";
+            return " ";
         }
 
         var lines = Arrays.asList(rawAnnotationText.split("\\s*\n\\s*"));
@@ -834,7 +833,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
 
     private void updateSongPartsUI()
     {
-        String text = songPart != null ? songPart.getName() : "";
+        String text = songPart != null ? songPart.getName() : " ";
         lbl_songPart.setText(text);
 
         // Next SongPart after our 2 bars
