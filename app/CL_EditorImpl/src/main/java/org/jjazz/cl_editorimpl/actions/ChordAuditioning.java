@@ -54,23 +54,22 @@ import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 
-@ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.hearchord")
+@ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.chordauditioning")
 @ActionRegistration(displayName = "unused", lazy = false) // lazy is false to show the accelerator key in the menu
 @ActionReferences(
         {
             @ActionReference(path = "Actions/ChordSymbol", position = 2010),
             @ActionReference(path = "Shortcuts", name="M")
         })
-public final class HearChord extends CL_ContextAction
+public final class ChordAuditioning extends CL_ContextAction
 {
-
     public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("M");
-    private static final Logger LOGGER = Logger.getLogger(HearChord.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(ChordAuditioning.class.getSimpleName());
 
     @Override
     protected void configureAction()
     {
-        putValue(NAME, ResUtil.getString(getClass(), "CTL_HearChord"));
+        putValue(NAME, ResUtil.getString(getClass(), "CTL_ChordAuditioning"));
         putValue(ACCELERATOR_KEY, KEYSTROKE);
         putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION));
     }

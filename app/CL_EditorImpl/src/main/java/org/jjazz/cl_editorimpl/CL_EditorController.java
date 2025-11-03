@@ -83,7 +83,7 @@ public class CL_EditorController implements CL_EditorMouseListener
     private final Action editAction;
     private final Action transposeUpAction;
     private final Action transposeDownAction;
-    private final Action hearChordAction;
+    private final Action chordAuditioningAction;
 
     /**
      * The graphical editor we control.
@@ -107,7 +107,7 @@ public class CL_EditorController implements CL_EditorMouseListener
         transposeDownAction = Actions.forID("JJazz", "org.jjazz.cl_editor.actions.transposedown");
         transposeUpAction = Actions.forID("JJazz", "org.jjazz.cl_editor.actions.transposeup");
         editAction = Actions.forID("JJazz", "org.jjazz.cl_editor.actions.edit");
-        hearChordAction = Actions.forID("JJazz", "org.jjazz.cl_editor.actions.hearchord");
+        chordAuditioningAction = Actions.forID("JJazz", "org.jjazz.cl_editor.actions.chordauditioning");
 
 
         // Actions created by annotations without a global shortcut 
@@ -216,13 +216,13 @@ public class CL_EditorController implements CL_EditorMouseListener
                     editor.selectItem(item, true);
                     editor.setFocusOnItem(item, irType);
 
-                } else if (e.isShiftDown() && e.isControlDown() && hearChordAction.isEnabled())
+                } else if (e.isShiftDown() && e.isControlDown() && chordAuditioningAction.isEnabled())
                 {
                     // SHIFT+CTRL CLICK
                     selection.unselectAll(editor);
                     editor.selectItem(item, true);
                     editor.setFocusOnItem(item, irType);
-                    hearChordAction.actionPerformed(null);
+                    chordAuditioningAction.actionPerformed(null);
 
                 } else if (!e.isShiftDown() && e.isControlDown())
                 {
@@ -263,9 +263,9 @@ public class CL_EditorController implements CL_EditorMouseListener
                 editor.selectItem(item, true);
                 editor.setFocusOnItem(item, irType);
 
-                if (e.isShiftDown() && e.isControlDown() && hearChordAction.isEnabled())
+                if (e.isShiftDown() && e.isControlDown() && chordAuditioningAction.isEnabled())
                 {
-                    hearChordAction.actionPerformed(null);
+                    chordAuditioningAction.actionPerformed(null);
                 }
             }
         } else if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e) && (e.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0)
