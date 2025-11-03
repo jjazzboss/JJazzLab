@@ -51,7 +51,7 @@ import org.jjazz.jjswing.bass.WbpsaScorer;
  * Example: If we have Cm7-F7-E7-Em7 in the database, then we also have Cm7-F7, F7-E7, E7-Em7, Cm7, F7, E7, Em7 phrases in the database.
  * <p>
  * The implementation is thread safe: this is required because sometimes 2 threads might call it with concurrent read/write access, for example when a
- * background music generation is performed and user wants to preview-hear a change from RP_SYS_SubstituteTracks editor.
+ * background music generation is performed and user wants to preview-hear a change from RP_SYS_OverrideTracks editor.
  */
 public class WbpSourceDatabase
 {

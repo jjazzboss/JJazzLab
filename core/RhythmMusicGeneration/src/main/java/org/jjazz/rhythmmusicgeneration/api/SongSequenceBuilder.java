@@ -567,7 +567,7 @@ public class SongSequenceBuilder
         for (Rhythm r : songContextWork.getUniqueRhythms())
         {
             // Generate the phrases
-            MusicGenerator mg = processRP_SYS_SubstituteTracks(r, songContextWork);
+            MusicGenerator mg = processRP_SYS_OverrideTracks(r, songContextWork);
             Map<RhythmVoice, Phrase> rMap = generateRhythmPhrases(r, mg, songContextWork);                       // Possible MusicGenerationException here
 
             if (songContextWork.getUniqueRhythms().size() > 1)
@@ -685,25 +685,25 @@ public class SongSequenceBuilder
     }
 
     /**
-     * Process the RP_SYS_SubstituteTracks to get the MusicGenerator to use for r.
+     * Process the RP_SYS_OverrideTracks to get the MusicGenerator to use for r.
      *
      * @param r
      * @param sgContext
-     * @return The default rMusicGenerator of r, or a r-based CompositeMusicGenerator if RP_SYS_SubstituteTracks is used
+     * @return The default rMusicGenerator of r, or a r-based CompositeMusicGenerator if RP_SYS_OverrideTracks is used
      * @throws org.jjazz.rhythm.api.MusicGenerationException If problem loading Rhythm resources
      */
-    private MusicGenerator processRP_SYS_SubstituteTracks(Rhythm r, SongContext sgContext) throws MusicGenerationException
+    private MusicGenerator processRP_SYS_OverrideTracks(Rhythm r, SongContext sgContext) throws MusicGenerationException
     {
         Objects.requireNonNull(r);
         Objects.requireNonNull(sgContext);
 
         if (!(r instanceof MusicGeneratorProvider mgp))
         {
-            LOGGER.log(Level.WARNING, "processRP_SYS_SubstituteTracks() r={0} is not a MusicGeneratorProvider instance", r);
+            LOGGER.log(Level.WARNING, "processRP_SYS_OverrideTracks() r={0} is not a MusicGeneratorProvider instance", r);
             throw new MusicGenerationException("Rhythm " + r.getName() + " does not implement MusicGeneratorProvider, it can not generate music");
         }
 
-        LOGGER.log(Level.FINE, "processRP_SYS_SubstituteTracks() r={0} sgContext={1}", new Object[]
+        LOGGER.log(Level.FINE, "processRP_SYS_OverrideTracks() r={0} sgContext={1}", new Object[]
         {
             r, sgContext
         });
@@ -711,13 +711,13 @@ public class SongSequenceBuilder
         MusicGenerator res = mgp.getMusicGenerator();       // Standard case by default
 
 
-        // Check if RP_SYS_SubstituteTracks is used
-        RP_SYS_SubstituteTracks rpSt = RP_SYS_SubstituteTracks.getSubstituteTracksRp(r);
+        // Check if RP_SYS_OverrideTracks is used
+        RP_SYS_OverrideTracks rpSt = RP_SYS_OverrideTracks.getOverrideTracksRp(r);
         if (rpSt != null && sgContext.getSongParts().stream()
                 .filter(spt -> spt.getRhythm() == r)
                 .anyMatch(spt -> !spt.getRPValue(rpSt).isEmpty()))
         {
-            // RP_SYS_SubstituteTracks is used, we need a CompositeMusicGenerator
+            // RP_SYS_OverrideTracks is used, we need a CompositeMusicGenerator
             assert r instanceof ConfigurableMusicGeneratorProvider : "r=" + r;
             res = buildCompositeMusicGenerator(rpSt);
         }
@@ -743,7 +743,7 @@ public class SongSequenceBuilder
 
         // Make sure all Rhythm resources are loaded
         r.loadResources();          // Throws MusicGenerationException      
-        var substituteRhythms = getSubstituteTracksRhythms(r, sgContext);
+        var substituteRhythms = getOverrideTracksRhythms(r, sgContext);
         if (!substituteRhythms.isEmpty())
         {
             for (var cr : substituteRhythms)
@@ -773,12 +773,12 @@ public class SongSequenceBuilder
     }
 
     /**
-     * Build a CompositeMusicGenerator based on RP_SYS_SubstituteTracks usage.
+     * Build a CompositeMusicGenerator based on RP_SYS_OverrideTracks usage.
      *
      * @param rpSt
      * @return
      */
-    private CompositeMusicGenerator buildCompositeMusicGenerator(RP_SYS_SubstituteTracks rpSt)
+    private CompositeMusicGenerator buildCompositeMusicGenerator(RP_SYS_OverrideTracks rpSt)
     {
         var mgBase = rpSt.getConfigurableMusicGeneratorProvider().getMusicGenerator();
         assert mgBase != null : "rpSt=" + rpSt;        
@@ -810,16 +810,16 @@ public class SongSequenceBuilder
     }
 
     /**
-     * Get the possible substitute tracks rhythms used by r via the RP_SYS_SubstituteTracks parameter
+     * Get the possible substitute tracks rhythms used by r via the RP_SYS_OverrideTracks parameter
      *
      * @param r
      * @param sgContext
      * @return Can be empty
      */
-    private Set<Rhythm> getSubstituteTracksRhythms(Rhythm r, SongContext sgContext)
+    private Set<Rhythm> getOverrideTracksRhythms(Rhythm r, SongContext sgContext)
     {
         Set<Rhythm> res = new HashSet<>();
-        RP_SYS_SubstituteTracks rpRc = RP_SYS_SubstituteTracks.getSubstituteTracksRp(r);
+        RP_SYS_OverrideTracks rpRc = RP_SYS_OverrideTracks.getOverrideTracksRp(r);
         if (rpRc != null)
         {
             sgContext.getSongParts().stream()
