@@ -37,15 +37,14 @@ import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.NavigableSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
-import org.jjazz.harmony.api.Position;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.pianoroll.api.NoteView;
@@ -287,11 +286,24 @@ public class VelocityPanel extends EditorPanel implements PropertyChangeListener
         int w = Math.round(NOTE_WIDTH_DEFAULT + (2f * editor.getZoom().hValueFloat() - 1f) * NOTE_WIDTH_DELTA);
 
 
-        for (NoteView nv : mapNoteViews.values())
+        // If several notes at same position, slightly change their x position so that they can be all visible
+        int lastX = -10;
+        int lastXShift = 0;
+        for (var nv : mapNoteViews.values())
         {
-            NoteEvent ne = nv.getModel();
-            FloatRange br = ne.getBeatRange();
-            int x = editor.getXFromPosition(br.from);
+            var ne = nv.getModel();
+            int x = editor.getXFromPosition(ne.getPositionInBeats());
+
+            if (Math.abs(x - lastX) <= 1)
+            {
+                lastXShift += 3;
+                x += lastXShift;
+            } else
+            {
+                lastX = x;
+                lastXShift = 0;
+            }
+
             int h = Math.round(USABLE_HEIGHT * (ne.getVelocity() / 127f));
             int y = getHeight() - h;
 
