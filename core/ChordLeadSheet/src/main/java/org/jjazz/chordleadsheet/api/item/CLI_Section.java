@@ -45,6 +45,8 @@ public interface CLI_Section extends ChordLeadSheetItem<Section>
 
     /**
      * Same as getCopy() except that we possibly rename section if its name clashes with an existing section in cls.
+     * 
+     * ClientProperties are also copied.
      *
      * @param newPos
      * @param cls    If null, section name is directly reused.

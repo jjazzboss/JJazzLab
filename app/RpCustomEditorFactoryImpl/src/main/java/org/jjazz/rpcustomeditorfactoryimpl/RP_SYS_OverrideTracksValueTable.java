@@ -45,13 +45,13 @@ import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
-import org.jjazz.rhythmmusicgeneration.api.RP_SYS_SubstituteTracksValue;
+import org.jjazz.rhythmmusicgeneration.api.RP_SYS_OverrideTracksValue;
+import org.jjazz.utilities.api.ResUtil;
 
 /**
- * A JTable used to edit the RhythmVoice mappings of a RP_SYS_SubstituteTracksValue.
+ * A JTable used to edit the RhythmVoice mappings of a RP_SYS_OverrideTracksValue.
  */
-
-public class RP_SYS_SubstituteTracksValueTable extends JTable
+public class RP_SYS_OverrideTracksValueTable extends JTable
 {
 
     /**
@@ -62,9 +62,9 @@ public class RP_SYS_SubstituteTracksValueTable extends JTable
     public static final String PROP_RVDEST = "PropRvDest";
     private final CustomTableModel tblModel = new CustomTableModel();
     private final CustomRvCellEditor rvCellEditor;
-    private static final Logger LOGGER = Logger.getLogger(RP_SYS_SubstituteTracksValueTable.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(RP_SYS_OverrideTracksValueTable.class.getSimpleName());
 
-    public RP_SYS_SubstituteTracksValueTable()
+    public RP_SYS_OverrideTracksValueTable()
     {
         setModel(tblModel);
         setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
@@ -109,7 +109,7 @@ public class RP_SYS_SubstituteTracksValueTable extends JTable
         return tblModel;
     }
 
-    public RP_SYS_SubstituteTracksValue getRpValue()
+    public RP_SYS_OverrideTracksValue getRpValue()
     {
         return tblModel.getRpValue();
     }
@@ -162,21 +162,19 @@ public class RP_SYS_SubstituteTracksValueTable extends JTable
         }
     }
 
-
     static public class CustomTableModel extends AbstractTableModel
     {
 
         public static final int COL_SRC_RHYTHM_VOICE = 0;
         public static final int COL_DEST_RHYTHM = 1;
         public static final int COL_DEST_RHYTHM_VOICE = 2;
-        private RP_SYS_SubstituteTracksValue rpValue;
-
+        private RP_SYS_OverrideTracksValue rpValue;
 
         /**
          *
          * @param rpValue Can be null
          */
-        public void setRpValue(RP_SYS_SubstituteTracksValue rpValue)
+        public void setRpValue(RP_SYS_OverrideTracksValue rpValue)
         {
             this.rpValue = rpValue;
             fireTableDataChanged();
@@ -195,7 +193,7 @@ public class RP_SYS_SubstituteTracksValueTable extends JTable
             return res;
         }
 
-        public RP_SYS_SubstituteTracksValue getRpValue()
+        public RP_SYS_OverrideTracksValue getRpValue()
         {
             return rpValue;
         }
@@ -209,7 +207,8 @@ public class RP_SYS_SubstituteTracksValueTable extends JTable
                     Rhythm.class;
                 case COL_SRC_RHYTHM_VOICE, COL_DEST_RHYTHM_VOICE ->
                     RhythmVoice.class;
-                default -> throw new IllegalStateException("columnIndex=" + col);
+                default ->
+                    throw new IllegalStateException("columnIndex=" + col);
             };
             return res;
         }
@@ -232,12 +231,13 @@ public class RP_SYS_SubstituteTracksValueTable extends JTable
             String s = switch (columnIndex)
             {
                 case COL_SRC_RHYTHM_VOICE ->
-                    "Current rhythm / track";
+                    ResUtil.getString(getClass(), "ColumnHeaderOriginalRhythmTrack");
                 case COL_DEST_RHYTHM ->
-                    "Substitute rhythm";
+                    ResUtil.getString(getClass(), "ColumnHeaderOverrideRhythm");
                 case COL_DEST_RHYTHM_VOICE ->
-                    "Substitute track";
-                default -> throw new IllegalStateException("columnIndex=" + columnIndex);
+                    ResUtil.getString(getClass(), "ColumnHeaderOverrideTrack");
+                default ->
+                    throw new IllegalStateException("columnIndex=" + columnIndex);
             };
             return s;
         }
@@ -273,13 +273,13 @@ public class RP_SYS_SubstituteTracksValueTable extends JTable
                 }
                 case COL_DEST_RHYTHM_VOICE ->
                     rpValue.getDestRhythmVoice(rvSrc);
-                default -> throw new IllegalStateException("col=" + col);
+                default ->
+                    throw new IllegalStateException("col=" + col);
             };
 
             return res;
         }
     }
-
 
     // ============================================================================
     // Private methods
@@ -310,7 +310,6 @@ public class RP_SYS_SubstituteTracksValueTable extends JTable
             return res;
         }
 
-
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col)
         {
@@ -328,7 +327,6 @@ public class RP_SYS_SubstituteTracksValueTable extends JTable
             return label;
         }
     }
-
 
     static private class RhythmRenderer extends DefaultTableCellRenderer
     {
@@ -376,7 +374,7 @@ public class RP_SYS_SubstituteTracksValueTable extends JTable
             comboBox.setRenderer(new CmbRvRenderer());
 
 
-            comboBox.addActionListener(ae -> 
+            comboBox.addActionListener(ae ->
             {
                 // User selected a value
                 if (!blockActionListener && currentRvSrc != null)
@@ -440,6 +438,5 @@ public class RP_SYS_SubstituteTracksValueTable extends JTable
             }
         }
     }
-
 
 }

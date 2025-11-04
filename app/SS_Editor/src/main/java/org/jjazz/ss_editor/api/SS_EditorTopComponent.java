@@ -50,6 +50,7 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.ss_editor.rpviewer.api.RpViewer;
 import org.jjazz.ss_editor.sptviewer.api.SptViewer;
 import org.jjazz.ss_editor.sptviewer.spi.SptViewerFactory;
+import org.jjazz.uiutilities.api.UIUtilities;
 import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
@@ -132,16 +133,27 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
     @Override
     public Action[] getActions()
     {
-        List<? extends Action> newActions = Utilities.actionsForPath("Actions/SS_EditorTopComponent");
-        ArrayList<Action> actions = new ArrayList<>();
-        actions.addAll(newActions);
-        if (!newActions.isEmpty())
+        List<? extends Action> tcEditorActions = new ArrayList<>(Utilities.actionsForPath("Actions/SS_EditorTopComponent"));
+        List<Action> res = new ArrayList<>();
+        res.addAll(tcEditorActions);
+        if (!res.isEmpty())
         {
-            actions.add(null);   // Separator         
+            res.add(null);   // Separator         
         }
-        Collections.addAll(actions, super.getActions());// Get the standard builtin actions Close, Close All, Close Other      
-        return actions.toArray(Action[]::new);
+
+        // Add the Netbeans standard actions such as Close, Close All, Close Others, MoveWindowWithinModeAction, while filtering unanted ones (Clone, Move, NewTabGroup, SizeGroup, ...).
+        for (var a : super.getActions())
+        {
+            LOGGER.log(Level.FINE, "getActions() a={0}", a);
+            if (a == null || UIUtilities.isNetbeansTopComponentTabActionUsed(a))
+            {
+                res.add(a);
+            }
+        }
+
+        return res.toArray(Action[]::new);
     }
+
 
     @Override
     public Lookup getLookup()

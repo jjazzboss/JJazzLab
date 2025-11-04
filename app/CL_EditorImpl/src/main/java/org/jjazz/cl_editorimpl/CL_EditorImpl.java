@@ -181,10 +181,10 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     @SuppressWarnings("LeakingThisInConstructor")
     public CL_EditorImpl(Song song, CL_EditorSettings settings, BarRendererFactory brf)
     {
-        Preconditions.checkNotNull(song ,   "song=" + song + " settings=" + settings + " brf=" + brf);
-        Preconditions.checkNotNull(settings,"song=" + song + " settings=" + settings + " brf=" + brf);
-        Preconditions.checkNotNull(brf,     "song=" + song + " settings=" + settings + " brf=" + brf);
-        
+        Preconditions.checkNotNull(song);
+        Preconditions.checkNotNull(settings);
+        Preconditions.checkNotNull(brf);
+
 
         // This is the main part to fix Issue #582 (see also CL_EditorTopComponent.componentActivated())
         // It allows the editor to get the focus when a child component lost focus (no more selection), thus making the editor's InputMap/ActionMap still 
@@ -380,7 +380,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     @Override
     public void setNbColumns(int nbCols)
     {
-        Preconditions.checkArgument(nbCols >= 1 && nbCols <= 16, "nbCols=" + nbCols);
+        Preconditions.checkArgument(nbCols >= 1 && nbCols <= 16, "nbCols=%s", nbCols);
 
         if (nbCols == nbColumns)
         {
@@ -490,7 +490,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     @Override
     public void selectBars(int bbIndexFrom, int bbIndexTo, boolean b)
     {
-        Preconditions.checkPositionIndexes(bbIndexFrom, bbIndexTo, getNbBarBoxes() -1); // -1 because it's inclusive on both ends
+        Preconditions.checkPositionIndexes(bbIndexFrom, bbIndexTo, getNbBarBoxes() - 1); // -1 because it's inclusive on both ends
 
 //        LOGGER.log(Level.FINE, "Before selectBar() b={0} bbIndexFrom={1} selectionLookup={2}", new Object[]
 //        {
@@ -532,7 +532,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     @Override
     public void selectBarsExcept(int bbIndexFrom, int bbIndexTo, boolean b)
     {
-        Preconditions.checkPositionIndexes(bbIndexFrom, bbIndexTo, getNbBarBoxes() -1); // -1 because it's inclusive on both ends
+        Preconditions.checkPositionIndexes(bbIndexFrom, bbIndexTo, getNbBarBoxes() - 1); // -1 because it's inclusive on both ends
 
 //        selectionLastContent.clear();
 //        selectionLookup.lookupAll(Object.class).forEach(o -> selectionLastContent.add(o));
@@ -684,10 +684,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     @Override
     public void showInsertionPoint(boolean show, ChordLeadSheetItem<?> item, Position pos, boolean copyMode)
     {
-        Preconditions.checkNotNull(item,
-                "show=" + show + " item=" + item + " pos=" + pos + " copyMode=" + copyMode);
-        Preconditions.checkArgument( !(show && pos == null),
-                "show=" + show + " item=" + item + " pos=" + pos + " copyMode=" + copyMode);
+        Preconditions.checkNotNull(item);
+        Preconditions.checkArgument(!(show && pos == null));
 
         LOGGER.log(Level.FINER, "showInsertionPoint() b={0} item={1} pos={2} copyMode={3}", new Object[]
         {
@@ -724,7 +722,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         {
             show, pos
         });
-        Preconditions.checkArgument( !(show && pos == null), "show=" + show + " pos=" + pos);
+        Preconditions.checkArgument(!(show && pos == null));
 
         if (playbackPointLastPos != null)
         {
@@ -764,7 +762,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     @Override
     public void requestAttention(ChordLeadSheetItem<?> item)
     {
-        Preconditions.checkArgument(clsModel.contains(item), "item=" + item + " clsModel=" + clsModel);
+        Preconditions.checkArgument(clsModel.contains(item), "item=%s clsModel=%s", item, clsModel);
 
         BarBox bb = getBarBox(item.getPosition().getBar());
         for (BarRenderer br : bb.getBarRenderers())
@@ -975,6 +973,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     @Override
     public void chordLeadSheetChanged(final ClsChangeEvent event) throws UnsupportedEditException
     {
+        LOGGER.log(Level.FINE, "chordLeadSheetChanged() -- event={0}", event);
+
         // Model changes can be generated outside the EDT
         Runnable run = () -> 
         {
@@ -1200,7 +1200,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     private int computeNbBarBoxes(int nbExtraLines)
     {
         Preconditions.checkNotNull(clsModel);
-        Preconditions.checkArgument(nbExtraLines >= 1 && nbExtraLines <= 100, "nbExtraLines=" + nbExtraLines);
+        Preconditions.checkArgument(nbExtraLines >= 1 && nbExtraLines <= 100, "nbExtraLines=%s", nbExtraLines);
 
         int modelSize = clsModel.getSizeInBars() + nbExtraLines * nbColumns;
         int bars = ((modelSize / nbColumns) + 1) * nbColumns;

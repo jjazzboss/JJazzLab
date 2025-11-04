@@ -194,7 +194,7 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
      */
     public ItemRenderer addItemRenderer(ChordLeadSheetItem<?> item)
     {
-        Preconditions.checkArgument(isRegisteredItemClass(item), "item=" + item);
+        Preconditions.checkArgument(isRegisteredItemClass(item), "item=%s", item);
 
         ItemRenderer ir = createItemRenderer(item);
         ir.setZoomFactor(getZoomVFactor());
@@ -324,7 +324,7 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
             this, modelBarIndex
         });
 
-        
+
         if (modelBarIndex >= 0)
         {
             // Possibly update section            
@@ -378,7 +378,7 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
     /**
      * Show or hide an insertion point for the specified item.
      *
-     * @param showIP        Show if true, hide if false.
+     * @param showIP   Show if true, hide if false.
      * @param item
      * @param pos      The position of the insertion point
      * @param copyMode

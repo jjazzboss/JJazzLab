@@ -53,7 +53,7 @@ import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructureFactory;
 import org.jjazz.utilities.api.Utilities;
 
-public class ClsSgsLinkTest
+public class ClsSgsUpdaterTest
 {
 
     private static final String UT_EDIT_NAME = "UTedit";
@@ -71,7 +71,7 @@ public class ClsSgsLinkTest
     SongPart u_spt1, u_spt2, u_spt3, u_spt4;
     JJazzUndoManager undoManager;
 
-    public ClsSgsLinkTest()
+    public ClsSgsUpdaterTest()
     {
 
     }
@@ -167,6 +167,34 @@ public class ClsSgsLinkTest
         assertTrue(isEqual(sgs, u_sgs));
     }
 
+    @Test
+    public void testInsertAtBar0() throws UnsupportedEditException
+    {
+        System.out.println("\n============ testInsertAtBar0");
+        cls1.deleteBars(0, 1);      // So that section2, which is used by 2 song parts, becomes the init section
+        assertEquals(section2, cls1.getSection(0));
+        assertEquals(9, sgs.getSizeInBars());
+        var saveSptSection2 = sgs.getSongPart(0);
+        String saveSection2Name = section2.getData().getName();
+        var saveSection2ChordSymbols = cls1.getItems(section2, CLI_ChordSymbol.class);
+
+        cls1.insertBars(0, 1);
+        System.out.println(" sgs after=" + sgs);
+        
+        var s0 = cls1.getSection(0);
+        var s1 = cls1.getSection(1);
+        assertEquals(10, sgs.getSizeInBars());
+        assertEquals(saveSection2Name, s1.getData().getName());
+        assertSame(s0, sgs.getSongPart(0).getParentSection());
+        assertSame(s1, sgs.getSongPart(1).getParentSection());
+        assertEquals(saveSptSection2.getNbBars(), sgs.getSongPart(1).getNbBars());
+        assertSame(saveSptSection2.getRhythm(), sgs.getSongPart(1).getRhythm());
+        assertSame(s1, sgs.getSongPart(9).getParentSection());
+        assertEquals(saveSptSection2.getNbBars(), sgs.getSongPart(9).getNbBars());
+        assertSame(saveSptSection2.getRhythm(), sgs.getSongPart(9).getRhythm());        
+        assertEquals(saveSection2ChordSymbols, cls1.getItems(s1, CLI_ChordSymbol.class));
+    }
+    
     @Test
     public void testAddAndRemove()
     {

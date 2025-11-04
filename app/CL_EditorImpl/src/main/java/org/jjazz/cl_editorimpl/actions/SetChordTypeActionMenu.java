@@ -59,6 +59,8 @@ import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
 import org.openide.util.actions.Presenter;
 import org.jjazz.cl_editor.spi.ChordTypeSelectorUIProvider;
+import org.jjazz.harmony.api.Note;
+import org.jjazz.musiccontrol.api.PlaybackSettings;
 
 /**
  * Action menu to select chord type.
@@ -101,9 +103,12 @@ public final class SetChordTypeActionMenu extends AbstractAction implements Pres
         if (ctSelector != null)
         {
             // Construct a menu item using the selector component
-            var cliCs0 = selection.getSelectedChordSymbols().get(0);
+
+            var t = PlaybackSettings.getInstance().getChordSymbolsDisplayTransposition();
+            var cs0 = selection.getSelectedChordSymbols().get(0).getData().getTransposedChordSymbol(t, null);
+
             JMenuItem miCustom = new JMenuItem();
-            var selectorComp = ctSelector.getUI(cliCs0, new MyChordTypeSetter(miCustom));
+            var selectorComp = ctSelector.getUI(cs0, new MyChordTypeSetter(miCustom));
             updateMenuItemCustom(miCustom, selectorComp);
             menu.add(miCustom);
         } else
@@ -189,7 +194,7 @@ public final class SetChordTypeActionMenu extends AbstractAction implements Pres
         var pd = selectorComp.getPreferredSize();
         pd.width += 15;     // Required otherwise selectorComp is always a bit too small due to the JScrollBars
         pd.height += 15;
-        mi.setPreferredSize(pd);      
+        mi.setPreferredSize(pd);
     }
 
     // =============================================================================================================================

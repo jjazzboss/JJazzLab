@@ -26,7 +26,7 @@ import org.jjazz.phrasetransform.api.rps.RP_SYS_DrumsTransform;
 import org.jjazz.rpcustomeditorfactoryimpl.api.RealTimeRpEditorDialog;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhrase;
-import org.jjazz.rhythmmusicgeneration.api.RP_SYS_SubstituteTracks;
+import org.jjazz.rhythmmusicgeneration.api.RP_SYS_OverrideTracks;
 import org.jjazz.ss_editor.rpviewer.api.RpCustomEditorDialog;
 import org.jjazz.ss_editor.rpviewer.spi.RpCustomEditorFactory;
 import org.openide.util.lookup.ServiceProvider;
@@ -48,7 +48,7 @@ public class RpCustomEditorFactoryImpl implements RpCustomEditorFactory
                 true;
             case RP_SYS_DrumsTransform rps ->
                 true;
-            case RP_SYS_SubstituteTracks rps ->
+            case RP_SYS_OverrideTracks rps ->
                 true;
             default ->
                 false;
@@ -65,8 +65,8 @@ public class RpCustomEditorFactoryImpl implements RpCustomEditorFactory
                 new RP_SYS_CustomPhraseEditor(rps);
             case RP_SYS_DrumsTransform rps ->
                 new RealTimeRpEditorDialog(new RP_SYS_DrumsTransformComp(rps));
-            case RP_SYS_SubstituteTracks rps ->
-                new RealTimeRpEditorDialog(new RP_SYS_SubstituteTracksComp(rps));
+            case RP_SYS_OverrideTracks rps ->
+                new RealTimeRpEditorDialog(new RP_SYS_OverrideTracksComp(rps));
             default -> throw new IllegalArgumentException("rp=" + rp);
         };
 

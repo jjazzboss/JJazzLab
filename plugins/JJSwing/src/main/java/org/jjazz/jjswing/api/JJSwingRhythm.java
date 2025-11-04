@@ -75,7 +75,7 @@ import org.jjazz.rhythmmusicgeneration.api.CompositeMusicGenerator;
 import org.jjazz.rhythmmusicgeneration.api.CompositeMusicGenerator.MgDelegate;
 import org.jjazz.rhythmmusicgeneration.api.RP_SYS_Mute;
 import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythmGenerator;
-import org.jjazz.rhythmmusicgeneration.api.RP_SYS_SubstituteTracks;
+import org.jjazz.rhythmmusicgeneration.api.RP_SYS_OverrideTracks;
 import org.jjazz.rhythmmusicgeneration.api.CompositeMusicGenerator.RvToMgDelegateMapper;
 
 /**
@@ -410,7 +410,7 @@ public class JJSwingRhythm implements YamJJazzRhythm
         rps.add(RP_SYS_TempoFactor.getInstance());
         rps.add(rpDrumsTransform);
         rps.add(rpCustomPhrase);
-        rps.add(new RP_SYS_SubstituteTracks(this, false));
+        rps.add(new RP_SYS_OverrideTracks(this, false));
 
 
         return Collections.unmodifiableList(rps);

@@ -99,12 +99,12 @@ public class GhostPhrasesModel implements PropertyChangeListener, ChangeListener
         // Get notified of when new song phrases are generated
         var asmb = ActiveSongBackgroundMusicBuilder.getDefault();
         asmb.addChangeListener(this);
-        
-        
-        var result = asmb.getLastResult();          // Might be null, but important to get some data if PianoRollEditor is created after bsmb produced a result
-        if (result != null)
+
+
+        if (asmb.isLastResultUpToDate())
         {
-            musicGenerationResultReceived(result);
+            // Important to get some data if PianoRollEditor is created after bsmb produced a result
+            musicGenerationResultReceived(asmb.getLastResult());
         }
 
     }

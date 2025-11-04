@@ -103,7 +103,7 @@ public class Quantizer
      */
     public void setIterativeQuantizeStrength(float strength)
     {
-        Preconditions.checkArgument(strength > 0 && strength <= 1f, "strength=%s" + strength);
+        Preconditions.checkArgument(strength > 0 && strength <= 1f, "strength=%s", strength);
         float old = this.iterativeQuantizeStrength;
         this.iterativeQuantizeStrength = strength;
         prefs.putFloat(PROP_ITERATIVE_QUANTIZE_STRENGTH, strength);
@@ -143,8 +143,7 @@ public class Quantizer
      * @param ts          The TimeSignature for the original position.
      * @param maxBarIndex The quantized position can not exceed this maximum bar index.
      * @return
-     * @see #getQuantized(org.jjazz.quantizer.api.Quantization, org.jjazz.harmony.api.Position,
-     * org.jjazz.harmony.api.TimeSignature, int)
+     * @see #getQuantized(org.jjazz.quantizer.api.Quantization, org.jjazz.harmony.api.Position, org.jjazz.harmony.api.TimeSignature, int)
      * @see #isIterativeQuantizeEnabled()
      * @see #getIterativeQuantizeStrength()
      */

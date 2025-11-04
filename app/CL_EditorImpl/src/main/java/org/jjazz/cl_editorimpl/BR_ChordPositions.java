@@ -22,6 +22,7 @@
  */
 package org.jjazz.cl_editorimpl;
 
+import com.google.common.base.Preconditions;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -396,10 +397,8 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
         {
             showPlaybackPoint, pos
         });
-        if (showPlaybackPoint && pos.getBar() != getModelBarIndex())
-        {
-            throw new IllegalArgumentException("b=" + showPlaybackPoint + " pos=" + pos + "  getModelBarIndex()=" + getModelBarIndex());
-        }
+        Preconditions.checkArgument(!showPlaybackPoint || pos.getBar() == getModelBarIndex(), "showPlaybackPoint=%s pos=%s this=%s", showPlaybackPoint, pos, this);
+        
         if (!showPlaybackPoint)
         {
             playbackPosition = null;

@@ -108,14 +108,12 @@
             <artifactId>xstream</artifactId>
             <version>${project.version}</version>
         </dependency>
-
         <dependency>
             <groupId>org.jjazzlab.core</groupId>
             <artifactId>rhythmtestmocks</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>

@@ -468,11 +468,6 @@
         </dependency>           
         <dependency> 
             <groupId>org.jjazzlab.app</groupId> 
-            <artifactId>popupmenuwindowmenupatch</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>       
-        <dependency> 
-            <groupId>org.jjazzlab.app</groupId> 
             <artifactId>coreuicomponents</artifactId> 
             <version>${project.version}</version> 
         </dependency>                

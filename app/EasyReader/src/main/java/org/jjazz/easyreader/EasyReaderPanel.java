@@ -52,7 +52,6 @@ import org.jjazz.chordleadsheet.api.event.SizeChangedEvent;
 import org.jjazz.chordleadsheet.api.item.CLI_BarAnnotation;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackListener;
@@ -185,7 +184,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
             this.song.getSongStructure().addSgsChangeListener(this);
 
             songPart = song.getSongStructure().getSongPart(0);  // Might be null            
-            lbl_songPart.setText(songPart != null ? songPart.getName() : "");
+            lbl_songPart.setText(songPart != null ? songPart.getName() : " ");
 
             createBarBoxes(this.song);
             stopped();
@@ -210,10 +209,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         {
             nextBarBox.setDisplayTransposition(dt);
         }
-        if (song != null)
-        {
-            updateNextStuff(songPosition.getBar());
-        }
+        updateNextChordUI();
     }
 
     @Override
@@ -253,20 +249,18 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         }
 
 
+        // Note that beat may jump to any bar,  example when user presses a "jump to previous/next song part" key like F1/F2
         // Update positions
         songPosition.set(songPos);
         songPart = song.getSongStructure().getSongPart(songPos.getBar());
         clsPosition.set(song.getSongStructure().toClsPosition(songPos));
-        LOGGER.log(Level.FINE, "beatChanged() pos={0} songPart={1} clsPos={2}", new Object[]
+        LOGGER.log(Level.FINE, "beatChanged() pos={0} oldSongPos={1} songPart={2} clsPos={3}", new Object[]
         {
-            songPos, songPart, clsPosition
+            songPos, oldSongPos, songPart, clsPosition
         });
 
 
-        lbl_songPart.setText(songPart.getName());
-
-
-        // Process beat changed only if music is playing
+        // Make sure this is "normal" playback 
         var mc = MusicController.getInstance();
         boolean isPlaying = !mc.isArrangerPlaying() && mc.isPlaying();
         if (!isPlaying)
@@ -275,41 +269,34 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         }
 
 
-        // Progress bar
-        int songBar = songPos.getBar();
-        int progress = Math.round(100f * songBar / song.getSongStructure().getSizeInBars());
-        progressBar.setValue(progress);
-
-
-        // Update annotation on each new bar
-        if (songPosition.isFirstBarBeat())
-        {
-            updateAnnotation();
-        }
-
+        int songBar = songPosition.getBar();
         if (playStartBar == -1)
         {
-            // LOGGER.log(Level.FINE, "beatChanged() firstBeatChangeAfterPlay==true => songBar={0}", songBar);
-            // Special case, playback has just started. songBar is the start bar, which can be any Song bar.
-            // Update the BarBoxes: this is useful for user to make the 2 displayed bars start on an odd bar
-            updateBarBoxes(songBar);
-            updateNextStuff(songBar);
-            showPlaybackPoint(clsPosition, false);
+            // Playback has just started. songBar is the start bar, which can be any Song bar.
+            updateBarBoxes(songBar, clsPosition.getBar());
+            updateNextChordUI();
             playStartBar = songBar;
-        } else if ((songBar - playStartBar) % 2 == 0)
-        {
-            // Even bars
-            if (songPosition.isFirstBarBeat())
-            {
-                updateBarBoxes(songBar);
-                updateNextStuff(songBar);
-            }
-            showPlaybackPoint(clsPosition, false);
-        } else
-        {
-            // Odd bars
-            showPlaybackPoint(clsPosition, true);
         }
+
+
+        if (songPosition.isFirstBarBeat())
+        {
+            // Update Barboxes when required
+            int barBoxBarIndex = barBox.getBarIndex();
+            if (songBar != barBoxBarIndex && songBar != barBoxBarIndex + 1)
+            {
+                updateBarBoxes(songBar, clsPosition.getBar());
+                updateNextChordUI();
+            }
+
+            updateProgressBar(songBar);
+            updateAnnotation();
+            updateSongPartsUI();
+        }
+
+        updatePlaybackPoint(clsPosition);
+
+
     }
 
 
@@ -486,7 +473,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
             } else if (event instanceof ItemBarShiftedEvent e)
             {
                 // No need to handle
-            } 
+            }
         };
         org.jjazz.uiutilities.api.UIUtilities.invokeLaterIfNeeded(run);
     }
@@ -563,7 +550,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
 
         barBox = new BarBox(clEditor, 0, modelBarIndex, cls,
                 new BarBoxConfig(BarRendererFactory.BR_CHORD_SYMBOL, BarRendererFactory.BR_CHORD_POSITION, BarRendererFactory.BR_SECTION),
-                BarBoxSettings.getDefault(), 
+                BarBoxSettings.getDefault(),
                 BarRendererFactory.getDefault());
         barBox.setDisplayTransposition(displayTransposition);
         pnl_barBox.add(barBox);
@@ -582,73 +569,51 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
     }
 
     /**
-     * Update the BarBoxes.
+     * Update the 2 BarBoxes to show songBar and songBar+1.
      *
      * @param songBar
+     * @param clsBar
      */
-    private void updateBarBoxes(int songBar)
+    private void updateBarBoxes(int songBar, int clsBar)
     {
-        int clsBar = song.getSongStructure().toClsPosition(new Position(songBar)).getBar();
-        int next1SongBar = songBar + 1;
-        var next1SongBarPos = new Position(next1SongBar);
-        var next1ClsBarPos = song.getSongStructure().toClsPosition(next1SongBarPos);
-        var next1ClsBar = next1ClsBarPos != null ? next1ClsBarPos.getBar() : -1;
+        int nextSongBar = songBar + 1;
+        var nextSongBarPos = new Position(nextSongBar);
+        var nextClsBarPos = song.getSongStructure().toClsPosition(nextSongBarPos);
+        var nextClsBar = nextClsBarPos != null ? nextClsBarPos.getBar() : -1;
 
         barBox.setBarIndex(songBar);
         barBox.setModelBarIndex(clsBar);
-        nextBarBox.setBarIndex(next1SongBar);
-        nextBarBox.setModelBarIndex(next1ClsBar);
+        nextBarBox.setBarIndex(nextSongBar);
+        nextBarBox.setModelBarIndex(nextClsBar);
 
         LOGGER.log(Level.FINE, "updateBarBoxes() songBar={0} => barBox.modelBarIndex={1} nextBarBox.modelBarIndex={2}", new Object[]
         {
-            songBar, clsBar, next1ClsBar
+            songBar, clsBar, nextClsBar
         });
     }
 
     /**
-     * Update the next chord/song part.
-     *
-     * @param songBar
+     * Update lbl_nextChord to show the next chord after our 2 bars
+     * <p>
      */
-    private void updateNextStuff(int songBar)
+    private void updateNextChordUI()
     {
-        // Next SongPart
-        var next1SongBar = songBar + 1;
-        var next2SongBar = next1SongBar + 1;
-        var next3SongBar = next1SongBar + 2;
-        SongPart next2SongPart = song.getSongStructure().getSongPart(next2SongBar);
-        SongPart next3SongPart = song.getSongStructure().getSongPart(next3SongBar);
-        nextSongPart = null;
-        if (next2SongPart != null && next2SongPart.getStartBarIndex() == next2SongBar)
+        if (song == null || barBox == null)
         {
-            nextSongPart = next2SongPart;
-        } else if (next3SongPart != null && next3SongPart.getStartBarIndex() == next3SongBar)
-        {
-            nextSongPart = next3SongPart;
+            return;
         }
-        lbl_nextSongPart.setText(buildNextSongPartString(nextSongPart));
-
-
-        // Next chord        
-        CLI_ChordSymbol nextChord = null;
-        var next2SongBarPos = new Position(next2SongBar);
-        var next2ClsBarPos = song.getSongStructure().toClsPosition(next2SongBarPos);
-        if (next2ClsBarPos != null)
+        int nextSongBar = barBox.getBarIndex() + 2;
+        var nextClsBarPos = song.getSongStructure().toClsPosition(new Position(nextSongBar));
+        String str = " ";
+        if (nextClsBarPos != null)
         {
-            nextChord = song.getChordLeadSheet().getFirstItemAfter(next2ClsBarPos, true, CLI_ChordSymbol.class, cli -> true);
-        }
-        var str = "";
-        if (nextChord != null)
-        {
-            var nextChordPos = nextChord.getPosition();
-            ExtChordSymbol ecs = nextChord.getData().getTransposedChordSymbol(displayTransposition, null);
-            String strDistantChord = new Position(next2SongBar, 1).compareTo(nextChordPos) <= 0 ? "..." : " ";
-            str += ">" + strDistantChord + ecs.getOriginalName();
+            var nextChord = song.getChordLeadSheet().getBarFirstItem(nextClsBarPos.getBar(), CLI_ChordSymbol.class, cli -> true);
+            if (nextChord != null)
+            {
+                str = "> " + nextChord.getData().getTransposedChordSymbol(displayTransposition, null).getOriginalName();
+            }
         }
         lbl_nextChord.setText(str);
-
-
-        // next annotation
     }
 
     private void stopped()
@@ -657,16 +622,17 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         nextBarBox.showPlaybackPoint(false, null);
         songPosition.reset();
         clsPosition.reset();
-        updateBarBoxes(0);
-        updateNextStuff(0);
+        updateBarBoxes(0, 0);
+        updateNextChordUI();
         updateAnnotation();
         playStartBar = -1;
     }
 
-    private void showPlaybackPoint(Position clsPos, boolean useNextBarBox)
+    private void updatePlaybackPoint(Position clsPos)
     {
-        barBox.showPlaybackPoint(!useNextBarBox, clsPos);
-        nextBarBox.showPlaybackPoint(useNextBarBox, clsPos);
+        boolean b = clsPos.getBar() == barBox.getModelBarIndex();
+        barBox.showPlaybackPoint(b, clsPos);
+        nextBarBox.showPlaybackPoint(!b, clsPos);
     }
 
     private void updateAnnotation()
@@ -676,7 +642,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
             return;
         }
         var cliBa = song.getChordLeadSheet().getBarFirstItem(clsPosition.getBar(), CLI_BarAnnotation.class, cli -> true);
-        String res = "";
+        String res = " ";
         if (cliBa != null)
         {
             res = extractCurrentAnnotation(songPart, cliBa.getData());
@@ -687,15 +653,15 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
 
     private void clearLabels()
     {
-        lbl_nextChord.setText("");
-        lbl_nextSongPart.setText("");
-        lbl_songPart.setText("");
-        lbl_annotation.setText("");
+        lbl_nextChord.setText(" ");
+        lbl_nextSongPart.setText(" ");
+        lbl_songPart.setText(" ");
+        lbl_annotation.setText(" ");
     }
 
     private String buildNextSongPartString(SongPart nextSongPart)
     {
-        return nextSongPart == null ? "" : "> " + nextSongPart.getName();
+        return nextSongPart == null ? " " : "> " + nextSongPart.getName();
     }
 
     private void removeBarBoxes()
@@ -748,7 +714,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         if (sptIndex == -1)
         {
             // Special case, SongPart got deleted
-            return "";
+            return " ";
         }
 
         var lines = Arrays.asList(rawAnnotationText.split("\\s*\n\\s*"));
@@ -857,6 +823,24 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         var spts = song.getSongStructure().getSongParts(spt -> spt.getParentSection() == songPart.getParentSection());
         int index = spts.indexOf(songPart);
         return index;
+    }
+
+    private void updateProgressBar(int songBar)
+    {
+        int progress = Math.round(100f * songBar / song.getSongStructure().getSizeInBars());
+        progressBar.setValue(progress);
+    }
+
+    private void updateSongPartsUI()
+    {
+        String text = songPart != null ? songPart.getName() : " ";
+        lbl_songPart.setText(text);
+
+        // Next SongPart after our 2 bars
+        int nextBar = nextBarBox.getBarIndex() + 1;
+        var nextSpt = song.getSongStructure().getSongPart(nextBar);
+        nextSongPart = nextSpt == songPart ? null : nextSpt;
+        lbl_nextSongPart.setText(buildNextSongPartString(nextSongPart));
     }
 
     // =================================================================================================

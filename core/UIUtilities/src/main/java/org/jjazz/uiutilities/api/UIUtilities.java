@@ -699,6 +699,20 @@ public class UIUtilities
     }
 
     /**
+     * Check if the specified standard Netbeans action (such as CloseWindowAction) should be left in the tab menu of JJazzLab TopComponents.
+     *
+     * @param nbAction
+     * @return
+     */
+    static public boolean isNetbeansTopComponentTabActionUsed(Action nbAction)
+    {
+        Objects.requireNonNull(nbAction);
+        var className = nbAction.getClass().getSimpleName();
+        var blackList = List.of("CloneDocumentAction", "NewTabGroupAction", "CollapseTabGroupAction", "MoveModeAction", "ResizeModeAction", "MoveWindowAction");
+        return blackList.stream().noneMatch(s -> className.contains(s));
+    }
+
+    /**
      * Show the JFileChooser to select a directory.
      *
      * @param dirPath Initialize chooser with this directory.

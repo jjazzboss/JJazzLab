@@ -59,7 +59,7 @@ public class YamChord
         ALL_CHORDS.add(new YamChord("7(13)", "13"));
         ALL_CHORDS.add(new YamChord("7#11", "7b9#11", "7#9#11", "13b5", "13#11", "9#11", "13b9#11"));
         ALL_CHORDS.add(new YamChord("7(9)", "9"));
-        ALL_CHORDS.add(new YamChord("7b5", "9b5", "7b9b5"));
+        ALL_CHORDS.add(new YamChord("7b5", "9b5", "7b9b5", "13b9b5", "13#9b5"));
         ALL_CHORDS.add(new YamChord("7sus4", "7sus", "7susb9", "9sus", "13sus", "13susb9"));
         ALL_CHORDS.add(new YamChord("7th", "7"));
         ALL_CHORDS.add(new YamChord("dim7", "dim7M")); // "dim7M" does not exist in Yamaha chords

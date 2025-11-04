@@ -32,6 +32,8 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -87,6 +89,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     private int zoomVFactor = 50;
     private final BarRendererFactory barRendererFactory;
     private int displayTransposition;
+    private static final Logger LOGGER = Logger.getLogger(BarBox.class.getSimpleName());
 
     /**
      * Construct a BarBox.
@@ -151,14 +154,14 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     public void setDisplayTransposition(int dt)
     {
         displayTransposition = dt;
-        
+
         this.getBarRenderers().stream()
-                    .filter(DisplayTransposableRenderer.class::isInstance)
-                    .map(DisplayTransposableRenderer.class::cast)
-                    .forEach(br -> br.setDisplayTransposition(displayTransposition));
+                .filter(DisplayTransposableRenderer.class::isInstance)
+                .map(DisplayTransposableRenderer.class::cast)
+                .forEach(br -> br.setDisplayTransposition(displayTransposition));
     }
 
-    
+
     /**
      * Set the model for this BarBox.
      *
@@ -194,6 +197,11 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     {
         Preconditions.checkNotNull(item);
 
+        LOGGER.log(Level.FINE, "addItem() this={0} item={1}", new Object[]
+        {
+            this, item
+        });
+
         ArrayList<ItemRenderer> result = new ArrayList<>();
         for (BarRenderer br : getBarRenderers())
         {
@@ -217,6 +225,11 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     public List<ItemRenderer> removeItem(ChordLeadSheetItem<?> item)
     {
         Preconditions.checkNotNull(item);
+
+        LOGGER.log(Level.FINE, "removeItem() this={0} item={1}", new Object[]
+        {
+            this, item
+        });
 
         ArrayList<ItemRenderer> result = new ArrayList<>();
         for (BarRenderer br : getBarRenderers())
@@ -385,11 +398,13 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
      * @throws IllegalArgumentException If bar is &gt; or equals to model's size.
      */
     public void setModelBarIndex(int bar)
-    {        
+    {
         if (bar == modelBarIndex)
         {
             return;
         }
+
+        LOGGER.log(Level.FINE, "setModelBarIndex() -- bar={0}", bar);
 
         modelBarIndex = bar;
 
@@ -459,7 +474,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
      */
     public void setSection(CLI_Section section)
     {
-        Preconditions.checkArgument(section == getSection(), "section=" + section + " getSection()=" + getSection());
+        Preconditions.checkArgument(section == getSection(), "section=%s this=", section, this);
 
         for (BarRenderer br : getBarRenderers())
         {
@@ -483,7 +498,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     public final boolean setConfig(BarBoxConfig bbConfig)
     {
         Preconditions.checkNotNull(bbConfig);
-        Preconditions.checkArgument(!bbConfig.getActiveBarRenderers().isEmpty(), "bbConfig=" + bbConfig);
+        Preconditions.checkArgument(!bbConfig.getActiveBarRenderers().isEmpty());
 
         if (bbConfig.equals(barBoxConfig))
         {
@@ -539,8 +554,8 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
     /**
      * Change background to represent the playback point in this bar. Then delegate to BarRenderers to render the point.
      *
-     * @param b
-     * @param pos
+     * @param b   Show if true, hide if false
+     * @param pos Used if b is true
      */
     public void showPlaybackPoint(boolean b, Position pos)
     {
@@ -548,8 +563,7 @@ public class BarBox extends JPanel implements FocusListener, PropertyChangeListe
         {
             return;
         }
-        Preconditions.checkArgument( ! (b && pos.getBar() != getModelBarIndex() ),
-                "b=" + b + " pos=" + pos + " getModelBarIndex()=" + getModelBarIndex());
+        Preconditions.checkArgument(!b || pos.getBar() == getModelBarIndex(), "b=%s pos=%s this=%s", b, pos, this);
 
         showPlaybackPoint = b;
         refreshBackground();

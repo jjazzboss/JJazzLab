@@ -44,11 +44,10 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.cl_editor.spi.ChordTypeSelectorUIProvider;
-import static org.jjazz.cl_editorimpl.actions.HearChord.createChordSamplePhrase;
-import static org.jjazz.cl_editorimpl.actions.HearChord.findChannel;
+import static org.jjazz.cl_editorimpl.actions.ChordAuditioning.createChordSamplePhrase;
+import static org.jjazz.cl_editorimpl.actions.ChordAuditioning.findChannel;
 import org.jjazz.harmony.api.ChordSymbol;
 import org.jjazz.harmony.api.ChordType;
 import org.jjazz.harmony.api.ChordType.Family;
@@ -71,15 +70,14 @@ public class SetChordTypeTableSelector extends JPanel implements ChordTypeSelect
     private static final String PREF_HIDE_COMPLEX_CHORDS = "HideComplexChords";
     private static final int SIMPLE_CHORD_MAX_NB_NOTES = 4;
     private Consumer<ChordType> chordTypeSetter;
-    private ChordSymbol presetChordSymbol;
-    private ChordLeadSheet cls;
+    private ChordSymbol chordSymbol;
     private final FixedCompSizeGridLayout fixedLayout;
     private static final Preferences prefs = NbPreferences.forModule(SetChordTypeTableSelector.class);
     private static final Logger LOGGER = Logger.getLogger(SetChordTypeTableSelector.class.getSimpleName());
 
     public SetChordTypeTableSelector()
     {
-        this.presetChordSymbol = new ChordSymbol();
+        this.chordSymbol = new ChordSymbol();
 
         initComponents();
         ta_help.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);    // right alignment
@@ -92,14 +90,12 @@ public class SetChordTypeTableSelector extends JPanel implements ChordTypeSelect
 
 
     @Override
-    public JComponent getUI(CLI_ChordSymbol presetCliCs, Consumer<ChordType> ctSetter)
+    public JComponent getUI(ChordSymbol chordSymbol, Consumer<ChordType> ctSetter)
     {
         Objects.requireNonNull(ctSetter);
-        this.cls = null;
-        if (presetCliCs != null)
+        if (chordSymbol != null)
         {
-            this.presetChordSymbol = presetCliCs.getData();
-            this.cls = presetCliCs.getContainer();
+            this.chordSymbol = chordSymbol;
         }
         this.chordTypeSetter = ctSetter;
         updateGrid();
@@ -202,7 +198,7 @@ public class SetChordTypeTableSelector extends JPanel implements ChordTypeSelect
         ChordSymbol cs = null;
         try
         {
-            String s = presetChordSymbol.getRootNote().toRelativeNoteString() + ct.getName();
+            String s = chordSymbol.getRootNote().toRelativeNoteString() + ct.getName();
             cs = new ChordSymbol(s);        // Can not be NC, so no need to use ExtChordSymbol.get()
         } catch (ParseException ex)
         {
@@ -230,6 +226,7 @@ public class SetChordTypeTableSelector extends JPanel implements ChordTypeSelect
     private void hearChord(ChordSymbol cs)
     {
         TestPlayer tp = TestPlayer.getDefault();
+
         var song = getSong();
         int channel = song == null ? 0 : findChannel(song);
         Phrase p = createChordSamplePhrase(List.of(cs), channel);
@@ -247,12 +244,8 @@ public class SetChordTypeTableSelector extends JPanel implements ChordTypeSelect
 
     private Song getSong()
     {
-        Song res = null;
-        if (cls != null)
-        {
-            var editor = CL_EditorTopComponent.get(cls);
-            res = editor != null ? editor.getSongModel() : null;
-        }
+        var editor = CL_EditorTopComponent.getActive();
+        Song res = editor != null ? editor.getSongModel() : null;
         return res;
     }
 

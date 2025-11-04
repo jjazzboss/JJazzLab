@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.JToolBar;
@@ -35,6 +36,7 @@ import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.cl_editor.spi.CL_EditorFactory;
 import org.jjazz.song.api.Song;
+import org.jjazz.uiutilities.api.UIUtilities;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.UndoRedo;
@@ -125,15 +127,25 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
     @Override
     public Action[] getActions()
     {
-        List<? extends Action> newActions = Utilities.actionsForPath("Actions/CL_EditorTopComponent");
-        ArrayList<Action> actions = new ArrayList<>();
-        actions.addAll(newActions);
-        if (!newActions.isEmpty())
+        List<? extends Action> tcEditorActions = new ArrayList<>(Utilities.actionsForPath("Actions/CL_EditorTopComponent"));
+        List<Action> res = new ArrayList<>();
+        res.addAll(tcEditorActions);
+        if (!res.isEmpty())
         {
-            actions.add(null);   // Separator         
+            res.add(null);   // Separator         
         }
-        Collections.addAll(actions, super.getActions()); // Get the standard builtin actions Close, Close All, Close Other             
-        return actions.toArray(new Action[0]);
+
+        // Add the Netbeans standard actions such as Close, Close All, Close Others, MoveWindowWithinModeAction, while filtering unanted ones (Clone, Move, NewTabGroup, SizeGroup, ...).
+        for (var a :  super.getActions())
+        {
+            LOGGER.log(Level.FINE, "getActions() a={0}", a);
+            if (a == null || UIUtilities.isNetbeansTopComponentTabActionUsed(a))
+            {
+                res.add(a);
+            }
+        }
+
+        return res.toArray(Action[]::new);
     }
 
     @Override

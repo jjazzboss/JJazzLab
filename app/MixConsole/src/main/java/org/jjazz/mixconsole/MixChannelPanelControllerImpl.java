@@ -170,42 +170,43 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
 
         // Retrieve the phrase
         var asmb = ActiveSongBackgroundMusicBuilder.getDefault();
-        var lastResult = asmb.getLastResult();
 
-
-        // Check for exception during last music generation
-        var ex = lastResult.throwable();
-        if (ex != null)
+        
+        // Check for update status
+        if (!asmb.isLastResultUpToDate())
         {
-            Level logLevel;
-            String msg;
-            if (ex instanceof MusicGenerationException)
-            {
-                // MusicGenerationException can be a missing chord at section start                
-                msg = ex.getMessage();
-                logLevel = Level.WARNING;
-            } else
-            {
-                // It's more serious
-                ex.printStackTrace();
-                msg = "Unexpected error, please check the log file and report the bug.\nex=" + ex.getMessage();
-                logLevel = Level.SEVERE;
-            }
-            LOGGER.log(logLevel, "cloneRhythmTrackAsUserTrack() {0} catched. msg={1}", new Object[]
-            {
-                ex.getClass().getSimpleName(),
-                ex.getMessage()
-            });
+            String msg = ResUtil.getString(getClass(), "MixChannelPanelControllerImpl.ErrorCloneRhythmTrack");
             NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
             return;
         }
 
 
-        // Check for update status
-        if (!asmb.isLastResultUpToDate())
+        var lastResult = asmb.getLastResult();
+
+        // Check for exception during last music generation
+        Throwable throwable = lastResult.throwable();
+        if (throwable != null)
         {
-            String msg = ResUtil.getString(getClass(), "MixChannelPanelControllerImpl.ErrorCloneRhythmTrack");
+            Level logLevel;
+            String msg;
+            if (throwable instanceof MusicGenerationException)
+            {
+                // MusicGenerationException can be a missing chord at section start                
+                msg = throwable.getMessage();
+                logLevel = Level.WARNING;
+            } else
+            {
+                // It's more serious
+                throwable.printStackTrace();
+                msg = "Unexpected error, please check the log file and report the bug.\nex=" + throwable.getMessage();
+                logLevel = Level.SEVERE;
+            }
+            LOGGER.log(logLevel, "cloneRhythmTrackAsUserTrack() {0} catched. msg={1}", new Object[]
+            {
+                throwable.getClass().getSimpleName(),
+                throwable.getMessage()
+            });
             NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
             DialogDisplayer.getDefault().notify(d);
             return;

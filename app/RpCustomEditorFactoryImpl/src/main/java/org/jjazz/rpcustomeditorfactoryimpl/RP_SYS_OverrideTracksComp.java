@@ -46,8 +46,8 @@ import static org.jjazz.rhythm.api.RhythmVoice.Type.PHRASE1;
 import org.jjazz.rpcustomeditorfactoryimpl.api.RealTimeRpEditorComponent;
 import static org.jjazz.rpcustomeditorfactoryimpl.api.RealTimeRpEditorComponent.PROP_EDITED_RP_VALUE;
 import org.jjazz.songcontext.api.SongPartContext;
-import org.jjazz.rhythmmusicgeneration.api.RP_SYS_SubstituteTracks;
-import org.jjazz.rhythmmusicgeneration.api.RP_SYS_SubstituteTracksValue;
+import org.jjazz.rhythmmusicgeneration.api.RP_SYS_OverrideTracks;
+import org.jjazz.rhythmmusicgeneration.api.RP_SYS_OverrideTracksValue;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.rhythmselectiondialog.spi.RhythmSelectionDialogProvider;
@@ -56,29 +56,29 @@ import org.jjazz.utilities.api.ResUtil;
 import org.openide.windows.WindowManager;
 
 /**
- * A RP editor component for RP_SYS_SubstituteTracks.
+ * A RP editor component for RP_SYS_OverrideTracks.
  */
-public class RP_SYS_SubstituteTracksComp extends RealTimeRpEditorComponent<RP_SYS_SubstituteTracksValue> implements ListSelectionListener
+public class RP_SYS_OverrideTracksComp extends RealTimeRpEditorComponent<RP_SYS_OverrideTracksValue> implements ListSelectionListener
 {
 
-    private final RP_SYS_SubstituteTracks rp;
-    private RP_SYS_SubstituteTracksValue lastValue;
-    private RP_SYS_SubstituteTracksValue uiValue;
-    private final RP_SYS_SubstituteTracksValueTable tbl_mappings;
-    private static final Logger LOGGER = Logger.getLogger(RP_SYS_SubstituteTracksComp.class.getSimpleName());
+    private final RP_SYS_OverrideTracks rp;
+    private RP_SYS_OverrideTracksValue lastValue;
+    private RP_SYS_OverrideTracksValue uiValue;
+    private final RP_SYS_OverrideTracksValueTable tbl_mappings;
+    private static final Logger LOGGER = Logger.getLogger(RP_SYS_OverrideTracksComp.class.getSimpleName());
 
-    public RP_SYS_SubstituteTracksComp(RP_SYS_SubstituteTracks rp)
+    public RP_SYS_OverrideTracksComp(RP_SYS_OverrideTracks rp)
     {
         checkNotNull(rp);
         this.rp = rp;
 
         initComponents();
 
-        tbl_mappings = ((RP_SYS_SubstituteTracksValueTable) table);
+        tbl_mappings = ((RP_SYS_OverrideTracksValueTable) table);
 
 
         // Add listeners
-        tbl_mappings.addPropertyChangeListener(RP_SYS_SubstituteTracksValueTable.PROP_RVDEST, e -> 
+        tbl_mappings.addPropertyChangeListener(RP_SYS_OverrideTracksValueTable.PROP_RVDEST, e -> 
         {
             // User changed the destination track of a given rhythm
             RhythmVoice rvSrc = (RhythmVoice) e.getOldValue();
@@ -101,7 +101,7 @@ public class RP_SYS_SubstituteTracksComp extends RealTimeRpEditorComponent<RP_SY
     }
 
     @Override
-    public RP_SYS_SubstituteTracks getRhythmParameter()
+    public RP_SYS_OverrideTracks getRhythmParameter()
     {
         return rp;
     }
@@ -119,7 +119,7 @@ public class RP_SYS_SubstituteTracksComp extends RealTimeRpEditorComponent<RP_SY
 
 
     @Override
-    public void preset(RP_SYS_SubstituteTracksValue rpValue, SongPartContext sptContext)
+    public void preset(RP_SYS_OverrideTracksValue rpValue, SongPartContext sptContext)
     {
         Objects.requireNonNull(rpValue);
         Objects.requireNonNull(sptContext);
@@ -137,7 +137,7 @@ public class RP_SYS_SubstituteTracksComp extends RealTimeRpEditorComponent<RP_SY
     }
 
     @Override
-    public void setEditedRpValue(RP_SYS_SubstituteTracksValue rpValue)
+    public void setEditedRpValue(RP_SYS_OverrideTracksValue rpValue)
     {
         lastValue = uiValue;
         uiValue = rpValue;
@@ -146,7 +146,7 @@ public class RP_SYS_SubstituteTracksComp extends RealTimeRpEditorComponent<RP_SY
     }
 
     @Override
-    public RP_SYS_SubstituteTracksValue getEditedRpValue()
+    public RP_SYS_OverrideTracksValue getEditedRpValue()
     {
         return uiValue;
     }
@@ -232,7 +232,7 @@ public class RP_SYS_SubstituteTracksComp extends RealTimeRpEditorComponent<RP_SY
         var ri = rdb.getRhythm(rv.getContainer().getUniqueId());
         dlg.preset(ri, null);
         dlg.setCustomComponent(new JLabel(" "));    
-        dlg.setTitleText(ResUtil.getString(getClass(), "SelectSubstituteRhythm", ri.timeSignature()));
+        dlg.setTitleText(ResUtil.getString(getClass(), "SelectOverrideRhythm", ri.timeSignature()));
         dlg.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
         dlg.setVisible(true);
 
@@ -346,7 +346,7 @@ public class RP_SYS_SubstituteTracksComp extends RealTimeRpEditorComponent<RP_SY
     {
 
         jScrollPane1 = new javax.swing.JScrollPane();
-        table = new org.jjazz.rpcustomeditorfactoryimpl.RP_SYS_SubstituteTracksValueTable();
+        table = new org.jjazz.rpcustomeditorfactoryimpl.RP_SYS_OverrideTracksValueTable();
         btn_clear = new javax.swing.JButton();
         btn_replace = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
@@ -354,7 +354,7 @@ public class RP_SYS_SubstituteTracksComp extends RealTimeRpEditorComponent<RP_SY
 
         jScrollPane1.setViewportView(table);
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_clear, org.openide.util.NbBundle.getMessage(RP_SYS_SubstituteTracksComp.class, "RP_SYS_SubstituteTracksComp.btn_clear.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_clear, org.openide.util.NbBundle.getMessage(RP_SYS_OverrideTracksComp.class, "RP_SYS_OverrideTracksComp.btn_clear.text")); // NOI18N
         btn_clear.setEnabled(false);
         btn_clear.addActionListener(new java.awt.event.ActionListener()
         {
@@ -364,8 +364,7 @@ public class RP_SYS_SubstituteTracksComp extends RealTimeRpEditorComponent<RP_SY
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_replace, org.openide.util.NbBundle.getMessage(RP_SYS_SubstituteTracksComp.class, "RP_SYS_SubstituteTracksComp.btn_replace.text")); // NOI18N
-        btn_replace.setToolTipText(org.openide.util.NbBundle.getMessage(RP_SYS_SubstituteTracksComp.class, "RP_SYS_SubstituteTracksComp.btn_replace.toolTipText")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(btn_replace, org.openide.util.NbBundle.getMessage(RP_SYS_OverrideTracksComp.class, "RP_SYS_OverrideTracksComp.btn_replace.text")); // NOI18N
         btn_replace.setEnabled(false);
         btn_replace.addActionListener(new java.awt.event.ActionListener()
         {
@@ -379,7 +378,7 @@ public class RP_SYS_SubstituteTracksComp extends RealTimeRpEditorComponent<RP_SY
 
         helpTextArea1.setColumns(20);
         helpTextArea1.setRows(3);
-        helpTextArea1.setText(org.openide.util.NbBundle.getMessage(RP_SYS_SubstituteTracksComp.class, "RP_SYS_SubstituteTracksComp.helpTextArea1.text")); // NOI18N
+        helpTextArea1.setText(org.openide.util.NbBundle.getMessage(RP_SYS_OverrideTracksComp.class, "RP_SYS_OverrideTracksComp.helpTextArea1.text")); // NOI18N
         jScrollPane2.setViewportView(helpTextArea1);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
@@ -393,7 +392,7 @@ public class RP_SYS_SubstituteTracksComp extends RealTimeRpEditorComponent<RP_SY
                         .addComponent(jScrollPane2)
                         .addGap(29, 29, 29))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 561, Short.MAX_VALUE)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 583, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)))
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(btn_clear)
