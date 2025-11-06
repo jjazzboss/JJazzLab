@@ -43,6 +43,7 @@ import org.jjazz.embeddedsynth.api.EmbeddedSynth;
 import org.jjazz.embeddedsynth.api.EmbeddedSynthException;
 import org.jjazz.embeddedsynth.spi.EmbeddedSynthProvider;
 import org.jjazz.embeddedsynth.spi.Mp3EncoderProvider;
+import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.song.api.Song;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.spi.MidiMixManager;
@@ -119,13 +120,8 @@ public class ExportToAudio extends AbstractAction
             return;
         }
 
-
-        // Get the target audio file
-        String songNameNoBlank = song.getName().replace(" ", "_");
-        File audioFile = new File(songNameNoBlank + ".mp3");
-
-
         // Show file chooser
+        File audioFile = ExportToMidiFile.getExportFile(song, ".mp3", saveExportDir);        
         JFileChooser chooser = getFileChooser(audioFile);
         int res = chooser.showSaveDialog(WindowManager.getDefault().getMainWindow());
         if (res != JFileChooser.APPROVE_OPTION)
@@ -186,8 +182,8 @@ public class ExportToAudio extends AbstractAction
         final File tmpWavFile;
         try
         {
-            tmpMidiFile = Files.createTempFile(songNameNoBlank, ".mid").toFile();
-            tmpWavFile = isMp3 ? Files.createTempFile(songNameNoBlank, ".wav").toFile() : null;
+            tmpMidiFile = Files.createTempFile(audioFileName, ".mid").toFile();
+            tmpWavFile = isMp3 ? Files.createTempFile(audioFileName, ".wav").toFile() : null;
         } catch (IOException ex)
         {
             // Should never happen
@@ -326,47 +322,42 @@ public class ExportToAudio extends AbstractAction
         return res;
     }
 
-    //==========================================================================================
-    // Private methods
-    //==========================================================================================    
     private JFileChooser getFileChooser(File f)
     {
-        if (FILE_CHOOSER != null)
+        if (FILE_CHOOSER == null)
         {
-            return FILE_CHOOSER;
+            FILE_CHOOSER = new JFileChooser();
+            FILE_CHOOSER.setDialogType(JFileChooser.SAVE_DIALOG);
+            FILE_CHOOSER.resetChoosableFileFilters();
+            FILE_CHOOSER.setAcceptAllFileFilterUsed(false);
+            FILE_CHOOSER.addChoosableFileFilter(new FileNameExtensionFilter(ResUtil.getString(getClass(), "AudioFilesMp3"), "mp3"));
+            FILE_CHOOSER.addChoosableFileFilter(new FileNameExtensionFilter(ResUtil.getString(getClass(), "AudioFilesWav"), "wav"));
+            FILE_CHOOSER.setMultiSelectionEnabled(false);
+            FILE_CHOOSER.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            FILE_CHOOSER.setDialogTitle(ResUtil.getString(getClass(), "CTL_ExportToAudioDialogTitle"));
+
+            
+            // Adjust the selected file extension when user selects a different file filter
+            FILE_CHOOSER.addPropertyChangeListener(JFileChooser.FILE_FILTER_CHANGED_PROPERTY, (var evt) -> 
+            {
+                FileNameExtensionFilter filter = (FileNameExtensionFilter) evt.getNewValue();
+                String extension = filter.getExtensions()[0];
+                // Can't use FILE_CHOOSER.getSelectedFile(), it returns null because file does not match filter, see https://stackoverflow.com/questions/596429/adjust-selected-file-to-filefilter-in-a-jfilechooser
+                String typedName = ((BasicFileChooserUI) FILE_CHOOSER.getUI()).getFileName();
+                if (!typedName.isBlank() && !typedName.toLowerCase().endsWith(extension.toLowerCase()))
+                {
+                    typedName = Utilities.replaceExtension(typedName, extension);
+                    FILE_CHOOSER.setSelectedFile(new File(FILE_CHOOSER.getCurrentDirectory(), typedName));
+                }
+            });
+
+
+            // Add the accessory component
+            accessoryComponent = new AccessoryComponent();
+            FILE_CHOOSER.setAccessory(accessoryComponent);
         }
 
-        FILE_CHOOSER = new JFileChooser();
-        FILE_CHOOSER.setDialogType(JFileChooser.SAVE_DIALOG);
-        FILE_CHOOSER.resetChoosableFileFilters();
-        FILE_CHOOSER.setAcceptAllFileFilterUsed(false);
-        FILE_CHOOSER.addChoosableFileFilter(new FileNameExtensionFilter(ResUtil.getString(getClass(), "AudioFilesMp3"), "mp3"));
-        FILE_CHOOSER.addChoosableFileFilter(new FileNameExtensionFilter(ResUtil.getString(getClass(), "AudioFilesWav"), "wav"));
-        FILE_CHOOSER.setMultiSelectionEnabled(false);
-        FILE_CHOOSER.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        FILE_CHOOSER.setCurrentDirectory(saveExportDir);
         FILE_CHOOSER.setSelectedFile(f);
-        FILE_CHOOSER.setDialogTitle(ResUtil.getString(getClass(), "CTL_ExportToAudioDialogTitle"));
-
-
-        // Adjust the selected file extension when user selects a different file filter
-        FILE_CHOOSER.addPropertyChangeListener(JFileChooser.FILE_FILTER_CHANGED_PROPERTY, (var evt) -> 
-        {
-            FileNameExtensionFilter filter = (FileNameExtensionFilter) evt.getNewValue();
-            String extension = filter.getExtensions()[0];
-            // Can't use FILE_CHOOSER.getSelectedFile(), it returns null because file does not match filter, see https://stackoverflow.com/questions/596429/adjust-selected-file-to-filefilter-in-a-jfilechooser
-            String typedName = ((BasicFileChooserUI) FILE_CHOOSER.getUI()).getFileName();
-            if (!typedName.isBlank() && !typedName.toLowerCase().endsWith(extension.toLowerCase()))
-            {
-                typedName = Utilities.replaceExtension(typedName, extension);
-                FILE_CHOOSER.setSelectedFile(new File(FILE_CHOOSER.getCurrentDirectory(), typedName));
-            }
-        });
-
-
-        // Add the accessory component
-        accessoryComponent = new AccessoryComponent();
-        FILE_CHOOSER.setAccessory(accessoryComponent);
 
 
         return FILE_CHOOSER;

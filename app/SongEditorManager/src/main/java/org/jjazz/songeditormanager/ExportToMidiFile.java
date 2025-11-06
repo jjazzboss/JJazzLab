@@ -36,6 +36,7 @@ import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.uiutilities.api.UIUtilities;
 import org.jjazz.utilities.api.ResUtil;
+import org.jjazz.utilities.api.Utilities;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.ActionID;
@@ -72,7 +73,7 @@ public class ExportToMidiFile extends AbstractAction
     {
         assert song != null;
 
-        
+
         if (song.getSongStructure().getSongParts().isEmpty())
         {
             String msg = ResUtil.getString(getClass(), "ERR_CantExportEmptySong");
@@ -83,7 +84,7 @@ public class ExportToMidiFile extends AbstractAction
 
 
         // Get the target midi file
-        File midiFile = getMidiFile(song);
+        File midiFile = getExportFile(song, ".mid", saveExportDir);
         JFileChooser chooser = UIUtilities.getFileChooserInstance();
         chooser.resetChoosableFileFilters();
         chooser.setMultiSelectionEnabled(false);
@@ -111,12 +112,12 @@ public class ExportToMidiFile extends AbstractAction
                 return;
             }
         }
-                
+
 
         // Log event
         Analytics.logEvent("Export Midi");
 
-        
+
         MidiMix midiMix = null;
         try
         {
@@ -130,8 +131,8 @@ public class ExportToMidiFile extends AbstractAction
 
         assert midiMix != null : "song=" + song;
 
-        
-       SongMidiExporter.songToMidiFile(song, midiMix, midiFile, null);      // It notifies user if problem occurs
+
+        SongMidiExporter.songToMidiFile(song, midiMix, midiFile, null);      // It notifies user if problem occurs
 
     }
 
@@ -140,22 +141,24 @@ public class ExportToMidiFile extends AbstractAction
     // Private methods
     // ======================================================================   
     /**
+     * Get the export File for the specified song.
      *
      * @param sg
+     * @param ext              ".mp3", ".mid"...
+     * @param defaultExportDir Can be null
      * @return Can be null
      */
-    private File getMidiFile(Song sg)
+    static protected File getExportFile(Song sg, String ext, File defaultExportDir)
     {
-        File f = null;
+        File f;
         File songFile = sg.getFile();
-        String midiFilename = (songFile == null) ? sg.getName() + ".mid" : org.jjazz.utilities.api.Utilities.replaceExtension(songFile.getName(),
-                ".mid");
-        if (saveExportDir != null && !saveExportDir.isDirectory())
-        {
-            saveExportDir = null;
-        }
-        File dir = saveExportDir;
-        if (dir == null)
+        String fileName = (songFile == null)
+                ? sg.getName().replaceAll(" ", "_") + ext
+                : Utilities.replaceExtension(songFile.getName(), ext);
+
+
+        File dir = defaultExportDir;
+        if (dir != null && !dir.isDirectory())
         {
             if (songFile != null)
             {
@@ -167,10 +170,8 @@ public class ExportToMidiFile extends AbstractAction
                 dir = fdm.getLastSongDirectory();       // Can be null                       
             }
         }
-        if (dir != null)
-        {
-            f = new File(dir, midiFilename);
-        }
+
+        f = new File(dir, fileName);
         return f;
     }
 
