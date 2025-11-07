@@ -46,6 +46,7 @@ import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.Song;
 import org.jjazz.flatcomponents.api.FlatToggleButton;
+import org.jjazz.musiccontrolactions.api.FixMissingSectionStartChord;
 import org.jjazz.musiccontrolactions.api.RemoteAction;
 import org.jjazz.musiccontrolactions.api.RemoteActionProvider;
 import org.jjazz.utilities.api.ResUtil;
@@ -164,6 +165,7 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
                         MidiMix midiMix = MidiMixManager.getDefault().findMix(currentSong);      // Can raise MidiUnavailableException
                         SongContext context = new SongContext(currentSong, midiMix);
 
+                        new FixMissingSectionStartChord(context).autofix();
                         
                         // Check that all listeners are OK to start playback     
                         PlaybackSettings.getInstance().firePlaybackStartVetoableChange(context);  // can raise PropertyVetoException

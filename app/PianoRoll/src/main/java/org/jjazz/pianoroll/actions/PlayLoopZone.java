@@ -100,7 +100,6 @@ public class PlayLoopZone extends AbstractAction
             IntRange barRange = loopZone == null ? absoluteBarRange : loopZone.getTransformed(absoluteBarRange.from);
             SongContext context = new SongContext(topComponent.getSong(), topComponent.getMidiMix(), barRange);
 
-            
             // Check that all listeners are OK to start playback     
             PlaybackSettings.getInstance().firePlaybackStartVetoableChange(context);  // can raise PropertyVetoException
 

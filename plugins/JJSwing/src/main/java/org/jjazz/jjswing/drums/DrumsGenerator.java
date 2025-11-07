@@ -155,8 +155,8 @@ public class DrumsGenerator implements MusicGenerator
         {
             var drumsStyle = getDrumsStyle(spt);
             var dpss = dpsDb.getDpSourceSet(drumsStyle);
-            int dpsSize = dpss.getSize();
-            var sptBarRange = spt.getBarRange();
+            int dpsSizeInBars = dpss.getSize();
+            var sptBarRange = context.getSptBarRange(spt);
             var sptBeatRange = context.getSptBeatRange(spt);
 
 
@@ -166,42 +166,43 @@ public class DrumsGenerator implements MusicGenerator
             });
 
             // Tile the SongPart with random phrases from the DpSourceSet
-            for (int bar = sptBarRange.from; sptBarRange.contains(bar); bar += dpsSize)
+            for (int bar = sptBarRange.from; sptBarRange.contains(bar); bar += dpsSizeInBars)
             {
                 int relBar = bar - sptBarRange.from;
                 float beatPos = sptBeatRange.from + relBar * nbBeatsPerBar;
-                FloatRange beatRangeStd = new FloatRange(beatPos, beatPos + dpsSize * nbBeatsPerBar);
+                FloatRange beatRangeDps = new FloatRange(beatPos, beatPos + dpsSizeInBars * nbBeatsPerBar);
                 DpSource dpSourceFill = null;   // no fill by default
                 FloatRange beatRangeFill = FloatRange.EMPTY_FLOAT_RANGE;  // no fill by default
 
 
-                boolean isLastIteration = (bar + dpsSize - 1) >= sptBarRange.to;
+                boolean isLastIteration = (bar + dpsSizeInBars - 1) >= sptBarRange.to;
                 if (isLastIteration)
                 {
-                    beatRangeStd = sptBeatRange.getIntersectRange(beatRangeStd);
+                    beatRangeDps = sptBeatRange.getIntersectRange(beatRangeDps);
                     dpSourceFill = getFillDpSource(spt, dpss.dpSourcesFill());      // null if no fill
                 }
 
 
                 if (dpSourceFill != null)
                 {
+                    // We have a fill, shorten beatRangeDps to make room for the 1-bar fill
                     float fillBeatSize = dpSourceFill.getSizeInBars() * nbBeatsPerBar;
-                    assert fillBeatSize <= beatRangeStd.size() : "spt=" + spt + " bar=" + bar + " beatRange=" + beatRangeStd + " fillBeatSize=" + fillBeatSize;
-                    beatRangeFill = new FloatRange(beatRangeStd.to - fillBeatSize, beatRangeStd.to);
-                    beatRangeStd = beatRangeStd.from == beatRangeFill.from ? FloatRange.EMPTY_FLOAT_RANGE
-                            : new FloatRange(beatRangeStd.from, beatRangeFill.from);
+                    assert fillBeatSize <= beatRangeDps.size() : "spt=" + spt + " bar=" + bar + " beatRangeStd=" + beatRangeDps + " fillBeatSize=" + fillBeatSize;
+                    beatRangeFill = new FloatRange(beatRangeDps.to - fillBeatSize, beatRangeDps.to);
+                    beatRangeDps = beatRangeDps.from == beatRangeFill.from ? FloatRange.EMPTY_FLOAT_RANGE
+                            : new FloatRange(beatRangeDps.from, beatRangeFill.from);
                 }
 
 
                 DpSource dpSource = randomPick(dpss.dpSourcesStd());
                 LOGGER.log(DrumsGeneratorLogLevel, "fillPhrases()      bar={0} beatRangeStd={1} dpSource={2} dpSourceFill={3}", new Object[]
                 {
-                    bar, beatRangeStd, dpSource, dpSourceFill
+                    bar, beatRangeDps, dpSource, dpSourceFill
                 });
 
                 if (pDrums != null)
                 {
-                    var p = dpSource.getDrumsPhrase(beatRangeStd);
+                    var p = dpSource.getDrumsPhrase(beatRangeDps);
                     pDrums.add(p);
                     if (dpSourceFill != null)
                     {
@@ -212,7 +213,7 @@ public class DrumsGenerator implements MusicGenerator
 
                 if (pPerc != null)
                 {
-                    var p = dpSource.getPercPhrase(beatRangeStd);
+                    var p = dpSource.getPercPhrase(beatRangeDps);
                     pPerc.add(p);
                     if (dpSourceFill != null)
                     {

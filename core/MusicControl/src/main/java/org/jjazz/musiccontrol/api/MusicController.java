@@ -80,6 +80,7 @@ import org.jjazz.outputsynth.spi.OutputSynthManager;
  */
 public class MusicController implements PropertyChangeListener, MetaEventListener
 {
+
     /**
      * oldValue=old State, newValue=new State
      */
@@ -109,7 +110,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     /**
      * The current beat position during playback (for ControlTrackProvider sessions only).
      */
-    private Position currentBeatPosition = new Position();
+    private final Position currentBeatPosition;
     /**
      * The current chord symbol during playback (for ControlTrackProvider sessions only).
      */
@@ -131,14 +132,14 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     /**
      * The tempo factor of the SongPart being played.
      */
-    private float songPartTempoFactor = 1;
+    private float songPartTempoFactor;
     private int audioLatency;
     /**
      * Keep track of active timers used to compensate the audio latency.
      * <p>
      * Needed to force stop them when sequencer is stopped/paused by user.
      */
-    private final Set<Timer> audioLatencyTimers = new HashSet<>();
+    private final Set<Timer> audioLatencyTimers;
     /**
      * Our MidiReceiver to be able to fire events to NoteListeners and PlaybackListener (midiActivity).
      */
@@ -146,11 +147,10 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     /**
      * If true display built sequence when it is built
      */
-    private boolean debugPlayedSequence = false;
-    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
-
-    private final List<PlaybackListener> playbackListeners = new ArrayList<>();
-    private final List<NoteListener> noteListeners = new ArrayList<>();
+    private boolean debugPlayedSequence;
+    private final PropertyChangeSupport pcs;
+    private final List<PlaybackListener> playbackListeners;
+    private final List<NoteListener> noteListeners;
     private static final Logger LOGGER = Logger.getLogger(MusicController.class.getSimpleName());
 
     public static MusicController getInstance()
@@ -170,12 +170,17 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      */
     private MusicController()
     {
-
-        state = State.STOPPED;
-        sequencer = JJazzMidiSystem.getInstance().getDefaultSequencer();
-        receiver = new McReceiver();
+        this.pcs = new PropertyChangeSupport(this);
+        this.playbackListeners = new ArrayList<>();
+        this.noteListeners = new ArrayList<>();
+        this.songPartTempoFactor = 1;
+        this.audioLatencyTimers = new HashSet<>();
+        this.currentBeatPosition = new Position();
+        this.state = State.STOPPED;
+        this.sequencer = JJazzMidiSystem.getInstance().getDefaultSequencer();
+        this.receiver = new McReceiver();
         initSequencer();
-        sequencerLockHolder = null;
+        this.sequencerLockHolder = null;
 
 
         // Get notified of the notes sent by the Sequencer

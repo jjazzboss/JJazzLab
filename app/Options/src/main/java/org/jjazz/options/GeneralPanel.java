@@ -31,6 +31,7 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.JList;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.flatcomponents.api.FlatComponentsGlobalSettings;
+import org.jjazz.musiccontrolactions.api.FixMissingSectionStartChord;
 import org.jjazz.songeditormanager.spi.SongEditorManager;
 import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.utilities.api.ResUtil;
@@ -103,6 +104,7 @@ final class GeneralPanel extends javax.swing.JPanel
         cb_disableMouseWheelChangeValue = new javax.swing.JCheckBox();
         cmb_languages = new javax.swing.JComboBox<>();
         lbl_language = new javax.swing.JLabel();
+        cb_autoFixMissingSectionChord = new javax.swing.JCheckBox();
 
         org.openide.awt.Mnemonics.setLocalizedText(cb_loadLastRecentFile, org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.cb_loadLastRecentFile.text")); // NOI18N
         cb_loadLastRecentFile.addChangeListener(new javax.swing.event.ChangeListener()
@@ -126,6 +128,9 @@ final class GeneralPanel extends javax.swing.JPanel
 
         org.openide.awt.Mnemonics.setLocalizedText(lbl_language, org.openide.util.NbBundle.getBundle(GeneralPanel.class).getString("GeneralPanel.lbl_language.text")); // NOI18N
 
+        org.openide.awt.Mnemonics.setLocalizedText(cb_autoFixMissingSectionChord, org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.cb_autoFixMissingSectionChord.text")); // NOI18N
+        cb_autoFixMissingSectionChord.setToolTipText(org.openide.util.NbBundle.getMessage(GeneralPanel.class, "GeneralPanel.cb_autoFixMissingSectionChord.toolTipText")); // NOI18N
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -138,7 +143,8 @@ final class GeneralPanel extends javax.swing.JPanel
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(cmb_languages, javax.swing.GroupLayout.PREFERRED_SIZE, 144, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(lbl_language)))
+                        .addComponent(lbl_language))
+                    .addComponent(cb_autoFixMissingSectionChord))
                 .addContainerGap(242, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -152,7 +158,9 @@ final class GeneralPanel extends javax.swing.JPanel
                 .addComponent(cb_loadLastRecentFile)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(cb_disableMouseWheelChangeValue)
-                .addContainerGap(279, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(cb_autoFixMissingSectionChord)
+                .addContainerGap(247, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -186,6 +194,8 @@ final class GeneralPanel extends javax.swing.JPanel
         var cmbModel = new DefaultComboBoxModel<Locale>(GeneralUISettings.SUPPORTED_LOCALES);
         cmb_languages.setModel(cmbModel);
         cmb_languages.setSelectedItem(Locale.getDefault());
+        
+        cb_autoFixMissingSectionChord.setSelected(FixMissingSectionStartChord.isEnabled());
 
 
     }
@@ -201,6 +211,7 @@ final class GeneralPanel extends javax.swing.JPanel
         // SomeSystemOption.getDefault().setSomeStringProperty(someTextField.getText());
         LOGGER.fine("store() --");
         SongEditorManager.getDefault().setOpenLastFilesUponStartup(cb_loadLastRecentFile.isSelected());
+        FixMissingSectionStartChord.setEnabled(cb_autoFixMissingSectionChord.isSelected());
 
         FlatComponentsGlobalSettings.getInstance().setChangeValueWithMouseWheelEnabled(!cb_disableMouseWheelChangeValue.isSelected());
 
@@ -224,6 +235,7 @@ final class GeneralPanel extends javax.swing.JPanel
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JCheckBox cb_autoFixMissingSectionChord;
     private javax.swing.JCheckBox cb_disableMouseWheelChangeValue;
     private javax.swing.JCheckBox cb_loadLastRecentFile;
     private javax.swing.JComboBox<Locale> cmb_languages;
