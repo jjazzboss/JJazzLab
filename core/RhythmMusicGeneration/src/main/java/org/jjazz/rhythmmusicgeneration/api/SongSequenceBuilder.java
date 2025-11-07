@@ -862,7 +862,7 @@ public class SongSequenceBuilder
     private void checkStartChordPresence(SongContext context) throws UserErrorGenerationException
     {
         ChordLeadSheet cls = context.getSong().getChordLeadSheet();
-        for (CLI_Section section : getContextSections(context))
+        for (CLI_Section section : context.getUniqueSections())
         {
             Position pos = section.getPosition();
             var clis = cls.getItems(section, CLI_ChordSymbol.class);
@@ -885,7 +885,7 @@ public class SongSequenceBuilder
         HashMap<Position, CLI_ChordSymbol> mapPosCs = new HashMap<>();
         ChordLeadSheet cls = context.getSong().getChordLeadSheet();
 
-        for (CLI_Section cliSection : getContextSections(context))
+        for (CLI_Section cliSection : context.getUniqueSections())
         {
             var clis = cls.getItems(cliSection, CLI_ChordSymbol.class);
             for (CLI_ChordSymbol cliCs : clis)
@@ -906,20 +906,6 @@ public class SongSequenceBuilder
                 }
             }
         }
-    }
-
-    /**
-     * Get the set of sections for the given context.
-     *
-     * @param context
-     * @return
-     */
-    private Set<CLI_Section> getContextSections(SongContext context)
-    {
-        Set<CLI_Section> res = context.getSong().getSongStructure().getSongParts().stream()
-                .map(spt -> spt.getParentSection())
-                .collect(Collectors.toSet());
-        return res;
     }
 
     /**

@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midimix.api.MidiMix;
@@ -131,7 +132,7 @@ public class SongContext
     /**
      * Deep clone the SongContext : make a copy of the song and the midimix.
      *
-     * @param registerSong If true the created song is registered by the SongFactory
+     * @param registerSong   If true the created song is registered by the SongFactory
      * @param setMidiMixSong If true MidMix.setSong() is called on the created MidiMix with the created Song.
      * @return
      * @see org.jjazz.songcontext.api.SongContextCopy &nbsp; (if you need to keep a reference to the original song and midiMix)
@@ -216,6 +217,22 @@ public class SongContext
     public List<SongPart> getSongParts()
     {
         return songParts;
+    }
+
+    /**
+     * Get the unique parent sections used by the context song parts.
+     *
+     * @return An ordered list by position 
+     */
+    public List<CLI_Section> getUniqueSections()
+    {
+        List<CLI_Section> res = new ArrayList<>();
+        
+        songParts.stream()
+                .map(spt -> spt.getParentSection())
+                .filter(section -> !res.contains(section))
+                .forEach(section -> res.add(section));
+        return res;
     }
 
     /**

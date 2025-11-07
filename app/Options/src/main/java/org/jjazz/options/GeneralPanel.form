@@ -26,6 +26,7 @@
                       <EmptySpace type="unrelated" max="-2" attributes="0"/>
                       <Component id="lbl_language" min="-2" max="-2" attributes="0"/>
                   </Group>
+                  <Component id="cb_autoFixMissingSectionChord" alignment="0" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace pref="242" max="32767" attributes="0"/>
           </Group>
@@ -43,7 +44,9 @@
               <Component id="cb_loadLastRecentFile" min="-2" max="-2" attributes="0"/>
               <EmptySpace type="unrelated" max="-2" attributes="0"/>
               <Component id="cb_disableMouseWheelChangeValue" min="-2" max="-2" attributes="0"/>
-              <EmptySpace pref="279" max="32767" attributes="0"/>
+              <EmptySpace type="unrelated" max="-2" attributes="0"/>
+              <Component id="cb_autoFixMissingSectionChord" min="-2" max="-2" attributes="0"/>
+              <EmptySpace pref="247" max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -81,6 +84,16 @@
       <Properties>
         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
           <ResourceString bundle="org/jjazz/options/Bundle.properties" key="GeneralPanel.lbl_language.text" replaceFormat="org.openide.util.NbBundle.getBundle({sourceFileName}.class).getString(&quot;{key}&quot;)"/>
+        </Property>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="cb_autoFixMissingSectionChord">
+      <Properties>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="org/jjazz/options/Bundle.properties" key="GeneralPanel.cb_autoFixMissingSectionChord.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+        </Property>
+        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="org/jjazz/options/Bundle.properties" key="GeneralPanel.cb_autoFixMissingSectionChord.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
         </Property>
       </Properties>
     </Component>
