@@ -452,7 +452,7 @@ public class SongContext
     @Override
     public String toString()
     {
-        return "SongContext[song=" + song.getName() + ", midiMix=" + midiMix + ", range=" + barRange + "]";
+        return "SongContext[song=" + song.getName() + ", " + midiMix + ", range=" + barRange + "]";
     }
 
 

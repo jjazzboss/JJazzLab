@@ -639,13 +639,17 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
         return joiner.toString();
     }
 
+    public String toStringOneNotePerLine()
+    {
+        StringJoiner joiner = new StringJoiner("\n");
+        forEach(ne -> joiner.add(ne.toString()));
+        return joiner.toString();
+    }
+
     public void dump()
     {
         LOGGER.info(toString());
-        for (NoteEvent ne : this)
-        {
-            LOGGER.info(ne.toString());
-        }
+        LOGGER.info(toStringOneNotePerLine());
     }
 
     /**

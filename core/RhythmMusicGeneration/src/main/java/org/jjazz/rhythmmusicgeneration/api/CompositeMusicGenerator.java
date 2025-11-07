@@ -279,13 +279,15 @@ public class CompositeMusicGenerator implements MusicGenerator
         // Call MusicGenerator
         if (LogLevel.intValue() >= Level.INFO.intValue())
         {
-            LOGGER.log(LogLevel, "callGenerator() generating music mg={0} subContext={1}  mapBaseRvMgDelegate=", new Object[]
+            LOGGER.log(LogLevel, "callGenerator() generating music mg={0} subContext.getBarRange()={1} subContext-spts={2}  mapBaseRvMgDelegate=", new Object[]
             {
                 mg.getClass().getSimpleName(),
+                subContext.getBarRange(),
                 subContext.getSongParts().stream().map(spt -> spt.toShortString()).toList(),
             });
             LOGGER.log(LogLevel, "{0}", Utilities.toMultilineString(mapBaseRvMgDelegate, "      "));
         }
+
         var mapRvPhrases = mg.generateMusic(delegateContext, uniqueDelegateRvs.toArray(RhythmVoice[]::new));
 
 
@@ -324,7 +326,7 @@ public class CompositeMusicGenerator implements MusicGenerator
     }
 
     /**
-     * A subpart of context.
+     * A subpart of context which only use spts (or part of spts).
      *
      * @param context
      * @param spts
@@ -332,7 +334,8 @@ public class CompositeMusicGenerator implements MusicGenerator
      */
     private SongContext getSubContext(SongContext context, List<SongPart> spts)
     {
-        return new SongContext(context, new IntRange(spts.getFirst().getStartBarIndex(), spts.getLast().getBarRange().to));
+        IntRange br = context.getBarRange().getIntersection(new IntRange(spts.getFirst().getStartBarIndex(), spts.getLast().getBarRange().to));
+        return new SongContext(context, br);
     }
 
     /**

@@ -95,6 +95,7 @@ import org.jjazz.song.api.Song;
  */
 public class SongSequenceBuilder
 {
+
     /**
      * @see #getTempoFactorMetaMessage(float)
      * @see #getTempoFactor(javax.sound.midi.MetaMessage)
@@ -109,6 +110,7 @@ public class SongSequenceBuilder
      */
     static public class SongSequence
     {
+
         public Sequence sequence;
         public Map<RhythmVoice, Integer> mapRvTrackId;
         public Map<RhythmVoice, Phrase> mapRvPhrase;
@@ -317,7 +319,7 @@ public class SongSequenceBuilder
      * - add a marker for each chord symbol<br>
      * - add a marker for each song part<br>
      *
-     * 
+     *
      * @param songSequence      Must have been created using buildSongSequence() for the current SongContext
      * @param ignoreMidiMixMute If true, a track will sound even if it was muted in the context MidiMix
      * @see #buildSongSequence(java.util.Map, boolean)
@@ -570,10 +572,7 @@ public class SongSequenceBuilder
             MusicGenerator mg = processRP_SYS_OverrideTracks(r, songContextWork);
             Map<RhythmVoice, Phrase> rMap = generateRhythmPhrases(r, mg, songContextWork);                       // Possible MusicGenerationException here
 
-            if (songContextWork.getUniqueRhythms().size() > 1)
-            {
-                checkRhythmPhrasesScope(songContextWork, r, rMap);                              // Possible MusicGenerationException here
-            }
+            checkPhrasesScope(songContextWork, r, rMap);                              // Possible MusicGenerationException here
 
             // Merge into the final result
             res.putAll(rMap);
@@ -781,7 +780,7 @@ public class SongSequenceBuilder
     private CompositeMusicGenerator buildCompositeMusicGenerator(RP_SYS_OverrideTracks rpSt)
     {
         var mgBase = rpSt.getConfigurableMusicGeneratorProvider().getMusicGenerator();
-        assert mgBase != null : "rpSt=" + rpSt;        
+        assert mgBase != null : "rpSt=" + rpSt;
         var baseRhythm = rpSt.getBaseRhythm();
 
         CompositeMusicGenerator.RvToMgDelegateMapper rvMapper = (rvBase, spt) -> 
@@ -1240,7 +1239,7 @@ public class SongSequenceBuilder
      * @param rvPhrases
      * @throws MusicGenerationException
      */
-    private void checkRhythmPhrasesScope(SongContext context, Rhythm r, Map<RhythmVoice, Phrase> rvPhrases) throws MusicGenerationException
+    private void checkPhrasesScope(SongContext context, Rhythm r, Map<RhythmVoice, Phrase> rvPhrases) throws MusicGenerationException
     {
         // Get the bar ranges used by r
         List<FloatRange> sptRanges = new ArrayList<>();
@@ -1271,13 +1270,17 @@ public class SongSequenceBuilder
                         .anyMatch(rg -> rg.contains(ne.getPositionInBeats(), true));
                 if (!inRange)
                 {
-                    // songContext.toPosition(0)
-                    String msg = ResUtil.getString(getClass(), "ERR_InvalidNotePosition", ne.toString(), rv.getName(), r.getName());
-                    LOGGER.log(Level.WARNING, "checkRhythmPhrasesScope() {0}", msg);
-                    LOGGER.log(Level.WARNING, "checkRhythmPhrasesScope() => rv={0} ne={1} p={2}", new Object[]
+                    LOGGER.log(Level.SEVERE, "checkRhythmPhrasesScope() Invalid note position ne={0} r={1} rv={2}", new Object[]
                     {
-                        rv.getName(), ne, p
+                        ne, r.getName(), rv
                     });
+                    LOGGER.log(Level.SEVERE, "checkRhythmPhrasesScope() {0} sptRanges={1}", new Object[]
+                    {
+                        context, sptRanges
+                    });
+                    LOGGER.log(Level.SEVERE, "p={0}", p.toStringOneNotePerLine());
+
+                    String msg = "Unexpected error while generating music : invalid note position for " + rv + "\nPlease report problem with log file";
                     throw new MusicGenerationException(msg);
                 }
             }
