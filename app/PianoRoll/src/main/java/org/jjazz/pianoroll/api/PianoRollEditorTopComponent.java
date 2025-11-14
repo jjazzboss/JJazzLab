@@ -46,6 +46,7 @@ import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongMetaEvents;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.uiutilities.api.UIUtilities;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
 import org.jjazz.utilities.api.ResUtil;
@@ -60,7 +61,7 @@ import org.openide.windows.WindowManager;
 /**
  * A TopComponent to use a PianoRollEditor for a song phrase.
  * <p>
- * The TopComponent closes itself when song is closed. 
+ * The TopComponent closes itself when song is closed.
  */
 public final class PianoRollEditorTopComponent extends TopComponent implements PropertyChangeListener
 {
@@ -339,15 +340,25 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     @Override
     public Action[] getActions()
     {
-        List<? extends Action> newActions = Utilities.actionsForPath("Actions/PianoRollEditorTopComponent");
-        ArrayList<Action> actions = new ArrayList<>();
-        actions.addAll(newActions);
-        if (!newActions.isEmpty())
+        List<? extends Action> pianoRollActions = Utilities.actionsForPath("Actions/PianoRollEditorTopComponent");
+        List<Action> res = new ArrayList<>();
+        res.addAll(pianoRollActions);
+        if (!res.isEmpty())
         {
-            actions.add(null);   // Separator         
+            res.add(null);   // Separator         
         }
-        Collections.addAll(actions, super.getActions()); // Get the standard builtin actions Close, Close All, Close Other      
-        return actions.toArray(Action[]::new);
+
+        // Add the Netbeans standard actions such as Close, Close All, Close Others, MoveWindowWithinModeAction, while filtering unanted ones (Clone, Move, NewTabGroup, SizeGroup, ...).
+        for (var a : super.getActions())
+        {
+            LOGGER.log(Level.FINE, "getActions() a={0}", a);
+            if (a == null || UIUtilities.isNetbeansTopComponentTabActionUsed(a))
+            {
+                res.add(a);
+            }
+        }
+
+        return res.toArray(Action[]::new);
     }
 
     /**

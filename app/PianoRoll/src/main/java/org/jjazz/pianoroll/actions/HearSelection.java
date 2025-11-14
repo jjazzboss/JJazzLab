@@ -69,8 +69,8 @@ public class HearSelection extends ToggleAction implements PropertyChangeListene
         putValue("hideActionText", true);
 
 
-        this.editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KEYBOARD_SHORTCUT),
-                HearSelection.ACTION_ID);
+        this.editor.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+                .put(KeyStroke.getKeyStroke(KEYBOARD_SHORTCUT), HearSelection.ACTION_ID);
         this.editor.getActionMap().put(HearSelection.ACTION_ID, this);
 
 
