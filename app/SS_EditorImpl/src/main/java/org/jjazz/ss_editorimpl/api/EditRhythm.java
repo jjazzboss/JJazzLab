@@ -80,7 +80,6 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
     private static String undoText = ResUtil.getString(EditRhythm.class, "CTL_EditRhythm");
     private Lookup context;
     private SS_ContextActionSupport cap;
-    private static RhythmSelectionDialogCustomComp customComp;
 
     private static final Logger LOGGER = Logger.getLogger(EditRhythm.class.getSimpleName());
 
@@ -158,7 +157,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
         }
         var rdb = RhythmDatabase.getDefault();
         RhythmInfo ri = rdb.getRhythm(rSelSpt0.getUniqueId());
-        dlg.preset(ri, previewer);
+        dlg.preset(ri, previewer, () -> customComp.isUseRhythmTempo());
         dlg.setTitleText("Select a " + ri.timeSignature() + " rhythm");
         if (!dialogShown)
         {

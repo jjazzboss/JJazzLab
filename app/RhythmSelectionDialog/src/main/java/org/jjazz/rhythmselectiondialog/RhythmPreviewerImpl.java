@@ -180,7 +180,13 @@ public class RhythmPreviewerImpl implements RhythmPreviewer
         Song song = sgContext.getSong();
         MidiMix mm = sgContext.getMidiMix();
         FixMidiMix.checkAndPossiblyFix(mm, false);
-        ActiveSongManager.getDefault().setActive(song, mm);
+        if (!ActiveSongManager.getDefault().setActive(song, mm))
+        {
+            LOGGER.log(Level.WARNING, "previewRhythm() r={0} could not make preview song active. song={1}", new Object[]
+            {
+                r, song
+            });
+        }
 
 
         // Start playback

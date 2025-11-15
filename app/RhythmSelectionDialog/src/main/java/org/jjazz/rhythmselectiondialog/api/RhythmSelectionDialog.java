@@ -22,6 +22,7 @@
  */
 package org.jjazz.rhythmselectiondialog.api;
 
+import java.util.function.BooleanSupplier;
 import javax.swing.JComponent;
 import org.jjazz.rhythmselectiondialog.spi.RhythmPreviewer;
 import javax.swing.JDialog;
@@ -48,9 +49,11 @@ abstract public class RhythmSelectionDialog extends JDialog
      * Initialize the dialog for the specified song rhythm.
      *
      * @param ri
-     * @param rpp If null then the rhythm preview feature is disabled. If not null caller is responsible to call rpp.cleanup() when rpp is not used anymore.
+     * @param rpp                           If null then the rhythm preview feature is disabled. If not null caller is responsible to call rpp.cleanup() when
+     *                                      rpp is not used anymore.
+     * @param useRhythmTempoSettingSupplier Can not be null. 
      */
-    abstract public void preset(RhythmInfo ri, RhythmPreviewer rpp);
+    abstract public void preset(RhythmInfo ri, RhythmPreviewer rpp, BooleanSupplier useRhythmTempoSettingSupplier);
 
     /**
      * @return True if dialog was exited OK, false if dialog operation was cancelled.

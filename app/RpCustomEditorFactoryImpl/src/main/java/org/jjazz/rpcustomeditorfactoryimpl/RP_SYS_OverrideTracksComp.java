@@ -230,7 +230,7 @@ public class RP_SYS_OverrideTracksComp extends RealTimeRpEditorComponent<RP_SYS_
         var rdb = RhythmDatabase.getDefault();
         var rv = oldRvDest == null ? rvSrc : oldRvDest;
         var ri = rdb.getRhythm(rv.getContainer().getUniqueId());
-        dlg.preset(ri, null);
+        dlg.preset(ri, null, () -> false);
         dlg.setCustomComponent(new JLabel(" "));    
         dlg.setTitleText(ResUtil.getString(getClass(), "SelectOverrideRhythm", ri.timeSignature()));
         dlg.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());

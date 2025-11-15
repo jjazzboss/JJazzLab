@@ -26,6 +26,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.event.SwingPropertyChangeSupport;
@@ -93,10 +94,7 @@ public class ActiveSongManagerImpl implements PropertyChangeListener, ActiveSong
     @Override
     public String isActivable(Song sg)
     {
-        if (sg == null)
-        {
-            throw new NullPointerException("sg");
-        }
+        Objects.requireNonNull(sg);
         String err = null;
         MusicController mc = MusicController.getInstance();
         PlaybackSession session = mc.getPlaybackSession();
@@ -130,8 +128,13 @@ public class ActiveSongManagerImpl implements PropertyChangeListener, ActiveSong
         {
             return true;
         }
-        if (sg != null && isActivable(sg) != null)
+        String err;
+        if (sg != null && (err = isActivable(sg)) != null)
         {
+            LOGGER.log(Level.WARNING, "setActive() sg={0} is not activable: {1}", new Object[]
+            {
+                sg, err
+            });
             return false;
         }
 
@@ -150,7 +153,7 @@ public class ActiveSongManagerImpl implements PropertyChangeListener, ActiveSong
         activeMidiMix = (sg == null) ? null : mm;
 
 
-        // MusicController
+        // Reset MusicController
         var mc = MusicController.getInstance();
         mc.stop();
         try

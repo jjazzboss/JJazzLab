@@ -24,6 +24,8 @@ package org.jjazz.ss_editorimpl.rhythmselectiondialog;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;
+import java.util.Objects;
+import java.util.function.BooleanSupplier;
 import javax.swing.AbstractAction;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComponent;
@@ -60,12 +62,9 @@ public class SimpleRhythmSelectionDialog extends RhythmSelectionDialog implement
     }
 
     @Override
-    public void preset(RhythmInfo ri, RhythmPreviewer rpp)
+    public void preset(RhythmInfo ri, RhythmPreviewer rpp, BooleanSupplier useRhythmTempoSettingSupplier)
     {
-        if (ri == null)
-        {
-            throw new IllegalArgumentException("ri=" + ri);
-        }
+        Objects.requireNonNull(ri);
         exitOk = false;
         cleanup();
 

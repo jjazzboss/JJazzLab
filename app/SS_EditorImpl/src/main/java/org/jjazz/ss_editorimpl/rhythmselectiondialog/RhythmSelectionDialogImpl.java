@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.BooleanSupplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
@@ -81,10 +82,12 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
     private RhythmPreviewer rhythmPreviewProvider;
     private boolean previewDone;
     private boolean exitOk;
+    private BooleanSupplier useRhythmTempoSettingSupplier;
     private final AddRhythmsAction addRhythmsAction = new AddRhythmsAction();
     private final DeleteRhythmFile deleteRhythmFileAction = new DeleteRhythmFile();
     private final HashMap<RhythmProvider, RhythmInfo> mapRpSelectedrythm = new HashMap<>();
     private final RhythmJTable rhythmTable = new RhythmJTable();
+
 
     private static final Logger LOGGER = Logger.getLogger(RhythmSelectionDialogImpl.class.getSimpleName());
 
@@ -92,6 +95,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
     {
         initComponents();
 
+        useRhythmTempoSettingSupplier = () -> true;
 
         // Listen to ComboBox changes
         cmb_variation.addActionListener(this);
@@ -139,16 +143,15 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
     }
 
     @Override
-    public void preset(RhythmInfo ri, RhythmPreviewer rpp)
+    public void preset(RhythmInfo ri, RhythmPreviewer rpp, BooleanSupplier useRhythmTempoSettingSupplier)
     {
-        if (ri == null)
-        {
-            throw new IllegalArgumentException("ri=" + ri);
-        }
+        Objects.requireNonNull(ri);
+        Objects.requireNonNull(useRhythmTempoSettingSupplier);
+
         LOGGER.log(Level.FINE, "preset() -- ri={0}", ri);
         exitOk = false;
         previewDone = false;
-
+        this.useRhythmTempoSettingSupplier = useRhythmTempoSettingSupplier;
 
         cleanup();
 
@@ -585,7 +588,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         try
         {
             LOGGER.fine("previewRhythm() calling rhythmPreviewProvider().previewRhythm()");
-            rhythmPreviewProvider.previewRhythm(r, mapRpValues, false, fbtn_autoPreviewMode.isSelected(), e -> rhythmPreviewComplete(r));
+            rhythmPreviewProvider.previewRhythm(r, mapRpValues, useRhythmTempoSettingSupplier.getAsBoolean(), fbtn_autoPreviewMode.isSelected(), e -> rhythmPreviewComplete(r));
             // previewRhythm will first stop => endAction => previewComplete() => cmb_variation is disabled/lose focus + highlight is removed
             // So need to restore state
             cmb_variation.setEnabled(true);
