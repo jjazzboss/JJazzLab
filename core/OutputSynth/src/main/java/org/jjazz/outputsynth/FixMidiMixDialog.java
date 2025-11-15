@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.musiccontrolactions;
+package org.jjazz.outputsynth;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,22 +34,22 @@ import org.jjazz.utilities.api.ResUtil;
 import org.openide.windows.WindowManager;
 
 /**
- * Helper dialog to propose Drums rerouting when it's relevant.
+ * The dialog to get user approval for MidiMix fix.
  */
 public class FixMidiMixDialog extends javax.swing.JDialog
 {
 
     public enum FixChoice
     {
-        CANCEL, FIX, DONT_FIX
+        FIX, DONT_FIX
     };
     private FixChoice choice;
     private static final Logger LOGGER = Logger.getLogger(FixMidiMixDialog.class.getSimpleName());
 
-    protected FixMidiMixDialog()
+    public FixMidiMixDialog()
     {
         super(WindowManager.getDefault().getMainWindow(), ResUtil.getString(FixMidiMixDialog.class, "MIDI_CONFIGURATION_PROBLEMS"), true);
-        choice = FixChoice.CANCEL;
+        choice = FixChoice.FIX;
         initComponents();
         setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
     }
@@ -75,6 +75,7 @@ public class FixMidiMixDialog extends javax.swing.JDialog
      * Preset the dialog for the specified channels.
      * <p>
      * @param mapChannelNewIns Channels which need instruments fix.
+     * @param reroutedChannels
      * @param midiMix
      */
     public void preset(HashMap<Integer, Instrument> mapChannelNewIns, List<Integer> reroutedChannels, MidiMix midiMix)
@@ -154,7 +155,6 @@ public class FixMidiMixDialog extends javax.swing.JDialog
         pnl_buttons = new javax.swing.JPanel();
         btn_fix = new javax.swing.JButton();
         btn_skip = new javax.swing.JButton();
-        btn_Cancel = new javax.swing.JButton();
         lbl_fixedInstruments = new javax.swing.JLabel();
         lbl_reroutedChannelsTitle = new javax.swing.JLabel();
         lbl_reroutedChannels = new javax.swing.JLabel();
@@ -191,15 +191,6 @@ public class FixMidiMixDialog extends javax.swing.JDialog
         });
         pnl_buttons.add(btn_skip);
 
-        org.openide.awt.Mnemonics.setLocalizedText(btn_Cancel, org.openide.util.NbBundle.getMessage(FixMidiMixDialog.class, "FixMidiMixDialog.btn_Cancel.text")); // NOI18N
-        btn_Cancel.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                btn_CancelActionPerformed(evt);
-            }
-        });
-
         org.openide.awt.Mnemonics.setLocalizedText(lbl_fixedInstruments, "jLabel1"); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(lbl_reroutedChannelsTitle, org.openide.util.NbBundle.getMessage(FixMidiMixDialog.class, "FixMidiMixDialog.lbl_reroutedChannelsTitle.text")); // NOI18N
@@ -214,20 +205,19 @@ public class FixMidiMixDialog extends javax.swing.JDialog
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(pnl_buttons, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(lbl_firstLine, javax.swing.GroupLayout.DEFAULT_SIZE, 488, Short.MAX_VALUE)
+                    .addComponent(lbl_firstLine, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(lbl_reroutedChannelsTitle, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(lbl_fixInstrumentTitle, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(cb_rememberMyChoice)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(btn_Cancel))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(30, 30, 30)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(lbl_reroutedChannels)
-                                    .addComponent(lbl_fixedInstruments))
+                                    .addComponent(cb_rememberMyChoice)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGap(30, 30, 30)
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(lbl_reroutedChannels)
+                                            .addComponent(lbl_fixedInstruments))))
                                 .addGap(0, 0, Short.MAX_VALUE)))
                         .addContainerGap())))
         );
@@ -244,12 +234,10 @@ public class FixMidiMixDialog extends javax.swing.JDialog
                 .addComponent(lbl_reroutedChannelsTitle)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(lbl_reroutedChannels)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 25, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 21, Short.MAX_VALUE)
                 .addComponent(pnl_buttons, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(btn_Cancel, javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(cb_rememberMyChoice, javax.swing.GroupLayout.Alignment.TRAILING))
+                .addGap(21, 21, 21)
+                .addComponent(cb_rememberMyChoice)
                 .addContainerGap())
         );
 
@@ -269,14 +257,7 @@ public class FixMidiMixDialog extends javax.swing.JDialog
        setVisible(false);
    }//GEN-LAST:event_btn_fixActionPerformed
 
-    private void btn_CancelActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_CancelActionPerformed
-    {//GEN-HEADEREND:event_btn_CancelActionPerformed
-        choice = FixChoice.CANCEL;
-        setVisible(false);
-    }//GEN-LAST:event_btn_CancelActionPerformed
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton btn_Cancel;
     private javax.swing.JButton btn_fix;
     private javax.swing.JButton btn_skip;
     private javax.swing.JCheckBox cb_rememberMyChoice;

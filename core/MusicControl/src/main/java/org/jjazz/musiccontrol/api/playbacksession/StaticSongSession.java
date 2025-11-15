@@ -22,10 +22,10 @@
  */
 package org.jjazz.musiccontrol.api.playbacksession;
 
-import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import org.jjazz.musiccontrol.api.SongMusicGenerationListener;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.songcontext.api.SongContext;
@@ -49,27 +49,18 @@ public class StaticSongSession extends BaseSongSession
      * <p>
      *
      * @param sgContext
-     * @param includeClickTrack           If true add the click track, and its muted/unmuted state will depend on the PlaybackSettings
-     * @param includePrecountTrack        If true add the precount track, and loopStartTick will depend on the PlaybackSettings
-     * @param includeControlTrack         if true add a control track (beat positions + chord symbol markers)
-     * @param loopCount                   See Sequencer.setLoopCount(). Use PLAYBACK_SETTINGS_LOOP_COUNT to rely on the PlaybackSettings instance value.
-     * @param endOfPlaybackAction         Action executed when playback is stopped. Can be null.
+     * @param sConfig
+     * @param contextId A String providing the context of this PlaybackSession. Can be null.
      * @return A session in the NEW or GENERATED state.
      */
-    static public StaticSongSession getSession(SongContext sgContext, boolean includeClickTrack,
-            boolean includePrecountTrack, boolean includeControlTrack, int loopCount, ActionListener endOfPlaybackAction)
+    static public StaticSongSession getSession(SongContext sgContext, SessionConfig sConfig, String contextId)
     {
-        if (sgContext == null)
-        {
-            throw new IllegalArgumentException("sgContext=" + sgContext);
-        }
-        StaticSongSession session = findSession(sgContext, includeClickTrack, includePrecountTrack,
-                includeControlTrack, loopCount, endOfPlaybackAction);
+        Objects.requireNonNull(sgContext);
+        Objects.requireNonNull(sConfig);
+        StaticSongSession session = findSession(sgContext, sConfig, contextId);
         if (session == null)
         {
-            final StaticSongSession newSession = new StaticSongSession(sgContext, includeClickTrack,
-                    includePrecountTrack, includeControlTrack, loopCount, endOfPlaybackAction);
-
+            final StaticSongSession newSession = new StaticSongSession(sgContext, sConfig, contextId);
             sessions.add(newSession);
             return newSession;
         } else
@@ -79,22 +70,22 @@ public class StaticSongSession extends BaseSongSession
     }
 
     /**
-     * Same as getSession(sgContext, true, true, true, true, PLAYBACK_SETTINGS_LOOP_COUNT, null);
+     * Get a session with a default SessionConfig.
      * <p>
      *
      * @param sgContext
+     * @param contextId
      * @return A targetSession in the NEW or GENERATED state.
      */
-    static public StaticSongSession getSession(SongContext sgContext)
+    static public StaticSongSession getSession(SongContext sgContext, String contextId)
     {
-        return getSession(sgContext, true, true, true, PLAYBACK_SETTINGS_LOOP_COUNT, null);
+        return getSession(sgContext, new SessionConfig(), contextId);
     }
 
 
-    private StaticSongSession(SongContext sgContext, boolean enableClickTrack,
-            boolean enablePrecountTrack, boolean enableControlTrack, int loopCount, ActionListener endOfPlaybackAction)
+    private StaticSongSession(SongContext sgContext, SessionConfig sConfig, String contextId)
     {
-        super(sgContext, enableClickTrack, enablePrecountTrack, enableControlTrack, loopCount, endOfPlaybackAction, true);
+        super(sgContext, sConfig, true, contextId);
     }
 
     /**
@@ -148,21 +139,19 @@ public class StaticSongSession extends BaseSongSession
     /**
      * Find an identical existing session in state NEW or GENERATED and non-dirty.
      *
+     * @param sgContext
+     * @param config
      * @return Null if not found
      */
-    static private StaticSongSession findSession(SongContext sgContext, boolean includeClickTrack,
-            boolean includePrecount, boolean includeControlTrack, int loopCount, ActionListener endOfPlaybackAction)
+    static private StaticSongSession findSession(SongContext sgContext, SessionConfig config, String contextId)
     {
         for (var session : sessions)
         {
             if ((session.getState().equals(PlaybackSession.State.GENERATED) || session.getState().equals(PlaybackSession.State.NEW))
                     && !session.isDirty()
                     && sgContext.equals(session.getSongContext())
-                    && includeClickTrack == session.isClickTrackIncluded()
-                    && includePrecount == session.isPrecountTrackIncluded()
-                    && includeControlTrack == session.isControlTrackIncluded()
-                    && loopCount == session.getLoopCount()
-                    && endOfPlaybackAction == session.getEndOfPlaybackAction())
+                    && config.equals(session.getSessionConfig())
+                    && Objects.equals(contextId, session.getContextId()))
             {
                 return session;
             }

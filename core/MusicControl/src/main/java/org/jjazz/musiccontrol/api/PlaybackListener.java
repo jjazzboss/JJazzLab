@@ -32,6 +32,7 @@ import org.jjazz.songstructure.api.SongPart;
  * MusicController will fire the events taking into account the user-defined output synth latency. Events are fired by the
  * MusicController on the Event Dispatching Thread. Event handling must be time-efficient.
  * <p>
+ * 
  */
 public interface PlaybackListener
 {

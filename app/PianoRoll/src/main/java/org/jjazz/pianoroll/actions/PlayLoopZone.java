@@ -34,8 +34,10 @@ import javax.swing.KeyStroke;
 import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
+import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
 import org.jjazz.musiccontrol.api.playbacksession.UpdateProviderSongSession;
+import org.jjazz.outputsynth.api.FixMidiMix;
 import org.jjazz.pianoroll.api.PianoRollEditorTopComponent;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.songcontext.api.SongContext;
@@ -100,21 +102,19 @@ public class PlayLoopZone extends AbstractAction
             IntRange barRange = loopZone == null ? absoluteBarRange : loopZone.getTransformed(absoluteBarRange.from);
             SongContext context = new SongContext(topComponent.getSong(), topComponent.getMidiMix(), barRange);
 
-            // Check that all listeners are OK to start playback     
-            PlaybackSettings.getInstance().firePlaybackStartVetoableChange(context);  // can raise PropertyVetoException
-
+            FixMidiMix.checkAndPossiblyFix(context.getMidiMix(), true);
 
             // Create the session
-            var dynSession = UpdateProviderSongSession.getSession(context);
+            var dynSession = UpdateProviderSongSession.getSession(context, PlaybackSession.STD_CONTEXT_ID_SONG);
             session = UpdatableSongSession.getSession(dynSession);
-            mc.setPlaybackSession(session, false); // can raise MusicGenerationException            
+            mc.setPlaybackSession(session,  false); // can raise MusicGenerationException            
 
-            
+
             // Play it
             mc.play(barRange.from);
             PlaybackSettings.getInstance().setLoopCount(Sequencer.LOOP_CONTINUOUSLY);
 
-        } catch (MusicGenerationException | PropertyVetoException ex)
+        } catch (MusicGenerationException ex)
         {
             if (session != null)
             {

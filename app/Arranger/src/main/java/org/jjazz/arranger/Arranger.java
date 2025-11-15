@@ -41,15 +41,13 @@ import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.musiccontrol.api.MusicController;
+import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
+import org.jjazz.musiccontrol.api.playbacksession.SessionConfig;
 import org.jjazz.musiccontrol.api.playbacksession.UpdateProviderSongSession;
-import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSessionOnePlay;
-import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.MusicGenerationException;
-import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
@@ -60,7 +58,6 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.event.RpValueChangedEvent;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.openide.util.Exceptions;
-import org.openide.windows.OnShowing;
 
 /**
  * Do the arranger thing for a specific song part.
@@ -165,10 +162,14 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
         songPartWork = songContextWork.getSongParts().get(0);
         var cls = songContextWork.getSong().getChordLeadSheet();
         firstChordSymbol = cls.getItems(songPartWork.getParentSection(), CLI_ChordSymbol.class).get(0);
-        var dynSession = UpdateProviderSongSession.getSession(songContextWork, true, false, false, false, Sequencer.LOOP_CONTINUOUSLY, null);
+
+
+        var config = new SessionConfig(true, false, false, Sequencer.LOOP_CONTINUOUSLY, null);
+        UpdateProviderSongSession dynSession = UpdateProviderSongSession.getSession(songContextWork, config, false, PlaybackSession.STD_CONTEXT_ID_ARRANGER);
         dynSession.setPreUpdateBufferTimeMs(5);     // Each user chord change generates only 2 song changes (remove and add 1 CLI_ChordSymbol)
         dynSession.setPostUpdateSleepTimeMs(100);    // This allow user to change chord quickly
         dynSession.setUserErrorExceptionHandler(null);  // User execption may occur depending on timing, as we remove then add a chord symbol at section start
+
 
         var updatableSession = new UpdatableSongSessionOnePlay(dynSession);
         mc.setPlaybackSession(updatableSession, false); // Can raise MusicGenerationException

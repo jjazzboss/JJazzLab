@@ -22,6 +22,7 @@
  */
 package org.jjazz.musiccontrol.api;
 
+import com.google.common.base.Preconditions;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -29,6 +30,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -72,8 +74,8 @@ import org.jjazz.outputsynth.spi.OutputSynthManager;
  * Property changes are fired for:<br>
  * - start/pause/stop/disabled state changes<br>
  * <p>
- * Use NoteListener to get notified of note ON/OFF events. Use PlaybackListener to get notified of other events (e.g. bar/beat changes) during playback. Note
- * that listeners will be notified out of the Swing EDT.<br>
+ * Use NoteListener to get notified of note ON/OFF events during playback. Use PlaybackListener to get notified of other events such as beat/chord symbol
+ * changes -this requires a PlaybackSession which implements ControlTrackprovider. Note that listeners will be notified out of the Swing EDT.<br>
  * The current output synth latency is taken into account to fire events to NoteListeners and PlaybackListeners.
  * <p>
  * Use acquireSequencer()/releaseSequencer() if you want to use the Java system sequencer independently.
@@ -86,9 +88,14 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      */
     public static final String PROP_STATE = "PropPlaybackState";
     /**
+     * A new PlaybackSession was set.
+     * <p>
      * oldValue=old session, newValue=new session
+     *
+     * @see #setPlaybackSession(org.jjazz.musiccontrol.api.playbacksession.PlaybackSession, boolean)
      */
     public static final String PROP_PLAYBACK_SESSION = "PropPlaybackSession";
+
 
     /**
      * The playback states.
@@ -292,23 +299,23 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     }
 
     /**
-     * Set the current playback session and try to generate the sequence if required.
+     * Set the current playback session which will be used by the play() method.
      * <p>
-     * If MusicController is paused then current playback is stopped.
+     * The method tries to generate the sequence if required. If MusicController is paused then current playback is stopped. PlaybackListeners are notified only
+     * if session implements ControlTrackProvider. Fire a PROP_PLAYBACK_SESSION change event.
      *
      * @param session Can be null. If not null, must be in NEW or GENERATED state, and can't be dirty.
-     * @param silent  If false and session needs to be generated, a progress dialog is shown while generating music
+     * @param silent  If false and session needs to be generated, a progress dialog is shown while generating music.
      * @throws org.jjazz.rhythm.api.MusicGenerationException E.g. if song is already playing, missing start section chord, etc.
      * @throws IllegalStateException                         If session is dirty or is CLOSED.
-     * @see PROP_PLAYBACK_SESSION
+     *
+     * @see #play(int)
      */
     public void setPlaybackSession(PlaybackSession session, boolean silent) throws MusicGenerationException
     {
-
         if (session == playbackSession)
         {
             return;
-
         }
 
         if (session != null && (session.isDirty() || session.getState().equals(PlaybackSession.State.CLOSED)))
@@ -329,7 +336,6 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             default -> throw new AssertionError(state.name());
         }
 
-
         try
         {
             // Reset sequence
@@ -340,11 +346,9 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             Exceptions.printStackTrace(ex);
         }
 
-        PlaybackSession oldSession = playbackSession;
-
-
         // Update the session
         closeCurrentPlaybackSession();
+        PlaybackSession oldSession = playbackSession;
         playbackSession = session;
 
         if (playbackSession != null)
@@ -367,11 +371,11 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      * <p>
      * Do nothing if no playback session set.
      *
-     * @param fromBarIndex
+     * @param fromBarIndex Must be consistent with current playback session
      * @throws MusicGenerationException If a problem occurred which prevents song playing: no Midi out, rhythm music generation problem, MusicController state
      *                                  is not PAUSED nor STOPPED, etc.
      * @throws IllegalStateException    If current session is not in the GENERATED state, or if fromBarIndex is invalid
-     *
+     * @see #setPlaybackSession(org.jjazz.musiccontrol.api.playbacksession.PlaybackSession, boolean)
      */
     public void play(int fromBarIndex) throws MusicGenerationException
     {
@@ -720,20 +724,33 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     /**
      * Add a listener of note ON/OFF events.
      * <p>
-     * Listeners will be called out of the Swing EDT (Event Dispatch Thread).
+     * Listeners will be called out of the Swing EDT (Event Dispatch Thread). Can not be called if MusicController is playing.
      *
      * @param listener
      */
     public synchronized void addNoteListener(NoteListener listener)
     {
+        if (isPlaying())
+        {
+            throw new IllegalStateException("addNoteListener() called while MusicController is playing");
+        }
         if (!noteListeners.contains(listener))
         {
             noteListeners.add(listener);
         }
     }
 
+    /**
+     * Remove a NoteListener. Can not be called if MusicController is playing.
+     *
+     * @param listener
+     */
     public synchronized void removeNoteListener(NoteListener listener)
     {
+        if (isPlaying())
+        {
+            throw new IllegalStateException("addNoteListener() called while MusicController is playing");
+        }
         noteListeners.remove(listener);
     }
 
@@ -1030,7 +1047,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     {
         fireLatencyAwareEvent(() -> 
         {
-            for (NoteListener l : noteListeners.toArray(NoteListener[]::new))
+            for (NoteListener l : noteListeners)
             {
                 l.noteOn(tick, channel, pitch, velocity);
             }
@@ -1041,7 +1058,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     {
         fireLatencyAwareEvent(() -> 
         {
-            for (NoteListener l : noteListeners.toArray(NoteListener[]::new))
+            for (NoteListener l : noteListeners)
             {
                 l.noteOff(tick, channel, pitch);
             }

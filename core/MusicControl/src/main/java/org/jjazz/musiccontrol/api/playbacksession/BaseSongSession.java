@@ -28,19 +28,18 @@ import java.beans.PropertyChangeListener;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Track;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.musiccontrol.spi.ActiveSongBackgroundMusicBuilder;
-import org.jjazz.chordleadsheet.api.ClsUtilities;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.musiccontrol.api.ControlTrack;
-import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import static org.jjazz.musiccontrol.api.playbacksession.PlaybackSession.PROP_LOOP_COUNT;
 import static org.jjazz.musiccontrol.api.playbacksession.PlaybackSession.PROP_MUTED_TRACKS;
@@ -70,22 +69,20 @@ import org.jjazz.utilities.api.ResUtil;
  */
 public class BaseSongSession implements PropertyChangeListener, PlaybackSession, ControlTrackProvider, SongContextProvider, EndOfPlaybackActionProvider
 {
+
     public static final int PLAYBACK_SETTINGS_LOOP_COUNT = -1298;
     private State state = State.NEW;
     private boolean isDirty;
     private final boolean isUseActiveSongBackgroundMusicBuilder;
-    private SongContext songContext;
+    private final SongContext songContext;
+    private final SessionConfig sessionConfig;
     private Sequence sequence;
     private ControlTrack controlTrack;
     private int playbackClickTrackId = -1;
     private int precountClickTrackId = -1;
     private long loopStartTick = 0;
     private long loopEndTick = -1;
-    protected int loopCount = PLAYBACK_SETTINGS_LOOP_COUNT;         // Need to be accessible from subclass, because of getLoopCount() implementation
-    private boolean isClickTrackIncluded = true;
-    private boolean isPrecountTrackIncluded = true;
-    private boolean isControlTrackIncluded = true;
-    private ActionListener endOfPlaybackAction;
+    private final String contextId;
     private Map<RhythmVoice, Integer> mapRvTrackId;
     private Map<RhythmVoice, Phrase> mapRvPhrase;
     private Map<Integer, Boolean> mapTrackIdMuted;
@@ -96,26 +93,17 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
      * Create a session with the specified parameters.
      * <p>
      * @param sgContext
-     * @param enableClickTrack
-     * @param enablePrecountTrack
-     * @param enableControlTrack
-     * @param loopCount
-     * @param endOfPlaybackAction
+     * @param sConfig
      * @param useActiveSongBackgroundMusicBuilder If true use ActiveSongBackgroundMusicBuilder when possible to speed up music generation
+     * @param contextId                           A String providing the context of this PlaybackSession. Can be null.
      */
-    public BaseSongSession(SongContext sgContext, boolean enableClickTrack, boolean enablePrecountTrack, boolean enableControlTrack,
-            int loopCount, ActionListener endOfPlaybackAction, boolean useActiveSongBackgroundMusicBuilder)
+    public BaseSongSession(SongContext sgContext, SessionConfig sConfig, boolean useActiveSongBackgroundMusicBuilder, String contextId)
     {
-        if (sgContext == null)
-        {
-            throw new IllegalArgumentException("sgContext=" + sgContext);
-        }
+        Objects.requireNonNull(sgContext);
+        Objects.requireNonNull(sConfig);
         this.songContext = sgContext;
-        this.isClickTrackIncluded = enableClickTrack;
-        this.isPrecountTrackIncluded = enablePrecountTrack;
-        this.isControlTrackIncluded = enableControlTrack;
-        this.loopCount = loopCount;
-        this.endOfPlaybackAction = endOfPlaybackAction;
+        this.sessionConfig = sConfig;
+        this.contextId = contextId;
         this.isUseActiveSongBackgroundMusicBuilder = useActiveSongBackgroundMusicBuilder;
     }
 
@@ -124,15 +112,14 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     public BaseSongSession getFreshCopy(SongContext sgContext)
     {
         var newContext = sgContext == null ? getSongContext().clone() : sgContext;
-        BaseSongSession res = new BaseSongSession(newContext,
-                isClickTrackIncluded(),
-                isPrecountTrackIncluded(),
-                isControlTrackIncluded(),
-                getLoopCount(),
-                getEndOfPlaybackAction(),
-                isUseActiveSongBackgroundMusicBuilder()
-        );
+        BaseSongSession res = new BaseSongSession(newContext, sessionConfig, isUseActiveSongBackgroundMusicBuilder(), contextId);
         return res;
+    }
+
+    @Override
+    public String getContextId()
+    {
+        return contextId;
     }
 
 
@@ -193,7 +180,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
 
 
         // Add the control track
-        if (isControlTrackIncluded())
+        if (sessionConfig.includeControlTrack())
         {
             Track track = sequence.createTrack();
             controlTrack = new ControlTrack(songContext, Arrays.asList(sequence.getTracks()).indexOf(track));
@@ -203,7 +190,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
 
 
         // Add the playback click track
-        if (isClickTrackIncluded())
+        if (sessionConfig.includeClickTrack())
         {
             playbackClickTrackId = preparePlaybackClickTrack(sequence, songContext);
             mapTrackIdMuted.put(playbackClickTrackId, !PlaybackSettings.getInstance().isPlaybackClickEnabled());
@@ -211,7 +198,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
 
 
         // Add the click precount track - this must be done last because it might shift all song events      
-        if (isPrecountTrackIncluded())
+        if (sessionConfig.includePrecountTrack())
         {
             loopStartTick = PlaybackSettings.getInstance().addPrecountClickTrack(sequence, songContext);
             precountClickTrackId = sequence.getTracks().length - 1;
@@ -271,7 +258,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     @Override
     public int getLoopCount()
     {
-        return loopCount == PLAYBACK_SETTINGS_LOOP_COUNT ? PlaybackSettings.getInstance().getLoopCount() : loopCount;
+        return sessionConfig.loopCount() == PLAYBACK_SETTINGS_LOOP_COUNT ? PlaybackSettings.getInstance().getLoopCount() : sessionConfig.loopCount();
     }
 
     @Override
@@ -383,19 +370,9 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
         return precountClickTrackId;
     }
 
-    public boolean isClickTrackIncluded()
+    public SessionConfig getSessionConfig()
     {
-        return isClickTrackIncluded;
-    }
-
-    public boolean isPrecountTrackIncluded()
-    {
-        return isPrecountTrackIncluded;
-    }
-
-    public boolean isControlTrackIncluded()
-    {
-        return isControlTrackIncluded;
+        return sessionConfig;
     }
 
     // ==========================================================================================================
@@ -423,7 +400,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     @Override
     public ActionListener getEndOfPlaybackAction()
     {
-        return endOfPlaybackAction;
+        return sessionConfig.endOfPlaybackAction();
     }
 
 
@@ -484,7 +461,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
                 }
                 case PlaybackSettings.PROP_LOOPCOUNT ->
                 {
-                    if (loopCount == PLAYBACK_SETTINGS_LOOP_COUNT)
+                    if (sessionConfig.loopCount() == PLAYBACK_SETTINGS_LOOP_COUNT)
                     {
                         pcs.firePropertyChange(PROP_LOOP_COUNT, (Integer) e.getOldValue(), (Integer) e.getNewValue());
                     }
@@ -501,7 +478,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     @Override
     public String toString()
     {
-        return "BaseSongSession=[state=" + state + ", isDirty=" + isDirty + " songContext=" + songContext + "]";
+        return "BaseSongSession=[state=" + state + ", isDirty=" + isDirty + " contextId=" + contextId + " songContext=" + songContext + "]";
     }
 
     // ==========================================================================================================
@@ -561,7 +538,6 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     // ==========================================================================================================
     // Private methods
     // ==========================================================================================================
-
     /**
      * @param sgContext
      * @param silent

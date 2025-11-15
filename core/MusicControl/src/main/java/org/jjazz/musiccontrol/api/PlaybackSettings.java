@@ -24,9 +24,6 @@ package org.jjazz.musiccontrol.api;
 
 import com.google.common.base.Preconditions;
 import java.beans.PropertyChangeListener;
-import java.beans.PropertyVetoException;
-import java.beans.VetoableChangeListener;
-import java.beans.VetoableChangeSupport;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -87,13 +84,6 @@ public class PlaybackSettings
     private static PlaybackSettings INSTANCE = null;
     public static String CLICK_TRACK_NAME = "JJazzClickTrack";
     public static String PRECOUNT_CLICK_TRACK_NAME = "JJazzPreCountClickTrack";
-    /**
-     * This vetoable property change can be fired by playback actions (eg Play, Pause) just before playing a song and can be vetoed by vetoables listeners to
-     * cancel playback start.
-     * <p>
-     * NewValue=If non null it contains the SongContext object.
-     */
-    public static final String PROP_VETO_PRE_PLAYBACK = "PropVetoPrePlayback";
     public static final String PROP_LOOPCOUNT = "PropLoopCount";
     public static final String PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION = "DisplayTransposition";
     public static final String PROP_CLICK_PITCH_HIGH = "ClickPitchHigh";
@@ -114,7 +104,6 @@ public class PlaybackSettings
 
     private int loopCount = 0;
     private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
-    private final VetoableChangeSupport vcs = new VetoableChangeSupport(this);
     private static Preferences prefs = NbPreferences.forModule(PlaybackSettings.class);
     protected static final Logger LOGGER = Logger.getLogger(PlaybackSettings.class.getSimpleName());
 
@@ -592,36 +581,6 @@ public class PlaybackSettings
         pcs.removePropertyChangeListener(propName, l);
     }
 
-    /**
-     * Listeners will be notified via the PROP_VETO_PRE_PLAYBACK property change before a playback is started.
-     * <p>
-     * The NewValue is a SongContext object. A listener who has already notified the end-user via its own UI must throw a PropertyVetoException with a null
-     * message to avoid another notification by the framework.
-     *
-     * @param listener
-     */
-    public synchronized void addPlaybackStartVetoableListener(VetoableChangeListener listener)
-    {
-        vcs.addVetoableChangeListener(listener);
-    }
-
-    public synchronized void removePlaybackStartVetoableListener(VetoableChangeListener listener)
-    {
-        vcs.removeVetoableChangeListener(listener);
-    }
-
-    /**
-     * Notify all playback start VetoableChangeListeners with a PROP_VETO_PRE_PLAYBACK property vetoable change event.
-     *
-     *
-     * @param sgContext Used as the new value of the Vetoable change
-     * @throws PropertyVetoException
-     */
-    public void firePlaybackStartVetoableChange(SongContext sgContext) throws PropertyVetoException
-    {
-        vcs.fireVetoableChange(PROP_VETO_PRE_PLAYBACK, null, sgContext);
-    }
-
     // ============================================================================
     // Private methods
     // ============================================================================
@@ -631,6 +590,8 @@ public class PlaybackSettings
      * @param track
      * @param channel
      * @param tickOffset
+     * @param nbBars
+     * @param ts
      * @return The tick position corresponding to the start of bar (nbBars+1).
      */
     private long addClickEvents(Track track, int channel, long tickOffset, int nbBars, TimeSignature ts)

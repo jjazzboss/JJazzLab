@@ -24,9 +24,8 @@ package org.jjazz.activesong;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.beans.PropertyVetoException;
-import java.beans.VetoableChangeListener;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.event.SwingPropertyChangeSupport;
@@ -43,12 +42,11 @@ import org.jjazz.utilities.api.ResUtil;
 import org.openide.util.Exceptions;
 import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.musiccontrol.api.MusicController;
-import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.openide.util.lookup.ServiceProvider;
 import org.jjazz.outputsynth.spi.OutputSynthManager;
 
 @ServiceProvider(service = ActiveSongManager.class)
-public class ActiveSongManagerImpl implements PropertyChangeListener, VetoableChangeListener, ActiveSongManager
+public class ActiveSongManagerImpl implements PropertyChangeListener, ActiveSongManager
 {
 
     /**
@@ -70,7 +68,7 @@ public class ActiveSongManagerImpl implements PropertyChangeListener, VetoableCh
         OutputSynthManager.getDefault().addPropertyChangeListener(this);
 
         // Listen to pre-playback events
-        PlaybackSettings.getInstance().addPlaybackStartVetoableListener(this);
+        MusicController.getInstance().addPropertyChangeListener(this);
 
         LOGGER.info("ActiveSongManagerImpl() Started");
 
@@ -255,101 +253,116 @@ public class ActiveSongManagerImpl implements PropertyChangeListener, VetoableCh
     }
 
     // ----------------------------------------------------------------------------
-    // VetoableChangeListener interface
-    // ----------------------------------------------------------------------------
-    @Override
-    public void vetoableChange(PropertyChangeEvent evt) throws PropertyVetoException
-    {
-        if (evt.getSource() == PlaybackSettings.getInstance())
-        {
-            if (evt.getPropertyName().equals(PlaybackSettings.PROP_VETO_PRE_PLAYBACK))
-            {
-                if (sendMidiMessagePolicy.contains(SendMidiMessagePolicy.PLAY))
-                {
-                    OutputSynthManager.getDefault().getDefaultOutputSynth().getUserSettings().sendModeOnUponPlaySysexMessages();
-                    sendAllMidiMixMessages();
-                }
-            }
-        }
-    }
-
-    // ----------------------------------------------------------------------------
     // PropertyChangeListener interface
     // ----------------------------------------------------------------------------
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
         LOGGER.log(Level.FINE, "propertyChange() -- evt={0}", evt);
+        String propName = evt.getPropertyName();
+
+
         if (evt.getSource() == activeMidiMix)
         {
             MidiMix mm = (MidiMix) evt.getSource();
-            if (evt.getPropertyName().equals(MidiMix.PROP_CHANNEL_INSTRUMENT_MIX))
+            switch (propName)
             {
-                // New , replaced or removed InstrumentMix
-                int channel = (int) evt.getNewValue();
-                InstrumentMix oldInsMix = (InstrumentMix) evt.getOldValue();
-                if (oldInsMix != null)
+                case MidiMix.PROP_CHANNEL_INSTRUMENT_MIX ->
                 {
-                    // oldInsMix removed, unregister
-                    oldInsMix.removePropertyChangeListener(this);
-                    oldInsMix.getSettings().removePropertyChangeListener(this);
+                    // New , replaced or removed InstrumentMix
+                    int channel = (int) evt.getNewValue();
+                    InstrumentMix oldInsMix = (InstrumentMix) evt.getOldValue();
+                    if (oldInsMix != null)
+                    {
+                        // oldInsMix removed, unregister
+                        oldInsMix.removePropertyChangeListener(this);
+                        oldInsMix.getSettings().removePropertyChangeListener(this);
+                    }
+                    InstrumentMix insMix = mm.getInstrumentMix(channel);
+                    if (insMix != null)
+                    {
+                        // insMix added (new or replacing oldInsMix)                    
+                        insMix.addPropertyChangeListener(this);
+                        insMix.getSettings().addPropertyChangeListener(this);
+                        if (sendMidiMessagePolicy.contains(SendMidiMessagePolicy.MIX_CHANGE))
+                        {
+                            JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
+                            jms.sendMidiMessagesOnJJazzMidiOut(insMix.getAllMidiMessages(channel));
+
+                        }
+                    } else
+                    {
+                        // oldInsMix removed but nothing replaced it, nothing to do
+                    }
                 }
-                InstrumentMix insMix = mm.getInstrumentMix(channel);
-                if (insMix != null)
+                case MidiMix.PROP_RHYTHM_VOICE_CHANNEL ->
                 {
-                    // insMix added (new or replacing oldInsMix)                    
-                    insMix.addPropertyChangeListener(this);
-                    insMix.getSettings().addPropertyChangeListener(this);
                     if (sendMidiMessagePolicy.contains(SendMidiMessagePolicy.MIX_CHANGE))
                     {
+                        int channel = (Integer) evt.getNewValue();
+                        InstrumentMix insMix = mm.getInstrumentMix(channel);
                         JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
                         jms.sendMidiMessagesOnJJazzMidiOut(insMix.getAllMidiMessages(channel));
-
                     }
-                } else
-                {
-                    // oldInsMix removed but nothing replaced it, nothing to do
                 }
-            } else if (evt.getPropertyName().equals(MidiMix.PROP_RHYTHM_VOICE_CHANNEL))
-            {
-                if (sendMidiMessagePolicy.contains(SendMidiMessagePolicy.MIX_CHANGE))
+                default ->
                 {
-                    int channel = (Integer) evt.getNewValue();
-                    InstrumentMix insMix = mm.getInstrumentMix(channel);
-                    JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
-                    jms.sendMidiMessagesOnJJazzMidiOut(insMix.getAllMidiMessages(channel));
+                    // Nothing
                 }
             }
             return;
+
         } else if (evt.getSource() == activeSong)
         {
-            if (evt.getPropertyName().equals(Song.PROP_CLOSED))
+            if (propName.equals(Song.PROP_CLOSED))
             {
                 setActive(null, null);
             }
+
         } else if (evt.getSource() == JJazzMidiSystem.getInstance())
         {
-            if (evt.getPropertyName().equals(JJazzMidiSystem.PROP_MASTER_VOL_FACTOR))
+            switch (propName)
             {
-                // Master volume has changed, resend volume messages
-                sendAllMidiVolumeMessages();
-            } else if (evt.getPropertyName().equals(JJazzMidiSystem.PROP_MIDI_OUT_FILTERING))
-            {
-                // If Midi filtering switched back to OFF, make sure to resend the settings
-                // in case the user has modified volume etc. during filtering was ON.
-                boolean b = (boolean) evt.getNewValue();
-                if (!b)
+                case JJazzMidiSystem.PROP_MASTER_VOL_FACTOR ->
                 {
-                    sendAllMidiMixMessages();
+                    sendAllMidiVolumeMessages();  // Master volume has changed, resend volume messages
+                }
+                case JJazzMidiSystem.PROP_MIDI_OUT_FILTERING ->
+                {
+                    // If Midi filtering switched back to OFF, make sure to resend the settings
+                    // in case the user has modified volume etc. during filtering was ON.
+                    boolean b = (boolean) evt.getNewValue();
+                    if (!b)
+                    {
+                        sendAllMidiMixMessages();
+                    }
+                }
+                default ->
+                {
+                    // Nothing
                 }
             }
+
         } else if (evt.getSource() == OutputSynthManager.getDefault())
         {
-            if (evt.getPropertyName().equals(OutputSynthManager.PROP_DEFAULT_OUTPUTSYNTH))
+            if (propName.equals(OutputSynthManager.PROP_DEFAULT_OUTPUTSYNTH))
             {
                 // OutputSynth has changed, resend init messages on the new Midi device        
                 sendActivationMessages();
                 sendAllMidiMixMessages();
+            }
+
+        } else if (evt.getSource() == MusicController.getInstance())
+        {
+            if (propName.equals(MusicController.PROP_PLAYBACK_SESSION))
+            {
+                // A new PlaybackSession was set, make sure instruments are set
+                boolean b = needsInstrumentsReset((PlaybackSession) evt.getNewValue());
+                if (sendMidiMessagePolicy.contains(SendMidiMessagePolicy.PLAY) && b)
+                {
+                    OutputSynthManager.getDefault().getDefaultOutputSynth().getUserSettings().sendModeOnUponPlaySysexMessages();
+                    sendAllMidiMixMessages();
+                }
             }
         }
 
@@ -363,7 +376,7 @@ public class ActiveSongManagerImpl implements PropertyChangeListener, VetoableCh
         if (evt.getSource() instanceof InstrumentMix insMix)
         {
             int channel = activeMidiMix.getChannel(insMix);
-            if (evt.getPropertyName().equals(InstrumentMix.PROP_INSTRUMENT) || evt.getPropertyName().equals(
+            if (propName.equals(InstrumentMix.PROP_INSTRUMENT) || propName.equals(
                     InstrumentMix.PROP_INSTRUMENT_ENABLED))
             {
                 JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
@@ -372,10 +385,10 @@ public class ActiveSongManagerImpl implements PropertyChangeListener, VetoableCh
         } else if (evt.getSource() instanceof InstrumentSettings insSet)
         {
             int channel = activeMidiMix.getChannel(insSet.getContainer());
-            if (null != evt.getPropertyName())
+            if (null != propName)
             {
                 JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
-                switch (evt.getPropertyName())
+                switch (propName)
                 {
                     case InstrumentSettings.PROPERTY_CHORUS, InstrumentSettings.PROPERTY_CHORUS_ENABLED ->
                         jms.sendMidiMessagesOnJJazzMidiOut(insSet.getChorusMidiMessages(channel));
@@ -421,6 +434,20 @@ public class ActiveSongManagerImpl implements PropertyChangeListener, VetoableCh
             insMix.removePropertyChangeListener(this);
             insMix.getSettings().removePropertyChangeListener(this);
         }
+    }
+
+
+    private boolean needsInstrumentsReset(PlaybackSession playbackSession)
+    {
+        boolean b = false;
+        if (playbackSession != null)
+        {
+            String contextId = playbackSession.getContextId();
+            b = contextId != null
+                    && playbackSession instanceof SongContextProvider
+                    && List.of(PlaybackSession.STD_CONTEXT_ID_SONG, PlaybackSession.STD_CONTEXT_ID_ARRANGER).contains(contextId);
+        }
+        return b;
     }
 
 }

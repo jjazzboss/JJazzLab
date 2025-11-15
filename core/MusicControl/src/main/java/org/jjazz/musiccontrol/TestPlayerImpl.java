@@ -249,6 +249,12 @@ public class TestPlayerImpl implements TestPlayer
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
 
+        @Override
+        public String getContextId()
+        {
+            return PlaybackSession.STD_CONTEXT_ID_TEST_NOTES;
+        }
+
     }
 
 }

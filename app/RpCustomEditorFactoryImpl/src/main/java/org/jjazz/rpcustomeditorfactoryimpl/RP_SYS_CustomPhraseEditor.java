@@ -17,6 +17,8 @@ import org.jjazz.midi.api.Instrument;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.musiccontrol.api.playbacksession.BaseSongSession;
+import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
+import org.jjazz.musiccontrol.api.playbacksession.SessionConfig;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.Rhythm;
@@ -41,7 +43,7 @@ import org.openide.util.Exceptions;
 /**
  * A RpCustomEditor for RP_SYS_CustomPhrase.
  * <p>
-The editor can not use the standard RpCustomEditorDialog<E> mechanism (i.e. make the modifications within the modal dialog) because we use a
+ * The editor can not use the standard RpCustomEditorDialog<E> mechanism (i.e. make the modifications within the modal dialog) because we use a
  * PianoRollEditorTopComponent which remains available after dialog is closed, and RP_SYS_CustomPhraseValue is mutable (MutableRpValue instance).
  */
 public class RP_SYS_CustomPhraseEditor extends RpCustomEditorDialog<RP_SYS_CustomPhraseValue>
@@ -132,13 +134,8 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditorDialog<RP_SYS_Custo
         // Start a task to generate the phrases 
         Runnable task = () -> 
         {
-            BaseSongSession tmpSession = new BaseSongSession(songPartContext,
-                    false,
-                    false,
-                    false,
-                    0,
-                    null,
-                    false);
+            SessionConfig config = new SessionConfig(false, false, false, 0, null);
+            BaseSongSession tmpSession = new BaseSongSession(songPartContext, config, false, PlaybackSession.STD_CONTEXT_ID_RP_VALUE_PREVIEW);
             try
             {
                 tmpSession.generate(true);          // This can block for some time, possibly a few seconds on slow computers/complex rhythms              

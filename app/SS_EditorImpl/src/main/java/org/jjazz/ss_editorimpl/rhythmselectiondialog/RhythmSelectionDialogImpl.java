@@ -585,8 +585,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         try
         {
             LOGGER.fine("previewRhythm() calling rhythmPreviewProvider().previewRhythm()");
-            rhythmPreviewProvider.previewRhythm(r, mapRpValues, false, fbtn_autoPreviewMode.isSelected(), e
-                    -> rhythmPreviewComplete(r));
+            rhythmPreviewProvider.previewRhythm(r, mapRpValues, false, fbtn_autoPreviewMode.isSelected(), e -> rhythmPreviewComplete(r));
             // previewRhythm will first stop => endAction => previewComplete() => cmb_variation is disabled/lose focus + highlight is removed
             // So need to restore state
             cmb_variation.setEnabled(true);

@@ -22,10 +22,10 @@
  */
 package org.jjazz.musiccontrol.api.playbacksession;
 
-import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -38,7 +38,6 @@ import org.jjazz.musiccontrol.api.MusicGenerationQueue;
 import org.jjazz.musiccontrol.api.MusicGenerationQueue.Result;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.musiccontrol.api.SongMusicGenerationListener;
-import static org.jjazz.musiccontrol.api.playbacksession.BaseSongSession.PLAYBACK_SETTINGS_LOOP_COUNT;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession.Update;
 import static org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession.UpdateProvider.PROP_UPDATE_PROVISION_ENABLED;
 import org.jjazz.rhythm.api.MusicGenerationException;
@@ -85,8 +84,8 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
     private int preUpdateBufferTimeMs = DEFAULT_PRE_UPDATE_BUFFER_TIME_MS;
     private int postUpdateSleepTimeMs = DEFAULT_POST_UPDATE_SLEEP_TIME_MS;
     private Update update;
-    private boolean isUpdateProvisionEnabled = true;
-    private boolean isControlTrackEnabled = true;
+    private boolean isUpdateProvisionEnabled;
+    private boolean isControlTrackEnabled;
     private final boolean isUpdateControlEnabled;
     private SongMusicGenerationListener songMusicGenerationListener;
     private MusicGenerationQueue musicGenerationQueue;
@@ -104,28 +103,19 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
      * <p>
      *
      * @param sgContext
-     * @param includeClickTrack           If true add the click track, and its muted/unmuted state will depend on the PlaybackSettings
-     * @param includePrecountTrack        If true add the precount track, and loopStartTick will depend on the PlaybackSettings
-     * @param includeControlTrack         if true add a control track (beat positions + chord symbol markers)
-     * @param enableUpdateControl         If true updates are authorized depending on the PlaybackSettings AutoUpdateEnabled value.
-     * @param loopCount                   See Sequencer.setLoopCount(). Use PLAYBACK_SETTINGS_LOOP_COUNT to rely on the PlaybackSettings instance value.
-     * @param endOfPlaybackAction         Action executed when playback is stopped. Can be null.
+     * @param sConfig
+     * @param enableUpdateControl If true updates are authorized depending on the PlaybackSettings AutoUpdateEnabled value.
+     * @param contextId           A String providing the context of this PlaybackSession. Can be null.
      * @return A session in the NEW or GENERATED state.
      */
-    static public UpdateProviderSongSession getSession(SongContext sgContext,
-            boolean includeClickTrack, boolean includePrecountTrack, boolean includeControlTrack,
-            boolean enableUpdateControl, int loopCount, ActionListener endOfPlaybackAction)
+    static public UpdateProviderSongSession getSession(SongContext sgContext, SessionConfig sConfig, boolean enableUpdateControl, String contextId)
     {
-        if (sgContext == null)
-        {
-            throw new IllegalArgumentException("sgContext=" + sgContext);
-        }
-        UpdateProviderSongSession session = findSession(sgContext, includeClickTrack,
-                includePrecountTrack, includeControlTrack, enableUpdateControl, loopCount, endOfPlaybackAction);
+        Objects.requireNonNull(sgContext);
+        Objects.requireNonNull(sConfig);
+        UpdateProviderSongSession session = findSession(sgContext, sConfig, enableUpdateControl, contextId);
         if (session == null)
         {
-            final UpdateProviderSongSession newSession = new UpdateProviderSongSession(sgContext, includeClickTrack,
-                    includePrecountTrack, includeControlTrack, enableUpdateControl, loopCount, endOfPlaybackAction);
+            final UpdateProviderSongSession newSession = new UpdateProviderSongSession(sgContext, sConfig, enableUpdateControl, contextId);
 
             sessions.add(newSession);
             LOGGER.fine("getSession() create new session");
@@ -138,23 +128,24 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
     }
 
     /**
-     * Same as getSession(sgContext, true, true, true, true, true, PLAYBACK_SETTINGS_LOOP_COUNT, null);
+     * Get a session using the default config with update control enabled.
      * <p>
      *
      * @param sgContext
+     * @param contextId A String providing the context of this PlaybackSession. Can be null.
      * @return A targetSession in the NEW or GENERATED state.
      */
-    static public UpdateProviderSongSession getSession(SongContext sgContext)
+    static public UpdateProviderSongSession getSession(SongContext sgContext, String contextId)
     {
-        return getSession(sgContext, true, true, true, true, PLAYBACK_SETTINGS_LOOP_COUNT, null);
+        return getSession(sgContext, new SessionConfig(), true, contextId);
     }
 
 
-    private UpdateProviderSongSession(SongContext sgContext, boolean includeClickTrack, boolean includePrecountTrack,
-            boolean includeControlTrack, boolean enableUpdateControl, int loopCount, ActionListener endOfPlaybackAction)
+    private UpdateProviderSongSession(SongContext sgContext, SessionConfig sConfig, boolean enableUpdateControl, String contextId)
     {
-        super(sgContext, includeClickTrack, includePrecountTrack, includeControlTrack, loopCount, endOfPlaybackAction, true);
-
+        super(sgContext, sConfig, true, contextId);
+        isControlTrackEnabled = true;
+        isUpdateProvisionEnabled = true;
         isUpdateControlEnabled = enableUpdateControl;
         userErrorExceptionHandler = e -> StatusDisplayer.getDefault().setStatusText(e.getLocalizedMessage());
     }
@@ -163,16 +154,8 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
     public UpdateProviderSongSession getFreshCopy(SongContext sgContext)
     {
         var newContext = sgContext == null ? getSongContext().clone() : sgContext;
-        UpdateProviderSongSession newSession = new UpdateProviderSongSession(newContext,
-                isClickTrackIncluded(),
-                isPrecountTrackIncluded(),
-                isControlTrackIncluded(),
-                isUpdateControlEnabled,
-                getLoopCount(),
-                getEndOfPlaybackAction());
-
+        UpdateProviderSongSession newSession = new UpdateProviderSongSession(newContext, getSessionConfig(), isUpdateControlEnabled, getContextId());
         sessions.add(newSession);
-
         return newSession;
     }
 
@@ -438,7 +421,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
             }
         }
 
-        
+
         LOGGER.log(Level.FINE,
                 "propertyChange() output: dirty={0} doUpdate={1} doDisableUpdates={2}", new Object[]
                 {
@@ -482,16 +465,6 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
     public boolean isUpdateProvisionEnabled()
     {
         return isUpdateProvisionEnabled;
-    }
-
-
-    // ==========================================================================================================
-    // ControlTrackProvider implementation
-    // ==========================================================================================================    
-    @Override
-    public ControlTrack getControlTrack()
-    {
-        return isControlTrackEnabled ? super.getControlTrack() : null;
     }
 
 
@@ -581,7 +554,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
      */
     private void disableControlTrack()
     {
-        if (isControlTrackEnabled && isControlTrackIncluded())
+        if (isControlTrackEnabled && getSessionConfig().includeControlTrack())
         {
             isControlTrackEnabled = false;
             firePropertyChange(ControlTrackProvider.ENABLED_STATE, true, false);
@@ -620,10 +593,10 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
         // Create a new control track
         ControlTrack cTrack = null;
 
-        if (isControlTrackEnabled && isControlTrackIncluded())
+        if (isControlTrackEnabled && getSessionConfig().includeControlTrack())
         {
-            var sessionCtrack = getControlTrack();      // Might be null if session was closed in the meantime (usually we're NOT on the Swing EDT!)
-            if (sessionCtrack != null)
+            var sessionCtrlTrack = getControlTrack();      // Might be null if session was closed in the meantime (usually we're NOT on the Swing EDT!)
+            if (sessionCtrlTrack != null)
             {
                 cTrack = new ControlTrack(result.songContext(), getControlTrack().getTrackId());
             }
@@ -641,25 +614,22 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
     /**
      * Find an identical existing session in state NEW or GENERATED and not dirty.
      *
+     * @param sgContext
+     * @param sConfig
+     * @param enableUpdateControl
+     * @param contextId
      * @return Null if not found
      */
-    static private UpdateProviderSongSession findSession(SongContext sgContext,
-            boolean includeClickTrack, boolean includePrecount, boolean includeControlTrack,
-            boolean enableUpdateControl,
-            int loopCount,
-            ActionListener endOfPlaybackAction)
+    static private UpdateProviderSongSession findSession(SongContext sgContext, SessionConfig sConfig, boolean enableUpdateControl, String contextId)
     {
         for (var session : sessions)
         {
             if ((session.getState().equals(PlaybackSession.State.GENERATED) || session.getState().equals(PlaybackSession.State.NEW))
                     && !session.isDirty()
                     && sgContext.equals(session.getSongContext())
-                    && includeClickTrack == session.isClickTrackIncluded()
-                    && includePrecount == session.isPrecountTrackIncluded()
-                    && includeControlTrack == session.isControlTrackIncluded()
                     && enableUpdateControl == session.isUpdateControlEnabled()
-                    && loopCount == session.loopCount // Do NOT use getLoopCount(), because of PLAYBACK_SETTINGS_LOOP_COUNT handling
-                    && endOfPlaybackAction == session.getEndOfPlaybackAction())
+                    && sConfig.equals(session.getSessionConfig())
+                    && Objects.equals(contextId, session.getContextId()))
             {
                 return session;
             }

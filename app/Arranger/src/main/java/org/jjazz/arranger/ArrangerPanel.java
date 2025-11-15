@@ -26,7 +26,6 @@ import java.awt.Color;
 import java.awt.Font;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.beans.PropertyVetoException;
 import java.text.ParseException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -43,13 +42,11 @@ import javax.sound.midi.Transmitter;
 import javax.swing.SpinnerListModel;
 import org.jjazz.harmony.api.ChordSymbolFinder;
 import org.jjazz.harmony.api.Note;
-import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.musiccontrol.api.MusicController;
-import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
@@ -61,6 +58,7 @@ import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.jjazz.instrumentcomponents.keyboard.api.KeyboardComponent;
 import org.jjazz.instrumentcomponents.keyboard.api.KeyboardComponent.Orientation;
 import org.jjazz.instrumentcomponents.keyboard.api.KeyboardRange;
+import org.jjazz.outputsynth.api.FixMidiMix;
 import org.jjazz.ss_editor.api.SS_Editor;
 import org.jjazz.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.ss_editor.api.SS_Selection;
@@ -334,24 +332,7 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
             // Prepare the arranger 
             SongContext sgContext = new SongContext(song, midiMix, songPart.getBarRange());
 
-
-            try
-            {
-                // Check that all listeners are OK to start playback (trigger MidiMix fix helper if required)
-                PlaybackSettings.getInstance().firePlaybackStartVetoableChange(sgContext);  // can raise PropertyVetoException
-            } catch (PropertyVetoException ex)
-            {
-                if (ex.getMessage() != null)
-                {
-                    NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
-                    DialogDisplayer.getDefault().notify(d);
-                }
-                // Rollback UI
-                songPart = null;
-                tbtn_playPause.setSelected(false);
-                return;
-            }
-
+            FixMidiMix.checkAndPossiblyFix(midiMix, true);
 
             if (arranger != null)
             {

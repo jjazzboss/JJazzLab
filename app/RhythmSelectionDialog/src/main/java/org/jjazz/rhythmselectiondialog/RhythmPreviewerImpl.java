@@ -45,6 +45,9 @@ import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.rhythmselectiondialog.spi.RhythmPreviewer;
 import org.jjazz.musiccontrol.api.playbacksession.BaseSongSession;
+import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
+import org.jjazz.musiccontrol.api.playbacksession.SessionConfig;
+import org.jjazz.outputsynth.api.FixMidiMix;
 import org.jjazz.outputsynth.api.OutputSynth;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.MusicGenerationException;
@@ -65,6 +68,7 @@ import org.jjazz.outputsynth.spi.OutputSynthManager;
 @ServiceProvider(service = RhythmPreviewer.class)
 public class RhythmPreviewerImpl implements RhythmPreviewer
 {
+
     private Song originalSong;
     private Song previouslyActivatedSong;
     private SongPart originalSpt;
@@ -175,9 +179,8 @@ public class RhythmPreviewerImpl implements RhythmPreviewer
         // Activate the song to initialize Midi instruments
         Song song = sgContext.getSong();
         MidiMix mm = sgContext.getMidiMix();
-        ActiveSongManager asm = ActiveSongManager.getDefault();
-        
-        asm.setActive(song, mm);
+        FixMidiMix.checkAndPossiblyFix(mm, false);
+        ActiveSongManager.getDefault().setActive(song, mm);
 
 
         // Start playback
@@ -234,8 +237,8 @@ public class RhythmPreviewerImpl implements RhythmPreviewer
     /**
      * Build the song used for preview of the specified rhythm.
      * <p>
-     * Song will be only one SongPart, unless r is an AdaptedRhythm and another similar SongPart is added with the source rhythm. Only the
-     * first SongPart should be used.
+     * Song will be only one SongPart, unless r is an AdaptedRhythm and another similar SongPart is added with the source rhythm. Only the first SongPart should
+     * be used.
      *
      * @param song
      * @param spt
@@ -294,8 +297,8 @@ public class RhythmPreviewerImpl implements RhythmPreviewer
     }
 
     /**
-     * Our own session to manage the special case of a SongPart with an AdaptedRhythm which needs the source rhythm to be present in the
-     * song for building the sequence.
+     * Our own session to manage the special case of a SongPart with an AdaptedRhythm which needs the source rhythm to be present in the song for building the
+     * sequence.
      * <p>
      * In this case we shorten the generated previewSequence and update previewLoopEndTick.
      */
@@ -307,7 +310,7 @@ public class RhythmPreviewerImpl implements RhythmPreviewer
 
         private PreviewSession(SongContext sgContext, int loopCount, ActionListener endOfPlaybackAction)
         {
-            super(sgContext, false, false, true, loopCount, endOfPlaybackAction, false);
+            super(sgContext, new SessionConfig(false, false, true, loopCount, endOfPlaybackAction), false, PlaybackSession.STD_CONTEXT_ID_RHYTHM_PREVIEW);
         }
 
         @Override

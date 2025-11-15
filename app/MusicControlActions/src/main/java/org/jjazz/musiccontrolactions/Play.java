@@ -26,7 +26,6 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.beans.PropertyVetoException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
@@ -39,16 +38,17 @@ import org.jjazz.analytics.api.Analytics;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.musiccontrol.api.MusicController;
-import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.musiccontrol.api.playbacksession.UpdateProviderSongSession;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.Song;
 import org.jjazz.flatcomponents.api.FlatToggleButton;
+import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrolactions.api.FixMissingSectionStartChord;
 import org.jjazz.musiccontrolactions.api.RemoteAction;
 import org.jjazz.musiccontrolactions.api.RemoteActionProvider;
+import org.jjazz.outputsynth.api.FixMidiMix;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -125,12 +125,12 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
 
         MusicController mc = MusicController.getInstance();
         MusicController.State playBackState = mc.getState();
-        
+
         LOGGER.log(Level.FINE, "setSelected() newState={0} playBackState={1}", new Object[]
         {
             newState, playBackState
-        });  
-        
+        });
+
         switch (playBackState)
         {
             case PAUSED:
@@ -166,17 +166,14 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
                         SongContext context = new SongContext(currentSong, midiMix);
 
                         new FixMissingSectionStartChord(context).autofix();
-                        
-                        // Check that all listeners are OK to start playback     
-                        PlaybackSettings.getInstance().firePlaybackStartVetoableChange(context);  // can raise PropertyVetoException
-
+                        FixMidiMix.checkAndPossiblyFix(midiMix, true);
 
                         // Prepare the session
-                        UpdateProviderSongSession dynSession = UpdateProviderSongSession.getSession(context);
+                        UpdateProviderSongSession dynSession = UpdateProviderSongSession.getSession(context, PlaybackSession.STD_CONTEXT_ID_SONG);
                         session = UpdatableSongSession.getSession(dynSession);
                         mc.setPlaybackSession(session, false);  // Can generate MusicGenerationException
 
-                        
+
                         // Start sequencer
                         mc.play(0);
 
@@ -187,7 +184,7 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
                         var mapParams = Analytics.buildMap("Bar Range", context.getBarRange().toString(), "Rhythms", Analytics.toStrList(context.getUniqueRhythms()));
                         Analytics.logEvent("Play", mapParams);
 
-                    } catch (MusicGenerationException | PropertyVetoException | MidiUnavailableException ex)
+                    } catch (MusicGenerationException | MidiUnavailableException ex)
                     {
                         if (session != null)
                         {
@@ -232,7 +229,7 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
                 }
                 break;
             default:
-                throw new IllegalArgumentException("playBackState=" + playBackState + " newState=" + newState);   
+                throw new IllegalArgumentException("playBackState=" + playBackState + " newState=" + newState);
         }
     }
 
@@ -246,7 +243,7 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
             newSong = s;
             i++;
         }
-        assert i < 2 : "i=" + i + " lookupResult.allInstances()=" + lookupResult.allInstances();   
+        assert i < 2 : "i=" + i + " lookupResult.allInstances()=" + lookupResult.allInstances();
         if (newSong != null)
         {
             // Current song has changed
@@ -337,8 +334,11 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
     private void playbackStateChanged()
     {
         MusicController mc = MusicController.getInstance();
-        LOGGER.log(Level.FINE, "playbackStateChanged() actionState={0} mc.getPlaybackState()={1}", new Object[]{getBooleanState(),
-            mc.getState()});   
+        LOGGER.log(Level.FINE, "playbackStateChanged() actionState={0} mc.getPlaybackState()={1}", new Object[]
+        {
+            getBooleanState(),
+            mc.getState()
+        });
         setEnabled(!mc.getState().equals(MusicController.State.DISABLED));
         setBooleanState(mc.isPlaying());
     }

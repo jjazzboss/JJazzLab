@@ -30,10 +30,10 @@ import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.utilities.api.IntRange;
 
 /**
- * A PlaybackSession contains the data needed by the MusicController to play music and provide related services (firing beat or
- * chord symbol events, managing tempo changes, ...).
+ * A PlaybackSession contains the data needed by the MusicController to play music and provide related services (firing beat or chord symbol events, managing
+ * tempo changes, ...).
  * <p>
- * Implementations may also implement additional session capabilities such as SongContextProvider, ChordSymbolProvider, etc.
+ * Implementations may also implement additional session capabilities such as SongContextProvider or ChordSymbolProvider.
  */
 public interface PlaybackSession
 {
@@ -79,16 +79,61 @@ public interface PlaybackSession
      * A property change event is fired when the loop count has changed.
      */
     public static final String PROP_LOOP_COUNT = "PropLoopCount";
+    /**
+     * Standard context id for when we play a song (or part of). This is the standard case.
+     *
+     * @see #getContextId()
+     */
+    public static final String STD_CONTEXT_ID_SONG = "ContextIdSong";
+    /**
+     * Standard context id for the arranger.
+     *
+     * @see #getContextId()
+     */
+    public static final String STD_CONTEXT_ID_ARRANGER = "ContextIdArranger";
+    /**
+     * Standard context id for when we hear test notes.
+     *
+     * @see #getContextId()
+     */
+    public static final String STD_CONTEXT_ID_TEST_NOTES = "ContextIdTestNotes";
+    /**
+     * Standard context id for when we "preview" (hear) a rhythm or a song part modified by a RhythmParameter.
+     *
+     * @see #getContextId()
+     */
+    public static final String STD_CONTEXT_ID_RHYTHM_PREVIEW = "ContextIdRhythmPreview";
+    /**
+     * Standard context id for when we "preview" (hear) a song part with a given RhythmParameter value.
+     *
+     * @see #getContextId()
+     */
+    public static final String STD_CONTEXT_ID_RP_VALUE_PREVIEW = "ContextIdRpValuePreview";
 
+
+    /**
+     * A String providing the context of this PlaybackSession.
+     * <p>
+     * It is used e.g. by some PlaybackListener instances to decide whether they keep listening to the MusicController or not.
+     * <p>
+     *
+     * @return Can be null. When possible return one of the STD_CONTEXT_ID_xxx constants.
+     * @see #STD_CONTEXT_ID_SONG
+     * @see #STD_CONTEXT_ID_ARRANGER
+     * @see #STD_CONTEXT_ID_RP_VALUE_PREVIEW
+     * @see #STD_CONTEXT_ID_RHYTHM_PREVIEW
+     * @see #STD_CONTEXT_ID_TEST_NOTES
+     */
+    public String getContextId();
 
     /**
      * Create the sequence and the related data.
      * <p>
-     * If generation is successful the method changes the state from NEW to GENERATED.
+     * If generation is successful the method changes the state from NEW to GENERATED. Method blocks until music generation is complete.
      *
-     * @param silent If false a modal progress bar is shown why generating the music.
+     * @param silent If false a modal progress bar is shown while generating the music.
      * @throws org.jjazz.rhythm.api.MusicGenerationException
-     * @throws IllegalStateException If State is not NEW.
+     * @throws IllegalStateException                         If State is not NEW.
      */
     void generate(boolean silent) throws MusicGenerationException;
 

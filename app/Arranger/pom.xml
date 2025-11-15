@@ -114,6 +114,11 @@
         </dependency>  
         <dependency> 
             <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>outputsynth</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
             <artifactId>utilities</artifactId> 
             <version>${project.version}</version>  
         </dependency>  

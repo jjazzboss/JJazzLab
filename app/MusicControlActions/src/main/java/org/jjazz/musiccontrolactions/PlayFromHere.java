@@ -58,7 +58,9 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.mixconsole.api.MixConsoleTopComponent;
+import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrolactions.api.FixMissingSectionStartChord;
+import org.jjazz.outputsynth.api.FixMidiMix;
 import org.jjazz.ss_editor.api.SS_Editor;
 import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
 import org.jjazz.utilities.api.ResUtil;
@@ -183,18 +185,16 @@ public class PlayFromHere extends AbstractAction
         {
             MidiMix midiMix = MidiMixManager.getDefault().findMix(song);      // Can raise MidiUnavailableException
             SongContext context = new SongContext(song, midiMix);
-            
+
             new FixMissingSectionStartChord(context).autofix();
+            FixMidiMix.checkAndPossiblyFix(midiMix, true);
 
-            // Check that all listeners are OK to start playback     
-            PlaybackSettings.getInstance().firePlaybackStartVetoableChange(context);  // can raise PropertyVetoException
-
-            var dynSession = UpdateProviderSongSession.getSession(context);
+            UpdateProviderSongSession dynSession = UpdateProviderSongSession.getSession(context, PlaybackSession.STD_CONTEXT_ID_SONG);
             session = UpdatableSongSession.getSession(dynSession);
             mc.setPlaybackSession(session, false);  // Can generate MusicGenerationException
             mc.play(playFromBar);
-            
-        } catch (MusicGenerationException | PropertyVetoException | MidiUnavailableException ex)
+
+        } catch (MusicGenerationException | MidiUnavailableException ex)
         {
             if (session != null)
             {
