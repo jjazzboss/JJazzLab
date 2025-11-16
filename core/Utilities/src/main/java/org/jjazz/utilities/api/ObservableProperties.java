@@ -190,7 +190,7 @@ public class ObservableProperties<T> implements Serializable
      */
     public Set<String> getPropertyNames()
     {
-        Set<String> res = Collections.unmodifiableSet(properties.keySet());
+        Set<String> res = properties != null ? Collections.unmodifiableSet(properties.keySet()) : Collections.emptySet();
         return res;
     }
 
