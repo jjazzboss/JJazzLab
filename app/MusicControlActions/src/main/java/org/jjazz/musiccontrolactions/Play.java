@@ -169,7 +169,7 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
                         FixMidiMix.checkAndPossiblyFix(midiMix, true);
 
                         // Prepare the session
-                        UpdateProviderSongSession dynSession = UpdateProviderSongSession.getSession(context, PlaybackSession.STD_CONTEXT_ID_SONG);
+                        UpdateProviderSongSession dynSession = UpdateProviderSongSession.getSession(context, PlaybackSession.Context.SONG);
                         session = UpdatableSongSession.getSession(dynSession);
                         mc.setPlaybackSession(session, false);  // Can generate MusicGenerationException
 

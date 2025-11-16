@@ -24,23 +24,34 @@ package org.jjazz.musiccontrol.api;
 
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.harmony.api.Position;
+import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.songstructure.api.SongPart;
 
 /**
- * Listener of events occurring during song playback.
+ * Listener of events occurring when PlaybackSession is being played by the MusicController.
  * <p>
- * MusicController will fire the events taking into account the user-defined output synth latency. Events are fired by the
- * MusicController on the Event Dispatching Thread. Event handling must be time-efficient.
+ * MusicController will fire the events taking into account the user-defined output synth latency. Events are fired on the Event Dispatching Thread. So event
+ * handling must be time-efficient.
  * <p>
- * 
  */
 public interface PlaybackListener
 {
+
     /**
-     * The enable status has changed.
+     * Tell the MusicController if we listen to the specified PlaybackSession.
      *
-     * @param b If false the MusicController is not able anymore to send events, except for the midiActivity which will continue
-     * to work.
+     * @param session Can not be null
+     * @return If true MusicController will send events while playing session. If false no events will be sent.
+     */
+    boolean isAccepted(PlaybackSession session);
+
+    /**
+     * The MusicController "enabled status" has changed.
+     * <p>
+     * Indicate if the MusicController is able to send beat/chordSymbol/song part events. Method is for example called with b=false when a song structural
+     * change has been made while playing the song. Note that MusicController is always able to send midiActivity events.
+     *
+     * @param b to work.
      */
     void enabledChanged(boolean b);
 
@@ -53,7 +64,7 @@ public interface PlaybackListener
      */
     void beatChanged(Position oldPos, Position newPos, float newPosInBeats);
 
-     /**
+    /**
      * Called on chord symbol change.
      *
      * @param chordSymbol The current chord symbol with an absolute position (position within the entire song structure).
@@ -70,10 +81,9 @@ public interface PlaybackListener
     /**
      * Indicates some musical activity on specified channel at specified time.
      * <p>
-     * Should be used only for non-accurate "musical activity " indicators : if several notes are played in a brief period time,
-     * only one event will be fired.
+     * Should be used only for non-accurate "musical activity " indicators : if several notes are played in a brief period time, only one event will be fired.
      *
-     * @param tick The approximate tick of the Midi activity. Can be -1 if no tick information available.
+     * @param tick    The approximate tick of the Midi activity. Can be -1 if no tick information available.
      * @param channel
      */
     void midiActivity(long tick, int channel);

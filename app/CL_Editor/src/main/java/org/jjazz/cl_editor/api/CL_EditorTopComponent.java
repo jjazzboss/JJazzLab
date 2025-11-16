@@ -133,17 +133,7 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
         {
             res.add(null);   // Separator         
         }
-
-        // Add the Netbeans standard actions such as Close, Close All, Close Others, MoveWindowWithinModeAction, while filtering unanted ones (Clone, Move, NewTabGroup, SizeGroup, ...).
-        for (var a :  super.getActions())
-        {
-            LOGGER.log(Level.FINE, "getActions() a={0}", a);
-            if (a == null || UIUtilities.isNetbeansTopComponentTabActionUsed(a))
-            {
-                res.add(a);
-            }
-        }
-
+        res.addAll(UIUtilities.getNetbeansTopComponentTabActions(super.getActions()));
         return res.toArray(Action[]::new);
     }
 

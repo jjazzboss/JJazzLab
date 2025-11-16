@@ -50,17 +50,17 @@ public class StaticSongSession extends BaseSongSession
      *
      * @param sgContext
      * @param sConfig
-     * @param contextId A String providing the context of this PlaybackSession. Can be null.
+     * @param context
      * @return A session in the NEW or GENERATED state.
      */
-    static public StaticSongSession getSession(SongContext sgContext, SessionConfig sConfig, String contextId)
+    static public StaticSongSession getSession(SongContext sgContext, SessionConfig sConfig, Context context)
     {
         Objects.requireNonNull(sgContext);
         Objects.requireNonNull(sConfig);
-        StaticSongSession session = findSession(sgContext, sConfig, contextId);
+        StaticSongSession session = findSession(sgContext, sConfig, context);
         if (session == null)
         {
-            final StaticSongSession newSession = new StaticSongSession(sgContext, sConfig, contextId);
+            final StaticSongSession newSession = new StaticSongSession(sgContext, sConfig, context);
             sessions.add(newSession);
             return newSession;
         } else
@@ -74,18 +74,18 @@ public class StaticSongSession extends BaseSongSession
      * <p>
      *
      * @param sgContext
-     * @param contextId
+     * @param context
      * @return A targetSession in the NEW or GENERATED state.
      */
-    static public StaticSongSession getSession(SongContext sgContext, String contextId)
+    static public StaticSongSession getSession(SongContext sgContext, Context context)
     {
-        return getSession(sgContext, new SessionConfig(), contextId);
+        return getSession(sgContext, new SessionConfig(), context);
     }
 
 
-    private StaticSongSession(SongContext sgContext, SessionConfig sConfig, String contextId)
+    private StaticSongSession(SongContext sgContext, SessionConfig sConfig, Context context)
     {
-        super(sgContext, sConfig, true, contextId);
+        super(sgContext, sConfig, true, context);
     }
 
     /**
@@ -143,7 +143,7 @@ public class StaticSongSession extends BaseSongSession
      * @param config
      * @return Null if not found
      */
-    static private StaticSongSession findSession(SongContext sgContext, SessionConfig config, String contextId)
+    static private StaticSongSession findSession(SongContext sgContext, SessionConfig config, Context context)
     {
         for (var session : sessions)
         {
@@ -151,7 +151,7 @@ public class StaticSongSession extends BaseSongSession
                     && !session.isDirty()
                     && sgContext.equals(session.getSongContext())
                     && config.equals(session.getSessionConfig())
-                    && Objects.equals(contextId, session.getContextId()))
+                    && context == session.getContext())
             {
                 return session;
             }

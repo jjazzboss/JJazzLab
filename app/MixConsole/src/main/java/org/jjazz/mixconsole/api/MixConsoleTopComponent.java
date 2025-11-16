@@ -23,9 +23,7 @@
 package org.jjazz.mixconsole.api;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.MissingResourceException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -43,7 +41,6 @@ import org.openide.awt.ActionID;
 import org.openide.awt.UndoRedo;
 import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
-import org.openide.util.Utilities;
 import org.openide.windows.TopComponent;
 
 /**
@@ -153,17 +150,7 @@ public final class MixConsoleTopComponent extends TopComponent
     @Override
     public Action[] getActions()
     {
-        List<Action> res = new ArrayList<>();
-        // Add the Netbeans standard actions such as Close, Close All, Close Others, MoveWindowWithinModeAction, while filtering unanted ones (Clone, Move, NewTabGroup, SizeGroup, ...).
-        for (var a : super.getActions())
-        {
-            LOGGER.log(Level.FINE, "getActions() a={0}", a);
-            if (a == null || UIUtilities.isNetbeansTopComponentTabActionUsed(a))
-            {
-                res.add(a);
-            }
-        }
-
+        var res = UIUtilities.getNetbeansTopComponentTabActions(super.getActions());
         return res.toArray(Action[]::new);
     }
 

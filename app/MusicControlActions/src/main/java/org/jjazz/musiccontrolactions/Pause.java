@@ -35,6 +35,7 @@ import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.Song;
 import org.jjazz.flatcomponents.api.FlatToggleButton;
+import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -104,7 +105,10 @@ public class Pause extends BooleanStateAction implements PropertyChangeListener,
 
         MusicController mc = MusicController.getInstance();
         MusicController.State playBackState = mc.getState();
-        LOGGER.log(Level.FINE, "buttonStateChanged() newState={0} playBackState={1}", new Object[]{newState, playBackState});   
+        LOGGER.log(Level.FINE, "buttonStateChanged() newState={0} playBackState={1}", new Object[]
+        {
+            newState, playBackState
+        });
         switch (playBackState)
         {
             case STOPPED:
@@ -151,7 +155,7 @@ public class Pause extends BooleanStateAction implements PropertyChangeListener,
                 }
                 break;
             default:
-                throw new IllegalArgumentException("playBackState=" + playBackState + " newState=" + newState);   
+                throw new IllegalArgumentException("playBackState=" + playBackState + " newState=" + newState);
         }
     }
 
@@ -165,7 +169,7 @@ public class Pause extends BooleanStateAction implements PropertyChangeListener,
             newSong = s;
             i++;
         }
-        assert i < 2 : "i=" + i + " lookupResult.allInstances()=" + lookupResult.allInstances();   
+        assert i < 2 : "i=" + i + " lookupResult.allInstances()=" + lookupResult.allInstances();
         if (newSong != null)
         {
             // Current song has changed
@@ -210,9 +214,9 @@ public class Pause extends BooleanStateAction implements PropertyChangeListener,
         MusicController mc = MusicController.getInstance();
         if (evt.getSource() == mc)
         {
-            if (evt.getPropertyName().equals(MusicController.PROP_STATE))
+            switch (evt.getPropertyName())
             {
-                updateEnabledAndSelectedState();
+                case MusicController.PROP_STATE, MusicController.PROP_PLAYBACK_SESSION -> updateEnabledAndSelectedState();
             }
         } else if (evt.getSource() == ActiveSongManager.getDefault())
         {
@@ -235,11 +239,11 @@ public class Pause extends BooleanStateAction implements PropertyChangeListener,
 
     private void updateEnabledAndSelectedState()
     {
-        Song activeSong = ActiveSongManager.getDefault().getActiveSong();
-        boolean b = (currentSong != null && currentSong == activeSong);
-
         MusicController mc = MusicController.getInstance();
-        b &= !mc.isArrangerPlaying() && (mc.isPlaying() || mc.isPaused());
+        Song activeSong = ActiveSongManager.getDefault().getActiveSong();
+        boolean b = (currentSong != null && currentSong == activeSong)
+                && (mc.isPlaying() || mc.isPaused())
+                && mc.getPlaybackSession().getContext() == PlaybackSession.Context.SONG;
         setEnabled(b);
         setBooleanState(mc.isPaused());
     }

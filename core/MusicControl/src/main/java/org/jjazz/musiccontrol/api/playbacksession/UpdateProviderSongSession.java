@@ -105,17 +105,18 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
      * @param sgContext
      * @param sConfig
      * @param enableUpdateControl If true updates are authorized depending on the PlaybackSettings AutoUpdateEnabled value.
-     * @param contextId           A String providing the context of this PlaybackSession. Can be null.
+     * @param context
      * @return A session in the NEW or GENERATED state.
      */
-    static public UpdateProviderSongSession getSession(SongContext sgContext, SessionConfig sConfig, boolean enableUpdateControl, String contextId)
+    static public UpdateProviderSongSession getSession(SongContext sgContext, SessionConfig sConfig, boolean enableUpdateControl, Context context)
     {
         Objects.requireNonNull(sgContext);
         Objects.requireNonNull(sConfig);
-        UpdateProviderSongSession session = findSession(sgContext, sConfig, enableUpdateControl, contextId);
+        Objects.requireNonNull(context);
+        UpdateProviderSongSession session = findSession(sgContext, sConfig, enableUpdateControl, context);
         if (session == null)
         {
-            final UpdateProviderSongSession newSession = new UpdateProviderSongSession(sgContext, sConfig, enableUpdateControl, contextId);
+            final UpdateProviderSongSession newSession = new UpdateProviderSongSession(sgContext, sConfig, enableUpdateControl, context);
 
             sessions.add(newSession);
             LOGGER.fine("getSession() create new session");
@@ -132,18 +133,18 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
      * <p>
      *
      * @param sgContext
-     * @param contextId A String providing the context of this PlaybackSession. Can be null.
+     * @param context
      * @return A targetSession in the NEW or GENERATED state.
      */
-    static public UpdateProviderSongSession getSession(SongContext sgContext, String contextId)
+    static public UpdateProviderSongSession getSession(SongContext sgContext, Context context)
     {
-        return getSession(sgContext, new SessionConfig(), true, contextId);
+        return getSession(sgContext, new SessionConfig(), true, context);
     }
 
 
-    private UpdateProviderSongSession(SongContext sgContext, SessionConfig sConfig, boolean enableUpdateControl, String contextId)
+    private UpdateProviderSongSession(SongContext sgContext, SessionConfig sConfig, boolean enableUpdateControl, Context context)
     {
-        super(sgContext, sConfig, true, contextId);
+        super(sgContext, sConfig, true, context);
         isControlTrackEnabled = true;
         isUpdateProvisionEnabled = true;
         isUpdateControlEnabled = enableUpdateControl;
@@ -154,7 +155,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
     public UpdateProviderSongSession getFreshCopy(SongContext sgContext)
     {
         var newContext = sgContext == null ? getSongContext().clone() : sgContext;
-        UpdateProviderSongSession newSession = new UpdateProviderSongSession(newContext, getSessionConfig(), isUpdateControlEnabled, getContextId());
+        UpdateProviderSongSession newSession = new UpdateProviderSongSession(newContext, getSessionConfig(), isUpdateControlEnabled, getContext());
         sessions.add(newSession);
         return newSession;
     }
@@ -617,10 +618,10 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
      * @param sgContext
      * @param sConfig
      * @param enableUpdateControl
-     * @param contextId
+     * @param context
      * @return Null if not found
      */
-    static private UpdateProviderSongSession findSession(SongContext sgContext, SessionConfig sConfig, boolean enableUpdateControl, String contextId)
+    static private UpdateProviderSongSession findSession(SongContext sgContext, SessionConfig sConfig, boolean enableUpdateControl, Context context)
     {
         for (var session : sessions)
         {
@@ -629,7 +630,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
                     && sgContext.equals(session.getSongContext())
                     && enableUpdateControl == session.isUpdateControlEnabled()
                     && sConfig.equals(session.getSessionConfig())
-                    && Objects.equals(contextId, session.getContextId()))
+                    && context == session.getContext())
             {
                 return session;
             }

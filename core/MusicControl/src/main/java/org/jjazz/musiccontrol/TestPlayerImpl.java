@@ -250,9 +250,9 @@ public class TestPlayerImpl implements TestPlayer
         }
 
         @Override
-        public String getContextId()
+        public Context getContext()
         {
-            return PlaybackSession.STD_CONTEXT_ID_TEST_NOTES;
+            return PlaybackSession.Context.AUDITIONING;
         }
 
     }

@@ -22,7 +22,6 @@
  */
 package org.jjazz.musiccontrol.api;
 
-import com.google.common.base.Preconditions;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -696,21 +695,6 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         return state == State.DISABLED;
     }
 
-    /**
-     * True if the current playing session is a special arranger session.
-     *
-     * @return
-     */
-    public boolean isArrangerPlaying()
-    {
-        if (!isPlaying() || !(playbackSession instanceof SongContextProvider))
-        {
-            return false;
-        }
-        Song song = ((SongContextProvider) playbackSession).getSongContext().getSong();
-        return song.getName().startsWith("*!ArrangerSONG!*");
-    }
-
     public void setDebugPlayedSequence(boolean b)
     {
         debugPlayedSequence = b;
@@ -994,24 +978,30 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         // No need to use a latency aware event
         for (PlaybackListener pl : playbackListeners.toArray(PlaybackListener[]::new))
         {
-            pl.enabledChanged(b);
+            if (playbackSession == null || pl.isAccepted(playbackSession))
+            {
+                pl.enabledChanged(b);
+            }
         }
     }
 
     private void fireChordSymbolChanged(CLI_ChordSymbol cliCs)
     {
-        if (cliCs == null)
-        {
-            throw new IllegalArgumentException("cliCs=" + cliCs);
-        }
+        Objects.requireNonNull(cliCs);
+
         if (currentChordSymbol != cliCs)
         {
             currentChordSymbol = cliCs;
+
             fireLatencyAwareEvent(() -> 
             {
                 for (PlaybackListener pl : playbackListeners.toArray(PlaybackListener[]::new))
                 {
-                    pl.chordSymbolChanged(cliCs);
+                    // playbackSession might be null because in the meantime of the latency firing session was closed ?
+                    if (playbackSession == null || pl.isAccepted(playbackSession))
+                    {
+                        pl.chordSymbolChanged(cliCs);
+                    }
                 }
             });
         }
@@ -1023,7 +1013,11 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         {
             for (PlaybackListener pl : playbackListeners.toArray(PlaybackListener[]::new))
             {
-                pl.beatChanged(oldPos, newPos, newPosInBeats);
+                // playbackSession might be null because in the meantime of the latency firing session was closed ?
+                if (playbackSession == null || pl.isAccepted(playbackSession))
+                {
+                    pl.beatChanged(oldPos, newPos, newPosInBeats);
+                }
             }
         });
     }
@@ -1037,7 +1031,11 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             {
                 for (PlaybackListener pl : playbackListeners.toArray(PlaybackListener[]::new))
                 {
-                    pl.songPartChanged(newSpt);
+                    // playbackSession might be null because in the meantime of the latency firing session was closed ?
+                    if (playbackSession == null || pl.isAccepted(playbackSession))
+                    {
+                        pl.songPartChanged(newSpt);
+                    }
                 }
             });
         }
@@ -1072,7 +1070,11 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         {
             for (PlaybackListener pl : playbackListeners.toArray(PlaybackListener[]::new))
             {
-                pl.midiActivity(tick, channel);
+                // playbackSession might be null because in the meantime of the latency firing session was closed ?
+                if (playbackSession != null && pl.isAccepted(playbackSession))
+                {
+                    pl.midiActivity(tick, channel);
+                }
             }
         });
     }

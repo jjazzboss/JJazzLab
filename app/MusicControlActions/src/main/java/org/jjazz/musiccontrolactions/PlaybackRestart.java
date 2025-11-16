@@ -32,6 +32,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.musiccontrol.api.MusicController;
+import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.song.api.Song;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -91,18 +92,8 @@ public class PlaybackRestart extends AbstractAction implements PropertyChangeLis
     public void actionPerformed(ActionEvent e)
     {
         var mc = MusicController.getInstance();
-        if (!mc.isPlaying() && !mc.isPaused())
-        {
-            return;
-        }
-        if (mc.isArrangerPlaying())
-        {
-            // Special case, dont mess with the arranger mode            
-            return;
-        }
-
         int startBar = mc.getPlaybackSession().getBarRange().from;
-        
+
         if (mc.isPaused())
         {
             mc.changePausedBar(startBar);
@@ -159,9 +150,13 @@ public class PlaybackRestart extends AbstractAction implements PropertyChangeLis
         MusicController mc = MusicController.getInstance();
         if (evt.getSource() == mc)
         {
-            if (evt.getPropertyName().equals(MusicController.PROP_STATE))
+            switch (evt.getPropertyName())
             {
-                updateEnabledState();
+                case MusicController.PROP_STATE, MusicController.PROP_PLAYBACK_SESSION -> updateEnabledState();
+                default ->
+                {
+                    // Nothing
+                }
             }
         } else if (evt.getSource() == ActiveSongManager.getDefault())
         {
@@ -201,8 +196,9 @@ public class PlaybackRestart extends AbstractAction implements PropertyChangeLis
     {
         MusicController mc = MusicController.getInstance();
         Song activeSong = ActiveSongManager.getDefault().getActiveSong();
-        boolean b = (currentSong != null && currentSong == activeSong);
-        b &= !mc.isArrangerPlaying() && (mc.isPlaying() || mc.isPaused());
+        boolean b = (currentSong != null && currentSong == activeSong)
+                && (mc.isPlaying() || mc.isPaused())
+                && mc.getPlaybackSession().getContext() == PlaybackSession.Context.SONG;
         setEnabled(b);
     }
 

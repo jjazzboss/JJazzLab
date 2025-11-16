@@ -26,6 +26,7 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.EnumSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Action;
@@ -37,6 +38,7 @@ import org.jjazz.musiccontrol.api.PlaybackListenerAdapter;
 import org.jjazz.song.api.Song;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.flatcomponents.api.FlatToggleButton;
+import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.songeditormanager.spi.SongEditorManager;
 import org.jjazz.ss_editor.api.SS_Editor;
 import org.openide.awt.ActionID;
@@ -87,32 +89,7 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
 
         // Listen to playbackState and position changes
         MusicController.getInstance().addPropertyChangeListener(this);
-        MusicController.getInstance().addPlaybackListener(new PlaybackListenerAdapter()
-        {
-            @Override
-            public void enabledChanged(boolean b)
-            {
-                // LOGGER.info("PlaybackListener.enabledChanged() -- b="+b);
-                playbackListenerDisabled = !b;
-                updateShowing();
-                updateEnabled();
-            }
-
-            @Override
-            public void beatChanged(final Position oldPos, final Position newPos, float newPosInBeats)
-            {
-                if (currentCL_Editor != null)
-                {
-                    newSgsPos.set(newPos);
-                    Position newClsPos = convertToClsPosition(newSgsPos);
-                    if (newClsPos != null)
-                    {
-                        currentCL_Editor.showPlaybackPoint(true, newClsPos);
-                    }
-                    currentRL_Editor.showPlaybackPoint(true, newSgsPos);
-                }
-            }
-        });
+        MusicController.getInstance().addPlaybackListener(new SongListener());
 
         // Listen to the Midi active song changes
         ActiveSongManager.getDefault().addPropertyListener(this);
@@ -365,5 +342,42 @@ public class ShowPlaybackPoint extends BooleanStateAction implements PropertyCha
         }
         currentCL_Editor = null;
         currentRL_Editor = null;
+    }
+
+    // ===========================================================================================================
+    // Inner classes
+    // ===========================================================================================================
+    
+    private class SongListener extends PlaybackListenerAdapter
+    {
+
+        public SongListener()
+        {
+            super(EnumSet.of(PlaybackSession.Context.SONG));
+        }
+
+        @Override
+        public void enabledChanged(boolean b)
+        {
+            // LOGGER.info("PlaybackListener.enabledChanged() -- b="+b);
+            playbackListenerDisabled = !b;
+            updateShowing();
+            updateEnabled();
+        }
+
+        @Override
+        public void beatChanged(final Position oldPos, final Position newPos, float newPosInBeats)
+        {
+            if (currentCL_Editor != null)
+            {
+                newSgsPos.set(newPos);
+                Position newClsPos = convertToClsPosition(newSgsPos);
+                if (newClsPos != null)
+                {
+                    currentCL_Editor.showPlaybackPoint(true, newClsPos);
+                }
+                currentRL_Editor.showPlaybackPoint(true, newSgsPos);
+            }
+        }
     }
 }

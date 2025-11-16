@@ -105,28 +105,20 @@ public class PlaybackToNextSongPart extends AbstractAction implements PropertyCh
 
     /**
      * Do the job of both actions.
+     * <p>
+     * Caller is responsible for checking that context is valid to use the method (e.g. music is playing or paused, etc.).
      *
      * @param nextOrPrevious If true go to next songpart, otherwise go to previous.
+     * @see #getEnabledState(org.jjazz.song.api.Song)
      */
-    static public void jumpToSongPart(boolean nextOrPrevious)
+    static protected void jumpToSongPart(boolean nextOrPrevious)
     {
         var mc = MusicController.getInstance();
-        if (!mc.isPlaying() && !mc.isPaused())
-        {
-            return;
-        }
-        if (mc.isArrangerPlaying())
-        {
-            // Special case, dont mess with the arranger mode            
-            return;
-        }
+
 
         // Get the song being played
         var session = mc.getPlaybackSession();
-        if (!(session instanceof SongContextProvider))
-        {
-            return;
-        }
+        assert session instanceof SongContextProvider : "session=" + session;
         SongContext songContext = ((SongContextProvider) session).getSongContext();
 
 
@@ -152,10 +144,13 @@ public class PlaybackToNextSongPart extends AbstractAction implements PropertyCh
             return;
         }
 
+        // Start bar might be in the middle of SongPart
+        int bar = songContext.getSptBarRange(nextPlayingSpt).from;
+        
 
         if (mc.isPaused())
         {
-            mc.changePausedBar(nextPlayingSpt.getStartBarIndex());
+            mc.changePausedBar(bar);
 
         } else
         {
@@ -165,7 +160,7 @@ public class PlaybackToNextSongPart extends AbstractAction implements PropertyCh
             mc.pause();
             try
             {
-                mc.play(nextPlayingSpt.getStartBarIndex());
+                mc.play(bar);
             } catch (MusicGenerationException ex)
             {
                 NotifyDescriptor d = new NotifyDescriptor.Message(ex.getMessage(), NotifyDescriptor.ERROR_MESSAGE);
@@ -173,6 +168,19 @@ public class PlaybackToNextSongPart extends AbstractAction implements PropertyCh
             }
         }
     }
+
+    static protected boolean getEnabledState(Song curSong)
+    {
+        MusicController mc = MusicController.getInstance();
+        PlaybackSession session = mc.getPlaybackSession();
+        Song activeSong = ActiveSongManager.getDefault().getActiveSong();
+        boolean b = (curSong != null && curSong == activeSong)
+                && (mc.isPlaying() || mc.isPaused())
+                && session instanceof SongContextProvider
+                && session.getContext() == PlaybackSession.Context.SONG;
+        return b;
+    }
+
     // ======================================================================
     // LookupListener interface
     // ======================================================================  
@@ -208,13 +216,17 @@ public class PlaybackToNextSongPart extends AbstractAction implements PropertyCh
         MusicController mc = MusicController.getInstance();
         if (evt.getSource() == mc)
         {
-            if (evt.getPropertyName() == MusicController.PROP_STATE)
+            switch (evt.getPropertyName())
             {
-                updateEnabledState();
+                case MusicController.PROP_STATE, MusicController.PROP_PLAYBACK_SESSION -> updateEnabledState();
+                default ->
+                {
+                    // Nothing
+                }
             }
         } else if (evt.getSource() == ActiveSongManager.getDefault())
         {
-            if (evt.getPropertyName() == ActiveSongManager.PROP_ACTIVE_SONG)
+            if (evt.getPropertyName().equals(ActiveSongManager.PROP_ACTIVE_SONG))
             {
                 updateEnabledState();
             }
@@ -248,11 +260,7 @@ public class PlaybackToNextSongPart extends AbstractAction implements PropertyCh
 
     private void updateEnabledState()
     {
-        MusicController mc = MusicController.getInstance();
-        Song activeSong = ActiveSongManager.getDefault().getActiveSong();
-        boolean b = (currentSong != null && currentSong == activeSong);
-        b &= !mc.isArrangerPlaying() && (mc.isPlaying() || mc.isPaused());
-        setEnabled(b);
+        setEnabled(getEnabledState(currentSong));
     }
 
     static private SongPart getNextSongPart(PlaybackSession session, List<SongPart> spts, SongPart songPart)

@@ -135,7 +135,7 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditorDialog<RP_SYS_Custo
         Runnable task = () -> 
         {
             SessionConfig config = new SessionConfig(false, false, false, 0, null);
-            BaseSongSession tmpSession = new BaseSongSession(songPartContext, config, false, PlaybackSession.STD_CONTEXT_ID_RP_VALUE_PREVIEW);
+            BaseSongSession tmpSession = new BaseSongSession(songPartContext, config, false, PlaybackSession.Context.RP_VALUE_PREVIEW);
             try
             {
                 tmpSession.generate(true);          // This can block for some time, possibly a few seconds on slow computers/complex rhythms              

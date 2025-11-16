@@ -85,16 +85,7 @@ public final class ArrangerTopComponent extends TopComponent implements Property
     @Override
     public Action[] getActions()
     {
-        List<Action> res = new ArrayList<>();
-        // Add the Netbeans standard actions such as Close, Close All, Close Others, MoveWindowWithinModeAction, while filtering unanted ones (Clone, Move, NewTabGroup, SizeGroup, ...).
-        for (var a : super.getActions())
-        {
-            if (a == null || UIUtilities.isNetbeansTopComponentTabActionUsed(a))
-            {
-                res.add(a);
-            }
-        }
-
+        var res = UIUtilities.getNetbeansTopComponentTabActions(super.getActions());
         return res.toArray(Action[]::new);
     }
 

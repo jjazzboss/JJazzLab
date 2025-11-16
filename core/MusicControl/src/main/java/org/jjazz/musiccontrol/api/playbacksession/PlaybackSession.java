@@ -79,52 +79,49 @@ public interface PlaybackSession
      * A property change event is fired when the loop count has changed.
      */
     public static final String PROP_LOOP_COUNT = "PropLoopCount";
+
     /**
-     * Standard context id for when we play a song (or part of). This is the standard case.
-     *
-     * @see #getContextId()
+     * Provide the context in which the PlaybackSession is used.
+     * 
+     * Used by e.g. PlaybackListeners which want to be active only in a given context.
+     * <p>
      */
-    public static final String STD_CONTEXT_ID_SONG = "ContextIdSong";
-    /**
-     * Standard context id for the arranger.
-     *
-     * @see #getContextId()
-     */
-    public static final String STD_CONTEXT_ID_ARRANGER = "ContextIdArranger";
-    /**
-     * Standard context id for when we hear test notes.
-     *
-     * @see #getContextId()
-     */
-    public static final String STD_CONTEXT_ID_TEST_NOTES = "ContextIdTestNotes";
-    /**
-     * Standard context id for when we "preview" (hear) a rhythm or a song part modified by a RhythmParameter.
-     *
-     * @see #getContextId()
-     */
-    public static final String STD_CONTEXT_ID_RHYTHM_PREVIEW = "ContextIdRhythmPreview";
-    /**
-     * Standard context id for when we "preview" (hear) a song part with a given RhythmParameter value.
-     *
-     * @see #getContextId()
-     */
-    public static final String STD_CONTEXT_ID_RP_VALUE_PREVIEW = "ContextIdRpValuePreview";
+    public enum Context
+    {
+        /**
+         * Used when playing a song (or part of). This is the standard case.
+         */
+        SONG,
+        /**
+         * Used when playing in arranger mode.
+         */
+        ARRANGER, 
+        /**
+         * Used e.g. when hearing test notes. 
+         */
+        AUDITIONING, 
+        /**
+         * Used when "preview hearing" a rhythm.
+         */
+        RHYTHM_PREVIEW, 
+        /**
+         * Used when "preview hearing" 
+         */
+        RP_VALUE_PREVIEW, 
+        /**
+         * For other cases
+         */
+        OTHER
+    };
 
 
     /**
-     * A String providing the context of this PlaybackSession.
-     * <p>
-     * It is used e.g. by some PlaybackListener instances to decide whether they keep listening to the MusicController or not.
+     * The context of this PlaybackSession.
      * <p>
      *
-     * @return Can be null. When possible return one of the STD_CONTEXT_ID_xxx constants.
-     * @see #STD_CONTEXT_ID_SONG
-     * @see #STD_CONTEXT_ID_ARRANGER
-     * @see #STD_CONTEXT_ID_RP_VALUE_PREVIEW
-     * @see #STD_CONTEXT_ID_RHYTHM_PREVIEW
-     * @see #STD_CONTEXT_ID_TEST_NOTES
+     * @return Can not be null
      */
-    public String getContextId();
+    public Context getContext();
 
     /**
      * Create the sequence and the related data.

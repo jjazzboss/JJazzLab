@@ -73,6 +73,7 @@ import org.jjazz.cl_editor.spi.BarBoxSettings;
 import org.jjazz.cl_editor.spi.BarRendererFactory;
 import org.jjazz.cl_editor.itemrenderer.api.IR_ChordSymbolSettings;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
+import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.uiutilities.api.UIUtilities;
 import org.openide.util.NbPreferences;
 
@@ -150,10 +151,11 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
             return;
         }
 
+        var mc = MusicController.getInstance();
+
         if (this.song != null)
         {
-            MusicController.getInstance().removePropertyChangeListener(this);
-            MusicController.getInstance().removePlaybackListener(this);
+            mc.removePropertyChangeListener(this);
             this.song.getChordLeadSheet().removeClsChangeListener(this);
             this.song.getSongStructure().removeSgsChangeListener(this);
 
@@ -172,14 +174,13 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
 
 
         // Update UI
-        setEnabled(this.song != null);
+        updateEnabledState();
         clearLabels();
 
 
         if (this.song != null)
         {
-            MusicController.getInstance().addPropertyChangeListener(this);
-            MusicController.getInstance().addPlaybackListener(this);
+            mc.addPropertyChangeListener(this);
             this.song.getChordLeadSheet().addClsChangeListener(this);
             this.song.getSongStructure().addSgsChangeListener(this);
 
@@ -189,6 +190,8 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
             createBarBoxes(this.song);
             stopped();
         }
+
+
     }
 
 
@@ -222,6 +225,15 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         lbl_songPart.setEnabled(b);
         posViewer.setEnabled(b);
         slider_zoom.setEnabled(b);
+        progressBar.setEnabled(b);
+
+        if (b)
+        {
+            MusicController.getInstance().addPlaybackListener(this);
+        } else
+        {
+            MusicController.getInstance().removePlaybackListener(this);
+        }
     }
 
 // ======================================================================
@@ -229,11 +241,19 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
 // ======================================================================   
 
     @Override
+    public boolean isAccepted(PlaybackSession session)
+    {
+        return session.getContext() == PlaybackSession.Context.SONG;
+    }
+
+    @Override
     public void enabledChanged(boolean b)
     {
-        setEnabled(b);
+        LOGGER.log(Level.FINE, "enabledChanged() -- b={0}", b);
         if (!b)
         {
+            // PlaybackSession became dirty.
+            setEnabled(b);
             stopped();
             clearLabels();
         }
@@ -243,11 +263,10 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
     @Override
     public void beatChanged(Position oldSongPos, Position songPos, float songPosInBeats)
     {
-        if (!isEnabled())
+        if (!isEnabled())       // Normally not required but kept for robustness (beatChanged called from a different thread)
         {
             return;
         }
-
 
         // Note that beat may jump to any bar,  example when user presses a "jump to previous/next song part" key like F1/F2
         // Update positions
@@ -261,9 +280,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
 
 
         // Make sure this is "normal" playback 
-        var mc = MusicController.getInstance();
-        boolean isPlaying = !mc.isArrangerPlaying() && mc.isPlaying();
-        if (!isPlaying)
+        if (!MusicController.getInstance().isPlaying())
         {
             return;
         }
@@ -341,8 +358,11 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
                         // Nothing
                     }
                     default -> throw new AssertionError(((MusicController.State) evt.getNewValue()).name());
-
                 }
+            } else if (evt.getPropertyName().equals(MusicController.PROP_PLAYBACK_SESSION))
+            {
+                // Disable if we don't play a Song (e.g. playing chord notes or for rhythm preview)
+                updateEnabledState();
             }
         } else if (evt.getSource() == PlaybackSettings.getInstance())
         {
@@ -703,7 +723,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
      * # This line is shown the 3nd time (then 6th time etc.) <br>
      * <p>
      *
-     * @param songPart
+     * @param spt
      * @param rawAnnotationText
      * @return
      */
@@ -842,6 +862,18 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         nextSongPart = nextSpt == songPart ? null : nextSpt;
         lbl_nextSongPart.setText(buildNextSongPartString(nextSongPart));
     }
+
+    private void updateEnabledState()
+    {
+        var playbackSession = MusicController.getInstance().getPlaybackSession();
+        boolean b = song != null && playbackSession!=null && isAccepted(playbackSession);
+        LOGGER.log(Level.FINE, "updateEnabledState() b={0} song={1} playbackSession={1}", new Object[]
+        {
+            b, song, playbackSession
+        });
+        setEnabled(b);
+    }
+    
 
     // =================================================================================================
     // Inner classes

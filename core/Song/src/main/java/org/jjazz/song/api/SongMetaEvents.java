@@ -85,7 +85,7 @@ public class SongMetaEvents implements ClsChangeListener, SgsChangeListener, Pro
      * OldValue=the source ClsSourceActionEvent/SgsSourceActionEvent that initially triggered the change.<br>
      * NewValue=the optional associated data
      */
-    public static final String PROP_BAR_BEAT_SEQUENCE = "PropBarBeatSequence";
+    public static final String PROP_SONG_STRUCTURE = "PropSongStructure";
 
     private static final Map<Song, SongMetaEvents> MAP_SONG_INSTANCE = new HashMap<>();
 
@@ -295,7 +295,7 @@ public class SongMetaEvents implements ClsChangeListener, SgsChangeListener, Pro
     private void fireBarBeatSequenceChanged(Object src, Object data)
     {
         assert src instanceof ClsSourceActionEvent || src instanceof SgsSourceActionEvent;
-        pcs.firePropertyChange(PROP_BAR_BEAT_SEQUENCE, src, data);
+        pcs.firePropertyChange(PROP_SONG_STRUCTURE, src, data);
     }
 
     private void fireSongAPIChangeComplete(ClsSourceActionEvent csae)

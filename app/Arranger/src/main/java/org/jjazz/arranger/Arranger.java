@@ -165,7 +165,7 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
 
 
         var config = new SessionConfig(true, false, false, Sequencer.LOOP_CONTINUOUSLY, null);
-        UpdateProviderSongSession dynSession = UpdateProviderSongSession.getSession(songContextWork, config, false, PlaybackSession.STD_CONTEXT_ID_ARRANGER);
+        UpdateProviderSongSession dynSession = UpdateProviderSongSession.getSession(songContextWork, config, false, PlaybackSession.Context.ARRANGER);
         dynSession.setPreUpdateBufferTimeMs(5);     // Each user chord change generates only 2 song changes (remove and add 1 CLI_ChordSymbol)
         dynSession.setPostUpdateSleepTimeMs(100);    // This allow user to change chord quickly
         dynSession.setUserErrorExceptionHandler(null);  // User execption may occur depending on timing, as we remove then add a chord symbol at section start

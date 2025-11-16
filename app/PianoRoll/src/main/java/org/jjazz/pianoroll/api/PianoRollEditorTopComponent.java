@@ -148,7 +148,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 
         // Listen to edited phrase bounds changes
         songMetaEvents = SongMetaEvents.getInstance(song);
-        songMetaEvents.addPropertyChangeListener(SongMetaEvents.PROP_BAR_BEAT_SEQUENCE, this);
+        songMetaEvents.addPropertyChangeListener(SongMetaEvents.PROP_SONG_STRUCTURE, this);
 
 
         refreshToolbarTitle();
@@ -348,15 +348,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
             res.add(null);   // Separator         
         }
 
-        // Add the Netbeans standard actions such as Close, Close All, Close Others, MoveWindowWithinModeAction, while filtering unanted ones (Clone, Move, NewTabGroup, SizeGroup, ...).
-        for (var a : super.getActions())
-        {
-            LOGGER.log(Level.FINE, "getActions() a={0}", a);
-            if (a == null || UIUtilities.isNetbeansTopComponentTabActionUsed(a))
-            {
-                res.add(a);
-            }
-        }
+        res.addAll(UIUtilities.getNetbeansTopComponentTabActions(super.getActions()));
 
         return res.toArray(Action[]::new);
     }
@@ -395,7 +387,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     {
         LOGGER.fine("componentClosed() -- ");
         song.removePropertyChangeListener(this);
-        songMetaEvents.removePropertyChangeListener(SongMetaEvents.PROP_BAR_BEAT_SEQUENCE, this);
+        songMetaEvents.removePropertyChangeListener(SongMetaEvents.PROP_SONG_STRUCTURE, this);
         sidePanel.cleanup();
         editor.cleanup();
         toolbarPanel.cleanup();

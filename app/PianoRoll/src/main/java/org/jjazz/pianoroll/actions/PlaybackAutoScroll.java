@@ -24,6 +24,7 @@ package org.jjazz.pianoroll.actions;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.EnumSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Action;
@@ -33,6 +34,7 @@ import javax.swing.KeyStroke;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackListenerAdapter;
+import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.utilities.api.ToggleAction;
@@ -150,6 +152,11 @@ public class PlaybackAutoScroll extends ToggleAction implements PropertyChangeLi
 
         boolean enabled;
 
+        public MusicListener()
+        {
+            super(EnumSet.of(PlaybackSession.Context.SONG));
+        }
+        
         @Override
         public void beatChanged(Position oldPos, Position newPos, float newPosInBeats)
         {

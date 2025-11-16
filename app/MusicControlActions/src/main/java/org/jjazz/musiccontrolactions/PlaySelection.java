@@ -184,7 +184,7 @@ public class PlaySelection extends AbstractAction
             new FixMissingSectionStartChord(context).autofix();
             FixMidiMix.checkAndPossiblyFix(midiMix, true);
 
-            UpdateProviderSongSession dynSession = UpdateProviderSongSession.getSession(context, PlaybackSession.STD_CONTEXT_ID_SONG);            
+            UpdateProviderSongSession dynSession = UpdateProviderSongSession.getSession(context, PlaybackSession.Context.SONG);            
             session = UpdatableSongSession.getSession(dynSession);
             mc.setPlaybackSession(session, false);      // Can raise MusicGenerationException
             mc.play(rg.from);

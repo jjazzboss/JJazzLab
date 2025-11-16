@@ -105,7 +105,7 @@ public class PlaybackToPreviousSongPart extends AbstractAction implements Proper
             newSong = s;
             i++;
         }
-        assert i < 2 : "i=" + i + " lookupResult.allInstances()=" + lookupResult.allInstances();   
+        assert i < 2 : "i=" + i + " lookupResult.allInstances()=" + lookupResult.allInstances();
         if (newSong != null)
         {
             // Current song has changed
@@ -126,13 +126,17 @@ public class PlaybackToPreviousSongPart extends AbstractAction implements Proper
         MusicController mc = MusicController.getInstance();
         if (evt.getSource() == mc)
         {
-            if (evt.getPropertyName() == MusicController.PROP_STATE)
+            switch (evt.getPropertyName())
             {
-                updateEnabledState();
+                case MusicController.PROP_STATE, MusicController.PROP_PLAYBACK_SESSION -> updateEnabledState();
+                default ->
+                {
+                    // Nothing
+                }
             }
         } else if (evt.getSource() == ActiveSongManager.getDefault())
         {
-            if (evt.getPropertyName() == ActiveSongManager.PROP_ACTIVE_SONG)
+            if (evt.getPropertyName().equals(ActiveSongManager.PROP_ACTIVE_SONG))
             {
                 updateEnabledState();
             }
@@ -166,11 +170,7 @@ public class PlaybackToPreviousSongPart extends AbstractAction implements Proper
 
     private void updateEnabledState()
     {
-        MusicController mc = MusicController.getInstance();
-        Song activeSong = ActiveSongManager.getDefault().getActiveSong();
-        boolean b = (currentSong != null && currentSong == activeSong);
-        b &= !mc.isArrangerPlaying() && (mc.isPlaying() || mc.isPaused());
-        setEnabled(b);
+        setEnabled(PlaybackToNextSongPart.getEnabledState(currentSong));
     }
 
 }

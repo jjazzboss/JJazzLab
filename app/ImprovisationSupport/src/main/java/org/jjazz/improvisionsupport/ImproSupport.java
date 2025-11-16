@@ -26,10 +26,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -47,6 +45,7 @@ import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.barbox.api.BarBoxConfig;
 import org.jjazz.cl_editor.spi.BarRendererFactory;
+import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.song.api.SongMetaEvents;
 import org.jjazz.utilities.api.ResUtil;
 
@@ -59,7 +58,6 @@ public class ImproSupport implements PropertyChangeListener
     public final static String PROP_MODE = "PropMode";
     public final static String PROP_ENABLED = "PropEnabled";
     public final static String PROP_CHORD_POSITIONS_HIDDEN = "PropChordPositionsHidden";
-    public final static String PROP_UPDATE_DURING_PLAYBACK = "PropGenerateDuringPlayback";
 
 
     private final CL_Editor clEditor;
@@ -67,8 +65,7 @@ public class ImproSupport implements PropertyChangeListener
     private PlayRestScenario scenario;
     private boolean enabled;
     private boolean chordPositionsHidden;
-    private boolean updateDuringPlayback;
-    private ImproSupportPlaybackListener playbackListener;
+    private final ImproSupportPlaybackListener playbackListener;
     private final SongMetaEvents songMetaEvents;
     private boolean dirty;
 
@@ -84,13 +81,8 @@ public class ImproSupport implements PropertyChangeListener
         this.dirty = true;
         chordPositionsHidden = true;
 
-        updateDuringPlayback = true;
         playbackListener = new ImproSupportPlaybackListener();
-        MusicController.getInstance().addPlaybackListener(playbackListener);
-
-
         songMetaEvents = SongMetaEvents.getInstance(clEditor.getSongModel());
-        songMetaEvents.addPropertyChangeListener(SongMetaEvents.PROP_BAR_BEAT_SEQUENCE, this);
 
     }
 
@@ -101,8 +93,7 @@ public class ImproSupport implements PropertyChangeListener
 
     public void cleanup()
     {
-        songMetaEvents.removePropertyChangeListener(SongMetaEvents.PROP_BAR_BEAT_SEQUENCE, this);
-        MusicController.getInstance().removePlaybackListener(playbackListener);
+        stopListeners();
     }
 
     /**
@@ -115,25 +106,18 @@ public class ImproSupport implements PropertyChangeListener
             return;
         }
         setDirty(false);
-        
+
         PlayRestScenario prs;
         switch (mode)
         {
-            case PLAY_REST_EASY:
-                prs = generatePlayRestScenario(PlayRestScenario.Level.LEVEL1, scenario, false);
-                break;
-            case PLAY_REST_MEDIUM:
-                prs = generatePlayRestScenario(PlayRestScenario.Level.LEVEL2, scenario, false);
-                break;
-            case DENSE_SPARSE:
-                prs = generatePlayRestScenario(PlayRestScenario.Level.LEVEL1, scenario, true);
-                break;
-            default:
-                throw new AssertionError(mode.name());
+            case PLAY_REST_EASY -> prs = generatePlayRestScenario(PlayRestScenario.Level.LEVEL1, scenario, false);
+            case PLAY_REST_MEDIUM -> prs = generatePlayRestScenario(PlayRestScenario.Level.LEVEL2, scenario, false);
+            case DENSE_SPARSE -> prs = generatePlayRestScenario(PlayRestScenario.Level.LEVEL1, scenario, true);
+            default -> throw new AssertionError(mode.name());
         }
 
         setPlayRestScenario(prs);
-        
+
         Analytics.incrementProperties("Impro Support Generate", 1);
     }
 
@@ -153,33 +137,6 @@ public class ImproSupport implements PropertyChangeListener
         showImproSupportBarRenderer(true, chordPositionsHidden);
 
         pcs.firePropertyChange(PROP_CHORD_POSITIONS_HIDDEN, !chordPositionsHidden, chordPositionsHidden);
-    }
-
-    public boolean isUpdateDuringPlayback()
-    {
-        return updateDuringPlayback;
-    }
-
-    public void setUpdateDuringPlayback(boolean updateDuringPlayback)
-    {
-        if (!enabled || this.updateDuringPlayback == updateDuringPlayback)
-        {
-            return;
-        }
-        this.updateDuringPlayback = updateDuringPlayback;
-
-        if (updateDuringPlayback)
-        {
-            playbackListener = new ImproSupportPlaybackListener();
-            MusicController.getInstance().addPlaybackListener(playbackListener);
-            updateSongBarIndexes();
-        } else
-        {
-            MusicController.getInstance().removePlaybackListener(playbackListener);
-            playbackListener = null;
-        }
-
-        pcs.firePropertyChange(PROP_UPDATE_DURING_PLAYBACK, !updateDuringPlayback, updateDuringPlayback);
     }
 
     public Mode getMode()
@@ -215,9 +172,13 @@ public class ImproSupport implements PropertyChangeListener
         showImproSupportBarRenderer(enabled, chordPositionsHidden);
         if (this.enabled)
         {
+            startListeners();            
             generate();
+        } else
+        {
+            stopListeners();
         }
-        pcs.firePropertyChange(PROP_ENABLED, !enabled, enabled);                
+        pcs.firePropertyChange(PROP_ENABLED, !enabled, enabled);
     }
 
     public void addPropertyChangeListener(PropertyChangeListener l)
@@ -236,12 +197,13 @@ public class ImproSupport implements PropertyChangeListener
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        if (evt.getSource() == songMetaEvents && evt.getPropertyName().equals(SongMetaEvents.PROP_BAR_BEAT_SEQUENCE))
+        if (evt.getSource() == songMetaEvents && evt.getPropertyName().equals(SongMetaEvents.PROP_SONG_STRUCTURE))
         {
             songStructurallyChanged();
         }
-        
+
     }
+
     //================================================================================================
     // Private methods
     //================================================================================================
@@ -260,9 +222,9 @@ public class ImproSupport implements PropertyChangeListener
      * Create a new scenario guaranteed to be different from oldScenario (for PlayRestValues).
      *
      * @param level
-     * @param oldScenario Can be null
+     * @param oldScenario    Can be null
      * @param addDenseSparse
-     * @return 
+     * @return
      */
     private PlayRestScenario generatePlayRestScenario(PlayRestScenario.Level level, PlayRestScenario oldScenario, boolean addDenseSparse)
     {
@@ -286,7 +248,10 @@ public class ImproSupport implements PropertyChangeListener
             }
         }
         assert res != null;
-        LOGGER.log(Level.FINE, "generatePlayRestScenario() newPrValues={0} newDsValues={1}", new Object[]{newPrValues, newDsValues});
+        LOGGER.log(Level.FINE, "generatePlayRestScenario() newPrValues={0} newDsValues={1}", new Object[]
+        {
+            newPrValues, newDsValues
+        });
 
         return res;
     }
@@ -342,12 +307,26 @@ public class ImproSupport implements PropertyChangeListener
             updateSongBarIndexes();
         }
     }
-    
+
     private synchronized void setDirty(boolean b)
     {
         dirty = b;
     }
-    
+
+    private void startListeners()
+    {
+        songMetaEvents.addPropertyChangeListener(SongMetaEvents.PROP_SONG_STRUCTURE, this);
+        MusicController.getInstance().addPlaybackListener(playbackListener);
+        MusicController.getInstance().addPropertyChangeListener(this);
+    }
+
+    private void stopListeners()
+    {
+        songMetaEvents.removePropertyChangeListener(SongMetaEvents.PROP_SONG_STRUCTURE, this);
+        MusicController.getInstance().removePlaybackListener(playbackListener);
+        MusicController.getInstance().removePropertyChangeListener(this);
+    }
+
     private synchronized boolean isDirty()
     {
         return dirty;
@@ -406,7 +385,6 @@ public class ImproSupport implements PropertyChangeListener
     // ===================================================================================
     // Inner classes
     // ===================================================================================
-
     public enum Mode
     {
         PLAY_REST_EASY(ResUtil.getString(ImproSupport.class, "PlayRest1DisplayName"), ResUtil.getString(ImproSupport.class, "PlayRestHelpText")),
@@ -437,7 +415,11 @@ public class ImproSupport implements PropertyChangeListener
     private class ImproSupportPlaybackListener implements PlaybackListener
     {
 
-        private final Map<CLI_Section, Boolean> mapSectionPlayed = new HashMap<>();
+        @Override
+        public boolean isAccepted(PlaybackSession session)
+        {
+            return session.getContext() == PlaybackSession.Context.SONG;
+        }
 
         @Override
         public void enabledChanged(boolean b)

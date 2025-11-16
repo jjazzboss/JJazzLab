@@ -105,7 +105,7 @@ public class PlayLoopZone extends AbstractAction
             FixMidiMix.checkAndPossiblyFix(context.getMidiMix(), true);
 
             // Create the session
-            var dynSession = UpdateProviderSongSession.getSession(context, PlaybackSession.STD_CONTEXT_ID_SONG);
+            var dynSession = UpdateProviderSongSession.getSession(context, PlaybackSession.Context.SONG);
             session = UpdatableSongSession.getSession(dynSession);
             mc.setPlaybackSession(session,  false); // can raise MusicGenerationException            
 

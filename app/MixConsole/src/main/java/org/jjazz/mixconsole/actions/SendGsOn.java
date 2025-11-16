@@ -29,7 +29,7 @@ import javax.swing.AbstractAction;
 import static javax.swing.Action.NAME;
 import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.midi.api.MidiUtilities;
-import org.jjazz.mixconsole.SynthUtils;
+import org.jjazz.midi.api.SynthUtils;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;

@@ -20,10 +20,9 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.mixconsole;
+package org.jjazz.midi.api;
 
 import javax.sound.midi.MidiDevice;
-import org.jjazz.midi.api.JJazzMidiSystem;
 
 
 public class SynthUtils {

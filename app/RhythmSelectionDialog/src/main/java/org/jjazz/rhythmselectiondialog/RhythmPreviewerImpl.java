@@ -316,7 +316,7 @@ public class RhythmPreviewerImpl implements RhythmPreviewer
 
         private PreviewSession(SongContext sgContext, int loopCount, ActionListener endOfPlaybackAction)
         {
-            super(sgContext, new SessionConfig(false, false, true, loopCount, endOfPlaybackAction), false, PlaybackSession.STD_CONTEXT_ID_RHYTHM_PREVIEW);
+            super(sgContext, new SessionConfig(false, false, true, loopCount, endOfPlaybackAction), false, PlaybackSession.Context.RHYTHM_PREVIEW);
         }
 
         @Override

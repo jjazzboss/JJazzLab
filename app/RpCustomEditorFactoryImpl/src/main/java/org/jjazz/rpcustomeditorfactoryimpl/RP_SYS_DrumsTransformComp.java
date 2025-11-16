@@ -72,6 +72,7 @@ import org.jjazz.songcontext.api.SongPartContext;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.flatcomponents.api.FlatIntegerKnob;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
+import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession.Context;
 import org.jjazz.musiccontrol.api.playbacksession.SessionConfig;
 import org.jjazz.uiutilities.api.UIUtilities;
 import org.openide.DialogDisplayer;
@@ -180,7 +181,7 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
         {
             SongContext workContext = RealTimeRpEditorDialog.buildPreviewContext(songPartContext, rp, rp.getDefaultValue());
             SessionConfig config = new SessionConfig(false, false, false, 0, null);
-            BaseSongSession tmpSession = new BaseSongSession(workContext, config, false, PlaybackSession.STD_CONTEXT_ID_RP_VALUE_PREVIEW);
+            BaseSongSession tmpSession = new BaseSongSession(workContext, config, false, PlaybackSession.Context.RP_VALUE_PREVIEW);
             try
             {
                 tmpSession.generate(true);          // This can block for some time, possibly a few seconds on slow computers/complex rhythms              
@@ -306,6 +307,12 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
     // PlaybackListener interface
     // ===============================================================================  
 
+    @Override
+    public boolean isAccepted(PlaybackSession session)            
+    {
+        return session.getContext() == Context.RP_VALUE_PREVIEW;
+    }
+    
     @Override
     public void enabledChanged(boolean b)
     {

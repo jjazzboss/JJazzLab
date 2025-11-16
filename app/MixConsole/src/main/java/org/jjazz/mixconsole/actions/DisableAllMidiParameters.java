@@ -35,7 +35,7 @@ import org.jjazz.analytics.api.Analytics;
 import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.InstrumentSettings;
 import org.jjazz.midi.api.JJazzMidiSystem;
-import org.jjazz.mixconsole.SynthUtils;
+import org.jjazz.midi.api.SynthUtils;
 import org.jjazz.song.api.Song;
 import org.jjazz.mixconsole.api.MixConsoleTopComponent;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;

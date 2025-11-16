@@ -22,8 +22,11 @@
  */
 package org.jjazz.musiccontrol.api;
 
+import java.util.EnumSet;
+import java.util.Objects;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.harmony.api.Position;
+import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.songstructure.api.SongPart;
 
 /**
@@ -33,6 +36,47 @@ import org.jjazz.songstructure.api.SongPart;
  */
 public class PlaybackListenerAdapter implements PlaybackListener
 {
+
+    public final EnumSet<PlaybackSession.Context> acceptedContexts;
+
+    /**
+     * Create a PlaybackListenerAdapter which accepts any PlaybackSession.
+     * <p>
+     */
+    public PlaybackListenerAdapter()
+    {
+        this(EnumSet.allOf(PlaybackSession.Context.class));
+    }
+
+    /**
+     * Create a PlaybackListenerAdapter which accepts only the specified PlaybackSession contexts.
+     * <p>
+     * @param acceptedContexts Can not be null
+     */
+    public PlaybackListenerAdapter(EnumSet<PlaybackSession.Context> acceptedContexts)
+    {
+        Objects.requireNonNull(acceptedContexts);
+        this.acceptedContexts = acceptedContexts;
+    }
+
+    public EnumSet<PlaybackSession.Context> getAcceptedContexts()
+    {
+        return acceptedContexts;
+    }
+
+    /**
+     * Accept if session.getContext()
+     *
+     * @param session
+     * @return
+     */
+    @Override
+    public boolean isAccepted(PlaybackSession session)
+    {
+        Objects.requireNonNull(session);
+        boolean b = acceptedContexts.contains(session.getContext());
+        return b;
+    }
 
     @Override
     public void beatChanged(Position oldPos, Position newPos, float newPosInBeats)
@@ -63,4 +107,5 @@ public class PlaybackListenerAdapter implements PlaybackListener
     {
         // Do nothing
     }
+
 }

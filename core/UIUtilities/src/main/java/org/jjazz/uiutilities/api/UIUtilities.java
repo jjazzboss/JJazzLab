@@ -699,17 +699,37 @@ public class UIUtilities
     }
 
     /**
+     * Get the accepted default Netbeans TopComponent tab actions.
+     *
+     * @param defaultNbActions The default Netbeans actions returned by TopComponent.getActions() default implementation.
+     * @return A non mutable list
+     * @see #isNetbeansTopComponentTabActionUsed(javax.swing.Action)
+     */
+    static public List<Action> getNetbeansTopComponentTabActions(Action[] defaultNbActions)
+    {
+        Objects.requireNonNull(defaultNbActions);
+        var res = Stream.of(defaultNbActions)
+                .filter(a -> isNetbeansTopComponentTabActionUsed(a))
+                .toList();
+        return res;
+    }
+
+    /**
      * Check if the specified standard Netbeans action (such as CloseWindowAction) should be left in the tab menu of JJazzLab TopComponents.
      *
-     * @param nbAction
+     * @param nbAction If null return true
      * @return
      */
     static public boolean isNetbeansTopComponentTabActionUsed(Action nbAction)
     {
-        Objects.requireNonNull(nbAction);
-        var className = nbAction.getClass().getSimpleName();
-        var blackList = List.of("CloneDocumentAction", "NewTabGroupAction", "CollapseTabGroupAction", "MoveModeAction", "ResizeModeAction", "MoveWindowAction");
-        return blackList.stream().noneMatch(s -> className.contains(s));
+        boolean b = true;
+        if (nbAction != null)
+        {
+            var className = nbAction.getClass().getSimpleName();
+            var blackList = List.of("CloneDocumentAction", "NewTabGroupAction", "CollapseTabGroupAction", "MoveModeAction", "ResizeModeAction", "MoveWindowAction");
+            b = blackList.stream().noneMatch(s -> className.contains(s));
+        }
+        return b;
     }
 
     /**

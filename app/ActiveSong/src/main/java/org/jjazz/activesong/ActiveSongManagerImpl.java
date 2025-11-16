@@ -43,6 +43,7 @@ import org.jjazz.utilities.api.ResUtil;
 import org.openide.util.Exceptions;
 import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.musiccontrol.api.MusicController;
+import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession.Context;
 import org.openide.util.lookup.ServiceProvider;
 import org.jjazz.outputsynth.spi.OutputSynthManager;
 
@@ -439,16 +440,13 @@ public class ActiveSongManagerImpl implements PropertyChangeListener, ActiveSong
         }
     }
 
-
-    private boolean needsInstrumentsReset(PlaybackSession playbackSession)
+    private boolean needsInstrumentsReset(PlaybackSession session)
     {
         boolean b = false;
-        if (playbackSession != null)
+        if (session != null)
         {
-            String contextId = playbackSession.getContextId();
-            b = contextId != null
-                    && playbackSession instanceof SongContextProvider
-                    && List.of(PlaybackSession.STD_CONTEXT_ID_SONG, PlaybackSession.STD_CONTEXT_ID_ARRANGER).contains(contextId);
+            b = session instanceof SongContextProvider
+                    && EnumSet.of(Context.SONG, Context.ARRANGER, Context.RHYTHM_PREVIEW).contains(session.getContext());
         }
         return b;
     }

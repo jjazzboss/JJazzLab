@@ -235,9 +235,9 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
     }
 
     @Override
-    public String getContextId()
+    public Context getContext()
     {
-        return baseSongSession.getContextId();
+        return baseSongSession.getContext();
     }
 
     @Override

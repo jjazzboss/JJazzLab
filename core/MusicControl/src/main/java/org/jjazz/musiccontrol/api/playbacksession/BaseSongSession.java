@@ -82,7 +82,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     private int precountClickTrackId = -1;
     private long loopStartTick = 0;
     private long loopEndTick = -1;
-    private final String contextId;
+    private final Context context;
     private Map<RhythmVoice, Integer> mapRvTrackId;
     private Map<RhythmVoice, Phrase> mapRvPhrase;
     private Map<Integer, Boolean> mapTrackIdMuted;
@@ -92,18 +92,19 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     /**
      * Create a session with the specified parameters.
      * <p>
-     * @param sgContext
-     * @param sConfig
+     * @param sgContext Can not be null
+     * @param sConfig Can not be null
      * @param useActiveSongBackgroundMusicBuilder If true use ActiveSongBackgroundMusicBuilder when possible to speed up music generation
-     * @param contextId                           A String providing the context of this PlaybackSession. Can be null.
+     * @param context Can not be null
      */
-    public BaseSongSession(SongContext sgContext, SessionConfig sConfig, boolean useActiveSongBackgroundMusicBuilder, String contextId)
+    public BaseSongSession(SongContext sgContext, SessionConfig sConfig, boolean useActiveSongBackgroundMusicBuilder, Context context)
     {
         Objects.requireNonNull(sgContext);
+        Objects.requireNonNull(context);
         Objects.requireNonNull(sConfig);
         this.songContext = sgContext;
         this.sessionConfig = sConfig;
-        this.contextId = contextId;
+        this.context = context;
         this.isUseActiveSongBackgroundMusicBuilder = useActiveSongBackgroundMusicBuilder;
     }
 
@@ -112,14 +113,14 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     public BaseSongSession getFreshCopy(SongContext sgContext)
     {
         var newContext = sgContext == null ? getSongContext().clone() : sgContext;
-        BaseSongSession res = new BaseSongSession(newContext, sessionConfig, isUseActiveSongBackgroundMusicBuilder(), contextId);
+        BaseSongSession res = new BaseSongSession(newContext, sessionConfig, isUseActiveSongBackgroundMusicBuilder(), context);
         return res;
     }
 
     @Override
-    public String getContextId()
+    public Context getContext()
     {
-        return contextId;
+        return context;
     }
 
 
@@ -478,7 +479,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     @Override
     public String toString()
     {
-        return "BaseSongSession=[state=" + state + ", isDirty=" + isDirty + " contextId=" + contextId + " songContext=" + songContext + "]";
+        return "BaseSongSession=[state=" + state + ", isDirty=" + isDirty + " context=" + context + " songContext=" + songContext + "]";
     }
 
     // ==========================================================================================================
