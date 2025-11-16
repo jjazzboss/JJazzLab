@@ -22,6 +22,7 @@
  */
 package org.jjazz.mixconsole;
 
+import org.jjazz.musiccontrol.api.MidiActivityMonitor;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.InputEvent;
@@ -36,22 +37,18 @@ import javax.swing.TransferHandler;
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.synths.GMSynth;
-import org.jjazz.musiccontrol.api.MusicController;
-import org.jjazz.musiccontrol.api.PlaybackListener;
-import org.jjazz.musiccontrol.api.PlaybackListenerAdapter;
 import org.jjazz.flatcomponents.api.FlatButton;
 import org.jjazz.flatcomponents.api.FlatIntegerKnob;
 import org.jjazz.flatcomponents.api.FlatIntegerVerticalSlider;
 import org.jjazz.flatcomponents.api.FlatTextEditDialog;
 import org.jjazz.mixconsole.api.MixConsoleSettings;
 import org.jjazz.uisettings.api.GeneralUISettings;
-import org.jjazz.uiutilities.api.HSLColor;
 import org.jjazz.utilities.api.Utilities;
 
 /**
  * The panel to edit the channel Instrument and InstrumentMix.
  */
-public class MixChannelPanel extends javax.swing.JPanel implements PropertyChangeListener
+public class MixChannelPanel extends javax.swing.JPanel implements PropertyChangeListener, MidiActivityMonitor.Listener
 {
 
     private MixChannelPanelModel model;
@@ -59,7 +56,6 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
     private MixConsoleSettings settings;
     private FlatButton fbtn_channelNameImpl;
     private boolean selected;
-    private final PlaybackListener playbackListener;
     private final Font FONT = GeneralUISettings.getInstance().getStdCondensedFont();
     private static final Logger LOGGER = Logger.getLogger(MixChannelPanel.class.getSimpleName());
 
@@ -70,7 +66,6 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
     public MixChannelPanel()
     {
         model = new BaseMixChannelPanelModel();
-        playbackListener = null;
     }
 
     public MixChannelPanel(final MixChannelPanelModel model, final MixChannelPanelController controller, MixConsoleSettings settings)
@@ -87,25 +82,11 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         this.settings.addPropertyChangeListener(this);
         this.model.addPropertyChangeListener(this);
 
-
-        playbackListener = new PlaybackListenerAdapter()
-        {
-            @Override
-            public void midiActivity(long tick, int channel)
-            {
-                if (model.getChannelId() == channel)
-                {
-                    fled_midiActivity.showActivity();
-                }
-            }
-        };
-        MusicController.getInstance().addPlaybackListener(playbackListener);
-
+        MidiActivityMonitor.getInstance().addListener(this, this.model.getChannelId());
 
         if (model.isUserChannel())
         {
-            fbtn_channelNameImpl = new FlatButton(org.jjazz.uiutilities.api.UIUtilities.getAction(ae -> userChannelNameClicked()), true, true,
-                    false);
+            fbtn_channelNameImpl = new FlatButton(org.jjazz.uiutilities.api.UIUtilities.getAction(ae -> userChannelNameClicked()), true, true, false);
         } else
         {
             fbtn_channelNameImpl = new FlatButton(false, false, false);
@@ -143,7 +124,7 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
 
     public void cleanup()
     {
-        MusicController.getInstance().removePlaybackListener(playbackListener);
+        MidiActivityMonitor.getInstance().removeListener(this, model.getChannelId());
         model.removePropertyChangeListener(this);
         settings.removePropertyChangeListener(this);
         model.cleanup();
@@ -160,6 +141,16 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
     {
         return selected;
     }
+
+    // ----------------------------------------------------------------------------
+    // MidiActivityMonitor.Listener interface
+    // ----------------------------------------------------------------------------
+    @Override
+    public void showMidiActivity(int channel)
+    {
+        fled_midiActivity.showActivity();
+    }
+
 
     // ----------------------------------------------------------------------------
     // PropertyChangeListener interface
@@ -205,6 +196,14 @@ public class MixChannelPanel extends javax.swing.JPanel implements PropertyChang
         {
             // MODEL changed, update UI
             refreshUI();
+            if (evt.getPropertyName().equals(MixChannelPanelModel.PROP_CHANNEL_ID))
+            {
+                int oldChannel = (int) evt.getOldValue();
+                int newChannel = (int) evt.getNewValue();
+                var mam = MidiActivityMonitor.getInstance();
+                mam.removeListener(this, oldChannel);
+                mam.addListener(this, newChannel);
+            }
         } else if (evt.getSource() == settings)
         {
             refreshUI();

@@ -62,7 +62,6 @@ import org.openide.util.Exceptions;
 import org.jjazz.musiccontrol.api.playbacksession.ControlTrackProvider;
 import org.jjazz.outputsynth.api.OutputSynth;
 import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder;
-import org.jjazz.song.api.Song;
 import org.jjazz.outputsynth.spi.OutputSynthManager;
 
 /**
@@ -1071,7 +1070,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             for (PlaybackListener pl : playbackListeners.toArray(PlaybackListener[]::new))
             {
                 // playbackSession might be null because in the meantime of the latency firing session was closed ?
-                if (playbackSession != null && pl.isAccepted(playbackSession))
+                if (playbackSession == null || pl.isAccepted(playbackSession))
                 {
                     pl.midiActivity(tick, channel);
                 }

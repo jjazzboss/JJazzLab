@@ -25,6 +25,7 @@ package org.jjazz.midi.api;
 /**
  * Midi Constants
  */
+
 public class MidiConst
 {
 
@@ -82,6 +83,11 @@ public class MidiConst
     public static final int CHANNEL_MIN = 0;
     public static final int CHANNEL_MAX = 15;
     public static final int CHANNEL_DRUMS = 9;
+    public static final int[] CHANNELS_ALL = new int[]
+    {
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
+    };
+
     // GM Percussion map
     public static final int ACOUSTIC_BASS_DRUM = 35;
     public static final int BASS_DRUM_1 = 36;
