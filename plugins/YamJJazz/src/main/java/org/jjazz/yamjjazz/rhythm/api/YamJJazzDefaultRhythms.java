@@ -33,6 +33,7 @@ import java.util.logging.Logger;
 import org.jjazz.rhythm.api.Genre;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import static org.jjazz.yamjjazz.rhythm.api.YamJJazzDefaultRhythms.LOGGER;
+import org.openide.windows.OnShowing;
 
 /**
  * YamJJazz default rhythm infos.
@@ -139,9 +140,10 @@ public class YamJJazzDefaultRhythms
         add("PopShuffle1.S552.prs", Genre.POP, "shuffle");
         add("6-8ModernBallad.S560.prs", Genre.POP, "12/8", "12-8", "6/8", "6-8");
 
-        add("CoolJazzBallad.S738.prs", Genre.JAZZ, "medium slow", "medium jazz", "slow swing", "slow jazz", "jazz slow", "ballad", "bld");
-        add("MediumJazz.S737.sst", Genre.JAZZ, "swing", "jazz", "medium swing", "jazz medium", "swing medium");
-        add("FastJazz.S741.sst", Genre.JAZZ, "medium up", "up swing", "jazz up", "up tempo");
+        // Don't need anymore the three 4/4 swing styles now that we have jjSwing
+//        add("CoolJazzBallad.S738.prs", Genre.JAZZ, "medium slow", "medium jazz", "slow swing", "slow jazz", "jazz slow", "ballad", "bld");
+//        add("MediumJazz.S737.sst", Genre.JAZZ, "swing", "jazz", "medium swing", "jazz medium", "swing medium");
+//        add("FastJazz.S741.sst", Genre.JAZZ, "medium up", "up swing", "jazz up", "up tempo");
         add("JazzWaltzSlow.S423.prs", Genre.JAZZ, "waltz swing slow", "jazz waltz slow", "waltz slow", "slow waltz");
         add("JazzWaltzMed.S351.sst", Genre.JAZZ, "waltz", "waltz swing", "jazz waltz", "footprints");
         add("JazzWaltzFast.S499.sty", Genre.JAZZ, "waltz swing fast", "jazz waltz fast", "waltz fast", "slow fast");
@@ -182,7 +184,7 @@ public class YamJJazzDefaultRhythms
      * Because RhythmDatabase initialization will end up using YamJJazzDefaultRhythm instance, we need to do the check after complete initialization is done,
      * hence @OnShowing.
      */
-    // @OnShowing    enable only for testing
+    // @OnShowing    // enable only for testing
     public static class CheckDefaultRhythms implements Runnable
     {
 

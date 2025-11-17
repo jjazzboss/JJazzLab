@@ -35,10 +35,11 @@ import org.openide.util.lookup.ServiceProvider;
 public class YamJazzKeyMapProvider implements KeyMapProvider
 {
 
-    ArrayList<DrumKit.KeyMap> keyMaps = new ArrayList<>();
+    private final List<DrumKit.KeyMap> keyMaps;
 
     public YamJazzKeyMapProvider()
     {        
+        this.keyMaps = new ArrayList<>();
     }
 
     @Override

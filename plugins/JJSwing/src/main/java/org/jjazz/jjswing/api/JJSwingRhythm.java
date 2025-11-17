@@ -118,8 +118,7 @@ public class JJSwingRhythm implements YamJJazzRhythm
 
         preferredTempo = 120;
         features = new RhythmFeatures(Genre.JAZZ, Division.EIGHTH_SHUFFLE, TempoRange.ALL_TEMPO);
-
-        tags = List.of("premium", "swing", "jazz").toArray(new String[0]);
+        tags = List.of("swing", "jazz", "ballad", "bld").toArray(new String[0]);
 
 
         // Initialize the base rhythm

@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.swing.event.ChangeListener;
@@ -174,7 +175,10 @@ public interface RhythmDatabase
         }
 
         var res = score >= 100 ? ri : null;     // We return a result only if at least genre matched
-        Logger.getLogger(RhythmDatabase.class.getName()).fine("findRhythm() rf=" + rf + " res=" + res);
+        Logger.getLogger(RhythmDatabase.class.getName()).log(Level.FINE, "findRhythm() rf={0} res={1}", new Object[]
+        {
+            rf, res
+        });
         return res;
     }
 
@@ -219,7 +223,10 @@ public interface RhythmDatabase
                     .orElse(null);
         }
 
-        Logger.getLogger(RhythmDatabase.class.getName()).fine("findRhythm() text=" + text + " res=" + res);
+        Logger.getLogger(RhythmDatabase.class.getName()).log(Level.FINE, "findRhythm() text={0} res={1}", new Object[]
+        {
+            text, res
+        });
         return res;
     }
 
