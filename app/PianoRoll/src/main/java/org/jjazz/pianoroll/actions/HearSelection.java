@@ -22,6 +22,7 @@
  */
 package org.jjazz.pianoroll.actions;
 
+import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.List;
@@ -31,6 +32,7 @@ import javax.swing.Action;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.KeyStroke;
+import org.jjazz.instrumentcomponents.keyboard.api.KeyboardMouseHelper;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
@@ -45,6 +47,8 @@ import org.openide.NotifyDescriptor;
 
 /**
  * Action to toggle the play of the last selected note.
+ * <p>
+ * Also enable hearing the piano keyboard note when clicked.
  */
 public class HearSelection extends ToggleAction implements PropertyChangeListener
 {
@@ -52,6 +56,8 @@ public class HearSelection extends ToggleAction implements PropertyChangeListene
     public static final String ACTION_ID = "HearSelection";
     public static final String KEYBOARD_SHORTCUT = "H";
     private final PianoRollEditor editor;
+    private KeyboardMouseHelper keyboardMouseHelper;
+    private MyKbdMouseListener myListener;
     private static final Logger LOGGER = Logger.getLogger(HearSelection.class.getSimpleName());
 
     public HearSelection(PianoRollEditor editor)
@@ -73,11 +79,15 @@ public class HearSelection extends ToggleAction implements PropertyChangeListene
                 .put(KeyStroke.getKeyStroke(KEYBOARD_SHORTCUT), HearSelection.ACTION_ID);
         this.editor.getActionMap().put(HearSelection.ACTION_ID, this);
 
+        keyboardMouseHelper = new KeyboardMouseHelper(editor.getKeyboard());
+        myListener = new MyKbdMouseListener();
 
         // Disable when music is being played
         var mc = MusicController.getInstance();
         mc.addPropertyChangeListener(this);
         setEnabled(!mc.isPlaying());
+
+        selectedStateChanged(false);        // Disabled by default
     }
 
 
@@ -87,9 +97,11 @@ public class HearSelection extends ToggleAction implements PropertyChangeListene
         if (b)
         {
             editor.addPropertyChangeListener(this);
+            keyboardMouseHelper.addListener(myListener);
         } else
         {
             editor.removePropertyChangeListener(this);
+            keyboardMouseHelper.removeListener(myListener);
         }
     }
 
@@ -143,6 +155,18 @@ public class HearSelection extends ToggleAction implements PropertyChangeListene
             p.add(newNe);
         }
 
+        playPhrase(p);
+    }
+
+    private void hearSingleNote(int pitch)
+    {
+        Phrase p = new Phrase(editor.getChannel());
+        p.add(new NoteEvent(pitch, 2f, 75, 0f));
+        playPhrase(p);
+    }
+
+    private void playPhrase(Phrase p)
+    {
         try
         {
             TestPlayer.getDefault().playTestNotes(p, null);     // playTestNotes will stop MusicController first
@@ -154,4 +178,17 @@ public class HearSelection extends ToggleAction implements PropertyChangeListene
         }
     }
 
+    // ====================================================================================
+    // Inner classes
+    // ====================================================================================
+
+    public class MyKbdMouseListener extends KeyboardMouseHelper.ListenerAdapter
+    {
+
+        @Override
+        public void mousePressed(int pitch, MouseEvent me)
+        {
+            hearSingleNote(pitch);
+        }
+    }
 }

@@ -342,6 +342,11 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
 
     }
 
+    public KeyboardComponent getKeyboard()
+    {
+        return keyboard;
+    }
+
     /**
      * Associate an optional song to the editor -this method can be called only once.
      * <p>
