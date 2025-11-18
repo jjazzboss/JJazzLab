@@ -705,7 +705,7 @@ public class SS_EditorController implements SS_EditorMouseListener
     private void buildAndShowPopupMenu(MouseEvent e, String actionsPath, Lookup context)
     {
         var actions = Utilities.actionsForPath(actionsPath);
-        actions.removeIf(a -> a instanceof HideIfDisabledAction && a.isEnabled());
+        actions.removeIf(a -> a instanceof HideIfDisabledAction && !a.isEnabled());
         var popupMenu = Utilities.actionsToPopup(actions.toArray(Action[]::new), context);   // This might use ContextAwareAction instances
         popupMenu.show(e.getComponent(), e.getX(), e.getY());
     }
