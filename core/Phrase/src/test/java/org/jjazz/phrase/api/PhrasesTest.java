@@ -26,6 +26,7 @@ package org.jjazz.phrase.api;
 
 import com.google.common.collect.ListMultimap;
 import java.io.File;
+import java.text.ParseException;
 import java.util.List;
 import java.util.function.Predicate;
 import javax.sound.midi.Track;
@@ -77,42 +78,63 @@ public class PhrasesTest
     @Test
     public void testFixOverlappedNotes()
     {
-        System.out.println("fixOverlappedNotes");
+        System.out.println("testFixOverlappedNotes");
         Phrase p1 = new Phrase(0);
         Phrase p2 = new Phrase(0);
-        
+
         p1.add(new NoteEvent(50, 2, 64, 0));         // (pitch, dur, velo, pos)
-        p1.add(new NoteEvent(50, 1, 64, 0));                 
+        p1.add(new NoteEvent(50, 1, 64, 0));
         p2.add(new NoteEvent(50, 1, 64, 0));
-        
+
         p1.add(new NoteEvent(50, 3, 64, 1));
         p2.add(new NoteEvent(50, 3, 64, 1));
 
-        p1.add(new NoteEvent(50, 1, 64, 1.5f));  
+        p1.add(new NoteEvent(50, 1, 64, 1.5f));
 
         p1.add(new NoteEvent(50, 5, 64, 5));
         p2.add(new NoteEvent(50, 1, 64, 5));
 
-        p1.add(new NoteEvent(50, 5, 64, 6));     
+        p1.add(new NoteEvent(50, 5, 64, 6));
         p2.add(new NoteEvent(50, 1.5f, 64, 6));
 
-        p1.add(new NoteEvent(50, 1, 64, 7));     
+        p1.add(new NoteEvent(50, 1, 64, 7));
 
         p1.add(new NoteEvent(50, 10, 64, 7.5f));
         p2.add(new NoteEvent(50, 10, 64, 7.5f));
-        
+
         p1.add(new NoteEvent(50, 1, 64, 20f));
         p1.add(new NoteEvent(50, 2, 64, 20f));
         p2.add(new NoteEvent(50, 2, 64, 20f));
-        
+
 
         System.out.println("# p1=\n" + Utilities.toMultilineString(p1.getNotes()));
-        
+
         Phrases.fixOverlappedNotes(p1);
 
         System.out.println("\n# p1=\n" + Utilities.toMultilineString(p1.getNotes()));
         System.out.println("\n# p2=\n" + Utilities.toMultilineString(p2.getNotes()));
         assertTrue(p1.equalsAsNoteNearPosition(p2, 0));
+    }
+
+    /**
+     * Test loadAsString()/saveAsString()
+     */
+    @Test
+    public void testSaveLoadAsString() throws ParseException
+    {
+        System.out.println("testSaveLoadAsString");
+        
+        Phrase p = new Phrase(0);
+        p.add(new NoteEvent(50, 2.2f, 34, 0.9999f));         // (pitch, dur, velo, pos)
+        p.add(new NoteEvent(57, 12f, 79, 3f));         // (pitch, dur, velo, pos)
+        p.add(new NoteEvent(0, 0.001f, 127, 4.5f));         // (pitch, dur, velo, pos)
+        p.add(new NoteEvent(60, .883f, 0, 2072.655f));         // (pitch, dur, velo, pos)
+
+        Phrase pSave = p.clone();
+        String s = Phrase.saveAsString(p);
+        p = Phrase.loadAsString(s);
+        
+        assertTrue(p.equalsAsNoteNearPosition(pSave, 0));        
     }
 
     /**

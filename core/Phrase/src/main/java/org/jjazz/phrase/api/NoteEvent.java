@@ -97,6 +97,10 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
     /**
      * Create a new NoteEvent with Accidental.FLAT.
      * <p>
+     * @param pitch
+     * @param duration
+     * @param velocity
+     * @param posInBeats
      */
     public NoteEvent(int pitch, float duration, int velocity, float posInBeats)
     {
@@ -112,7 +116,7 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
      */
     public NoteEvent(Note n, float posInBeats)
     {
-        this(n.getPitch(), n.getDurationInBeats(), n.getPitch(), posInBeats, n.getAccidental());
+        this(n.getPitch(), n.getDurationInBeats(), n.getVelocity(), posInBeats, n.getAccidental());
     }
 
 
@@ -293,7 +297,7 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
      * A "near" position is in the interval [posInBeats-nearWindow;posInBeats+nearWindow[.
      *
      * @param posInBeats
-     * @param nearWindow
+     * @param nearWindow Must be &gt;= 0
      * @return
      */
     public boolean isNear(float posInBeats, float nearWindow)
@@ -304,10 +308,10 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
         if (nearWindow == 0)
         {
             res = Float.floatToIntBits(getPositionInBeats()) == Float.floatToIntBits(posInBeats);
-        } else if (getPositionInBeats() < posInBeats - nearWindow)
+        } else if (getPositionInBeats() < (posInBeats - nearWindow))
         {
             res = false;
-        } else if (getPositionInBeats() >= posInBeats + nearWindow)
+        } else if (getPositionInBeats() >= (posInBeats + nearWindow))
         {
             res = false;
         } else
@@ -326,12 +330,14 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
      * ClientProperties are ignored.
      *
      * @param ne
-     * @param nearWindow Must be &gt; 0
+     * @param nearWindow Must be &gt;= 0
      * @return
      */
     public boolean equalsAsNoteNearPosition(NoteEvent ne, float nearWindow)
     {
         Preconditions.checkNotNull(ne);
+        Preconditions.checkNotNull(nearWindow>=0, "nearWindow=%s", nearWindow);
+        
         if (ne.getPitch() != getPitch())
         {
             return false;
@@ -344,7 +350,7 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
         {
             return false;
         }
-        if (ne.getDurationInBeats() < getDurationInBeats() - 2 * nearWindow || ne.getDurationInBeats() > getDurationInBeats() + 2 * nearWindow)
+        if (ne.getDurationInBeats() < (getDurationInBeats() - 2 * nearWindow) || ne.getDurationInBeats() > (getDurationInBeats() + 2 * nearWindow))
         {
             return false;
         }
@@ -420,9 +426,12 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
 
     /**
      * Return false unless o is the same object.
+     * <p>
+     * Use equalsAsNoteNearPosition(ne, 0) for equality based on the NoteEvent musical attributes.
      *
      * @param o
      * @return
+     * @see #equalsAsNoteNearPosition(org.jjazz.phrase.api.NoteEvent, float)
      */
     @Override
     public boolean equals(Object o)

@@ -153,7 +153,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
     /**
      * Relies on ==.
      * <p>
-     * For a "musical" comparison method, use equalsAsNoteNearPosition().
+     * For comparison of the NoteEvent musical attributes, use equalsAsNoteNearPosition() with nearWindow=0.
      *
      * @param o
      * @return
@@ -169,7 +169,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
      * Compare to a phrase using only NoteEvent.equalsAsNoteNearPosition() on each note.
      *
      * @param p
-     * @param nearWindow
+     * @param nearWindow Must be &gt;= 0
      * @return
      * @see NoteEvent#equalsAsNoteNearPosition(org.jjazz.phrase.api.NoteEvent, float)
      */
