@@ -187,7 +187,8 @@ public class DrumsGenerator implements MusicGenerator
                 {
                     // We have a fill, shorten beatRangeDps to make room for the 1-bar fill
                     float fillBeatSize = dpSourceFill.getSizeInBars() * nbBeatsPerBar;
-                    assert fillBeatSize <= beatRangeDps.size() : "spt=" + spt + " bar=" + bar + " beatRangeStd=" + beatRangeDps + " fillBeatSize=" + fillBeatSize;
+                    assert fillBeatSize <= beatRangeDps.size() :
+                            "spt=" + spt + " bar=" + bar + " beatRangeStd=" + beatRangeDps + " fillBeatSize=" + fillBeatSize;
                     beatRangeFill = new FloatRange(beatRangeDps.to - fillBeatSize, beatRangeDps.to);
                     beatRangeDps = beatRangeDps.from == beatRangeFill.from ? FloatRange.EMPTY_FLOAT_RANGE
                             : new FloatRange(beatRangeDps.from, beatRangeFill.from);
@@ -294,10 +295,19 @@ public class DrumsGenerator implements MusicGenerator
             var scsSpt = new SimpleChordSequence(songChordSequence.subSequence(sptBarRange, false), sptBeatRange.from, rhythm.getTimeSignature());
 
             // Accents for drums only 
-            DrumKit drumKit;
-            if (rv.getType() == RhythmVoice.Type.DRUMS && (drumKit = context.getMidiMix().getInstrumentMix(rv).getInstrument().getDrumKit()) != null)
+            if (rv.getType() == RhythmVoice.Type.DRUMS)
             {
-                processDrumsAccents(p, scsSpt, song.getTempo(), drumKit);
+                var insMix = context.getMidiMix().getInstrumentMix(rv);
+                if (insMix == null)
+                {
+                    LOGGER.log(Level.WARNING, "postProcessPhrase() Unexpected insMix=null. rv={0}", rv);
+                    return;
+                }
+                var drumKit = insMix.getInstrument().getDrumKit();
+                if (drumKit != null)
+                {
+                    processDrumsAccents(p, scsSpt, song.getTempo(), drumKit);
+                }
             }
 
             // process RP_SYS_Intensity
