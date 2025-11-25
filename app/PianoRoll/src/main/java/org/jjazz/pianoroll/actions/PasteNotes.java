@@ -28,7 +28,6 @@ import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-import java.util.prefs.Preferences;
 import javax.swing.AbstractAction;
 import javax.swing.SwingUtilities;
 import org.jjazz.phrase.api.NoteEvent;
@@ -38,7 +37,6 @@ import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.quantizer.api.Quantizer;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.*;
-import org.openide.util.NbPreferences;
 
 /**
  * Paste the selected notes.
@@ -46,9 +44,7 @@ import org.openide.util.NbPreferences;
 public class PasteNotes extends AbstractAction
 {
 
-    private static final String PREF_NOTIFY_USER = "NotifyUser";
     private final PianoRollEditor editor;
-    private static final Preferences prefs = NbPreferences.forModule(PasteNotes.class);
     private static final Logger LOGGER = Logger.getLogger(PasteNotes.class.getSimpleName());
 
     public PasteNotes(PianoRollEditor editor)
@@ -75,17 +71,7 @@ public class PasteNotes extends AbstractAction
             LOGGER.warning("actionPerformed() Should not be here, CopyNoteBuffer is empty.");
             return;
         }
-
-        // Notify once the user about the paste target position        
-        if (prefs.getBoolean(PREF_NOTIFY_USER, true))
-        {
-            String msg = ResUtil.getString(getClass(), "NotifyUserPasteMechanism");
-            NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.INFORMATION_MESSAGE);
-            DialogDisplayer.getDefault().notify(d);
-            prefs.putBoolean(PREF_NOTIFY_USER, false);
-        }
-
-
+        
         // Compute target start position
         float targetStartPos = -1;
         Point point = MouseInfo.getPointerInfo().getLocation();
