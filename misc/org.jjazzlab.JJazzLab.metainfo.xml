@@ -20,7 +20,7 @@
         <ul>
           <li><em>Dynamic backing tracks</em> - Start a solo slowly and gradually build up the atmosphere.</li>
           <li><em>Rhythmic accents</em> - Use chord anticipations and rhythmic accents to spice up the arrangement.</li>
-          <li><em>Benefit from 1000's of free Yamaha style files</em> - JJazzLab can read Yamaha style files. It also introduces new extension files for even more style variations.</li>
+          <li><em>Benefit from 1000's of free Yamaha style files</em> - Plus check out the new intelligent jjSwing style engine.</li>
           <li><em>A simple and powerful user interface</em> - Type in a few chord symbols, pick up a rhythm, and press start, it’s a matter of seconds. Need more? Introduce rhythm and intensity variations, custom bass phrases, etc.</li>
           <li><em>An open platform for developers</em> - Leverage the JJazzLab open-source code to add features and new music generation capabilities via plugins.</li>
         </ul>
@@ -32,13 +32,14 @@
         </screenshot>
     </screenshots>
     <releases>
-        <release version="5.0.1" date="2025-11-10">
+        <release version="5.0.1" date="2025-11-26">
             <url type="details">https://github.com/jjazzboss/JJazzLab/releases/tag/5.0.1</url>
             <description>
                 <p>Release description</p>
                 <ul>
-                    <li>New jjSwing intelligent rhythm, substitute tracks, etc.) </li>
-                    <li>Many bug fixes</li>
+                    <li>New jjSwing intelligent style</li>
+                    <li>Track overrides</li>
+                    <li>Many new features and bug fixes...</li>
                 </ul>
             </description>
         </release> 	
