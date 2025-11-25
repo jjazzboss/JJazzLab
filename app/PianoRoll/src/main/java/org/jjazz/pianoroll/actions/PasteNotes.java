@@ -22,13 +22,20 @@
  */
 package org.jjazz.pianoroll.actions;
 
+import java.awt.MouseInfo;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.AbstractAction;
 import javax.swing.SwingUtilities;
+import org.jjazz.phrase.api.NoteEvent;
+import org.jjazz.phrase.api.Phrase;
 import org.jjazz.pianoroll.api.CopyNoteBuffer;
 import org.jjazz.pianoroll.api.PianoRollEditor;
+import org.jjazz.quantizer.api.Quantizer;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.*;
 import org.openide.util.NbPreferences;
@@ -38,17 +45,17 @@ import org.openide.util.NbPreferences;
  */
 public class PasteNotes extends AbstractAction
 {
-    
+
     private static final String PREF_NOTIFY_USER = "NotifyUser";
     private final PianoRollEditor editor;
     private static final Preferences prefs = NbPreferences.forModule(PasteNotes.class);
     private static final Logger LOGGER = Logger.getLogger(PasteNotes.class.getSimpleName());
-    
+
     public PasteNotes(PianoRollEditor editor)
     {
         this.editor = editor;
-        
-        CopyNoteBuffer.getInstance().addPropertyChangeListener(e ->
+
+        CopyNoteBuffer.getInstance().addPropertyChangeListener(e -> 
         {
             if (e.getPropertyName().equals(CopyNoteBuffer.PROP_EMPTY))
             {
@@ -57,8 +64,8 @@ public class PasteNotes extends AbstractAction
         });
         setEnabled(!CopyNoteBuffer.getInstance().isEmpty());
     }
-    
-    
+
+
     @Override
     public void actionPerformed(ActionEvent e)
     {
@@ -80,37 +87,59 @@ public class PasteNotes extends AbstractAction
 
 
         // Compute target start position
-        float targetStartPos;
-        var selectedNvs = editor.getSelectedNoteViews();
-        if (selectedNvs.isEmpty())
+        float targetStartPos = -1;
+        Point point = MouseInfo.getPointerInfo().getLocation();
+        if (point != null)
         {
-            // Find the first visible round beat
-            var beatRange = editor.getVisibleBeatRange();
-            if (beatRange.isEmpty())
-            {
-                LOGGER.warning("actionPerformed() Unexpected editor.getVisibleBeatRange() is empty");
-                return;
-            }
-            targetStartPos = beatRange.size() >= 1f ? (float) Math.ceil(beatRange.from) : beatRange.from;
-        } else
+            SwingUtilities.convertPointFromScreen(point, editor);
+            targetStartPos = editor.getPositionFromPoint(editor.toNotesPanelPoint(point));
+        }       
+        if (targetStartPos == -1)
         {
-            // Rely on the first selected note
-            targetStartPos = selectedNvs.get(0).getModel().getPositionInBeats();
-            editor.unselectAll();
+            return;
         }
-        
-        
+        if (editor.isSnapEnabled())
+        {
+            targetStartPos = Quantizer.getQuantized(editor.getQuantization(), targetStartPos);
+        }
+
+
         String undoText = ResUtil.getString(getClass(), "PasteNotes");
         editor.getUndoManager().startCEdit(editor, undoText);
-        
+
+        var pbr = editor.getPhraseBeatRange();
         var nes = copyBuffer.getNotesCopy(targetStartPos);
-        editor.getModel().addAll(nes);        
-        
+        List<NoteEvent> addedNotes = new ArrayList<>();
+        Phrase p = editor.getModel();
+
+        for (var ne : nes)
+        {
+            var nebr = ne.getBeatRange();
+            if (!pbr.contains(nebr, true))
+            {
+                if (pbr.contains(nebr.from, true) && pbr.to > (nebr.from + 0.1f))
+                {
+                    var newDur = pbr.to - nebr.from - 0.01f;     // Shorten note
+                    ne = ne.setDuration(newDur, true);
+                } else
+                {
+                    ne = null;
+                }
+            }
+            if (ne != null)
+            {
+                p.add(ne);
+                addedNotes.add(ne);
+            }
+        }
         editor.getUndoManager().endCEdit(undoText);
-        
-        
-        editor.selectNotes(nes, true);
-        SwingUtilities.invokeLater(() -> editor.scrollToCenter(nes.get(0).getPitch()));
+
+        editor.unselectAll();
+        editor.selectNotes(addedNotes, true);
+        if (!addedNotes.isEmpty())
+        {
+            SwingUtilities.invokeLater(() -> editor.scrollToCenter(addedNotes.get(0).getPitch()));
+        }
     }
 
 

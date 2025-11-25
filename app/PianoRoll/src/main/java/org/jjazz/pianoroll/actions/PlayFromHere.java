@@ -23,54 +23,46 @@
 package org.jjazz.pianoroll.actions;
 
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.util.logging.Logger;
 import javax.sound.midi.Sequencer;
 import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.KeyStroke;
 import org.jjazz.activesong.spi.ActiveSongManager;
+import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
 import org.jjazz.musiccontrol.api.playbacksession.UpdateProviderSongSession;
 import org.jjazz.outputsynth.api.FixMidiMix;
+import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.pianoroll.api.PianoRollEditorTopComponent;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.songcontext.api.SongContext;
+import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
 import org.jjazz.utilities.api.IntRange;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 
 /**
- * Action to play the loop zone.
+ * Action to play from the loop zone, or the bar of the first selected note, or the first visible bar.
  */
-public class PlayLoopZone extends AbstractAction
+public class PlayFromHere extends AbstractAction
 {
 
-    public static final String ACTION_ID = "PlayLoopZone";
-    public static final String KEYBOARD_SHORTCUT = "ctrl shift SPACE";
-    private final PianoRollEditorTopComponent topComponent;
+    public static final String ACTION_ID = "PlayFromHere";
+    public static final KeyStroke KEYSTROKE = getGenericControlKeyStroke(KeyEvent.VK_SPACE);
+    private final PianoRollEditor editor;
 
-    private static final Logger LOGGER = Logger.getLogger(PlayLoopZone.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(PlayFromHere.class.getSimpleName());
 
-    public PlayLoopZone(PianoRollEditorTopComponent topComponent)
+    public PlayFromHere(PianoRollEditor editor)
     {
-        this.topComponent = topComponent;
+        this.editor = editor;
 
-
-        // UI settings for the FlatToggleButton
-        putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("resources/PlayEditor-OFF.png")));
-        putValue(Action.SHORT_DESCRIPTION, ResUtil.getString(getClass(), "PlayEditorTooltip") + " (" + KEYBOARD_SHORTCUT + ")");
-        putValue("hideActionText", true);
-
-
-        topComponent.getEditor().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KEYBOARD_SHORTCUT),
-                PlayLoopZone.ACTION_ID);
-        topComponent.getEditor().getActionMap().put(PlayLoopZone.ACTION_ID, this);
     }
 
 
@@ -80,7 +72,7 @@ public class PlayLoopZone extends AbstractAction
 
         // Song must be active !
         ActiveSongManager asm = ActiveSongManager.getDefault();
-        if (asm.getActiveSong() != topComponent.getSong())
+        if (asm.getActiveSong() != editor.getSong())
         {
             String msg = ResUtil.getString(getClass(), "PlayEditor.ERR_NotActive");
             NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
@@ -96,21 +88,19 @@ public class PlayLoopZone extends AbstractAction
         UpdatableSongSession session = null;
         try
         {
-            IntRange absoluteBarRange = topComponent.getBarRange();
-            IntRange loopZone = topComponent.getEditor().getLoopZone();
-            IntRange barRange = loopZone == null ? absoluteBarRange : loopZone.getTransformed(absoluteBarRange.from);
-            SongContext context = new SongContext(topComponent.getSong(), topComponent.getMidiMix(), barRange);
-
+            int startBar = computeStartBar();
+            MidiMix midiMix = PianoRollEditorTopComponent.get(editor.getSong()).getMidiMix();
+            SongContext context = new SongContext(editor.getSong(), midiMix);
             FixMidiMix.checkAndPossiblyFix(context.getMidiMix(), true);
 
             // Create the session
             var dynSession = UpdateProviderSongSession.getSession(context, PlaybackSession.Context.SONG);
             session = UpdatableSongSession.getSession(dynSession);
-            mc.setPlaybackSession(session,  false); // can raise MusicGenerationException            
+            mc.setPlaybackSession(session, false); // can raise MusicGenerationException            
 
 
             // Play it
-            mc.play(barRange.from);
+            mc.play(startBar);
             PlaybackSettings.getInstance().setLoopCount(Sequencer.LOOP_CONTINUOUSLY);
 
         } catch (MusicGenerationException ex)
@@ -132,4 +122,29 @@ public class PlayLoopZone extends AbstractAction
     // ====================================================================================
     // Private methods
     // ====================================================================================
+    private int computeStartBar()
+    {
+        int res;
+        int startBar = editor.getRulerStartBar();
+
+        IntRange loopZone = editor.getLoopZone();
+        if (loopZone != null)
+        {
+            res = loopZone.from + startBar;
+        } else
+        {
+            var nes = editor.getSelectedNoteEvents();
+            if (!nes.isEmpty())
+            {
+                res = editor.toPosition(nes.getFirst().getPositionInBeats()).getBar();
+            } else
+            {
+                var br = editor.getVisibleBarRange();
+                res = br.isEmpty() ? 0 : br.from;
+            }
+            res += startBar;
+        }
+
+        return res;
+    }
 }

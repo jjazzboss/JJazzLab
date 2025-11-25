@@ -23,7 +23,6 @@
 package org.jjazz.musiccontrolactions;
 
 import java.awt.event.ActionEvent;
-import java.beans.PropertyVetoException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -37,7 +36,6 @@ import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.musiccontrol.api.MusicController;
-import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.musiccontrol.api.playbacksession.UpdateProviderSongSession;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
 import org.jjazz.songcontext.api.SongContext;
@@ -243,9 +241,10 @@ public class PlaySelection extends AbstractAction
      * - SongStructure=S1 S1 S3 S2<br>
      * If cls range=bar0+bar1, then sgs range=[0;3]<br>
      *
-     * @param sgs      The parent sections of the song parts must be in cls.
+     * @param ss      The parent sections of the song parts must be in cls.
      * @param cls
      * @param clsRange
+     * @param ssSelection
      * @return Null if no valid range could be constructed
      */
     private IntRange toSgsRange(SongStructure ss, ChordLeadSheet cls, IntRange clsRange, SS_Selection ssSelection)

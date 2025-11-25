@@ -112,6 +112,8 @@ import org.jjazz.pianoroll.VelocityPanel;
 import org.jjazz.pianoroll.actions.InvertNoteSelection;
 import org.jjazz.pianoroll.actions.JumpToEnd;
 import org.jjazz.pianoroll.actions.JumpToStart;
+import org.jjazz.pianoroll.actions.PlayFromHere;
+import static org.jjazz.pianoroll.actions.PlayFromHere.KEYSTROKE;
 import org.jjazz.rhythmmusicgeneration.api.ChordSequence;
 import org.jjazz.rhythmmusicgeneration.api.SongChordSequence;
 import org.jjazz.uiutilities.api.SingleFileDragInTransferHandler;
@@ -950,16 +952,28 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
     }
 
     /**
-     * Return the phrase position in beats that corresponds to a graphical point in the editor.
+     * Return the phrase position in beats that corresponds to a graphical point in the NotesPanel.
      * <p>
      *
-     * @param editorPoint A point in the editor's coordinates. -1 if point is not valid.
+     * @param notesPanelPoint A point in NotesPanel's coordinates. -1 if point is not valid.
      * @return
-     *
+     * @see #toNotesPanelPoint(java.awt.Point)
      */
-    public float getPositionFromPoint(Point editorPoint)
+    public float getPositionFromPoint(Point notesPanelPoint)
     {
-        return notesPanel.getXMapper().getBeatPosition(editorPoint.x);
+        return notesPanel.getXMapper().getBeatPosition(notesPanelPoint.x);
+    }
+
+    /**
+     * Convert a point in this editor coordinates into NotesPanel's coordinates.
+     *
+     * @param editorPoint
+     * @return
+     */
+    public Point toNotesPanelPoint(Point editorPoint)
+    {
+        Objects.requireNonNull(editorPoint);
+        return SwingUtilities.convertPoint(this, editorPoint, notesPanel);
     }
 
 
@@ -1525,7 +1539,6 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
         // Our delegates for standard Netbeans callback actions
         getActionMap().put("cut-to-clipboard", new CutNotes(this));
         getActionMap().put("copy-to-clipboard", new CopyNotes(this));
-        // WEIRD: we need also, only for paste callback action, the action in PianoRollEditorTopComponent! Otherwise our callback action is never called
         getActionMap().put("paste-from-clipboard", new PasteNotes(this));
 
 
@@ -1540,6 +1553,9 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
         getActionMap().put(ZoomToFit.ACTION_ID, new ZoomToFit(this));
         getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(UIUtilities.getGenericControlShiftKeyStroke(KeyEvent.VK_I), InvertNoteSelection.ACTION_ID);
         getActionMap().put(InvertNoteSelection.ACTION_ID, new InvertNoteSelection(this));
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KEYSTROKE, PlayFromHere.ACTION_ID);
+        getActionMap().put(PlayFromHere.ACTION_ID, new PlayFromHere(this));
+
 
         // Use the notesPanel input map to avoid the arrow keys being captured by the enclosing JScrollPane
         var jumpToEndAction = new JumpToEnd(this);

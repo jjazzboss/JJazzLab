@@ -39,7 +39,6 @@ import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.pianoroll.SidePanel;
 import org.jjazz.pianoroll.ToolbarPanel;
-import org.jjazz.pianoroll.actions.PasteNotes;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.song.api.Song;
@@ -124,11 +123,6 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         editor.setSong(song);
         toolbarPanel = new ToolbarPanel(this, song.getName());
         sidePanel = new SidePanel(this);
-
-
-        // WEIRD: only for the callback Paste action, we need BOTH the action here and in the lookup (see PianoRollEditor constructor)
-        // to make paste work... 
-        getActionMap().put("paste-from-clipboard", new PasteNotes(editor));
 
 
         // Must be called after editor and midiMix are set
