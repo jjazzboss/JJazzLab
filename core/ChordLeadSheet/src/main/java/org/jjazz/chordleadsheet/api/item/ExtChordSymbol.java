@@ -240,6 +240,11 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
         {
             return false;
         }
+        if (!Objects.equals(this.altFilter, other.altFilter))
+        {
+            return false;
+        }
+        
         return super.equals(obj);
     }
 

@@ -90,7 +90,7 @@ import org.jjazz.rhythmmusicgeneration.spi.MusicGeneratorProvider;
 import org.jjazz.song.api.Song;
 
 /**
- * Methods to convert a Song into Phrases and Midi sequence.
+ * Build the musical Phrases and Midi sequence from a Song.
  * <p>
  */
 public class SongSequenceBuilder

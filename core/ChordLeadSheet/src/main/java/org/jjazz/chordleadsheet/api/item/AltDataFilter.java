@@ -30,7 +30,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import org.jjazz.harmony.api.StandardScaleInstance;
 import org.jjazz.xstream.spi.XStreamConfigurator;
 import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_LOAD;
 import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_SAVE;
@@ -125,11 +124,7 @@ public class AltDataFilter implements Serializable
         {
             return false;
         }
-        if (this.random != other.random)
-        {
-            return false;
-        }
-        return true;
+        return this.random == other.random;
     }
 
     /**
