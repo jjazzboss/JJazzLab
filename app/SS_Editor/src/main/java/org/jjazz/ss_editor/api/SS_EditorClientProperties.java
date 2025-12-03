@@ -201,7 +201,6 @@ public class SS_EditorClientProperties
     }
 
     /**
-     * Note: it might be easier to use {@link CL_Editor#setNbColumns(int) }.
      *
      * @param song
      * @param factor [0;100]

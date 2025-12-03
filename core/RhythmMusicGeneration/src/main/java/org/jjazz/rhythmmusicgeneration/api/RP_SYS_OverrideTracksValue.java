@@ -158,7 +158,7 @@ public class RP_SYS_OverrideTracksValue
     /**
      * Save the specified object state as a string.
      * <p>
-     * "Phrase1>jjSwing-ID>Bass&Chord1>popRock-ID>Chord1" means base rhythm voice Phrase1 has destination rhythmVoice=jjSwing/Bass, etc.
+     * "Phrase1>jjSwing-ID>Bass&amp;Chord1>popRock-ID>Chord1" means base rhythm voice Phrase1 has destination rhythmVoice=jjSwing/Bass, etc.
      *
      * @param v
      * @return

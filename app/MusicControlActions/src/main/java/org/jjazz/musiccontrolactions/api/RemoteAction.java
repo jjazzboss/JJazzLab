@@ -40,15 +40,12 @@ import javax.sound.midi.SysexMessage;
 import javax.swing.Action;
 import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.midi.api.MidiUtilities;
-import org.jjazz.upgrade.api.UpgradeManager;
-import org.jjazz.upgrade.api.UpgradeTask;
 import org.jjazz.utilities.api.ResUtil;
 import org.netbeans.api.progress.BaseProgressUtils;
 import org.netbeans.api.progress.ProgressRunnable;
 import org.openide.awt.Actions;
 import org.openide.util.Exceptions;
 import org.openide.util.NbPreferences;
-import org.openide.util.lookup.ServiceProvider;
 
 /**
  * A remote action stores the list of MidiMessages which can trigger an action.
@@ -202,8 +199,8 @@ public class RemoteAction
 
     /**
      *
-     * @return The control note pitch if MidiMessages correspond to a single Note_ON ShortMessage. -1 otherwise.
-     * @see #setMidiMessages(int, int)
+     * @return The control note pitch if getMidiMessages() correspond to a single Note_ON ShortMessage. -1 otherwise.
+     * @see #setMidiMessages(java.util.List) 
      */
     public int getControlNotePitch()
     {
@@ -217,8 +214,8 @@ public class RemoteAction
 
     /**
      *
-     * @return The control note channel if MidiMessages correspond to a single Note_ON ShortMessage. -1 otherwise.
-     * @see #setMidiMessages(int, int)
+     * @return The control note channel if getMidiMessages() correspond to a single Note_ON ShortMessage. -1 otherwise.
+     * @see #setMidiMessages(java.util.List) 
      */
     public int getControlNoteChannel()
     {

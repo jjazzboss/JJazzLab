@@ -106,7 +106,7 @@ public interface PhraseTransformManager
      * @param context
      * @param exclude0score if true PhraseTransforms with a fit score==0 are ignored.
      * @return First PhraseTransform is the most adapted to the specified parameters (highest fit score, last PhraseTransform is the less adapted.
-     * @see PhraseTransform#getFitScore(org.jjazz.phrase.api.SizedPhrase, org.jjazz.midi.api.Instrument)
+     * @see PhraseTransform#getFitScore(org.jjazz.phrase.api.SizedPhrase, org.jjazz.songcontext.api.SongPartContext) 
      */
     default public List<PhraseTransform> getRecommendedPhraseTransforms(SizedPhrase inPhrase, SongPartContext context, boolean exclude0score)
     {

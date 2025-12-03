@@ -337,7 +337,7 @@ public class ChordSymbol implements Cloneable
      * The originalName is also updated.
      *
      * @param t   The amount of transposition in semi-tons.
-     * @param alt If null, accidental of returned root & bass notes is unchanged. If not null use alt as root & bass notes accidental.
+     * @param alt If null, accidental of returned root and bass notes is unchanged. If not null use alt as root and bass notes accidental.
      * @return A new transposed ChordSymbol.
      */
     public ChordSymbol getTransposedChordSymbol(int t, Note.Accidental alt)

@@ -46,21 +46,20 @@ public class RP_SYS_Mute extends RP_StringSet
     /**
      * Special UserRhythmVoice instance to indicate that the "1st" user track of the MidiMix should be muted.
      *
-     * @see #getMutedRhythmVoices(org.jjazz.rhythm.api.Rhythm, java.util.Set)
+     * @see #getMutedRhythmVoices(org.jjazz.rhythm.api.Rhythm, org.jjazz.midimix.api.MidiMix, java.util.Set)
      */
     public static UserRhythmVoice RV_MUTE_USER_TRACK_1 = new UserRhythmVoice("UserTrack1");
     /**
      * Special UserRhythmVoice instance to indicate that the "2nd" user track of the MidiMix should be muted.
      *
-     * @see #getMutedRhythmVoices(org.jjazz.rhythm.api.Rhythm, java.util.Set)
+     * @see #getMutedRhythmVoices(org.jjazz.rhythm.api.Rhythm, org.jjazz.midimix.api.MidiMix, java.util.Set)
      */
     public static UserRhythmVoice RV_MUTE_USER_TRACK_2 = new UserRhythmVoice("UserTrack2");
     /**
      * Special UserRhythmVoice instance to indicate that the "3rd" user track of the MidiMix should be muted.
      *
-     * @see #getMutedRhythmVoices(org.jjazz.rhythm.api.Rhythm, java.util.Set)
+     * @see #getMutedRhythmVoices(org.jjazz.rhythm.api.Rhythm, org.jjazz.midimix.api.MidiMix, java.util.Set
      */
-
     public static UserRhythmVoice RV_MUTE_USER_TRACK_3 = new UserRhythmVoice("UserTrack3");
 
     /**

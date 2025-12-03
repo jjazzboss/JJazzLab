@@ -43,6 +43,7 @@ import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.RhythmInfo;
 import org.jjazz.utilities.api.Utilities;
+import org.netbeans.api.progress.ProgressHandle;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
@@ -54,13 +55,13 @@ import org.openide.windows.WindowManager;
 /**
  * For debug purposes...
  */
-//@ActionID(category = "JJazz", id = "org.jjazz.test.mytestaction")
-//@ActionRegistration(displayName = "MyTestAction")
-//@ActionReferences(
-//        {
-//            @ActionReference(path = "Menu/Edit", position = 870012),
-//            @ActionReference(path = "Shortcuts", name = "D-T")      // ctrl T
-//        })
+@ActionID(category = "JJazz", id = "org.jjazz.test.mytestaction")
+@ActionRegistration(displayName = "MyTestAction")
+@ActionReferences(
+        {
+            @ActionReference(path = "Menu/Edit", position = 870012),
+            @ActionReference(path = "Shortcuts", name = "D-T")      // ctrl T
+        })
 public final class MyTestAction implements ActionListener
 {
 
@@ -75,10 +76,32 @@ public final class MyTestAction implements ActionListener
     public void actionPerformed(ActionEvent ae)
     {
         LOGGER.info("actionPerformed()");
+        testProgressHandle();
+    }
 
+    private void testProgressHandle()
+    {
+        ProgressHandle ph = ProgressHandle.createHandle("TESTING YEAH");
+        ph.start();
+        LOGGER.info("testProgressHandle() started...");
+        new Thread(() -> 
+        {
+            try
+            {
+                Thread.sleep(3000);
+            } catch (InterruptedException ex)
+            {
+                Exceptions.printStackTrace(ex);
+            }
+            ph.finish();
+            LOGGER.info("testProgressHandle() finished");
+        }).start();
+    }
+
+
+    private boolean test1()
+    {
         Map<String, List<RhythmInfo>> map = new HashMap<>();
-
-
         File f1, f2;
         try
         {
@@ -87,9 +110,8 @@ public final class MyTestAction implements ActionListener
         } catch (IOException ex)
         {
             Exceptions.printStackTrace(ex);
-            return;
+            return true;
         }
-
         var rdb = RhythmDatabase.getDefault();
         RhythmInfo ri = rdb.getDefaultRhythm(TimeSignature.FOUR_FOUR);
         var list = new ArrayList<RhythmInfo>();
@@ -100,7 +122,6 @@ public final class MyTestAction implements ActionListener
         map.put("firstrp", list);
         map.put("secondrp", list2);
         LOGGER.info("map=" + Utilities.toMultilineString(map));
-
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(f1)))
         {
             LOGGER.info("writing " + f1.getAbsolutePath());
@@ -109,7 +130,6 @@ public final class MyTestAction implements ActionListener
         {
             Exceptions.printStackTrace(ex);
         }
-
         RhythmInfo ri2 = null;
         Map<String, List<RhythmInfo>> map2 = null;
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(f1)))
@@ -123,7 +143,6 @@ public final class MyTestAction implements ActionListener
         {
             Exceptions.printStackTrace(ex);
         }
-
         // LOGGER.info("ri2=" + ri);
         LOGGER.info("map2=" + Utilities.toMultilineString(map2));
 
@@ -134,6 +153,7 @@ public final class MyTestAction implements ActionListener
 //        String s = JOptionPane.showInputDialog("String ?");
 //        File f = InstalledFileLocator.getDefault().locate(s, "org.jjazzlab.test", false);
 //        JOptionPane.showMessageDialog(WindowManager.getDefault().getMainWindow(), f.getAbsolutePath());
+        return false;
     }
 
 

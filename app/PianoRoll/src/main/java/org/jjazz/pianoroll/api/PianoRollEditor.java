@@ -402,7 +402,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
      * The channel is used e.g. when "hear preview" or "solo mode" is activated, or when notes are imported from a dragged Midi file.
      *
      * @return
-     * @see #setModel(int, org.jjazz.util.api.FloatRange, org.jjazz.phrase.api.Phrase, int, java.util.NavigableMap, org.jjazz.midi.api.DrumKit.KeyMap)
+     * @see #setModel(org.jjazz.phrase.api.Phrase, org.jjazz.utilities.api.FloatRange, int, int, java.util.NavigableMap, org.jjazz.midi.api.DrumKit.KeyMap) 
      */
     public int getChannel()
     {
@@ -992,7 +992,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
      * Convert a phrase Position into a phrase position in beats.
      *
      * @param pos Must be in the bar range.
-     * @return
+     * @return A beat positino relative to the edited phrase (starts at beat 0)
      */
     public float toPositionInBeats(Position pos)
     {
@@ -1003,8 +1003,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
      * Convert a phrase position in beats into a Position.
      *
      * @param posInBeats Must be in the beat range.
-     * @return
-     * @see #getPhraseStartBar()
+     * @return A position relative to the edited phrase (starts at bar 0)
      */
     public Position toPosition(float posInBeats)
     {

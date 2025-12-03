@@ -29,7 +29,7 @@ import org.openide.modules.ModuleInstall;
 import org.openide.util.NbPreferences;
 
 /**
- * Install the look & feel required by the Theme, see explanations below while @OnStart was not used.
+ * Install the look &amp; feel required by the Theme, see explanations below while @OnStart was not used.
  * <p>
  */
 public class LookAndFeelInstaller extends ModuleInstall

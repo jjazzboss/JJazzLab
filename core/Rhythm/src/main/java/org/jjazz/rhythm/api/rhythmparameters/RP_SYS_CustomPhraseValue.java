@@ -165,11 +165,11 @@ public class RP_SYS_CustomPhraseValue implements MutableRpValue, PropertyChangeL
     /**
      * Save the specified object state as a string.
      * <p>
-     * Example "Bass%[PhraseString]&Piano%[PhraseString]" means 2 RhythmVoices/Phrases. "" means no custom phrase.
+     * Example "Bass%[PhraseString]&amp;Piano%[PhraseString]" means 2 RhythmVoices/Phrases. "" means no custom phrase.
      *
      * @param v
      * @return
-     * @see loadFromString()
+     * @see #loadFromString(org.jjazz.rhythm.api.Rhythm, java.lang.String) 
      */
     static public String saveAsString(RP_SYS_CustomPhraseValue v)
     {
@@ -190,7 +190,7 @@ public class RP_SYS_CustomPhraseValue implements MutableRpValue, PropertyChangeL
      * @param s
      * @return
      * @throws ParseException If s is invalid
-     * @see saveAsString(RP_SYS_CustomPhraseValue)
+     * @see #saveAsString(RP_SYS_CustomPhraseValue)
      */
     static public RP_SYS_CustomPhraseValue loadFromString(Rhythm r, String s) throws ParseException
     {

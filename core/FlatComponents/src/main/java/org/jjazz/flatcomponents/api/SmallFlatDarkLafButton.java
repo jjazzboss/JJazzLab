@@ -31,8 +31,7 @@ import javax.swing.JButton;
  * <p>
  * See hack from FlatDarkLaf author, GitHub issue #364.
  *
- * @todo Next FlatDarkLaf version should disable the 72px minimum width enforcement when setMargins() was used, to be tested when
- * available.
+ * @TODO Next FlatDarkLaf version should disable the 72px minimum width enforcement when setMargins() was used, to be tested when available.
  */
 public class SmallFlatDarkLafButton extends JButton
 {

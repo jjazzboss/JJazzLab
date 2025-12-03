@@ -46,8 +46,6 @@ public record SessionConfig(boolean includeClickTrack,
 
     /**
      * Create a default config which includes all tracks, loopCount uses PlaybackSettings, and no endOfPlaybackAction.
-     *
-     * @param contextId
      */
     public SessionConfig()
     {

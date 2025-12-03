@@ -61,7 +61,6 @@ public final class RpEditor extends JPanel implements PropertyChangeListener
      * @param spt
      * @param rp
      * @param editor
-     * @see setRpValue()
      */
     public RpEditor(SongPart spt, RhythmParameter<?> rp, RpEditorComponent editor)
     {

@@ -383,7 +383,6 @@ public class Phrases
      * @param cutRight
      * @param beatWindow A tolerance window if this phrase contains live-played/non-quantized notes. Typical value is 0.1f.
      * @return
-     * @see #silence(org.jjazz.util.api.FloatRange, boolean, boolean)
      */
     static public Phrase getSlice(Phrase p, FloatRange range, boolean keepLeft, int cutRight, float beatWindow)
     {
@@ -529,7 +528,6 @@ public class Phrases
      * @param cutLeft
      * @param keepRight
      * @param beatWindow A tolerance window if this phrase contains live-played/non-quantized notes. Typical value is 0.1f.
-     * @see #getSlice(org.jjazz.util.api.FloatRange, boolean, int, float)
      */
     static public void silence(Phrase p, FloatRange range, boolean cutLeft, boolean keepRight, float beatWindow)
     {

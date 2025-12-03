@@ -62,7 +62,7 @@ import org.openide.util.NbPreferences;
  * <p>
  * Upon clean/fresh start:<br>
  * - copy default rhythm files<br>
- * - retrieve all available builtin & file-based rhythm instances by polling RhythmProviders (this can be long if many rhythm files need to be scanned).<br>
+ * - retrieve all available builtin &amp; file-based rhythm instances by polling RhythmProviders (this can be long if many rhythm files need to be scanned).<br>
  * - update the database<br>
  * - save the file-based RhythmInfos to a cache file.<p>
  * Then upon normal start:<br>

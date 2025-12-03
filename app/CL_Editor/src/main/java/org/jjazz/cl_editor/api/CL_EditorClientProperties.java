@@ -137,7 +137,7 @@ public class CL_EditorClientProperties
      * @param song
      * @param n
      * @see #PROP_BAR_ANNOTATION_NB_LINES
-     * @see org.jjazz.itemrenderer.api.IR_AnnotationText#MAX_NB_LINES
+     * @see #BAR_ANNOTATION_MAX_NB_LINES
      */
     public static void setBarAnnotationNbLines(Song song, int n)
     {

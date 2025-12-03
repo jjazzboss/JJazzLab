@@ -303,7 +303,7 @@ public class WheelSpinner extends JSpinner implements MouseWheelListener
     /**
      * Check if the last ChangeEvent resulted from a manual edit (user typed value), or an increment/decrement action (e.g. using the up/down buttons).
      * <p>
-     * Note: this may not work on all L&F, works at least on Netbeans flatlaf dark.
+     * Note: this may not work on all L&amp;Fs, works at least on Netbeans flatlaf dark.
      *
      * @return
      */

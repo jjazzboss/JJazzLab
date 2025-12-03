@@ -56,7 +56,6 @@ public class BarBoxConfig
      * Create a config with all BarRenderer types active by default.
      *
      * @param brTypes Duplicate strings are ignored. No blank string allowed.
-     * @see BarRendererFactory
      */
     public BarBoxConfig(String... brTypes)
     {

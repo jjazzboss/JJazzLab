@@ -30,8 +30,6 @@ import org.jjazz.harmony.spi.ChordTypeDatabase;
 
 /**
  * A chord used in Yamaha styles plus its aliases.
- *
- * @todo Complete the table !!!
  */
 public class YamChord
 {

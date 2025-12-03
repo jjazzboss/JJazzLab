@@ -138,7 +138,7 @@ public class StylePart
      * consistent with getSizeInBeats().
      *
      * @param sps
-     * @param complexity An integer &gt 0
+     * @param complexity An integer &gt; 0
      */
     public void addSourcePhraseSet(SourcePhraseSet sps, int complexity)
     {
@@ -170,8 +170,8 @@ public class StylePart
     /**
      * Get the SourcePhraseSet for the specified parameters.
      *
-     * @param complexity An integer &gt 0
-     * @param variationIndex The index of the variation phrase &gt=0
+     * @param complexity An integer &gt; 0
+     * @param variationIndex The index of the variation phrase &gt;=0
      * @return Can be null
      */
     public SourcePhraseSet getSourcePhraseSet(int complexity, int variationIndex)
@@ -259,7 +259,7 @@ public class StylePart
      * <p>
      * This calls clear() on each SourcePhraseSet of this complexityLevel.
      *
-     * @param complexityLevel If value is &lt 1, remove music data for all the complexity levels.
+     * @param complexityLevel If value is &lt; 1, remove music data for all the complexity levels.
      */
     public void clearMusicData(int complexityLevel)
     {

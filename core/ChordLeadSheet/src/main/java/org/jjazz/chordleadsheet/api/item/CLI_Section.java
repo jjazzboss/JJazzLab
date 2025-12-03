@@ -51,7 +51,7 @@ public interface CLI_Section extends ChordLeadSheetItem<Section>
      * @param newPos
      * @param cls    If null, section name is directly reused.
      * @return
-     * @see ChordLeadSheetItem#getCopy(org.jjazz.harmony.api.Position)
+     * @see ChordLeadSheetItem#getCopy(java.lang.Object, org.jjazz.harmony.api.Position) 
      */
     CLI_Section getCopy(Position newPos, ChordLeadSheet cls);
 

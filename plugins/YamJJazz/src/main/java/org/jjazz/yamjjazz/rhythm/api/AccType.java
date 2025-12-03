@@ -126,7 +126,7 @@ public enum AccType
      *
      * @param relPitch A relative pitch (0-11)
      * @return A Degree, or null if relPitch does not correspond to an authorized degree
-     * @see isAuthorizedNote()
+     * @see #isAuthorizedNote(int) 
      */
     public Degree getAuthorizedDegree(int relPitch)
     {

@@ -293,7 +293,6 @@ public class SongUtilities
      * @param song
      * @param register If true register the created song
      * @return
-     * @see ChordLeadSheetFactory#getSimplified(ChordLeadSheet)
      */
     static public Song getSimplifiedLeadSheet(Song song, boolean register)
     {

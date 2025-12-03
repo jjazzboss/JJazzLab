@@ -28,8 +28,6 @@ import javax.swing.undo.AbstractUndoableEdit;
 
 /**
  * A convenience class to create insignificant undoableedits that can be combined into CompoundEdits.
- *
- * @see CEdit
  */
 public abstract class SimpleEdit extends AbstractUndoableEdit
 {

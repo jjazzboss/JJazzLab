@@ -146,7 +146,8 @@ public class RP_SYS_DrumsTransformValue
      *
      * @param v
      * @return
-     * @see #loadFromString(org.jjazz.rhythm.api.Rhythm, java.lang.String)
+     *
+     *  @see #loadFromString(org.jjazz.rhythm.api.RhythmVoice, java.lang.String) 
      * @see PhraseTransformChain#saveAsString(org.jjazz.phrasetransform.api.PhraseTransformChain)
      */
     static public String saveAsString(RP_SYS_DrumsTransformValue v)

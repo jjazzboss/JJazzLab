@@ -135,7 +135,6 @@ public class SongContext
      * @param registerSong   If true the created song is registered by the SongFactory
      * @param setMidiMixSong If true MidMix.setSong() is called on the created MidiMix with the created Song.
      * @return
-     * @see org.jjazz.songcontext.api.SongContextCopy &nbsp; (if you need to keep a reference to the original song and midiMix)
      */
     public SongContext deepClone(boolean registerSong, boolean setMidiMixSong)
     {

@@ -25,7 +25,7 @@ package org.jjazz.uisettings.api;
 import javax.swing.UIDefaults;
 
 /**
- * A set of colors/fonts/borders etc and L&F to customize application appearance.
+ * A set of colors/fonts/borders etc and L&amp;F to customize application appearance.
  * <p>
  */
 public interface Theme
@@ -45,7 +45,7 @@ public interface Theme
     UIDefaults getUIDefaults();
 
     /**
-     * The look & feel required for this theme.
+     * The look &amp; feel required for this theme.
      *
      * @return
      */

@@ -281,7 +281,7 @@ public class OutputSynth
      *
      * @param mm
      * @return The channels which need to be fixed and the associated new instrument. Can't be null but returned HashMap can be empty.
-     * @see #fixInstruments(org.jjazz.midimix.api.MidiMix)
+     * @see #fixInstruments(org.jjazz.midimix.api.MidiMix, boolean) 
      */
     public HashMap<Integer, Instrument> getNeedFixInstruments(MidiMix mm)
     {

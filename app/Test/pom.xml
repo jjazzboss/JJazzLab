@@ -176,6 +176,16 @@
             <artifactId>org-netbeans-api-progress</artifactId> 
             <version>${netbeans.version}</version>  
         </dependency>  
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-netbeans-api-progress-nb</artifactId>
+            <version>${netbeans.version}</version>
+        </dependency>        
+        <dependency>
+            <groupId>org.netbeans.modules</groupId>
+            <artifactId>org-netbeans-modules-progress-ui</artifactId>
+            <version>${netbeans.version}</version>
+        </dependency>        
         <dependency> 
             <groupId>org.netbeans.api</groupId> 
             <artifactId>org-netbeans-core-multitabs</artifactId> 
@@ -246,7 +256,6 @@
             <artifactId>yamjjazz</artifactId>
             <version>${project.version}</version>
         </dependency>
-
     </dependencies>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

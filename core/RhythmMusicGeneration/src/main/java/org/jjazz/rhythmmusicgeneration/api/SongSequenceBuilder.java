@@ -147,7 +147,7 @@ public class SongSequenceBuilder
      * @return
      * @throws org.jjazz.rhythm.api.MusicGenerationException
      * @see #buildMapRvPhrase(boolean)
-     * @see #buildSongSequence(java.util.Map, boolean)
+     * @see #buildSongSequence(java.util.Map) 
      */
     public SongSequence buildAll(boolean silent) throws MusicGenerationException
     {
@@ -322,7 +322,7 @@ public class SongSequenceBuilder
      *
      * @param songSequence      Must have been created using buildSongSequence() for the current SongContext
      * @param ignoreMidiMixMute If true, a track will sound even if it was muted in the context MidiMix
-     * @see #buildSongSequence(java.util.Map, boolean)
+     * @see #buildSongSequence(java.util.Map) 
      */
     public void makeSequenceExportable(SongSequence songSequence, boolean ignoreMidiMixMute)
     {

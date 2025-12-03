@@ -911,7 +911,7 @@ public class Note implements Comparable<Note>, Cloneable
      * @param s
      * @return
      * @throws ParseException If s is not valid
-     * @see saveAsString(Note)
+     * @see #saveAsString(org.jjazz.harmony.api.Note, boolean) 
      */
     static public Note loadAsString(String s) throws ParseException
     {
@@ -950,7 +950,7 @@ public class Note implements Comparable<Note>, Cloneable
      * @param n
      * @param skipAccidental Don't save the accidental
      * @return
-     * @see loadAsString(String)
+     * @see #loadAsString(java.lang.String) 
      */
     static public String saveAsString(Note n, boolean skipAccidental)
     {

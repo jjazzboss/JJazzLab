@@ -22,7 +22,6 @@
  */
 package org.jjazz.uiutilities.api;
 
-import com.google.common.base.Preconditions;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -38,9 +37,9 @@ import javax.swing.TransferHandler;
 import org.jjazz.utilities.api.Utilities;
 
 /**
- * A drag'n drop support to accept a single file via drag & drop.
+ * A drag'n drop support to accept a single file via drag &amp; drop.
  * <p>
- * This class takes into account OS specific "glitches" of the Swing drag & drop support : behaviour is different on MacOS, getSourceActions(),
+ * This class takes into account OS specific "glitches" of the Swing drag &amp; drop support : behaviour is different on MacOS, getSourceActions(),
  * createTransferable(), exportDone() can be called several times during a drag operation, but only once for Win/Linux. Also on MacOS the support parameter is
  * not always fully initialized on canImport(), it is fully initialized only when importData() is called.
  */

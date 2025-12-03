@@ -255,7 +255,7 @@ public class Humanizer
      * Add phrase notes to be humanized by the humanize() method.
      * <p>
      * @param nes The notes must be part of the source phrase. Note is ignored if already registered or if it's an adjusting note.
-     * @see #humanize(org.jjazz.humanizer.api.Humanizer.Config)
+     * @see #humanize() 
      * @see NoteEvent#isAdjustingNote(org.jjazz.phrase.api.NoteEvent)
      */
     public void registerNotes(Collection<NoteEvent> nes)
@@ -340,7 +340,7 @@ public class Humanizer
      * <p>
      * If state was INIT it is changed to HUMANIZED.
      *
-     * @see #registerNotes(java.util.List)
+     * @see #registerNotes(java.util.Collection) 
      * @see #getConfig()
      */
     public void humanize()
