@@ -452,32 +452,35 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     @Override
     public void makeBarVisible(int barIndex)
     {
-        Preconditions.checkElementIndex(barIndex, getNbBarBoxes(), "barIndex=" + barIndex + " getNbBars()=" + getNbBarBoxes());
+        Preconditions.checkElementIndex(barIndex, getNbBarBoxes(), "barIndex");
 
-        // Check how many rows are visible
+
         float nbVisibleRows = (float) getVisibleRect().height / getBarBox(0).getHeight();
+        int lastEnabledBarBoxRow = getRowIndex(clsModel.getSizeInBars() - 1);
+
         int row = getRowIndex(barIndex);
 
-        if (nbVisibleRows < 1.8f || row == getNbRows() - 1 || row == 0)
+        Rectangle r = getBarBox(barIndex).getBounds();
+        if (row == 0 || row == lastEnabledBarBoxRow || nbVisibleRows < 2)
         {
-            // Can't see clearly 2 rows, or it's the last row
-            // Make sure row is visible
-            scrollRectToVisible(getBarBox(barIndex).getBounds());
+            // Nothing
+        } else if (row == 1)
+        {
+            // Special case, show first row as well
+            r.y -= r.height;
+            r.height *= 2;
         } else
         {
-            // Make sure row+1 is visible, because it's better to always have next row also visible
-            int compIndex = getComponentIndex(barIndex);
-            assert compIndex + getNbColumns() < getComponentCount() :
-                    "compIndex=" + compIndex + " getNbColumns()=" + getNbColumns() + " getComponentCount()=" + getComponentCount();
-            Component c = getComponent(compIndex + getNbColumns());
-            scrollRectToVisible(c.getBounds());
+            // Show next row too
+            r.height *= 2;
         }
+        scrollRectToVisible(r);
     }
 
     @Override
     public Rectangle getBarRectangle(int barIndex)
     {
-        Preconditions.checkElementIndex(barIndex, getNbBarBoxes(), "barIndex=" + barIndex);
+        Preconditions.checkElementIndex(barIndex, getNbBarBoxes(), "barIndex");
 
         BarBox bb = getBarBox(barIndex);
         Point p = bb.getLocation();
@@ -1246,7 +1249,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 
     private BarBox getBarBox(int bbIndex)
     {
-        Preconditions.checkElementIndex(bbIndex, barBoxes.size(), "bbIndex=" + bbIndex + " barBoxes=" + barBoxes);
+        Preconditions.checkElementIndex(bbIndex, barBoxes.size(), "bbIndex");
 
         return barBoxes.get(bbIndex);
     }
