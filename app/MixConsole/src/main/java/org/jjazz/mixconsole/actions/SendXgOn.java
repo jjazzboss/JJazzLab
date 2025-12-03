@@ -29,7 +29,7 @@ import javax.swing.AbstractAction;
 import static javax.swing.Action.NAME;
 import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.midi.api.MidiUtilities;
-import org.jjazz.midi.api.SynthUtils;
+import org.jjazz.midi.api.FluidSynthUtils;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -53,7 +53,7 @@ public class SendXgOn extends AbstractAction implements PropertyChangeListener
     {
         putValue(NAME, undoText);
 
-        this.setEnabled(!SynthUtils.IS_FLUID_SYNTH_IN_USE());
+        this.setEnabled(!FluidSynthUtils.IS_FLUID_SYNTH_IN_USE());
 
         JJazzMidiSystem jms =  JJazzMidiSystem.getInstance();
         jms.addPropertyChangeListener(JJazzMidiSystem.PROP_MIDI_OUT, this);
@@ -68,6 +68,6 @@ public class SendXgOn extends AbstractAction implements PropertyChangeListener
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        this.setEnabled(!SynthUtils.IS_FLUID_SYNTH(evt.getNewValue()));
+        this.setEnabled(!FluidSynthUtils.IS_FLUID_SYNTH(evt.getNewValue()));
     }
 }

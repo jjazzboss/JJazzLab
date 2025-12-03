@@ -33,7 +33,7 @@ import static javax.swing.Action.NAME;
 import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.midi.api.JJazzMidiSystem;
-import org.jjazz.midi.api.SynthUtils;
+import org.jjazz.midi.api.FluidSynthUtils;
 import org.jjazz.song.api.Song;
 import org.jjazz.mixconsole.api.MixConsoleTopComponent;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
@@ -64,7 +64,7 @@ public class EnableAllMidiParameters extends AbstractAction implements PropertyC
         putValue(NAME, undoText);
         putValue(SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_EnableAllMidiParametersDescription"));
 
-        this.setEnabled(!SynthUtils.IS_FLUID_SYNTH_IN_USE());
+        this.setEnabled(!FluidSynthUtils.IS_FLUID_SYNTH_IN_USE());
 
         JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
         jms.addPropertyChangeListener(JJazzMidiSystem.PROP_MIDI_OUT, this);
@@ -89,6 +89,6 @@ public class EnableAllMidiParameters extends AbstractAction implements PropertyC
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        this.setEnabled(!SynthUtils.IS_FLUID_SYNTH(evt.getNewValue()));
+        this.setEnabled(!FluidSynthUtils.IS_FLUID_SYNTH(evt.getNewValue()));
     }
 }

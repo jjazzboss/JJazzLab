@@ -25,31 +25,24 @@ package org.jjazz.midi.api;
 import javax.sound.midi.MidiDevice;
 
 
-public class SynthUtils {
+/**
+ * Helper methods to quickly detect if the internal FluidSynth is the current Midi output, without having to rely on OutputSynth or FluidSynthEmbeddedSynth.
+ */
+public class FluidSynthUtils
+{
 
     public static boolean IS_FLUID_SYNTH_IN_USE()
     {
-        var md = JJazzMidiSystem.getInstance().getDefaultOutDevice();
-        return SynthUtils.IS_FLUID_SYNTH(md.getDeviceInfo().getName());
+        return IS_FLUID_SYNTH(JJazzMidiSystem.getInstance().getDefaultOutDevice());
     }
 
-    public static boolean IS_FLUID_SYNTH(Object midiDeviceObj)
+    public static boolean IS_FLUID_SYNTH(MidiDevice md)
     {
-        if (midiDeviceObj != null);
-        {
-            try
-            {
-                MidiDevice md = (MidiDevice) midiDeviceObj;
-                return IS_FLUID_SYNTH(md.getDeviceInfo().getName());
-            } catch (ClassCastException | NullPointerException e)
-            {
-                return false;
-            }
-        }
+        return md != null && IS_FLUID_SYNTH(md.getDeviceInfo().getName());
     }
 
-    public static boolean IS_FLUID_SYNTH(String midiDeviceName)
+    public static boolean IS_FLUID_SYNTH(String midiDeviceOutputName)
     {
-        return midiDeviceName.toLowerCase().contains("fluidsynth");
+        return midiDeviceOutputName.toLowerCase().contains("fluidsynth");
     }
 }
