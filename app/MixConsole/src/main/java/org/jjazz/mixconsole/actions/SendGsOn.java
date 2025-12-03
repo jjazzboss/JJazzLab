@@ -25,6 +25,7 @@ package org.jjazz.mixconsole.actions;
 import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import javax.sound.midi.MidiDevice;
 import javax.swing.AbstractAction;
 import static javax.swing.Action.NAME;
 import org.jjazz.midi.api.JJazzMidiSystem;
@@ -68,6 +69,6 @@ public class SendGsOn extends AbstractAction implements PropertyChangeListener
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        this.setEnabled(!FluidSynthUtils.IS_FLUID_SYNTH(evt.getNewValue()));
+        this.setEnabled(!FluidSynthUtils.IS_FLUID_SYNTH((MidiDevice) evt.getNewValue()));
     }
 }

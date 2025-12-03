@@ -28,6 +28,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.sound.midi.MidiDevice;
 import javax.swing.AbstractAction;
 import static javax.swing.Action.NAME;
 import org.jjazz.activesong.spi.ActiveSongManager;
@@ -109,6 +110,6 @@ public class DisableAllMidiParameters extends AbstractAction implements Property
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        this.setEnabled(!FluidSynthUtils.IS_FLUID_SYNTH(evt.getNewValue()));
+        this.setEnabled(!FluidSynthUtils.IS_FLUID_SYNTH((MidiDevice) evt.getNewValue()));
     }
 }
