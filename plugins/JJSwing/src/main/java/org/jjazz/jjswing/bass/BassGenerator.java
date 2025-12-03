@@ -242,18 +242,20 @@ public class BassGenerator implements MusicGenerator
      * Also depends on the setting getTempoNotePositionBiasFactor().
      *
      * @param tempo
-     * @return
+     * @return A flopat value to shift notes beat positions
      */
     static public float computeNotePositionBias(int tempo)
     {
         final int TEMPO_HIGH = 240;
+        final float TEMPO_HIGH_BIAS = -0.04f;        
         final int TEMPO_NORMAL = TEMPO_HIGH / 2;
-        float TEMPO_HIGH_BIAS = -0.04f;
-        float TEMPO_NORMAL_BIAS = 0;
+        final float TEMPO_NORMAL_BIAS = 0;        
+
+
         float tempo2 = Math.clamp(tempo, TEMPO_NORMAL, TEMPO_HIGH);
         float biasTempo = TEMPO_NORMAL_BIAS + (tempo2 - TEMPO_NORMAL) / (TEMPO_HIGH - TEMPO_NORMAL) * (TEMPO_HIGH_BIAS - TEMPO_NORMAL_BIAS);
 
-        float BIAS_RANGE_MAX = 0.07f;
+        final float BIAS_RANGE_MAX = 0.07f;
         float biasSettingFactor = BassGeneratorSettings.getInstance().getTempoNotePositionBiasFactor();
         float biasSetting = biasSettingFactor * BIAS_RANGE_MAX;
         float res = Math.clamp(biasSetting + biasTempo, -BIAS_RANGE_MAX, BIAS_RANGE_MAX);

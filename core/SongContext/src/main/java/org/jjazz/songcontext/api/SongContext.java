@@ -42,20 +42,18 @@ import org.jjazz.utilities.api.LongRange;
 
 
 /**
- * Collect various data about a Song context in order to facilitate music generation.
+ * A Song music generation context.
  * <p>
- * Note that a SongContext instance should be discarded if song is structurally modified, because some SongContext methods may return data not consistent
- * anymore with the actual Song.
+ * Associates a Song, a MidiMix and a bar range within that song. 
+ * <p>
+ * TODO: make SongContext a record
  */
 public class SongContext
 {
 
-    private Song song;
-    private MidiMix midiMix;
-    private IntRange barRange;
-    protected List<SongPart> songParts;
-    private FloatRange beatRange;
-    private LongRange tickRange;
+    private final Song song;
+    private final MidiMix midiMix;
+    private final IntRange barRange;
 
 
     /**
@@ -109,12 +107,6 @@ public class SongContext
         {
             this.barRange = bars;
         }
-        songParts = song.getSongStructure().getSongParts().stream()
-                .filter(spt -> isInRange(spt))
-                .toList();
-        beatRange = song.getSongStructure().toBeatRange(barRange);
-        tickRange = new LongRange((long) (beatRange.from * MidiConst.PPQ_RESOLUTION), (long) (beatRange.to * MidiConst.PPQ_RESOLUTION));
-
     }
 
 
@@ -181,7 +173,7 @@ public class SongContext
     }
 
     /**
-     * The range (computed at the time of this object creation) for which music should be produced.
+     * The beat range within the song for which music should be produced.
      * <p>
      * The range can start/end anywhere in the song (including in the middle of a song part). If getBarRange().from &gt; 0 then toBeatRange().from is also &gt;
      * 0.
@@ -190,11 +182,12 @@ public class SongContext
      */
     public FloatRange getBeatRange()
     {
-        return beatRange;
+        var res = song.getSongStructure().toBeatRange(barRange);
+        return res;
     }
 
     /**
-     * The tick range (computed at the time of this object creation) corresponding to getBarRange() or getBeatRange().
+     * The tick range corresponding to getBarRange() or getBeatRange().
      * <p>
      * The range can start/end anywhere in the song (including in the middle of a song part). If toBeatRange().from &gt; 0 then getTickRange().from is also &gt;
      * 0.
@@ -203,11 +196,13 @@ public class SongContext
      */
     public LongRange getTickRange()
     {
-        return tickRange;
+        var beatRange = getBeatRange();
+        var res = new LongRange((long) (beatRange.from * MidiConst.PPQ_RESOLUTION), (long) (beatRange.to * MidiConst.PPQ_RESOLUTION));
+        return res;
     }
 
     /**
-     * Get all the song parts (at the time of this object creation) which are contained in this context.
+     * Get all the song parts contained in this context bar range.
      * <p>
      *
      * @return Can be empty.
@@ -215,19 +210,22 @@ public class SongContext
      */
     public List<SongPart> getSongParts()
     {
-        return songParts;
+        var res = song.getSongStructure().getSongParts().stream()
+                .filter(spt -> isInRange(spt))
+                .toList();
+        return res;
     }
 
     /**
      * Get the unique parent sections used by the context song parts.
      *
-     * @return An ordered list by position 
+     * @return An ordered list by position
      */
     public List<CLI_Section> getUniqueSections()
     {
         List<CLI_Section> res = new ArrayList<>();
-        
-        songParts.stream()
+
+        getSongParts().stream()
                 .map(spt -> spt.getParentSection())
                 .filter(section -> !res.contains(section))
                 .forEach(section -> res.add(section));

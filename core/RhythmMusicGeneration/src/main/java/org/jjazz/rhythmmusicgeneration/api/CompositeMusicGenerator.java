@@ -80,7 +80,7 @@ public class CompositeMusicGenerator implements MusicGenerator
     public record MgDelegate(MusicGenerator mg, RhythmVoice rv, String rpVariationValue, Consumer<Phrase> postProcessor)
             {
 
-        public MgDelegate   
+        public MgDelegate
         {
             Objects.requireNonNull(mg);
             Objects.requireNonNull(rv);
@@ -234,14 +234,13 @@ public class CompositeMusicGenerator implements MusicGenerator
     // =================================================================================================================================
 
     /**
-     * Generate phrases for a single MusicGenerator which a consistent MgDelegate configuration for all SongParts.
+     * Generate phrases for a single MusicGenerator with a consistent MgDelegate configuration for all SongParts.
      * <p>
      *
-     * @param mg
-     * @param mapBaseRvMgDelegate Associates a MgDelegate for some base RhythmVoices (possibly all). All MgDelegates must use mg and have the same
-     *                            rpVariationValue
-     * @param subContext
-     * @return The Phrase generated for each base rhythm voice defined as mapBaseRvMgDelegate's key
+     * @param mg                  MusicGenerator used to create phrases for the specified base RhythmVoices
+     * @param mapBaseRvMgDelegate Defines the base RhythmVoices with their MgDelegate. All MgDelegates must use mg and have the same rpVariationValue
+     * @param subContext          The context in which Phrases will be generated
+     * @return One Phrase per base RhythmVoice
      * @throws org.jjazz.rhythm.api.MusicGenerationException
      */
     private Map<RhythmVoice, Phrase> callGenerator(MusicGenerator mg, Map<RhythmVoice, MgDelegate> mapBaseRvMgDelegate, SongContext subContext) throws MusicGenerationException

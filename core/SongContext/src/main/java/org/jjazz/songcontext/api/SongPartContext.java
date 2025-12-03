@@ -56,7 +56,7 @@ public class SongPartContext extends SongContext
     public SongPartContext(Song s, MidiMix mix, IntRange bars)
     {
         super(s, mix, bars);
-        if (songParts.size() != 1)
+        if (getSongParts().size() != 1)
         {
             throw new IllegalArgumentException("song=" + s + " mix=" + mix + " bars=" + bars);
         }
@@ -64,6 +64,6 @@ public class SongPartContext extends SongContext
 
     public SongPart getSongPart()
     {
-        return songParts.get(0);
+        return getSongParts().get(0);
     }
 }
