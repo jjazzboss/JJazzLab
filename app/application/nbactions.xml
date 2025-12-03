@@ -37,5 +37,16 @@
                 <netbeans.run.params.ide>-J-Drun.from.ide=true --locale en:US -J-DSongSequenceBuilder.level=100 -J-DYamJJazzRhythmGenerator.level=100</netbeans.run.params.ide>
             </properties>
         </action>
+        <action>
+            <actionName>CUSTOM-Run project fresh start</actionName>
+            <displayName>Run project fresh start</displayName>
+            <goals>
+                <goal>nbm:cluster-app</goal>
+                <goal>nbm:run-platform</goal>
+            </goals>
+            <properties>
+                <netbeans.run.params.ide>-J-Drun.from.ide=true --locale en:US -J-Dforce.fresh.start=true</netbeans.run.params.ide>
+            </properties>
+        </action>
         
     </actions>

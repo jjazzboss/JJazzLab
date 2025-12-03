@@ -132,7 +132,7 @@ public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory, Propert
                 // This could be done in doInitialization(), but doInitialization() is run in a separate thread, and because copyFilesOrNot might show user 
                 // a confirmation dialog, we want to hold the task so that the next OnShowingTask is started *after* this user confirmation.
                 LOGGER.info("initialize() Copying default rhythm files");
-                copyFilesOrNot(RhythmDirsLocator.getDefault().getUserRhythmsDirectory());
+                 copyFilesOrNot(RhythmDirsLocator.getDefault().getUserRhythmsDirectory());
             }
 
 
@@ -213,11 +213,12 @@ public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory, Propert
      */
     private void doInitialization()
     {
+        boolean isFreshStart = UpgradeManager.getInstance().isFreshStart();
         boolean markedForRescan = isMarkedForStartupRescan();
         boolean cacheFilePresent = RhythmDbCache.getDefaultFile().isFile();
-        LOGGER.log(Level.INFO, "doInitialization() markedForRescan={0} cacheFilePresent={1}", new Object[]
+        LOGGER.log(Level.INFO, "doInitialization() isFreshStart={0} markedForRescan={1} cacheFilePresent={2}", new Object[]
         {
-            markedForRescan, cacheFilePresent
+            isFreshStart, markedForRescan, cacheFilePresent
         });
 
 
@@ -225,7 +226,7 @@ public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory, Propert
                 RhythmDirsLocator.getDefault().getUserRhythmsDirectory().getAbsolutePath());
 
 
-        if (markedForRescan || !cacheFilePresent)
+        if (isFreshStart || markedForRescan || !cacheFilePresent)
         {
             // FULL SCAN
 
