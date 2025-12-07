@@ -55,7 +55,6 @@ import org.jjazz.rhythmmusicgeneration.api.AccentProcessor;
 import org.jjazz.rhythmmusicgeneration.api.AccentProcessor.HoldShotMode;
 import org.jjazz.rhythmmusicgeneration.api.AnticipatedChordProcessor;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
-import org.jjazz.rhythmmusicgeneration.api.ChordSequence;
 import org.jjazz.rhythmmusicgeneration.api.SongChordSequence;
 import org.jjazz.phrase.api.Grid;
 import org.jjazz.phrase.api.NoteEvent;
@@ -151,7 +150,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
 
         // Build the main chord sequence
         songChordSequence = new SongChordSequence(songWork, contextWork.getBarRange());   // Throw UserErrorGenerationException but no risk: will have a chord at beginning. Handle alternate chord symbols.       
-        songChordSequence.removeRedundantChords();
+        songChordSequence.removeRedundantStandardChords();
 
         LOGGER.log(LogLevel, "generateMusic()-- rhythm={0} songChordSequence={1}", new Object[]
         {

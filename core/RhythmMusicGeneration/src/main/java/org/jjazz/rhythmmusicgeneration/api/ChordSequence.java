@@ -41,8 +41,7 @@ import org.jjazz.harmony.api.Position;
 import org.jjazz.utilities.api.IntRange;
 
 /**
- * A convenience class to analyze and manipulate a suite of chord symbols extracted from a ChordLeadSheet, possibly with different
- * TimeSignatures.
+ * A convenience class to analyze and manipulate a suite of chord symbols extracted from a ChordLeadSheet, possibly with different TimeSignatures.
  * <p>
  */
 public class ChordSequence extends TreeSet<CLI_ChordSymbol> implements Comparable<ChordSequence>, Cloneable
@@ -145,9 +144,9 @@ public class ChordSequence extends TreeSet<CLI_ChordSymbol> implements Comparabl
     /**
      * A new sub-sequence from this sequence.
      *
-     * @param subRange The range of the sub-sequence.
-     * @param addInitChordSymbol If true, try to add an init chordsymbol if the resulting subsequence does not have one: reuse the
-     * last chord symbol before subRange.from if any
+     * @param subRange           The range of the sub-sequence.
+     * @param addInitChordSymbol If true, try to add an init chordsymbol if the resulting subsequence does not have one: reuse the last chord symbol before
+     *                           subRange.from if any
      * @return
      * @throws IllegalArgumentException If subRange is not contained in this ChordSequence bar range
      */
@@ -185,11 +184,11 @@ public class ChordSequence extends TreeSet<CLI_ChordSymbol> implements Comparabl
         Preconditions.checkNotNull(tester);
 
         var headSet = headSet(CLI_ChordSymbol.createItemFrom(posFrom, inclusive),
-            false);   // useless because of createItemFrom
+                false);   // useless because of createItemFrom
         var res = headSet.stream().
-            filter(cliCs -> tester.test(cliCs))
-            .findFirst()
-            .orElse(null);
+                filter(cliCs -> tester.test(cliCs))
+                .findFirst()
+                .orElse(null);
 
         return res;
     }
@@ -209,7 +208,7 @@ public class ChordSequence extends TreeSet<CLI_ChordSymbol> implements Comparabl
         CLI_ChordSymbol res = null;
 
         var headSet = headSet(CLI_ChordSymbol.createItemTo(posTo, inclusive),
-            false);   // useless because of createItemFrom
+                false);   // useless because of createItemFrom
         var it = headSet.descendingIterator();
         while (it.hasNext())
         {
@@ -239,11 +238,12 @@ public class ChordSequence extends TreeSet<CLI_ChordSymbol> implements Comparabl
     }
 
     /**
-     * Remove successive identical chord symbols.
+     * Remove successive identical "standard" chord symbols.
      *
      * @return True if chord sequence was modified
+     * @see ExtChordSymbol#isStandard()
      */
-    public boolean removeRedundantChords()
+    public boolean removeRedundantStandardChords()
     {
         boolean changed = false;
         var it = iterator();
@@ -251,7 +251,7 @@ public class ChordSequence extends TreeSet<CLI_ChordSymbol> implements Comparabl
         while (it.hasNext())
         {
             var ecs = it.next().getData();
-            if (Objects.equals(lastEcs, ecs))
+            if (ecs.isStandard() && Objects.equals(lastEcs, ecs))
             {
                 it.remove();
                 changed = true;

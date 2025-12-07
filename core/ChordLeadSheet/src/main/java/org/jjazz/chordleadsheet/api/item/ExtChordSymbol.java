@@ -58,6 +58,7 @@ import org.openide.util.lookup.ServiceProvider;
  */
 public class ExtChordSymbol extends ChordSymbol implements Serializable
 {
+
     private ChordRenderingInfo renderingInfo;
     private AltExtChordSymbol altChordSymbol;
     private AltDataFilter altFilter;
@@ -105,12 +106,10 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
     public ExtChordSymbol(ChordSymbol cs, ChordRenderingInfo rInfo, AltExtChordSymbol altChordSymbol, AltDataFilter altFilter)
     {
         super(cs.getRootNote(), cs.getBassNote(), cs.getChordType(), cs.getOriginalName());
-
-        if (rInfo == null || (altChordSymbol == null && altFilter != null) || (altChordSymbol != null && altFilter == null))
-        {
-            throw new IllegalArgumentException(
-                    "cs=" + cs + " rInfo=" + rInfo + " altChordSymbol=" + altChordSymbol + " altFilter=" + altFilter);
-        }
+        Objects.requireNonNull(rInfo);
+        Preconditions.checkArgument((altChordSymbol == null && altFilter == null)
+                || (altChordSymbol != null && altFilter != null), "altChordSymbol=%s altFilter=%s", altChordSymbol, altFilter);
+        
         renderingInfo = rInfo;
         this.altChordSymbol = altChordSymbol;
         this.altFilter = altFilter;
@@ -130,11 +129,10 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
     {
         super(rootDg, bassDg, ct);
 
-        if (rInfo == null || (altChordSymbol == null && altFilter != null) || (altChordSymbol != null && altFilter == null))
-        {
-            throw new IllegalArgumentException(
-                    "rootDg=" + rootDg + " bassDg=" + bassDg + " ct=" + ct + " rInfo=" + rInfo + " altChordSymbol=" + altChordSymbol + " altFilter=" + altFilter);
-        }
+        Objects.requireNonNull(rInfo);
+        Preconditions.checkArgument((altChordSymbol == null && altFilter == null)
+                || (altChordSymbol != null && altFilter != null), "altChordSymbol=%s altFilter=%s", altChordSymbol, altFilter);
+
         renderingInfo = rInfo;
         this.altChordSymbol = altChordSymbol;
         this.altFilter = altFilter;
@@ -196,11 +194,9 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
      */
     public ExtChordSymbol getCopy(ChordSymbol cs, ChordRenderingInfo rInfo, AltExtChordSymbol altChordSymbol, AltDataFilter altFilter)
     {
-        if ((altChordSymbol == null && altFilter != null) || (altChordSymbol != null && altFilter == null))
-        {
-            throw new IllegalArgumentException("rInfo=" + rInfo + " altChordSymbol=" + altChordSymbol + " altFilter=" + altFilter);
-        }
-        cs = cs != null ? cs : this;
+        Preconditions.checkArgument((altChordSymbol == null && altFilter == null)
+                || (altChordSymbol != null && altFilter != null), "altChordSymbol=%s altFilter=%s", altChordSymbol, altFilter);
+
         rInfo = rInfo != null ? rInfo : getRenderingInfo();
         altChordSymbol = altChordSymbol != null ? altChordSymbol : getAlternateChordSymbol();
         altFilter = altFilter != null ? altFilter : getAlternateFilter();
@@ -244,7 +240,7 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
         {
             return false;
         }
-        
+
         return super.equals(obj);
     }
 
@@ -292,6 +288,16 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
     public AltDataFilter getAlternateFilter()
     {
         return this.altFilter;
+    }
+
+    /**
+     * Check if this instance does not use any ExtChordSymbol specific feature (alternate chord or ChordRenderingInfo).
+     *
+     * @return
+     */
+    public boolean isStandard()
+    {
+        return altChordSymbol == null && new ChordRenderingInfo().equals(renderingInfo);
     }
 
     /**
@@ -347,22 +353,6 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
                 : altChordSymbol.getTransposedChordSymbol(t, alt);
         ExtChordSymbol ecs = new ExtChordSymbol(cs, cri, altCs, altFilter);
         return ecs;
-    }
-
-    /**
-     * True if this object's chord type is the same that cs chord type, and if root/bass relative pitches are the same.
-     *
-     * @param cs
-     * @return
-     */
-    public boolean isSameChordSymbol(ChordSymbol cs)
-    {
-        if (cs == null)
-        {
-            throw new NullPointerException("cs");
-        }
-        return isSameChordType(cs) && getRootNote().equalsRelativePitch(cs.getRootNote()) && getBassNote().equalsRelativePitch(
-                cs.getBassNote());
     }
 
     /**
@@ -434,7 +424,7 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
 
     /**
      * Serialization proxy.
-     * <p>  
+     * <p>
      * spVERSION 2 changes some saved fields, see below.<br>
      * spVERSION 3 (JJazzLab 4.1.0) introduces several aliases to get rid of hard-coded qualified class names (XStreamConfig class introduction).
      */

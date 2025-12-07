@@ -337,7 +337,7 @@ public class BassGenerator implements MusicGenerator
                     {
                         float startBeatPos = contextWork.getSong().getSongStructure().toPositionInNaturalBeats(barRange.from);
                         var scs = new SimpleChordSequence((ChordSequence) scsWork.subSequence(barRange, true), startBeatPos, rhythm.getTimeSignature());
-                        scs.removeRedundantChords();
+                        scs.removeRedundantStandardChords();
                         return scs;
                     })
                     .toList();
@@ -438,7 +438,7 @@ public class BassGenerator implements MusicGenerator
 
 
         SongChordSequence res = new SongChordSequence(context.getSong(), context.getBarRange());    // throws UserErrorGenerationException        
-        res.removeRedundantChords();
+        res.removeRedundantStandardChords();
 
 
         SongStructure ss = context.getSong().getSongStructure();

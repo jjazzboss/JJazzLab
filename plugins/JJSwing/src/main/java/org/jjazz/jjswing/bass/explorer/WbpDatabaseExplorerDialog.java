@@ -229,7 +229,7 @@ public class WbpDatabaseExplorerDialog extends javax.swing.JDialog
             default:
                 throw new IllegalStateException("nbBars=" + nbBars);
         }
-        res.removeRedundantChords();
+        res.removeRedundantStandardChords();
 
         return res;
     }
