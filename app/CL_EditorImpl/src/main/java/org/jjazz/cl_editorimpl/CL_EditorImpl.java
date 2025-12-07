@@ -1241,7 +1241,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
                 BarBox bb = new BarBox(this, bbIndex, modelBarIndex, clsModel, config, settings.getBarBoxSettings(), barRendererFactory);
                 bb.setEnabled(isEnabled());
 
-                registerBarBox(bb);
+                registerBarBox(bb); 
 
 
                 // Insert the BarBox at correct location (possible presence of padding boxes)
