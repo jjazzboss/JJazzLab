@@ -95,6 +95,8 @@ import static org.jjazz.yamjjazz.rhythm.api.Ctb2ChannelSettings.RetriggerRule.ST
 public class YamJJazzRhythmGenerator implements MusicGenerator
 {
 
+    public static Level LogLevel = Level.FINE;
+
 
     /**
      * The musical phrases for a subpart of a song which has one time signature.
@@ -136,19 +138,22 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
         rhythmVoices = rvsList.isEmpty() ? rhythmRvs : rvsList;
         contextOriginal = contextOrig;
 
-        // Prepare a working context because SongStructure/ChordLeadsheet might be modified by preprocessFillParameter
-        SongFactory sf = SongFactory.getInstance();
-        Song songCopy = sf.getCopyUnlinked(contextOriginal.getSong(), false);
-        preprocessFillParameter(songCopy, contextOrig);     // This will modify songCopy
 
-        // The working context 
-        this.contextWork = new SongContext(songCopy, contextOriginal.getMidiMix(), contextOriginal.getBarRange());
+        // Prepare a working context which can be modified 
+        SongFactory sf = SongFactory.getInstance();
+        Song songWork = sf.getCopyUnlinked(contextOriginal.getSong(), false);
+        this.contextWork = new SongContext(songWork, contextOriginal.getMidiMix(), contextOriginal.getBarRange());
+
+
+        // Introduce fake section/songpart when a Fill rhythm parameter is used
+        preprocessFillParameter(contextWork);     // SongStructure and ChordLeadsheet might be changed independently
+
 
         // Build the main chord sequence
-        songChordSequence = new SongChordSequence(songCopy, contextWork.getBarRange());   // Throw UserErrorGenerationException but no risk: will have a chord at beginning. Handle alternate chord symbols.       
+        songChordSequence = new SongChordSequence(songWork, contextWork.getBarRange());   // Throw UserErrorGenerationException but no risk: will have a chord at beginning. Handle alternate chord symbols.       
         songChordSequence.removeRedundantChords();
 
-        LOGGER.log(Level.FINE, "generateMusic()-- rhythm={0} songChordSequence={1}", new Object[]
+        LOGGER.log(LogLevel, "generateMusic()-- rhythm={0} songChordSequence={1}", new Object[]
         {
             rhythm.getName(), songChordSequence
         });
@@ -186,7 +191,6 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
             AccType at = AccType.getAccType(rv);     // The AccType corresponding to this RhythmVoice
             for (ChordSeqPhrases csp : chordSeqPhrasesMerged)
             {
-                ChordSequence cSeq = csp.simpleChordSequence();
                 HashMap<AccType, Phrase> map = csp.mapAccTypePhrase();
                 Phrase p = map.get(at);
                 if (p != null)
@@ -195,7 +199,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
                 } else
                 {
                     // Some AccType may not be used on all styleParts of a style.
-                    LOGGER.log(Level.FINE, "generateMusic() no phrase for at={0}", at);
+                    LOGGER.log(LogLevel, "generateMusic() no phrase for at={0}", at);
                 }
             }
         }
@@ -275,7 +279,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
         {
             throw new IllegalArgumentException("stylePart=" + stylePart + " cSeq=" + cSeq);   //NOI18N
         }
-        LOGGER.log(Level.FINE, "getAllAccTypesPhrasesOneChordSequence() -- stylePart={0} cSeq={1}", new Object[]
+        LOGGER.log(LogLevel, "getAllAccTypesPhrasesOneChordSequence() -- stylePart={0} cSeq={1}", new Object[]
         {
             stylePart, cSeq
         });
@@ -321,7 +325,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
                 Phrases.silenceAfter(pRes, cSeq.getBeatRange().to);
             }
         }
-        //LOGGER.log(Level.FINE, "getAllAccTypesPhrasesOneChordSequence() res=" + res);
+        //LOGGER.log(LogLevel, "getAllAccTypesPhrasesOneChordSequence() res=" + res);
         return res;
     }
 
@@ -345,7 +349,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
         {
             throw new IllegalArgumentException("stylePart=" + stylePart + " shortcSeq=" + shortcSeq);   //NOI18N
         }
-        LOGGER.log(Level.FINE, "getAllAccTypesPhrasesOneShortChordSequence() -- stylePart={0} shortcSeq={1}", new Object[]
+        LOGGER.log(LogLevel, "getAllAccTypesPhrasesOneShortChordSequence() -- stylePart={0} shortcSeq={1}", new Object[]
         {
             stylePart,
             shortcSeq
@@ -410,7 +414,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
 
         // Take all the possible source channels, we'll do the selection when we have the destination chord
         List<Integer> sourceChannels = stylePart.getSourceChannels(at, null, null);
-        LOGGER.log(Level.FINE, "getOneAccTypePhraseOneShortChordSequence()   at={0} sourceChannels={1}", new Object[]
+        LOGGER.log(LogLevel, "getOneAccTypePhraseOneShortChordSequence()   at={0} sourceChannels={1}", new Object[]
         {
             at, sourceChannels
         });
@@ -434,7 +438,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
             if (pSrc == null)
             {
                 // Can happen in case of inconsistency between CASM and Midi notes (channel is defined in CASM but no Midi note for this channel)
-                LOGGER.log(Level.FINE, "getOneAccTypePhraseOneShortChordSequence()   unexpected absence of phrase for srcChannel={0}",
+                LOGGER.log(LogLevel, "getOneAccTypePhraseOneShortChordSequence()   unexpected absence of phrase for srcChannel={0}",
                         srcChannel);
                 continue;
             }
@@ -446,7 +450,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
             Phrases.silenceAfter(pSrc, cSeqBeatRange.to);
 
 
-            LOGGER.log(Level.FINE, "getOneAccTypePhraseOneShortChordSequence() at={0} srcChannel={1} pSrc={2}", new Object[]
+            LOGGER.log(LogLevel, "getOneAccTypePhraseOneShortChordSequence() at={0} srcChannel={1} pSrc={2}", new Object[]
             {
                 at, srcChannel, pSrc
             });
@@ -491,7 +495,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
             if (cTab.isSingleCtb2() && cTab.ctb2Main.ntt == NoteTranspositionTable.BYPASS && cTab.ctb2Main.ntr == NoteTranspositionRule.ROOT_FIXED)
             {
                 pRes.add(pSrc);
-                LOGGER.log(Level.FINE, "getOneAccTypePhraseOneShortChordSequence()   ByPass+RootFixed: directly reuse source phrase");
+                LOGGER.log(LogLevel, "getOneAccTypePhraseOneShortChordSequence()   ByPass+RootFixed: directly reuse source phrase");
                 continue;
             }
 
@@ -519,7 +523,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
                 if (!validSrcChannels.contains(srcChannel))
                 {
                     // Skip to next chord in the sequence
-                    LOGGER.log(Level.FINE,
+                    LOGGER.log(LogLevel,
                             "getOneAccTypePhraseOneShortChordSequence()      destEcs={0} yc={1} => channel does not match, skip",
                             new Object[]
                             {
@@ -530,7 +534,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
                 }
 
 
-                LOGGER.log(Level.FINE,
+                LOGGER.log(LogLevel,
                         "getOneAccTypePhraseOneShortChordSequence()      destCliCs={0} yc={1}", new Object[]
                         {
                             destCliCs, yc
@@ -546,7 +550,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
                 if (cTab.ctb2Low != null)
                 {
                     // There is specific ctb2 settings for the lowest range of notes
-                    LOGGER.log(Level.FINE, "getOneAccTypePhraseOneShortChordSequence() Processing SFF2 ctb2 low range at={0}", at);
+                    LOGGER.log(LogLevel, "getOneAccTypePhraseOneShortChordSequence() Processing SFF2 ctb2 low range at={0}", at);
                     Ctb2ChannelSettings ctb2 = cTab.ctb2Low;
                     SourcePhrase pSrcLow = pSrc.getProcessedPhrase(ne -> ne.getPitch() < cTab.getCtb2MiddeLowPitch(), ne -> ne.clone());
 
@@ -554,7 +558,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
                     {
                         // Special case, we can directly reuse the source phrase whatever the chord sequence    
                         pDestOneCs.add(pSrcLow);
-                        LOGGER.log(Level.FINE, "   ByPass+RootFixed: directly reusing source phrase");
+                        LOGGER.log(LogLevel, "   ByPass+RootFixed: directly reusing source phrase");
                     } else
                     {
                         Phrase fittedPhrase = fitSrcPhraseToChordSymbol(pSrcLow, ctb2, destEcs, cri);
@@ -573,7 +577,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
                 } else
                 {
                     // There is also a low or high range too
-                    LOGGER.log(Level.FINE, "getOneAccTypePhraseOneShortChordSequence() Processing SFF2 ctb2 middle range at={0}", at);
+                    LOGGER.log(LogLevel, "getOneAccTypePhraseOneShortChordSequence() Processing SFF2 ctb2 middle range at={0}", at);
                     Ctb2ChannelSettings ctb2 = cTab.ctb2Main;
                     SourcePhrase pSrcMain = pSrc.getProcessedPhrase(ne -> ne.getPitch() >= cTab.getCtb2MiddeLowPitch()
                             && ne.getPitch() <= cTab.getCtb2MiddeHighPitch(),
@@ -583,7 +587,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
                     {
                         // Special case, we can directly reuse the source phrase whatever the chord sequence    
                         pDestOneCs.add(pSrcMain);
-                        LOGGER.log(Level.FINE, "   ByPass+RootFixed: directly reusing source phrase");
+                        LOGGER.log(LogLevel, "   ByPass+RootFixed: directly reusing source phrase");
                     } else
                     {
                         Phrase fittedPhrase = fitSrcPhraseToChordSymbol(pSrcMain, ctb2, destEcs, cri);
@@ -597,7 +601,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
                 if (cTab.ctb2High != null)
                 {
                     // There is specific ctb2 settings for the highest range of notes
-                    LOGGER.log(Level.FINE, "getOneAccTypePhraseOneShortChordSequence() Processing SFF2 ctb2 high range at={0}", at);
+                    LOGGER.log(LogLevel, "getOneAccTypePhraseOneShortChordSequence() Processing SFF2 ctb2 high range at={0}", at);
                     Ctb2ChannelSettings ctb2 = cTab.ctb2High;
                     SourcePhrase pSrcHigh = pSrc.getProcessedPhrase(ne -> ne.getPitch() > cTab.getCtb2MiddeHighPitch(), ne -> ne.clone());
 
@@ -605,7 +609,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
                     {
                         // Special case, we can directly reuse the source phrase whatever the chord sequence    
                         pDestOneCs.add(pSrcHigh);
-                        LOGGER.log(Level.FINE, "   ByPass+RootFixed: directly reusing source phrase");
+                        LOGGER.log(LogLevel, "   ByPass+RootFixed: directly reusing source phrase");
                     } else
                     {
                         Phrase fittedPhrase = fitSrcPhraseToChordSymbol(pSrcHigh, ctb2, destEcs, cri);
@@ -616,7 +620,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
                 }
 
 
-                // LOGGER.log(Level.FINE, "------getOneAccTypePhraseOneShortChordSequence()  pre-slice  destCliCs=" + destCliCs + " pDestOneCs=" + pDestOneCs.toString());
+                // LOGGER.log(LogLevel, "------getOneAccTypePhraseOneShortChordSequence()  pre-slice  destCliCs=" + destCliCs + " pDestOneCs=" + pDestOneCs.toString());
                 // Keep only the relevant slice
                 // If next chordsymbol is using the same source phrase, we can let the notes ring after the slice (cutRight=false): noteON transitions
                 // will be managed by fixNoteOnTransitions(). If NOT, fixNoteOnTransitions() can't be used so we need to 
@@ -633,7 +637,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
                 }
                 pDestOneCs = Phrases.getSlice(pDestOneCs, shortcSeq.getBeatRange(destCliCs), true, cutRight, 0.1f);
 
-                // LOGGER.log(Level.FINE, "------getOneAccTypePhraseOneShortChordSequence()  post-slice cutRight="+cutRight+" pDestOneCs=" + pDestOneCs.toString());
+                // LOGGER.log(LogLevel, "------getOneAccTypePhraseOneShortChordSequence()  post-slice cutRight="+cutRight+" pDestOneCs=" + pDestOneCs.toString());
 
                 // Merge in the destination phrase 
                 pDest.add(pDestOneCs);
@@ -642,12 +646,12 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
             }   // END  for (int i = 0; i < shortcSeq.size(); i++)
 
 
-            //LOGGER.log(Level.FINE, "getOneAccTypePhraseOneShortChordSequence()      pre-fixTransitions  pDest=" + pDest.toString());
+            //LOGGER.log(LogLevel, "getOneAccTypePhraseOneShortChordSequence()      pre-fixTransitions  pDest=" + pDest.toString());
             // Fix transitions for notes still ON during chord changes
             // Always use the main ctb2 RTR: not perfect since in some SFF2 files it seems there could be different RTR values for lowest/highest notes
             fixNoteOnTransitions(pDest, shortcSeq, cTab.ctb2Main);
 
-            LOGGER.log(Level.FINE, "getOneAccTypePhraseOneShortChordSequence()      post-fixTransitions pDest={0}", pDest);
+            LOGGER.log(LogLevel, "getOneAccTypePhraseOneShortChordSequence()      post-fixTransitions pDest={0}", pDest);
 
             // Merge the fitted phrase for this source channel in the global result phrase
             pRes.add(pDest);
@@ -658,7 +662,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
 
         Phrases.fixOverlappedNotes(pRes);
 
-        LOGGER.log(Level.FINE, "getOneAccTypePhraseOneShortChordSequence()   pRes={0}", pRes);
+        LOGGER.log(LogLevel, "getOneAccTypePhraseOneShortChordSequence()   pRes={0}", pRes);
 
         return pRes;
     }
@@ -837,7 +841,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
      */
     private void fixNoteOnTransitions(Phrase pDest, SimpleChordSequence cSeq, Ctb2ChannelSettings ctb2) throws IllegalStateException
     {
-        LOGGER.log(Level.FINE, "fixNoteOnTransitions() -- pDest={0}\ncSeq={1}\nctb2.rtr={2}", new Object[]
+        LOGGER.log(LogLevel, "fixNoteOnTransitions() -- pDest={0}\ncSeq={1}\nctb2.rtr={2}", new Object[]
         {
             pDest, cSeq, ctb2.rtr
         });
@@ -899,11 +903,11 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
                 // Note will be shortened to a very short note. Remove it, it's now probably useless musically, and 
                 // this avoids problems later with chord hold processing when extending the duration of notes that 
                 // are in the grid pre-cell beat window.
-                LOGGER.log(Level.FINE, "  Special case, too short note, removing prevParentDestNote={0}", prevParentDestNote);
+                LOGGER.log(LogLevel, "  Special case, too short note, removing prevParentDestNote={0}", prevParentDestNote);
                 pDest.remove(prevParentDestNote);
             } else
             {
-                LOGGER.log(Level.FINE, "  Replace prevParentDestNote={0}> shortenedPrevParentDestNote={1}", new Object[]
+                LOGGER.log(LogLevel, "  Replace prevParentDestNote={0}> shortenedPrevParentDestNote={1}", new Object[]
                 {
                     prevParentDestNote, shortenedPrevParentDestNote
                 });
@@ -918,7 +922,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
                 {
                     // Remove destNote since it's a STOP transition
                     pDest.remove(destNote);
-                    LOGGER.log(Level.FINE, " STOP removed destNote={0}", destNote);
+                    LOGGER.log(LogLevel, " STOP removed destNote={0}", destNote);
 
                     // From here there is no more destination note for parentNote
                     mapParentDestNotesOn.remove(parentNote);
@@ -939,7 +943,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
                     NoteEvent newDestNote = destNote.setPitch(destCliCsRootPitch, true);
                     pDest.replace(destNote, newDestNote);
 
-                    LOGGER.log(Level.FINE, "  RETRIGGER_TO_ROOT replace destNote={0} > newDestNote={1}", new Object[]
+                    LOGGER.log(LogLevel, "  RETRIGGER_TO_ROOT replace destNote={0} > newDestNote={1}", new Object[]
                     {
                         destNote, newDestNote
                     });
@@ -974,16 +978,15 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
     /**
      * Modify the song's SongStructure and ChordLeadSheet to facilitate the processing of the RP_STD_FILL parameter.
      * <p>
-     * Add a "fill" section on the last bar of each existing section. Exploit the RP_STD_Fill parameter: introduce "fake" Section/SongParts with Fill_In_AA-like
-     * styles parts.
+     * Add a "fill" section on the last bar of each existing section for RP_STD_Fill parameter: introduce "fake" Section/SongParts with
+     * Fill_In_AA-like styles parts
      * <p>
-     * @param song    An "unlinked" song (SongStructure does not listen to ChordLeadSheet changes)
-     * @param context Process only the context song parts
+     * @param context SongStructure must not be linked to the ChordLeadSheet
      */
-    private void preprocessFillParameter(Song song, SongContext context)
+    private void preprocessFillParameter(SongContext context)
     {
-        ChordLeadSheet cls = song.getChordLeadSheet();
-        SongStructure ss = song.getSongStructure();
+        ChordLeadSheet cls = context.getSong().getChordLeadSheet();
+        SongStructure ss = context.getSong().getSongStructure();
         try
         {
             // Add a "<sectionName>*FILL*" section and the corresponding songPart for all sections whose size >= 2 bars.
@@ -1028,6 +1031,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
             Exceptions.printStackTrace(ex);
         }
 
+        
         // Change rpComplexity value for "fill" songParts depending on the rpFill value
         for (SongPart spt : context.getSongParts())
         {
@@ -1150,7 +1154,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
                     int newPitch = ne.getClosestPitch(bassRelPitch);
                     NoteEvent newNe = ne.setPitch(newPitch, true);
                     p.replace(ne, newNe);
-                    LOGGER.log(Level.FINE, "processBassLine()    => replacing {0} with {1}", new Object[]
+                    LOGGER.log(LogLevel, "processBassLine()    => replacing {0} with {1}", new Object[]
                     {
                         ne, newNe
                     });
@@ -1185,7 +1189,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
             Phrase p = mapAtPhrase.get(AccType.RHYTHM);
             if (p != null)
             {
-                LOGGER.log(Level.FINE, "processAnticipationsAndAccents()  AccType.RHYTHM, channel={0}", p.getChannel());
+                LOGGER.log(LogLevel, "processAnticipationsAndAccents()  AccType.RHYTHM, channel={0}", p.getChannel());
                 DrumKit kit = rhythm.getRhythmVoice(AccType.RHYTHM).getDrumKit();
                 acp.anticipateChords_Drums(p, kit);
                 ap.processAccentDrums(p, kit);
@@ -1344,7 +1348,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
                 {
                     NoteEvent newNe = ne.setPitch(newPitch, true);
                     mapOldNew.put(ne, newNe);
-                    LOGGER.log(Level.FINE, "remapDrumNotes() pitch replaced {0} ==> {1}", new Object[]
+                    LOGGER.log(LogLevel, "remapDrumNotes() pitch replaced {0} ==> {1}", new Object[]
                     {
                         oldPitch, newPitch
                     });
