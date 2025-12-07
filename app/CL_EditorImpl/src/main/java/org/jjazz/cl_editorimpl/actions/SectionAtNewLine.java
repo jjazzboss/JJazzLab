@@ -24,9 +24,14 @@ package org.jjazz.cl_editorimpl.actions;
 
 import java.awt.event.ActionEvent;
 import java.util.EnumSet;
+import java.util.Objects;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import static javax.swing.Action.NAME;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
@@ -42,8 +47,16 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
+import org.openide.util.ContextAwareAction;
+import org.openide.util.Lookup;
 import org.openide.util.actions.Presenter;
 
+
+/**
+ * Show the action as a checkbox menu item.
+ * <p>
+ * Action has no keyboard shortcut and is only showed in transient popup menus, no need for CL_ContextAction.
+ */
 @ActionRegistration(displayName = "not_used", lazy = false) // lazy can't be true because of Presenter.Popup implementation
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.sectionatnewline")
 @ActionReferences(
@@ -51,7 +64,7 @@ import org.openide.util.actions.Presenter;
             @ActionReference(path = "Actions/Bar", position = 1420),
             @ActionReference(path = "Actions/Section", position = 2110)
         })
-public final class SectionAtNewLine extends CL_ContextAction implements Presenter.Popup
+public final class SectionAtNewLine extends AbstractAction implements Presenter.Popup, ContextAwareAction
 {
 
     private JCheckBoxMenuItem checkBoxMenuItem;
@@ -59,65 +72,43 @@ public final class SectionAtNewLine extends CL_ContextAction implements Presente
     private CLI_Section cliSection;
     private static final Logger LOGGER = Logger.getLogger(SectionAtNewLine.class.getSimpleName());
 
-    @Override
-    protected void configureAction()
+    public SectionAtNewLine()
     {
+        // Not used besides for creating the ContextAwareAction
+    }
+
+    public SectionAtNewLine(Lookup context)
+    {
+        Objects.requireNonNull(context);
+
+
         putValue(NAME, ResUtil.getString(getClass(), "CTL_SectionAtNewLine"));
-        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES, ListeningTarget.BAR_SELECTION));
+        checkBoxMenuItem = new JCheckBoxMenuItem(this);
+
+
+        var selection = new CL_Selection(context);
+        CL_EditorTopComponent tc = CL_EditorTopComponent.get(selection.getChordLeadSheet());
+        assert tc != null : "cls=" + selection.getChordLeadSheet();
+        editor = tc.getEditor();
+
+
+        cliSection = getSection(selection);
+        setEnabled(cliSection != null);
+        boolean b = cliSection != null && CL_EditorClientProperties.isSectionIsOnNewLine(cliSection);
+        checkBoxMenuItem.setSelected(b);
     }
 
     @Override
-    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_Selection selection)
+    public Action createContextAwareInstance(Lookup lkp)
     {
-        assert cliSection != null && editor != null :
-                "cliSection=" + cliSection + " editor=" + editor + " getSelection()=" + getSelection();
+        return new SectionAtNewLine(lkp);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent ae)
+    {
         CL_EditorClientProperties.setSectionIsOnNewLine(cliSection, checkBoxMenuItem.isSelected());
         editor.getSongModel().setSaveNeeded(true);
-    }
-
-    @Override
-    public void selectionChange(CL_Selection selection)
-    {
-        editor = null;
-        cliSection = null;
-
-        // Retrieve the selected section if valid
-        if (selection.getSelectedSections().size() == 1)
-        {
-            cliSection = (CLI_Section) selection.getSelectedItems().get(0);
-        } else if (selection.getSelectedBarsWithinCls().size() == 1)
-        {
-            int selBarIndex = selection.getSelectedBarsWithinCls().get(0).getModelBarIndex();
-            cliSection = selection.getChordLeadSheet().getSection(selBarIndex);
-            if (cliSection.getPosition().getBar() != selBarIndex)
-            {
-                // SelectedBar is not a section bar
-                cliSection = null;
-            }
-        }
-
-        // Update enabled and selected status
-        boolean e = (cliSection != null) && cliSection.getPosition().getBar() != 0;
-        boolean selected = false;
-        if (e)
-        {
-            CL_EditorTopComponent tc = CL_EditorTopComponent.get(selection.getChordLeadSheet());
-            assert tc != null : "cls=" + selection.getChordLeadSheet();
-            editor = tc.getEditor();
-            selected = CL_EditorClientProperties.isSectionIsOnNewLine(cliSection);
-        }
-
-        setEnabled(e);
-        getPopupPresenter().setSelected(selected);  // Only update UI, actionPerformed() is not called
-    }
-
-    @Override
-    public void chordLeadSheetChanged(ClsChangeEvent event)
-    {
-        if (event instanceof SizeChangedEvent)
-        {
-            selectionChange(getSelection());
-        }
     }
 
     // ============================================================================================= 
@@ -126,14 +117,39 @@ public final class SectionAtNewLine extends CL_ContextAction implements Presente
     @Override
     public JMenuItem getPopupPresenter()
     {
-        if (checkBoxMenuItem == null)
-        {
-            checkBoxMenuItem = new JCheckBoxMenuItem(this);
-        }
         return checkBoxMenuItem;
     }
 
     // ======================================================================
     // Private methods
     // ======================================================================   
+
+    /**
+     * Get the section on which to operate.
+     *
+     * @param selection
+     * @return Null means no valid selection
+     */
+    private CLI_Section getSection(CL_Selection selection)
+    {
+        CLI_Section res = null;
+        if (selection.getSelectedSections().size() == 1)
+        {
+            res = (CLI_Section) selection.getSelectedItems().get(0);
+        } else if (selection.getSelectedBarsWithinCls().size() == 1)
+        {
+            int selBarIndex = selection.getSelectedBarsWithinCls().get(0).getModelBarIndex();
+            res = selection.getChordLeadSheet().getSection(selBarIndex);
+            if (res.getPosition().getBar() != selBarIndex)
+            {
+                // SelectedBar is not a section bar
+                res = null;
+            }
+        }
+        if (res != null && res.getPosition().getBar() == 0)
+        {
+            res = null;
+        }
+        return res;
+    }
 }

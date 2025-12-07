@@ -232,7 +232,7 @@ public class CL_EditorClientProperties
      */
     public static void setSectionIsOnNewLine(CLI_Section cliSection, boolean b)
     {
-        cliSection.getClientProperties().putBoolean(PROP_SECTION_START_ON_NEW_LINE, b ? b : null);
+        cliSection.getClientProperties().putBoolean(PROP_SECTION_START_ON_NEW_LINE, b ? true : null);
     }
 
     /**

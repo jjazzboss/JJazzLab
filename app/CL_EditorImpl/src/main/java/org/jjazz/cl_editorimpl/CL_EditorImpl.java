@@ -1217,27 +1217,46 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
      */
     private void setNbBarBoxes(int newNbBarBoxes)
     {
-        int oldNnBarBoxes = getNbBarBoxes();
-        if (newNbBarBoxes == oldNnBarBoxes)
+        int oldNbBarBoxes = getNbBarBoxes();
+        if (newNbBarBoxes == oldNbBarBoxes)
         {
             return;
         }
 
-        if (oldNnBarBoxes < newNbBarBoxes)
+        if (oldNbBarBoxes < newNbBarBoxes)
         {
             // Need to add BarBoxes at the end
 
             // The BarBoxConfig to use, default one or the one of the last bar
-            BarBoxConfig config = (oldNnBarBoxes == 0) ? getDefaultBarBoxConfig() : getBarBox(oldNnBarBoxes - 1).getConfig();
-            int modelSize = clsModel.getSizeInBars();
-            for (int i = oldNnBarBoxes; i < newNbBarBoxes; i++)
+            BarBoxConfig config = (oldNbBarBoxes == 0) ? getDefaultBarBoxConfig() : getBarBox(oldNbBarBoxes - 1).getConfig();
+
+            for (int bbIndex = oldNbBarBoxes; bbIndex < newNbBarBoxes; bbIndex++)
             {
-                insertBarBox(i, i >= modelSize ? SelectedBar.POST_END_BAR_MODEL_BAR_INDEX : i, config);
+                int modelBarIndex = bbIndex;
+                if (bbIndex >= clsModel.getSizeInBars())
+                {
+                    modelBarIndex = SelectedBar.POST_END_BAR_MODEL_BAR_INDEX;
+                }
+
+                BarBox bb = new BarBox(this, bbIndex, modelBarIndex, clsModel, config, settings.getBarBoxSettings(), barRendererFactory);
+                bb.setEnabled(isEnabled());
+
+                registerBarBox(bb);
+
+
+                // Insert the BarBox at correct location (possible presence of padding boxes)
+                int compIndex = getComponentIndex(bbIndex);
+                add(bb, compIndex);
+
+
+                barBoxes.add(bbIndex, bb);
+
             }
+
         } else
         {
             // Easier, just delete BarBoxes
-            for (int i = oldNnBarBoxes - 1; i >= newNbBarBoxes; i--)
+            for (int i = oldNbBarBoxes - 1; i >= newNbBarBoxes; i--)
             {
                 removeBarBox(getBarBox(i));
             }
@@ -1257,38 +1276,6 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     private List<BarBox> getBarBoxes()
     {
         return barBoxes;
-    }
-
-    /**
-     * Insert a new BarBox at specified location.
-     *
-     * @param bbIndex       A value between [0, getNbBarBoxes()] (the latter will append the BarBox at the end).
-     * @param modelBarIndex Use a negative value if BarBox does not represent a model's bar.
-     * @param config
-     * @return The created BarBox
-     */
-    private BarBox insertBarBox(int bbIndex, int modelBarIndex, BarBoxConfig config)
-    {
-        if (bbIndex < 0 || bbIndex > getNbBarBoxes() || modelBarIndex > clsModel.getSizeInBars() - 1)
-        {
-            throw new IllegalArgumentException(
-                    "bbIndex=" + bbIndex + " getNbBarBoxes()=" + getNbBarBoxes() + " modelBarIndex=" + modelBarIndex + " config=" + config + " clsModel=" + clsModel);
-        }
-        BarBox bb = new BarBox(this, bbIndex, modelBarIndex, clsModel, config, settings.getBarBoxSettings(), barRendererFactory);
-
-        registerBarBox(bb);
-
-        // Forward the enabled state
-        bb.setEnabled(isEnabled());
-
-        // Insert the BarBox at correct location
-        int compIndex = getComponentIndex(bbIndex);
-        add(bb, compIndex);
-
-        // Update our BarBox list
-        barBoxes.add(bbIndex, bb);
-
-        return bb;
     }
 
     /**
@@ -1333,7 +1320,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     }
 
     /**
-     * Register a BarBox and its BarRenderers and ItemRenderers.
+     * Register a BarBox, its BarRenderers, ItemRenderers, and related client properties.
      *
      * @param bb
      */
@@ -1346,10 +1333,21 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         {
             registerBarRenderer(br);
         }
+
+        int modelBarIndex = bb.getModelBarIndex();
+        if (modelBarIndex >= 0)
+        {
+            var cliSection = clsModel.getSection(modelBarIndex);
+            if (cliSection.getPosition().getBar() == modelBarIndex)
+            {
+                cliSection.getClientProperties().addPropertyChangeListener(this);
+            }
+        }
     }
 
     /**
-     * Unregister a BarBox and its BarRenderers and ItemRenderers.
+     * Unregister a BarBox, its BarRenderers, ItemRenderers, and related client properties.
+     * <p>
      *
      * @param bb
      */
@@ -1361,6 +1359,16 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         for (BarRenderer br : bb.getBarRenderers())
         {
             unregisterBarRenderer(br);
+        }
+
+        int modelBarIndex = bb.getModelBarIndex();
+        if (modelBarIndex >= 0)
+        {
+            var cliSection = clsModel.getSection(modelBarIndex);
+            if (cliSection.getPosition().getBar() == modelBarIndex)
+            {
+                cliSection.getClientProperties().removePropertyChangeListener(this);
+            }
         }
     }
 
