@@ -22,9 +22,6 @@
  */
 package org.jjazz.songmemoviewer.api;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import org.jjazz.songmemoviewer.SongMemoEditor;
@@ -39,7 +36,7 @@ import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
 
 /**
- * Top component which displays something.
+ * Top component for Song memo.
  */
 @ConvertAsProperties(
         dtd = "-//org.jjazz.songnotesviewer.api//SongNotes//EN",

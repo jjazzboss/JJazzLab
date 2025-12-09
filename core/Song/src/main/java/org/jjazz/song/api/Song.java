@@ -126,6 +126,10 @@ public class Song implements Serializable, PropertyChangeListener
      */
     public static final String PROP_CLOSED = "PROP_CLOSED";
     /**
+     * Default song comments.
+     */
+    public static final String DEFAULT_COMMENTS = ResUtil.getString(Song.class, "EDIT_ME");
+    /**
      * Fired after the song is modified (oldValue=false, newValue=true), or saved (oldValue=true, newValue=false), or Song.setSaveNeeded(false) is called
      * (oldValue=null, newValue=false).
      * <p>
@@ -136,7 +140,7 @@ public class Song implements Serializable, PropertyChangeListener
     private SongStructure songStructure;
     private ChordLeadSheet chordLeadSheet;
     private String name;
-    private String comments = ResUtil.getString(getClass(), "EDIT_ME");
+    private String comments = DEFAULT_COMMENTS;
     private int tempo = 120;
     private List<String> tags = new ArrayList<>();
     private Map<String, Phrase> mapUserPhrases = new HashMap<>();

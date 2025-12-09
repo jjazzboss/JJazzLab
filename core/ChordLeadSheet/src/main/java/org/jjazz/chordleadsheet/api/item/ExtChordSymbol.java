@@ -196,7 +196,8 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
     {
         Preconditions.checkArgument((altChordSymbol == null && altFilter == null)
                 || (altChordSymbol != null && altFilter != null), "altChordSymbol=%s altFilter=%s", altChordSymbol, altFilter);
-
+        
+        cs = cs != null ? cs : this;
         rInfo = rInfo != null ? rInfo : getRenderingInfo();
         altChordSymbol = altChordSymbol != null ? altChordSymbol : getAlternateChordSymbol();
         altFilter = altFilter != null ? altFilter : getAlternateFilter();

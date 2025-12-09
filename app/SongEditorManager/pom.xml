@@ -139,6 +139,11 @@
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
+            <groupId>org.jjazzlab.app</groupId> 
+            <artifactId>songmemoviewer</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
+        <dependency> 
             <groupId>org.jjazzlab.core</groupId> 
             <artifactId>embeddedsynth</artifactId> 
             <version>${project.version}</version>  

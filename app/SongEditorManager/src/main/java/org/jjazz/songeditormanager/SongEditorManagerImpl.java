@@ -69,6 +69,7 @@ import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
 import org.jjazz.outputsynth.spi.OutputSynthManager;
 import org.jjazz.songeditormanager.api.StartupShutdownSongManager;
+import org.jjazz.songmemoviewer.api.SongMemoTopComponent;
 
 
 @ServiceProvider(service = SongEditorManager.class)
@@ -162,7 +163,7 @@ public class SongEditorManagerImpl implements SongEditorManager, PropertyChangeL
             song.addUndoableEditListener(undoManager);
 
 
-            // Create the editors
+            // Create the main editors
             CL_EditorTopComponent clTC = new CL_EditorTopComponent(song);
             Mode mode = WindowManager.getDefault().findMode(CL_EditorTopComponent.MODE);
             mode.dockInto(clTC);
@@ -183,6 +184,12 @@ public class SongEditorManagerImpl implements SongEditorManager, PropertyChangeL
             {
                 var preTc = showPianoRollEditorForUserTrack(song, midiMix, (UserRhythmVoice) midiMix.getRhythmVoice(userChannels.get(0)));
                 editorSet.setPianoRollEditor(preTc);
+            }
+
+
+            if (!Song.DEFAULT_COMMENTS.equals(song.getComments()))
+            {
+                SongMemoTopComponent.getInstance().open();
             }
 
 
@@ -816,10 +823,13 @@ public class SongEditorManagerImpl implements SongEditorManager, PropertyChangeL
 
     private void openLinks(Song song)
     {
-        LOGGER.log(Level.INFO, "openLinks() Opening links in song {0}", song.getName());
-        Utilities.extractURIs(song.getComments(), "file", "https?").stream()
-                .limit(4)       // Security
-                .forEach(uri -> Utilities.systemOpenURI(uri));
+        var uris = Utilities.extractURIs(song.getComments(), "file", "https?");
+        if (!uris.isEmpty())
+        {
+            LOGGER.log(Level.INFO, "openLinks() Opening links in song comments {0}", song.getName());
+            uris.stream()
+                    .limit(4) // Security
+                    .forEach(uri -> Utilities.systemOpenURI(uri));
+        }
     }
-
 }

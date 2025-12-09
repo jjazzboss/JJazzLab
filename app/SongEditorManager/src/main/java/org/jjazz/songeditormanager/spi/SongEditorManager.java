@@ -82,10 +82,11 @@ public interface SongEditorManager
     }
 
     /**
-     * Show a song in the application.s
+     * Show a song in the application.
      * <p>
-     * Creates undomanager, creates and shows editors. Opens the possible links in song memo is makeActive is true. Opens the PianoRollEditor if there is a user
-     * track.
+     * - Creates undomanager, creates and shows the required editors.<br>
+     * - Opens the song memo if used by song, and open its possible links if makeActive is true. <br>
+     * - Opens the PianoRollEditor if there is a user track.
      * <p>
      * If song is already shown in an editor, just makes its TopComponent active.
      *
