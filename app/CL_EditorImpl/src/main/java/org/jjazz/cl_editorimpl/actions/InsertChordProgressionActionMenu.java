@@ -148,7 +148,7 @@ public final class InsertChordProgressionActionMenu extends AbstractAction imple
         // First menu entry opens the chord progressino text file in an editor
         String txt=ResUtil.getString(getClass(),"OpenChordProgressionFile" , chordProgressionFile.getAbsolutePath());
         JMenuItem mi = new JMenuItem(txt);
-        mi.addActionListener(e -> Utilities.openFile(chordProgressionFile, false));
+        mi.addActionListener(e -> Utilities.systemOpenFile(chordProgressionFile, false, Utilities.SAFE_OPEN_EXTENSIONS));
         menu.add(mi);
         
 

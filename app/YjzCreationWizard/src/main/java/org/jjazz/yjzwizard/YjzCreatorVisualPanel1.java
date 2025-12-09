@@ -92,7 +92,7 @@ public final class YjzCreatorVisualPanel1 extends JPanel
     {//GEN-HEADEREND:event_editorPane_introHyperlinkUpdate
         if (evt.getEventType() == HyperlinkEvent.EventType.ACTIVATED)
         {
-            org.jjazz.utilities.api.Utilities.openInBrowser(evt.getURL(), false);
+            org.jjazz.utilities.api.Utilities.systemOpenURLInBrowser(evt.getURL(), false);
         }
     }//GEN-LAST:event_editorPane_introHyperlinkUpdate
 

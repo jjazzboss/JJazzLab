@@ -539,7 +539,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
         var ri = rhythmTable.getSelectedRhythm();
         if (ri != null && !ri.file().getName().isBlank())
         {
-            org.jjazz.utilities.api.Utilities.browseFileDirectory(ri.file(), false);
+            org.jjazz.utilities.api.Utilities.systemBrowseFileDirectory(ri.file(), false);
         }
     }//GEN-LAST:event_btn_openFolderActionPerformed
 

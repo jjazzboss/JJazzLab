@@ -53,6 +53,6 @@ public final class OnlineDoc implements ActionListener
             Exceptions.printStackTrace(ex);
         }
 
-        Utilities.openInBrowser(url, false);
+        Utilities.systemOpenURLInBrowser(url, false);
     }
 }

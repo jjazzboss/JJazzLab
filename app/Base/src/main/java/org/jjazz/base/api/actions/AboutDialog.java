@@ -240,7 +240,7 @@ public class AboutDialog extends javax.swing.JDialog
             }
         }
 
-        Utilities.openFile(licenseFile, false);
+        Utilities.systemOpenFile(licenseFile, false, Utilities.SAFE_OPEN_EXTENSIONS);
 
     }//GEN-LAST:event_btn_licenseActionPerformed
 

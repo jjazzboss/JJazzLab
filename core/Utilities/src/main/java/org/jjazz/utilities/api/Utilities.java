@@ -49,14 +49,14 @@ import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Formatter;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-import javax.swing.Action;
 import org.netbeans.api.progress.ProgressHandle;
 import org.openide.*;
 import org.openide.filesystems.FileObject;
-import org.openide.filesystems.FileUtil;
 
 /**
  * Various convenience functions.
@@ -67,6 +67,19 @@ public class Utilities
     private static final Logger LOGGER = Logger.getLogger(Utilities.class.getName());
     private static long firstTimeLogStampEpochMillis = -1;
     private static boolean changedRootLogger = false;
+
+    /**
+     * @see #systemOpenFile(java.io.File, boolean, java.util.List)
+     */
+    public static final List<String> SAFE_OPEN_EXTENSIONS = List.of(
+            "pdf", "txt", "md", "rtf",
+            "jpg", "jpeg", "png", "gif", "webp", "svg", "bmp",
+            "mp3", "wav", "flac", "ogg", "m4a", "aac", "wma",
+            "mp4", "mov", "avi", "mkv", "webm",
+            "mid", "midi", "mscz", "mscx", "xml", "musicxml",
+            "gp", "gpx", "gp5", "ly", "sib",
+            "doc", "docx", "xls", "xlsx", "odt", "ods"
+    );
 
     /**
      * Make logging message include a time stamp in milliseconds, relative to the time of the first logged message in the application.
@@ -350,71 +363,45 @@ public class Utilities
     }
 
     /**
-     * Extract from text all http://xxx or https://xxx URL strings as URLs.
-     * <p>
-     * Malformed URLs are ignored.
+     * Get links from text as URIs.
      *
      * @param text
-     * @return
+     * @param scheme       The scheme part of the URI as a regex string. E.g. "file" or "http?". Can not be blank.
+     * @param otherSchemes Optional additional scheme regex strings
+     * @return URIs with the specified scheme(s)
      */
-    public static List<URL> extractHttpURLs(String text)
+    public static List<URI> extractURIs(String text, String scheme, String... otherSchemes)
     {
-        List<URL> res = new ArrayList<>();
+        Objects.requireNonNull(text);
+        Objects.requireNonNull(scheme);
+        Preconditions.checkArgument(!scheme.isBlank());
 
-        Scanner s = new Scanner(text);
-        s.findAll("https?://.*").forEach(r -> 
+        List<URI> res = new ArrayList<>();
+        List<String> schemes = new ArrayList<>();
+        schemes.add(scheme);
+        schemes.addAll(List.of(otherSchemes));
+
+        for (var s : schemes)
         {
-            String str = r.group();
-            try
-            {                
-                URI uri = URI.create(str);
-                URL url = uri.toURL();
-                res.add(url);
-            } catch (MalformedURLException ex)
+            Pattern p = Pattern.compile("\\b(" + s + "://?[^\\s]+)\\b", Pattern.CASE_INSENSITIVE);
+
+            Matcher matcher = p.matcher(text);
+            while (matcher.find())
             {
-                LOGGER.log(Level.WARNING, "extractHttpURLs() Invalid internet link={0} in text={1}. ex={2}", new Object[]
+                String link = matcher.group();
+                try
                 {
-                    str, text,
-                    ex.getMessage()
-                });
-            }
-        });
-        s.close();
-
-        return res;
-    }
-
-    /**
-     * Extract from text all file:/xxx URL strings as Files.
-     * <p>
-     * Malformed URLs are ignored.
-     *
-     * @param text
-     * @return
-     */
-    public static List<File> extractFileURLsAsFiles(String text)
-    {
-        List<File> res = new ArrayList<>();
-
-        Scanner s = new Scanner(text);
-        s.findAll("file:/.*").forEach(r -> 
-        {
-            String str = r.group();
-            try
-            {
-                URI uri = URI.create(str);                
-                File f = new File(uri);
-                res.add(f);
-            } catch (IllegalArgumentException ex)
-            {
-                LOGGER.log(Level.WARNING, "extractFileURIsAsFiles() Invalid file URL/URI={0} in text={1}, ex={2}", new Object[]
+                    URI uri = new URI(link);
+                    res.add(uri);
+                } catch (URISyntaxException ex)
                 {
-                    str, text,
-                    ex.getMessage()
-                });
+                    LOGGER.log(Level.WARNING, "extractURIs() invalid link={0} (s={1})", new Object[]
+                    {
+                        link, s
+                    });
+                }
             }
-        });
-        s.close();
+        }
 
         return res;
     }
@@ -979,6 +966,7 @@ public class Utilities
      * </p>
      *
      * @param c The class whose location is desired.
+     * @return
      */
     public static URL getLocation(final Class<?> c)
     {
@@ -1248,7 +1236,7 @@ public class Utilities
      * @param silentError Do not notify user if error occured
      * @return False if an error occured
      */
-    public static boolean openInBrowser(URL url, boolean silentError)
+    public static boolean systemOpenURLInBrowser(URL url, boolean silentError)
     {
         String errMsg = null;
         if (Desktop.isDesktopSupported())
@@ -1268,7 +1256,7 @@ public class Utilities
 
         if (errMsg != null)
         {
-            LOGGER.log(Level.WARNING, "openInBrowser() url={0}  ex={1}", new Object[]
+            LOGGER.log(Level.WARNING, "systemOpenInBrowser() url={0}  ex={1}", new Object[]
             {
                 url, errMsg
             });
@@ -1290,11 +1278,20 @@ public class Utilities
      * Unless silentError is true, user is notified if an error occured.
      *
      * @param file
-     * @param silentError Do not notify user if error occured
+     * @param silentError    Do not notify user if error occured
+     * @param safeExtensions Optional safe file extensions in lower-case. If not null only a file with a matching extension can be opened.
      * @return False if an error occured
      */
-    public static boolean openFile(File file, boolean silentError)
+    public static boolean systemOpenFile(File file, boolean silentError, List<String> safeExtensions)
     {
+        Objects.requireNonNull(file);
+
+        if (safeExtensions != null && !safeExtensions.contains(getExtension(file.getName().toLowerCase())))
+        {
+            LOGGER.log(Level.WARNING, "systemOpenFile() unknown extension: {0} ignored", file);
+            return false;
+        }
+
         String errMsg = null;
         if (Desktop.isDesktopSupported())
         {
@@ -1314,7 +1311,7 @@ public class Utilities
 
         if (errMsg != null)
         {
-            LOGGER.log(Level.WARNING, "openFile() file={0}  ex={1}", new Object[]
+            LOGGER.log(Level.WARNING, "systemOpenFile() file={0}  ex={1}", new Object[]
             {
                 file, errMsg
             });
@@ -1330,6 +1327,43 @@ public class Utilities
     }
 
     /**
+     * Open a http/https/file uri.
+     * <p>
+     * @param uri
+     * @return True if URI was opened successfully
+     */
+    static public boolean systemOpenURI(URI uri)
+    {
+        Objects.requireNonNull(uri);
+        boolean b = false;
+
+        switch (uri.getScheme())
+        {
+            case "file" ->
+            {                
+                File file = org.openide.util.Utilities.toFile(uri);
+                b = Utilities.systemOpenFile(file, true, Utilities.SAFE_OPEN_EXTENSIONS);
+            }
+            case "http", "https" ->
+            {
+                try
+                {
+                    URL url = uri.toURL();
+                    b = Utilities.systemOpenURLInBrowser(url, true);         // No user notifying
+                } catch (MalformedURLException ex)
+                {
+                    LOGGER.log(Level.WARNING, "systemOpenURI() {0}", ex.getMessage());
+                }
+            }
+            default ->
+            {
+            }
+        }
+
+        return b;
+    }
+
+    /**
      * Browse in a file browser a folder containing the specified file .
      * <p>
      * Unless silentError is true, user is notified if an error occured.
@@ -1338,7 +1372,8 @@ public class Utilities
      * @param silentError Do not notify user if error occured
      * @return False if an error occured
      */
-    public static boolean browseFileDirectory(File file, boolean silentError)
+
+    public static boolean systemBrowseFileDirectory(File file, boolean silentError)
     {
         String errMsg = null;
         if (org.openide.util.Utilities.isWindows())
@@ -1371,7 +1406,7 @@ public class Utilities
 
         if (errMsg != null)
         {
-            LOGGER.log(Level.WARNING, "browseFileDirectory() file={0}  ex={1}", new Object[]
+            LOGGER.log(Level.WARNING, "systemBrowseFileDirectory() file={0}  ex={1}", new Object[]
             {
                 file, errMsg
             });

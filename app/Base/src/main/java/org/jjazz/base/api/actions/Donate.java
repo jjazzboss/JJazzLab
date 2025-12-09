@@ -54,6 +54,6 @@ public final class Donate implements ActionListener
             Exceptions.printStackTrace(ex);
         }
 
-        Utilities.openInBrowser(url, false);
+        Utilities.systemOpenURLInBrowser(url, false);
     }
 }

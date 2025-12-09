@@ -29,7 +29,6 @@ import java.beans.PropertyChangeSupport;
 import java.beans.VetoableChangeListener;
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -214,37 +213,16 @@ public class SongEditorManagerImpl implements SongEditorManager, PropertyChangeL
             {
                 SwingUtilities.invokeLater(() -> song.setSaveNeeded(false));
             }
-
         };
 
         // Make sure everything is run on the EDT
         SwingUtilities.invokeLater(openEditorsTask);
 
 
-        // Open the memo links
-        Runnable openLinksTask = () -> 
-        {
-            // Open possible links
-            for (URL url : org.jjazz.utilities.api.Utilities.extractHttpURLs(song.getComments()))
-            {
-                LOGGER.log(Level.INFO, "showSong() song={0} opening song memo internet link: {1}", new Object[]
-                {
-                    song.getName(), url
-                });
-                org.jjazz.utilities.api.Utilities.openInBrowser(url, true);         // No user notifying
-            }
-            for (File file : org.jjazz.utilities.api.Utilities.extractFileURLsAsFiles(song.getComments()))
-            {
-                LOGGER.log(Level.INFO, "showSong() song={0} opening song memo file link: {1}", new Object[]
-                {
-                    song.getName(), file
-                });
-                org.jjazz.utilities.api.Utilities.openFile(file, true);              // No user notifying
-            }
-        };
+        // Open the links in the song memo
         if (makeActive)
         {
-            new Thread(openLinksTask).start();
+            new Thread(() -> openLinks(song)).start();
         }
 
 
@@ -836,5 +814,12 @@ public class SongEditorManagerImpl implements SongEditorManager, PropertyChangeL
         return title;
     }
 
+    private void openLinks(Song song)
+    {
+        LOGGER.log(Level.INFO, "openLinks() Opening links in song {0}", song.getName());
+        Utilities.extractURIs(song.getComments(), "file", "https?").stream()
+                .limit(4)       // Security
+                .forEach(uri -> Utilities.systemOpenURI(uri));
+    }
 
 }

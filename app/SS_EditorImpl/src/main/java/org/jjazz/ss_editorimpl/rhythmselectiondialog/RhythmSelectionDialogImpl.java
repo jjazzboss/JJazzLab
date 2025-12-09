@@ -1065,7 +1065,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         {
             return;
         }
-        org.jjazz.utilities.api.Utilities.browseFileDirectory(ri.file(), false);
+        org.jjazz.utilities.api.Utilities.systemBrowseFileDirectory(ri.file(), false);
 
     }//GEN-LAST:event_btn_openFolderActionPerformed
 
