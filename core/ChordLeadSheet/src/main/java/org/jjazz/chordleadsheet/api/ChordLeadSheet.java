@@ -38,7 +38,7 @@ import org.jjazz.utilities.api.IntRange;
  * The leadsheet is made of sections (a name + a time signature) and items like chord symbols or bar annotations.
  * <p>
  * Implementation must fire the relevant ClsChangeEvents: start and complete ClsActionEvents for an API method, with the related low-level ClsChangeEvents. If
- * API method1 calls API method2, ClsActionEvents are only fired for API method1 (ClsActionEvents are not nested).
+ * API method1 calls API method2, ClsActionEvents are only fired for API method1, i.e. ClsActionEvents are not nested.
  * <p>
  * - The first bar must always contain a section <br>
  * - 2 sections can't have the same name<br>

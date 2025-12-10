@@ -22,9 +22,11 @@
  */
 package org.jjazz.chordleadsheet.api;
 
+import java.util.Objects;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.CLI_Factory;
+import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.harmony.api.Position;
 
@@ -55,12 +57,12 @@ public class ClsUtilities
             cls.addItem(newCli);
         }
     }
-    
-     /**
+
+    /**
      * Create a cls copy but with no more than 2 chord symbols per bar.
      * <p>
-     * If more than 1 chord symbol in a bar, keep the first chord symbol and the last one. If interval between them is less than
-     * half-bar, reposition them on first beat and half-bar.
+     * If more than 1 chord symbol in a bar, keep the first chord symbol and the last one. If interval between them is less than half-bar, reposition them on
+     * first beat and half-bar.
      *
      * @param cls
      * @return
@@ -99,5 +101,35 @@ public class ClsUtilities
         }
 
         return simplifiedCls;
-    }    
+    }
+
+    /**
+     * Remove successive identical "standard" chord symbols per section.
+     *
+     * @param cls
+     * @return True if cls was modified
+     * @see ExtChordSymbol#isStandard()
+     */
+    static public boolean removeRedundantStandardChords(ChordLeadSheet cls)
+    { 
+        boolean changed = false;
+        var csList = cls.getItems(CLI_ChordSymbol.class);
+        ExtChordSymbol lastEcs = null;
+        CLI_Section lastSection = null;
+        for (var cliCs : csList)
+        {
+            var ecs = cliCs.getData();
+            var section = cls.getSection(cliCs.getPosition().getBar());
+            if (ecs.isStandard() && section == lastSection && Objects.equals(lastEcs, ecs))
+            {
+                cls.removeItem(cliCs);
+                changed = true;
+            } else
+            {
+                lastEcs = ecs;
+                lastSection = section;
+            }
+        }
+        return changed;
+    }
 }

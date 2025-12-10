@@ -38,6 +38,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jjazz.analytics.api.Analytics;
+import org.jjazz.chordleadsheet.api.ClsUtilities;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
 import org.jjazz.song.api.SongCreationException;
@@ -52,7 +53,6 @@ import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
-import org.openide.util.Exceptions;
 import org.openide.util.NbPreferences;
 import org.openide.windows.WindowManager;
 
@@ -221,6 +221,7 @@ public final class ImportSong implements ActionListener
 
                 });
                 song = importer.importFromFile(f);
+                ClsUtilities.removeRedundantStandardChords(song.getChordLeadSheet());                                
             } catch (SongCreationException | IOException ex)
             {
                 LOGGER.log(Level.WARNING, "importFiles() error: {0}", ex.getMessage());
