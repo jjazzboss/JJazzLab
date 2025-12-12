@@ -50,7 +50,7 @@ public class BarBoxConfig
     private BarBoxConfig()
     {
 
-    }   
+    }
 
     /**
      * Create a config with all BarRenderer types active by default.
@@ -61,7 +61,7 @@ public class BarBoxConfig
     {
         if (brTypes.length == 0)
         {
-            throw new IllegalArgumentException("brs=" + brTypes);   
+            throw new IllegalArgumentException("brs=" + brTypes);
         }
         for (String brType : brTypes)
         {
@@ -77,6 +77,16 @@ public class BarBoxConfig
         }
     }
 
+    /**
+     * Check if the specified BarRenderer type is active.
+     *
+     * @param brType
+     * @return
+     */
+    public boolean isActive(String brType)
+    {
+        return activeBarRenderers.contains(brType);
+    }
 
     /**
      * Return a new instance of this BarBoxConfig with only the specified BarRenderer types active.
@@ -96,7 +106,7 @@ public class BarBoxConfig
         {
             if (!supportedBarRenderers.contains(brType))
             {
-                throw new IllegalArgumentException("brType=" + brType);   
+                throw new IllegalArgumentException("brType=" + brType);
             }
             if (!res.activeBarRenderers.contains(brType))
             {
@@ -203,6 +213,5 @@ public class BarBoxConfig
         return true;
     }
 
-    
-    
+
 }

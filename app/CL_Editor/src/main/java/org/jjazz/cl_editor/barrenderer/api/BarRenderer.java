@@ -234,7 +234,7 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
         ItemRenderer ir = getItemRenderer(item);
         if (ir == null)
         {
-            throw new IllegalArgumentException("item=" + item + " b=" + b);
+            throw new IllegalArgumentException("this=" + this + " item=" + item + " b=" + b);
         }
         ir.setSelected(b);
     }

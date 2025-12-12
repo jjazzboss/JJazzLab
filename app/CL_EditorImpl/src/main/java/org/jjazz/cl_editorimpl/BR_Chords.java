@@ -44,7 +44,6 @@ import org.jjazz.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.cl_editor.api.CL_Editor;
-import org.jjazz.cl_editor.api.CL_EditorClientProperties;
 import org.jjazz.cl_editor.barrenderer.api.BarRenderer;
 import org.jjazz.cl_editor.barrenderer.api.BeatBasedBarRenderer;
 import org.jjazz.cl_editor.spi.BarRendererSettings;
@@ -56,6 +55,7 @@ import org.jjazz.cl_editor.itemrenderer.api.ItemRenderer;
 import org.jjazz.cl_editor.itemrenderer.api.ItemRendererFactory;
 import org.openide.util.Exceptions;
 import org.jjazz.cl_editor.api.DisplayTransposableRenderer;
+import org.jjazz.cl_editor.spi.BarRendererFactory;
 
 /**
  * A BarRenderer that show Chord and TimeSignature items.
@@ -63,6 +63,7 @@ import org.jjazz.cl_editor.api.DisplayTransposableRenderer;
  */
 public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, ComponentListener, DisplayTransposableRenderer
 {
+
     private static final Logger LOGGER = Logger.getLogger(BR_Chords.class.getSimpleName());
 
     /**
@@ -281,7 +282,7 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
     {
         boolean b = item instanceof CLI_ChordSymbol
                 || item instanceof CLI_Section
-                || (item instanceof CLI_BarAnnotation && !CL_EditorClientProperties.isBarAnnotationVisible(getEditor().getSongModel()));
+                || (item instanceof CLI_BarAnnotation && !getEditor().getBarBoxConfig(getBarIndex()).isActive(BarRendererFactory.BR_ANNOTATION));
         return b;
     }
 
