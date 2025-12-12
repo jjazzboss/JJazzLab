@@ -27,6 +27,7 @@ import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JDialog;
@@ -51,6 +52,7 @@ import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.api.CL_EditorClientProperties;
 import org.jjazz.cl_editor.api.CL_Selection;
+import org.jjazz.cl_editor.itemrenderer.api.IR_ChordSymbolSettings;
 import org.jjazz.cl_editor.spi.SectionEditorDialog;
 import org.jjazz.cl_editor.spi.ChordSymbolEditorDialog;
 import org.jjazz.cl_editorimpl.BR_Annotation;
@@ -85,15 +87,17 @@ public class Edit extends CL_ContextAction
 {
 
     public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("ENTER");
-    private final String undoText = ResUtil.getString(getClass(), "CTL_Edit");
-    private static final Logger LOGGER = Logger.getLogger(Edit.class.getSimpleName());
 
-   @Override
+
+    private final String undoText = ResUtil.getString(getClass(), "CTL_Edit");
+    static private final Logger LOGGER = Logger.getLogger(Edit.class.getSimpleName());
+
+    @Override
     protected void configureAction()
     {
         putValue(NAME, ResUtil.getString(getClass(), "CTL_Edit"));
         putValue(ACCELERATOR_KEY, KEYSTROKE);
-        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES, ListeningTarget.BAR_SELECTION));                
+        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES, ListeningTarget.BAR_SELECTION));
     }
 
     /**
@@ -231,34 +235,53 @@ public class Edit extends CL_ContextAction
     static protected void editCSWithDialog(final ChordSymbolEditorDialog dialog, final CLI_ChordSymbol csItem, final char key, final ChordLeadSheet cls,
             String undoText)
     {
-        Runnable run = () -> 
-        {
-            // Use specific editor if service is provided
-            Position pos = csItem.getPosition();
-            dialog.preset("Edit Chord Symbol - " + csItem.getData() + " - bar:" + (pos.getBar() + 1) + " beat:" + pos.getBeatAsUserString(), csItem, key, true);
-            dialog.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
-            dialog.setVisible(true);
-            if (dialog.exitedOk())
-            {
-                ExtChordSymbol newCs = dialog.getData();
-                assert newCs != null;
-                JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(cls);
-                um.startCEdit(undoText);
-                cls.changeItem(csItem, newCs);
-                um.endCEdit(undoText);
-            }
-            dialog.cleanup();
-        };
+        Objects.requireNonNull(csItem);
+        Objects.requireNonNull(dialog);
+        Objects.requireNonNull(cls);
 
         // IMPORTANT: Dialog must be shown using invokeLater(), otherwise we have the problem of random double chars
         // when action is triggered by a key (InputMap/ActionMap) and key is used in the dialog.      
         // See complete explanation in my question on stackoverflow:
         // https://stackoverflow.com/questions/53073707/my-jdialog-sometimes-receives-a-redundant-keystroke-from-the-calling-app-code      
-        SwingUtilities.invokeLater(run);
+        SwingUtilities.invokeLater(() -> editCSWithDialogImpl(dialog, csItem, key, cls, undoText));
+    }
+
+    static private void editCSWithDialogImpl(final ChordSymbolEditorDialog dialog, final CLI_ChordSymbol csItem, final char key, final ChordLeadSheet cls,
+            String undoText1)
+    {
+        Position pos = csItem.getPosition();
+        dialog.preset("Edit Chord Symbol - " + csItem.getData() + " - bar:" + (pos.getBar() + 1) + " beat:" + pos.getBeatAsUserString(), csItem, key, true);
+        dialog.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
+        dialog.setVisible(true);
+        if (dialog.exitedOk())
+        {
+            ExtChordSymbol oldEcs = csItem.getData();
+            ExtChordSymbol newEcs = dialog.getData();
+            assert newEcs != null;
+            JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(cls);
+            um.startCEdit(undoText1);
+            if (cls.changeItem(csItem, newEcs))
+            {
+                // Update color if alternate chord was set/unset by user
+                if (isAlternateChordSet(oldEcs, newEcs) && isDefaultColorUsed(csItem))
+                {
+                    CL_EditorClientProperties.setChordSymbolUserColor(csItem, IR_ChordSymbolSettings.getDefault().getSubstituteFontColor());
+                } else if (isAlternateChordUnset(oldEcs, newEcs) && isAlternateColorUsed(csItem))
+                {
+                    CL_EditorClientProperties.setChordSymbolUserColor(csItem, IR_ChordSymbolSettings.getDefault().getColor());
+                }
+            }
+            um.endCEdit(undoText1);
+        }
+        dialog.cleanup();
     }
 
     static protected void editBarWithDialog(final CL_Editor editor, final int barIndex, final Preset preset, final ChordLeadSheet cls, String undoText)
     {
+        Objects.requireNonNull(editor);
+        Objects.requireNonNull(preset);
+        Objects.requireNonNull(cls);
+
         int preNbAnnotations = editor.getSongModel().getChordLeadSheet().getItems(CLI_BarAnnotation.class).size();
         Song song = editor.getSongModel();
 
@@ -293,7 +316,8 @@ public class Edit extends CL_ContextAction
                     try
                     {
                         // Manage the case where we change initial section, user prompt to apply to whole song
-                        SetTimeSignatureActionMenu.changeTimeSignaturePossiblyForWholeSong(cls, resultSection.getData().getTimeSignature(), Arrays.asList(currentSection));
+                        SetTimeSignatureActionMenu.changeTimeSignaturePossiblyForWholeSong(cls, resultSection.getData().getTimeSignature(), Arrays.asList(
+                                currentSection));
                     } catch (UnsupportedEditException ex)
                     {
                         String msg = ResUtil.getString(Edit.class, "ERR_ChangeSection", resultSection.getData());
@@ -401,5 +425,25 @@ public class Edit extends CL_ContextAction
         dialog.setLocation(Math.max(x, 0), Math.max(y, 0));
     }
 
+    static private boolean isAlternateChordSet(ExtChordSymbol oldEcs, ExtChordSymbol newEcs)
+    {
+        return oldEcs.getAlternateChordSymbol() == null && newEcs.getAlternateChordSymbol() != null;
+    }
 
+    static private boolean isAlternateChordUnset(ExtChordSymbol oldEcs, ExtChordSymbol newEcs)
+    {
+        return oldEcs.getAlternateChordSymbol() != null && newEcs.getAlternateChordSymbol() == null;
+    }
+
+    static private boolean isDefaultColorUsed(CLI_ChordSymbol csItem)
+    {
+        var c = CL_EditorClientProperties.getChordSymbolUserColor(csItem);
+        return c == null || IR_ChordSymbolSettings.getDefault().getColor().equals(c);
+    }
+
+    static private boolean isAlternateColorUsed(CLI_ChordSymbol csItem)
+    {
+        var c = CL_EditorClientProperties.getChordSymbolUserColor(csItem);
+        return IR_ChordSymbolSettings.getDefault().getSubstituteFontColor().equals(c);
+    }
 }

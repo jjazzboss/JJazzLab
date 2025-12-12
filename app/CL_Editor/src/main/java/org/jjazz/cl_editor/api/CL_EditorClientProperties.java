@@ -27,15 +27,13 @@ package org.jjazz.cl_editor.api;
 import java.awt.Color;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.cl_editor.itemrenderer.api.IR_ChordSymbolSettings;
 import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.song.api.Song;
 
 /**
  * The Song and ChordLeadSheetItem client properties used by a CL_Editor and its components (e.g. BarRenderers, ItemRenderers, ...).
  * <p>
- * It is the responsibility of the object which updates one of these client properties to call {@link org.jjazz.song.api.Song#setSaveNeeded(boolean) } if
- * needed.
+ * It is the responsibility of the object which updates client property to call {@link org.jjazz.song.api.Song#setSaveNeeded(boolean) } if needed.
  *
  * @see org.jjazz.utilities.api.StringProperties
  */
@@ -96,7 +94,7 @@ public class CL_EditorClientProperties
      * <p>
      * (as String) oldvalue=old color, newValue=new color.
      */
-    static public final String PROP_CHORD_USER_FONT_COLOR = IR_ChordSymbolSettings.PROP_CHORD_SYMBOL_USER_FONT_COLOR;
+    static public final String PROP_CHORD_USER_FONT_COLOR = "SongPropUserFontColor";
 
     /**
      *
@@ -264,7 +262,7 @@ public class CL_EditorClientProperties
      * @return null by default
      * @see #PROP_CHORD_USER_FONT_COLOR
      */
-    public static Color getChordSymbolColor(CLI_ChordSymbol cliCs)
+    public static Color getChordSymbolUserColor(CLI_ChordSymbol cliCs)
     {
         Color c = cliCs.getClientProperties().getColor(PROP_CHORD_USER_FONT_COLOR, null);
         return c;
@@ -276,7 +274,7 @@ public class CL_EditorClientProperties
      * @param c     Can be null
      * @see #PROP_CHORD_USER_FONT_COLOR
      */
-    public static void setChordSymbolColor(CLI_ChordSymbol cliCs, Color c)
+    public static void setChordSymbolUserColor(CLI_ChordSymbol cliCs, Color c)
     {
         cliCs.getClientProperties().putColor(PROP_CHORD_USER_FONT_COLOR, c);
     }

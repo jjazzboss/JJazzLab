@@ -57,7 +57,8 @@ public class PrintCL_EditorSettings implements CL_EditorSettings
         bbSettings = new PrintBarBoxSettings(defaultSettings.getBarBoxSettings());
         brSettings = new PrintBarRendererSettings(defaultSettings.getBarBoxSettings().getBarRendererSettings());
         irSettings = new PrintItemRendererSettings(defaultSettings.getBarBoxSettings().getBarRendererSettings().getItemRendererSettings());
-        csSettings = new PrintIR_ChordSymbolSettings(defaultSettings.getBarBoxSettings().getBarRendererSettings().getItemRendererSettings().getIR_ChordSymbolSettings());
+        csSettings = new PrintIR_ChordSymbolSettings(
+                defaultSettings.getBarBoxSettings().getBarRendererSettings().getItemRendererSettings().getIR_ChordSymbolSettings());
     }
 
     @Override
@@ -415,7 +416,19 @@ public class PrintCL_EditorSettings implements CL_EditorSettings
         {
             return defaultSettings.getColor();
         }
-     
+
+        @Override
+        public void setSubstituteFontColor(Color color)
+        {
+            // 
+        }
+
+        @Override
+        public Color getSubstituteFontColor()
+        {
+            return defaultSettings.getSubstituteFontColor();
+        }
+
         @Override
         public Font getMusicFont()
         {
@@ -445,6 +458,7 @@ public class PrintCL_EditorSettings implements CL_EditorSettings
         {
             // Nothing
         }
+
 
     }
 }

@@ -64,6 +64,18 @@ public class IR_ChordSymbolSettingsAdapter implements IR_ChordSymbolSettings
     }
 
     @Override
+    public void setSubstituteFontColor(Color color)
+    {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public Color getSubstituteFontColor()
+    {
+        return defSettings.getSubstituteFontColor();
+    }
+
+    @Override
     public Font getMusicFont()
     {
         return defSettings.getMusicFont();

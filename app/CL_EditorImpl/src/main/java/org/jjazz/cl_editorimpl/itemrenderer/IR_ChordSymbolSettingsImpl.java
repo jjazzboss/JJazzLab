@@ -29,7 +29,7 @@ import java.awt.GraphicsEnvironment;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -120,7 +120,7 @@ public class IR_ChordSymbolSettingsImpl implements IR_ChordSymbolSettings, FontC
     @Override
     public Color getColor()
     {
-        return new Color(prefs.getInt(PROP_FONT_COLOR, Color.BLACK.getRGB()));
+        return new Color(prefs.getInt(PROP_DEFAULT_FONT_COLOR, Color.BLACK.getRGB()));
     }
 
     @Override
@@ -129,13 +129,34 @@ public class IR_ChordSymbolSettingsImpl implements IR_ChordSymbolSettings, FontC
         Color old = getColor();
         if (color == null)
         {
-            prefs.remove(PROP_FONT_COLOR);
+            prefs.remove(PROP_DEFAULT_FONT_COLOR);
             color = getColor();
         } else
         {
-            prefs.putInt(PROP_FONT_COLOR, color.getRGB());
+            prefs.putInt(PROP_DEFAULT_FONT_COLOR, color.getRGB());
         }
-        pcs.firePropertyChange(PROP_FONT_COLOR, old, color);
+        pcs.firePropertyChange(PROP_DEFAULT_FONT_COLOR, old, color);
+    }
+
+    @Override
+    public Color getSubstituteFontColor()
+    {
+        return new Color(prefs.getInt(PROP_SUBSTITUTE_FONT_COLOR, new Color(0x026a2e).getRGB()));
+    }
+
+    @Override
+    public void setSubstituteFontColor(Color color)
+    {
+        Color old = getSubstituteFontColor();
+        if (color == null)
+        {
+            prefs.remove(PROP_SUBSTITUTE_FONT_COLOR);
+            color = getSubstituteFontColor();
+        } else
+        {
+            prefs.putInt(PROP_SUBSTITUTE_FONT_COLOR, color.getRGB());
+        }
+        pcs.firePropertyChange(PROP_SUBSTITUTE_FONT_COLOR, old, color);
     }
 
 
@@ -175,6 +196,26 @@ public class IR_ChordSymbolSettingsImpl implements IR_ChordSymbolSettings, FontC
     @Override
     public List<FontColorUserSettingsProvider.FCSetting> getFCSettings()
     {
-        return Arrays.asList((FontColorUserSettingsProvider.FCSetting) this);
+        List<FontColorUserSettingsProvider.FCSetting> res = new ArrayList<>();
+        res.add(this);
+        
+        var fcs = new FontColorUserSettingsProvider.FCSettingAdapter("ChordSymbolSubstituteId", "Chord symbol with substitute")
+        {
+            @Override
+            public Color getColor()
+            {
+                return getSubstituteFontColor();
+            }
+
+            @Override
+            public void setColor(Color c)
+            {
+                setSubstituteFontColor(c);
+            }
+
+        };
+        res.add(fcs);
+
+        return res;
     }
 }

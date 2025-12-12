@@ -30,17 +30,9 @@ import org.openide.util.Lookup;
 public interface IR_ChordSymbolSettings
 {
 
-    /**
-     * The CLI_ChordSymbol client property used to store a user-defined color.
-     * <p>
-     * Do not change the value string "SongPropUserFontColor" as it was used in CLI_ChordSymbol serialization since JJazzLab 4.
-     * <p>
-     * TODO: should be in IR_ChordSymbol. To be moved once ItemRenderer module deleted and content transfer to CL_EditorImpl.
-     */
-    public static final String PROP_CHORD_SYMBOL_USER_FONT_COLOR = "SongPropUserFontColor";
-
     public static String PROP_FONT = "ItemFont";
-    public static String PROP_FONT_COLOR = "ItemFontColor";
+    public static String PROP_DEFAULT_FONT_COLOR = "ItemFontColor";
+    public static String PROP_SUBSTITUTE_FONT_COLOR = "ItemSubstituteFontColor";
 
     public static IR_ChordSymbolSettings getDefault()
     {
@@ -59,7 +51,7 @@ public interface IR_ChordSymbolSettings
     void setFont(Font font);
 
     /**
-     * The font used to represent the Chord Symbol e.g. "Cm7".
+     * The font used to represent a chord symbol e.g. "Cm7".
      *
      * @return
      */
@@ -72,11 +64,23 @@ public interface IR_ChordSymbolSettings
     void setColor(Color color);
 
     /**
-     * The color of the Chord Symbol.
+     * Default color of a chord symbol.
      *
      * @return
      */
     Color getColor();
+    /**
+     *
+     * @param color If null restore the default value.
+     */
+    void setSubstituteFontColor(Color color);
+
+    /**
+     * Chord symbol color when it has a chord substitute defined.
+     *
+     * @return
+     */
+    Color getSubstituteFontColor();
 
     /**
      * The font to display musical symbols like sharp and flat symbols.
@@ -86,12 +90,12 @@ public interface IR_ChordSymbolSettings
     Font getMusicFont();
 
     /**
-     * @return The char representing the Sharp symbol in the music font.
+     * @return The char representing the sharp symbol in the music font.
      */
     char getSharpCharInMusicFont();
 
     /**
-     * @return The char representing the Flat symbol in the music font.
+     * @return The char representing the flat symbol in the music font.
      */
     char getFlatCharInMusicFont();
 

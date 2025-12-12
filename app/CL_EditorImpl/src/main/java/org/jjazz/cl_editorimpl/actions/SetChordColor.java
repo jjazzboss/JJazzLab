@@ -59,15 +59,10 @@ import org.openide.util.actions.Presenter;
 public final class SetChordColor extends AbstractAction implements Presenter.Popup, ContextAwareAction
 {
 
-    public static final Color[] COLORS =
-    {
-        IR_ChordSymbolSettings.getDefault().getColor(),
-        new Color(0x026a2e),
-        new Color(0xb73003),
-        new Color(0x004699)
-    };
+
     private JMenu menu;
     private static final Logger LOGGER = Logger.getLogger(SetChordColor.class.getSimpleName());
+
 
     public SetChordColor()
     {
@@ -104,6 +99,23 @@ public final class SetChordColor extends AbstractAction implements Presenter.Pop
         // Not used
     }
 
+    /**
+     * Colors for user to choose from.
+     * <p>
+     *
+     * @return An array with at least 4 values.
+     */
+    static public final Color[] getColors()
+    {
+        Color[] res = new Color[]
+        {
+            IR_ChordSymbolSettings.getDefault().getColor(),
+            IR_ChordSymbolSettings.getDefault().getSubstituteFontColor(),
+            new Color(0xb73003),
+            new Color(0x004699)
+        };
+        return res;
+    }
 
     // ============================================================================================= 
     // Presenter.Popup implementation
@@ -120,7 +132,7 @@ public final class SetChordColor extends AbstractAction implements Presenter.Pop
     // =============================================================================================    
     private void prepareMenu(JMenu menu, List<CLI_ChordSymbol> chordSymbols)
     {
-        for (final Color c : COLORS)
+        for (final Color c : getColors())
         {
             JMenuItem mi = new JMenuItem("    ");
             mi.setEnabled(true);
@@ -137,7 +149,7 @@ public final class SetChordColor extends AbstractAction implements Presenter.Pop
         for (var cliCs : chordSymbols)
         {
             Color cc = c == IR_ChordSymbolSettings.getDefault().getColor() ? null : c;
-            CL_EditorClientProperties.setChordSymbolColor(cliCs, cc);
+            CL_EditorClientProperties.setChordSymbolUserColor(cliCs, cc);
         }
         editor.getSongModel().setSaveNeeded(true);
         Analytics.logEvent("Set chord color");

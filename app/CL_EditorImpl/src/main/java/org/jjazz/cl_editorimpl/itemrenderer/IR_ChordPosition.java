@@ -36,6 +36,7 @@ import java.beans.PropertyChangeEvent;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo.Feature;
+import org.jjazz.cl_editor.api.CL_EditorClientProperties;
 import org.jjazz.cl_editor.itemrenderer.api.IR_ChordSymbolSettings;
 import org.jjazz.cl_editor.itemrenderer.api.IR_Type;
 import org.jjazz.cl_editor.itemrenderer.api.ItemRenderer;
@@ -212,13 +213,13 @@ public class IR_ChordPosition extends ItemRenderer
         super.propertyChange(e);
         if (e.getSource() == settings)
         {
-            if (e.getPropertyName().equals(IR_ChordSymbolSettings.PROP_FONT_COLOR))
+            if (e.getPropertyName().equals(IR_ChordSymbolSettings.PROP_DEFAULT_FONT_COLOR))
             {
                 setForeground(getColor());
             }
         } else if (e.getSource() == getModel().getClientProperties())
         {
-            if (e.getPropertyName().equals(IR_ChordSymbolSettings.PROP_CHORD_SYMBOL_USER_FONT_COLOR))
+            if (e.getPropertyName().equals(CL_EditorClientProperties.PROP_CHORD_USER_FONT_COLOR))
             {
                 setForeground(getColor());
             }
@@ -239,7 +240,7 @@ public class IR_ChordPosition extends ItemRenderer
 
     private Color getColor()
     {
-        Color c = getModel().getClientProperties().getColor(IR_ChordSymbolSettings.PROP_CHORD_SYMBOL_USER_FONT_COLOR, settings.getColor());
+        Color c = getModel().getClientProperties().getColor(CL_EditorClientProperties.PROP_CHORD_USER_FONT_COLOR, settings.getColor());
         return c;
     }
 

@@ -43,6 +43,7 @@ import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.chordleadsheet.api.item.NCExtChordSymbol;
 import org.jjazz.chordleadsheet.api.item.VoidAltExtChordSymbol;
+import org.jjazz.cl_editor.api.CL_EditorClientProperties;
 import org.jjazz.cl_editor.itemrenderer.api.IR_ChordSymbolSettings;
 import org.jjazz.cl_editor.itemrenderer.api.IR_Copiable;
 import org.jjazz.cl_editor.itemrenderer.api.IR_Type;
@@ -58,7 +59,6 @@ import org.jjazz.cl_editor.api.DisplayTransposableRenderer;
  */
 public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable, DisplayTransposableRenderer
 {
-
     private final static int OPTION_LINE_V_PADDING = 1;   // Additional space for the option line
     private final static int OPTION_LINE_THICKNESS = 1;   // Additional space for the option line
     private static final Logger LOGGER = Logger.getLogger(IR_ChordSymbol.class.getSimpleName());
@@ -243,7 +243,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable, Display
     private boolean isFlashOptionLineRequired(ExtChordSymbol oldEcs, ExtChordSymbol ecs)
     {
         boolean b = false;
-        
+
         if (oldEcs != null)
         {
             var oldCri = oldEcs.getRenderingInfo();
@@ -252,16 +252,16 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable, Display
             // Request attention if option mark was ON and remains ON and only one of the following option has changed:
             // crash/no crash/extended holdshot/scale/pedalBass/altChord
             b = oldCri != null
-                && oldEcs.getOriginalName().equals(ecs.getOriginalName())
-                && needOptionMark(ecs)
-                && needOptionMark(oldEcs)
-                && (oldEcs.getAlternateChordSymbol() != ecs.getAlternateChordSymbol()
-                || !Objects.equals(cri.getScaleInstance(), oldCri.getScaleInstance())
-                || cri.hasOneFeature(Feature.ACCENT_STRONGER) != oldCri.hasOneFeature(Feature.ACCENT_STRONGER)
-                || cri.hasOneFeature(Feature.PEDAL_BASS) != oldCri.hasOneFeature(Feature.PEDAL_BASS)
-                || cri.hasOneFeature(Feature.CRASH) != oldCri.hasOneFeature(Feature.CRASH)
-                || cri.hasOneFeature(Feature.NO_CRASH) != oldCri.hasOneFeature(Feature.NO_CRASH)
-                || cri.hasOneFeature(Feature.EXTENDED_HOLD_SHOT) != oldCri.hasOneFeature(Feature.EXTENDED_HOLD_SHOT));
+                    && oldEcs.getOriginalName().equals(ecs.getOriginalName())
+                    && needOptionMark(ecs)
+                    && needOptionMark(oldEcs)
+                    && (oldEcs.getAlternateChordSymbol() != ecs.getAlternateChordSymbol()
+                    || !Objects.equals(cri.getScaleInstance(), oldCri.getScaleInstance())
+                    || cri.hasOneFeature(Feature.ACCENT_STRONGER) != oldCri.hasOneFeature(Feature.ACCENT_STRONGER)
+                    || cri.hasOneFeature(Feature.PEDAL_BASS) != oldCri.hasOneFeature(Feature.PEDAL_BASS)
+                    || cri.hasOneFeature(Feature.CRASH) != oldCri.hasOneFeature(Feature.CRASH)
+                    || cri.hasOneFeature(Feature.NO_CRASH) != oldCri.hasOneFeature(Feature.NO_CRASH)
+                    || cri.hasOneFeature(Feature.EXTENDED_HOLD_SHOT) != oldCri.hasOneFeature(Feature.EXTENDED_HOLD_SHOT));
         }
 
         return b;
@@ -329,13 +329,13 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable, Display
             if (e.getPropertyName().equals(IR_ChordSymbolSettings.PROP_FONT))
             {
                 setFont(settings.getFont());
-            } else if (e.getPropertyName().equals(IR_ChordSymbolSettings.PROP_FONT_COLOR))
+            } else if (e.getPropertyName().equals(IR_ChordSymbolSettings.PROP_DEFAULT_FONT_COLOR))
             {
                 updateForegroundColor();
             }
         } else if (e.getSource() == getModel().getClientProperties())
         {
-            if (e.getPropertyName().equals(IR_ChordSymbolSettings.PROP_CHORD_SYMBOL_USER_FONT_COLOR))
+            if (e.getPropertyName().equals(CL_EditorClientProperties.PROP_CHORD_USER_FONT_COLOR))
             {
                 updateForegroundColor();
             }
@@ -362,9 +362,9 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable, Display
     {
         var cri = ecs.getRenderingInfo();
         return (cri.getAccentFeature() != null && cri.hasOneFeature(Feature.ACCENT_STRONGER, Feature.CRASH, Feature.EXTENDED_HOLD_SHOT, Feature.NO_CRASH)
-            || cri.getScaleInstance() != null
-            || ecs.getAlternateChordSymbol() != null
-            || cri.hasOneFeature(Feature.PEDAL_BASS));
+                || cri.getScaleInstance() != null
+                || ecs.getAlternateChordSymbol() != null
+                || cri.hasOneFeature(Feature.PEDAL_BASS));
     }
 
     /**
@@ -372,7 +372,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable, Display
      */
     private void updateForegroundColor()
     {
-        Color c = getModel().getClientProperties().getColor(IR_ChordSymbolSettings.PROP_CHORD_SYMBOL_USER_FONT_COLOR, settings.getColor());
+        Color c = getModel().getClientProperties().getColor(CL_EditorClientProperties.PROP_CHORD_USER_FONT_COLOR, settings.getColor());
         optionLineColor = c;
         setForeground(c);
     }
@@ -505,8 +505,8 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable, Display
         // Create the AttributedString from the strings
         String strChord = chordSymbolBase + chordSymbolExtension + chordSymbolBass;
         strChordReplacedAccidentals = strChord
-            .replace('#', settings.getSharpCharInMusicFont())
-            .replace('b', settings.getFlatCharInMusicFont());
+                .replace('#', settings.getSharpCharInMusicFont())
+                .replace('b', settings.getFlatCharInMusicFont());
         res = new AttributedString(strChordReplacedAccidentals, font.getAttributes());
         res.addAttribute(TextAttribute.SIZE, zFontSize);                 // Override
 
@@ -525,7 +525,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable, Display
         if (!chordSymbolExtension.isEmpty())
         {
             res.addAttribute(TextAttribute.SUPERSCRIPT, TextAttribute.SUPERSCRIPT_SUPER, chordSymbolBase.length(),
-                chordSymbolBase.length() + chordSymbolExtension.length());
+                    chordSymbolBase.length() + chordSymbolExtension.length());
         }
 
 
