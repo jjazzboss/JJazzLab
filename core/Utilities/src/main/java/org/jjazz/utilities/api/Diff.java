@@ -1,48 +1,52 @@
 /*
- *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
- *  Copyright @2019 Jerome Lelasseux. All rights reserved.
- *
- *  This file is part of the JJazzLab software.
- *   
- *  JJazzLab is free software: you can redistribute it and/or modify
- *  it under the terms of the Lesser GNU General Public License (LGPLv3) 
- *  as published by the Free Software Foundation, either version 3 of the License, 
- *  or (at your option) any later version.
- *
- *  JJazzLab is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU Lesser General Public License for more details.
- * 
- *  You should have received a copy of the GNU Lesser General Public License
- *  along with JJazzLab.  If not, see <https://www.gnu.org/licenses/>
- * 
- *  Contributor(s): 
+    Copyright (c) 2009, incava.org
+    All rights reserved.
+
+    Redistribution and use in source and binary forms, with or without modification,
+    are permitted provided that the following conditions are met:
+
+        * Redistributions of source code must retain the above copyright notice,
+        * this list of conditions and the following disclaimer.
+
+        * Redistributions in binary form must reproduce the above copyright notice,
+        * this list of conditions and the following disclaimer in the documentation
+        * and/or other materials provided with the distribution.
+
+        * Neither the name of incava.org nor the names of its contributors may be
+        * used to endorse or promote products derived from this software without
+        * specific prior written permission.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+    ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+    WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+    DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+    ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+    (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+    LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+    ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.jjazz.utilities;
+package org.jjazz.utilities.api;
 
 import java.util.*;
-import org.jjazz.utilities.spi.DiffProvider;
-import org.jjazz.utilities.spi.Difference;
 
 /**
- * Compares two lists, returning a list of the additions, changes, and deletions between them. A <code>Comparator</code> may be
- * passed as an argument to the constructor, and will thus be used. If not provided, the initial value in the <code>a</code>
- * ("from") list will be looked at to see if it supports the <code>Comparable</code> interface. If so, its <code>equals</code> and
- * <code>compareTo</code> methods will be invoked on the instances in the "from" and "to" lists; otherwise, for speed, hash codes
- * from the objects will be used instead for comparison.
+ * Compares two lists, returning a list of the additions, changes, and deletions between them.
  * <p>
+ * A <code>Comparator</code> may be passed as an argument to the constructor, and will thus be used. If not provided, the initial value in the <code>a</code>
+ * ("from") list will be looked at to see if it supports the <code>Comparable</code> interface. If so, its <code>equals</code> and <code>compareTo</code>
+ * methods will be invoked on the instances in the "from" and "to" lists; otherwise, for speed, hash codes from the objects will be used instead for comparison.
  * <p>
- * The file FileDiff.java shows an example usage of this class, in an application similar to the Unix "diff" program.</p>
- * <p>
- * JJazz Changes: updated so that each CHANGED difference has the same number of objects in/out.
+ * JJazzLab changes: updated so that each CHANGED difference has the same number of objects in/out.
+ *
+ * @param <Type>
  */
 @SuppressWarnings(
         {
             "unchecked", "rawtypes"
         })
-public class DiffImpl<Type> implements DiffProvider<Type>
+public class Diff<Type>
 {
 
     private final boolean DEBUG = false;
@@ -57,7 +61,7 @@ public class DiffImpl<Type> implements DiffProvider<Type>
     /**
      * The list of differences, as <code>Difference</code> instances.
      */
-    private List<Difference> diffs = new ArrayList<>();
+    private final List<Difference> diffs = new ArrayList<>();
     /**
      * The pending, uncommitted difference.
      */
@@ -70,46 +74,29 @@ public class DiffImpl<Type> implements DiffProvider<Type>
      * The thresholds.
      */
     private TreeMap<Integer, Integer> thresh;
-    private static DiffImpl INSTANCE;
 
-    static public DiffImpl getInstance()
-    {
-        synchronized (DiffImpl.class)
-        {
-            if (INSTANCE == null)
-            {
-                INSTANCE = new DiffImpl();
-            }
-        }
-        return INSTANCE;
-    }
-
-    private DiffImpl()
-    {
-        // Nothing
-    }
 
     /**
-     * Constructs the DiffImpl object for the two arrays, using the given comparator.
+     * Constructs the Diff object for the two arrays, using the given comparator.
      */
-    private DiffImpl(Type[] a, Type[] b, Comparator<Type> comp)
+    private Diff(Type[] a, Type[] b, Comparator<Type> comp)
     {
         this(Arrays.asList(a), Arrays.asList(b), comp);
     }
 
     /**
-     * Constructs the DiffImpl object for the two arrays, using the default comparison mechanism between the objects, such as
-     * <code>equals</code> and <code>compareTo</code>.
+     * Constructs the Diff object for the two arrays, using the default comparison mechanism between the objects, such as <code>equals</code> and
+     * <code>compareTo</code>.
      */
-    private DiffImpl(Type[] a, Type[] b)
+    private Diff(Type[] a, Type[] b)
     {
         this(a, b, null);
     }
 
     /**
-     * Constructs the DiffImpl object for the two lists, using the given comparator.
+     * Constructs the Diff object for the two lists, using the given comparator.
      */
-    private DiffImpl(List<Type> a, List<Type> b, Comparator<Type> comp)
+    private Diff(List<Type> a, List<Type> b, Comparator<Type> comp)
     {
         this.a = a;
         this.b = b;
@@ -118,39 +105,71 @@ public class DiffImpl<Type> implements DiffProvider<Type>
     }
 
     /**
-     * Constructs the DiffImpl object for the two lists, using the default comparison mechanism between the objects, such as
-     * <code>equals</code> and <code>compareTo</code>.
+     * Constructs the Diff object for the two lists, using the default comparison mechanism between the objects, such as <code>equals</code> and
+     * <code>compareTo</code>.
      */
-    private DiffImpl(List<Type> a, List<Type> b)
+    private Diff(List<Type> a, List<Type> b)
     {
         this(a, b, null);
     }
 
-    @Override
-    public List<Difference> diff(Type[] a, Type[] b, Comparator<Type> comp)
+    /**
+     * Compute differences for the two arrays, using the specified comparison mechanism.
+     *
+     * @param <T>
+     * @param a
+     * @param b
+     * @param comp
+     * @return
+     */
+    static public <T> List<Difference> diff(T[] a, T[] b, Comparator<T> comp)
     {
-        DiffImpl di = new DiffImpl(a, b, comp);
+        Diff di = new Diff(a, b, comp);
         return di.diff();
     }
 
-    @Override
-    public List<Difference> diff(Type[] a, Type[] b)
+    /**
+     * Compute differences for the two arrays, using the default comparison mechanism between the objects, such as <code>equals</code> and
+     * <code>compareTo</code>.
+     *
+     * @param <T>
+     * @param a
+     * @param b
+     * @return
+     */
+    static public <T> List<Difference> diff(T[] a, T[] b)
     {
-        DiffImpl di = new DiffImpl(a, b);
+        Diff di = new Diff(a, b);
         return di.diff();
     }
 
-    @Override
-    public List<Difference> diff(List<Type> a, List<Type> b, Comparator<Type> comp)
+    /**
+     * Compute differences for the two lists, using the specified comparison mechanism.
+     *
+     * @param <T>
+     * @param a
+     * @param b
+     * @param comp
+     * @return
+     */
+    static public <T> List<Difference> diff(List<T> a, List<T> b, Comparator<T> comp)
     {
-        DiffImpl di = new DiffImpl(a, b, comp);
+        Diff di = new Diff(a, b, comp);
         return di.diff();
     }
 
-    @Override
-    public List<Difference> diff(List<Type> a, List<Type> b)
+    /**
+     * Compute differences for the two lists, using the default comparison mechanism between the objects, such as <code>equals</code> and
+     * <code>compareTo</code>.
+     *
+     * @param <T>
+     * @param a
+     * @param b
+     * @return
+     */
+    static public <T> List<Difference> diff(List<T> a, List<T> b)
     {
-        DiffImpl di = new DiffImpl(a, b);
+        Diff di = new Diff(a, b);
         return di.diff();
     }
 
@@ -161,7 +180,7 @@ public class DiffImpl<Type> implements DiffProvider<Type>
     {
         if (a == null || b == null)
         {
-            throw new IllegalStateException("a=" + a + " b=" + b);   
+            throw new IllegalStateException("a=" + a + " b=" + b);
         }
         if (DEBUG)
         {
@@ -233,8 +252,8 @@ public class DiffImpl<Type> implements DiffProvider<Type>
     }
 
     /**
-     * Traverses the sequences, seeking the longest common subsequences, invoking the methods <code>finishedA</code>,
-     * <code>finishedB</code>, <code>onANotB</code>, and <code>onBNotA</code>.
+     * Traverses the sequences, seeking the longest common subsequences, invoking the methods <code>finishedA</code>, <code>finishedB</code>,
+     * <code>onANotB</code>, and <code>onBNotA</code>.
      */
     private void traverseSequences()
     {
@@ -615,4 +634,199 @@ public class DiffImpl<Type> implements DiffProvider<Type>
 
         return k;
     }
+
+    // ==========================================================================================================
+    // Inner classes
+    // ==========================================================================================================
+
+    /**
+     * Represents a difference.
+     * <p>
+     * A difference consists of two pairs of starting and ending points, each pair representing either the "from" or the "to" collection passed to
+     * <code>Diff</code>. If an ending point is -1, then the difference was either a deletion or an addition. For example, if <code>getDeletedEnd()</code>
+     * returns -1, then the difference represents an addition.
+     * <p>
+     * JJazzLab changes: minor usability changes.
+     */
+    static public class Difference
+    {
+
+        public static final int NONE = -1;
+
+        public enum ResultType
+        {
+            CHANGED, ADDED, DELETED
+        };
+
+        /**
+         * The type of this Difference.
+         */
+        private ResultType type;
+
+        /**
+         * The point at which the deletion starts.
+         */
+        private int fromStart = NONE;
+        /**
+         * The point at which the deletion ends.
+         */
+        private int fromEnd = NONE;
+        /**
+         * The nb of deleted chars.
+         */
+        private int fromRange;
+        /**
+         * The point at which the addition starts.
+         */
+        private int toStart = NONE;
+        /**
+         * The point at which the addition ends.
+         */
+        private int toEnd = NONE;
+        /**
+         * The nb of added chars.
+         */
+        private int toRange;
+
+        /**
+         * Creates the difference for the given start and end points for the deletion and addition.
+         */
+        public Difference(int delStart, int delEnd, int addStart, int addEnd)
+        {
+            this.fromStart = delStart;
+            this.fromEnd = delEnd;
+            this.toStart = addStart;
+            this.toEnd = addEnd;
+            updateCalculatedValues();
+        }
+
+        public int getFromRange()
+        {
+            return fromRange;
+        }
+
+        public int getToRange()
+        {
+            return toRange;
+        }
+
+        public ResultType getType()
+        {
+            return type;
+        }
+
+        /**
+         * The point at which the deletion starts, if any. A value equal to <code>NONE</code> means this is an addition.
+         */
+        public int getDeletedStart()
+        {
+            return fromStart;
+        }
+
+        /**
+         * The point at which the deletion ends, if any. A value equal to <code>NONE</code> means this is an addition.
+         */
+        public int getDeletedEnd()
+        {
+            return fromEnd;
+        }
+
+        /**
+         * The point at which the addition starts, if any. A value equal to <code>NONE</code> means this must be an addition.
+         */
+        public int getAddedStart()
+        {
+            return toStart;
+        }
+
+        /**
+         * The point at which the addition ends, if any. A value equal to <code>NONE</code> means this must be an addition.
+         */
+        public int getAddedEnd()
+        {
+            return toEnd;
+        }
+
+        /**
+         * Sets the point as deleted. The start and end points will be modified to include the given line.
+         */
+        public void setDeleted(int line)
+        {
+            fromStart = Math.min(line, fromStart);
+            fromEnd = Math.max(line, fromEnd);
+            updateCalculatedValues();
+        }
+
+        /**
+         * Sets the point as added. The start and end points will be modified to include the given line.
+         */
+        public void setAdded(int line)
+        {
+            toStart = Math.min(line, toStart);
+            toEnd = Math.max(line, toEnd);
+            updateCalculatedValues();
+        }
+
+        private void updateCalculatedValues()
+        {
+            if (fromEnd != NONE && toEnd != NONE)
+            {
+                type = ResultType.CHANGED;
+            } else if (fromEnd == NONE)
+            {
+                type = ResultType.ADDED;
+            } else
+            {
+                type = ResultType.DELETED;
+            }
+            fromRange = fromEnd - fromStart + 1;
+            toRange = toEnd - toStart + 1;
+        }
+
+        /**
+         * Compares this object to the other for equality. Both objects must be of type Difference, with the same starting and ending points.
+         */
+        @Override
+        public boolean equals(Object obj)
+        {
+            if (obj instanceof Difference)
+            {
+                Difference other = (Difference) obj;
+
+                return (fromStart == other.fromStart
+                        && fromEnd == other.fromEnd
+                        && toStart == other.toStart
+                        && toEnd == other.toEnd);
+            } else
+            {
+                return false;
+            }
+        }
+
+        @Override
+        public int hashCode()
+        {
+            int hash = 7;
+            hash = 71 * hash + this.fromStart;
+            hash = 71 * hash + this.fromEnd;
+            hash = 71 * hash + this.toStart;
+            hash = 71 * hash + this.toEnd;
+            return hash;
+        }
+
+        /**
+         * Returns a string representation of this difference.
+         */
+        @Override
+        public String toString()
+        {
+            StringBuilder buf = new StringBuilder();
+            buf.append("[del:" + fromStart + "," + fromEnd);
+            buf.append(" ");
+            buf.append("add:" + toStart + "," + toEnd + "]");
+            return buf.toString();
+        }
+    }
+
+
 }

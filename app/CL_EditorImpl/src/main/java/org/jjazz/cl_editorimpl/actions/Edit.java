@@ -56,6 +56,7 @@ import org.jjazz.cl_editor.itemrenderer.api.IR_ChordSymbolSettings;
 import org.jjazz.cl_editor.spi.SectionEditorDialog;
 import org.jjazz.cl_editor.spi.ChordSymbolEditorDialog;
 import org.jjazz.cl_editorimpl.BR_Annotation;
+import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.song.api.Song;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
@@ -249,7 +250,8 @@ public class Edit extends CL_ContextAction
     static private void editCSWithDialogImpl(final ChordSymbolEditorDialog dialog, final CLI_ChordSymbol csItem, final char key, final ChordLeadSheet cls,
             String undoText1)
     {
-        Position pos = csItem.getPosition();
+        Position pos = csItem.getPosition();      
+        dialog.setDisplayTransposition(PlaybackSettings.getInstance().getChordSymbolsDisplayTransposition());
         dialog.preset("Edit Chord Symbol - " + csItem.getData() + " - bar:" + (pos.getBar() + 1) + " beat:" + pos.getBeatAsUserString(), csItem, key, true);
         dialog.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
         dialog.setVisible(true);
@@ -290,6 +292,7 @@ public class Edit extends CL_ContextAction
             // Prepare dialog
             final CL_BarEditorDialog dialog = CL_BarEditorDialog.getDefault();
             boolean swing = isSwing(song, barIndex);
+            dialog.setDisplayTransposition(PlaybackSettings.getInstance().getChordSymbolsDisplayTransposition());
             dialog.preset(preset, editor.getModel(), barIndex, swing);
             adjustDialogPosition(dialog, barIndex);
             dialog.setVisible(true);

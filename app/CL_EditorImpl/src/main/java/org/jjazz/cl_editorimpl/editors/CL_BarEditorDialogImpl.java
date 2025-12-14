@@ -22,9 +22,11 @@
  */
 package org.jjazz.cl_editorimpl.editors;
 
+import com.google.common.base.Preconditions;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.text.ParseException;
@@ -33,11 +35,10 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JRootPane;
@@ -54,13 +55,15 @@ import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
+import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.cl_editor.spi.CL_BarEditorDialog;
 import org.jjazz.cl_editor.spi.Preset;
+import org.jjazz.harmony.api.Note;
 import org.jjazz.uiutilities.api.UIUtilities;
 import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
 import org.jjazz.utilities.api.ResUtil;
-import org.jjazz.utilities.spi.DiffProvider;
-import org.jjazz.utilities.spi.Difference;
+import org.jjazz.utilities.api.Diff;
+import org.jjazz.utilities.api.Diff.Difference;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.lookup.ServiceProvider;
@@ -68,10 +71,6 @@ import org.openide.util.lookup.ServiceProvider;
 @ServiceProvider(service = CL_BarEditorDialog.class)
 public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
 {
-
-    static private final Icon ICON_COLLAPSED = new ImageIcon(CL_BarEditorDialogImpl.class.getResource("resources/arrow_collapsed.png"));
-    static private final Icon ICON_EXPANDED = new ImageIcon(CL_BarEditorDialogImpl.class.getResource("resources/arrow_expanded.png"));
-
 
     /**
      * The ChordLeadSheet which is edited.
@@ -115,6 +114,7 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
     private String saveSectionText;
     private String saveAnnotationText;
     private boolean swing;
+    private int displayTransposition;
     private final JScrollPane sp_annotation;
     private final JTextArea ta_annotation;
     private final JLabel lbl_helpAnnotation;
@@ -124,6 +124,7 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
     {
         initComponents();
 
+        displayTransposition = 0;
 
         // Prepare the annotation components
         ta_annotation = new JTextArea();
@@ -167,21 +168,20 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
     }
 
     @Override
-    public void preset(final Preset preset, ChordLeadSheet cls, int barIndx, boolean swng)
+    public void preset(final Preset preset, ChordLeadSheet cls, int bar, boolean swng)
     {
-        if (preset == null || cls == null || barIndx < 0 || barIndx >= cls.getSizeInBars())
-        {
-            throw new IllegalArgumentException("preset=" + preset + " cls=" + cls + " barIndx=" + barIndx + " swing=" + swing);
-        }
+        Objects.requireNonNull(preset);
+        Objects.requireNonNull(cls);
+        Preconditions.checkElementIndex(bar, cls.getSizeInBars(), "bar");
 
         cleanup();
         model = cls;
-        barIndex = barIndx;
-        modelCsList = model.getItems(barIndex, barIndex, CLI_ChordSymbol.class);
+        barIndex = bar;
+        modelCsList = getModelChordSymbols(model, barIndex, displayTransposition);
         modelSection = model.getSection(barIndex);
         modelBarAnnotation = model.getBarFirstItem(barIndex, CLI_BarAnnotation.class, cli -> true);   // Can be null
         swing = swng;
-        boolean isSectionInBar = (modelSection.getPosition().getBar() == barIndx);
+        boolean isSectionInBar = (modelSection.getPosition().getBar() == barIndex);
 
         // Update the section field
         jtfSectionName.setText(modelSection.getData().getName());
@@ -202,6 +202,9 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
         }
 
         // Update the Chord Symbols field
+        var f = jtfChordSymbols.getFont();
+        f = f.deriveFont(displayTransposition==0 ? Font.PLAIN : Font.ITALIC);
+        jtfChordSymbols.setFont(f);
         jtfChordSymbols.setText(CLI_ChordSymbol.toStringNoPosition(modelCsList));
         saveCsText = jtfChordSymbols.getText();
 
@@ -212,23 +215,26 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
         ta_annotation.setCaretPosition(0);
         setAnnotationPanelExpanded(!saveAnnotationText.isBlank());
 
-
-        setTitle(ResUtil.getString(getClass(), "CL_BarEditorDialogImpl.CTL_Bar") + " " + (barIndx + 1)
-                + " - " + modelSection.getData().getName() + " " + modelSection.getData().getTimeSignature());
+        String title = ResUtil.getString(getClass(), "CL_BarEditorDialogImpl.CTL_Bar")
+                + " " + (barIndex + 1)
+                + " - " + modelSection.getData().getName()
+                + " " + modelSection.getData().getTimeSignature();
+        setTitle(title);
         undoManager.discardAllEdits();
 
+
         // Specific actions depending on presets
-        switch (preset.getPresetType())
+        switch (preset.type())
         {
             case BarEdit ->
             {
                 focusOnShow = jtfChordSymbols;
-                if (preset.getKey() != (char) 0)
+                if (preset.key() != (char) 0)
                 {
                     // Append char at the end, with a leading space if required
                     String text = jtfChordSymbols.getText().trim();
                     String space = text.isEmpty() ? "" : " ";
-                    text = text + space + Character.toUpperCase(preset.getKey());
+                    text = text + space + Character.toUpperCase(preset.key());
                     jtfChordSymbols.setText(text);
 
 
@@ -244,11 +250,12 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
             case ChordSymbolEdit ->
             {
                 focusOnShow = jtfChordSymbols;
-                CLI_ChordSymbol item = (CLI_ChordSymbol) preset.getItem();
-                selectChordSymbol(item);
-                if (preset.getKey() != (char) 0)
+                int indexInBar = model.getItems(barIndex, barIndex, CLI_ChordSymbol.class).indexOf(preset.item());  // do not use modelCsList, it might have been transposed
+                assert indexInBar >= 0;
+                selectChordSymbol(indexInBar);
+                if (preset.key() != (char) 0)
                 {
-                    jtfChordSymbols.replaceSelection("" + Character.toUpperCase(preset.getKey()));
+                    jtfChordSymbols.replaceSelection("" + Character.toUpperCase(preset.key()));
                 }
             }
             case SectionNameEdit ->
@@ -298,6 +305,21 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
     public Map<ChordLeadSheetItem, Object> getChangedItems()
     {
         return resultMapChangedItems;
+    }
+    // ------------------------------------------------------------------------------
+    // DisplayTransposableRenderer interface
+    // ------------------------------------------------------------------------------    
+
+    @Override
+    public void setDisplayTransposition(int dt)
+    {
+        displayTransposition = dt;
+    }
+
+    @Override
+    public int getDisplayTransposition()
+    {
+        return displayTransposition;
     }
 
     // ------------------------------------------------------------------------------
@@ -381,52 +403,13 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
                 return;
             }
 
-            // Use diff to see what's added/deleted/changed
-            DiffProvider dp = DiffProvider.getDefault();
-            List<Difference> diffResult = dp.diff(modelCsList, newItems, new Comparator<CLI_ChordSymbol>()
+            // Analyze changes to update resultMapChangedItems, resultAddedItems, resultRemovedItems
+            diffChords(modelCsList, newItems);
+
+            if (displayTransposition != 0)
             {
-                @Override
-                public int compare(CLI_ChordSymbol i1, CLI_ChordSymbol i2)
-                {
-                    return (i1.getData().equals(i2.getData())) ? 0 : 1;
-                }
-            });
-            LOGGER.log(Level.FINE, "Diff model={0} newItems={1}", new Object[]
-            {
-                modelCsList, newItems
-            });
-            for (Difference aDiff : diffResult)
-            {
-                if (aDiff.getType() == Difference.ResultType.ADDED)
-                {
-                    for (int i = aDiff.getAddedStart(); i <= aDiff.getAddedEnd(); i++)
-                    {
-                        resultAddedItems.add(newItems.get(i));
-                        LOGGER.log(Level.FINE, "adding {0}", newItems.get(i));
-                    }
-                } else if (aDiff.getType() == Difference.ResultType.DELETED)
-                {
-                    for (int i = aDiff.getDeletedStart(); i <= aDiff.getDeletedEnd(); i++)
-                    {
-                        resultRemovedItems.add(modelCsList.get(i));
-                        LOGGER.log(Level.FINE, "removing {0}", modelCsList.get(i));
-                    }
-                } else
-                {
-                    // Then it's changed
-                    int d = aDiff.getDeletedStart();
-                    int a = aDiff.getAddedStart();
-                    do
-                    {
-                        resultMapChangedItems.put(modelCsList.get(d), newItems.get(a).getData());
-                        LOGGER.log(Level.FINE, "changing {0} to {1}", new Object[]
-                        {
-                            modelCsList.get(d), newItems.get(a)
-                        });
-                        d++;
-                        a++;
-                    } while (d <= aDiff.getDeletedEnd());
-                }
+                // Update resultMapChangedItems, resultAddedItems, resultRemovedItems
+                untranspose();
             }
         }
 
@@ -455,6 +438,128 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
         exitedOk = true;
         setVisible(false);
     }
+
+    /**
+     * Analyze which chords are changed/added/removed and update global variables accordingly: resultMapChangedItems, resultAddedItems, resultRemovedItems.
+     *
+     * @param csListOld
+     * @param csListNew
+     */
+    private void diffChords(List<CLI_ChordSymbol> csListOld, List<CLI_ChordSymbol> csListNew)
+    {
+        LOGGER.log(Level.FINE, "diffChords() csListOld={0} csListNew={1}", new Object[]
+        {
+            csListOld, csListNew
+        });
+
+        List<Difference> diffResult = Diff.diff(csListOld, csListNew,
+                (cliCs1, cliCs2) -> cliCs1.getData().equals(cliCs2.getData()) ? 0 : 1);
+
+
+        for (Difference aDiff : diffResult)
+        {
+            if (null == aDiff.getType())
+            {
+                // Then it's changed
+                int d = aDiff.getDeletedStart();
+                int a = aDiff.getAddedStart();
+                do
+                {
+                    resultMapChangedItems.put(csListOld.get(d), csListNew.get(a).getData());
+                    LOGGER.log(Level.FINE, "changing {0} to {1}", new Object[]
+                    {
+                        csListOld.get(d), csListNew.get(a)
+                    });
+                    d++;
+                    a++;
+                } while (d <= aDiff.getDeletedEnd());
+            } else
+            {
+                switch (aDiff.getType())
+                {
+                    case ADDED ->
+                    {
+                        for (int i = aDiff.getAddedStart(); i <= aDiff.getAddedEnd(); i++)
+                        {
+                            resultAddedItems.add(csListNew.get(i));
+                            LOGGER.log(Level.FINE, "adding {0}", csListNew.get(i));
+                        }
+                    }
+                    case DELETED ->
+                    {
+                        for (int i = aDiff.getDeletedStart(); i <= aDiff.getDeletedEnd(); i++)
+                        {
+                            resultRemovedItems.add(csListOld.get(i));
+                            LOGGER.log(Level.FINE, "removing {0}", csListOld.get(i));
+                        }
+                    }
+                    default ->
+                    {
+                        // Then it's changed
+                        int d = aDiff.getDeletedStart();
+                        int a = aDiff.getAddedStart();
+                        do
+                        {
+                            resultMapChangedItems.put(csListOld.get(d), csListNew.get(a).getData());
+                            LOGGER.log(Level.FINE, "changing {0} to {1}", new Object[]
+                            {
+                                csListOld.get(d), csListNew.get(a)
+                            });
+                            d++;
+                            a++;
+                        } while (d <= aDiff.getDeletedEnd());
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Update results to cancel the display transposition.
+     */
+    private void untranspose()
+    {
+        // Added chords
+        for (var it = resultAddedItems.listIterator(); it.hasNext();)
+        {
+            if (it.next() instanceof CLI_ChordSymbol cliCs)
+            {
+                var ecs = cliCs.getData();
+                it.set(cliCs.getCopy(ecs.getTransposedChordSymbol(-displayTransposition, null), null));
+            }
+        }
+
+
+        // Removed chords
+        var cliCsList = model.getItems(barIndex, barIndex, CLI_ChordSymbol.class);      // original model chord, not transposed
+        for (var it = resultRemovedItems.listIterator(); it.hasNext();)
+        {
+            if (it.next() instanceof CLI_ChordSymbol cliCs)
+            {
+                int index = modelCsList.indexOf(cliCs);             // transposed
+                assert index >= 0 : "cliCs=" + cliCs + " modelCsList=" + modelCsList;
+                it.set(cliCsList.get(index));
+            }
+        }
+
+
+        // Changed chords
+        for (var key : resultMapChangedItems.keySet().toArray(ChordLeadSheetItem[]::new))
+        {
+            if (key instanceof CLI_ChordSymbol cliCs)
+            {
+                ExtChordSymbol ecsMapped = (ExtChordSymbol) resultMapChangedItems.get(cliCs);
+
+                int index = modelCsList.indexOf(cliCs);             // transposed
+                assert index >= 0 : "cliCs=" + cliCs + " modelCsList=" + modelCsList;
+                var cliCsOrig = cliCsList.get(index);
+
+                resultMapChangedItems.remove(cliCs);
+                resultMapChangedItems.put(cliCsOrig, ecsMapped.getTransposedChordSymbol(-displayTransposition, null));
+            }
+        }
+    }
+
 
     private void actionCancel()
     {
@@ -552,17 +657,19 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
         return contentPane;
     }
 
-    private void selectChordSymbol(CLI_ChordSymbol item)
+    /**
+     *
+     * @param indexInBar Index of the chord in the bar
+     */
+    private void selectChordSymbol(int indexInBar)
     {
-        int index = modelCsList.indexOf(item);
-        assert index >= 0 : " modelCsList=" + modelCsList + " item=" + item;
         String[] rawStrings = jtfChordSymbols.getText().split("\\s+");
         int start = 0;
-        for (int i = 0; i < index; i++)
+        for (int i = 0; i < indexInBar; i++)
         {
             start += rawStrings[i].length() + 1;  // +1 for space separation
         }
-        int end = start + rawStrings[index].length();
+        int end = start + rawStrings[indexInBar].length();
         jtfChordSymbols.select(start, end);
     }
 
@@ -598,6 +705,26 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
     {
         NotifyDescriptor d = new NotifyDescriptor.Message(msg, NotifyDescriptor.ERROR_MESSAGE);
         DialogDisplayer.getDefault().notify(d);
+    }
+
+    /**
+     * Get the chord symbols possibly transposed.
+     *
+     * @param cls
+     * @param bar
+     * @param t   transposition
+     * @return
+     */
+    private List<CLI_ChordSymbol> getModelChordSymbols(ChordLeadSheet cls, int bar, int t)
+    {
+        List<CLI_ChordSymbol> res = cls.getItems(bar, bar, CLI_ChordSymbol.class);
+        if (!res.isEmpty() && t != 0)
+        {
+            res = res.stream()
+                    .map(cliCs -> (CLI_ChordSymbol) cliCs.getCopy(cliCs.getData().getTransposedChordSymbol(t, null), null))
+                    .toList();
+        }
+        return res;
     }
 
     /**
@@ -771,5 +898,6 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
     private javax.swing.JLabel lbl_timeSig;
     private javax.swing.JPanel pnl_annotations;
     // End of variables declaration//GEN-END:variables
+
 
 }

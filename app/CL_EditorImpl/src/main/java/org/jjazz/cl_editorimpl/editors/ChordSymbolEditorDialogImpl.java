@@ -22,6 +22,7 @@
  */
 package org.jjazz.cl_editorimpl.editors;
 
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -72,6 +73,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
     private AltExtChordSymbol altChordSymbol;
     private final DefaultListModel<StandardScaleInstance> stdScales = new DefaultListModel<>();
     private final DefaultListModel<String> markers = new DefaultListModel<>();
+    private int displayTransposition;
     private static final Logger LOGGER = Logger.getLogger(ChordSymbolEditorDialogImpl.class.getSimpleName());
 
 
@@ -82,6 +84,8 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
     {
         super();
 
+        displayTransposition = 0;
+
         for (String marker : RP_SYS_Marker.getInstance().getPossibleValues())
         {
             markers.addElement(marker);
@@ -91,6 +95,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
 
         tf_ChordSymbolName.getDocument().addDocumentListener(new ChordSymbolDocumentListener());
         updateScaleInfo(null);
+
     }
 
     @Override
@@ -101,7 +106,7 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
             throw new NullPointerException("cliCs");
         }
         exitOk = false;
-        model = cliCs;
+        model = displayTransposition == 0 ? cliCs : (CLI_ChordSymbol) cliCs.getCopy(cliCs.getData().getTransposedChordSymbol(displayTransposition, null), null);
         ExtChordSymbol ecs = model.getData();
         ChordRenderingInfo cri = ecs.getRenderingInfo();
         setTitle(title);
@@ -149,6 +154,8 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
 
         // Update chord UI        
         tf_ChordSymbolName.requestFocus();
+        Font f = tf_ChordSymbolName.getFont();
+        tf_ChordSymbolName.setFont(f.deriveFont(displayTransposition == 0 ? Font.PLAIN : Font.ITALIC));
         if (key == 0)
         {
             tf_ChordSymbolName.setText(ecs.getOriginalName());
@@ -263,11 +270,27 @@ public class ChordSymbolEditorDialogImpl extends ChordSymbolEditorDialog impleme
         try
         {
             ecs = ExtChordSymbol.get(text, cri, getAltChordSymbol(), getAltFilter());
+            ecs = ecs.getTransposedChordSymbol(-displayTransposition, null);
         } catch (ParseException ex)
         {
             throw new IllegalStateException("text=" + text + " :" + ex.getMessage());
         }
         return ecs;
+    }
+    // ------------------------------------------------------------------------------
+    // DisplayTransposableRenderer interface
+    // ------------------------------------------------------------------------------    
+
+    @Override
+    public void setDisplayTransposition(int dt)
+    {
+        displayTransposition = dt;
+    }
+
+    @Override
+    public int getDisplayTransposition()
+    {
+        return displayTransposition;
     }
 
     // =======================================================================================

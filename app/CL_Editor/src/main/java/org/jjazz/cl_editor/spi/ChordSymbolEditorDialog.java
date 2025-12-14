@@ -25,6 +25,7 @@ package org.jjazz.cl_editor.spi;
 import javax.swing.JDialog;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
+import org.jjazz.cl_editor.api.DisplayTransposableRenderer;
 import org.openide.util.Lookup;
 import org.openide.windows.WindowManager;
 
@@ -34,8 +35,9 @@ import org.openide.windows.WindowManager;
  * The Dialog should not directly change the model, it should just return the proposed changes. The calling application will update the model if OK and manage
  * the undo/redo aspects.
  */
-public abstract class ChordSymbolEditorDialog extends JDialog
+public abstract class ChordSymbolEditorDialog extends JDialog implements DisplayTransposableRenderer
 {
+
 
     /**
      * Search the global lookup for an instance.
@@ -62,11 +64,14 @@ public abstract class ChordSymbolEditorDialog extends JDialog
 
     /**
      * Prepare the dialog before being used.
+     * <p>
+     * Method must take into account a possible display transposition if it was previously set.
      *
      * @param title           Dialog title
      * @param item
      * @param key             If different from 0 it represents the pressed key which triggered this dialog.
      * @param enableAlternate Enable the edition of the alternate chord symbol
+     * @see #setDisplayTransposition(int)
      */
     abstract public void preset(String title, CLI_ChordSymbol item, char key, boolean enableAlternate);
 
@@ -86,4 +91,17 @@ public abstract class ChordSymbolEditorDialog extends JDialog
      * Cleanup references to preset data and dialog results, caller must call this method after dialog has exited.
      */
     abstract public void cleanup();
+
+    /**
+     * Must be called before calling preset() to be effective.
+     *
+     * @param dt
+     * @see #preset(java.lang.String, org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol, char, boolean)
+     */
+    @Override
+    abstract public void setDisplayTransposition(int dt);
+
+    @Override
+    abstract public int getDisplayTransposition();
+
 }

@@ -22,61 +22,28 @@
  */
 package org.jjazz.cl_editor.spi;
 
+import com.google.common.base.Preconditions;
+import java.util.Objects;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 
 /**
- * A CL_BarEditorDialog can be preset depending on the way it has been triggered.
- * <p>
- * Possibilities:<br>
- * - bar edit action <br>
- * - ChordSymbol edit action <br>
- * - TimeSignature edit action <br>
- * - Section's name edit action<br>
- * - bar annotation edit action<br>
+ * How a CL_BarEditorDialog can be preset.
+ *
+ * @param type
+ * @param item can be null only when type=BarEdit
+ * @param key  if != 0, indicates the edit action was triggered by this key press
  */
-public class Preset
-{
+public record Preset(Preset.Type type, ChordLeadSheetItem<?> item, char key)
+        {
 
     public enum Type
     {
         BarEdit, ChordSymbolEdit, TimeSignatureEdit, SectionNameEdit, AnnotationEdit
     }
-    private final Type presetType;
-    private final ChordLeadSheetItem<?> item;
-    private final char key;
 
-    /**
-     * Create the preset.
-     *
-     * @param pt
-     * @param item can be null if pt=BarEdit
-     * @param key if != 0, indicates the edit action was triggered by this key press.
-     */
-    public Preset(Type pt, ChordLeadSheetItem<?> item, char key)
+    public Preset
     {
-        presetType = pt;
-        this.item = item;
-        this.key = key;
-    }
-
-    public Type getPresetType()
-    {
-        return presetType;
-    }
-
-    public ChordLeadSheetItem<?> getItem()
-    {
-        return item;
-    }
-
-    public char getKey()
-    {
-        return key;
-    }
-
-    @Override
-    public String toString()
-    {
-        return "Preset[" + presetType + " item=" + item + " key=" + key + "]";
+        Objects.requireNonNull(type);
+        Preconditions.checkArgument(item != null || type == Type.BarEdit, "%s", this);
     }
 }

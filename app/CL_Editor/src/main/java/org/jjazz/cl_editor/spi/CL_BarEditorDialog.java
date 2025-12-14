@@ -28,6 +28,7 @@ import javax.swing.JDialog;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
+import org.jjazz.cl_editor.api.DisplayTransposableRenderer;
 import org.openide.util.*;
 import org.openide.windows.WindowManager;
 
@@ -38,9 +39,9 @@ import org.openide.windows.WindowManager;
  * returned OK) and manage the undo/redo aspects.
  * <p>
  */
-public abstract class CL_BarEditorDialog extends JDialog
+public abstract class CL_BarEditorDialog extends JDialog implements DisplayTransposableRenderer
 {
-    
+
     public static CL_BarEditorDialog getDefault()
     {
         CL_BarEditorDialog o = Lookup.getDefault().lookup(CL_BarEditorDialog.class);
@@ -61,11 +62,14 @@ public abstract class CL_BarEditorDialog extends JDialog
 
     /**
      * Preset the dialog before using it.
+     * <p>
+     * Method must take into account a possible display transposition if it was previously set.
      *
      * @param preset
      * @param cls      ChordLeadSheet
      * @param barIndex
      * @param swing    If true the bar is in swing mode, eg half-bar position for a 3/4 rhythm is 5/3=1.666...
+     * @see #setDisplayTransposition(int)
      */
     abstract public void preset(Preset preset, ChordLeadSheet cls, int barIndex, boolean swing);
 
@@ -107,4 +111,16 @@ public abstract class CL_BarEditorDialog extends JDialog
      * <p>
      */
     abstract public void cleanup();
+
+    /**
+     * Must be called before calling preset() to be effective.
+     *
+     * @param dt
+     * @see #preset(org.jjazz.cl_editor.spi.Preset, org.jjazz.chordleadsheet.api.ChordLeadSheet, int, boolean)
+     */
+    @Override
+    abstract public void setDisplayTransposition(int dt);
+
+    @Override
+    abstract public int getDisplayTransposition();
 }
