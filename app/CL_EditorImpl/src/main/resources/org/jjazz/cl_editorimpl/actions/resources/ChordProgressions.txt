@@ -13,7 +13,12 @@
 // - Each chord progression uses 1 line and must start and end with the '|' char
 // - Max 2 chords per bar
 // - The '%' char is supported: '|Cm7 F7 | % |' means '|Cm7 F7 |Cm7 F7 |'
-// - Other lines are categories to group chord progressions. Each category is shown as a submenu in the bar's popup menu.
+// 
+// CATEGORIES:
+// - Other lines are categories used to group chord progressions
+// - Each category or subcategory is shown as a submenu in the bar's popup menu
+// - Subcategories can be created using "--" between a parent category and a subcategory. Example:  "Blues -- Major", "Blues -- Minor"
+// - You can define several levels of subcategories, e.g. "blues -- major -- basic", "blues -- major -- jazz"
 
 
 |C |Am |
@@ -22,7 +27,8 @@
 |C7M |   |Cm7 |F7 |
 |C  |Am  |F  |G  |
 
-Major		               // will appear as a submenu
+
+Major		             // will appear as a submenu
 |C7M |A7 |Dm7 |G7 |
 |C7M Am |Dm7 G7 |Em7 A7 |Dm7 G7|
 |C7M  C#dim7 |Dm7 |
@@ -32,6 +38,11 @@ Minor
 |Cm7b5 |Fm7 |Bb-7  |
 
 Blues
+|C7  |   |   |   |F7 |   |C7  |   |G7 |F7 |C7 |G7 |
+
+Blues -- Major              // will appear as a sub-submenu
 |C6  |   |   |C7 |F7 |   |C6  |   |G7 |F7 |C6 |G7 |
 |C7  |F7 |C7 |   |F7 |   |C7  |A7 |Dm7 |G7 |C7 A7|Dm7 G7 |
+
+Blues -- Minor
 |Cm7 |   |   |   |Fm7|   |Cm7 |   |Ab7 |G7 |Cm7 |Dm7b5 G7b9 |

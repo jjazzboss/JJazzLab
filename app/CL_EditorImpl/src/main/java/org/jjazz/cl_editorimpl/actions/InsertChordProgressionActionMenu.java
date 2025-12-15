@@ -22,20 +22,32 @@
  */
 package org.jjazz.cl_editorimpl.actions;
 
+import java.awt.Container;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.StringJoiner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
@@ -138,19 +150,19 @@ public final class InsertChordProgressionActionMenu extends AbstractAction imple
     // =============================================================================================    
 
     private JMenu prepareMenu(JMenu menu, CL_Selection selection)
-    {               
+    {
         File chordProgressionFile = getChordProgressionTextFile();
         if (chordProgressionFile == null)
         {
             return menu;
         }
-        
-        // First menu entry opens the chord progressino text file in an editor
-        String txt=ResUtil.getString(getClass(),"OpenChordProgressionFile" , chordProgressionFile.getAbsolutePath());
+
+        // First menu entry opens the chord progression text file in an editor
+        String txt = ResUtil.getString(getClass(), "OpenChordProgressionFile", chordProgressionFile.getAbsolutePath());
         JMenuItem mi = new JMenuItem(txt);
         mi.addActionListener(e -> Utilities.systemOpenFile(chordProgressionFile, false, Utilities.SAFE_OPEN_EXTENSIONS));
         menu.add(mi);
-        
+
 
         // Read file
         List<String> lines;
@@ -167,8 +179,23 @@ public final class InsertChordProgressionActionMenu extends AbstractAction imple
         }
 
 
-        // Convert to menu items
-        JMenu currentSubMenu = null;
+        prepareMenu(menu, selection, lines);
+
+        return menu;
+    }
+
+    /**
+     * Update the specified menu by adding items and submenus based on lines.
+     *
+     * @param menu
+     * @param selection
+     * @param lines
+     */
+    private void prepareMenu(JMenu menu, CL_Selection selection, List<String> lines)
+    {
+        String[] currentPath = null;    // null is root menu
+        Map<String, JMenu> cache = new HashMap<>();
+
         for (var line : lines)
         {
             // Remove comments and blank lines
@@ -180,28 +207,64 @@ public final class InsertChordProgressionActionMenu extends AbstractAction imple
 
             if (line.charAt(0) != '|')
             {
-                // Category
-                currentSubMenu = new JMenu(line);
-                menu.add(currentSubMenu);
+                // Category line, set current path               
+                currentPath = line.split("\\s*--\\s*");
             } else
             {
                 // grid
                 var cSeq = getChordSequence(line);
                 if (checkChordSequence(cSeq))
                 {
-                    mi = new JMenuItem(line);
+                    var mi = new JMenuItem(line);
                     mi.setFont(new java.awt.Font("Courier New", 0, 11)); // NOI18N
                     mi.addActionListener(ae -> insertChordProgression(selection, cSeq));
-                    (currentSubMenu == null ? menu : currentSubMenu).add(mi);
+
+                    JMenu parentMenu = ensureMenuHierarchy(menu, cache, currentPath);
+                    parentMenu.add(mi);
                 } else
                 {
                     LOGGER.log(Level.WARNING, "buildMenu() Invalid chord progression line={0} ignored", line);
                 }
             }
         }
-        return menu;
     }
 
+    /**
+     * Ensure menus exist for the given path.
+     * <p>
+     * Returns the deepest JMenu (leaf) or root if path is empty.
+     *
+     * @param root
+     * @param cache
+     * @param pathParts
+     * @return
+     */
+    private JMenu ensureMenuHierarchy(JMenu root, Map<String, JMenu> cache, String[] pathParts)
+    {
+        if (pathParts == null || pathParts.length == 0)
+        {
+            return root;
+        }
+
+        Container parent = root;
+        StringJoiner joiner = new StringJoiner(",");
+        for (String part : pathParts)
+        {
+            joiner.add(part);
+            String key = joiner.toString();
+
+            JMenu m = cache.get(key);
+            if (m == null)
+            {
+                m = new JMenu(part);
+                parent.add(m);
+                cache.put(key, m);
+            }
+            parent = m;
+        }
+
+        return (JMenu) parent;
+    }
 
     /**
      * File is expected to be at the root of the JJazzLab user directory -if not present, create one from CHORD_PROGRESSION_RESOURCE.
