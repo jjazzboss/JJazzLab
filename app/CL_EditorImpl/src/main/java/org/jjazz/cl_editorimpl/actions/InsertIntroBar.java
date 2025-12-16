@@ -98,20 +98,8 @@ public class InsertIntroBar extends CL_ContextAction
             // Get the initial section (now at bar 0)
             CLI_Section introSection = cls.getSection(0);
             
-            // Determine unique section name
-            String introName = "Intro";
-            if (isSectionNameUsed(cls, introName))
-            {
-                // Find a unique name
-                int counter = 2;
-                while (isSectionNameUsed(cls, introName + " " + counter))
-                {
-                    counter++;
-                }
-                introName = introName + " " + counter;
-            }
-            
-            // Set the section name
+            // Determine and set unique section name
+            String introName = computeUniqueIntroSectionName(cls);
             cls.setSectionName(introSection, introName);
 
             // Copy chord symbol from bar 1 to bar 0
@@ -178,6 +166,30 @@ public class InsertIntroBar extends CL_ContextAction
         {
             selectionChange(getSelection());
         }
+    }
+
+    /**
+     * Compute a unique section name for the intro section.
+     * <p>
+     * Returns "Intro" if available, otherwise returns "Intro 2", "Intro 3", etc.
+     * 
+     * @param cls The chord leadsheet
+     * @return A unique intro section name
+     */
+    private String computeUniqueIntroSectionName(ChordLeadSheet cls)
+    {
+        String introName = "Intro";
+        if (isSectionNameUsed(cls, introName))
+        {
+            // Find a unique name
+            int counter = 2;
+            while (isSectionNameUsed(cls, introName + " " + counter))
+            {
+                counter++;
+            }
+            introName = introName + " " + counter;
+        }
+        return introName;
     }
 
     /**
