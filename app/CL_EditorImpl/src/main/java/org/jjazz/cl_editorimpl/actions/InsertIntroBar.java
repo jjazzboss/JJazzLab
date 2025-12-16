@@ -104,11 +104,11 @@ public class InsertIntroBar extends CL_ContextAction
             {
                 // Find a unique name
                 int counter = 2;
-                while (isSectionNameUsed(cls, introName + counter))
+                while (isSectionNameUsed(cls, introName + " " + counter))
                 {
                     counter++;
                 }
-                introName = introName + counter;
+                introName = introName + " " + counter;
             }
             
             // Set the section name
@@ -145,7 +145,7 @@ public class InsertIntroBar extends CL_ContextAction
                     // Check if "Intro-A" is a valid variation for this rhythm
                     if (!rpVariation.getPossibleValues().contains(targetVariation))
                     {
-                        // Use any available variation (the first one)
+                        // Use the default variation
                         variationToUse = (String) rpVariation.getDefaultValue();
                     }
                     
