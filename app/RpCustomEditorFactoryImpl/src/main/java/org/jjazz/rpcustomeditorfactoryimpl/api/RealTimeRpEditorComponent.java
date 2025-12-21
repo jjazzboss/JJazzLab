@@ -33,6 +33,7 @@ import org.jjazz.songcontext.api.SongPartContext;
  * <p>
  *
  * @param <E> The type of value of the RhythmParameter.
+ * @see RealTimeRpEditorDialog
  */
 public abstract class RealTimeRpEditorComponent<E> extends JComponent
 {

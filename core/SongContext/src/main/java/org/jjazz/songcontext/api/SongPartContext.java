@@ -66,4 +66,10 @@ public class SongPartContext extends SongContext
     {
         return getSongParts().get(0);
     }
+
+    @Override
+    public String toString()
+    {
+        return "SongPartContext[sg=" + getSong().getName() + ", " + getMidiMix() + ", " + getSongPart() + ", rg=" + getBarRange() + "]";
+    }
 }

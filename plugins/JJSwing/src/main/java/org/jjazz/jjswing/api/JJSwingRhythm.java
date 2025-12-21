@@ -72,11 +72,11 @@ import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Marker;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_TempoFactor;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
 import org.jjazz.rhythmmusicgeneration.api.CompositeMusicGenerator;
-import org.jjazz.rhythmmusicgeneration.api.CompositeMusicGenerator.MgDelegate;
+import org.jjazz.rhythmmusicgeneration.api.CompositeMusicGenerator.DelegateUnit;
 import org.jjazz.rhythmmusicgeneration.api.RP_SYS_Mute;
 import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythmGenerator;
 import org.jjazz.rhythmmusicgeneration.api.RP_SYS_OverrideTracks;
-import org.jjazz.rhythmmusicgeneration.api.CompositeMusicGenerator.RvToMgDelegateMapper;
+import org.jjazz.rhythmmusicgeneration.api.CompositeMusicGenerator.RvToDelegateUnitMapper;
 
 /**
  * An advanced swing rhythm which uses a specific generator for the bass (walking, etc.).
@@ -420,13 +420,13 @@ public class JJSwingRhythm implements YamJJazzRhythm
      *
      * @return
      */
-    private RvToMgDelegateMapper buildRvMapper()
+    private RvToDelegateUnitMapper buildRvMapper()
     {
         var yjGenerator = new YamJJazzRhythmGenerator(this);
         var bassGenerator = new BassGenerator(this);
         var drumsGenerator = new DrumsGenerator(this);
 
-        RvToMgDelegateMapper res = (baseRv, spt) -> 
+        RvToDelegateUnitMapper res = (baseRv, spt) -> 
         {
             Objects.requireNonNull(baseRv);
             Objects.requireNonNull(spt);
@@ -437,7 +437,7 @@ public class JJSwingRhythm implements YamJJazzRhythm
             // Default values
             MusicGenerator destMg;
             RhythmVoice destRv = baseRv;
-            String destRpVarationValue = null;
+            String destRpVariationValue = rpVariationValue;
             Consumer<Phrase> postProcessor = null;
 
 
@@ -456,12 +456,12 @@ public class JJSwingRhythm implements YamJJazzRhythm
                     destMg = yjGenerator;
                     if (rpVariationValue.toLowerCase().startsWith("main e"))
                     {
-                        destRpVarationValue = "Main C-1";
+                        destRpVariationValue = "Main C-1";
                     }
                 }
             }
 
-            return new MgDelegate(destMg, destRv, destRpVarationValue, postProcessor);
+            return new DelegateUnit(spt, baseRv, destMg, destRv, destRpVariationValue, postProcessor);
         };
 
         return res;

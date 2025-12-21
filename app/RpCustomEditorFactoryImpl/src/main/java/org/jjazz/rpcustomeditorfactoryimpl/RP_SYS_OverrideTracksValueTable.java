@@ -55,11 +55,14 @@ public class RP_SYS_OverrideTracksValueTable extends JTable
 {
 
     /**
-     * Change event fired when user updated the destination RhythmVoice of a given destination rhythm.
+     * Change event fired when user changed a dest. rhythm voice
      * <p>
-     * oldValue=rvSrc, newValue=newRvDest
+     * oldValue=rvSrc, newValue=newRvDest.
+     * <p>
+     * NOTE: as an exception, if newValue=null, it means newRvDest=rvSrc (trick required because if both oldValue and newValue are equals(),
+     * firePropertyChange() does nothing).
      */
-    public static final String PROP_RVDEST = "PropRvDest";
+    public static final String PROP_RV_DEST = "PropRvDest";
     private final CustomTableModel tblModel = new CustomTableModel();
     private final CustomRvCellEditor rvCellEditor;
     private static final Logger LOGGER = Logger.getLogger(RP_SYS_OverrideTracksValueTable.class.getSimpleName());
@@ -71,14 +74,18 @@ public class RP_SYS_OverrideTracksValueTable extends JTable
         setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         getTableHeader().setReorderingAllowed(false);               // Prevent column dragging
+
         RhythmVoiceRenderer rvRenderer = new RhythmVoiceRenderer();
         getColumnModel().getColumn(CustomTableModel.COL_SRC_RHYTHM_VOICE).setCellRenderer(rvRenderer);
-        RhythmRenderer rRenderer = new RhythmRenderer();
-        getColumnModel().getColumn(CustomTableModel.COL_DEST_RHYTHM).setCellRenderer(rRenderer);
         getColumnModel().getColumn(CustomTableModel.COL_DEST_RHYTHM_VOICE).setCellRenderer(rvRenderer);
+
+        RhythmRenderer rRenderer = new RhythmRenderer();
+        getColumnModel().getColumn(CustomTableModel.COL_SRC_RHYTHM).setCellRenderer(rRenderer);
+        getColumnModel().getColumn(CustomTableModel.COL_DEST_RHYTHM).setCellRenderer(rRenderer);
+
         putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
 
-        rvCellEditor = new CustomRvCellEditor((rvSrc, rvDest) -> firePropertyChange(PROP_RVDEST, rvSrc, rvDest));
+        rvCellEditor = new CustomRvCellEditor((rvSrc, rvDest) -> firePropertyChange(PROP_RV_DEST, rvSrc, rvDest == rvSrc ? null : rvDest));
     }
 
     @Override
@@ -93,9 +100,9 @@ public class RP_SYS_OverrideTracksValueTable extends JTable
         if (modelColumn == CustomTableModel.COL_DEST_RHYTHM_VOICE)
         {
             var rvSrc = tblModel.getSrcRhythmVoice(modelRow);
-            var rvDest = rvSrc != null ? tblModel.getRpValue().getDestRhythmVoice(rvSrc) : null;
-            assert rvDest != null;
-            rvCellEditor.resetSilently(rvSrc, rvDest.getContainer(), rvDest);
+            var override = rvSrc != null ? tblModel.getRpValue().getOverride(rvSrc) : null;
+            assert override != null;
+            rvCellEditor.resetSilently(rvSrc, override.rvDest().getContainer(), override.rvDest());
             return rvCellEditor;
         } else
         {
@@ -165,9 +172,11 @@ public class RP_SYS_OverrideTracksValueTable extends JTable
     static public class CustomTableModel extends AbstractTableModel
     {
 
-        public static final int COL_SRC_RHYTHM_VOICE = 0;
-        public static final int COL_DEST_RHYTHM = 1;
-        public static final int COL_DEST_RHYTHM_VOICE = 2;
+        public static final int COL_SRC_RHYTHM = 0;
+        public static final int COL_SRC_RHYTHM_VOICE = 1;
+        public static final int COL_DEST_RHYTHM = 2;
+        public static final int COL_DEST_RHYTHM_VOICE = 3;
+        private String srcVariationValue;
         private RP_SYS_OverrideTracksValue rpValue;
 
         /**
@@ -180,30 +189,43 @@ public class RP_SYS_OverrideTracksValueTable extends JTable
             fireTableDataChanged();
         }
 
+        public RP_SYS_OverrideTracksValue getRpValue()
+        {
+            return rpValue;
+        }
+
+        public String getSrcVariationValue()
+        {
+            return srcVariationValue;
+        }
+
+        public void setSrcVariationValue(String value)
+        {
+            srcVariationValue = value;
+            fireTableDataChanged();
+        }
+
+
         public RhythmVoice getSrcRhythmVoice(int row)
         {
             RhythmVoice res = rpValue != null ? rpValue.getBaseRhythm().getRhythmVoices().get(row) : null;
             return res;
         }
 
-        public RhythmVoice getDestRhythmVoice(int row)
+        public RP_SYS_OverrideTracksValue.Override getOverride(int row)
         {
             var rvSrc = getSrcRhythmVoice(row);
-            RhythmVoice res = rvSrc != null ? rpValue.getDestRhythmVoice(rvSrc) : null;
+            RP_SYS_OverrideTracksValue.Override res = rvSrc != null ? rpValue.getOverride(rvSrc) : null;
             return res;
         }
 
-        public RP_SYS_OverrideTracksValue getRpValue()
-        {
-            return rpValue;
-        }
 
         @Override
         public Class<?> getColumnClass(int col)
         {
             Class<?> res = switch (col)
             {
-                case COL_DEST_RHYTHM ->
+                case COL_SRC_RHYTHM, COL_DEST_RHYTHM ->
                     Rhythm.class;
                 case COL_SRC_RHYTHM_VOICE, COL_DEST_RHYTHM_VOICE ->
                     RhythmVoice.class;
@@ -219,8 +241,8 @@ public class RP_SYS_OverrideTracksValueTable extends JTable
             boolean b = false;
             if (column == COL_DEST_RHYTHM_VOICE)
             {
-                var rvDest = getDestRhythmVoice(row);
-                b = rvDest != null;
+                var o = getOverride(row);
+                b = o != null;
             }
             return b;
         }
@@ -230,6 +252,8 @@ public class RP_SYS_OverrideTracksValueTable extends JTable
         {
             String s = switch (columnIndex)
             {
+                case COL_SRC_RHYTHM ->
+                    ResUtil.getString(getClass(), "ColumnHeaderOriginalRhythm");
                 case COL_SRC_RHYTHM_VOICE ->
                     ResUtil.getString(getClass(), "ColumnHeaderOriginalRhythmTrack");
                 case COL_DEST_RHYTHM ->
@@ -251,7 +275,7 @@ public class RP_SYS_OverrideTracksValueTable extends JTable
         @Override
         public int getColumnCount()
         {
-            return 3;
+            return 4;
         }
 
         @Override
@@ -261,18 +285,20 @@ public class RP_SYS_OverrideTracksValueTable extends JTable
             {
                 return null;
             }
+
             RhythmVoice rvSrc = rpValue.getBaseRhythm().getRhythmVoices().get(row);
+            var override = rpValue.getOverride(rvSrc);
+
             Object res = switch (col)
             {
+                case COL_SRC_RHYTHM ->
+                    rvSrc.getContainer();
                 case COL_SRC_RHYTHM_VOICE ->
                     rvSrc;
                 case COL_DEST_RHYTHM ->
-                {
-                    var rvDest = rpValue.getDestRhythmVoice(rvSrc);
-                    yield rvDest != null ? rvDest.getContainer() : null;
-                }
+                    override != null ? override.rvDest().getContainer() : null;
                 case COL_DEST_RHYTHM_VOICE ->
-                    rpValue.getDestRhythmVoice(rvSrc);
+                    override != null ? override.rvDest() : null;
                 default ->
                     throw new IllegalStateException("col=" + col);
             };
@@ -322,7 +348,7 @@ public class RP_SYS_OverrideTracksValueTable extends JTable
             RhythmVoice rv = (RhythmVoice) value;
             if (rv != null)
             {
-                label.setText(toRvString(rv, col == CustomTableModel.COL_SRC_RHYTHM_VOICE));
+                label.setText(toRvString(rv, false));
             }
             return label;
         }
@@ -343,7 +369,12 @@ public class RP_SYS_OverrideTracksValueTable extends JTable
             Rhythm r = (Rhythm) value;
             if (r != null)
             {
-                label.setText(r.getName());
+                // Customize string depending on src/dest rhythm
+                CustomTableModel model = (CustomTableModel) table.getModel();
+                RP_SYS_OverrideTracksValue.Override override = model.getOverride(row);
+                String variationValue = col == CustomTableModel.COL_SRC_RHYTHM ? model.getSrcVariationValue() : override.variation();
+                String strVariation = variationValue != null ? " /" + variationValue : "";
+                label.setText(r.getName() + strVariation);
             }
 
             return label;
@@ -363,7 +394,7 @@ public class RP_SYS_OverrideTracksValueTable extends JTable
 
         /**
          *
-         * @param userChangedValueListener param1=rvSrc, param2=rvDest
+         * @param userChangedValueListener param1=rvSrc, param2=newRvDest
          */
         public CustomRvCellEditor(BiConsumer<RhythmVoice, RhythmVoice> userChangedValueListener)
         {
@@ -374,7 +405,7 @@ public class RP_SYS_OverrideTracksValueTable extends JTable
             comboBox.setRenderer(new CmbRvRenderer());
 
 
-            comboBox.addActionListener(ae ->
+            comboBox.addActionListener(ae -> 
             {
                 // User selected a value
                 if (!blockActionListener && currentRvSrc != null)

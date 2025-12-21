@@ -26,17 +26,12 @@ import static com.google.common.base.Preconditions.checkArgument;
 import java.awt.BorderLayout;
 import java.awt.DefaultKeyboardFocusManager;
 import java.awt.KeyEventPostProcessor;
-import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.Sequencer;
-import javax.swing.AbstractAction;
-import javax.swing.JComponent;
-import javax.swing.JRootPane;
-import javax.swing.KeyStroke;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
@@ -45,7 +40,6 @@ import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.playbacksession.UpdateProviderSongSession;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrol.api.playbacksession.SessionConfig;
-import org.jjazz.musiccontrol.api.playbacksession.SongContextProvider;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmParameter;
@@ -55,6 +49,7 @@ import org.jjazz.songcontext.api.SongPartContext;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.ss_editor.rpviewer.api.RpCustomEditorDialog;
+import org.jjazz.uiutilities.api.UIUtilities;
 import org.jjazz.utilities.api.IntRange;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.*;
@@ -63,15 +58,16 @@ import org.openide.util.Exceptions;
 /**
  * A RpCustomEditor dialog implementation which lets user preview the RP value changes in real time (while the sequence is playing).
  * <p>
- * The dialog can be customized for a given RhythmParameter via the RealTimeRpEditorPanel panel which provides the RP value editing capability.
+ * The dialog can be customized for a given RhythmParameter via the RealTimeRpEditorComponent which provides the RP value editing capability.
  *
  * @param <E> RhythmParameter value class
+ * @see RealTimeRpEditorComponent
+ * @see RpCustomEditorDialog
  */
 public class RealTimeRpEditorDialog<E> extends RpCustomEditorDialog<E> implements PropertyChangeListener
 {
 
-    public static final int DEFAULT_PREVIEW_MAX_NB_BARS = 64;
-    private static int previewMaxNbBars = DEFAULT_PREVIEW_MAX_NB_BARS;
+    public static final int PREVIEW_MAX_NB_BARS = 16;
     private final RealTimeRpEditorComponent<E> editor;
     private boolean exitOk;
     private UpdatableSongSession session;
@@ -80,7 +76,6 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditorDialog<E> implement
     private final E rpDefaultValue;
     private E saveRpValue;
     private GlobalKeyActionListener globalKeyListener;
-    private PlaybackSession previousPlaybackSession;
     private static final Logger LOGGER = Logger.getLogger(RealTimeRpEditorDialog.class.getSimpleName());
 
     public RealTimeRpEditorDialog(RealTimeRpEditorComponent<E> comp)
@@ -92,7 +87,9 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditorDialog<E> implement
         setResizable(editor.isResizable());
 
         initComponents();
-
+        UIUtilities.installEnterKeyAction(this, () -> fbtn_okActionPerformed(null));
+        UIUtilities.installEscapeKeyAction(this, () -> exit(false));
+        
         pnl_editor.add(editor, BorderLayout.CENTER);
         pack();
 
@@ -163,31 +160,10 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditorDialog<E> implement
     }
 
     /**
-     * Get the maximum number of bars used in the preview.
-     *
-     * @return the previewMaxNbBars
-     */
-    public int getPreviewMaxNbBars()
-    {
-        return previewMaxNbBars;
-    }
-
-    /**
-     * Set the maximum number of bars used in the preview.
-     * <p>
-     */
-    public void setPreviewMaxNbBars(int previewMaxNbBars)
-    {
-        if (previewMaxNbBars < 1)
-        {
-            throw new IllegalArgumentException("previewMaxNbBars=" + previewMaxNbBars);
-        }
-        this.previewMaxNbBars = previewMaxNbBars;
-    }
-
-    /**
      * Create a preview SongContext which uses the specified rhythm parameter value.
      *
+     * @param <T>
+     * @param sptContext
      * @param rpValue
      * @return
      */
@@ -205,12 +181,12 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditorDialog<E> implement
         // Make sure SongPart size does not exceed maxNbBars 
         CLI_Section section = spt.getParentSection();
         IntRange sectionRange = cls.getBarRange(section);
-        if (sectionRange.size() > previewMaxNbBars)
+        if (sectionRange.size() > PREVIEW_MAX_NB_BARS)
         {
             // Shorten the section
             try
             {
-                cls.setSizeInBars(sectionRange.from + previewMaxNbBars);
+                cls.setSizeInBars(sectionRange.from + PREVIEW_MAX_NB_BARS);
             } catch (UnsupportedEditException ex)
             {
                 // We're removing a section, should never happen
@@ -233,6 +209,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditorDialog<E> implement
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
+        var mc = MusicController.getInstance();
         if (evt.getSource() == editor && evt.getPropertyName().equals(RealTimeRpEditorComponent.PROP_EDITED_RP_VALUE))
         {
             LOGGER.log(Level.FINE, "propertyChange() evt={0}", evt);
@@ -240,6 +217,10 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditorDialog<E> implement
             {
                 updateRpValueInPreviewContext((E) evt.getNewValue());
             }
+        } else if (evt.getSource() == mc && evt.getPropertyName().equals(MusicController.PROP_STATE))
+        {
+            // Note that a RealTimeRpEditorComponent like RP_SYS_OverrideTracksComp might also use rhythm preview itself
+            tbtn_hear.setSelected(mc.isPlaying());   // Does not fire an action event
         }
     }
 
@@ -249,23 +230,8 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditorDialog<E> implement
     private void exit(boolean ok)
     {
         MusicController mc = MusicController.getInstance();
-        boolean wasPlaying = mc.isPlaying();
         mc.stop();
-
-
-        // If song was playing and we're playing, restart with the original session
-        if (previousPlaybackSession != null && wasPlaying)
-        {
-            try
-            {
-                mc.setPlaybackSession(previousPlaybackSession, false);
-                mc.play(previousPlaybackSession.getBarRange().from);
-            } catch (MusicGenerationException ex)
-            {
-                // Should never happen, it was working before this dialog opened
-                Exceptions.printStackTrace(ex);
-            }
-        }
+        mc.removePropertyChangeListener(this);
 
         exitOk = ok;
         setVisible(false);
@@ -298,7 +264,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditorDialog<E> implement
 
         // UpdateProviderSongSession automatically generates updates if a RhythmParameter value changes
         SessionConfig config = new SessionConfig(false, false, true, Sequencer.LOOP_CONTINUOUSLY, null);
-        var dynSession = UpdateProviderSongSession.getSession(songPartContextpreview,config, false, PlaybackSession.Context.RP_VALUE_PREVIEW);
+        var dynSession = UpdateProviderSongSession.getSession(songPartContextpreview, config, false, PlaybackSession.Context.RP_VALUE_PREVIEW);
         session = UpdatableSongSession.getSession(dynSession);
 
 
@@ -329,40 +295,6 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditorDialog<E> implement
         SongStructure ss = songPartContextpreview.getSong().getSongStructure();
         SongPart spt = ss.getSongPart(songPartContextOriginal.getBarRange().from);
         ss.setRhythmParameterValue(spt, (RhythmParameter) editor.getRhythmParameter(), rpValue);
-    }
-
-    /**
-     * Overridden to add global key bindings
-     *
-     * @return
-     */
-    @Override
-    protected JRootPane createRootPane()
-    {
-        JRootPane contentPane = new JRootPane();
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ENTER"), "actionOk");
-        contentPane.getActionMap().put("actionOk", new AbstractAction("OK")
-        {
-
-            @Override
-            public void actionPerformed(ActionEvent e)
-            {
-                fbtn_okActionPerformed(null);
-            }
-        });
-
-        contentPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ESCAPE"), "actionCancel");
-        contentPane.getActionMap().put("actionCancel", new AbstractAction("Cancel")
-        {
-
-            @Override
-            public void actionPerformed(ActionEvent e)
-            {
-                exit(false);
-            }
-        });
-
-        return contentPane;
     }
 
     /**
@@ -550,30 +482,20 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditorDialog<E> implement
             throw new IllegalStateException("songPartContextOriginal is null: preset() must be called before making dialog visible");
         }
 
-        // If song was already playing, directly switch to the preview mode
-        previousPlaybackSession = null;
+
         var mc = MusicController.getInstance();
+        mc.addPropertyChangeListener(this);
+
         if (mc.isPlaying())
         {
             mc.stop();
 
-
-            // Start preview mode, except if we were in arranger mode
-            var prevSession = mc.getPlaybackSession();
-            if (prevSession instanceof UpdatableSongSession)
+            // Auto start preview mode if a song was playing
+            if (mc.getPlaybackSession().getContext() == PlaybackSession.Context.SONG)
             {
-                Song song = ((SongContextProvider) prevSession).getSongContext().getSong();
-                if (!song.getName().startsWith("*!ArrangerSONG!*"))
-                {
-                    tbtn_hear.setSelected(true);
-                    tbtn_hearActionPerformed(null);     // This will start playing the preview
-
-
-                    // Commented out to disable the feature (auto-restart playback when exiting)
-                    // previousPlaybackSession = prevSession.getFreshCopy();
-                }
+                tbtn_hear.setSelected(true);
+                tbtn_hearActionPerformed(null);     // This will start playing the preview
             }
-
         }
 
 

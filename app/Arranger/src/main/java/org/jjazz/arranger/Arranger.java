@@ -70,7 +70,7 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
     /**
      * The internal song name for the work song copy used by the arranger.
      */
-    public static final String ARRANGER_WORK_SONG_NAME = "*!ArrangerSONG!*";
+    public static final String ARRANGER_WORK_SONG_NAME = "*ArrangerSONG*";
     public static final String PROP_PLAYING = "PropPlaying";
     public static final int SONG_PART_MAX_BAR_SIZE = 16;
     private final SongContext songContextRef;

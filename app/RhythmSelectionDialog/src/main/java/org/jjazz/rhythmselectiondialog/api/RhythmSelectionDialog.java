@@ -51,7 +51,7 @@ abstract public class RhythmSelectionDialog extends JDialog
      * @param ri
      * @param rpp                           If null then the rhythm preview feature is disabled. If not null caller is responsible to call rpp.cleanup() when
      *                                      rpp is not used anymore.
-     * @param useRhythmTempoSettingSupplier Can not be null. 
+     * @param useRhythmTempoSettingSupplier Can not be null.
      */
     abstract public void preset(RhythmInfo ri, RhythmPreviewer rpp, BooleanSupplier useRhythmTempoSettingSupplier);
 
@@ -66,6 +66,13 @@ abstract public class RhythmSelectionDialog extends JDialog
      * @return Null if no valid rhythm was selected, or user chose Cancel
      */
     abstract public RhythmInfo getSelectedRhythm();
+
+    /**
+     * Return the last selected variation by the rhythm previewer.
+     *
+     * @return Can be null if rhythm previewer was not used or user cancelled
+     */
+    abstract public String getLastSelectedVariation();
 
     /**
      * Set the title of the dialogm eg "Rhythm for bar XX".

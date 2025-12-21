@@ -29,10 +29,10 @@
                   </Group>
               </Group>
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Component id="btn_clear" linkSize="2" min="-2" max="-2" attributes="0"/>
-                  <Component id="btn_replace" linkSize="2" min="-2" max="-2" attributes="0"/>
+                  <Component id="btn_clear" linkSize="2" max="32767" attributes="0"/>
+                  <Component id="btn_replace" linkSize="2" max="32767" attributes="0"/>
               </Group>
-              <EmptySpace min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -71,7 +71,7 @@
             </Property>
           </Properties>
           <AuxValues>
-            <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new org.jjazz.rpcustomeditorfactoryimpl.RP_SYS_SubstituteTracksValueTable();"/>
+            <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new org.jjazz.rpcustomeditorfactoryimpl.RP_SYS_OverrideTracksValueTable();"/>
           </AuxValues>
         </Component>
       </SubComponents>

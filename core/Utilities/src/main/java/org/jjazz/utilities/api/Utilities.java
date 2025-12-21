@@ -1129,6 +1129,32 @@ public class Utilities
         return res;
     }
 
+      /**
+     * Create a shallow copy of a 2D array (referencing the same cell data as the original).
+     *
+     * @param array
+     * @param <T>
+     * @return A new matrix with independent structure but referencing the same cell data.
+     */
+    public static <T> T[][] clone2Darray(T[][] array)
+    {
+        if (array == null)
+        {
+            return null;
+        }
+
+        // Clone the outer array structure
+        T[][] res = array.clone();
+
+        for (int i = 0; i < array.length; i++)
+        {
+            res[i] = array[i].clone();
+        }
+
+        // Return the cloned matrix
+        return res;
+    }
+    
     /**
      * Finds the first occurrence of the pattern in the text.
      * <p>

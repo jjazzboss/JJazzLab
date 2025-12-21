@@ -16,6 +16,7 @@ import org.jjazz.utilities.api.ResUtil;
  */
 public class RP_SYS_OverrideTracks implements RhythmParameter<RP_SYS_OverrideTracksValue>
 {
+
     public static String ID = "RP_SYS_OverrideTracksID";
     private final RP_SYS_OverrideTracksValue DEFAULT_VALUE;
     private final Rhythm baseRhythm;
@@ -82,22 +83,11 @@ public class RP_SYS_OverrideTracks implements RhythmParameter<RP_SYS_OverrideTra
         return ResUtil.getString(getClass(), "RpSysOverrideTracksDesc");
     }
 
-    /**
-     * Generally used as tooltip by the framework.
-     *
-     * @param value
-     * @return
-     */
+
     @Override
     public String getValueDescription(RP_SYS_OverrideTracksValue value)
     {
-        var joiner = new StringJoiner(", ");
-        for (var rv : value.getSourceRhythmVoices())
-        {
-            var rvDest = value.getDestRhythmVoice(rv);
-            joiner.add(rv.getName() + " > " + rvDest.getContainer().getName() + "/" + rv.getName());
-        }
-        return joiner.toString();
+        return value.toDescriptionString();
     }
 
     @Override
@@ -157,7 +147,14 @@ public class RP_SYS_OverrideTracks implements RhythmParameter<RP_SYS_OverrideTra
     @Override
     public String getDisplayValue(RP_SYS_OverrideTracksValue value)
     {
-        return value.toString();
+        String res = value.toDescriptionString();
+        var rvSources = value.getAllSourceRhythmVoices();
+        int size = rvSources.size();
+        if (size > 1)
+        {
+            res = ResUtil.getString(getClass(), "NbOverrideTracks", size);
+        }
+        return res;
     }
 
     /**

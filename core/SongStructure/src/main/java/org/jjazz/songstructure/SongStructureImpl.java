@@ -897,7 +897,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
     @Override
     public String toString()
     {
-        return "size=" + getSizeInBars() + " spts=" + Utilities.toMultilineString(songParts, "  ");
+        return "size=" + getSizeInBars() + " spts=" + songParts;
     }
 
     @Override

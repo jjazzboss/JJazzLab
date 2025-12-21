@@ -78,11 +78,16 @@ public class SimpleRhythmSelectionDialog extends RhythmSelectionDialog implement
         list_Rhythms.setListData(rInfos);
         list_Rhythms.setSelectedValue(selectedRhythm, true);
     }
-    
+
     @Override
     public void setCustomComponent(JComponent comp)
     {
         // Do nothing
+    }
+
+    public String getLastSelectedVariation()
+    {
+        return null;
     }
 
     @Override

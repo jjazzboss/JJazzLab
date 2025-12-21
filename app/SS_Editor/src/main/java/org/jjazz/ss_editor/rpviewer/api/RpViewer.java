@@ -34,6 +34,7 @@ import java.awt.event.FocusListener;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.BorderFactory;
@@ -331,12 +332,13 @@ public class RpViewer extends JPanel implements PropertyChangeListener, FocusLis
     private void updateToolTip()
     {
         Object value = sptModel.getRPValue(rpModel);
-        String tt = rpModel.getDisplayName() + "=" + value.toString();
+        String strValue = value.toString();
+        String tt = rpModel.getDisplayName() + "=" + strValue;
         @SuppressWarnings("rawtypes")
         RhythmParameter rp = getRpModel();      // Needed to get rid of the unbounded wildcard <?>
         @SuppressWarnings("unchecked")
         String valueDesc = rp.getValueDescription(value);
-        if (valueDesc != null)
+        if (valueDesc != null && !valueDesc.equals(strValue))
         {
             tt += ", " + valueDesc;
         }

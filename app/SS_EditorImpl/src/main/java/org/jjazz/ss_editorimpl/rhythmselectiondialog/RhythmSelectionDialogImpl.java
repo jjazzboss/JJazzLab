@@ -196,6 +196,13 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
     }
 
     @Override
+    public String getLastSelectedVariation()
+    {
+        String res = previewDone ? (String) cmb_variation.getSelectedItem() : null;
+        return res;
+    }
+
+    @Override
     public void setTitleText(String title)
     {
         lbl_Title.setText(title);
@@ -538,15 +545,11 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
      * Preview the specified rhythm.
      *
      * @param ri
-     * @param rpVariationValue If not null
      * @return True if preview was successfully launched.
      */
     private boolean previewRhythm(RhythmInfo ri)
     {
-        if (ri == null)
-        {
-            throw new IllegalArgumentException("ri=" + ri);
-        }
+        Objects.requireNonNull(ri);
 
         if (rhythmPreviewProvider == null)
         {
@@ -588,7 +591,8 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         try
         {
             LOGGER.fine("previewRhythm() calling rhythmPreviewProvider().previewRhythm()");
-            rhythmPreviewProvider.previewRhythm(r, mapRpValues, useRhythmTempoSettingSupplier.getAsBoolean(), fbtn_autoPreviewMode.isSelected(), e -> rhythmPreviewComplete(r));
+            rhythmPreviewProvider.previewRhythm(r, mapRpValues, useRhythmTempoSettingSupplier.getAsBoolean(), fbtn_autoPreviewMode.isSelected(), e
+                    -> rhythmPreviewComplete(r));
             // previewRhythm will first stop => endAction => previewComplete() => cmb_variation is disabled/lose focus + highlight is removed
             // So need to restore state
             cmb_variation.setEnabled(true);

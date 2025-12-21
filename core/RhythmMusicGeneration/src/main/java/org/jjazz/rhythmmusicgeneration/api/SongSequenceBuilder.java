@@ -39,7 +39,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MetaMessage;
 import javax.sound.midi.MidiEvent;
@@ -50,7 +49,6 @@ import javax.sound.midi.SysexMessage;
 import javax.sound.midi.Track;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.chordleadsheet.api.ClsUtilities;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.NCExtChordSymbol;
@@ -84,7 +82,8 @@ import org.jjazz.utilities.api.ResUtil;
 import org.openide.util.Exceptions;
 import org.jjazz.outputsynth.spi.OutputSynthManager;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Fill;
-import org.jjazz.rhythmmusicgeneration.api.CompositeMusicGenerator.MgDelegate;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
+import org.jjazz.rhythmmusicgeneration.api.CompositeMusicGenerator.DelegateUnit;
 import org.jjazz.rhythmmusicgeneration.spi.ConfigurableMusicGeneratorProvider;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGeneratorProvider;
 import org.jjazz.song.api.Song;
@@ -147,7 +146,7 @@ public class SongSequenceBuilder
      * @return
      * @throws org.jjazz.rhythm.api.MusicGenerationException
      * @see #buildMapRvPhrase(boolean)
-     * @see #buildSongSequence(java.util.Map) 
+     * @see #buildSongSequence(java.util.Map)
      */
     public SongSequence buildAll(boolean silent) throws MusicGenerationException
     {
@@ -322,7 +321,7 @@ public class SongSequenceBuilder
      *
      * @param songSequence      Must have been created using buildSongSequence() for the current SongContext
      * @param ignoreMidiMixMute If true, a track will sound even if it was muted in the context MidiMix
-     * @see #buildSongSequence(java.util.Map) 
+     * @see #buildSongSequence(java.util.Map)
      */
     public void makeSequenceExportable(SongSequence songSequence, boolean ignoreMidiMixMute)
     {
@@ -711,14 +710,14 @@ public class SongSequenceBuilder
 
 
         // Check if RP_SYS_OverrideTracks is used
-        RP_SYS_OverrideTracks rpSt = RP_SYS_OverrideTracks.getOverrideTracksRp(r);
-        if (rpSt != null && sgContext.getSongParts().stream()
+        RP_SYS_OverrideTracks rpOverride = RP_SYS_OverrideTracks.getOverrideTracksRp(r);
+        if (rpOverride != null && sgContext.getSongParts().stream()
                 .filter(spt -> spt.getRhythm() == r)
-                .anyMatch(spt -> !spt.getRPValue(rpSt).isEmpty()))
+                .anyMatch(spt -> !spt.getRPValue(rpOverride).isEmpty()))
         {
             // RP_SYS_OverrideTracks is used, we need a CompositeMusicGenerator
             assert r instanceof ConfigurableMusicGeneratorProvider : "r=" + r;
-            res = buildCompositeMusicGenerator(rpSt);
+            res = buildCompositeMusicGenerator(rpOverride);
         }
 
         return res;
@@ -772,33 +771,53 @@ public class SongSequenceBuilder
     }
 
     /**
-     * Build a CompositeMusicGenerator based on RP_SYS_OverrideTracks usage.
+     * Build a CompositeMusicGenerator based on RP_SYS_OverrideTracks.
      *
-     * @param rpSt
+     * @param rpOverride
      * @return
      */
-    private CompositeMusicGenerator buildCompositeMusicGenerator(RP_SYS_OverrideTracks rpSt)
+    private CompositeMusicGenerator buildCompositeMusicGenerator(RP_SYS_OverrideTracks rpOverride)
     {
-        var mgBase = rpSt.getConfigurableMusicGeneratorProvider().getMusicGenerator();
-        assert mgBase != null : "rpSt=" + rpSt;
-        var baseRhythm = rpSt.getBaseRhythm();
+        var mgBase = rpOverride.getConfigurableMusicGeneratorProvider().getMusicGenerator();
+        assert mgBase != null : "rpOverride=" + rpOverride;
+        var baseRhythm = rpOverride.getBaseRhythm();
+        var baseRpVariation = RP_SYS_Variation.getVariationRp(baseRhythm);
 
-        CompositeMusicGenerator.RvToMgDelegateMapper rvMapper = (rvBase, spt) -> 
+
+        CompositeMusicGenerator.RvToDelegateUnitMapper rvMapper = (rvBase, spt) -> 
         {
             Objects.requireNonNull(rvBase);
 
             var mg = mgBase;        // by default no mapping
             RhythmVoice rvDest = rvBase;           // by default no mapping
+            String baseRpVariationValue = baseRpVariation == null ? null : spt.getRPValue(baseRpVariation);
 
-            RhythmVoice rvMapped;
-            if (spt != null && spt.getRhythm() == baseRhythm && (rvMapped = spt.getRPValue(rpSt).getDestRhythmVoice(rvBase)) != null)
+            DelegateUnit res;
+
+            RP_SYS_OverrideTracksValue.Override override;
+            if (spt != null && spt.getRhythm() == baseRhythm && (override = spt.getRPValue(rpOverride).getOverride(rvBase)) != null)
             {
-                // mapping
-                rvDest = rvMapped;
-                mg = ((MusicGeneratorProvider) rvDest.getContainer()).getMusicGenerator();
-            }
+                // songPart has an override
+                rvDest = override.rvDest();
+                mg = ((MusicGeneratorProvider) rvDest.getContainer()).getMusicGenerator();                
+                var destRpVariation = RP_SYS_Variation.getVariationRp(rvDest.getContainer());
+                String destRpVariationValue = override.variation();     // if null, try to reuse source variation value
+                if (destRpVariationValue == null && destRpVariation != null)
+                {
+                    destRpVariationValue = destRpVariation.getPossibleValues().contains(baseRpVariationValue) ? baseRpVariationValue
+                            : destRpVariation.getDefaultValue();
+                }
+                if (destRpVariationValue == null)
+                {
+                    destRpVariationValue = "unusedDummyRpVariationValue";
+                }
 
-            MgDelegate res = new MgDelegate(mg, rvDest, null, null);
+                res = new DelegateUnit(spt, rvBase, mg, rvDest, destRpVariationValue, null);
+            } else
+            {
+                // No override, create a delegate to ourselves
+                res = new DelegateUnit(spt, rvBase, mg, baseRpVariationValue);
+            }
             return res;
         };
 
@@ -823,7 +842,7 @@ public class SongSequenceBuilder
         {
             sgContext.getSongParts().stream()
                     .filter(spt -> spt.getRhythm() == r)
-                    .forEach(spt -> res.addAll(spt.getRPValue(rpRc).getDestinationRhythms()));
+                    .forEach(spt -> res.addAll(spt.getRPValue(rpRc).getAllDestinationRhythms()));
         }
         return res;
     }
@@ -1018,7 +1037,7 @@ public class SongSequenceBuilder
                 Phrase pCustom = rpValue.getCustomizedPhrase(rv);
                 var pWork = new Phrase(0);
                 pWork.add(pCustom);
-                pWork.shiftAllEvents(sptBeatRange.from, false);                // Custom phrase starts at beat 0, make it match spt's start
+                pWork.shiftAllEvents(sptBeatRange.from, false);                // Custom phrase starts at beat 0, make it match songPart's start
                 pWork = Phrases.getSlice(pWork, sptBeatRangeInContext, false, 1, 0.1f);    // Keep only the relevant slice
 
 
@@ -1044,8 +1063,8 @@ public class SongSequenceBuilder
 
         for (SongPart spt : context.getSongParts())
         {
-            FloatRange sptBeatRange = context.getSptBeatRange(spt);     // Might be smaller than spt.toBeatRange()
-            IntRange sptBarRange = context.getSptBarRange(spt);         // Might be smaller than spt.getBarRange()
+            FloatRange sptBeatRange = context.getSptBeatRange(spt);     // Might be smaller than songPart.toBeatRange()
+            IntRange sptBarRange = context.getSptBarRange(spt);         // Might be smaller than songPart.getBarRange()
             SongPartContext sptContext = new SongPartContext(context.getSong(), context.getMidiMix(), sptBarRange);
 
 
@@ -1149,7 +1168,7 @@ public class SongSequenceBuilder
             }
 
             LOGGER.log(Level.FINE, "processFadeOut() processing spt={0}", spt);
-            FloatRange beatRange = context.getSptBeatRange(spt);        // Might be smaller than spt.toBeatRange()
+            FloatRange beatRange = context.getSptBeatRange(spt);        // Might be smaller than songPart.toBeatRange()
 
             for (RhythmVoice rv : rvPhrases.keySet())
             {

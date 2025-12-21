@@ -25,32 +25,37 @@ package org.jjazz.rpcustomeditorfactoryimpl;
 import com.google.common.base.Preconditions;
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.awt.event.ActionEvent;
-import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.sound.midi.MidiUnavailableException;
 import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import static org.jjazz.rhythm.api.RhythmVoice.Type.CHORD1;
 import static org.jjazz.rhythm.api.RhythmVoice.Type.CHORD2;
 import static org.jjazz.rhythm.api.RhythmVoice.Type.PHRASE1;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
 import org.jjazz.rpcustomeditorfactoryimpl.api.RealTimeRpEditorComponent;
 import static org.jjazz.rpcustomeditorfactoryimpl.api.RealTimeRpEditorComponent.PROP_EDITED_RP_VALUE;
 import org.jjazz.songcontext.api.SongPartContext;
 import org.jjazz.rhythmmusicgeneration.api.RP_SYS_OverrideTracks;
 import org.jjazz.rhythmmusicgeneration.api.RP_SYS_OverrideTracksValue;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
+import org.jjazz.rhythmdatabase.api.RhythmInfo;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
+import org.jjazz.rhythmselectiondialog.spi.RhythmPreviewer;
 import org.jjazz.rhythmselectiondialog.spi.RhythmSelectionDialogProvider;
+import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.uiutilities.api.UIUtilities;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.windows.WindowManager;
@@ -65,6 +70,8 @@ public class RP_SYS_OverrideTracksComp extends RealTimeRpEditorComponent<RP_SYS_
     private RP_SYS_OverrideTracksValue lastValue;
     private RP_SYS_OverrideTracksValue uiValue;
     private final RP_SYS_OverrideTracksValueTable tbl_mappings;
+    private SongPartContext sptContext;
+    private String variationValue;
     private static final Logger LOGGER = Logger.getLogger(RP_SYS_OverrideTracksComp.class.getSimpleName());
 
     public RP_SYS_OverrideTracksComp(RP_SYS_OverrideTracks rp)
@@ -78,12 +85,18 @@ public class RP_SYS_OverrideTracksComp extends RealTimeRpEditorComponent<RP_SYS_
 
 
         // Add listeners
-        tbl_mappings.addPropertyChangeListener(RP_SYS_OverrideTracksValueTable.PROP_RVDEST, e -> 
+        tbl_mappings.addPropertyChangeListener(RP_SYS_OverrideTracksValueTable.PROP_RV_DEST, e -> 
         {
-            // User changed the destination track of a given rhythm
+            // User changed a dest rhythm voice
             RhythmVoice rvSrc = (RhythmVoice) e.getOldValue();
-            RhythmVoice newRvDest = (RhythmVoice) e.getNewValue();
-            setEditedRpValue(uiValue.set(rvSrc, newRvDest));
+            RhythmVoice rvDest = (RhythmVoice) e.getNewValue();
+            if (rvDest == null)
+            {
+                // Special case
+                rvDest = rvSrc;
+            }
+            var override = uiValue.getOverride(rvSrc);
+            setEditedRpValue(uiValue.set(rvSrc, override.set(rvDest)));
         });
         tbl_mappings.getSelectionModel().addListSelectionListener(this);
         tbl_mappings.getInputMap(JTable.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "AddMappings");
@@ -123,14 +136,18 @@ public class RP_SYS_OverrideTracksComp extends RealTimeRpEditorComponent<RP_SYS_
     {
         Objects.requireNonNull(rpValue);
         Objects.requireNonNull(sptContext);
-        var spt0 = sptContext.getSongParts().get(0);
-        Preconditions.checkArgument(rpValue.getBaseRhythm() == spt0.getRhythm(),
-                "rpValue.getBaseRhythm()=" + rpValue.getBaseRhythm() + " spt0=" + spt0.getRhythm());
+        SongPart spt = sptContext.getSongPart();
+        Preconditions.checkArgument(rpValue.getBaseRhythm() == spt.getRhythm(), "rpValue.getBaseRhythm()=%s spt=%s", rpValue.getBaseRhythm(), spt);
+        this.sptContext = sptContext;
+
 
         LOGGER.log(Level.FINE, "preset() -- rpValue={0} sptContext={1}", new Object[]
         {
             rpValue, sptContext
         });
+
+        var rpVariation = RP_SYS_Variation.getVariationRp(sptContext.getSongPart().getRhythm());
+        variationValue = rpVariation == null ? "" : spt.getRPValue(rpVariation);
 
         uiValue = null;
         setEditedRpValue(rpValue);
@@ -176,7 +193,7 @@ public class RP_SYS_OverrideTracksComp extends RealTimeRpEditorComponent<RP_SYS_
 
         var rvSrc = tbl_mappings.getSelectedBaseRhythmVoice();
         btn_replace.setEnabled(rvSrc != null);
-        btn_clear.setEnabled(rvSrc != null && uiValue.getDestRhythmVoice(rvSrc) != null);
+        btn_clear.setEnabled(rvSrc != null && uiValue.getOverride(rvSrc) != null);
 
     }
 
@@ -188,7 +205,9 @@ public class RP_SYS_OverrideTracksComp extends RealTimeRpEditorComponent<RP_SYS_
      */
     private void refreshUI()
     {
-        tbl_mappings.getModel().setRpValue(uiValue);
+        var tblModel = tbl_mappings.getModel();
+        tblModel.setSrcVariationValue(variationValue);
+        tblModel.setRpValue(uiValue);
     }
 
     private void fireUiValueChanged()
@@ -202,8 +221,6 @@ public class RP_SYS_OverrideTracksComp extends RealTimeRpEditorComponent<RP_SYS_
 
     private void handleTableMouseClicked(MouseEvent evt)
     {
-        boolean ctrl = (evt.getModifiersEx() & InputEvent.CTRL_DOWN_MASK) == InputEvent.CTRL_DOWN_MASK;
-        boolean shift = (evt.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) == InputEvent.SHIFT_DOWN_MASK;
 
         if (SwingUtilities.isLeftMouseButton(evt) && evt.getClickCount() == 2)
         {
@@ -223,18 +240,40 @@ public class RP_SYS_OverrideTracksComp extends RealTimeRpEditorComponent<RP_SYS_
         {
             return;
         }
-        var oldRvDest = uiValue.getDestRhythmVoice(rvSrc);
 
 
-        var dlg = RhythmSelectionDialogProvider.getDefault().getDialog();
+        // Select default rhythm to show in the rhythm selection dialog
+        var oldOverride = uiValue.getOverride(rvSrc);
+        var rId = oldOverride == null ? rvSrc.getContainer().getUniqueId() : oldOverride.rvDest().getContainer().getUniqueId();
         var rdb = RhythmDatabase.getDefault();
-        var rv = oldRvDest == null ? rvSrc : oldRvDest;
-        var ri = rdb.getRhythm(rv.getContainer().getUniqueId());
-        dlg.preset(ri, null, () -> false);
-        dlg.setCustomComponent(new JLabel(" "));    
+        var ri = rdb.getRhythm(rId);
+
+
+        // Set up previewer
+        RhythmPreviewer previewer = RhythmPreviewer.getDefault();
+        if (previewer != null)
+        {
+            try
+            {
+                previewer.setContext(sptContext.getSong(), sptContext.getSongPart());
+            } catch (MidiUnavailableException ex)
+            {
+                LOGGER.log(Level.WARNING, "setMapping() Can''t set context ex={0}. RhythmPreviewProvider disabled.", ex.getMessage());
+                previewer = null;
+            }
+        }
+
+        // Set up and show dialog
+        var dlg = RhythmSelectionDialogProvider.getDefault().getDialog();
+        dlg.preset(ri, previewer, () -> false);
+        dlg.setCustomComponent(new JLabel(" "));
         dlg.setTitleText(ResUtil.getString(getClass(), "SelectOverrideRhythm", ri.timeSignature()));
         dlg.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
         dlg.setVisible(true);
+
+
+        // Dialog might have changed the active song if the RhythmPreviewer was used, need to restore the active song
+        ActiveSongManager.getDefault().setActive(sptContext.getSong(), sptContext.getMidiMix());
 
 
         // Dialog exited
@@ -244,78 +283,86 @@ public class RP_SYS_OverrideTracksComp extends RealTimeRpEditorComponent<RP_SYS_
             return;
         }
 
-
-        var rSrc = rvSrc.getContainer();
-        var riSrc = rdb.getRhythm(rSrc.getUniqueId());
-        var riNewDest = dlg.getSelectedRhythm();
-        assert riNewDest != null;
-        RhythmVoice newRvDest;
+        // Process user selection
+        RhythmInfo riDest = dlg.getSelectedRhythm();
+        RhythmVoice rvDest;
+        String variationDest = dlg.getLastSelectedVariation();
 
 
-        if (oldRvDest != null && riNewDest.rhythmUniqueId().equals(oldRvDest.getContainer().getUniqueId()))
+        if (oldOverride != null && riDest.rhythmUniqueId().equals(oldOverride.rvDest().getContainer().getUniqueId()))
         {
-            // no change
-            newRvDest = oldRvDest;
+            // Same destination rhythm: don't change rvDest but variation might has been updated
+            rvDest = oldOverride.rvDest();
         } else
         {
-            // new mapping
-            Rhythm rNewDest = null;
+            // Destination rhythm has changed
+            Rhythm rDest = null;
             try
             {
-                rNewDest = rdb.getRhythmInstance(riNewDest);   // throws UnavailableRhythmException
+                rDest = rdb.getRhythmInstance(riDest);   // throws UnavailableRhythmException
             } catch (UnavailableRhythmException ex)
             {
-                LOGGER.log(Level.WARNING, "setMapping() Unexpected error : can not retrieve rhytm instance for riDest={0}", riNewDest);
+                LOGGER.log(Level.WARNING, "setMapping() Unexpected error : can not retrieve rhytm instance for riDestNew={0}", riDest);
                 dlg.cleanup();
                 return;
             }
 
-
-            // Try to find the most appropriate RhythmVoice for rvSrc            
-            newRvDest = rNewDest.getRhythmVoices().stream()
-                    .filter(rvi -> rvi.getType() == rvSrc.getType())
-                    .findFirst()
-                    .orElse(null);
-            if (newRvDest == null)
-            {
-                RhythmVoice.Type testType = switch (rvSrc.getType())
-                {
-                    case DRUMS ->
-                        RhythmVoice.Type.PERCUSSION;
-                    case PERCUSSION ->
-                        RhythmVoice.Type.DRUMS;
-                    case CHORD1 ->
-                        RhythmVoice.Type.CHORD2;
-                    case CHORD2, PAD, OTHER ->
-                        RhythmVoice.Type.CHORD1;
-                    case PHRASE1 ->
-                        RhythmVoice.Type.PHRASE2;
-                    case PHRASE2 ->
-                        RhythmVoice.Type.PHRASE1;
-                    default ->
-                        null;
-                };
-                newRvDest = rNewDest.getRhythmVoices().stream()
-                        .filter(rvi -> rvi.getType() == testType)
-                        .findFirst()
-                        .orElse(null);
-                if (newRvDest == null)
-                {
-                    newRvDest = rNewDest.getRhythmVoices().get(0);
-                }
-            }
-            assert newRvDest != null;
+            rvDest = findRvDest(rvSrc, rDest);
         }
 
+
+        RP_SYS_OverrideTracksValue.Override override = new RP_SYS_OverrideTracksValue.Override(rvDest, variationDest);
 
         // update model
-        if (newRvDest != oldRvDest)
-        {
-            setEditedRpValue(uiValue.set(rvSrc, newRvDest));
-        }
+        setEditedRpValue(uiValue.set(rvSrc, override));
 
 
         dlg.cleanup();
+    }
+
+    /**
+     * Find the most appropriate destination RhythmVoice for rvSrc in rDest.
+     *
+     * @param rvSrc
+     * @param rDest
+     *
+     * @return
+     */
+    private RhythmVoice findRvDest(RhythmVoice rvSrc, Rhythm rDest)
+    {
+        RhythmVoice res = rDest.getRhythmVoices().stream()
+                .filter(rvi -> rvi.getType() == rvSrc.getType())
+                .findFirst()
+                .orElse(null);
+        if (res == null)
+        {
+            RhythmVoice.Type testType = switch (rvSrc.getType())
+            {
+                case DRUMS ->
+                    RhythmVoice.Type.PERCUSSION;
+                case PERCUSSION ->
+                    RhythmVoice.Type.DRUMS;
+                case CHORD1 ->
+                    RhythmVoice.Type.CHORD2;
+                case CHORD2, PAD, OTHER ->
+                    RhythmVoice.Type.CHORD1;
+                case PHRASE1 ->
+                    RhythmVoice.Type.PHRASE2;
+                case PHRASE2 ->
+                    RhythmVoice.Type.PHRASE1;
+                default ->
+                    null;
+            };
+            res = rDest.getRhythmVoices().stream()
+                    .filter(rvi -> rvi.getType() == testType)
+                    .findFirst()
+                    .orElse(null);
+            if (res == null)
+            {
+                res = rDest.getRhythmVoices().get(0);
+            }
+        }
+        return res;
     }
 
     private void clearMapping(ActionEvent evt)
@@ -325,7 +372,7 @@ public class RP_SYS_OverrideTracksComp extends RealTimeRpEditorComponent<RP_SYS_
         {
             return;
         }
-        var oldRvDest = uiValue.getDestRhythmVoice(rvSrc);
+        var oldRvDest = uiValue.getOverride(rvSrc);
         if (oldRvDest != null)
         {
             setEditedRpValue(uiValue.set(rvSrc, null));
@@ -395,8 +442,8 @@ public class RP_SYS_OverrideTracksComp extends RealTimeRpEditorComponent<RP_SYS_
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 583, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)))
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(btn_clear)
-                    .addComponent(btn_replace))
+                    .addComponent(btn_clear, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btn_replace, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
 
