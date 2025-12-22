@@ -540,7 +540,7 @@ public class BassGenerator implements MusicGenerator
     {
         // Remove all notes of the last bar, except the start note, and make it short
         float lastBarStart = sptBeatRange.to - rhythm.getTimeSignature().getNbNaturalBeats();
-        var brLastBar = sptBeatRange.setFrom(Math.max(0, lastBarStart - 0.4f));    // Allow for an anticipated(pushed) note
+        var brLastBar = new FloatRange(Math.max(0, lastBarStart - 0.4f), sptBeatRange.to - 0.4f);    // Take into accound possible anticipated(pushed) notes
         var notes = p.getNotes(ne -> true, brLastBar, false);
         if (!notes.isEmpty())
         {
