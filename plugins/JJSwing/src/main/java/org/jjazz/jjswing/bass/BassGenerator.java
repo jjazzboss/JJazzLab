@@ -32,6 +32,7 @@ import org.jjazz.rhythm.api.Division;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
 import org.jjazz.rhythm.api.UserErrorGenerationException;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Fill;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Intensity;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
 import org.jjazz.rhythmmusicgeneration.api.AccentProcessor;
@@ -148,6 +149,7 @@ public class BassGenerator implements MusicGenerator
         var song = context.getSong();
         SongChordSequence songChordSequence = new SongChordSequence(song, context.getBarRange());  // throws UserErrorGenerationException. Handle alternate chord symbols.        
         var rpIntensity = RP_SYS_Intensity.getIntensityRp(rhythm);
+        var rpFill = RP_SYS_Fill.getFillRp(rhythm);
         List<SongPart> rhythmSpts = context.getSongParts().stream()
                 .filter(spt -> spt.getRhythm() == rhythm)
                 .toList();
@@ -183,6 +185,10 @@ public class BassGenerator implements MusicGenerator
             float bias = computeNotePositionBias(song.getTempo());
             // LOGGER.severe("  BIAS="+bias+" (tempo="+song.getTempo()+")");
             processNotePositionBias(pRes, sptBeatRange, bias);
+
+
+            // Update phrase depending on the fill parameter value
+            processFill(pRes, sptBeatRange, spt.getRPValue(rpFill));
 
 
             prevSpt = spt;
@@ -247,9 +253,9 @@ public class BassGenerator implements MusicGenerator
     static public float computeNotePositionBias(int tempo)
     {
         final int TEMPO_HIGH = 240;
-        final float TEMPO_HIGH_BIAS = -0.04f;        
+        final float TEMPO_HIGH_BIAS = -0.04f;
         final int TEMPO_NORMAL = TEMPO_HIGH / 2;
-        final float TEMPO_NORMAL_BIAS = 0;        
+        final float TEMPO_NORMAL_BIAS = 0;
 
 
         float tempo2 = Math.clamp(tempo, TEMPO_NORMAL, TEMPO_HIGH);
@@ -502,6 +508,57 @@ public class BassGenerator implements MusicGenerator
         return res;
     }
 
+    /**
+     * Update p depending on Fill parameter value
+     *
+     * @param p
+     * @param sptBeatRange
+     * @param rpFillValue  Fill parameter value
+     */
+    private void processFill(Phrase p, FloatRange sptBeatRange, String rpFillValue)
+    {
+        switch (rpFillValue)
+        {
+            case RP_SYS_Fill.VALUE_BREAK ->
+            {
+                processFillBreak(p, sptBeatRange);
+            }
+            default ->
+            {
+                // nothing
+            }
+        }
+    }
+
+    /**
+     * Process a break value for the Fill parameter.
+     *
+     * @param p
+     * @param sptBeatRange
+     */
+    private void processFillBreak(Phrase p, FloatRange sptBeatRange)
+    {
+        // Remove all notes of the last bar, except the start note, and make it short
+        float lastBarStart = sptBeatRange.to - rhythm.getTimeSignature().getNbNaturalBeats();
+        var brLastBar = sptBeatRange.setFrom(Math.max(0, lastBarStart - 0.4f));    // Allow for an anticipated(pushed) note
+        var notes = p.getNotes(ne -> true, brLastBar, false);
+        if (!notes.isEmpty())
+        {
+            p.removeAll(notes);
+            NoteEvent ne0 = notes.getFirst();
+            var ne0br = ne0.getBeatRange();
+            if (ne0br.from < (lastBarStart + 0.2f))
+            {
+                float noteEndMax = lastBarStart + 0.8f;
+                if (ne0br.to >= noteEndMax)
+                {
+                    float newDur = noteEndMax - ne0br.from;
+                    ne0 = ne0.setDuration(newDur, true);
+                }
+                p.add(ne0);
+            }
+        }
+    }
 
     /**
      * Update p for possible accents and chords anticipation in a SongPart.

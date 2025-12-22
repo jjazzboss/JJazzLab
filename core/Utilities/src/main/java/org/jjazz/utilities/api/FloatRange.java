@@ -66,7 +66,7 @@ public class FloatRange
         this.from = from;
         this.to = to;
     }
-    
+
     @Override
     public FloatRange clone()
     {
@@ -109,7 +109,7 @@ public class FloatRange
      * @param value
      * @return 0 for a value &lt;= from, 0.5 for getCenter(), 1 for a value &gt;= to.
      * @throws IllegalStateException If range is empty
-     * @see #getCenter() 
+     * @see #getCenter()
      */
     public float getPercentage(float value)
     {
@@ -236,6 +236,28 @@ public class FloatRange
     public FloatRange getTransformed(float offset)
     {
         return getTransformed(offset, offset);
+    }
+
+    /**
+     * Return a copy of this FloatRange with a new "from" value.
+     *
+     * @param newFrom Must be stricly less thatn the "to" bound of this object.
+     * @return
+     */
+    public FloatRange setFrom(float newFrom)
+    {
+        return new FloatRange(newFrom, to);
+    }
+
+    /**
+     * Return a copy of this FloatRange with a new "to" value.
+     *
+     * @param newTo Must be stricly greater thatn the "from" bound of this object.
+     * @return
+     */
+    public FloatRange setTo(float newTo)
+    {
+        return new FloatRange(from, newTo);
     }
 
     /**

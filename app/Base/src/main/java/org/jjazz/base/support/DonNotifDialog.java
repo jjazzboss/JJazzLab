@@ -184,7 +184,7 @@ public class DonNotifDialog extends javax.swing.JDialog
         {
             timer = new Timer(1000, e -> timerElapsed());
             timer.start();
-            btn_close.setText(closeText + "(" + String.valueOf(waitSeconds) + ")");
+            btn_close.setText(closeText + " (" + String.valueOf(waitSeconds) + ")");
         } else
         {
             btn_close.setEnabled(true);
@@ -217,7 +217,7 @@ public class DonNotifDialog extends javax.swing.JDialog
         if (waitSeconds > 0)
         {
             waitSeconds--;
-            btn_close.setText(closeText + "(" + String.valueOf(waitSeconds) + ")");
+            btn_close.setText(closeText + " (" + String.valueOf(waitSeconds) + ")");
             if (waitSeconds == 0)
             {
                 timer.stop();
