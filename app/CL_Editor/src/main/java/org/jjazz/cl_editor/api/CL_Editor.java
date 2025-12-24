@@ -47,10 +47,12 @@ import org.openide.util.Lookup;
  * - editor's Zoomable instances<br>
  * - selected items or bars
  * <p>
- * The editor creates BarBoxes using a BarBoxConfig based on the editor's default config, and on the BarRenderer types obtained from the BarRendererProvider
- * instances found in the global lookup.
+ * The editor creates BarBoxes using a BarBoxConfig based on the editor's default config, and on the BarRenderer types obtained from the
+ * BarRendererProvider instances found in the global lookup.
  * <p>
  * The editor also uses Song and Song's ChordLeadSheetItems client properties via {@link CL_EditorClientProperties}.
+ *
+ * @see CL_Selection
  */
 public abstract class CL_Editor extends JPanel implements Lookup.Provider
 {
@@ -124,8 +126,8 @@ public abstract class CL_Editor extends JPanel implements Lookup.Provider
     /**
      * Return the Position that correspond to a graphical point in the editor.
      * <p>
-     * If point is on a model bar try to retrieve the beat value. If point is on a non-model bar (eg past end), return only the bar, beat is set to 0. If point
-     * is somewhere else return null.
+     * If point is on a model bar try to retrieve the beat value. If point is on a non-model bar (eg past end), return only the bar, beat is set to 0.
+     * If point is somewhere else return null.
      *
      * @param editorPoint A point in the editor's coordinates.
      * @return Null if point does not correspond to a barbox
@@ -141,36 +143,33 @@ public abstract class CL_Editor extends JPanel implements Lookup.Provider
     abstract public void makeBarVisible(int barIndex);
 
     /**
-     * Select the bars in the specified barIndex range.
+     * Select bars in the specified barIndex range.
+     * <p>
+     * Clear previous selection if one or more ChordLeadSheetItems were selected.
      *
      * @param barIndexFrom int
-     * @param barIndexTo   int
-     * @param b            True to select, False to unselect.
+     * @param barIndexTo int
+     * @param b True to select, False to unselect.
      */
     abstract public void selectBars(int barIndexFrom, int barIndexTo, boolean b);
 
     /**
-     * Select the bars out of the specified barIndex range.
-     *
-     * @param barIndexFrom int
-     * @param barIndexTo   int
-     * @param b            True to select, False to unselect.
-     */
-    abstract public void selectBarsExcept(int barIndexFrom, int barIndexTo, boolean b);
-
-    /**
      * Select the ItemRenderer(s) whose model is item.
+     * <p>
+     * Clear previous selection if one or more SelectedBars were selected.
      *
      * @param item
-     * @param b    True to select, False to unselect.
+     * @param b True to select, False to unselect.
      */
     abstract public void selectItem(ChordLeadSheetItem<?> item, boolean b);
 
     /**
      * Select all the ItemRenderer(s) whose models are items.
+     * <p>
+     * Clear previous selection if one or more SelectedBars were selected.
      *
      * @param items
-     * @param b     True to select, False to unselect.
+     * @param b True to select, False to unselect.
      */
     abstract public void selectItems(List<? extends ChordLeadSheetItem> items, boolean b);
 
@@ -185,7 +184,8 @@ public abstract class CL_Editor extends JPanel implements Lookup.Provider
      * Set the focus on an ItemRenderer whose model is item.
      *
      * @param item
-     * @param irClass the type of ItemRenderer to focus if there is multiple ItemRenderers for one item. If null, focus on the first ItemRenderer found.
+     * @param irClass the type of ItemRenderer to focus if there is multiple ItemRenderers for one item. If null, focus on the first ItemRenderer
+     * found.
      */
     abstract public void setFocusOnItem(ChordLeadSheetItem<?> item, IR_Type irClass);
 
@@ -200,9 +200,9 @@ public abstract class CL_Editor extends JPanel implements Lookup.Provider
     /**
      * Show an insertion point in the editor for copy/move operations.
      *
-     * @param b        Show/hide the insertion point. If false other arguments are not used.
-     * @param item     The item for which we show the insertion point for.
-     * @param pos      The position of the insertion point.
+     * @param b Show/hide the insertion point. If false other arguments are not used.
+     * @param item The item for which we show the insertion point for.
+     * @param pos The position of the insertion point.
      * @param copyMode If true insertion point is shown for a copy operation, otherwise it's a move operation.
      */
     abstract public void showInsertionPoint(boolean b, ChordLeadSheetItem<?> item, Position pos, boolean copyMode);
@@ -210,7 +210,7 @@ public abstract class CL_Editor extends JPanel implements Lookup.Provider
     /**
      * Show a playback point in the editor at specified position.
      *
-     * @param b   Show/hide the playback point.
+     * @param b Show/hide the playback point.
      * @param pos
      */
     abstract public void showPlaybackPoint(boolean b, Position pos);
@@ -224,12 +224,11 @@ public abstract class CL_Editor extends JPanel implements Lookup.Provider
     abstract public Rectangle getBarRectangle(int barBoxIndex);
 
     /**
-     * Clear the editor selection.
+     * Utility method which delegates to CL_Selection.unselectAll().
      */
     public void unselectAll()
     {
         new CL_Selection(getLookup()).unselectAll(this);
     }
-
 
 }

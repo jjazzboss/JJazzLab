@@ -55,13 +55,13 @@ import org.openide.windows.WindowManager;
 /**
  * For debug purposes...
  */
-@ActionID(category = "JJazz", id = "org.jjazz.test.mytestaction")
-@ActionRegistration(displayName = "MyTestAction")
-@ActionReferences(
-        {
-            @ActionReference(path = "Menu/Edit", position = 870012),
-            @ActionReference(path = "Shortcuts", name = "D-T")      // ctrl T
-        })
+//@ActionID(category = "JJazz", id = "org.jjazz.test.mytestaction")
+//@ActionRegistration(displayName = "MyTestAction")
+//@ActionReferences(
+//        {
+//            @ActionReference(path = "Menu/Edit", position = 870012),
+//            @ActionReference(path = "Shortcuts", name = "D-T")      // ctrl T
+//        })
 public final class MyTestAction implements ActionListener
 {
 

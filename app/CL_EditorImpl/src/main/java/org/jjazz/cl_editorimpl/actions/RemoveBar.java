@@ -101,7 +101,7 @@ public class RemoveBar extends CL_ContextAction
     {
         boolean b = false;
         ChordLeadSheet cls = selection.getChordLeadSheet();
-        if (selection.isContiguousBarSelection() && cls.getBarRange().contains(selection.getBarRange()))
+        if (selection.isContiguousBarboxSelectionWithinCls())
         {
             b = true;
         }

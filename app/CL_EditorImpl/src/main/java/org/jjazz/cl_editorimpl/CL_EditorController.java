@@ -22,7 +22,6 @@
  */
 package org.jjazz.cl_editorimpl;
 
-
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.KeyboardFocusManager;
@@ -73,7 +72,6 @@ import org.openide.util.Utilities;
 /**
  * Controller for the CL_Editor.
  */
-
 public class CL_EditorController implements CL_EditorMouseListener
 {
 
@@ -184,9 +182,9 @@ public class CL_EditorController implements CL_EditorMouseListener
     // CL_EditorMouseListener interface
     // ----------------------------------------------------------------------------------
     @SuppressWarnings(
-            {
-                "rawtypes"
-            })
+        {
+            "rawtypes"
+        })
     @Override
     public void itemClicked(MouseEvent e, ChordLeadSheetItem<?> item, IR_Type irType)
     {
@@ -303,7 +301,8 @@ public class CL_EditorController implements CL_EditorMouseListener
                     "Actions/Section";
                 case CLI_BarAnnotation it ->
                     "Actions/BarAnnotation";
-                default -> throw new IllegalStateException("item=" + item);
+                default ->
+                    throw new IllegalStateException("item=" + item);
             };
             buildAndShowPopupMenu(e, actionsPath, editor.getLookup());
         }
@@ -342,7 +341,7 @@ public class CL_EditorController implements CL_EditorMouseListener
 
 
         // Fix Issue #347: need to give time for clTc to become active if it was not the case
-        SwingUtilities.invokeLater(() -> 
+        SwingUtilities.invokeLater(() ->
         {
             if (isWheelChangeEnabled)
             {
@@ -380,15 +379,13 @@ public class CL_EditorController implements CL_EditorMouseListener
 
         if (e.getClickCount() == 1 && SwingUtilities.isLeftMouseButton(e))
         {
-            if (selection.isItemSelected() || selection.isEmpty()
-                    || (e.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0)
+            if (selection.isItemSelected() || selection.isEmpty() || (!e.isControlDown() && !e.isShiftDown()))
             {
                 // SIMPLE CLICK, or no previous selection set
                 selection.unselectAll(editor);
                 editor.selectBars(barIndex, barIndex, true);
                 editor.setFocusOnBar(barIndex);
-            } else if ((e.getModifiersEx() & (InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK))
-                    == InputEvent.CTRL_DOWN_MASK)
+            } else if (e.isControlDown() && !e.isShiftDown())
             {
                 // CTRL CLICK
                 // Just add selection, don't change focus
@@ -396,18 +393,16 @@ public class CL_EditorController implements CL_EditorMouseListener
                 {
                     editor.selectBars(barIndex, barIndex, !selection.isBarSelected(barIndex));
                 }
-            } else if (focusedBarIndex != -1 && (e.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK
-                    | InputEvent.CTRL_DOWN_MASK))
-                    == InputEvent.SHIFT_DOWN_MASK)
+            } else if (focusedBarIndex != -1 && (!e.isControlDown() && e.isShiftDown()))
             {
                 // SHIFT CLICK
                 // Select bars between the focused bar and this bar  
                 int minBar = Math.min(focusedBarIndex, barIndex);
                 int maxBar = Math.max(focusedBarIndex, barIndex);
-                editor.selectBarsExcept(minBar, maxBar, false);
+                selection.unselectAll(editor);
                 editor.selectBars(minBar, maxBar, true);
             }
-        } else if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e) && (e.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0)
+        } else if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e) &&  (!e.isControlDown() && !e.isShiftDown()))
         {
             // DOUBLE CLICK = edit bar
 
@@ -465,7 +460,6 @@ public class CL_EditorController implements CL_EditorMouseListener
             }
             int minBbIndex = Math.min(dragStartBbIndex, pos.getBar());
             int maxBbIndex = Math.max(dragStartBbIndex, pos.getBar());
-            editor.selectBarsExcept(minBbIndex, maxBbIndex, false);
             editor.selectBars(minBbIndex, maxBbIndex, true);
         }
     }
@@ -514,7 +508,7 @@ public class CL_EditorController implements CL_EditorMouseListener
         }
         LOGGER.log(Level.FINE, "editorWheelMoved() X or Y factor={0}", factor);
         var factor2 = factor;
-        SwingUtilities.invokeLater(() -> 
+        SwingUtilities.invokeLater(() ->
         {
             if (e.isShiftDown())
             {
@@ -537,7 +531,6 @@ public class CL_EditorController implements CL_EditorMouseListener
     // ------------------------------------------------------------------------------
     // Private functions
     // ------------------------------------------------------------------------------   
-
     private void buildAndShowPopupMenu(MouseEvent e, String actionsPath, Lookup context)
     {
         var actions = Utilities.actionsForPath(actionsPath);

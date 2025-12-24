@@ -40,11 +40,15 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -133,10 +137,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
      * Store the selected items or bars.
      */
     private final InstanceContent selectionLookupContent;
-    /**
-     * Last snapshot of objects in selectionLookupContent: we assume it's faster to check than checking the lookup (?)
-     */
-    private final List<Object> selectionLastContent;
+
     /**
      * The lookup for non-selection stuff.
      */
@@ -175,8 +176,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
      */
     private final CL_EditorTransferHandler transferHandler;
     private final CL_EditorZoomable editorZoomable;
+    private final Object lock = new Object();
     private static final Logger LOGGER = Logger.getLogger(CL_EditorImpl.class.getSimpleName());
-
 
     @SuppressWarnings("LeakingThisInConstructor")
     public CL_EditorImpl(Song song, CL_EditorSettings settings, BarRendererFactory brf)
@@ -216,7 +217,6 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         // The lookup for selection
         selectionLookupContent = new InstanceContent();
         selectionLookup = new AbstractLookup(selectionLookupContent);
-        selectionLastContent = new ArrayList<>();
 
         // The lookup for other stuff
         generalLookupContent = new InstanceContent();
@@ -337,13 +337,12 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         }
 
         PlaybackSettings.getInstance()
-                .removePropertyChangeListener(PlaybackSettings.PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION, this);
+            .removePropertyChangeListener(PlaybackSettings.PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION, this);
 
         // We're not showing playback or insertion point anymore
         playbackPointLastPos = null;
         insertionPointLastPos = null;
     }
-
 
     @Override
     public SelectedBar getFocusedBar(boolean includeFocusedItem)
@@ -359,7 +358,6 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         }
         return sb;
     }
-
 
     @Override
     public void setEnabled(boolean b)
@@ -418,8 +416,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     }
 
     /**
-     * Return the position (bar, beat) which corresponds to a given point in the editor. If point is in the BarBox which does not have a valid modelBar (eg
-     * after the end), barIndex is set but beat is set to 0.
+     * Return the position (bar, beat) which corresponds to a given point in the editor. If point is in the BarBox which does not have a valid
+     * modelBar (eg after the end), barIndex is set but beat is set to 0.
      *
      * @param editorPoint A point in the editor's coordinates.
      * @return Null if point does not correspond to a valid bar.
@@ -493,154 +491,123 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     @Override
     public void selectBars(int bbIndexFrom, int bbIndexTo, boolean b)
     {
-        Preconditions.checkPositionIndexes(bbIndexFrom, bbIndexTo, getNbBarBoxes() - 1); // -1 because it's inclusive on both ends
+        Preconditions.checkPositionIndexes(bbIndexFrom, bbIndexTo, getNbBarBoxes() - 1);
 
-//        LOGGER.log(Level.FINE, "Before selectBar() b={0} bbIndexFrom={1} selectionLookup={2}", new Object[]
+//        LOGGER.log(Level.FINE, "Before selectBars() b={0} bbIndexFrom={1} selectionLookup={2}", new Object[]
 //        {
 //            b, bbIndexFrom, selectionLookup
 //        });
-//        selectionLastContent.clear();
-//        selectionLookup.lookupAll(Object.class).forEach(o -> selectionLastContent.add(o));
 
+        synchronized (lock)
+        {
+            var oldSelection = new CL_Selection(selectionLookup);
+            if (oldSelection.isItemSelected())
+            {
+                oldSelection.unselectAll(this);
+            }
+
+
+            Set<SelectedBar> newSelectedBars = new HashSet<>(oldSelection.getSelectedBars());
+            for (int i = bbIndexFrom; i <= bbIndexTo; i++)
+            {
+                if (b)
+                {
+                    newSelectedBars.add(new SelectedBar(i, clsModel));
+                } else
+                {
+                    final int j = i;
+                    newSelectedBars.removeIf(sb -> sb.getBarBoxIndex() == j);
+                }
+            }
+            // Use InstanceContent.set() to minimize nb of lookup change events      
+            selectionLookupContent.set(newSelectedBars, null);
+        }
+
+
+        // Udpate BarBoxes
         for (int i = bbIndexFrom; i <= bbIndexTo; i++)
         {
-            SelectedBar sb = new SelectedBar(i, clsModel);
-            if (b != selectionLastContent.contains(sb))
-            {
-                BarBox bb = getBarBox(i);
-                bb.setSelected(b);
-                if (b)
-                {
-                    selectionLastContent.add(sb);
-                } else
-                {
-                    selectionLastContent.remove(sb);
-                }
-            }
+            BarBox bb = getBarBox(i);
+            bb.setSelected(b);
         }
-        // Finally update our lookup in one shot
-        selectionLookupContent.set(selectionLastContent, null);
+
 
         // repaint() here is useless functionnally, but VERY IMPORTANT for painting optimization, greatly speed up things
         // see why here : https://forums.oracle.com/forums/thread.jspa?threadID=2330727&tstart=0        
         // not required but seems to perform better because it does a single repaint of the entire frame
         // instead of trying to skip repainting the borders
         repaint();
-//        LOGGER.log(Level.FINE, "After selectBar() b={0} bbIndexFrom={1} selectionLookup={2}", new Object[]
+//        LOGGER.log(Level.FINE, "After selectBars() b={0} bbIndexFrom={1} selectionLookup={2}", new Object[]
 //        {
 //            b, bbIndexFrom, selectionLookup
-//        });
-    }
-
-    @Override
-    public void selectBarsExcept(int bbIndexFrom, int bbIndexTo, boolean b)
-    {
-        Preconditions.checkPositionIndexes(bbIndexFrom, bbIndexTo, getNbBarBoxes() - 1); // -1 because it's inclusive on both ends
-
-//        selectionLastContent.clear();
-//        selectionLookup.lookupAll(Object.class).forEach(o -> selectionLastContent.add(o));
-        int barMax = Math.min(bbIndexFrom - 1, getNbBarBoxes() - 1);
-        for (int i = 0; i <= barMax; i++)
-        {
-            SelectedBar sb = new SelectedBar(i, clsModel);
-            if (b != selectionLastContent.contains(sb))
-            {
-                BarBox bb = getBarBox(i);
-                bb.setSelected(b);
-                if (b)
-                {
-                    selectionLastContent.add(sb);
-                } else
-                {
-                    selectionLastContent.remove(sb);
-                }
-            }
-        }
-
-        int barMin = Math.max(bbIndexTo + 1, 0);
-        for (int i = barMin; i < getNbBarBoxes(); i++)
-        {
-            SelectedBar sb = new SelectedBar(i, clsModel);
-            if (b != selectionLastContent.contains(sb))
-            {
-                BarBox bb = getBarBox(i);
-                bb.setSelected(b);
-                if (b)
-                {
-                    selectionLastContent.add(sb);
-                } else
-                {
-                    selectionLastContent.remove(sb);
-                }
-            }
-        }
-        // Finally update our lookup in one shot
-        selectionLookupContent.set(selectionLastContent, null);
-
-        // repaint() here is useless functionnally, but VERY IMPORTANT for painting optimization, greatly speed up things
-        // see why here : https://forums.oracle.com/forums/thread.jspa?threadID=2330727&tstart=0        
-        // not required but seems to perform better because it does a single repaint of the entire frame
-        // instead of trying to skip repainting the borders
-        repaint();
-//        LOGGER.log(Level.FINE, "After selectBarsExcept() b={0} bbIndexFrom={1} selectionLookup={2}", new Object[]
-//        {
-//            b, bbIndexFrom, selectionLookup
-//        });
-    }
-
-    @Override
-    public void selectItem(ChordLeadSheetItem<?> item, boolean b)
-    {
-        if (isSelected(item) == b)
-        {
-            return;
-        }
-        BarBox bb = getBarBox(item.getPosition().getBar());
-        bb.selectItem(item, b);
-        if (b)
-        {
-            selectionLookupContent.add(new SelectedCLI(item));  // Warning, hash used inside, don't use objects which can mutate while being selected!
-            selectionLastContent.add(item);
-        } else
-        {
-            selectionLookupContent.remove(new SelectedCLI(item));  // Warning, hash used inside, don't use objects which can mutate while being selected!
-            selectionLastContent.remove(item);
-        }
-//        LOGGER.log(Level.FINE, "After selectItem() b={0} item={1} lkp={2}", new Object[]
-//        {
-//            b, item, lookup
 //        });
     }
 
     @Override
     public void selectItems(List<? extends ChordLeadSheetItem> items, boolean b)
     {
-//        selectionLastContent.clear();
-//        selectionLookup.lookupAll(Object.class).forEach(o -> selectionLastContent.add(o));
-        for (ChordLeadSheetItem<?> item : items)
+        Objects.requireNonNull(items);
+
+        synchronized (lock)
         {
-            if (b != selectionLastContent.contains(item))
+            var oldSelection = new CL_Selection(selectionLookup);
+            if (oldSelection.isBarSelected())
             {
-                int barIndex = item.getPosition().getBar();
-                BarBox bb = getBarBox(barIndex);
-                bb.selectItem(item, b);
-                if (b)
-                {
-                    selectionLastContent.add(item);
-                } else
-                {
-                    selectionLastContent.remove(item);
-                }
+                oldSelection.unselectAll(this);
+            }
+
+            var oldSelectedClis = oldSelection.getSelectedItems().stream()
+                .map(item -> new SelectedCLI(item))
+                .toList();
+            Set<SelectedCLI> newSelectedItems = new HashSet<>(oldSelectedClis);
+            for (var item : items)
+            {
+                newSelectedItems.add(new SelectedCLI(item));
+            }
+            // Use InstanceContent.set() to minimize nb of lookup change events        
+            selectionLookupContent.set(newSelectedItems, null);
+        }
+
+
+        // Udpate ItemRenderers
+        items.forEach(item ->
+        {
+            BarBox bb = getBarBox(item.getPosition().getBar());
+            bb.selectItem(item, b);
+        });
+    }
+
+    @Override
+    public void selectItem(ChordLeadSheetItem<?> item, boolean b)
+    {
+        Objects.requireNonNull(item);
+
+        synchronized (lock)
+        {
+            var oldSelection = new CL_Selection(selectionLookup);
+            if (oldSelection.isBarSelected())
+            {
+                oldSelection.unselectAll(this);
+            }
+
+
+            var selItem = new SelectedCLI(item);
+            if (b)
+            {
+                selectionLookupContent.add(selItem);  // Warning, hash used inside, don't use objects which can mutate while being selected!
+            } else
+            {
+                selectionLookupContent.remove(selItem);  // Warning, hash used inside, don't use objects which can mutate while being selected!
             }
         }
-        // repaint() here is useless functionnally, but VERY IMPORTANT for painting optimization, greatly speed up things
-        // see why here : https://forums.oracle.com/forums/thread.jspa?threadID=2330727&tstart=0                
-        repaint();
-        // Finally update our lookup
-        var selItems = selectionLastContent.stream()
-                .map(o -> new SelectedCLI((ChordLeadSheetItem<?>) o))
-                .toList();
-        selectionLookupContent.set(selItems, null);  // Warning, hash used inside, don't use objects which can mutate while being selected!
+
+        BarBox bb = getBarBox(item.getPosition().getBar());
+        bb.selectItem(item, b);
+
+//        LOGGER.log(Level.FINE, "After selectItem() b={0} item={1} lkp={2}", new Object[]
+//        {
+//            b, item, lookup
+//        });
     }
 
     @Override
@@ -665,8 +632,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         if (barIndexes.length == 0)
         {
             barIndexes = IntStream.range(0, getNbBarBoxes())
-                    .boxed()
-                    .collect(Collectors.toList()).toArray(Integer[]::new);
+                .boxed()
+                .collect(Collectors.toList()).toArray(Integer[]::new);
         }
         for (int barIndex : barIndexes)
         {
@@ -797,7 +764,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     public void propertyChange(final PropertyChangeEvent evt)
     {
         // Changes can be generated outside the EDT
-        org.jjazz.uiutilities.api.UIUtilities.invokeLaterIfNeeded(() -> 
+        org.jjazz.uiutilities.api.UIUtilities.invokeLaterIfNeeded(() ->
         {
             if (evt.getSource() == settings)
             {
@@ -972,14 +939,13 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     // ----------------------------------------------------------------------------------
     // ClsChangeListener interface
     // ----------------------------------------------------------------------------------
-
     @Override
     public void chordLeadSheetChanged(final ClsChangeEvent event) throws UnsupportedEditException
     {
         LOGGER.log(Level.FINE, "chordLeadSheetChanged() -- event={0}", event);
 
         // Model changes can be generated outside the EDT
-        Runnable run = () -> 
+        Runnable run = () ->
         {
 
             // Save focus state
@@ -1148,8 +1114,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 
     @Override
     public int getScrollableUnitIncrement(Rectangle visibleRect,
-            int orientation,
-            int direction
+        int orientation,
+        int direction
     )
     {
         int unit;
@@ -1167,8 +1133,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 
     @Override
     public int getScrollableBlockIncrement(Rectangle visibleRect,
-            int orientation,
-            int direction)
+        int orientation,
+        int direction)
     {
         return getScrollableUnitIncrement(visibleRect, orientation, direction);
     }
@@ -1183,7 +1149,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     }
 
     /**
-     * We do NOT want the height of the Panel match the height of the viewport : panel height is calculated only function of the nb of rows and row height.
+     * We do NOT want the height of the Panel match the height of the viewport : panel height is calculated only function of the nb of rows and row
+     * height.
      */
     @Override
     public boolean getScrollableTracksViewportHeight()
@@ -1241,7 +1208,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
                 BarBox bb = new BarBox(this, bbIndex, modelBarIndex, clsModel, config, settings.getBarBoxSettings(), barRendererFactory);
                 bb.setEnabled(isEnabled());
 
-                registerBarBox(bb); 
+                registerBarBox(bb);
 
 
                 // Insert the BarBox at correct location (possible presence of padding boxes)
@@ -1289,7 +1256,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     private int getComponentIndex(int barBoxIndex)
     {
         Preconditions.checkPositionIndex(barBoxIndex, getBarBoxes().size(),
-                "barBoxIndex=" + barBoxIndex + " getBarBoxes().size()=" + getBarBoxes().size());
+            "barBoxIndex=" + barBoxIndex + " getBarBoxes().size()=" + getBarBoxes().size());
 
         // getComponents() should be called on EDT, otherwise need treeLock
         assert SwingUtilities.isEventDispatchThread() : "Not running in the EDT! barBoxIndex=" + barBoxIndex;
@@ -1409,7 +1376,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 
     private boolean isSelected(ChordLeadSheetItem<?> item)
     {
-        return selectionLastContent.contains(item);
+        return new CL_Selection(selectionLookup, true, false).isItemSelected(item);
     }
 
     /**
@@ -1441,8 +1408,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     /**
      * Remove the ChordLeadSheetItem from the specified bar.
      * <p>
-     * If item is a section do some cleaning: update the previous section, remove the associated UI settings (quantization, start on newline), possibly update
-     * padding boxes
+     * If item is a section do some cleaning: update the previous section, remove the associated UI settings (quantization, start on newline),
+     * possibly update padding boxes
      *
      * @param barIndex
      * @param item
@@ -1452,10 +1419,12 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     {
         // Remove from selection 
         // We can not call SelectItem(false), because item
-        // might have been already moved, so item.toPosition().getBar() is 
-        // different from barIndex.
-        selectionLookupContent.remove(new SelectedCLI(item));
-        selectionLastContent.remove(item);
+        // might have been already moved (undoing a move item), so item.toPosition().getBar() is 
+        // different from barIndex => exception in selectItem(false)
+        synchronized (lock)
+        {
+            selectionLookupContent.remove(new SelectedCLI(item));
+        }
 
         for (ItemRenderer ir : getBarBox(barIndex).removeItem(item))
         {
@@ -1665,7 +1634,6 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             revalidate();
         }
     }
-
 
     //===========================================================================
     // Inner classes

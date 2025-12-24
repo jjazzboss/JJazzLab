@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
@@ -37,9 +38,13 @@ import org.jjazz.utilities.api.IntRange;
 import org.openide.util.Lookup;
 
 /**
- * Provide convenience methods to get information about a selection in a lookup.
+ * Represent the selection built from a CL_Editor's Lookup.
  * <p>
- * Selected items can be either ChordLeadSheetItems or SelectedBars, but not both in the same time.
+ * Thos class provide utility methods to inspect the selection. Selected items can be either SelectedCLI or SelectedBar, but not both in the same
+ * time.
+ *
+ * @see SelectedBar
+ * @see SelectedCLI
  */
 @SuppressWarnings("unchecked")
 final public class CL_Selection
@@ -50,27 +55,42 @@ final public class CL_Selection
     private static final Logger LOGGER = Logger.getLogger(CL_Selection.class.getSimpleName());
 
     /**
-     * Refresh the selection with selected objects in the specified lookup.
+     * Create a selection with items or bars.
      *
      * @param lookup
-     * @throws IllegalStateException If lookup contains both SelectedBars and ChordLeadSheetItems
+     * @throws IllegalStateException If lookup contains both SelectedBars and SelectedCLIs
      */
     @SuppressWarnings(
-            {
-                "rawtypes",
-                "unchecked"
-            })
+        {
+            "rawtypes",
+            "unchecked"
+        })
     public CL_Selection(Lookup lookup)
     {
-        if (lookup == null)
-        {
-            throw new IllegalArgumentException("lookup=" + lookup);
-        }
+        this(lookup, true, true);
+    }
 
-        items = lookup.lookupAll(SelectedCLI.class).stream()
-                .map(selCli -> selCli.getItem())
-                .collect(Collectors.toList());  // to get a mutable list
-        selectedBars = new ArrayList<>((Collection<SelectedBar>) lookup.lookupAll(SelectedBar.class));
+    /**
+     * Create an instance with only the searched types.
+     *
+     * @param lookup
+     * @param searchItems If false SelectedCLIs are ignored
+     * @param searchBars If false SelectedBars are ignored
+     * @throws IllegalStateException If lookup contains both SelectedBars and SelectedCLIs
+     */
+    @SuppressWarnings(
+        {
+            "rawtypes",
+            "unchecked"
+        })
+    public CL_Selection(Lookup lookup, boolean searchItems, boolean searchBars)
+    {
+        Objects.requireNonNull(lookup);
+
+        items = !searchItems ? Collections.emptyList() : lookup.lookupAll(SelectedCLI.class).stream()
+            .map(selCli -> selCli.getItem())
+            .collect(Collectors.toList());  // to get a mutable list
+        selectedBars = !searchBars ? Collections.emptyList() : new ArrayList<>((Collection<SelectedBar>) lookup.lookupAll(SelectedBar.class));
 
         if (!items.isEmpty() && !selectedBars.isEmpty())
         {
@@ -82,7 +102,33 @@ final public class CL_Selection
     }
 
     /**
-     * Unselect the current selection in the specified editor.
+     * Utility method to quickly check if selection contains at least one SelectedCLI.
+     * <p>
+     * This is faster than new CL_Selection(Lookup).isItemSelected().
+     *
+     * @param lookup
+     * @return
+     */
+    static public boolean isItemSelected(Lookup lookup)
+    {
+        return lookup.lookup(SelectedCLI.class) != null;
+    }
+
+    /**
+     * Utility method to quickly check if selection contains at least one SelectedBar.
+     * <p>
+     * This is faster than new CL_Selection(Lookup).isBarSelected().
+     *
+     * @param lookup
+     * @return
+     */
+    static public boolean isBarSelected(Lookup lookup)
+    {
+        return lookup.lookup(SelectedBar.class) != null;
+    }
+
+    /**
+     * Clear selection in the specified editor.
      *
      * @param editor
      */
@@ -90,7 +136,7 @@ final public class CL_Selection
     {
         if (isBarSelected())
         {
-            editor.selectBars(0, editor.getNbBarBoxes() - 1, false);
+            editor.selectBars(getMinBarIndex(), getMaxBarIndex(), false);
         } else if (isItemSelected())
         {
             editor.selectItems(items, false);
@@ -284,10 +330,10 @@ final public class CL_Selection
         int res = -1;
         if (isItemSelected())
         {
-            res = items.get(items.size() - 1).getPosition().getBar();
+            res = items.getLast().getPosition().getBar();
         } else if (isBarSelected())
         {
-            res = selectedBars.get(selectedBars.size() - 1).getBarBoxIndex();
+            res = selectedBars.getLast().getBarBoxIndex();
         }
         return res;
     }
@@ -367,9 +413,9 @@ final public class CL_Selection
     <T extends ChordLeadSheetItem> List<T> getSelectedItems(Class<T> itemClass)
     {
         return items.stream()
-                .filter(i -> itemClass.isAssignableFrom(i.getClass()))
-                .map(i -> (T) i)
-                .toList();
+            .filter(i -> itemClass.isAssignableFrom(i.getClass()))
+            .map(i -> (T) i)
+            .toList();
     }
 
     /**
@@ -473,7 +519,6 @@ final public class CL_Selection
         }
         return res;
     }
-
 
     @Override
     public String toString()
