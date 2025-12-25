@@ -47,7 +47,7 @@ import org.jjazz.flatcomponents.api.FlatToggleButton;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrolactions.api.FixMissingSectionStartChord;
 import org.jjazz.musiccontrolactions.api.RemoteAction;
-import org.jjazz.musiccontrolactions.api.RemoteActionProvider;
+import org.jjazz.musiccontrolactions.spi.RemoteActionProvider;
 import org.jjazz.outputsynth.api.FixMidiMix;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;

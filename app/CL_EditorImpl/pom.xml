@@ -93,6 +93,11 @@
         </dependency>
         <dependency>
             <groupId>org.jjazzlab.app</groupId>
+            <artifactId>musiccontrolactions</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jjazzlab.app</groupId>
             <artifactId>analytics</artifactId>
             <version>${project.version}</version>
         </dependency>

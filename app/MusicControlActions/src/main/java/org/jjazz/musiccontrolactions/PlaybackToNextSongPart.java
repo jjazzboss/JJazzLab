@@ -49,7 +49,7 @@ import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.musiccontrolactions.api.RemoteAction;
-import org.jjazz.musiccontrolactions.api.RemoteActionProvider;
+import org.jjazz.musiccontrolactions.spi.RemoteActionProvider;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.util.Lookup;
 import org.openide.util.LookupEvent;

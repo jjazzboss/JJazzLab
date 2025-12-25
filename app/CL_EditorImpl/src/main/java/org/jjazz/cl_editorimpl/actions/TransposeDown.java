@@ -26,7 +26,10 @@ import java.awt.event.ActionEvent;
 import org.jjazz.cl_editor.api.CL_ContextAction;
 import java.awt.event.KeyEvent;
 import java.util.EnumSet;
+import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
+import javax.swing.AbstractAction;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
 import javax.swing.KeyStroke;
@@ -34,7 +37,10 @@ import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
+import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.cl_editor.api.CL_Selection;
+import org.jjazz.musiccontrolactions.api.RemoteAction;
+import org.jjazz.musiccontrolactions.spi.RemoteActionProvider;
 import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.openide.awt.ActionID;
@@ -42,24 +48,26 @@ import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.jjazz.utilities.api.ResUtil;
+import org.openide.util.lookup.ServiceProvider;
 
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.transposedown")
 @ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
-        {
-            @ActionReference(path = "Actions/ChordSymbol", position = 410),
-            @ActionReference(path = "Shortcuts", name = "D-DOWN")
-        })
+    {
+        @ActionReference(path = "Actions/ChordSymbol", position = 410),
+        @ActionReference(path = "Shortcuts", name = "D-DOWN")
+    })
 public final class TransposeDown extends CL_ContextAction
 {
 
     public static final KeyStroke KEYSTROKE = getGenericControlKeyStroke(KeyEvent.VK_DOWN);
+    private static final String undoName = ResUtil.getString(TransposeUp.class, "CTL_TransposeDown");
     private static final Logger LOGGER = Logger.getLogger(TransposeUp.class.getSimpleName());
 
     @Override
     protected void configureAction()
     {
-        putValue(NAME, ResUtil.getString(TransposeUp.class, "CTL_TransposeDown"));
+        putValue(NAME, undoName);
         putValue(ACCELERATOR_KEY, KEYSTROKE);
         putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION));
     }
@@ -71,20 +79,83 @@ public final class TransposeDown extends CL_ContextAction
     }
 
     @Override
-    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_Selection selection)
+    public void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_Selection selection)
     {
-        JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(getActionName());
-
-        // Transpose up use FLAT            
-        for (CLI_ChordSymbol cliCs : selection.getSelectedChordSymbols())
-        {
-            ExtChordSymbol ecs = cliCs.getData();
-            ExtChordSymbol newEcs = ecs.getTransposedChordSymbol(-1, Note.Accidental.FLAT);
-            cliCs.getContainer().changeItem(cliCs, newEcs);
-        }
-
-        JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(getActionName());
+        transpose(selection.getSelectedChordSymbols(), -1, Note.Accidental.FLAT, undoName);
     }
 
+    /**
+     * Perform an undoable transposition of chord symbols.
+     *
+     * @param chordSymbols
+     * @param t
+     * @param accidental
+     * @param undoActionName
+     */
+    static public void transpose(List<CLI_ChordSymbol> chordSymbols, int t, Note.Accidental accidental, String undoActionName)
+    {
+        Objects.requireNonNull(chordSymbols);
+        Objects.requireNonNull(undoActionName);
 
+        if (chordSymbols.isEmpty())
+        {
+            return;
+        }
+        var cls = chordSymbols.getFirst().getContainer();
+        JJazzUndoManagerFinder.getDefault().get(cls).startCEdit(undoActionName);
+        for (CLI_ChordSymbol cliCs : chordSymbols)
+        {
+            ExtChordSymbol ecs = cliCs.getData();
+            ExtChordSymbol newEcs = ecs.getTransposedChordSymbol(t, accidental);
+            cliCs.getContainer().changeItem(cliCs, newEcs);
+        }
+        JJazzUndoManagerFinder.getDefault().get(cls).endCEdit(undoActionName);
+    }
+
+    // ======================================================================
+    // Inner classes
+    // ======================================================================   
+    @ServiceProvider(service = RemoteActionProvider.class)
+    public static class TransposeDownRemoteActionProvider implements RemoteActionProvider
+    {
+
+        @Override
+        public List<RemoteAction> getRemoteActions()
+        {
+            RemoteAction ra = RemoteAction.loadFromPreference("JJazz", "org.jjazz.cl_editor.actions.transposedownremote");
+            if (ra == null)
+            {
+                ra = new RemoteAction("JJazz", "org.jjazz.cl_editor.actions.transposedownremote");
+                ra.setMidiMessages(RemoteAction.noteOnMidiMessages(0, 29));
+            }
+            ra.setDefaultMidiMessages(RemoteAction.noteOnMidiMessages(0, 29));
+            return List.of(ra);
+        }
+    }
+
+    @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.transposedownremote")
+    @ActionRegistration(displayName = "not_used", lazy = false)
+    static public final class TransposeDownRemoteAction extends AbstractAction
+    {
+
+        public TransposeDownRemoteAction()
+        {
+            putValue(NAME, undoName);
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e)
+        {
+            var clTc = CL_EditorTopComponent.getActive();
+            if (clTc == null)
+            {
+                LOGGER.warning("TransposeDownRemoteAction.actionPerformed() no active CL_EditorTopComponent");
+                return;
+            }
+            var cls = clTc.getEditor().getModel();
+            var items = cls.getItems(CLI_ChordSymbol.class);
+            transpose(items, -1, Note.Accidental.FLAT, undoName);
+        }
+
+    }
 }

@@ -17,9 +17,10 @@
                 <groupId>org.apache.netbeans.utilities</groupId>
                 <artifactId>nbm-maven-plugin</artifactId>
                 <configuration>
-                    <publicPackages>                      
+                    <publicPackages>
                         <publicPackage>org.jjazz.musiccontrolactions.api</publicPackage>
                         <publicPackage>org.jjazz.musiccontrolactions.api.ui</publicPackage>
+                        <publicPackage>org.jjazz.musiccontrolactions.spi</publicPackage>
                     </publicPackages>
                 </configuration>
                 <extensions>true</extensions>

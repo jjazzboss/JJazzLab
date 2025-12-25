@@ -20,9 +20,10 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.musiccontrolactions.api;
+package org.jjazz.musiccontrolactions.spi;
 
 import java.util.List;
+import org.jjazz.musiccontrolactions.api.RemoteAction;
 
 /**
  * A provider of remote actions.

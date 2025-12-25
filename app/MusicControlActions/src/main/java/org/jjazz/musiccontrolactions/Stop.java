@@ -37,7 +37,7 @@ import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.song.api.Song;
 import org.jjazz.flatcomponents.api.FlatToggleButton;
 import org.jjazz.musiccontrolactions.api.RemoteAction;
-import org.jjazz.musiccontrolactions.api.RemoteActionProvider;
+import org.jjazz.musiccontrolactions.spi.RemoteActionProvider;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
