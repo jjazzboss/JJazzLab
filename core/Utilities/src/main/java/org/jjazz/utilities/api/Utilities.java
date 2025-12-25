@@ -1201,7 +1201,7 @@ public class Utilities
      * @param maxDepth
      * @return
      */
-    static public HashSet<Path> listFiles(File dirTree, final FilenameFilter fnFilter, final String ignoreDirPrefix, int maxDepth)
+    static public Set<Path> listFiles(File dirTree, final FilenameFilter fnFilter, final String ignoreDirPrefix, int maxDepth)
     {
         if (dirTree == null || maxDepth < 0)
         {

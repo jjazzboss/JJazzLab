@@ -28,8 +28,8 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.InvalidMidiDataException;
@@ -74,7 +74,6 @@ public class YamahaRhythmProvider implements RhythmProvider
     private final ExtensionFileFilter fileFilter;
     private static final Logger LOGGER = Logger.getLogger(YamahaRhythmProvider.class.getSimpleName());
 
-
     static public YamahaRhythmProvider getInstance()
     {
         return Lookup.getDefault().lookup(YamahaRhythmProvider.class);
@@ -90,7 +89,6 @@ public class YamahaRhythmProvider implements RhythmProvider
         // Add the .yjz to be able to spot the
         fileFilter = new ExtensionFileFilter(getSupportedFileExtensions());
     }
-
 
     @Override
     public final String[] getSupportedFileExtensions()
@@ -138,7 +136,8 @@ public class YamahaRhythmProvider implements RhythmProvider
 
 
         // Get the default rhythms
-        for (File f : getDefaultRhythmFiles(forceRescan))
+        var defaultRhythmFiles = getDefaultRhythmFiles(forceRescan);
+        for (File f : defaultRhythmFiles)
         {
             Rhythm r;
             try
@@ -169,7 +168,7 @@ public class YamahaRhythmProvider implements RhythmProvider
 
         // Collect all the user-provided rhythm files (including .yjz files to be able to exclude base styles)
         ExtensionFileFilter specialFilter = new ExtensionFileFilter(YamJJazzRhythmProvider.FILE_EXTENSION, getSupportedFileExtensions());
-        HashSet<Path> userRhythmPaths = Utilities.listFiles(rDir, specialFilter, PREFIX_IGNORED_SUBDIR, SUBDIR_MAX_DEPTH);
+        Set<Path> userRhythmPaths = Utilities.listFiles(rDir, specialFilter, PREFIX_IGNORED_SUBDIR, SUBDIR_MAX_DEPTH);
         LOGGER.log(Level.FINE, "getFileRhythms()   userRhythmPaths={0}", userRhythmPaths);
 
 
@@ -180,6 +179,11 @@ public class YamahaRhythmProvider implements RhythmProvider
         // Read the user rhythm files
         for (Path path : userRhythmPaths)
         {
+            if (defaultRhythmFiles.contains(path.toFile()))
+            {
+                // It might happen that the user rhythm directory is the same than the default rhythm directory (e.g. JJazzLabToolkit) 
+                continue;
+            }
             Rhythm r;
             try
             {
@@ -277,7 +281,7 @@ public class YamahaRhythmProvider implements RhythmProvider
         }
 
         File[] files = rDir.listFiles(fileFilter);
-        if (doCopy || files.length==0)
+        if (doCopy || files.length == 0)
         {
             for (File f : copyDefaultResourceFiles(rDir))
             {
@@ -287,13 +291,11 @@ public class YamahaRhythmProvider implements RhythmProvider
                 }
             }
         } else
-        {            
+        {
             res.addAll(Arrays.asList(files));
         }
         return res;
     }
-
-   
 
     /**
      * Copy the default rhythm files within the JAR to destPath.
@@ -312,13 +314,12 @@ public class YamahaRhythmProvider implements RhythmProvider
         return res;
     }
 
-
-    private void removeYjzAndTheirBaseStyles(HashSet<Path> stylePaths)
+    private void removeYjzAndTheirBaseStyles(Set<Path> stylePaths)
     {
         // Get all .yjz files
         var yjzPaths = stylePaths.stream()
-                .filter(p -> p.toString().toLowerCase().endsWith(YamJJazzRhythmProvider.FILE_EXTENSION))
-                .toList();
+            .filter(p -> p.toString().toLowerCase().endsWith(YamJJazzRhythmProvider.FILE_EXTENSION))
+            .toList();
 
 
         // Remove all .yjz files and remove all possible corresponding base styles

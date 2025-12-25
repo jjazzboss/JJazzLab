@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.InvalidMidiDataException;
@@ -50,7 +51,6 @@ import org.jjazz.yamjjazz.rhythm.YamJJazzRhythmImpl;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.util.Lookup;
 
-
 /**
  * A provider of YamJJazz rhythms.
  */
@@ -67,7 +67,6 @@ public class YamJJazzRhythmProvider implements RhythmProvider
     private final Info info;
     private final ExtensionFileFilter fileFilter;
     private static final Logger LOGGER = Logger.getLogger(YamJJazzRhythmProvider.class.getSimpleName());
-
 
     public YamJJazzRhythmProvider()
     {
@@ -129,7 +128,8 @@ public class YamJJazzRhythmProvider implements RhythmProvider
 
 
         // Get the default rhythms
-        for (File f : getDefaultRhythmFiles(forceRescan))
+        var defaultRhythmFiles = getDefaultRhythmFiles(forceRescan);
+        for (File f : defaultRhythmFiles)
         {
             Rhythm r;
             try
@@ -156,13 +156,18 @@ public class YamJJazzRhythmProvider implements RhythmProvider
             });
             return fileRhythms;
         }
-        HashSet<Path> userRhythmPaths = Utilities.listFiles(rDir, fileFilter, PREFIX_IGNORED_SUBDIR, SUBDIR_MAX_DEPTH);
+        Set<Path> userRhythmPaths = Utilities.listFiles(rDir, fileFilter, PREFIX_IGNORED_SUBDIR, SUBDIR_MAX_DEPTH);
         LOGGER.log(Level.FINE, "getFileRhythms()   userRhythmPaths={0}", userRhythmPaths);
 
 
         // Read the user rhythm files
         for (Path path : userRhythmPaths)
         {
+            if (defaultRhythmFiles.contains(path.toFile()))
+            {
+                // It might happen that the user rhythm directory is the same than the default rhythm directory (e.g. JJazzLabToolkit) 
+                continue;
+            }
             Rhythm r;
             try
             {
@@ -223,7 +228,7 @@ public class YamJJazzRhythmProvider implements RhythmProvider
         } catch (IOException | InvalidMidiDataException | FormatNotSupportedException ex)
         {
             throw new IOException(
-                    "Problem reading files baseFile=" + baseFile.getAbsolutePath() + ", extFile=" + extFile.getAbsolutePath() + ". Ex=" + ex.getLocalizedMessage());
+                "Problem reading files baseFile=" + baseFile.getAbsolutePath() + ", extFile=" + extFile.getAbsolutePath() + ". Ex=" + ex.getLocalizedMessage());
         }
         return r;
     }
@@ -250,7 +255,6 @@ public class YamJJazzRhythmProvider implements RhythmProvider
     // -------------------------------------------------------------------------------------------------
     // Private methods
     // -------------------------------------------------------------------------------------------------
-
     /**
      * Get the list of rhythm files (matching getFilenameFile()) present in the directory for default rhythm files.
      * <p>
@@ -303,7 +307,6 @@ public class YamJJazzRhythmProvider implements RhythmProvider
         });
         return res;
     }
-
 
     private File findBaseStyleFile(File extFile) throws IOException
     {

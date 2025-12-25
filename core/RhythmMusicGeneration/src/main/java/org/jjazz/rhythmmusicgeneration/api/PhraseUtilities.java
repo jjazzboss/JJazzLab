@@ -239,7 +239,7 @@ public class PhraseUtilities
      * @param pSrc    The source phrase
      * @param ecsDest The destination extended chord symbol.
      * @return A new phrase with destination notes.
-     * @TODO Optimize!!
+     * TODO Optimize!!
      */
     static public Phrase fitChordPhrase2ChordSymbol(SourcePhrase pSrc, ExtChordSymbol ecsDest)
     {

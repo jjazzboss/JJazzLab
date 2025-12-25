@@ -91,7 +91,6 @@ public class RP_SYS_OverrideTracksValue
      *
      * @param baseRhythm Must implement the ConfigurableMusicGeneratorProvider interface
      * @param mappings   All RhythmVoice keys must belong to baseRhythm. Override can not be null.
-     * @see CompositeMusicGenerator.RvToMgDelegateMapper
      */
     public RP_SYS_OverrideTracksValue(Rhythm baseRhythm, Map<RhythmVoice, Override> mappings)
     {
@@ -205,7 +204,7 @@ public class RP_SYS_OverrideTracksValue
     /**
      * Save the specified object state as a string.
      * <p>
-     * "Phrase1>>jjSwing-ID>>Bass>>Main B-1 && amp;Chord1>>popRock-ID>>Chord1" means :<br>
+     * "Phrase1>>jjSwing-ID>>Bass>>Main B-1 &amp;&amp; Chord1>>popRock-ID>>Chord1" means :<br>
      * - base rhythm voice Phrase1 is mapped to jjSwing/Bass rhythm voice with variation Main B-1<br>
      * - base rhythm voice Chord1 is mapped to popRock/Chord1 rhythm voice with no dest. variation specified.<br>
      *
