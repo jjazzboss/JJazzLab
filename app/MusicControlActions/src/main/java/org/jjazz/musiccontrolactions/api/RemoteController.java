@@ -22,6 +22,7 @@
  */
 package org.jjazz.musiccontrolactions.api;
 
+import org.jjazz.musiccontrolactions.spi.RemoteActionProvider;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
@@ -120,7 +121,6 @@ public class RemoteController
     // Private methods
     // ==============================================================   
 
-
     // ==============================================================
     // Public classes
     // ==============================================================   
@@ -155,7 +155,14 @@ public class RemoteController
             {
                 if (ra.check(msg))
                 {
-                    Runnable r = () -> ra.getAction().actionPerformed(null);
+                    Runnable r = () ->
+                    {
+                        var a = ra.getAction();
+                        if (a.isEnabled())
+                        {
+                            ra.getAction().actionPerformed(null);
+                        }
+                    };
                     SwingUtilities.invokeLater(r);
                 }
             }
