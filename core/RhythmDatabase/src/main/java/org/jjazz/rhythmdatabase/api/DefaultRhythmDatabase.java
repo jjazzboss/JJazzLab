@@ -458,7 +458,7 @@ public class DefaultRhythmDatabase implements RhythmDatabase
         var rps = RhythmProvider.getRhythmProviders();
         final MultipleErrorsReport errReport = new MultipleErrorsReport();
         
-        int n = 0;
+        int n = 0; 
         for (final RhythmProvider rp : rps)
         {
             LOGGER.log(Level.INFO, "addRhythmsFromRhythmProviders() rp={0}", rp.getInfo().getName());
