@@ -26,7 +26,6 @@ import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.cl_editor.api.CL_Editor;
-import org.jjazz.cl_editor.api.CL_Selection;
 
 public class JumpToEnd extends AbstractAction
 {
@@ -35,8 +34,7 @@ public class JumpToEnd extends AbstractAction
     public void actionPerformed(ActionEvent e)
     {
         CL_Editor editor = CL_EditorTopComponent.getActive().getEditor();
-        CL_Selection selection = new CL_Selection(editor.getLookup());
-        selection.unselectAll(editor);
+        editor.clearSelection();
         int lastBarIndex = editor.getModel().getSizeInBars() - 1;
         editor.selectBars(lastBarIndex, lastBarIndex, true);
         editor.setFocusOnBar(lastBarIndex);

@@ -31,6 +31,7 @@ import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.event.SwingPropertyChangeSupport;
@@ -150,22 +151,19 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
     }
 
     @Override
-    public synchronized void setData(ExtChordSymbol cs)
+    public synchronized void setData(ExtChordSymbol ecs)
     {
-        if (cs == null)
-        {
-            throw new NullPointerException("cs=" + cs);
-        }
-        if (!cs.equals(data))
+        Objects.requireNonNull(ecs);
+        if (!ecs.equals(data))
         {
             ExtChordSymbol oldData = data;
-            data = cs;
+            data = ecs;
             pcs.firePropertyChange(PROP_ITEM_DATA, oldData, data);
         }
     }
 
     /**
-     * Note that we also copy the alternate data and filter, and the client properties.
+     * Note that client properties are also copied.
      *
      * @param newPos
      * @return

@@ -61,7 +61,6 @@ public class ItemsTransferable implements Transferable
         this.data = data;
     }
 
-
     @Override
     public DataFlavor[] getTransferDataFlavors()
     {
@@ -81,15 +80,10 @@ public class ItemsTransferable implements Transferable
         {
             throw new UnsupportedFlavorException(flavor);
         }
-        Object res = data;      // DATA_FLAVOR by default
-        if (flavor == DataFlavor.stringFlavor)
-        {
-            res = TextReader.toText(buildCls(), 4, true);
-        }
+        Object res = flavor != DataFlavor.stringFlavor ? data : TextReader.toText(buildCls(), 4, true);
 
         return res;
     }
-
 
     // ========================================================================================================
     // Private methods

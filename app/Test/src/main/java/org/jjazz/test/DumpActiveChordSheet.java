@@ -20,34 +20,41 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.cl_editorimpl.actions;
+package org.jjazz.test;
 
-import java.awt.Component;
-import java.awt.KeyboardFocusManager;
 import java.awt.event.ActionEvent;
-import javax.swing.AbstractAction;
-import org.jjazz.cl_editor.barbox.api.BarBox;
+import java.awt.event.ActionListener;
+import java.util.logging.Logger;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
-import org.jjazz.cl_editor.api.CL_Editor;
+import org.openide.awt.ActionID;
+import org.openide.awt.ActionReference;
+import org.openide.awt.ActionReferences;
+import org.openide.awt.ActionRegistration;
 
-public class MoveSelectionUp extends AbstractAction
+/**
+ * For debug purposes...
+ */
+@ActionID(category = "JJazz", id = "org.jjazz.test.dumpactivechordsheet")
+@ActionRegistration(displayName = "DumpActiveChordSheet")
+@ActionReferences(
+    {
+        @ActionReference(path = "Shortcuts", name = "DS-L")      // ctrl-shift L
+    })
+public final class DumpActiveChordSheet implements ActionListener
 {
 
+    private static final Logger LOGGER = Logger.getLogger(DumpActiveChordSheet.class.getSimpleName());
+
     @Override
-    public void actionPerformed(ActionEvent e)
+    public void actionPerformed(ActionEvent ae)
     {
-        CL_Editor editor = CL_EditorTopComponent.getActive().getEditor();
-        Component c = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
-        if (c instanceof BarBox)
+        LOGGER.info("actionPerformed()");
+        var clTc = CL_EditorTopComponent.getActive();
+        if (clTc != null)
         {
-            int barIndex = ((BarBox) c).getBarIndex();
-            if (barIndex >= editor.getNbColumns())
-            {
-                editor.clearSelection();
-                int newBarIndex = barIndex - editor.getNbColumns();
-                editor.selectBars(newBarIndex, newBarIndex, true);
-                editor.setFocusOnBar(barIndex - editor.getNbColumns());
-            }
+            var cls = clTc.getEditor().getModel();
+            LOGGER.info("cls=");
+            LOGGER.info(cls.toDebugString());
         }
     }
 }

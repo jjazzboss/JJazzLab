@@ -623,7 +623,7 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
             {
                 var clTc = CL_EditorTopComponent.get(song.getChordLeadSheet());
                 var clEditor = clTc.getEditor();
-                clEditor.unselectAll();
+                clEditor.clearSelection();
                 clEditor.selectItem(cliCs, true);
             }
         }

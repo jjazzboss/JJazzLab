@@ -206,18 +206,18 @@ public class CL_EditorController implements CL_EditorMouseListener
         {
             if (focusedItem != null && item.getClass() == focusedItem.getClass())
             {
-                // Updating an existing selection                
+                // Updating an existing item selection                
                 if (!e.isShiftDown() && !e.isControlDown())
                 {
                     // Simple CLICK
-                    selection.unselectAll(editor);
+                    editor.clearSelection(selection);
                     editor.selectItem(item, true);
                     editor.setFocusOnItem(item, irType);
 
                 } else if (e.isShiftDown() && e.isControlDown() && chordAuditioningAction.isEnabled())
                 {
                     // SHIFT+CTRL CLICK
-                    selection.unselectAll(editor);
+                    editor.clearSelection(selection);
                     editor.selectItem(item, true);
                     editor.setFocusOnItem(item, irType);
                     chordAuditioningAction.actionPerformed(null);
@@ -242,7 +242,7 @@ public class CL_EditorController implements CL_EditorMouseListener
                         maxPosition = focusedItem.getPosition();
                         minPosition = item.getPosition();
                     }
-                    selection.unselectAll(editor);
+                    editor.clearSelection(selection);
                     var items = editor.getModel().getItems(minPosition.getBar(), maxPosition.getBar(), focusedItem.getClass());
                     for (var iitem : items)
                     {
@@ -257,7 +257,7 @@ public class CL_EditorController implements CL_EditorMouseListener
             } else
             {
                 // No selection, or selection is from a different type
-                selection.unselectAll(editor);
+                editor.clearSelection(selection);
                 editor.selectItem(item, true);
                 editor.setFocusOnItem(item, irType);
 
@@ -266,12 +266,12 @@ public class CL_EditorController implements CL_EditorMouseListener
                     chordAuditioningAction.actionPerformed(null);
                 }
             }
-        } else if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e) && (e.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0)
+        } else if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e) && !e.isShiftDown() && !e.isControlDown())
         {
-            // DOUBLE CLICK = edit item
+            // DOUBLE CLICK with no ctrl nor shift = edit item
 
             // First do like simple click
-            selection.unselectAll(editor);
+            editor.clearSelection(selection);
             editor.selectItem(item, true);
             editor.setFocusOnItem(item, irType);
 
@@ -288,7 +288,7 @@ public class CL_EditorController implements CL_EditorMouseListener
             if (!selection.isItemSelected(item))
             {
                 // First do like simple click
-                selection.unselectAll(editor);
+                editor.clearSelection(selection);
                 editor.selectItem(item, true);
                 editor.setFocusOnItem(item, irType);
             }
@@ -382,7 +382,7 @@ public class CL_EditorController implements CL_EditorMouseListener
             if (selection.isItemSelected() || selection.isEmpty() || (!e.isControlDown() && !e.isShiftDown()))
             {
                 // SIMPLE CLICK, or no previous selection set
-                selection.unselectAll(editor);
+                editor.clearSelection(selection);
                 editor.selectBars(barIndex, barIndex, true);
                 editor.setFocusOnBar(barIndex);
             } else if (e.isControlDown() && !e.isShiftDown())
@@ -399,15 +399,15 @@ public class CL_EditorController implements CL_EditorMouseListener
                 // Select bars between the focused bar and this bar  
                 int minBar = Math.min(focusedBarIndex, barIndex);
                 int maxBar = Math.max(focusedBarIndex, barIndex);
-                selection.unselectAll(editor);
+                editor.clearSelection(selection);
                 editor.selectBars(minBar, maxBar, true);
             }
-        } else if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e) &&  (!e.isControlDown() && !e.isShiftDown()))
+        } else if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e) && (!e.isControlDown() && !e.isShiftDown()))
         {
             // DOUBLE CLICK = edit bar
 
             // First do like simple click
-            selection.unselectAll(editor);
+            editor.clearSelection(selection);
             editor.selectBars(barIndex, barIndex, true);
             editor.setFocusOnBar(barIndex);
 
@@ -423,7 +423,7 @@ public class CL_EditorController implements CL_EditorMouseListener
             if (!selection.isBarSelected(barIndex))
             {
                 // First do like simple click
-                selection.unselectAll(editor);
+                editor.clearSelection(selection);
                 editor.selectBars(barIndex, barIndex, true);
                 editor.setFocusOnBar(barIndex);
             }
@@ -445,7 +445,7 @@ public class CL_EditorController implements CL_EditorMouseListener
         {
             // Start drag operation by selecting the current barbox
             dragStartBbIndex = bbIndex;
-            selection.unselectAll(editor);
+            editor.clearSelection(selection);
             editor.selectBars(dragStartBbIndex, dragStartBbIndex, true);
             editor.setFocusOnBar(bbIndex);
             LOGGER.log(Level.FINE, "barDragged() start drag bbIndex={0}", bbIndex);

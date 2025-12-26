@@ -49,18 +49,17 @@ import org.openide.awt.ActionRegistration;
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.selectall")
 @ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
-        {
-            @ActionReference(path = "Actions/Bar", position = 1300),
-            @ActionReference(path = "Actions/Section", position = 1300),
-            @ActionReference(path = "Actions/ChordSymbol", position = 1300),
-            @ActionReference(path = "Actions/BarAnnotation", position = 1300)
-        })
+    {
+        @ActionReference(path = "Actions/Bar", position = 1300),
+        @ActionReference(path = "Actions/Section", position = 1300),
+        @ActionReference(path = "Actions/ChordSymbol", position = 1300),
+        @ActionReference(path = "Actions/BarAnnotation", position = 1300)
+    })
 public class SelectAll extends CL_ContextAction
 {
 
     public static final KeyStroke KEYSTROKE = getGenericControlKeyStroke(KeyEvent.VK_A);
     private static final Logger LOGGER = Logger.getLogger(SelectAll.class.getSimpleName());
-
 
     @Override
     protected void configureAction()
@@ -106,7 +105,6 @@ public class SelectAll extends CL_ContextAction
     // ============================================================================================= 
     // Private methods
     // =============================================================================================   
-
     /**
      *
      * @param editor
@@ -119,7 +117,7 @@ public class SelectAll extends CL_ContextAction
         if (selection.getSelectedBarIndexesWithinCls().size() < selection.getSelectedBars().size())
         {
             // There are some selected bars which are past end, reselect from 1st bar to last selected bar
-            selection.unselectAll(editor);
+            editor.clearSelection();
             editor.selectBars(0, selection.getMaxBarIndex(), true);
             return;
         }
@@ -141,9 +139,9 @@ public class SelectAll extends CL_ContextAction
     }
 
     @SuppressWarnings(
-            {
-                "unchecked", "rawtypes"
-            })
+        {
+            "unchecked", "rawtypes"
+        })
     private void selectItemsIn2Steps(CL_Editor editor, CL_Selection selection)
     {
         ChordLeadSheet cls = editor.getModel();

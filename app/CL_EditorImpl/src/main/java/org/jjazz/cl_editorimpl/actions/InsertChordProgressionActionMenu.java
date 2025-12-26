@@ -412,7 +412,7 @@ public final class InsertChordProgressionActionMenu extends AbstractAction imple
         }
 
         // Select all added chords so that use can easily transpose them
-        editor.unselectAll();
+        editor.clearSelection();
         editor.selectItems(addedChords, true);
 
 

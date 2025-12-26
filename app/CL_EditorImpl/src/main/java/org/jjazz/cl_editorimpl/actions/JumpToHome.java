@@ -26,7 +26,6 @@ import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.cl_editor.api.CL_Editor;
-import org.jjazz.cl_editor.api.CL_Selection;
 
 public class JumpToHome extends AbstractAction
 {
@@ -35,8 +34,7 @@ public class JumpToHome extends AbstractAction
     public void actionPerformed(ActionEvent e)
     {
         CL_Editor editor = CL_EditorTopComponent.getActive().getEditor();
-        CL_Selection selection = new CL_Selection(editor.getLookup());
-        selection.unselectAll(editor);
+        editor.clearSelection();
         editor.selectBars(0, 0, true);
         editor.setFocusOnBar(0);
         editor.makeBarVisible(0);

@@ -125,4 +125,21 @@
             <file name="midieditor.wsmode" url="modes/midieditor.wsmode"/>
         </folder>
     </folder>    
+    
+    
+    <!--
+        Required since NB28 because of https://github.com/apache/netbeans/pull/8908
+        Branding for Favorites module preferences in order to avoid the automatic opening of the favorites tab.
+        Mirrors: config/Preferences/org/netbeans/modules/favorites.properties with a flag that disables the feature.
+    -->
+    <folder name="Preferences">
+        <folder name="org">
+            <folder name="netbeans">
+                <folder name="modules">
+                    <file name="favorites.properties" url="favorites.properties"/>
+                </folder>
+            </folder>
+        </folder>
+    </folder>
+    
 </filesystem>

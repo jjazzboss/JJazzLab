@@ -306,9 +306,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     public void cleanup()
     {
         // Unselect everything
-        CL_Selection selection = new CL_Selection(selectionLookup);
-        selection.unselectAll(this);
-
+        clearSelection();
 
         // Unregister the objects we were listening to
         songModel.getClientProperties().removePropertyChangeListener(this);
@@ -501,11 +499,14 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         synchronized (lock)
         {
             var oldSelection = new CL_Selection(selectionLookup);
-            if (oldSelection.isItemSelected())
+            if (IntStream.rangeClosed(bbIndexFrom, bbIndexTo).allMatch(bar -> oldSelection.isBarSelected(bar) == b))
             {
-                oldSelection.unselectAll(this);
+                return;
             }
-
+            if (b && oldSelection.isItemSelected())
+            {
+                clearSelection(oldSelection);
+            }
 
             Set<SelectedBar> newSelectedBars = new HashSet<>(oldSelection.getSelectedBars());
             for (int i = bbIndexFrom; i <= bbIndexTo; i++)
@@ -547,18 +548,25 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     public void selectItems(List<? extends ChordLeadSheetItem> items, boolean b)
     {
         Objects.requireNonNull(items);
+        if (items.isEmpty())
+        {
+            return;
+        }
 
         synchronized (lock)
         {
             var oldSelection = new CL_Selection(selectionLookup);
-            if (oldSelection.isBarSelected())
+            if (items.stream().allMatch(item -> oldSelection.isItemSelected(item) == b))
             {
-                oldSelection.unselectAll(this);
+                return;
+            }
+            if (b && !oldSelection.isItemTypeSelected(items.getFirst().getClass()))
+            {
+                clearSelection(oldSelection);
             }
 
-            var oldSelectedClis = oldSelection.getSelectedItems().stream()
-                .map(item -> new SelectedCLI(item))
-                .toList();
+
+            var oldSelectedClis = oldSelection.getSelectedCLIs();  // unordered
             Set<SelectedCLI> newSelectedItems = new HashSet<>(oldSelectedClis);
             for (var item : items)
             {
@@ -585,9 +593,13 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         synchronized (lock)
         {
             var oldSelection = new CL_Selection(selectionLookup);
-            if (oldSelection.isBarSelected())
+            if (oldSelection.isItemSelected(item) == b)
             {
-                oldSelection.unselectAll(this);
+                return;
+            }
+            if (b && (oldSelection.isBarSelected() || !oldSelection.isItemTypeSelected(item.getClass())))
+            {
+                clearSelection(oldSelection);
             }
 
 
@@ -608,6 +620,16 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 //        {
 //            b, item, lookup
 //        });
+    }
+
+    @Override
+    public boolean clearSelection()
+    {
+        synchronized (lock)
+        {
+            var selection = new CL_Selection(selectionLookup);
+            return clearSelection(selection);
+        }
     }
 
     @Override
@@ -1162,6 +1184,44 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     // ----------------------------------------------------------------------------------
 
     /**
+     * Must be used with care: selection MUST be uptodate with the current lookup state.
+     *
+     * @param selection
+     * @return
+     */
+    protected boolean clearSelection(CL_Selection selection)
+    {
+        boolean b = false;
+        if (!selection.isEmpty())
+        {
+            b = true;
+
+            // Use InstanceContent.set() to minimize nb of lookup change events        
+            selectionLookupContent.set(Collections.EMPTY_LIST, null);
+
+            // Update UI
+            if (selection.isBarSelected())
+            {
+                var bars = selection.getSelectedBars();
+                for (var bar : bars)
+                {
+                    var bb = getBarBox(bar.getBarBoxIndex());
+                    bb.setSelected(false);
+                }
+            } else
+            {
+                var items = selection.getSelectedItems();
+                for (var item : items)
+                {
+                    var bb = getBarBox(item.getPosition().getBar());
+                    bb.selectItem(item, false);
+                }
+            }
+        }
+        return b;
+    }
+
+    /**
      * Calculate the number of BarBoxes required to accomodate clsModel's size.
      * <p>
      * @param nbExtraLines
@@ -1538,9 +1598,9 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             bar = selection.getMinBarIndex();
         } else if (selection.isItemSelected())
         {
-            bar = selection.getSelectedItems().get(0).getPosition().getBar();
+            bar = selection.getSelectedItems().getFirst().getPosition().getBar();
         }
-        selection.unselectAll(this);
+        clearSelection(selection);
 
 
         // Update BarBoxes

@@ -102,7 +102,6 @@ public class CL_EditorTransferHandler extends TransferHandler
         return res;
     }
 
-
     /**
      * Overridden to limit drag start to ItemRenderers with no modifier used and mouse left button.
      *
@@ -113,8 +112,8 @@ public class CL_EditorTransferHandler extends TransferHandler
     @Override
     public void exportAsDrag(JComponent comp, InputEvent e, int action)
     {
-        if (!(comp instanceof ItemRenderer) 
-                || (e instanceof MouseEvent me && (!SwingUtilities.isLeftMouseButton(me) || me.isAltDown() || me.isShiftDown()))) // ctrl is authorized for item copy
+        if (!(comp instanceof ItemRenderer)
+            || (e instanceof MouseEvent me && (!SwingUtilities.isLeftMouseButton(me) || me.isAltDown() || me.isShiftDown()))) // ctrl is authorized for item copy
         {
             return;
         }
@@ -177,8 +176,8 @@ public class CL_EditorTransferHandler extends TransferHandler
             b = canImportFile(info);
 
         } else if (info.isDataFlavorSupported(CLI_ChordSymbol.DATA_FLAVOR)
-                || info.isDataFlavorSupported(CLI_Section.DATA_FLAVOR)
-                || info.isDataFlavorSupported(CLI_BarAnnotation.DATA_FLAVOR))
+            || info.isDataFlavorSupported(CLI_Section.DATA_FLAVOR)
+            || info.isDataFlavorSupported(CLI_BarAnnotation.DATA_FLAVOR))
         {
             b = canImportItemRenderer(info);
         }
@@ -186,7 +185,6 @@ public class CL_EditorTransferHandler extends TransferHandler
 
         return b;
     }
-
 
     @Override
     public boolean importData(TransferSupport info)
@@ -210,7 +208,6 @@ public class CL_EditorTransferHandler extends TransferHandler
         }
         return b;
     }
-
 
     // ==================================================================================
     // Private methods
@@ -284,8 +281,7 @@ public class CL_EditorTransferHandler extends TransferHandler
                 }
 
                 // Unselect everything: we will select the target item
-                CL_Selection selection = new CL_Selection(editorImpl.getLookup());
-                selection.unselectAll(editorImpl);
+                editorImpl.clearSelection();
 
                 CLI_Section curSection = cls.getSection(newBarIndex);
                 if (info.getDropAction() == COPY)
@@ -361,8 +357,7 @@ public class CL_EditorTransferHandler extends TransferHandler
                 }
 
                 // Unselect everything: we will select the target item
-                CL_Selection selection = new CL_Selection(editorImpl.getLookup());
-                selection.unselectAll(editorImpl);
+                editorImpl.clearSelection();
 
 
                 String editName = ResUtil.getString(getClass(), "MoveBarAnnotation");
@@ -371,7 +366,7 @@ public class CL_EditorTransferHandler extends TransferHandler
 
                 CLI_BarAnnotation curAnnotation = cls.getBarFirstItem(newBarIndex, CLI_BarAnnotation.class, cli -> true);
                 IR_Type irType = CL_EditorClientProperties.isBarAnnotationVisible(editorImpl.getSongModel()) ? IR_Type.BarAnnotationText
-                        : IR_Type.BarAnnotationPaperNote;
+                    : IR_Type.BarAnnotationPaperNote;
                 if (curAnnotation != null)
                 {
                     // There is already an annotation there, just update its content
@@ -403,8 +398,7 @@ public class CL_EditorTransferHandler extends TransferHandler
                 if (info.getDropAction() == COPY)
                 {
                     String editName = ResUtil.getString(getClass(), "COPY_ITEM");
-                    CL_Selection selection = new CL_Selection(editorImpl.getLookup());
-                    selection.unselectAll(editorImpl);
+                    editorImpl.clearSelection();
                     um.startCEdit(editName);
                     ChordLeadSheetItem<?> itemCopy = sourceItem.getCopy(null, newPos);
                     var itemToSelect = cls.addItem(itemCopy) ? itemCopy : sourceItem;        // addItem might return false if copying over an equal item
@@ -419,7 +413,6 @@ public class CL_EditorTransferHandler extends TransferHandler
                     um.endCEdit(editName);
                 }
             }
-
 
 
         }
@@ -601,6 +594,5 @@ public class CL_EditorTransferHandler extends TransferHandler
 
         return pos;
     }
-
 
 }

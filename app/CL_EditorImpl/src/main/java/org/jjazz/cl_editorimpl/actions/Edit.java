@@ -78,17 +78,16 @@ import org.openide.windows.WindowManager;
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.edit")
 @ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
-        {
-            @ActionReference(path = "Actions/Section", position = 100),
-            @ActionReference(path = "Actions/ChordSymbol", position = 100),
-            @ActionReference(path = "Actions/Bar", position = 100),
-            @ActionReference(path = "Actions/BarAnnotation", position = 100)
-        })
+    {
+        @ActionReference(path = "Actions/Section", position = 100),
+        @ActionReference(path = "Actions/ChordSymbol", position = 100),
+        @ActionReference(path = "Actions/Bar", position = 100),
+        @ActionReference(path = "Actions/BarAnnotation", position = 100)
+    })
 public class Edit extends CL_ContextAction
 {
 
     public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("ENTER");
-
 
     private final String undoText = ResUtil.getString(getClass(), "CTL_Edit");
     static private final Logger LOGGER = Logger.getLogger(Edit.class.getSimpleName());
@@ -104,8 +103,8 @@ public class Edit extends CL_ContextAction
     /**
      * Perform the action.
      * <p>
-     * If action was triggered by a key press, ae.getActionCommand() provides the key pressed. Use ae.getSource() to get component source of the action eg
-     * BarBox, BR_Chords, etc.
+     * If action was triggered by a key press, ae.getActionCommand() provides the key pressed. Use ae.getSource() to get component source of the
+     * action eg BarBox, BR_Chords, etc.
      *
      * @param ae
      */
@@ -189,7 +188,6 @@ public class Edit extends CL_ContextAction
         setEnabled(b);
     }
 
-
     @Override
     public void chordLeadSheetChanged(ClsChangeEvent event)
     {
@@ -200,10 +198,10 @@ public class Edit extends CL_ContextAction
     }
 
     static protected void editSectionWithDialog(final SectionEditorDialog dialog, final CLI_Section sectionItem, final char key, final ChordLeadSheet cls,
-            String undoText)
+        String undoText)
     {
         // Use specific editor if service is provided
-        Runnable run = () -> 
+        Runnable run = () ->
         {
             dialog.preset(sectionItem, key);
             dialog.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
@@ -234,7 +232,7 @@ public class Edit extends CL_ContextAction
     }
 
     static protected void editCSWithDialog(final ChordSymbolEditorDialog dialog, final CLI_ChordSymbol csItem, final char key, final ChordLeadSheet cls,
-            String undoText)
+        String undoText)
     {
         Objects.requireNonNull(csItem);
         Objects.requireNonNull(dialog);
@@ -248,9 +246,9 @@ public class Edit extends CL_ContextAction
     }
 
     static private void editCSWithDialogImpl(final ChordSymbolEditorDialog dialog, final CLI_ChordSymbol csItem, final char key, final ChordLeadSheet cls,
-            String undoText1)
+        String undoText1)
     {
-        Position pos = csItem.getPosition();      
+        Position pos = csItem.getPosition();
         dialog.setDisplayTransposition(PlaybackSettings.getInstance().getChordSymbolsDisplayTransposition());
         dialog.preset("Edit Chord Symbol - " + csItem.getData() + " - bar:" + (pos.getBar() + 1) + " beat:" + pos.getBeatAsUserString(), csItem, key, true);
         dialog.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
@@ -287,7 +285,7 @@ public class Edit extends CL_ContextAction
         int preNbAnnotations = editor.getSongModel().getChordLeadSheet().getItems(CLI_BarAnnotation.class).size();
         Song song = editor.getSongModel();
 
-        Runnable run = () -> 
+        Runnable run = () ->
         {
             // Prepare dialog
             final CL_BarEditorDialog dialog = CL_BarEditorDialog.getDefault();
@@ -320,7 +318,7 @@ public class Edit extends CL_ContextAction
                     {
                         // Manage the case where we change initial section, user prompt to apply to whole song
                         SetTimeSignatureActionMenu.changeTimeSignaturePossiblyForWholeSong(cls, resultSection.getData().getTimeSignature(), Arrays.asList(
-                                currentSection));
+                            currentSection));
                     } catch (UnsupportedEditException ex)
                     {
                         String msg = ResUtil.getString(Edit.class, "ERR_ChangeSection", resultSection.getData());
@@ -363,8 +361,7 @@ public class Edit extends CL_ContextAction
             boolean change = !resultAddedItems.isEmpty() || !resultRemovedItems.isEmpty() || !mapChanged.isEmpty();
             if (barIndex < cls.getSizeInBars() - 1 && change)
             {
-                CL_Selection selection = new CL_Selection(editor.getLookup());
-                selection.unselectAll(editor);
+                editor.clearSelection();
                 editor.setFocusOnBar(barIndex + 1);
                 editor.selectBars(barIndex + 1, barIndex + 1, true);
             }
@@ -402,10 +399,10 @@ public class Edit extends CL_ContextAction
         {
             // Rely on division of rhythm of first SongPart whose parent section is cliSection
             var d = song.getSongStructure().getSongParts().stream()
-                    .filter(spt -> spt.getParentSection() == cliSection)
-                    .map(spt -> spt.getRhythm().getFeatures().division())
-                    .findFirst()
-                    .orElse(null);
+                .filter(spt -> spt.getParentSection() == cliSection)
+                .map(spt -> spt.getRhythm().getFeatures().division())
+                .findFirst()
+                .orElse(null);
             if (d != null)
             {
                 b = d.isTernary();

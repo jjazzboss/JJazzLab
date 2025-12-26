@@ -29,7 +29,6 @@ import javax.swing.AbstractAction;
 import org.jjazz.cl_editor.barbox.api.BarBox;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.cl_editor.api.CL_Editor;
-import org.jjazz.cl_editor.api.CL_Selection;
 
 public class MoveSelectionDown extends AbstractAction
 {
@@ -44,8 +43,7 @@ public class MoveSelectionDown extends AbstractAction
             int barIndex = ((BarBox) c).getBarIndex();
             if (barIndex < (editor.getNbBarBoxes() - editor.getNbColumns()))
             {
-                CL_Selection selection = new CL_Selection(editor.getLookup());
-                selection.unselectAll(editor);
+                editor.clearSelection();
                 int newBarIndex = barIndex + editor.getNbColumns();
                 editor.selectBars(newBarIndex, newBarIndex, true);
                 editor.setFocusOnBar(newBarIndex);

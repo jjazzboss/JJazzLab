@@ -38,10 +38,10 @@ import org.jjazz.utilities.api.IntRange;
 import org.openide.util.Lookup;
 
 /**
- * Represent the selection built from a CL_Editor's Lookup.
+ * Represent the selection of a CL_Editor, built from its Lookup.
  * <p>
- * Thos class provide utility methods to inspect the selection. Selected items can be either SelectedCLI or SelectedBar, but not both in the same
- * time.
+ * Selected items can be either SelectedCLI or SelectedBar, but not both in the same time. Furthermore, a selection can not contain SelectedCLIs with
+ * incompatible ChordLeadSheetItem classes (eg CLI_ChordSymbol and CLI_Section).
  *
  * @see SelectedBar
  * @see SelectedCLI
@@ -50,6 +50,7 @@ import org.openide.util.Lookup;
 final public class CL_Selection
 {
 
+    private final List<SelectedCLI> selectedCLIs;
     private final List<ChordLeadSheetItem> items;
     private final List<SelectedBar> selectedBars;
     private static final Logger LOGGER = Logger.getLogger(CL_Selection.class.getSimpleName());
@@ -76,7 +77,7 @@ final public class CL_Selection
      * @param lookup
      * @param searchItems If false SelectedCLIs are ignored
      * @param searchBars If false SelectedBars are ignored
-     * @throws IllegalStateException If lookup contains both SelectedBars and SelectedCLIs
+     * @throws IllegalStateException If lookup contains both SelectedBars and SelectedCLIs, or incompatible SelectedCLIs
      */
     @SuppressWarnings(
         {
@@ -87,7 +88,8 @@ final public class CL_Selection
     {
         Objects.requireNonNull(lookup);
 
-        items = !searchItems ? Collections.emptyList() : lookup.lookupAll(SelectedCLI.class).stream()
+        selectedCLIs = !searchItems ? Collections.emptyList() : new ArrayList<>(lookup.lookupAll(SelectedCLI.class));
+        items = selectedCLIs.stream()
             .map(selCli -> selCli.getItem())
             .collect(Collectors.toList());  // to get a mutable list
         selectedBars = !searchBars ? Collections.emptyList() : new ArrayList<>((Collection<SelectedBar>) lookup.lookupAll(SelectedBar.class));
@@ -95,6 +97,16 @@ final public class CL_Selection
         if (!items.isEmpty() && !selectedBars.isEmpty())
         {
             throw new IllegalStateException("items=" + items + " selectedBars=" + selectedBars);
+        }
+        if (!items.isEmpty())
+        {
+            var cliClass = items.getFirst().getClass();
+            if (!items.stream()
+                .skip(1)
+                .allMatch(item -> cliClass.isInstance(item) || cliClass.isAssignableFrom(item.getClass())))
+            {
+                throw new IllegalStateException("items=" + items + " cliClass=" + cliClass);
+            }
         }
 
         Collections.sort(items);
@@ -125,22 +137,6 @@ final public class CL_Selection
     static public boolean isBarSelected(Lookup lookup)
     {
         return lookup.lookup(SelectedBar.class) != null;
-    }
-
-    /**
-     * Clear selection in the specified editor.
-     *
-     * @param editor
-     */
-    public void unselectAll(CL_Editor editor)
-    {
-        if (isBarSelected())
-        {
-            editor.selectBars(getMinBarIndex(), getMaxBarIndex(), false);
-        } else if (isItemSelected())
-        {
-            editor.selectItems(items, false);
-        }
     }
 
     /**
@@ -381,6 +377,23 @@ final public class CL_Selection
         return items.contains(item);
     }
 
+    /**
+     * Check if the selected ChordLeadSheet items are compatible with itemClass.
+     *
+     * @param itemClass
+     * @return
+     */
+    public boolean isItemTypeSelected(Class<? extends ChordLeadSheetItem> itemClass)
+    {
+        boolean b = false;
+        if (!items.isEmpty())
+        {
+            var item0 = items.getFirst();
+            b = itemClass.isInstance(item0) || itemClass.isAssignableFrom(item0.getClass());
+        }
+        return b;
+    }
+
     public boolean isBarSelected(int bbIndex)
     {
         for (SelectedBar sb : selectedBars)
@@ -391,6 +404,16 @@ final public class CL_Selection
             }
         }
         return false;
+    }
+
+    /**
+     * Get all the SelectedCLIs, unsorted.
+     *
+     * @return Can be empty.
+     */
+    public List<SelectedCLI> getSelectedCLIs()
+    {
+        return selectedCLIs;
     }
 
     /**

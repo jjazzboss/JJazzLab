@@ -145,7 +145,7 @@ public abstract class CL_Editor extends JPanel implements Lookup.Provider
     /**
      * Select bars in the specified barIndex range.
      * <p>
-     * Clear previous selection if one or more ChordLeadSheetItems were selected.
+     * Clear previous selection if it is not a bar selection.
      *
      * @param barIndexFrom int
      * @param barIndexTo int
@@ -156,7 +156,7 @@ public abstract class CL_Editor extends JPanel implements Lookup.Provider
     /**
      * Select the ItemRenderer(s) whose model is item.
      * <p>
-     * Clear previous selection if one or more SelectedBars were selected.
+     * Clear previous selection if it is incompatible with the selection of item.
      *
      * @param item
      * @param b True to select, False to unselect.
@@ -166,7 +166,7 @@ public abstract class CL_Editor extends JPanel implements Lookup.Provider
     /**
      * Select all the ItemRenderer(s) whose models are items.
      * <p>
-     * Clear previous selection if one or more SelectedBars were selected.
+     * Clear previous selection if it is incompatible with the items selection.
      *
      * @param items
      * @param b True to select, False to unselect.
@@ -224,11 +224,10 @@ public abstract class CL_Editor extends JPanel implements Lookup.Provider
     abstract public Rectangle getBarRectangle(int barBoxIndex);
 
     /**
-     * Utility method which delegates to CL_Selection.unselectAll().
+     * Unselect all.
+     * 
+     * @return True if selection was non empty.
      */
-    public void unselectAll()
-    {
-        new CL_Selection(getLookup()).unselectAll(this);
-    }
+    abstract public boolean clearSelection();
 
 }

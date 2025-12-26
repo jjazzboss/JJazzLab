@@ -31,7 +31,6 @@ import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.cl_editor.barbox.api.BarBox;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.cl_editor.api.CL_Editor;
-import org.jjazz.cl_editor.api.CL_Selection;
 import org.jjazz.cl_editor.itemrenderer.api.ItemRenderer;
 
 public class MoveSelectionLeft extends AbstractAction
@@ -54,16 +53,16 @@ public class MoveSelectionLeft extends AbstractAction
     /**
      * Move selection left from an ItemRenderer in specified editor.
      *
-     * @param ed
+     * @param editor
      * @param ir ItemRenderer
      * @param extend If true extend the selection rather than move.
      */
     @SuppressWarnings(
-            {
-                "rawtypes",
-                "unchecked"
-            })
-    static public void moveSelectionLeftIR(CL_Editor ed, ItemRenderer ir, boolean extend)
+        {
+            "rawtypes",
+            "unchecked"
+        })
+    static public void moveSelectionLeftIR(CL_Editor editor, ItemRenderer ir, boolean extend)
     {
         ChordLeadSheetItem<?> fItem = ir.getModel();
         ChordLeadSheet cls = fItem.getContainer();
@@ -74,32 +73,30 @@ public class MoveSelectionLeft extends AbstractAction
             var item = items.get(index - 1);
             if (!extend)
             {
-                CL_Selection selection = new CL_Selection(ed.getLookup());
-                selection.unselectAll(ed);
+                editor.clearSelection();
             }
-            ed.selectItem(item, true);
-            ed.setFocusOnItem(item, ir.getIR_Type());
+            editor.selectItem(item, true);
+            editor.setFocusOnItem(item, ir.getIR_Type());
         }
     }
 
     /**
      * Move selection left from barIndex in specified editor.
      *
-     * @param ed
+     * @param editor
      * @param barIndex
      * @param extend If true extend the selection rather than move.
      */
-    public static void moveSelectionLeftBarBox(CL_Editor ed, int barIndex, boolean extend)
+    public static void moveSelectionLeftBarBox(CL_Editor editor, int barIndex, boolean extend)
     {
         if (barIndex > 0)
         {
             if (!extend)
             {
-                CL_Selection selection = new CL_Selection(ed.getLookup());
-                selection.unselectAll(ed);
+                editor.clearSelection();
             }
-            ed.selectBars(barIndex - 1, barIndex - 1, true);
-            ed.setFocusOnBar(barIndex - 1);
+            editor.selectBars(barIndex - 1, barIndex - 1, true);
+            editor.setFocusOnBar(barIndex - 1);
         }
     }
 }

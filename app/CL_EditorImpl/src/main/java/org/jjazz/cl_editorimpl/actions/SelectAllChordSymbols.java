@@ -47,11 +47,11 @@ import org.openide.awt.ActionRegistration;
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.selectallchordsymbols")
 @ActionRegistration(displayName = "#CTL_SelectAllChordSymbols", lazy = true)
 @ActionReferences(
-        {
-            @ActionReference(path = "Actions/Bar", position = 1310),
-            @ActionReference(path = "Actions/ChordSymbol", position = 1310),
-            @ActionReference(path = "Menu/Edit", position = 1310),
-        })
+    {
+        @ActionReference(path = "Actions/Bar", position = 1310),
+        @ActionReference(path = "Actions/ChordSymbol", position = 1310),
+        @ActionReference(path = "Menu/Edit", position = 1310),
+    })
 public class SelectAllChordSymbols implements ActionListener
 {
 
@@ -66,7 +66,7 @@ public class SelectAllChordSymbols implements ActionListener
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        assert cls != null;   
+        assert cls != null;
         CL_Editor editor = CL_EditorTopComponent.get(cls).getEditor();
         CL_Selection selection = new CL_Selection(editor.getLookup());
         var items = cls.getItems(CLI_ChordSymbol.class);
@@ -74,9 +74,9 @@ public class SelectAllChordSymbols implements ActionListener
         {
             return;
         }
-        
-        
-        selection.unselectAll(editor);
+
+
+        editor.clearSelection();
         editor.selectItems(items, true);
 
         // Make sure focus ends on a chord symbol
