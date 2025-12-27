@@ -18,7 +18,6 @@ import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.rhythmmusicgeneration.spi.ConfigurableMusicGeneratorProvider;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGeneratorProvider;
-import org.jjazz.utilities.api.ResUtil;
 
 /**
  * Store which source RhythmVoice is overridden by which [RhythmVoice-rhythm variation] pair.
@@ -241,98 +240,107 @@ public class RP_SYS_OverrideTracksValue
 
         Map<RhythmVoice, Override> map = new HashMap<>();
 
-        String strs[] = s.split("\\s*&&\\s*");
-        for (String str : strs)
+        if (s.isBlank())
         {
-
-            String subStrs[] = str.split("\\s*>>\\s*");
-            if (subStrs.length < 3 || subStrs.length > 4)
-            {
-                LOGGER.log(Level.WARNING, "loadFromString() Ignoring invalid string {0} for base rhythm {1}", new Object[]
-                {
-                    str,
-                    baseRhythm.getName()
-                });
-                continue;
-            }
-
-            // src RhythmVoice
-            var strRvSrc = subStrs[0];
-            RhythmVoice rvSrc = baseRhythm.getRhythmVoices().stream()
-                    .filter(rvi -> rvi.getName().equals(strRvSrc))
-                    .findAny()
-                    .orElse(null);
-            if (rvSrc == null)
-            {
-                LOGGER.log(Level.WARNING, "loadFromString() Ignoring invalid rhythm voice name {0} for base rhythm {1}", new Object[]
-                {
-                    strRvSrc,
-                    baseRhythm.getName()
-                });
-                continue;
-            }
-
-
-            // dest Rhythm
-            String strDestRhythmId = subStrs[1];
-            Rhythm destRhythm;
-            try
-            {
-                destRhythm = RhythmDatabase.getDefault().getRhythmInstance(strDestRhythmId);
-            } catch (UnavailableRhythmException ex)
-            {
-                LOGGER.log(Level.WARNING, "loadFromString() Ignoring unknown rhythm on this system. rhythmId={0}", strDestRhythmId);
-                continue;
-            }
-
-
-            // dest RhythmVoice
-            var strRvDest = subStrs[2];
-            RhythmVoice rvDest = destRhythm.getRhythmVoices().stream()
-                    .filter(rvi -> rvi.getName().equals(strRvDest))
-                    .findAny()
-                    .orElse(null);
-            if (rvDest == null)
-            {
-                LOGGER.log(Level.WARNING, "loadFromString() Ignoring invalid destination rhythm voice name {0} for rhythm {1}", new Object[]
-                {
-                    strRvDest,
-                    destRhythm.getName()
-                });
-                continue;
-            }
-
-
-            // dest variation
-            String destVariation = null;    // by default
-            if (subStrs.length == 4)
-            {
-                destVariation = subStrs[3].trim();
-            }
-
-
-            // Create the mapping
-            try
-            {
-                assert rvDest != null;
-                var override = new Override(rvDest, destVariation);     // throws IllegalArgumentException
-                map.put(rvSrc, override);
-            } catch (IllegalArgumentException ex)
-            {
-                LOGGER.log(Level.WARNING, "loadFromString() Ignoring invalid variation {0} for rhythm {1}", new Object[]
-                {
-                    destVariation,
-                    destRhythm.getName()
-                });
-                continue;
-            }
-        }
-
-
-        if (map.isEmpty())
+            // Nothing
+        } else if (!s.contains("&&") && s.contains("&"))
         {
             // Try the old method
             map = loadFromStringBefore5_0_2(baseRhythm, s);
+        } else if (s.contains("&&"))
+        {
+            String strs[] = s.split("\\s*&&\\s*");
+            for (String str : strs)
+            {
+                String subStrs[] = str.split("\\s*>>\\s*");
+                if (subStrs.length < 3 || subStrs.length > 4)
+                {
+                    LOGGER.log(Level.WARNING, "loadFromString() Ignoring invalid string: {0}  baseRhythm={1}", new Object[]
+                    {
+                        str,
+                        baseRhythm.getName()
+                    });
+                    continue;
+                }
+
+                // src RhythmVoice
+                var strRvSrc = subStrs[0];
+                RhythmVoice rvSrc = baseRhythm.getRhythmVoices().stream()
+                        .filter(rvi -> rvi.getName().equals(strRvSrc))
+                        .findAny()
+                        .orElse(null);
+                if (rvSrc == null)
+                {
+                    LOGGER.log(Level.WARNING, "loadFromString() Ignoring invalid rhythm voice name: {0}  baseRhythm={1}", new Object[]
+                    {
+                        strRvSrc,
+                        baseRhythm.getName()
+                    });
+                    continue;
+                }
+
+
+                // dest Rhythm
+                String strDestRhythmId = subStrs[1];
+                Rhythm destRhythm;
+                try
+                {
+                    destRhythm = RhythmDatabase.getDefault().getRhythmInstance(strDestRhythmId);
+                } catch (UnavailableRhythmException ex)
+                {
+                    LOGGER.log(Level.WARNING, "loadFromString() Ignoring unknown rhythm on this system. strDestRhythmId={0}", strDestRhythmId);
+                    continue;
+                }
+
+
+                // dest RhythmVoice
+                var strRvDest = subStrs[2];
+                RhythmVoice rvDest = destRhythm.getRhythmVoices().stream()
+                        .filter(rvi -> rvi.getName().equals(strRvDest))
+                        .findAny()
+                        .orElse(null);
+                if (rvDest == null)
+                {
+                    LOGGER.log(Level.WARNING, "loadFromString() Ignoring invalid destination rhythm voice name: {0}   destRhythm={1}", new Object[]
+                    {
+                        strRvDest,
+                        destRhythm.getName()
+                    });
+                    continue;
+                }
+
+
+                // dest variation
+                String destVariation = null;    // by default
+                if (subStrs.length == 4)
+                {
+                    destVariation = subStrs[3].trim();
+                }
+
+
+                // Create the mapping
+                try
+                {
+                    assert rvDest != null;
+                    var override = new Override(rvDest, destVariation);     // throws IllegalArgumentException
+                    map.put(rvSrc, override);
+                } catch (IllegalArgumentException ex)
+                {
+                    LOGGER.log(Level.WARNING, "loadFromString() Ignoring invalid variation {0} for destRhythm={1}", new Object[]
+                    {
+                        destVariation,
+                        destRhythm.getName()
+                    });
+                }
+            }
+
+        } else
+        {
+            LOGGER.log(Level.WARNING, "loadFromString() Ignoring invalid string: {0}  baseRhythm={1}", new Object[]
+            {
+                s,
+                baseRhythm.getName()
+            });
         }
 
         RP_SYS_OverrideTracksValue res = new RP_SYS_OverrideTracksValue(baseRhythm, map);
@@ -356,7 +364,7 @@ public class RP_SYS_OverrideTracksValue
      *
      * @param baseRhythm
      * @param s
-     * @return
+     * @return Can not be null
      */
     static private Map<RhythmVoice, Override> loadFromStringBefore5_0_2(Rhythm baseRhythm, String s)
     {
