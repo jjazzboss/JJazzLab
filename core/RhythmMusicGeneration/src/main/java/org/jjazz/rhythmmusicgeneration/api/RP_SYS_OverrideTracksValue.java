@@ -243,11 +243,11 @@ public class RP_SYS_OverrideTracksValue
         if (s.isBlank())
         {
             // Nothing
-        } else if (!s.contains("&&") && s.contains("&"))
+        } else if (!s.contains(">>") && s.contains(">"))
         {
             // Try the old method
             map = loadFromStringBefore5_0_2(baseRhythm, s);
-        } else if (s.contains("&&"))
+        } else if (s.contains(">>"))
         {
             String strs[] = s.split("\\s*&&\\s*");
             for (String str : strs)
@@ -336,6 +336,7 @@ public class RP_SYS_OverrideTracksValue
 
         } else
         {
+
             LOGGER.log(Level.WARNING, "loadFromString() Ignoring invalid string: {0}  baseRhythm={1}", new Object[]
             {
                 s,
