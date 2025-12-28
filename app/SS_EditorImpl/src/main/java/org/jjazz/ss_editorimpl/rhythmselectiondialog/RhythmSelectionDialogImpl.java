@@ -418,7 +418,6 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
      * The method disables listening to rhythmTable during operation. So valueChanged() is not called during this method.
      *
      * @param rp
-     * @param sri
      */
     private void updateRhythmTable(RhythmProvider rp)
     {
@@ -732,6 +731,8 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         jScrollPane1.setViewportView(list_RhythmProviders);
 
         jScrollPane2.setAutoscrolls(true);
+
+        tbl_rhythms.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF);
         jScrollPane2.setViewportView(tbl_rhythms);
 
         org.openide.awt.Mnemonics.setLocalizedText(lbl_rhythms, org.openide.util.NbBundle.getMessage(RhythmSelectionDialogImpl.class, "RhythmSelectionDialogImpl.lbl_rhythms.text")); // NOI18N
@@ -966,14 +967,11 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
                 .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(pnl_customComponent, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap())
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(btn_Cancel)
-                            .addComponent(btn_Ok))
-                        .addContainerGap())))
+                    .addComponent(pnl_customComponent, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(btn_Cancel)
+                        .addComponent(btn_Ok)))
+                .addContainerGap())
         );
 
         pack();

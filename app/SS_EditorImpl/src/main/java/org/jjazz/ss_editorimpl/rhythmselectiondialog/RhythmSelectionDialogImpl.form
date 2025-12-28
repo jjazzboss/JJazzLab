@@ -184,6 +184,9 @@
           <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
           <SubComponents>
             <Component class="javax.swing.JTable" name="tbl_rhythms">
+              <Properties>
+                <Property name="autoResizeMode" type="int" value="0"/>
+              </Properties>
               <AuxValues>
                 <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="rhythmTable;"/>
               </AuxValues>

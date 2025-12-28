@@ -44,28 +44,31 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JLabel;
 import javax.swing.JTable;
+import javax.swing.SwingUtilities;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import org.jjazz.midi.api.synths.GM1Instrument;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.rhythm.spi.RhythmDirsLocator;
 import org.jjazz.rhythmdatabaseimpl.api.FavoriteRhythms;
 import org.jjazz.rhythmdatabase.api.RhythmInfo;
+import org.jjazz.uiutilities.api.StringMetrics;
 import org.jjazz.utilities.api.ResUtil;
-import org.jjazz.utilities.api.Utilities;
 
 /**
  * A JTable to show a list of rhythms.
  * <p>
  * Highlight the favorite rhythms.
  */
+
 public class RhythmJTable extends JTable implements PropertyChangeListener
 {
 
-    private final Model model = new Model();
+    private final RhythmTableModel model = new RhythmTableModel();
     private List<Integer> hiddenColumnIndexes = new ArrayList<>();
     private static final Logger LOGGER = Logger.getLogger(RhythmJTable.class.getSimpleName());
 
@@ -95,7 +98,7 @@ public class RhythmJTable extends JTable implements PropertyChangeListener
     }
 
     @Override
-    public Model getModel()
+    public RhythmTableModel getModel()
     {
         return model;
     }
@@ -186,7 +189,8 @@ public class RhythmJTable extends JTable implements PropertyChangeListener
         };
     }
 
-    public class Model extends AbstractTableModel
+
+    public class RhythmTableModel extends AbstractTableModel
     {
 
         public static final int COL_ID = 0;
@@ -210,7 +214,7 @@ public class RhythmJTable extends JTable implements PropertyChangeListener
         private final Set<RhythmInfo> highlightedRhythms = new HashSet<>();
         private final Map<RhythmInfo, File> mapRhythmDefaultMixFile = new HashMap<>();
 
-        public Model()
+        public RhythmTableModel()
         {
             // Consistency check
             assert COLUMN_HEADER_TOOLTIPS.length == getColumnCount() : "COLUMN_HEADER_TOOLTIPS.length=" + COLUMN_HEADER_TOOLTIPS.length;
@@ -229,13 +233,13 @@ public class RhythmJTable extends JTable implements PropertyChangeListener
             highlightedRhythms.clear();
 
             fireTableDataChanged();
-            adjustWidths();
+            SwingUtilities.invokeLater(() -> adjustWidths());
 
             // Start a background task to update the default rhythm mix column
             Executors.newSingleThreadExecutor().submit((Runnable) () -> updateDefaultMixValues(this.rhythms));
         }
 
-        List<? extends RhythmInfo> getRhythms()
+        public List<? extends RhythmInfo> getRhythms()
         {
             return rhythms;
         }
@@ -276,6 +280,24 @@ public class RhythmJTable extends JTable implements PropertyChangeListener
             return highlightedRhythms.contains(ri);
         }
 
+        public String getLongestDataAsString(int col)
+        {
+            String res = " ";
+            for (int row = 0; row < rhythms.size(); row++)
+            {
+                String s = getValueAt(row, col).toString();
+                if (s == null)
+                {
+                    continue;
+                }
+                if (s.length() > res.length())
+                {
+                    res = s;
+                }
+            }
+            return res;
+        }
+
         @Override
         public Class<?> getColumnClass(int col)
         {
@@ -302,7 +324,7 @@ public class RhythmJTable extends JTable implements PropertyChangeListener
                 case COL_NB_VOICES ->
                     ResUtil.getString(getClass(), "COL_NbInstruments");
                 case COL_DIVISION ->
-                    ResUtil.getString(getClass(), "COL_Feel");  // previously called Feel
+                    ResUtil.getString(getClass(), "COL_Feel");  // division was previously called Feel, don't want to change the bundle key
                 case COL_DEFAULT_MIX ->
                     ResUtil.getString(getClass(), "COL_DefaultMix");
                 case COL_DIR ->
@@ -526,48 +548,58 @@ public class RhythmJTable extends JTable implements PropertyChangeListener
     private void adjustWidths()
     {
         final TableColumnModel colModel = getColumnModel();
-        final int EXTRA = 5;
+
+        final StringMetrics stringMetrics = new StringMetrics(getFont());
+        final int charPixelWidth = (int) stringMetrics.getWidth(">");
+        final int maxPreferredWidth = (int) stringMetrics.getWidth("this is quite a loooooooooooooooooong string no?");
+
         for (int colIndex = 0; colIndex < getColumnCount(); colIndex++)
         {
+            TableColumn tableColumn = colModel.getColumn(colIndex);
+
             if (hiddenColumnIndexes.contains(colIndex))
             {
-                colModel.getColumn(colIndex).setMinWidth(0);
-                colModel.getColumn(colIndex).setMaxWidth(0);
-                colModel.getColumn(colIndex).setPreferredWidth(0);
+                tableColumn.setMinWidth(0);
+                tableColumn.setMaxWidth(0);
+                tableColumn.setPreferredWidth(0);
                 continue;
             }
 
-            // Handle header
-            TableCellRenderer renderer = getTableHeader().getDefaultRenderer();
-            Component comp = renderer.getTableCellRendererComponent(this, model.getColumnName(colIndex), true, true, 0, colIndex);
-            int headerWidth = comp.getPreferredSize().width;
+            // Header
+            int headerWidth = (int) stringMetrics.getWidth(model.getColumnName(colIndex)) + 2 * charPixelWidth;
 
-            int width = 20; // Min width
 
-            // Handle data
-            for (int row = 0; row < getRowCount(); row++)
-            {
-                renderer = getCellRenderer(row, colIndex);
-                comp = prepareRenderer(renderer, row, colIndex);
-                width = Math.max(comp.getPreferredSize().width, width);
-            }
-            width = Math.max(width, headerWidth);
-            width = Math.min(width, 400);
-            width += EXTRA;
+            // Data
+            String longestColString = model.getLongestDataAsString(colIndex);
+            int width = (int) stringMetrics.getWidth(longestColString) + charPixelWidth;
+            width = Math.max(width, headerWidth);                   // no smaller than header
+            width = Math.min(width, maxPreferredWidth);           // not too wide
 
-            // We have our preferred width
-            colModel.getColumn(colIndex).setPreferredWidth(width);
 
-            // Also set max size
             switch (colIndex)
             {
-                case Model.COL_NB_VOICES, Model.COL_TEMPO, Model.COL_ID -> colModel.getColumn(colIndex).setMaxWidth(width);
-                case Model.COL_NAME -> colModel.getColumn(colIndex).setMaxWidth(width + 20);
-                case Model.COL_DIVISION -> colModel.getColumn(colIndex).setMaxWidth(width);
-                case Model.COL_DEFAULT_MIX -> colModel.getColumn(colIndex).setMaxWidth(width);
-                case Model.COL_DIR ->
+                case RhythmTableModel.COL_NB_VOICES, RhythmTableModel.COL_TEMPO, RhythmTableModel.COL_DIVISION, RhythmTableModel.COL_DEFAULT_MIX ->
                 {
-                    // Nothing
+                    int pw = width;
+                    tableColumn.setMaxWidth(pw);
+                    tableColumn.setPreferredWidth(pw);      // must be done after setMaxWidth
+                }
+                case RhythmTableModel.COL_ID ->
+                {
+                    int pw = width + charPixelWidth;    // if highlighted contains additional chars
+                    tableColumn.setMaxWidth(pw);
+                    tableColumn.setPreferredWidth(pw);      // must be done after setMaxWidth
+                }
+                case RhythmTableModel.COL_NAME ->
+                {
+                    int pw = width + 2 * charPixelWidth;    // if highlighted contains additional chars
+                    tableColumn.setMaxWidth(pw);
+                    tableColumn.setPreferredWidth(pw);      // must be done after setMaxWidth
+                }
+                case RhythmTableModel.COL_DIR ->
+                {
+                    tableColumn.setPreferredWidth(width);
+                    // Don't set max
                 }
                 default -> throw new IllegalStateException("col=" + colIndex);
             }
@@ -622,21 +654,21 @@ public class RhythmJTable extends JTable implements PropertyChangeListener
 
             switch (col)
             {
-                case Model.COL_NB_VOICES -> lbl.setToolTipText(RhythmJTable.this.getInstrumentsString(ri));
+                case RhythmTableModel.COL_NB_VOICES -> lbl.setToolTipText(RhythmJTable.this.getInstrumentsString(ri));
 
-                case Model.COL_NAME ->
+                case RhythmTableModel.COL_NAME ->
                 {
                     String s = f == null ? "" : ", " + ResUtil.getString(getClass(), "COL_NameToolTip", f.getName());
                     lbl.setToolTipText(ResUtil.getString(getClass(), "COL_DescToolTip", ri.description() + s));
                 }
 
-                case Model.COL_DEFAULT_MIX ->
+                case RhythmTableModel.COL_DEFAULT_MIX ->
                 {
                     File rdm = model.getDefaultMix(ri);
                     lbl.setToolTipText(rdm != null ? rdm.getAbsolutePath() : ResUtil.getString(getClass(), "NoRhythmDefaultMix", ri.name()));
                 }
 
-                case Model.COL_DIR -> lbl.setToolTipText(ResUtil.getString(getClass(), "COL_DirTooltip"));
+                case RhythmTableModel.COL_DIR -> lbl.setToolTipText(ResUtil.getString(getClass(), "COL_DirTooltip"));
 //                    // Left dots and the right part of the string visible in the cell
 //                    int availableWidth = table.getColumnModel().getColumn(col).getWidth();
 //                    availableWidth -= table.getIntercellSpacing().getWidth();
@@ -678,8 +710,8 @@ public class RhythmJTable extends JTable implements PropertyChangeListener
             {
                 switch (col)
                 {
-                    case Model.COL_ID -> lbl.setText(">>>");
-                    case Model.COL_NAME -> lbl.setText(">>> " + lbl.getText());
+                    case RhythmTableModel.COL_ID -> lbl.setText(">>>");
+                    case RhythmTableModel.COL_NAME -> lbl.setText(">>> " + lbl.getText());
                     default ->
                     {
                         // Nothing
