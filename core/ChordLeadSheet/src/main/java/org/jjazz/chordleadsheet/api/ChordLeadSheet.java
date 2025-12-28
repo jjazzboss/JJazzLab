@@ -182,6 +182,7 @@ public interface ChordLeadSheet
      * @param barIndexTo
      * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. IMPORTANT:some undoable changes might have been done
      *                                  before exception is thrown, caller will need to rollback them.
+     * @throws IllegalArgumentException If barIndexFrom/To are not consistent with this chord leadsheet, or if all bars would be deleted
      */
     void deleteBars(int barIndexFrom, int barIndexTo) throws UnsupportedEditException;
 

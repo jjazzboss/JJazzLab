@@ -95,7 +95,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         Objects.requireNonNull(initSection);
         Preconditions.checkArgument(initSection.getPosition().getBar() == 0, "initSection=%s", initSection);
         Preconditions.checkArgument(size >= 1 && size <= MAX_SIZE, "size=%s", size);
-        
+
         this.size = size;
 
         WritableItem<Section> wSection = (WritableItem<Section>) initSection;

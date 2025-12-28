@@ -46,7 +46,7 @@ import org.openide.awt.ActionRegistration;
 @ActionReferences(
         {
             @ActionReference(path = "Actions/Bar", position = 400),
-            @ActionReference(path = "Shortcuts", name="S-DELETE")
+            @ActionReference(path = "Shortcuts", name = "S-DELETE")
         })
 public class RemoveBar extends CL_ContextAction
 {
@@ -59,7 +59,7 @@ public class RemoveBar extends CL_ContextAction
     {
         putValue(NAME, ResUtil.getString(getClass(), "CTL_RemoveBar"));
         putValue(ACCELERATOR_KEY, KEYSTROKE);
-        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.BAR_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES));        
+        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.BAR_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES));
     }
 
     @Override
@@ -67,9 +67,8 @@ public class RemoveBar extends CL_ContextAction
     {
         int minBar = selection.getMinBarIndexWithinCls();
         int maxBar = selection.getMaxBarIndexWithinCls();
-        int lastBar = cls.getSizeInBars() - 1;
-
-
+        int lastBar = selection.getChordLeadSheet().getSizeInBars() - 1;
+        
         LOGGER.log(Level.FINE, "actionPerformed() minBar={0} cls={1}", new Object[]
         {
             minBar, cls
@@ -100,10 +99,9 @@ public class RemoveBar extends CL_ContextAction
     public void selectionChange(CL_Selection selection)
     {
         boolean b = false;
-        ChordLeadSheet cls = selection.getChordLeadSheet();
         if (selection.isContiguousBarboxSelectionWithinCls())
         {
-            b = true;
+            b = !isAllBarsSelected(selection);
         }
         LOGGER.log(Level.FINE, "selectionChange() b={0}", b);
         setEnabled(b);
@@ -116,5 +114,13 @@ public class RemoveBar extends CL_ContextAction
         {
             selectionChange(getSelection());
         }
+    }
+
+    private boolean isAllBarsSelected(CL_Selection selection)
+    {
+        int minBar = selection.getMinBarIndexWithinCls();
+        int maxBar = selection.getMaxBarIndexWithinCls();
+        int lastBar = selection.getChordLeadSheet().getSizeInBars() - 1;
+        return minBar == 0 && maxBar == lastBar;
     }
 }
