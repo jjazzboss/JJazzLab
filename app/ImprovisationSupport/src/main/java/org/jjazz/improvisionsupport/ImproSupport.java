@@ -101,10 +101,11 @@ public class ImproSupport implements PropertyChangeListener
      */
     public void generate()
     {
-        if (!enabled)
+        if (!enabled || clEditor.getSongModel().getSongStructure().getSongParts().isEmpty())
         {
             return;
         }
+        
         setDirty(false);
 
         PlayRestScenario prs;
