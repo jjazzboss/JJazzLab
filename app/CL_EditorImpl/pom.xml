@@ -138,6 +138,11 @@
         </dependency>
         <dependency>
             <groupId>org.jjazzlab.app</groupId>
+            <artifactId>activesong</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jjazzlab.app</groupId>
             <artifactId>uisettings</artifactId>
             <version>${project.version}</version>
         </dependency>

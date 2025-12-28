@@ -30,18 +30,18 @@ import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import static javax.swing.Action.NAME;
 import javax.swing.KeyStroke;
+import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.cl_editor.api.CL_ContextAction;
-import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.cl_editor.api.CL_Selection;
 import static org.jjazz.cl_editorimpl.actions.TransposeDown.transpose;
 import org.jjazz.harmony.api.Note;
+import org.jjazz.musiccontrol.api.MusicController;
+import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession.Context;
 import org.jjazz.musiccontrolactions.api.RemoteAction;
 import org.jjazz.musiccontrolactions.spi.RemoteActionProvider;
 import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
-import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -52,10 +52,10 @@ import org.openide.util.lookup.ServiceProvider;
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.transposeup")
 @ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
-    {
-        @ActionReference(path = "Actions/ChordSymbol", position = 400),
-        @ActionReference(path = "Shortcuts", name = "D-UP")
-    })
+        {
+            @ActionReference(path = "Actions/ChordSymbol", position = 400),
+            @ActionReference(path = "Shortcuts", name = "D-UP")
+        })
 public final class TransposeUp extends CL_ContextAction
 {
 
@@ -117,15 +117,20 @@ public final class TransposeUp extends CL_ContextAction
         @Override
         public void actionPerformed(ActionEvent e)
         {
-            var clTc = CL_EditorTopComponent.getActive();
-            if (clTc == null)
+            var mc = MusicController.getInstance();
+            var playbackSession = mc.getPlaybackSession();
+            if (playbackSession != null && playbackSession.getContext() != Context.SONG)
             {
-                LOGGER.warning("TransposeUpRemoteAction.actionPerformed() no active CL_EditorTopComponent");
                 return;
             }
-            var cls = clTc.getEditor().getModel();
-            var items = cls.getItems(CLI_ChordSymbol.class);
-            transpose(items, 1, Note.Accidental.SHARP, undoName);
+            
+            
+            var song = ActiveSongManager.getDefault().getActiveSong();
+            if (song != null)
+            {
+                var items = song.getChordLeadSheet().getItems(CLI_ChordSymbol.class);
+                transpose(items, 1, Note.Accidental.SHARP, undoName);
+            }
         }
 
     }
