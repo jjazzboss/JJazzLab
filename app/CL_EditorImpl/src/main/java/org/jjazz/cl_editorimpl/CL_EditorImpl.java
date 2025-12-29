@@ -48,7 +48,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -655,7 +654,10 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     public void setBarBoxConfig(BarBoxConfig bbConfig, Integer... barIndexes)
     {
         checkNotNull(bbConfig);
-
+        LOGGER.log(Level.FINE, "setBarBoxConfig() -- bbConfig={0} barIndexes={1}", new Object[]
+        {
+            bbConfig, List.of(barIndexes)
+        });
         if (barIndexes.length == 0)
         {
             barIndexes = IntStream.range(0, getNbBarBoxes())

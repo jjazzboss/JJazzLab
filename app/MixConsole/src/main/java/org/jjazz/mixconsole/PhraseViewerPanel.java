@@ -91,7 +91,7 @@ public class PhraseViewerPanel extends PhraseBirdsEyeViewComponent implements Ch
         setOpaque(false);
         setShowVelocityMode(2);
         setBorder(BorderFactory.createLineBorder(BORDER_COLOR));
-        setLayout(new CornerLayout(BUTTONS_PADDING));
+        setLayout(new CornerLayout(BUTTONS_PADDING, CornerLayout.NORTH_WEST));
         String text = ResUtil.getString(getClass(), "PhraseViewerTooltip") + "\n" + ResUtil.getString(getClass(), "DragToExportTrack");
         setToolTipText(text);
 

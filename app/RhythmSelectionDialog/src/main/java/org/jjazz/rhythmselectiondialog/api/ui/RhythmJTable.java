@@ -549,7 +549,7 @@ public class RhythmJTable extends JTable implements PropertyChangeListener
     {
         final TableColumnModel colModel = getColumnModel();
 
-        final StringMetrics stringMetrics = new StringMetrics(getFont());
+        final StringMetrics stringMetrics = StringMetrics.create(getFont());
         final int charPixelWidth = (int) stringMetrics.getWidth(">");
         final int maxPreferredWidth = (int) stringMetrics.getWidth("this is quite a loooooooooooooooooong string no?");
 

@@ -1129,7 +1129,7 @@ public class Utilities
         return res;
     }
 
-      /**
+    /**
      * Create a shallow copy of a 2D array (referencing the same cell data as the original).
      *
      * @param array
@@ -1154,7 +1154,7 @@ public class Utilities
         // Return the cloned matrix
         return res;
     }
-    
+
     /**
      * Finds the first occurrence of the pattern in the text.
      * <p>
@@ -1188,6 +1188,23 @@ public class Utilities
             }
         }
         return -1;
+    }
+
+    /**
+     * Join several lists into one.
+     *
+     * @param <T>
+     * @param lists
+     * @return
+     */
+    public static <T> List<T> join(List<T>... lists)
+    {
+        List<T> res = new ArrayList<>();
+        for (List<T> list : lists)
+        {
+            res.addAll(list);
+        }
+        return res;
     }
 
     /**
@@ -1366,7 +1383,7 @@ public class Utilities
         switch (uri.getScheme())
         {
             case "file" ->
-            {                
+            {
                 File file = org.openide.util.Utilities.toFile(uri);
                 b = Utilities.systemOpenFile(file, true, Utilities.SAFE_OPEN_EXTENSIONS);
             }

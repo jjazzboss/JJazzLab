@@ -26,6 +26,11 @@ import java.awt.*;
 import java.awt.geom.*;
 import java.awt.font.*;
 import java.awt.image.BufferedImage;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Compute string metrics.
@@ -35,46 +40,61 @@ import java.awt.image.BufferedImage;
 public class StringMetrics
 {
 
-    private Font font;
-    private FontRenderContext fontRendererContext;
+    private record FontContext(Font font, FontRenderContext frc)
+            {
+
+    }
+    private final Font font;
+    private final FontRenderContext fontRendererContext;
     private LineMetrics lineMetrics;
     private Rectangle2D bounds, boundsNoLeading, boundsNoLeadingNoDescent;
     private String lastText;
+    static private final Map<FontContext, StringMetrics> mapContextInstance = new HashMap<>();
     static private BufferedImage IMG;
-    static private Graphics2D G2;
     static private FontRenderContext FRC;
+    private static final Logger LOGGER = Logger.getLogger(StringMetrics.class.getSimpleName());
 
-
-    private static void initInternalGraphics()
+    /**
+     * Create a StringMetrics which uses a shared Graphics2D instance from a bufferedImage.
+     *
+     * @param font
+     * @return Might be a cached instance.
+     */
+    public static StringMetrics create(Font font)
     {
-        if (IMG == null)
-        {
-            IMG = new BufferedImage(3, 3, BufferedImage.TYPE_INT_ARGB);       // Size does not matter
-            G2 = IMG.createGraphics();
-            FRC = G2.getFontRenderContext();
-        }
+        initInternalGraphics();
+        return create(FRC, font);
     }
 
     /**
-     * Create an instance which uses a shared Graphics2D instance from a bufferedImage.
-     * <p>
-     * @param font
+     * Create a StringMetrics from g2 and g2.getFont().
+     *
+     * @param g2
+     * @return Might be a cached instance.
      */
-    public StringMetrics(Font font)
+    public static StringMetrics create(Graphics2D g2)
     {
-        initInternalGraphics();
-        fontRendererContext = FRC;
-        this.font = font;
+        return create(g2.getFontRenderContext(), g2.getFont());
     }
 
-    public StringMetrics(Graphics2D g2)
+    /**
+     * Create a StringMetrics.
+     *
+     * @param g2
+     * @param font
+     * @return Might be a cached instance.
+     */
+    public static StringMetrics create(Graphics2D g2, Font font)
     {
-        this(g2, g2.getFont());
+        return create(g2.getFontRenderContext(), font);
     }
 
-    public StringMetrics(Graphics2D g2, Font font)
+
+    private StringMetrics(FontRenderContext frc, Font font)
     {
-        fontRendererContext = g2.getFontRenderContext();
+        Objects.requireNonNull(frc);
+        Objects.requireNonNull(font);
+        fontRendererContext = frc;
         this.font = font;
     }
 
@@ -82,7 +102,7 @@ public class StringMetrics
     /**
      * Return a rectangle in baseline relative coordinates, include the leading (interline spacing).
      * <p>
-     * If this method is called several times with the same text, the cached result is returned.
+     * If this method is called several times in a row with the same text, the cached result is returned.
      *
      * @param text
      * @return
@@ -106,7 +126,7 @@ public class StringMetrics
     /**
      * Return a rectangle in baseline relative coordinates, excluding the leading (interline spacing).
      * <p>
-     * If this method is called several times with the same text, the cached result is returned.
+     * If this method is called several times in a row with the same text, the cached result is returned.
      *
      * @param text
      * @return
@@ -133,7 +153,7 @@ public class StringMetrics
      * Return a rectangle in baseline relative coordinates, excluding the descent and the leading (interline spacing).
      * <p>
      * See LineMetrics or FontMetrics for more info about descent/leading.<p>
-     * If this method is called several times with the same text, the cached result is returned.
+     * If this method is called several times in a row with the same text, the cached result is returned.
      *
      * @param text
      * @return
@@ -184,4 +204,29 @@ public class StringMetrics
         return getLogicalBoundsNoLeading(text).getHeight();
     }
 
+
+    // =======================================================================================================
+    // Private methods
+    // =======================================================================================================
+    private static void initInternalGraphics()
+    {
+        if (IMG == null)
+        {
+            IMG = new BufferedImage(3, 3, BufferedImage.TYPE_INT_ARGB);       // Size does not matter
+            FRC = IMG.createGraphics().getFontRenderContext();
+        }
+    }
+
+    private static StringMetrics create(FontRenderContext frc, Font font)
+    {
+        var key = new FontContext(font, frc);
+        var res = mapContextInstance.get(key);
+        if (res == null)
+        {
+            res = new StringMetrics(frc, font);
+            mapContextInstance.put(key, res);
+            LOGGER.log(Level.FINE, "create() new instance {0}", key);
+        }
+        return res;
+    }
 }

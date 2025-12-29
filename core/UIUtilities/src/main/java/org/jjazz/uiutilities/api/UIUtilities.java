@@ -49,17 +49,23 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
+import java.awt.font.FontRenderContext;
+import java.awt.font.LineBreakMeasurer;
+import java.awt.font.TextAttribute;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
+import java.text.AttributedCharacterIterator;
+import java.text.AttributedString;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javax.swing.AbstractAction;
@@ -152,7 +158,7 @@ public class UIUtilities
     {
         BufferedImage img = new BufferedImage(3, 3, BufferedImage.TYPE_INT_ARGB);       // Size does not matter
         Graphics2D g2 = img.createGraphics();
-        var sm = new StringMetrics(g2, f);
+        var sm = StringMetrics.create(g2, f);
         var res = sm.getLogicalBoundsNoLeading(text);
         img.flush();
         g2.dispose();
@@ -732,6 +738,49 @@ public class UIUtilities
         return b;
     }
 
+
+    /**
+     * Count text lines to line wrap of a JTextArea.
+     * <p>
+     * Source - https://stackoverflow.com/a/30622483 Posted by sly493, modified by community. License - CC BY-SA 3.0.
+     *
+     * @param ta
+     * @return
+     */
+    public static int countLines(JTextArea ta)
+    {
+        final Insets in = ta.getInsets();
+        final float formatWidth = ta.getWidth() - in.left - in.right;
+        final var text = ta.getText();
+        int count = 0;
+
+        for (var line : text.split("\n"))
+        {
+            if (line.isEmpty())
+            {
+                count++;
+                continue;
+            }
+            AttributedString attString = new AttributedString(line);
+            attString.addAttribute(TextAttribute.FONT, ta.getFont());
+            FontRenderContext frc = ta.getFontMetrics(ta.getFont()).getFontRenderContext();
+            AttributedCharacterIterator charIt = attString.getIterator();
+            LineBreakMeasurer lineMeasurer = new LineBreakMeasurer(charIt, frc);
+            lineMeasurer.setPosition(charIt.getBeginIndex());
+
+            int lineCount = 0;
+            while (lineMeasurer.getPosition() < charIt.getEndIndex())
+            {
+                lineMeasurer.nextLayout(formatWidth);
+                lineCount++;
+            }
+            count += lineCount;
+        }
+
+        return count;
+    }
+
+
     /**
      * Show the JFileChooser to select a directory.
      *
@@ -782,7 +831,7 @@ public class UIUtilities
 
 
         Rectangle r = getUsableArea(jc);
-        StringMetrics sm = new StringMetrics(g2);
+        StringMetrics sm = StringMetrics.create(g2);
 
 
         String[] strs = text.split("\\n");

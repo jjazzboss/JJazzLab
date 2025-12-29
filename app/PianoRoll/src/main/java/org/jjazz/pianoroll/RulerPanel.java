@@ -141,7 +141,7 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
         BufferedImage img = new BufferedImage(3, 3, BufferedImage.TYPE_INT_ARGB);       // Size does not matter
         Graphics2D g2 = img.createGraphics();
         Font f = this.editor.getSettings().getRulerBaseFont();
-        BASE_FONT_HEIGHT = (float) new StringMetrics(g2, f).getLogicalBoundsNoLeadingNoDescent("9").getHeight();
+        BASE_FONT_HEIGHT = (float) StringMetrics.create(g2, f).getLogicalBoundsNoLeadingNoDescent("9").getHeight();
         img.flush();
         g2.dispose();
         TIME_SIGNATURE_LANE_HEIGHT = Math.round(BASE_FONT_HEIGHT + 3);
@@ -323,7 +323,7 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
                 g2.setColor(COLOR_TIME_SIGNATURE_FONT);
                 g2.drawString(text, x + 1, yTimeSignatureBaseLine);
 
-                StringMetrics sm = new StringMetrics(g2);
+                StringMetrics sm = StringMetrics.create(g2);
                 xSongPart = x + 1 + (int) Math.round(sm.getWidth(text)) + 3;
 
                 lastTs = ts;
@@ -342,7 +342,7 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
                     String sptLabel = sptName.equals(secName)
                         ? sptName
                         : sptName + "(" + secName + ")";
-                    StringMetrics sm = new StringMetrics(g2, SMALL_FONT);
+                    StringMetrics sm = StringMetrics.create(g2, SMALL_FONT);
                     var bounds = sm.getLogicalBoundsNoLeadingNoDescent(sptLabel);
 
                     // Draw rounded box

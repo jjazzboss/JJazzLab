@@ -461,12 +461,12 @@ public class PianoKey extends JComponent
 
             // Find the optimal font size
             Font f = getFont();
-            var textBounds = new StringMetrics(g2, f).getLogicalBoundsNoLeading(text);
+            var textBounds = StringMetrics.create(g2, f).getLogicalBoundsNoLeading(text);
             double targetFontHeight = h * 0.9;
             float targetFontSize = (float) (f.getSize2D() * targetFontHeight / textBounds.getHeight());
             targetFontSize = Math.min(12f, targetFontSize);
             f = f.deriveFont(targetFontSize);
-            textBounds = new StringMetrics(g2, f).getLogicalBoundsNoLeading(text);
+            textBounds = StringMetrics.create(g2, f).getLogicalBoundsNoLeading(text);
             g2.setFont(f);
 
 

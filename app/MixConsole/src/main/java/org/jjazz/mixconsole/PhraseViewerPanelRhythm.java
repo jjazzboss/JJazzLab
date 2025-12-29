@@ -25,7 +25,6 @@ package org.jjazz.mixconsole;
 import java.awt.BorderLayout;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
-import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JLayer;
 import javax.swing.JPanel;
@@ -65,7 +64,7 @@ public class PhraseViewerPanelRhythm extends PhraseViewerPanel
         // Prepare for the JLayer to show the button when hovering over the component
         // We can't directly associate a JLayer to "this" JPanel object, so we add a support panel on which JLayer will be used
         supportPanel = new JPanel();
-        supportPanel.setLayout(new CornerLayout(BUTTONS_PADDING));  // Reuse layout of parent class
+        supportPanel.setLayout(new CornerLayout(BUTTONS_PADDING, CornerLayout.NORTH_WEST));  // Reuse layout of parent class
         supportPanel.setOpaque(false);        // So we can see the PhraseViewerPanel background
         var enterExitConsumer = new Consumer<Boolean>()
         {

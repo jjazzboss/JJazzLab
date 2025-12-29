@@ -22,15 +22,18 @@
  */
 package org.jjazz.cl_editorimpl.itemrenderer;
 
+import com.google.common.base.CharMatcher;
 import com.google.common.base.Preconditions;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Insets;
 import java.beans.PropertyChangeEvent;
+import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import org.jjazz.chordleadsheet.api.item.CLI_BarAnnotation;
 import org.jjazz.cl_editor.api.CL_EditorClientProperties;
@@ -40,18 +43,13 @@ import org.jjazz.cl_editor.itemrenderer.api.IR_Type;
 import org.jjazz.cl_editor.itemrenderer.api.ItemRenderer;
 import org.jjazz.cl_editor.itemrenderer.api.ItemRendererSettings;
 import org.jjazz.uiutilities.api.RedispatchingMouseAdapter;
+import org.jjazz.uiutilities.api.UIUtilities;
 
 /**
  * Represents an annotation text.
  */
 public class IR_AnnotationText extends ItemRenderer implements IR_Copiable
 {
-
-    /**
-     * Border size between text and edge.
-     */
-    private static final int MARGIN = 2;
-
 
     /**
      * Our graphical settings.
@@ -65,13 +63,15 @@ public class IR_AnnotationText extends ItemRenderer implements IR_Copiable
     private int nbLines;
     private Font zFont;
     private final JTextArea textArea;
-    private static final Logger LOGGER = Logger.getLogger(IR_AnnotationText.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(IR_AnnotationText.class.getSimpleName());
 
     @SuppressWarnings("LeakingThisInConstructor")
     public IR_AnnotationText(CLI_BarAnnotation item, ItemRendererSettings irSettings)
     {
         super(item, IR_Type.BarAnnotationText);
         nbLines = 1;
+
+        LOGGER.log(Level.FINE, "IR_AnnotationText() -- item={0}", item);
 
 
         // Register settings changes
@@ -83,7 +83,6 @@ public class IR_AnnotationText extends ItemRenderer implements IR_Copiable
         textArea = new JTextArea();
         textArea.setEditable(false);
         textArea.setLineWrap(true);
-        textArea.setRows(nbLines);
         textArea.setOpaque(false);
         textArea.setText(item.getData());
         textArea.setCaretPosition(0);
@@ -92,18 +91,18 @@ public class IR_AnnotationText extends ItemRenderer implements IR_Copiable
         setTextFontColor(settings.getColor());
         textArea.setFont(zFont);
         textArea.setTransferHandler(null);  // Required otherwise icon "drop not possible" is shown when dragging an IR_AnnotationText to another bar (because another IR_Annotation is used as insertion point)
-        JScrollPane scrollPane = new JScrollPane(textArea);
-        scrollPane.setOpaque(false);
-        scrollPane.getViewport().setOpaque(false);
-        scrollPane.setBorder(null);
+        textArea.setRows(nbLines);
         setLayout(new BorderLayout());
-        add(scrollPane);
+        add(textArea);
 
 
         // Redispatch mouse events for selection and drag to work
         var mouseRedispatcher = new RedispatchingMouseAdapter(this);
         textArea.addMouseListener(mouseRedispatcher);
         textArea.addMouseMotionListener(mouseRedispatcher);
+
+
+        modelChanged();
 
     }
 
@@ -114,6 +113,20 @@ public class IR_AnnotationText extends ItemRenderer implements IR_Copiable
         textArea.setRows(nbLines);
         revalidate();
         repaint();
+    }
+
+    /**
+     * Overridden because JTextArea.getPreferredSize() uses all text lines to compute height if there are more actual lines than nbLines.
+     * <p>
+     * JTextArea.getPreferredScrollableViewportSize() height calculation is only based on nbLines.
+     */
+    @Override
+    public Dimension getPreferredSize()
+    {
+        var d = textArea.getPreferredScrollableViewportSize();
+        var in = getInsets();
+        d.height += in.top + in.bottom;
+        return d;
     }
 
     public int getNbLines()
@@ -131,7 +144,7 @@ public class IR_AnnotationText extends ItemRenderer implements IR_Copiable
     public void setZoomFactor(int factor)
     {
         zoomFactor = factor;
-
+        fontOrZoomChanged();
     }
 
     @Override
@@ -153,6 +166,7 @@ public class IR_AnnotationText extends ItemRenderer implements IR_Copiable
         String text = ((CLI_BarAnnotation) getModel()).getData();
         textArea.setText(text);
         textArea.setCaretPosition(0);
+        setToolTipText(text);
     }
 
     @Override
@@ -161,21 +175,59 @@ public class IR_AnnotationText extends ItemRenderer implements IR_Copiable
         // Nothing
     }
 
+
     /**
-     * Possibly paint the copyMode ABOVE the children components.
+     * Compute the IR_AnnotationText font size depending on the zoom factor.
+     *
+     * @param fontBaseSize
+     * @param zoom
+     * @return
+     * @see #getZoomFactor()
+     */
+    static public float computeFontSize(float fontBaseSize, int zoom)
+    {
+        float f2 = 0.5f + (zoom / 100f);
+        float res = Math.max(7, f2 * fontBaseSize);
+        res = Math.max(res, 7);
+        return res;
+    }
+
+    /**
+     * Overridden to paint some indicators above children components.
+     * <p>
+     * Indicators:<br>
+     * CopyMode indicator when dragging <br>
+     * Some text lines are not visible<br>
      */
     @Override
     public void paint(Graphics g)
     {
         super.paint(g);
 
+        Graphics2D g2 = (Graphics2D) g;
+        Insets in = getInsets();
+        int w = getWidth();
+
+        if (isTextHidden())
+        {
+            // Draw dots in bottom right corner
+            final int nbDots = 3;
+            final int thickness = 2;
+            final int padding = 3;
+            for (int i = 1; i <= nbDots; i++)
+            {
+                int x = w - in.right - 1 - i * (padding + thickness);
+                int y = getHeight() - in.bottom - padding - thickness - 1;
+                g2.setColor(settings.getColor());
+                g2.fillRect(x, y, thickness, thickness);
+            }
+        }
 
         if (copyMode)
         {
-            Graphics2D g2 = (Graphics2D) g;
             // Draw the copy indicator in upper right corner
             int size = IR_Copiable.CopyIndicator.getSideLength();
-            Graphics2D gg2 = (Graphics2D) g2.create(Math.max(getWidth() - size - 1, 0), 1, size, size);
+            Graphics2D gg2 = (Graphics2D) g2.create(Math.max(w - in.right - size - 1, 0), 1 + in.top, size, size);
             IR_Copiable.CopyIndicator.drawCopyIndicator(gg2);
             gg2.dispose();
         }
@@ -227,10 +279,19 @@ public class IR_AnnotationText extends ItemRenderer implements IR_Copiable
 
     private void fontOrZoomChanged()
     {
-        float f2 = 0.5f + (zoomFactor / 100f);
-        float zFontSize = f2 * getFont().getSize2D();
-        zFontSize = Math.max(zFontSize, 7);
+        float zFontSize = computeFontSize(getFont().getSize2D(), zoomFactor);
         zFont = getFont().deriveFont(zFontSize);
         textArea.setFont(zFont);
+        revalidate();
+        repaint();
     }
+
+
+    private boolean isTextHidden()
+    {
+        var countLines = UIUtilities.countLines(textArea);
+        return countLines > nbLines;
+    }
+
+
 }

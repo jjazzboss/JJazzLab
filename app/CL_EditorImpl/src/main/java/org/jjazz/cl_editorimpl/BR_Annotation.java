@@ -24,45 +24,38 @@ package org.jjazz.cl_editorimpl;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.Insets;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.util.HashMap;
-import java.util.Map;
+import java.awt.LayoutManager;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JDialog;
-import javax.swing.JPanel;
 import org.jjazz.chordleadsheet.api.item.CLI_BarAnnotation;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.api.CL_EditorClientProperties;
 import org.jjazz.cl_editor.barrenderer.api.BarRenderer;
+import org.jjazz.cl_editor.itemrenderer.api.IR_AnnotationTextSettings;
 import org.jjazz.cl_editor.spi.BarRendererSettings;
 import org.jjazz.cl_editorimpl.itemrenderer.IR_AnnotationText;
-import org.jjazz.cl_editor.itemrenderer.api.IR_AnnotationTextSettings;
 import org.jjazz.cl_editor.itemrenderer.api.IR_Copiable;
 import org.jjazz.cl_editor.itemrenderer.api.IR_Type;
 import org.jjazz.cl_editor.itemrenderer.api.ItemRenderer;
 import org.jjazz.cl_editor.itemrenderer.api.ItemRendererFactory;
+import org.jjazz.uiutilities.api.CornerLayout;
+import org.jjazz.uiutilities.api.StringMetrics;
 
 /**
  * A BarRenderer to show an annotation.
  */
-public class BR_Annotation extends BarRenderer implements ComponentListener
+public class BR_Annotation extends BarRenderer
 {
-
-    /**
-     * Special shared JPanel instances per editor, used to calculate the preferred size for a BarRenderer subclass.
-     */
-    private static final Map<Integer, PrefSizePanel> mapEditorPrefSizePanel = new HashMap<>();
 
     private static final Dimension MIN_SIZE = new Dimension(10, 4);
 
@@ -70,29 +63,29 @@ public class BR_Annotation extends BarRenderer implements ComponentListener
      * The ItemRenderer to show the insertion point.
      */
     private ItemRenderer insertionPointRenderer;
-    private int zoomVFactor = 50;
+    private int zoomVFactor;
+    private int nbLines;
 
     private static final Logger LOGGER = Logger.getLogger(BR_Annotation.class.getSimpleName());
+
 
     @SuppressWarnings("LeakingThisInConstructor")
     public BR_Annotation(CL_Editor editor, int barIndex, BarRendererSettings settings, ItemRendererFactory irf)
     {
         super(editor, barIndex, settings, irf);
-
+        this.zoomVFactor = 50;
+        nbLines = CL_EditorClientProperties.getBarAnnotationNbLines(getEditor().getSongModel());
 
         // Our layout manager
-        setLayout(new BorderLayout());
+        setLayout(new AnnotationLayoutManager());
 
-
-        // Explicity set the preferred size so that layout's preferredLayoutSize() is never called
-        setPreferredSize(getPrefSizePanelSharedInstance().getPreferredSize());
-        getPrefSizePanelSharedInstance().addComponentListener(this);
         setMinimumSize(MIN_SIZE);
 
     }
 
     public void setNbLines(int n)
     {
+        nbLines = n;
         for (ItemRenderer ir : getItemRenderers())
         {
             if (ir instanceof IR_AnnotationText irAt)
@@ -100,7 +93,13 @@ public class BR_Annotation extends BarRenderer implements ComponentListener
                 irAt.setNbLines(n);
             }
         }
-        getPrefSizePanelSharedInstance().setNbLines(n);
+        revalidate();
+        repaint();
+    }
+
+    public int getNbLines()
+    {
+        return nbLines;
     }
 
     /**
@@ -110,17 +109,7 @@ public class BR_Annotation extends BarRenderer implements ComponentListener
     public void cleanup()
     {
         super.cleanup();
-        getPrefSizePanelSharedInstance().removeComponentListener(this);
         getEditor().removePropertyChangeListener(this);
-
-        // Remove only if it's the last bar of the editor
-        if (getEditor().getNbBarBoxes() == 1)
-        {
-            JDialog dlg = getFontMetricsDialog(getEditor());
-            dlg.remove(getPrefSizePanelSharedInstance());
-            mapEditorPrefSizePanel.remove(System.identityHashCode(getEditor()));
-            getPrefSizePanelSharedInstance().cleanup();
-        }
     }
 
     @Override
@@ -142,6 +131,10 @@ public class BR_Annotation extends BarRenderer implements ComponentListener
     @Override
     public void showInsertionPoint(boolean b, ChordLeadSheetItem<?> item, Position pos, boolean copyMode)
     {
+        LOGGER.log(Level.FINE, "showInsertionPoint() b={0} item={1} pos={2}", new Object[]
+        {
+            b, item, pos
+        });
         if (b)
         {
             if (insertionPointRenderer == null)
@@ -183,10 +176,7 @@ public class BR_Annotation extends BarRenderer implements ComponentListener
         {
             return;
         }
-        // Forward to the shared panel instance
-        getPrefSizePanelSharedInstance().setZoomVFactor(factor);
 
-        // Apply to this BR_Sections object
         zoomVFactor = factor;
         for (ItemRenderer ir : getItemRenderers())
         {
@@ -225,7 +215,6 @@ public class BR_Annotation extends BarRenderer implements ComponentListener
         IR_AnnotationText irAt = (IR_AnnotationText) getItemRendererFactory().createItemRenderer(IR_Type.BarAnnotationText,
                 item,
                 getSettings().getItemRendererSettings());
-        int nbLines = CL_EditorClientProperties.getBarAnnotationNbLines(getEditor().getSongModel());
         irAt.setNbLines(nbLines);
         return irAt;
     }
@@ -245,186 +234,90 @@ public class BR_Annotation extends BarRenderer implements ComponentListener
         g.fillRect(0, 0, getWidth(), getHeight());
     }
 
-
-    //-----------------------------------------------------------------------
-    // Implementation of the ComponentListener interface
-    //-----------------------------------------------------------------------
-    /**
-     * Our reference panel size (so its prefSize also) has changed, update our preferredSize.
-     *
-     * @param e
-     */
-    @Override
-    public void componentResized(ComponentEvent e)
-    {
-        setPreferredSize(getPrefSizePanelSharedInstance().getSize());
-        revalidate();
-        repaint();
-    }
-
-    @Override
-    public void componentMoved(ComponentEvent e)
-    {
-        // Nothing
-    }
-
-    @Override
-    public void componentShown(ComponentEvent e)
-    {
-        // Nothing
-    }
-
-    @Override
-    public void componentHidden(ComponentEvent e)
-    {
-        // Nothing
-    }
-
-
-    // ---------------------------------------------------------------
-    // Private functions
-    // ---------------------------------------------------------------
     // ---------------------------------------------------------------
     // Private methods
     // ---------------------------------------------------------------
-    /**
-     * Get the PrefSizePanel shared instance between BR_Sections of same groupKey.
-     *
-     * @return
-     */
-    private PrefSizePanel getPrefSizePanelSharedInstance()
-    {
-        PrefSizePanel panel = mapEditorPrefSizePanel.get(System.identityHashCode(getEditor()));
-        if (panel == null)
-        {
-            panel = new PrefSizePanel(this);
-            mapEditorPrefSizePanel.put(System.identityHashCode(getEditor()), panel);
-        }
-        return panel;
-    }
 
     // ---------------------------------------------------------------
-    // Private classes
+    // Inner classes
     // ---------------------------------------------------------------
     /**
-     * A special shared JPanel instance used to calculate the preferred size for all BR_Annotations.
+     * Special layout for annotations.
      * <p>
-     * Add ItemRenderers with the tallest size. Panel is added to the "hidden" BarRenderer's JDialog to be displayable so that FontMetrics can be calculated
-     * with a Graphics object.
-     * <p>
+     * Layout the first component in the top left corner, using all available width and preferred height. If there is 2nd component it's an insertion point,
+     * then put each component on left/right sides.
      */
-    static private class PrefSizePanel extends JPanel implements PropertyChangeListener
+    public class AnnotationLayoutManager implements LayoutManager
     {
 
-        int zoomVFactor;
-        final IR_AnnotationText ir;
-        final IR_AnnotationTextSettings settings = IR_AnnotationTextSettings.getDefault();
-        final BR_Annotation brAnnotation;
+        private static final int PADDING = 0;
 
-        public PrefSizePanel(BR_Annotation brAnnotation)
-        {
-            this.brAnnotation = brAnnotation;
-
-            // FlowLayout sets children size to their preferredSize
-            setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
-
-
-            // Listen to settings changes impacting ItemRenderers size
-            // Required here because the dialog is displayable but NOT visible (see myRevalidate()).
-            settings.addPropertyChangeListener(this);
-
-
-            // Add the tallest possible items
-            CLI_Factory clif = CLI_Factory.getDefault();
-            ChordLeadSheetItem<?> item = clif.createBarAnnotation("LYRICS ALALOLALALA\nLINE2\nLINE3\nLINE4", 0);
-            ItemRendererFactory irf = brAnnotation.getItemRendererFactory();
-            ir = (IR_AnnotationText) irf.createItemRenderer(IR_Type.BarAnnotationText, item, brAnnotation.getSettings().getItemRendererSettings());
-            int nbLines = CL_EditorClientProperties.getBarAnnotationNbLines(brAnnotation.getEditor().getSongModel());
-            ir.setNbLines(nbLines);
-            add(ir);
-
-
-            // Add the panel to a hidden dialog so it can be made displayable (getGraphics() will return a non-null value, so font-based sizes
-            // can be calculated
-            JDialog dlg = BarRenderer.getFontMetricsDialog(brAnnotation.getEditor());
-            dlg.add(this);
-            dlg.pack();    // Force all components to be displayable
-        }
-
-        public void cleanup()
-        {
-            settings.removePropertyChangeListener(this);
-        }
-
-        /**
-         * Overridden to use our own calculation instead of using FlowLayout's preferredLayoutSize().
-         *
-         * @return
-         */
         @Override
-        public Dimension getPreferredSize()
+        public void layoutContainer(Container container)
         {
-            // Get the max preferred height from ItemRenderers and the sum of their preferred width
-            int irMaxHeight = 0;
-            int irWidthSum = 0;
-            Dimension pd = ir.getPreferredSize();
-            irWidthSum += pd.width;
-            if (pd.height > irMaxHeight)
+            Insets in = container.getInsets();
+            int xLeft = in.left + PADDING;
+            int yTop = in.top + PADDING;
+            int w = getWidth() - xLeft - in.right - PADDING;
+
+            var irs = getItemRenderers();
+            assert irs.size() < 3 : "irs=" + irs;
+
+            if (!irs.isEmpty())
             {
-                irMaxHeight = pd.height;
-            }
+                var ir = irs.getFirst();
+                var pd = ir.getPreferredSize();
+                ir.setSize(w, pd.height);
+                ir.setLocation(xLeft, yTop);
 
-            int V_MARGIN = 1;    // Do not depend on zoomFactor     
-
-            Insets in = getInsets();
-            int pWidth = irWidthSum + 5 + in.left + in.right;
-            int pHeight = irMaxHeight + 2 * V_MARGIN + in.top + in.bottom;
-
-            return new Dimension(pWidth, pHeight);
-        }
-
-        public void setZoomVFactor(int vFactor)
-        {
-            if (zoomVFactor == vFactor)
-            {
-                return;
-            }
-            zoomVFactor = vFactor;
-            ir.setZoomFactor(vFactor);
-            forceRevalidate();
-        }
-
-        public void setNbLines(int n)
-        {
-            ir.setNbLines(n);
-            forceRevalidate();
-        }
-
-
-        //-----------------------------------------------------------------------
-        // Implementation of the PropertiesListener interface
-        //-----------------------------------------------------------------------
-        @Override
-        public void propertyChange(PropertyChangeEvent e)
-        {
-            if (e.getSource() == settings)
-            {
-                if (e.getPropertyName().equals(IR_AnnotationTextSettings.PROP_FONT))
+                if (irs.size() == 2)
                 {
-                    forceRevalidate();
+                    ir.setSize(w / 2, pd.height);
+                    ir = irs.getLast();
+                    ir.setSize(w / 2, pd.height);
+                    ir.setLocation(xLeft + w / 2, yTop);
                 }
             }
+
+
         }
 
-
-        /**
-         * Because dialog is displayable but not visible, invalidating a component is not enough to relayout everything.
-         */
-        private void forceRevalidate()
+        @Override
+        public void addLayoutComponent(String corner, Component comp)
         {
-            BarRenderer.getFontMetricsDialog(brAnnotation.getEditor()).pack();
+            // Nothing
+        }
+
+        @Override
+        public void removeLayoutComponent(Component comp)
+        {
+            // Nothing
+        }
+
+        @Override
+        public Dimension preferredLayoutSize(Container parent)
+        {
+            Dimension d = parent.getSize();
+
+            var irs = getItemRenderers();
+            if (irs.isEmpty())
+            {
+                var font = IR_AnnotationTextSettings.getDefault().getFont();
+                StringMetrics sm = StringMetrics.create(font);
+                d.height = (int) Math.ceil(nbLines * (sm.getHeight("|") + 1));
+            } else
+            {
+                var pd = irs.getFirst().getPreferredSize();
+                d.height = pd.height;
+            }
+            return d;
+        }
+
+        @Override
+        public Dimension minimumLayoutSize(Container parent)
+        {
+            return new Dimension();
         }
 
     }
-
 }

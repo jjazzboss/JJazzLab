@@ -120,7 +120,7 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
 
 
         baseChordFont = UIUtilities.changeFontSize(editor.getSettings().getRulerBaseFont(), 1f);
-        baseChordFontHeight = (int) Math.ceil(new StringMetrics(baseChordFont).getHeight("I")); // include baseline
+        baseChordFontHeight = (int) Math.ceil(StringMetrics.create(baseChordFont).getHeight("I")); // include baseline
 
         // LOGGER.severe("ScorePanel() DEBUG Updating SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT");
         // System.setProperty(Note.SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT, "%1$s p=%2$.1f");

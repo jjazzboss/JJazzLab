@@ -588,7 +588,7 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
     {
         if (PLAY_STRING_BOUNDS == null)
         {
-            StringMetrics sm = new StringMetrics(g2);
+            StringMetrics sm = StringMetrics.create(g2);
             PLAY_STRING_BOUNDS = sm.getLogicalBoundsNoLeading(PLAY_STRING);
         }
         return PLAY_STRING_BOUNDS;
@@ -598,7 +598,7 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
     {
         if (PLAY_SPARSE_STRING_BOUNDS == null)
         {
-            StringMetrics sm = new StringMetrics(g2);
+            StringMetrics sm = StringMetrics.create(g2);
             PLAY_SPARSE_STRING_BOUNDS = sm.getLogicalBoundsNoLeading(PLAY_SPARSE_STRING);
         }
         return PLAY_SPARSE_STRING_BOUNDS;
@@ -608,7 +608,7 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
     {
         if (PLAY_DENSE_STRING_BOUNDS == null)
         {
-            StringMetrics sm = new StringMetrics(g2);
+            StringMetrics sm = StringMetrics.create(g2);
             PLAY_DENSE_STRING_BOUNDS = sm.getLogicalBoundsNoLeading(PLAY_DENSE_STRING);
         }
         return PLAY_DENSE_STRING_BOUNDS;
@@ -618,7 +618,7 @@ public class BR_ImproSupport extends BarRenderer implements ChangeListener
     {
         if (REST_STRING_BOUNDS == null)
         {
-            StringMetrics sm = new StringMetrics(g2);
+            StringMetrics sm = StringMetrics.create(g2);
             REST_STRING_BOUNDS = sm.getLogicalBoundsNoLeading(REST_STRING);
         }
         return REST_STRING_BOUNDS;

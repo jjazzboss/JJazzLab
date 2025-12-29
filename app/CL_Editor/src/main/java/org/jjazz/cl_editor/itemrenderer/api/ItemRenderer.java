@@ -28,6 +28,7 @@ import java.awt.Dimension;
 import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Objects;
 import java.util.logging.Logger;
 import javax.swing.*;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
@@ -35,8 +36,8 @@ import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 /**
  * The base class for ItemRenderers.
  * <p>
- * Subclasses should typically implement the paintComponent() function to render the item. The class listens to the item model's
- * changes and call the modelChanged() and/or modelMoved() functions that should be implemented by subclasses.
+ * Subclasses should typically implement the paintComponent() function to render the item. The class listens to the item model's changes and call the
+ * modelChanged() and/or modelMoved() functions that should be implemented by subclasses.
  */
 public abstract class ItemRenderer extends JPanel implements PropertyChangeListener, FocusListener
 {
@@ -75,14 +76,12 @@ public abstract class ItemRenderer extends JPanel implements PropertyChangeListe
     public ItemRenderer(ChordLeadSheetItem<?> item, IR_Type irType)
     {
         super();
-        if (item == null || irType == null)
-        {
-            throw new NullPointerException("item=" + item + " irType=" + irType);   
-        }
+        Objects.requireNonNull(item);
+        Objects.requireNonNull(irType);
         this.irType = irType;
-        modelItem = item;
-        modelItem.addPropertyChangeListener(this);
-        
+        this.modelItem = item;
+        modelItem.addPropertyChangeListener(this);        
+
         
         // Disable focus keys on ItemRenderer : must be managed at a higher level
         setFocusTraversalKeysEnabled(false);
@@ -102,7 +101,7 @@ public abstract class ItemRenderer extends JPanel implements PropertyChangeListe
                 }
             }
         });
-        
+
         // Register settings changes
         settings = ItemRendererSettings.getDefault();
         settings.addPropertyChangeListener(this);
@@ -111,13 +110,14 @@ public abstract class ItemRenderer extends JPanel implements PropertyChangeListe
         setBackground(settings.getSelectedBackgroundColor());
         setEnabled(true);
         setOpaque(false);
+
     }
 
     public IR_Type getIR_Type()
     {
         return irType;
     }
-    
+
     public void setModel(ChordLeadSheetItem<?> item)
     {
         Preconditions.checkNotNull(item);
@@ -125,11 +125,13 @@ public abstract class ItemRenderer extends JPanel implements PropertyChangeListe
         {
             return;
         }
-        
-        modelItem.removePropertyChangeListener(this);
+        if (modelItem != null)
+        {
+            modelItem.removePropertyChangeListener(this);
+        }
         modelItem = item;
         modelItem.addPropertyChangeListener(this);
-        
+
         modelChanged();
         modelMoved();
     }

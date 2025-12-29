@@ -394,7 +394,7 @@ public class CreatePracticeSongDialog extends javax.swing.JDialog
             Font font = g2.getFont();
             font = font.deriveFont(font.getSize2D() - 2f);
             g2.setFont(font);
-            StringMetrics sm = new StringMetrics(g2, font);
+            StringMetrics sm = StringMetrics.create(g2, font);
 
 
             // Draw columns

@@ -254,7 +254,7 @@ public class GuitarDiagramComponent extends JPanel
         BufferedImage img = new BufferedImage(20, 20, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2 = img.createGraphics();
         String text = "?";
-        var bounds = new StringMetrics(g2, g2.getFont()).getLogicalBoundsNoLeading(text);
+        var bounds = StringMetrics.create(g2, g2.getFont()).getLogicalBoundsNoLeading(text);
         int x = (int) ((img.getWidth() - bounds.getWidth()) / 2);
         int y = (int) ((img.getHeight() - bounds.getHeight()) / 2);
         x += -bounds.getX();  // bounds are in baseline relative coordinates
@@ -285,7 +285,7 @@ public class GuitarDiagramComponent extends JPanel
         String firstFretString = String.valueOf(chordModel.getFirstFret());
         img = new BufferedImage(20, 20, BufferedImage.TYPE_INT_ARGB);
         g2 = img.createGraphics();
-        Rectangle2D firstFretStringBounds = new StringMetrics(g2, getFirstFretFont()).getLogicalBoundsNoLeading(firstFretString);  // Bounds in baseline relative coordinates
+        Rectangle2D firstFretStringBounds = StringMetrics.create(g2, getFirstFretFont()).getLogicalBoundsNoLeading(firstFretString);  // Bounds in baseline relative coordinates
         g2.dispose();
 
 

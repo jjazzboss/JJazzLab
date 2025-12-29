@@ -79,7 +79,7 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
      */
     private boolean isSelected;
     private ItemRendererFactory itemFactory;
-    private static final Logger LOGGER = Logger.getLogger(BarRenderer.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(BarRenderer.class.getSimpleName());
 
     /**
      * Construct a BarRenderer.
@@ -222,8 +222,6 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
             return null;
         }
         removeItemRenderer(ir);
-        // Revalidate() needed if there was too many chords for the bar
-        revalidate();
         return ir;
     }
 
@@ -519,7 +517,7 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
     // Private functions
     //------------------------------------------------------------------
     /**
-     * Remove the specified ItemRenderer. Note that the function does not call revalidate() after the removing.
+     * Remove the specified ItemRenderer.
      *
      * @param ir
      */
