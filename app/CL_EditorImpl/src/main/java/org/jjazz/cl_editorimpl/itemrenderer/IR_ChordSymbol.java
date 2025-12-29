@@ -59,6 +59,7 @@ import org.jjazz.cl_editor.api.DisplayTransposableRenderer;
  */
 public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable, DisplayTransposableRenderer
 {
+
     private final static int OPTION_LINE_V_PADDING = 1;   // Additional space for the option line
     private final static int OPTION_LINE_THICKNESS = 1;   // Additional space for the option line
     private static final Logger LOGGER = Logger.getLogger(IR_ChordSymbol.class.getSimpleName());
@@ -478,8 +479,8 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable, Display
             int extStart = ChordTypeDatabase.getDefault().guessExtension(ctString);
             if (extStart == -1)
             {
-                // No extension found, use major chord symbol by default
-                chordSymbolBase = ecs.getRootNote().toRelativeNoteString();
+                // No extension found
+                chordSymbolBase = ecs.getRootNote().toRelativeNoteString() + ctString;
                 chordSymbolExtension = "";
             } else
             {

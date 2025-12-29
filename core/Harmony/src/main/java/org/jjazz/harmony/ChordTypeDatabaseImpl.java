@@ -168,7 +168,7 @@ public class ChordTypeDatabaseImpl implements ChordTypeDatabase
      * For example for "madd9", return 1 because base=m and extension="add9". Should be used only if a ChordType.getOriginalName() differs from
      * ChordType.getName().
      *
-     * @param ctStr A chord type string like "", "sus7", "7dim7M", "Maj7aug", "madd9", etc.
+     * @param ctStr A chord type string like "", "sus7", "7dim7M", "Maj7aug", "madd9", "+", "+7" etc.
      * @return The index of the first char of the extension. -1 if no extension found.
      */
     @Override
@@ -549,6 +549,8 @@ public class ChordTypeDatabaseImpl implements ChordTypeDatabase
         mapExtensionIndex.put("-6", 2);
         mapExtensionIndex.put("-7", 2);
         mapExtensionIndex.put("-9", 2);
+        mapExtensionIndex.put("+7", 2);
+        mapExtensionIndex.put("+9", 2);       
         mapExtensionIndexIgnoreCase.put("ma", 2);
         mapExtensionIndexIgnoreCase.put("mi", 2);
         mapExtensionIndex.put("11", 2);
