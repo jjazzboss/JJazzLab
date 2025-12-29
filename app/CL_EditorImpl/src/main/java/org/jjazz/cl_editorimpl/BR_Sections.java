@@ -56,6 +56,8 @@ import org.jjazz.uisettings.api.ColorSetManager;
 
 /**
  * A BarRenderer to show section names.
+ * <p>
+ * TODO: get rid of PrefSizePanel, use StringMetrics() instead.
  */
 public class BR_Sections extends BarRenderer implements ComponentListener, PropertyChangeListener
 {

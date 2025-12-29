@@ -55,11 +55,11 @@ import org.jjazz.cl_editor.itemrenderer.api.ItemRenderer;
 import org.jjazz.cl_editor.itemrenderer.api.ItemRendererFactory;
 import org.openide.util.Exceptions;
 import org.jjazz.cl_editor.api.DisplayTransposableRenderer;
-import org.jjazz.cl_editor.spi.BarRendererFactory;
 
 /**
  * A BarRenderer that show Chord and TimeSignature items.
  * <p>
+ * TODO: get rid of PrefSizePanel, use StringMetrics() instead.
  */
 public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, ComponentListener, DisplayTransposableRenderer
 {

@@ -70,6 +70,8 @@ import org.openide.util.Exceptions;
 
 /**
  * A BarRenderer that show position marks with beat graduations in the background.
+ * 
+ * TODO: get rid of PrefSizePanel, use StringMetrics() instead.
  */
 public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRenderer, ComponentListener
 {
