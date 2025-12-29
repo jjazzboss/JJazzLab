@@ -125,20 +125,18 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
 //      return true;
 //   }
     /**
-     * Set the model for this BarRenderer.
+     * Reset the ChordLeadSheet and bar index models for this BarRenderer.
+     * <p>
      *
      * @param modelBarIndex If &lt; 0, it means this BarRenderer does not represent a valid bar for model
      * @param clsModel
      */
-    public void setModel(int modelBarIndex, ChordLeadSheet clsModel)
+    public void resetModel(ChordLeadSheet clsModel, int modelBarIndex)
     {
-        if (clsModel == null)
-        {
-            throw new IllegalArgumentException("modelBarIndex=" + modelBarIndex + " clsModel=" + clsModel);
-        }
+        Objects.requireNonNull(clsModel);
 
         model = clsModel;
-        this.modelBarIndex = -9786561;  // Make sure it is different from the new value        
+        this.modelBarIndex = -9786561;  // Make sure that setModelBarIndex() will reset its ItemRenderers
         setModelBarIndex(modelBarIndex);
     }
 
@@ -292,7 +290,7 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
     /**
      * Set the barIndex within the model.
      * <p>
-     * All items shown in this BarRenderer will belong to this bar.
+     * All items shown in this BarRenderer will belong to this bar. Method does nothing if bar == current model bar index.
      *
      * @param bar If &lt; 0, it means information from model is not available (for example because the barIndex is past the end of the leadsheet.)
      * @return The previous modelBarIndex value

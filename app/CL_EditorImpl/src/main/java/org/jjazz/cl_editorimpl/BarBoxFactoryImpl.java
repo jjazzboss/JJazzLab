@@ -22,33 +22,29 @@
  */
 package org.jjazz.cl_editorimpl;
 
-import javax.swing.JToolBar;
-import org.jjazz.song.api.Song;
+import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.cl_editor.api.CL_Editor;
-import org.jjazz.cl_editor.spi.BarBoxFactory;
-import org.jjazz.cl_editor.spi.CL_EditorSettings;
+import org.jjazz.cl_editor.barbox.api.BarBox;
+import org.jjazz.cl_editor.barbox.api.BarBoxConfig;
 import org.jjazz.cl_editor.spi.BarRendererFactory;
-import org.jjazz.cl_editor.spi.CL_EditorFactory;
+import org.jjazz.cl_editor.spi.BarBoxFactory;
+import org.jjazz.cl_editor.spi.BarBoxSettings;
 import org.openide.util.lookup.ServiceProvider;
 
-@ServiceProvider(service=CL_EditorFactory.class)
-public class CL_EditorFactoryImpl implements CL_EditorFactory
+@ServiceProvider(service = BarBoxFactory.class)
+public class BarBoxFactoryImpl implements BarBoxFactory
 {
-
     @Override
-    public CL_Editor createEditor(Song song, CL_EditorSettings settings, BarBoxFactory bbf, BarRendererFactory brf)
+    public BarBox create(
+            CL_Editor editor,
+            int bbIndex,
+            int clsModelBarIndex,
+            ChordLeadSheet model,
+            BarBoxConfig config,
+            BarBoxSettings settings,
+            BarRendererFactory brf)
     {
-        var editor = new CL_EditorImpl(song, settings, bbf, brf);
-        var controller = new CL_EditorController(editor);     // This will update our songModel via Song.putClientProperty() by updating the zoom factors 
-        editor.setEditorMouseListener(controller);
-
-        return editor;
-
+        return new BarBoxImpl(editor, bbIndex, clsModelBarIndex, model, config, settings, brf);
     }
 
-    @Override
-    public JToolBar createEditorToolbar(CL_Editor editor)
-    {
-        return new CL_EditorToolBar(editor);
-    }
 }

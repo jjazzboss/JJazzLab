@@ -87,6 +87,7 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
     private final BR_ChordsLayoutManager layoutManager;
     private int zoomVFactor = 50;
     private int displayTransposition = 0;
+    private boolean showAnnotation = false;
 
 
     @SuppressWarnings("LeakingThisInConstructor")
@@ -277,12 +278,33 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
         return "BR_Chords[" + getBarIndex() + "]";
     }
 
+    /**
+     * Set whether CLI_BarAnnotation renderer is shown or not.
+     *
+     * @param show
+     */
+    public void showAnnotation(boolean show)
+    {
+        boolean old = showAnnotation;
+        showAnnotation = show;
+        if (old != showAnnotation)
+        {
+            // Force update of ItemRenderers
+            resetModel(getModel(), getModelBarIndex());
+        }
+    }
+
+    public boolean isAnnotationShown()
+    {
+        return showAnnotation;
+    }
+
     @Override
     public boolean isRegisteredItemClass(ChordLeadSheetItem<?> item)
     {
         boolean b = item instanceof CLI_ChordSymbol
                 || item instanceof CLI_Section
-                || (item instanceof CLI_BarAnnotation && !getEditor().getBarBoxConfig(getBarIndex()).isActive(BarRendererFactory.BR_ANNOTATION));
+                || (showAnnotation && item instanceof CLI_BarAnnotation);
         return b;
     }
 

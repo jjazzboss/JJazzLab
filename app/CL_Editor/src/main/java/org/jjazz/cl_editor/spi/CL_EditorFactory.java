@@ -53,7 +53,7 @@ public interface CL_EditorFactory
      */
     default CL_Editor createEditor(Song song)
     {
-        return createEditor(song, CL_EditorSettings.getDefault(), BarRendererFactory.getDefault());
+        return createEditor(song, CL_EditorSettings.getDefault(), BarBoxFactory.getDefault(), BarRendererFactory.getDefault());
     }
 
     /**
@@ -61,10 +61,11 @@ public interface CL_EditorFactory
      *
      * @param song
      * @param settings
+     * @param bbf
      * @param brf
      * @return
      */
-    CL_Editor createEditor(Song song, CL_EditorSettings settings, BarRendererFactory brf);
+    CL_Editor createEditor(Song song, CL_EditorSettings settings, BarBoxFactory bbf, BarRendererFactory brf);
 
 
     /**

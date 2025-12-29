@@ -47,6 +47,7 @@ import javax.swing.event.ChangeListener;
 import org.jjazz.song.api.Song;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.api.CL_EditorClientProperties;
+import org.jjazz.cl_editor.spi.BarBoxFactory;
 import org.jjazz.cl_editor.spi.CL_EditorFactory;
 import org.jjazz.flatcomponents.api.FixedPreferredWidthPanel;
 
@@ -94,7 +95,7 @@ public class LeadSheetPrinter implements Printable, Pageable
 
         // Build our own editor with own settings to have full control,  e.g. adjust size, nb of columns, change colors or chord symbol font
         var ourEditorSettings = new PrintCL_EditorSettings(actualEditor.getSettings());
-        clEditor = CL_EditorFactory.getDefault().createEditor(song, ourEditorSettings, actualEditor.getBarRendererFactory());
+        clEditor = CL_EditorFactory.getDefault().createEditor(song, ourEditorSettings, BarBoxFactory.getDefault(), actualEditor.getBarRendererFactory());
         clEditor.setNbColumns(nbColumns);
         CL_EditorClientProperties.setZoomYFactor(song, zoomVFactor);
 
@@ -333,8 +334,13 @@ public class LeadSheetPrinter implements Printable, Pageable
         scaledEditorLastPageHeight = scaledEditorHeight - (nbPages - 1) * scaledEditorPageHeight;
 
 
-        LOGGER.log(Level.FINE, "computeEditorDimensions() scaledEditorBarHeight={0} scaledEditorHeight={1} scaledEditorPageHeight={2} centralZoneHeight={3} nbPages={4}", new Object[]{scaledEditorBarHeight,
-            scaledEditorHeight, scaledEditorPageHeight, centralZoneHeight, nbPages});
+        LOGGER.log(Level.FINE,
+                "computeEditorDimensions() scaledEditorBarHeight={0} scaledEditorHeight={1} scaledEditorPageHeight={2} centralZoneHeight={3} nbPages={4}",
+                new Object[]
+                {
+                    scaledEditorBarHeight,
+                    scaledEditorHeight, scaledEditorPageHeight, centralZoneHeight, nbPages
+                });
     }
 
     private void fireChanged()
@@ -348,8 +354,7 @@ public class LeadSheetPrinter implements Printable, Pageable
     /**
      * Special hidden dialog (but displayable) used to render the CL_Editor.
      * <p>
-     * A fixed width panel is used to make sure width is not changed when CL_Editor preferred width has changed, like in the application
-     * editor.
+     * A fixed width panel is used to make sure width is not changed when CL_Editor preferred width has changed, like in the application editor.
      */
     static private class RenderingDialog extends JDialog
     {

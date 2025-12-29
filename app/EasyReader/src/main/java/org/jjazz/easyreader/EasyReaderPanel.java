@@ -72,6 +72,7 @@ import org.jjazz.cl_editor.barbox.api.BarBoxConfig;
 import org.jjazz.cl_editor.spi.BarBoxSettings;
 import org.jjazz.cl_editor.spi.BarRendererFactory;
 import org.jjazz.cl_editor.itemrenderer.api.IR_ChordSymbolSettings;
+import org.jjazz.cl_editor.spi.BarBoxFactory;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.uiutilities.api.UIUtilities;
@@ -568,7 +569,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         var clsPos = sg.getSongStructure().toClsPosition(new Position(0));
         int modelBarIndex = clsPos != null ? clsPos.getBar() : -1;
 
-        barBox = new BarBox(clEditor, 0, modelBarIndex, cls,
+        barBox = BarBoxFactory.getDefault().create(clEditor, 0, modelBarIndex, cls,
                 new BarBoxConfig(BarRendererFactory.BR_CHORD_SYMBOL, BarRendererFactory.BR_CHORD_POSITION, BarRendererFactory.BR_SECTION),
                 BarBoxSettings.getDefault(),
                 BarRendererFactory.getDefault());
@@ -579,7 +580,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         clsPos = sg.getSongStructure().toClsPosition(new Position(1));
         modelBarIndex = clsPos != null ? clsPos.getBar() : -1;
 
-        nextBarBox = new BarBox(clEditor, 1, modelBarIndex, cls,
+        nextBarBox = BarBoxFactory.getDefault().create(clEditor, 1, modelBarIndex, cls,
                 new BarBoxConfig(BarRendererFactory.BR_CHORD_SYMBOL, BarRendererFactory.BR_CHORD_POSITION, BarRendererFactory.BR_SECTION),
                 BarBoxSettings.getDefault(), BarRendererFactory.getDefault());
         nextBarBox.setDisplayTransposition(displayTransposition);

@@ -81,6 +81,7 @@ import org.jjazz.cl_editor.api.CL_EditorClientProperties;
 import org.jjazz.song.api.Song;
 import org.jjazz.cl_editor.api.SelectedBar;
 import org.jjazz.cl_editor.api.SelectedCLI;
+import org.jjazz.cl_editor.spi.BarBoxFactory;
 import org.jjazz.cl_editor.spi.BarRendererFactory;
 import org.jjazz.cl_editor.spi.BarRendererProvider;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
@@ -167,8 +168,9 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
      */
     private Position playbackPointLastPos;
     private final BarRendererFactory barRendererFactory;
+    private final BarBoxFactory barBoxFactory;
     /**
-     * Receiver for mouse events.
+     * barRendererFactory Receiver for mouse events.
      */
     private CL_EditorMouseListener editorMouseListener;
     /**
@@ -180,11 +182,12 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     private static final Logger LOGGER = Logger.getLogger(CL_EditorImpl.class.getSimpleName());
 
     @SuppressWarnings("LeakingThisInConstructor")
-    public CL_EditorImpl(Song song, CL_EditorSettings settings, BarRendererFactory brf)
+    public CL_EditorImpl(Song song, CL_EditorSettings settings, BarBoxFactory bbf, BarRendererFactory brf)
     {
         Preconditions.checkNotNull(song);
         Preconditions.checkNotNull(settings);
         Preconditions.checkNotNull(brf);
+        Preconditions.checkNotNull(bbf);
 
 
         // This is the main part to fix Issue #582 (see also CL_EditorTopComponent.componentActivated())
@@ -198,6 +201,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 
 
         this.barRendererFactory = brf;
+        this.barBoxFactory = bbf;
 
         // Listen to settings changes
         this.settings = settings;
@@ -264,6 +268,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 
         PlaybackSettings.getInstance().addPropertyChangeListener(PlaybackSettings.PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION, this);
         setDisplayTransposition(PlaybackSettings.getInstance().getChordSymbolsDisplayTransposition());
+
     }
 
     @Override
@@ -335,7 +340,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         }
 
         PlaybackSettings.getInstance()
-            .removePropertyChangeListener(PlaybackSettings.PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION, this);
+                .removePropertyChangeListener(PlaybackSettings.PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION, this);
 
         // We're not showing playback or insertion point anymore
         playbackPointLastPos = null;
@@ -414,8 +419,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     }
 
     /**
-     * Return the position (bar, beat) which corresponds to a given point in the editor. If point is in the BarBox which does not have a valid
-     * modelBar (eg after the end), barIndex is set but beat is set to 0.
+     * Return the position (bar, beat) which corresponds to a given point in the editor. If point is in the BarBox which does not have a valid modelBar (eg
+     * after the end), barIndex is set but beat is set to 0.
      *
      * @param editorPoint A point in the editor's coordinates.
      * @return Null if point does not correspond to a valid bar.
@@ -578,7 +583,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 
 
         // Udpate ItemRenderers
-        items.forEach(item ->
+        items.forEach(item -> 
         {
             BarBox bb = getBarBox(item.getPosition().getBar());
             bb.selectItem(item, b);
@@ -654,8 +659,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         if (barIndexes.length == 0)
         {
             barIndexes = IntStream.range(0, getNbBarBoxes())
-                .boxed()
-                .collect(Collectors.toList()).toArray(Integer[]::new);
+                    .boxed()
+                    .collect(Collectors.toList()).toArray(Integer[]::new);
         }
         for (int barIndex : barIndexes)
         {
@@ -786,7 +791,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     public void propertyChange(final PropertyChangeEvent evt)
     {
         // Changes can be generated outside the EDT
-        org.jjazz.uiutilities.api.UIUtilities.invokeLaterIfNeeded(() ->
+        org.jjazz.uiutilities.api.UIUtilities.invokeLaterIfNeeded(() -> 
         {
             if (evt.getSource() == settings)
             {
@@ -967,7 +972,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         LOGGER.log(Level.FINE, "chordLeadSheetChanged() -- event={0}", event);
 
         // Model changes can be generated outside the EDT
-        Runnable run = () ->
+        Runnable run = () -> 
         {
 
             // Save focus state
@@ -1136,8 +1141,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 
     @Override
     public int getScrollableUnitIncrement(Rectangle visibleRect,
-        int orientation,
-        int direction
+            int orientation,
+            int direction
     )
     {
         int unit;
@@ -1155,8 +1160,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 
     @Override
     public int getScrollableBlockIncrement(Rectangle visibleRect,
-        int orientation,
-        int direction)
+            int orientation,
+            int direction)
     {
         return getScrollableUnitIncrement(visibleRect, orientation, direction);
     }
@@ -1171,8 +1176,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     }
 
     /**
-     * We do NOT want the height of the Panel match the height of the viewport : panel height is calculated only function of the nb of rows and row
-     * height.
+     * We do NOT want the height of the Panel match the height of the viewport : panel height is calculated only function of the nb of rows and row height.
      */
     @Override
     public boolean getScrollableTracksViewportHeight()
@@ -1265,7 +1269,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
                     modelBarIndex = SelectedBar.POST_END_BAR_MODEL_BAR_INDEX;
                 }
 
-                BarBox bb = new BarBox(this, bbIndex, modelBarIndex, clsModel, config, settings.getBarBoxSettings(), barRendererFactory);
+                BarBox bb = barBoxFactory.create(this, bbIndex, modelBarIndex, clsModel, config, settings.getBarBoxSettings(), barRendererFactory);
                 bb.setEnabled(isEnabled());
 
                 registerBarBox(bb);
@@ -1316,7 +1320,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     private int getComponentIndex(int barBoxIndex)
     {
         Preconditions.checkPositionIndex(barBoxIndex, getBarBoxes().size(),
-            "barBoxIndex=" + barBoxIndex + " getBarBoxes().size()=" + getBarBoxes().size());
+                "barBoxIndex=" + barBoxIndex + " getBarBoxes().size()=" + getBarBoxes().size());
 
         // getComponents() should be called on EDT, otherwise need treeLock
         assert SwingUtilities.isEventDispatchThread() : "Not running in the EDT! barBoxIndex=" + barBoxIndex;
@@ -1468,8 +1472,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     /**
      * Remove the ChordLeadSheetItem from the specified bar.
      * <p>
-     * If item is a section do some cleaning: update the previous section, remove the associated UI settings (quantization, start on newline),
-     * possibly update padding boxes
+     * If item is a section do some cleaning: update the previous section, remove the associated UI settings (quantization, start on newline), possibly update
+     * padding boxes
      *
      * @param barIndex
      * @param item
