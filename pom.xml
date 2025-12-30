@@ -50,7 +50,6 @@
         <jjazzlab.javac.showWarnings>true</jjazzlab.javac.showWarnings>
         <jjazzlab.javac.xlint></jjazzlab.javac.xlint>   
         <jjazzlab.surefire.skipTests>false</jjazzlab.surefire.skipTests>
-        <jjazzlab.forceEnglish>false</jjazzlab.forceEnglish>
     </properties>
     
     

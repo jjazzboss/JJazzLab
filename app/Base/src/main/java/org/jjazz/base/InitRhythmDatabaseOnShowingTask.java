@@ -49,6 +49,7 @@ public class InitRhythmDatabaseOnShowingTask implements OnShowingTask
     public static final int ON_SHOWING_TASK_PRIORITY = 200;
     private static final Logger LOGGER = Logger.getLogger(InitRhythmDatabaseOnShowingTask.class.getSimpleName());
 
+
     @Override
     public void run()
     {
@@ -62,7 +63,7 @@ public class InitRhythmDatabaseOnShowingTask implements OnShowingTask
                 {
                     setDefaultRhythms();
                 }
-                
+
                 var rdb = RhythmDatabase.getDefault();
                 LOGGER.log(Level.INFO, "run() Default 4/4 rhythm: {0}", rdb.getDefaultRhythm(TimeSignature.FOUR_FOUR).name());
                 LOGGER.log(Level.INFO, "run() Default 3/4 rhythm: {0}", rdb.getDefaultRhythm(TimeSignature.THREE_FOUR).name());

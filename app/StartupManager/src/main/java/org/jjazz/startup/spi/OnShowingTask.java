@@ -23,23 +23,24 @@
 package org.jjazz.startup.spi;
 
 /**
- * A startup task which will be executed by StartupManager in priority ascending order when UI is ready (see @onShowing).
+ * A startup task which will be executed by StartupManager in priority ascending order when Netbeans UI is ready.
  * <p>
- * If order of execution does not matter, you can directly use @OnShowing instead.
+ * NOTE: OnShowingTasks are run one by one in a dedicated thread, so they can be (reasonably) long. The @onShowing position attribute also allows ordering
+ * but it executes tasks on the EDT so tasks must be short.
  */
 public interface OnShowingTask
 {
-
     /**
      * This method is called upon startup when UI is ready.
      * <p>
+     * NOTE: call is made on a dedicated thread which is not the EDT: if your task updates UI using e.g. SwingUtilities.invokeLater() might be required in some cases.
      */
     void run();
 
     /**
      * Get the priority of the task.
      * <p>
-     * When UI is ready tasks are executed one after the other by priority ascending order.
+     * When Netbeans UI is ready tasks are executed one after the other by priority ascending order.
      *
      * @return
      */

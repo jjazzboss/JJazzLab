@@ -25,9 +25,12 @@
 package org.jjazz.startup;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.SwingUtilities;
 import org.jjazz.startup.spi.OnShowingTask;
 import org.openide.util.Lookup;
 import org.openide.windows.OnShowing;
@@ -45,9 +48,17 @@ public class OnShowingStartupManager implements Runnable
     public void run()
     {
         // Get all tasks sorted by priority
-        var res = new ArrayList<>(Lookup.getDefault().lookupAll(OnShowingTask.class));
-        Collections.sort(res, (t1, t2) -> Integer.compare(t1.getPriority(), t2.getPriority()));
-        for (var task : res)
+        List<? extends OnShowingTask> tasks = new ArrayList<>(Lookup.getDefault().lookupAll(OnShowingTask.class));
+        Collections.sort(tasks, (t1, t2) -> Integer.compare(t1.getPriority(), t2.getPriority()));
+        
+        // we're on the EDT, we need a distinct thread
+        assert SwingUtilities.isEventDispatchThread();
+        new Thread(() -> runTasks(tasks)).start();
+    }
+
+    private void runTasks(Collection<? extends OnShowingTask> orderedTasks)
+    {
+        for (var task : orderedTasks)
         {
             LOGGER.log(Level.INFO, "Starting task {1} : {0}", new Object[]
             {
@@ -56,5 +67,4 @@ public class OnShowingStartupManager implements Runnable
             task.run();
         }
     }
-
 }

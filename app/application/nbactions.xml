@@ -38,7 +38,7 @@
             </properties>
         </action>
         <action>
-            <actionName>CUSTOM-Run project fresh start</actionName>
+            <actionName>CUSTOM-Run project en:US fresh start</actionName>
             <displayName>Run project fresh start</displayName>
             <goals>
                 <goal>nbm:cluster-app</goal>
@@ -46,6 +46,22 @@
             </goals>
             <properties>
                 <netbeans.run.params.ide>-J-Drun.from.ide=true --locale en:US -J-Dforce.fresh.start=true</netbeans.run.params.ide>
+            </properties>
+        </action>
+        <action>
+            <actionName>CUSTOM-Debug fresh start en:US</actionName>
+            <displayName>Debug fresh start en:US</displayName>
+            <packagings>
+                <packaging>nbm-application</packaging>
+            </packagings>
+            <goals>
+                <goal>nbm:cluster-app</goal>
+                <goal>nbm:run-platform</goal>
+            </goals>
+            <properties>
+                
+                <jpda.listen>true</jpda.listen>
+                <netbeans.run.params.debug>-J-agentlib:jdwp=transport=dt_socket,suspend=n,server=n,address=${jpda.address} -J-Drun.from.ide=true --locale en:US -J-Dforce.fresh.start=true</netbeans.run.params.debug>
             </properties>
         </action>
         

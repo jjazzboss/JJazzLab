@@ -36,12 +36,22 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import org.jjazz.harmony.api.TimeSignature;
+import org.jjazz.rhythm.spi.RhythmDirsLocator;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.RhythmInfo;
+import org.jjazz.rhythmdatabaseimpl.RhythmDbCache;
+import org.jjazz.upgrade.api.UpgradeManager;
+import org.jjazz.utilities.api.CheckedRunnable;
+import org.jjazz.utilities.api.MultipleErrorsReport;
+import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.utilities.api.Utilities;
 import org.netbeans.api.progress.ProgressHandle;
 import org.openide.awt.ActionID;
@@ -65,7 +75,9 @@ import org.openide.windows.WindowManager;
 public final class MyTestAction implements ActionListener
 {
 
+    private static int nbRun = 0;
     private static final Logger LOGGER = Logger.getLogger(MyTestAction.class.getSimpleName());
+    private static Future<?> initFuture;
 
     public MyTestAction()
     {
@@ -76,10 +88,10 @@ public final class MyTestAction implements ActionListener
     public void actionPerformed(ActionEvent ae)
     {
         LOGGER.info("actionPerformed()");
-        testProgressHandle();
+        new Thread(() -> testProgressHandle2()).start();
     }
 
-    private void testProgressHandle()
+    private void testProgressHandle1()
     {
         ProgressHandle ph = ProgressHandle.createHandle("TESTING YEAH");
         ph.start();
@@ -96,6 +108,59 @@ public final class MyTestAction implements ActionListener
             ph.finish();
             LOGGER.info("testProgressHandle() finished");
         }).start();
+    }
+
+    private void testProgressHandle2()
+    {
+        nbRun++;
+        int runId = nbRun;
+
+        if (initFuture != null && initFuture.isDone())
+        {
+            LOGGER.log(Level.INFO, "testProgressHandle2() [{0}] -- previous initFuture complete, resetting to null", runId);
+            initFuture = null;
+        }
+
+        if (initFuture == null)
+        {
+            LOGGER.log(Level.INFO, "testProgressHandle2() [{0}] -- initFuture is null, create task", runId);
+            ExecutorService executor = Executors.newSingleThreadExecutor();
+            initFuture = executor.submit(new CheckedRunnable(() -> doSomethingLong()));
+        } else
+        {
+            LOGGER.log(Level.INFO, "testProgressHandle2() [{0}] -- initFuture.state()={1}", new Object[]
+            {
+                nbRun, initFuture.state()
+            });
+            try
+            {
+                LOGGER.log(Level.INFO, "testProgressHandle2() [{0}]   waiting for get()...", runId);
+                initFuture.get();
+            } catch (InterruptedException | ExecutionException ex)
+            {
+                Exceptions.printStackTrace(ex);
+            }
+            LOGGER.log(Level.INFO, "testProgressHandle2() [{0}]   get() COMLPETE", runId);
+        }
+    }
+
+    private void doSomethingLong()
+    {
+        ProgressHandle ph = ProgressHandle.createHandle("YEAH PROGRESS");
+        ph.start();
+        LOGGER.info("doSomethingLong() started...");
+        try
+        {
+            Thread.sleep(3000);
+            LOGGER.info("doSomethingLong() middle");
+            ph.setDisplayName("YEAH PROGRESS MIDDLE");
+            Thread.sleep(3000);
+        } catch (InterruptedException ex)
+        {
+            Exceptions.printStackTrace(ex);
+        }
+        LOGGER.info("doSomethingLong() finished");
+        ph.finish();
     }
 
 

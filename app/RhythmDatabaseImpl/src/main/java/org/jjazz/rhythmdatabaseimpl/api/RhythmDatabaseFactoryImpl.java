@@ -132,7 +132,7 @@ public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory, Propert
                 // This could be done in doInitialization(), but doInitialization() is run in a separate thread, and because copyFilesOrNot might show user 
                 // a confirmation dialog, we want to hold the task so that the next OnShowingTask is started *after* this user confirmation.
                 LOGGER.info("initialize() Copying default rhythm files");
-                 copyFilesOrNot(RhythmDirsLocator.getDefault().getUserRhythmsDirectory());
+                copyDefaultRhythmFilesOrNot(RhythmDirsLocator.getDefault().getUserRhythmsDirectory());
             }
 
 
@@ -152,7 +152,10 @@ public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory, Propert
     @Override
     public RhythmDatabase get()
     {
-        if (!isInitialized())
+        boolean b = isInitialized();
+        LOGGER.log(Level.FINE, "get() -- isInitialized()={0}", b);
+
+        if (!b)
         {
             if (initFuture == null)
             {
@@ -280,7 +283,8 @@ public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory, Propert
 
             // Read cache
             msg = ResUtil.getString(getClass(), "CTL_ReadingRhythmDbCacheFile");
-            ph.progress(msg);
+            ph.setDisplayName(msg);
+
             try
             {
                 int added = RhythmDbCache.loadFromFile(RhythmDbCache.getDefaultFile(), dbInstance);
@@ -343,7 +347,7 @@ public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory, Propert
      *
      * @param dir Must exist.
      */
-    private void copyFilesOrNot(File dir)
+    private void copyDefaultRhythmFilesOrNot(File dir)
     {
         boolean isEmpty;
         try
@@ -351,7 +355,7 @@ public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory, Propert
             isEmpty = Utilities.isEmpty(dir.toPath());
         } catch (IOException ex)
         {
-            LOGGER.log(Level.WARNING, "copyFilesOrNot() Can''t check if dir. is empty. ex={0}", ex.getMessage());
+            LOGGER.log(Level.WARNING, "copyDefaultRhythmFilesOrNot() Can''t check if dir. is empty. ex={0}", ex.getMessage());
             return;
         }
         if (!isEmpty)
@@ -371,7 +375,7 @@ public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory, Propert
         }
         // Copy the default rhythms
         List<File> res = Utilities.extractZipResource(getClass(), ZIP_RESOURCE_PATH, dir.toPath(), true);
-        LOGGER.log(Level.INFO, "copyFilesOrNot() Copied {0} rhythm files to {1}",
+        LOGGER.log(Level.INFO, "copyDefaultRhythmFilesOrNot() Copied {0} rhythm files to {1}",
                 new Object[]
                 {
                     res.size(), dir.getAbsolutePath()
