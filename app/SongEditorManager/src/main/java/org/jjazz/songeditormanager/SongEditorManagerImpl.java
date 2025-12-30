@@ -335,6 +335,8 @@ public class SongEditorManagerImpl implements SongEditorManager, PropertyChangeL
             song, userRhythmVoice
         });
 
+
+        // Create editor TopComponent and open it if required        
         var preTc = showPianoRollEditor(song);
 
         if (song.getSize() == 0)
@@ -342,25 +344,29 @@ public class SongEditorManagerImpl implements SongEditorManager, PropertyChangeL
             return preTc;
         }
 
+        // Prepare keyMap
+        DrumKit.KeyMap keyMap = null;               // melodic phrase by default        
+        var drumKit = midiMix.getInstrumentMix(userRhythmVoice).getInstrument().getDrumKit();     // can be null if instrument is the VoidInstrument        
+        if (userRhythmVoice.isDrums())
+        {
+            // Use instrument keymap if possible
+            keyMap = drumKit == null ? userRhythmVoice.getDrumKit().getKeyMap() : drumKit.getKeyMap();
+        } else if (drumKit != null)
+        {
+            // There is an inconcistency: should be a melodic instrument !
+            // Display the editor in drums mode anyway -this will also contribute to solve issue #653 (before 5.0.2 MidiMix wrongly loaded all UserRhythmVoice as melodic)
+            keyMap = drumKit.getKeyMap();
+        }
 
+
+        // Set model of piano roll editor
         String initialPhraseName = userRhythmVoice.getName();
         int initialChannel = midiMix.getChannel(userRhythmVoice);
         assert initialChannel != -1 : "midiMix=" + midiMix + " userRhythmVoice=" + userRhythmVoice;
-
-
-        // Create editor TopComponent and open it if required        
-        DrumKit.KeyMap keyMap = null;
-        if (userRhythmVoice.isDrums())
-        {
-            Instrument ins = midiMix.getInstrumentMix(userRhythmVoice).getInstrument();
-            keyMap = (ins == GMSynth.getInstance().getVoidInstrument()) ? userRhythmVoice.getDrumKit().getKeyMap() : ins.getDrumKit().getKeyMap();
-        }
         var userPhrase = song.getUserPhrase(initialPhraseName);
         String title = buildPrEditorUserTrackTitle(initialPhraseName, initialChannel);
-
-
-        preTc.setModelForUserPhrase(userPhrase, initialChannel, keyMap);
         preTc.setTitle(title);
+        preTc.setModelForUserPhrase(userPhrase, initialChannel, keyMap);
 
 
         // Prepare listeners to:

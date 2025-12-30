@@ -33,11 +33,17 @@ public interface MixChannelPanelController
 
     /**
      * User has changed the channel id.
+     *
+     * @param channel
+     * @param newChannelId
      */
     void editChannelId(int channel, String newChannelId);
 
     /**
      * User has changed the channel name (only for user channels).
+     *
+     * @param channel
+     * @param newChannelName
      */
     void editChannelName(int channel, String newChannelName);
 
@@ -50,6 +56,7 @@ public interface MixChannelPanelController
 
     /**
      * User asked to close a MixChannelPanel.
+     * @param userRhythmVoice
      */
     void removeUserPhrase(UserRhythmVoice userRhythmVoice);
 
@@ -62,21 +69,25 @@ public interface MixChannelPanelController
 
     /**
      * User wants to edit settings of our MixChannelPanel.
+     * @param channel
      */
     void editSettings(int channel);
 
     /**
      * User wants to edit the MixChannelPanel instrument.
+     * @param channel
      */
     void editInstrument(int channel);
 
     /**
      * User wants to use the next instrument after current one.
+     * @param channel
      */
     void editNextInstrument(int channel);
 
     /**
      * User wants to use the previous instrument after current one.
+     * @param channel
      */
     void editPreviousInstrument(int channel);
 

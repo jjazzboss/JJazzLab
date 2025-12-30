@@ -48,6 +48,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
@@ -1596,7 +1597,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
                 }
                 case Song.PROP_VETOABLE_PHRASE_NAME ->
                 {
-                    // User phrase was renamed, replaceAll the UserRhythmVoices
+                    // User phrase was renamed, replace the UserRhythmVoice
                     String oldName = (String) e.getOldValue();
                     String newName = (String) e.getNewValue();
                     UserRhythmVoice oldUrv = getUserRhythmVoice(oldName);
@@ -2290,13 +2291,15 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * spVERSION 2 changes saved fields see below<br>
      * spVERSION 3 (JJazzLab 4.1.0) introduces aliases to get rid of hard-coded qualified class names (XStreamConfig class introduction) <br>
      * spVERSION 4 (JJazzLab 4.1.3 with Java23) makes RvStorage class static + its 2 fields public + xStream.ignoreElement("outer-cast").<br>
+     * spVERSION 5 (JJazzLab 5.0.2) add SP_RHYTHM_USER_CHANNEL_RHYTHM_ID to differentiate the melodic/drums type of a user voice.<br>
      */
     private static class SerializationProxy implements Serializable
     {
 
         private static final long serialVersionUID = -344448971122L;
-        private static final String SP_USER_CHANNEL_RHYTHM_ID = "SpUserChannelRhythmID";
-        private int spVERSION = 4;      // Do not make final!
+        private static final String SP_MELODIC_USER_CHANNEL_RHYTHM_ID = "SpUserChannelRhythmID";
+        private static final String SP_DRUMS_USER_CHANNEL_RHYTHM_ID = "SpDrumsUserChannelRhythmID";     // Since spVERSION 5
+        private int spVERSION = 5;      // Do not make final!
         private InstrumentMix[] spInsMixes;
         private RvStorage[] spKeys;
         // spDelegates introduced with JJazzLab 2.1 => not used anymore with spVERSION=2        
@@ -2373,7 +2376,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
 
 
                 // Retrieve the RhythmVoice
-                RhythmVoice rv = rvs.rebuildRhythmVoice();
+                RhythmVoice rv = rvs.rebuildRhythmVoice(insMix.getInstrument());
                 if (rv == null)
                 {
                     msg.append("Mix file error, can't rebuild RhythmVoice for channel=").append(channel)
@@ -2416,7 +2419,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
             {
                 if (rv instanceof UserRhythmVoice)
                 {
-                    rhythmId = SP_USER_CHANNEL_RHYTHM_ID;
+                    rhythmId = rv.isDrums() ? SP_DRUMS_USER_CHANNEL_RHYTHM_ID : SP_MELODIC_USER_CHANNEL_RHYTHM_ID;
                 } else
                 {
                     rhythmId = rv.getContainer().getUniqueId();
@@ -2427,17 +2430,24 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
             /**
              * Rebuild a RhythmVoice or a UserRhythmVoice
              *
+             * @param ins
              * @return Can be null
              */
-            public RhythmVoice rebuildRhythmVoice()
+            public RhythmVoice rebuildRhythmVoice(Instrument ins)
             {
+                Objects.requireNonNull(ins);
                 RhythmVoice rv = null;
 
-                if (rhythmId.equals(SP_USER_CHANNEL_RHYTHM_ID))
+                if (rhythmId.equals(SP_MELODIC_USER_CHANNEL_RHYTHM_ID))
                 {
                     rv = new UserRhythmVoice(rvName);
+                } else if (rhythmId.equals(SP_DRUMS_USER_CHANNEL_RHYTHM_ID))
+                {
+                    DrumKit kit = ins.getDrumKit();     // Might be null if ins is the VoidInstrument from the GM bank
+                    rv = new UserRhythmVoice(rvName, kit == null ? new DrumKit() : kit);
                 } else
                 {
+                    // Normal RhythmVoice
                     RhythmDatabase rdb = RhythmDatabase.getDefault();
                     Rhythm r;
                     try

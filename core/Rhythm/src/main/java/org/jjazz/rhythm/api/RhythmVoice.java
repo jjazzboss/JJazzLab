@@ -22,6 +22,7 @@
  */
 package org.jjazz.rhythm.api;
 
+import com.google.common.base.Preconditions;
 import java.util.Objects;
 import java.util.logging.Logger;
 import org.jjazz.midi.api.DrumKit;
@@ -121,12 +122,14 @@ public class RhythmVoice
      */
     public RhythmVoice(Rhythm container, Type type, String name, Instrument ins, InstrumentSettings is, int preferredChannel)
     {
-        if (container == null || type == null || type.equals(Type.DRUMS) || type.equals(Type.PERCUSSION) || ins == null
-                || ins.getSubstitute() == null || name == null || is == null || !MidiConst.checkMidiChannel(preferredChannel))
-        {
-            throw new IllegalArgumentException(
-                    "container=" + container + " type=" + type + " name=" + name + " ins=" + ins.toLongString() + " is=" + is + " preferredChannel=" + preferredChannel);
-        }
+        Objects.requireNonNull(container);
+        Objects.requireNonNull(type);
+        Objects.requireNonNull(ins);
+        Objects.requireNonNull(ins.getSubstitute());
+        Objects.requireNonNull(name);
+        Objects.requireNonNull(is);
+        Preconditions.checkArgument(type != Type.DRUMS && type != Type.PERCUSSION && MidiConst.checkMidiChannel(preferredChannel),
+                "type=%s preferredChannel=%s", type, preferredChannel);
         this.container = container;
         this.name = name;
         this.instrument = ins;
@@ -165,12 +168,15 @@ public class RhythmVoice
      */
     public RhythmVoice(DrumKit drumKit, Rhythm container, Type type, String name, Instrument ins, InstrumentSettings is, int preferredChannel)
     {
-        if (drumKit == null || container == null || type == null || (!type.equals(Type.DRUMS) && !type.equals(Type.PERCUSSION))
-                || ins == null || name == null || is == null || !MidiConst.checkMidiChannel(preferredChannel))
-        {
-            throw new IllegalArgumentException("kit=" + drumKit + " container=" + container + " type=" + type + " name=" + name
-                    + " is=" + is + " preferredChannel=" + preferredChannel);
-        }
+        Objects.requireNonNull(drumKit);
+        Objects.requireNonNull(container);
+        Objects.requireNonNull(type);
+        Objects.requireNonNull(ins);
+        Objects.requireNonNull(name);
+        Objects.requireNonNull(is);
+        Preconditions.checkArgument((type == Type.DRUMS || type == Type.PERCUSSION) && MidiConst.checkMidiChannel(preferredChannel),
+                "type=%s preferredChannel=%s", type, preferredChannel);
+
         this.container = container;
         this.name = name;
         this.type = type;
