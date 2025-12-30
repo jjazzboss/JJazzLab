@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -20,7 +21,12 @@ import org.jjazz.jjswing.api.RP_DrumsStyle;
 import org.jjazz.jjswing.drums.db.DpSource;
 import org.jjazz.jjswing.drums.db.DpSourceDatabase;
 import org.jjazz.jjswing.bass.BassGenerator;
+import org.jjazz.jjswing.bass.BassGeneratorSettings;
 import org.jjazz.midi.api.DrumKit;
+import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.phrase.api.SwingBassTempoAdapter;
+import org.jjazz.phrase.api.SwingDrumsTempoAdapter;
+import org.jjazz.phrase.api.SwingProfile;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.UserErrorGenerationException;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Fill;
@@ -118,12 +124,14 @@ public class DrumsGenerator implements MusicGenerator
 
         if (rvDrums != null)
         {
-            postProcessPhrase(rvDrums, pDrums, context);
+            var drumKit = getDrumKit(rvDrums, context.getMidiMix());
+            postProcessPhrase(context, pDrums, drumKit);
             res.put(rvDrums, pDrums);
         }
         if (rvPerc != null)
         {
-            postProcessPhrase(rvPerc, pPerc, context);
+            var drumKit = getDrumKit(rvDrums, context.getMidiMix());
+            postProcessPhrase(context, pPerc, drumKit);
             res.put(rvPerc, pPerc);
         }
 
@@ -225,7 +233,25 @@ public class DrumsGenerator implements MusicGenerator
 
             }
         }
+    }
 
+    private DrumKit getDrumKit(RhythmVoice rv, MidiMix midiMix)
+    {
+        DrumKit drumKit;
+        if (rv.isDrums())
+        {
+            drumKit = rv.getDrumKit();
+            var insMix = midiMix.getInstrumentMix(rv);
+            if (insMix != null && insMix.getInstrument().getDrumKit() != null)
+            {
+                drumKit = insMix.getInstrument().getDrumKit();
+            }
+        } else
+        {
+            drumKit = new DrumKit();
+            LOGGER.log(Level.WARNING, "getDrumKit() Unexpected non drums rv={0}, using default GM DrumKit", rv);
+        }
+        return drumKit;
     }
 
     /**
@@ -276,49 +302,43 @@ public class DrumsGenerator implements MusicGenerator
         return dpss.get(index);
     }
 
-    private void postProcessPhrase(RhythmVoice rv, Phrase p, SongContext context) throws UserErrorGenerationException
+    /**
+     * Post process the phrase by SongPart, since SongParts using our rhythm can be any anywhere in the song.
+     *
+     * @param context
+     * @param p
+     * @param drumKit
+     * @throws UserErrorGenerationException
+     */
+    private void postProcessPhrase(SongContext context, Phrase p, DrumKit drumKit) throws UserErrorGenerationException
     {
-
-        // Add slight velocity randomization +/- 2 
-        p.processVelocity(v -> (int) Math.round(v + Math.random() * 4 - 2));
-
-
-        // Post process the phrase by SongPart, since SongParts using our rhythm can be any anywhere in the song     
         var song = context.getSong();
-        SongChordSequence songChordSequence = new SongChordSequence(song, context.getBarRange());  // throws UserErrorGenerationException. Handle alternate chord symbols.        
-
+        SongChordSequence songChordSequence = new SongChordSequence(song, context.getBarRange());  // throws UserErrorGenerationException. Handle alternate chord symbols
 
         for (var spt : getRhythmSpts(context))
         {
             var sptBeatRange = context.getSptBeatRange(spt);
             var sptBarRange = context.getSptBarRange(spt);
+
             var scsSpt = new SimpleChordSequence(songChordSequence.subSequence(sptBarRange, false), sptBeatRange.from, rhythm.getTimeSignature());
 
-            // Accents for drums only 
-            if (rv.getType() == RhythmVoice.Type.DRUMS)
-            {
-                var insMix = context.getMidiMix().getInstrumentMix(rv);
-                if (insMix == null)
-                {
-                    LOGGER.log(Level.WARNING, "postProcessPhrase() Unexpected insMix=null. rv={0}", rv);
-                    return;
-                }
-                var drumKit = insMix.getInstrument().getDrumKit();
-                if (drumKit != null)
-                {
-                    processDrumsAccents(p, scsSpt, song.getTempo(), drumKit);
-                }
-            }
+            // Accents
+            processDrumsAccents(p, scsSpt, song.getTempo(), drumKit);
 
             // process RP_SYS_Intensity
             BassGenerator.processIntensity(p, sptBeatRange, spt.getRPValue(RP_SYS_Intensity.getIntensityRp(rhythm)));
 
-            // Position shift depending on setting and tempo
-            float bias = BassGenerator.computeNotePositionBias(song.getTempo());
-            BassGenerator.processNotePositionBias(p, sptBeatRange, bias);
-
-
+            // Tempo-based adjustment
+            processTempoAdjustments(p, sptBeatRange, song.getTempo(), drumKit);
         }
+    }
+
+    private void processTempoAdjustments(Phrase p, FloatRange beatRange, int tempo, DrumKit drumKit)
+    {
+        LOGGER.log(Level.SEVERE, "processSwingFeelTempoAdapter() beatRange={0}", beatRange);
+        SwingProfile profile = BassGeneratorSettings.getInstance().getSwingProfile();
+        SwingDrumsTempoAdapter drumsAdapter = new SwingDrumsTempoAdapter(profile, new Random());
+        drumsAdapter.adaptToTempo(p, ne -> beatRange.contains(ne.getBeatRange(), true), tempo, rhythm.getTimeSignature(), drumKit);
     }
 
     private List<SongPart> getRhythmSpts(SongContext context)
@@ -327,7 +347,6 @@ public class DrumsGenerator implements MusicGenerator
                 .filter(spt -> spt.getRhythm() == rhythm)
                 .toList();
     }
-
 
     /**
      * Guess tags from the SongContext.

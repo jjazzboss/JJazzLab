@@ -1,8 +1,12 @@
 package org.jjazz.jjswing.bass;
 
 import com.google.common.base.Preconditions;
+import java.beans.PropertyChangeListener;
+import java.util.Objects;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
+import javax.swing.event.SwingPropertyChangeSupport;
+import org.jjazz.phrase.api.SwingProfile;
 import org.openide.util.NbPreferences;
 
 /**
@@ -10,12 +14,14 @@ import org.openide.util.NbPreferences;
  */
 public class BassGeneratorSettings
 {
+
     private static final String PREF_WBPSA_STORE_RANDOMIZED = "PrefRandomizedWbpsaStore";
     private static final String PREF_ACCEPT_NON_CHORD_BASS_START_NOTE = "PrefAcceptNonChordBassStartNote";
-    private static final String PREF_NOTE_TIMING_BIAS_FACTOR = "PrefNoteTimingBias";
+    private static final String PREF_SWING_PROFILE = "PrefSwingProfile";
     private static BassGeneratorSettings INSTANCE;
     private final Preferences prefs = NbPreferences.forModule(BassGeneratorSettings.class);
-    ;
+    private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+
     private static final Logger LOGGER = Logger.getLogger(BassGeneratorSettings.class.getSimpleName());
 
     public static BassGeneratorSettings getInstance()
@@ -46,7 +52,9 @@ public class BassGeneratorSettings
      */
     public void setAcceptNonRootStartNote(boolean b)
     {
+        var old = isAcceptNonChordBassStartNote();
         prefs.putBoolean(PREF_ACCEPT_NON_CHORD_BASS_START_NOTE, b);
+        pcs.firePropertyChange(PREF_ACCEPT_NON_CHORD_BASS_START_NOTE, old, b);
     }
 
     /**
@@ -56,39 +64,43 @@ public class BassGeneratorSettings
      */
     public boolean isWbpsaStoreRandomized()
     {
-        return prefs.getBoolean(PREF_WBPSA_STORE_RANDOMIZED, true);        
+        return prefs.getBoolean(PREF_WBPSA_STORE_RANDOMIZED, true);
     }
 
     /**
      * Set if WbpsaStore applies some partial randomization in the order of WbpSourceAdaptations.
      *
-     * @param b 
+     * @param b
      */
     public void setWbpsaStoreRandomized(boolean b)
     {
+        var old = isWbpsaStoreRandomized();
         prefs.putBoolean(PREF_WBPSA_STORE_RANDOMIZED, b);
+        pcs.firePropertyChange(PREF_WBPSA_STORE_RANDOMIZED, old, b);
     }
 
-    /**
-     * Bass note timing bias factor.
-     *
-     * @return [-1;1]
-     */
-    public float getTempoNotePositionBiasFactor()
+    public SwingProfile getSwingProfile()
     {
-        return prefs.getFloat(PREF_NOTE_TIMING_BIAS_FACTOR, 0f);
+        String s = prefs.get(PREF_SWING_PROFILE, SwingProfile.NEUTRAL.name());
+        return SwingProfile.toSwingProfile(s);
     }
 
-    /**
-     * Bass note timing bias factor.
-     *
-     * @param bias [-1;1]
-     */
-    public void setTempoNotePositionBias(float bias)
+    public void setSwingProfile(SwingProfile profile)
     {
-        Preconditions.checkArgument(bias >= -1 && bias <= 1, "bias=%s", bias);
-        prefs.putFloat(PREF_NOTE_TIMING_BIAS_FACTOR, bias);
+        Objects.requireNonNull(profile);
+        var old = getSwingProfile();
+        prefs.put(PREF_SWING_PROFILE, profile.name());
+        pcs.firePropertyChange(PREF_SWING_PROFILE, old, profile);
     }
 
+    public synchronized void addPropertyChangeListener(PropertyChangeListener listener)
+    {
+        pcs.addPropertyChangeListener(listener);
+    }
+
+    public synchronized void removePropertyChangeListener(PropertyChangeListener listener)
+    {
+        pcs.removePropertyChangeListener(listener);
+    }
 
 }

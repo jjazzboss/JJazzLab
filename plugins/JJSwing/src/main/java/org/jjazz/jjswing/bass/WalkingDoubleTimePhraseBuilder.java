@@ -26,11 +26,15 @@ package org.jjazz.jjswing.bass;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.logging.Logger;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.harmony.api.Position;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.jjswing.api.BassStyle;
+import org.jjazz.phrase.api.SwingBassTempoAdapter;
+import org.jjazz.phrase.api.SwingProfile;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.utilities.api.IntRange;
 
@@ -62,6 +66,12 @@ public class WalkingDoubleTimePhraseBuilder implements PhraseBuilder
         Phrase p = builder.build(scsListExpanded, tempo);
 
 
+        // Adapt to a double tempo
+        SwingProfile profile = SwingProfile.getRecommended(2 * tempo);
+        SwingBassTempoAdapter bassAdapter = new SwingBassTempoAdapter(profile, new Random());
+        bassAdapter.adaptToTempo(p, ne -> true, 2 * tempo, TimeSignature.FOUR_FOUR);
+
+
         // Shrink back the phrase
         p.processNotes(ne -> true, ne -> 
         {
@@ -69,11 +79,6 @@ public class WalkingDoubleTimePhraseBuilder implements PhraseBuilder
             var newPos = ne.getPositionInBeats() / 2;
             return ne.setAll(ne.getPitch(), newDur, ne.getVelocity(), newPos, null, false);
         });
-
-
-        // Position shift depending on setting and tempo
-        float bias = BassGenerator.computeNotePositionBias(2 * tempo);
-        BassGenerator.processNotePositionBias(p, p.getNotesBeatRange(), bias);
 
 
         return p;

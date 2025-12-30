@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -13,6 +14,7 @@ import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.Position;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.synths.InstrumentFamily;
 import org.jjazz.midimix.api.MidiMix;
@@ -28,6 +30,8 @@ import org.jjazz.jjswing.api.RP_BassStyle;
 import org.jjazz.jjswing.bass.db.Velocities;
 import org.jjazz.jjswing.bass.db.WbpSource;
 import org.jjazz.jjswing.bass.db.WbpSourceDatabase;
+import org.jjazz.phrase.api.SwingBassTempoAdapter;
+import org.jjazz.phrase.api.SwingProfile;
 import org.jjazz.rhythm.api.Division;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
@@ -140,22 +144,40 @@ public class BassGenerator implements MusicGenerator
             pRes.add(p);
         }
 
+        // Do all the postprocessing
+        postProcess(context, pRes);
 
-        // Add slight velocity randomization +/- 2 
-        pRes.processVelocity(v -> (int) Math.round(v + Math.random() * 4 - 2));
+        // Some overlaps might happen when :
+        // - combining 2 WbpSources, if last note of 1st WbpSource is long and has the same pitch than 1st note of 2nd WbpSource, and 2nd WbpSource has firstNoteBeatShift < 0
+        // - when converting a normal bass line to a pedal bass line, some same pitch notes overlaps may appear.
+        Phrases.fixOverlappedNotes(pRes);
 
+        res.put(rvBass, pRes);
 
-        // Post process the phrase by SongPart, since SongParts using our rhythm can be any anywhere in the song     
-        var song = context.getSong();
-        SongChordSequence songChordSequence = new SongChordSequence(song, context.getBarRange());  // throws UserErrorGenerationException. Handle alternate chord symbols.        
+        lastSong = context.getSong();
+
+        return res;
+    }
+
+    /**
+     * Post process the phrase by SongPart, since SongParts using our rhythm can be any anywhere in the song.
+     *
+     * @param context
+     * @param pRes
+     * @throws UserErrorGenerationException
+     */
+    private void postProcess(SongContext context, Phrase pRes) throws UserErrorGenerationException
+    {
         var rpIntensity = RP_SYS_Intensity.getIntensityRp(rhythm);
         var rpFill = RP_SYS_Fill.getFillRp(rhythm);
-        List<SongPart> rhythmSpts = context.getSongParts().stream()
-                .filter(spt -> spt.getRhythm() == rhythm)
-                .toList();
+
+
+        var song = context.getSong();
+        SongChordSequence songChordSequence = new SongChordSequence(song, context.getBarRange());  // throws UserErrorGenerationException. Handle alternate chord symbols.                               
+
+
         SongPart prevSpt = null;
-
-
+        var rhythmSpts = getRhythmSpts(context);
         for (var spt : rhythmSpts)
         {
             var sptBeatRange = context.getSptBeatRange(spt);
@@ -181,32 +203,24 @@ public class BassGenerator implements MusicGenerator
             processIntensity(pRes, sptBeatRange, spt.getRPValue(rpIntensity));
 
 
-            // Position shift depending on setting and tempo
-            float bias = computeNotePositionBias(song.getTempo());
-            // LOGGER.severe("  BIAS="+bias+" (tempo="+song.getTempo()+")");
-            processNotePositionBias(pRes, sptBeatRange, bias);
-
-
             // Update phrase depending on the fill parameter value
             processFill(pRes, sptBeatRange, spt.getRPValue(rpFill));
 
 
+            // Add tempo-based adjustment
+            processSwingFeelTempoAdapter(pRes, sptBeatRange, song.getTempo());
+
             prevSpt = spt;
         }
 
-
-        // Some overlaps might happen when :
-        // - combining 2 WbpSources, if last note of 1st WbpSource is long and has the same pitch than 1st note of 2nd WbpSource, and 2nd WbpSource has firstNoteBeatShift < 0
-        // - when converting a normal bass line to a pedal bass line, some same pitch notes overlaps may appear.
-        Phrases.fixOverlappedNotes(pRes);
-
-        res.put(rvBass, pRes);
-
-        lastSong = context.getSong();
-
-        return res;
     }
 
+    private List<SongPart> getRhythmSpts(SongContext context)
+    {
+        return context.getSongParts().stream()
+                .filter(spt -> spt.getRhythm() == rhythm)
+                .toList();
+    }
 
     static public int getClosestAndAcceptableBassPitch(Note n, int relPitch)
     {
@@ -242,52 +256,31 @@ public class BassGenerator implements MusicGenerator
         }
     }
 
-    /**
-     * The faster the tempo the more we play before the beat.
-     * <p>
-     * Also depends on the setting getTempoNotePositionBiasFactor().
-     *
-     * @param tempo
-     * @return A flopat value to shift notes beat positions
-     */
-    static public float computeNotePositionBias(int tempo)
-    {
-        final int TEMPO_HIGH = 240;
-        final float TEMPO_HIGH_BIAS = -0.04f;
-        final int TEMPO_NORMAL = TEMPO_HIGH / 2;
-        final float TEMPO_NORMAL_BIAS = 0;
-
-
-        float tempo2 = Math.clamp(tempo, TEMPO_NORMAL, TEMPO_HIGH);
-        float biasTempo = TEMPO_NORMAL_BIAS + (tempo2 - TEMPO_NORMAL) / (TEMPO_HIGH - TEMPO_NORMAL) * (TEMPO_HIGH_BIAS - TEMPO_NORMAL_BIAS);
-
-        final float BIAS_RANGE_MAX = 0.07f;
-        float biasSettingFactor = BassGeneratorSettings.getInstance().getTempoNotePositionBiasFactor();
-        float biasSetting = biasSettingFactor * BIAS_RANGE_MAX;
-        float res = Math.clamp(biasSetting + biasTempo, -BIAS_RANGE_MAX, BIAS_RANGE_MAX);
-        return res;
-    }
-
-    /**
-     * Update note timing depending on bias and tempo.
-     * <p>
-     *
-     * @param p
-     * @param beatRange    Update notes in this range
-     * @param positionBias
-     */
-    static public void processNotePositionBias(Phrase p, FloatRange beatRange, float positionBias)
-    {
-        if (positionBias != 0)
-        {
-            p.processNotes(ne -> beatRange.contains(ne.getPositionInBeats(), true), ne -> 
-            {
-                float newPos = Math.max(ne.getPositionInBeats() + positionBias, beatRange.from);
-                NoteEvent newNe = ne.setPosition(newPos, false);
-                return newNe;
-            });
-        }
-    }
+//    /**
+//     * The faster the tempo the more we play before the beat.
+//     * <p>
+//     * Also depends on the setting getTempoNotePositionBiasFactor().
+//     *
+//     * @param tempo
+//     * @return A flopat value to shift notes beat positions
+//     */
+//    static public float computeNotePositionBias(int tempo)
+//    {
+//        final int TEMPO_HIGH = 240;
+//        final float TEMPO_HIGH_BIAS = -0.04f;
+//        final int TEMPO_NORMAL = TEMPO_HIGH / 2;
+//        final float TEMPO_NORMAL_BIAS = 0;
+//
+//
+//        float tempo2 = Math.clamp(tempo, TEMPO_NORMAL, TEMPO_HIGH);
+//        float biasTempo = TEMPO_NORMAL_BIAS + (tempo2 - TEMPO_NORMAL) / (TEMPO_HIGH - TEMPO_NORMAL) * (TEMPO_HIGH_BIAS - TEMPO_NORMAL_BIAS);
+//
+//        final float BIAS_RANGE_MAX = 0.07f;
+//        float biasSettingFactor = BassGeneratorSettings.getInstance().getTempoNotePositionBiasFactor();
+//        float biasSetting = biasSettingFactor * BIAS_RANGE_MAX;
+//        float res = Math.clamp(biasSetting + biasTempo, -BIAS_RANGE_MAX, BIAS_RANGE_MAX);
+//        return res;
+//    }
 
     // ===============================================================================
     // Private methods
@@ -674,6 +667,14 @@ public class BassGenerator implements MusicGenerator
 
 
         }
+    }
+
+    private void processSwingFeelTempoAdapter(Phrase p, FloatRange beatRange, int tempo)
+    {
+        LOGGER.log(Level.SEVERE, "processSwingFeelTempoAdapter() beatRange={0}", beatRange);
+        SwingProfile profile = BassGeneratorSettings.getInstance().getSwingProfile();
+        SwingBassTempoAdapter bassAdapter = new SwingBassTempoAdapter(profile, new Random());
+        bassAdapter.adaptToTempo(p, ne -> beatRange.contains(ne.getBeatRange(), true), tempo, rhythm.getTimeSignature());
     }
 
     /**
