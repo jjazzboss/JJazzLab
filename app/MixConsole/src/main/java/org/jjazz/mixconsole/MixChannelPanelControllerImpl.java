@@ -222,7 +222,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
             DialogDisplayer.getDefault().notify(d);
             return;
         }
-        Phrase p2 = new Phrase(p.getChannel(), p.isDrums());
+        Phrase p2 = new Phrase(p.getChannel(), rv.isDrums());
         p2.add(p);
 
 

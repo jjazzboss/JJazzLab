@@ -22,11 +22,8 @@
  */
 package org.jjazz.mixconsole;
 
-import java.awt.Color;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import javax.swing.BorderFactory;
-import javax.swing.border.LineBorder;
 import javax.swing.ImageIcon;
 import javax.swing.SwingUtilities;
 import org.jjazz.midimix.api.MidiMix;
@@ -36,7 +33,6 @@ import org.jjazz.song.api.Song;
 import org.jjazz.flatcomponents.api.FlatButton;
 import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.uiutilities.api.CornerLayout;
-import org.jjazz.uiutilities.api.HSLColor;
 import org.jjazz.utilities.api.ResUtil;
 
 /**
