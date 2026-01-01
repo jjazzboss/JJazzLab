@@ -33,13 +33,13 @@ import org.openide.awt.ActionRegistration;
 /**
  * Show the advanced jjSwing settings dialog.
  */
-@ActionID(category = "JJazz", id = "org.jjazz.jjswing.advancedsettingsaction")
-@ActionRegistration(displayName = "jjSwing Advanced Settings...")
-@ActionReferences(
-        {
-            @ActionReference(path = "Menu/Edit", position = 87012),
-            @ActionReference(path = "Shortcuts", name = "DS-T")      // ctrl-shift T
-        })
+//@ActionID(category = "JJazz", id = "org.jjazz.jjswing.advancedsettingsaction")
+//@ActionRegistration(displayName = "jjSwing Advanced Settings...")
+//@ActionReferences(
+//        {
+//            @ActionReference(path = "Menu/Edit", position = 87012),
+//            @ActionReference(path = "Shortcuts", name = "DS-T")      // ctrl-shift T
+//        })
 public final class AdvancedSettingsAction implements ActionListener
 {
     private static AdvancedSettingsDialog dialog;

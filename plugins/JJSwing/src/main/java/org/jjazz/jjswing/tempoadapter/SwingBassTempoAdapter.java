@@ -82,7 +82,7 @@ public class SwingBassTempoAdapter
      * </ul>
      *
      * @param phrase    The phrase to adapt (will be modified in place)
-     * @param beatRange Adapt only NoteEvents which start in this beat range. Can be null.
+     * @param beatRange Adapt only NoteEvents contained in this beat range. Can be null.
      * @param tester    Process only NoteEvents which satisfy the tester. Can be null.
      * @param tempo     Target tempo in BPM
      */
@@ -100,7 +100,7 @@ public class SwingBassTempoAdapter
         // Process all notes
         Map<NoteEvent, NoteEvent> replacements = new HashMap<>();
         var validNotes = phrase.stream()
-                .filter(ne -> beatRange == null || beatRange.contains(ne.getPositionInBeats(), true))
+                .filter(ne -> beatRange == null || beatRange.contains(ne.getBeatRange(), true))
                 .filter(ne -> tester == null || tester.test(ne))
                 .toList();
 

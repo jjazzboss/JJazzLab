@@ -531,7 +531,7 @@ public class BassGenerator implements MusicGenerator
     {
         // Remove all notes of the last bar, except the start note, and make it short
         float lastBarStart = sptBeatRange.to - rhythm.getTimeSignature().getNbNaturalBeats();
-        var brLastBar = new FloatRange(Math.max(0, lastBarStart - 0.4f), sptBeatRange.to - 0.4f);    // Take into accound possible anticipated(pushed) notes
+        var brLastBar = new FloatRange(Math.max(0, lastBarStart - 0.4f), sptBeatRange.to - 0.4f);    // Take into accound possible anticipated/pushed notes
         var notes = p.getNotes(ne -> true, brLastBar, false);
         if (!notes.isEmpty())
         {
@@ -669,14 +669,15 @@ public class BassGenerator implements MusicGenerator
 
     private void processSwingFeelTempoAdapter(Phrase p, FloatRange beatRange, int tempo)
     {
+        var brAdjusted = beatRange.getTransformed(beatRange.from >= 0.4f ? -0.4f : 0, 0);       // Take into accound possible anticipated/pushed notes
         float intensity = BassGeneratorSettings.getInstance().getSwingProfileIntensity();
-        LOGGER.log(Level.FINE, "processSwingFeelTempoAdapter() beatRange={0} intensity={1}", new Object[]
+        LOGGER.log(Level.FINE, "processSwingFeelTempoAdapter() beatRange={0} intensity={1} tempo={2}", new Object[]
         {
-            beatRange, intensity
+            beatRange, intensity, tempo
         });
         SwingProfile profile = SwingProfile.create(intensity);
         SwingBassTempoAdapter bassAdapter = new SwingBassTempoAdapter(profile, rhythm.getTimeSignature());
-        bassAdapter.adaptToTempo(p, beatRange, ne -> true, tempo);
+        bassAdapter.adaptToTempo(p, brAdjusted, ne -> true, tempo);   // Does not process notes not contained in brAdjusted
     }
 
     /**

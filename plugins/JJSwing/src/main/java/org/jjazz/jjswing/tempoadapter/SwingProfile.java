@@ -45,21 +45,21 @@ public class SwingProfile
     // [slowMin, medium, fast, fastMax]
     public float[] swingRatios =
     {
-        2.5f, 2.0f, 1.8f, 1.5f
+        2.3f, 2.0f, 1.8f, 1.6f
     };
 
     // Forward lean in milliseconds (negative = ahead of beat)
     // [slowMin, medium, fast, fastMax]
     public float[] forwardLeans =
     {
-        2f, -1f, -6f, -10f
+        2f, 0f, -5f, -9f
     };
 
     // Duration/legato percentage
     // [slowMin, medium, fast, fastMax]
     public float[] legatoPercents =
     {
-        1f, 1f, 0.95f, 0.9f
+        1f, 1f, 0.97f, 0.94f
     };
 
     // Velocity dynamics (accent delta)
@@ -82,12 +82,12 @@ public class SwingProfile
     {
         1.0f, 1.0f, 0.7f, 0.5f
     };
-
+    
     // Humanization jitter standard deviation in ms (subtle, disabled by default)
     // [slowMin, medium, fast, fastMax]    
     public float[] jitterSDs =
     {
-        1.0f, 1.5f, 2f, 3f
+        1.0f, 2f, 3f, 4f
     };
 
     // Enable/disable flags

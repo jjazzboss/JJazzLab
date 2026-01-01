@@ -617,7 +617,8 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
     public String toString()
     {
         StringBuilder sb = new StringBuilder();
-        sb.append("Phrase[ch=").append(channel).append("] size=").append(size()).append(" notes=").append(getNotes().toString());
+        String drums = isDrums ? " dr]" : "]";
+        sb.append("Phrase[ch=").append(channel).append(drums).append(" sz=").append(size()).append(" notes=").append(getNotes().toString());
         return sb.toString();
     }
 

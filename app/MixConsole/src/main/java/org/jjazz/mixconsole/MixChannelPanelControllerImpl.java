@@ -171,7 +171,7 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
         // Retrieve the phrase
         var asmb = ActiveSongBackgroundMusicBuilder.getDefault();
 
-        
+
         // Check for update status
         if (!asmb.isLastResultUpToDate())
         {
@@ -222,7 +222,16 @@ public class MixChannelPanelControllerImpl implements MixChannelPanelController
             DialogDisplayer.getDefault().notify(d);
             return;
         }
-        Phrase p2 = new Phrase(p.getChannel(), rv.isDrums());
+
+        boolean isDrums = rv.isDrums();
+        if (p.isDrums() != isDrums)
+        {
+            LOGGER.log(Level.WARNING, "cloneRhythmTrackAsUserTrack() rv={0}: rv.isDrums()={1} but p.isDrums()={2}", new Object[]
+            {
+                rv, isDrums, !isDrums
+            });
+        }
+        Phrase p2 = new Phrase(p.getChannel(), isDrums);
         p2.add(p);
 
 

@@ -24,7 +24,6 @@
  */
 package org.jjazz.jjswing;
 
-import org.jjazz.jjswing.tempoadapter.SwingProfile;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JDialog;
@@ -126,7 +125,7 @@ public class AdvancedSettingsDialog extends JDialog
 
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Swing-feel tempo adaptation"));
 
-        cmb_swingProfileIntensity.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "0", "1", "2" }));
+        cmb_swingProfileIntensity.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "0.0", "1.0", "2.0" }));
         cmb_swingProfileIntensity.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
