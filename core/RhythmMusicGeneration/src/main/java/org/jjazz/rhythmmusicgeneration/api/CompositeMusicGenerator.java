@@ -623,7 +623,7 @@ public class CompositeMusicGenerator implements MusicGenerator
         for (var rv : mapSrc.keySet())
         {
             var pSrc = mapSrc.get(rv);
-            mapDest.putIfAbsent(rv, new Phrase(mm.getChannel(rv)));
+            mapDest.putIfAbsent(rv, new Phrase(mm.getChannel(rv), pSrc.isDrums()));
             var pDest = mapDest.get(rv);
             pDest.add(pSrc);
         }
