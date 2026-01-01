@@ -183,8 +183,13 @@ public class RhythmJTable extends JTable implements PropertyChangeListener
             {
                 java.awt.Point p = e.getPoint();
                 int index = columnModel.getColumnIndexAtX(p.x);
-                int realIndex = columnModel.getColumn(index).getModelIndex();
-                return model.COLUMN_HEADER_TOOLTIPS[realIndex];
+                String res = null;
+                if (index != -1)
+                {
+                    int realIndex = columnModel.getColumn(index).getModelIndex();
+                    res = model.COLUMN_HEADER_TOOLTIPS[realIndex];
+                }
+                return res;
             }
         };
     }
@@ -592,7 +597,7 @@ public class RhythmJTable extends JTable implements PropertyChangeListener
                 }
                 case RhythmTableModel.COL_NAME ->
                 {
-                    int pw = width + 2 * charPixelWidth;    // if highlighted contains additional chars
+                    int pw = width + 4 * charPixelWidth;    // if highlighted contains additional chars
                     tableColumn.setMaxWidth(pw);
                     tableColumn.setPreferredWidth(pw);      // must be done after setMaxWidth
                 }
