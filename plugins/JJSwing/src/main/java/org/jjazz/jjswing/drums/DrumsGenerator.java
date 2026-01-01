@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
-import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -24,9 +23,8 @@ import org.jjazz.jjswing.bass.BassGenerator;
 import org.jjazz.jjswing.bass.BassGeneratorSettings;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midimix.api.MidiMix;
-import org.jjazz.phrase.api.SwingBassTempoAdapter;
-import org.jjazz.phrase.api.SwingDrumsTempoAdapter;
-import org.jjazz.phrase.api.SwingProfile;
+import org.jjazz.jjswing.tempoadapter.SwingDrumsTempoAdapter;
+import org.jjazz.jjswing.tempoadapter.SwingProfile;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.UserErrorGenerationException;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Fill;
@@ -329,16 +327,20 @@ public class DrumsGenerator implements MusicGenerator
             BassGenerator.processIntensity(p, sptBeatRange, spt.getRPValue(RP_SYS_Intensity.getIntensityRp(rhythm)));
 
             // Tempo-based adjustment
-            processTempoAdjustments(p, sptBeatRange, song.getTempo(), drumKit);
+            processSwingFeelTempoAdapter(p, sptBeatRange, song.getTempo(), drumKit);
         }
     }
 
-    private void processTempoAdjustments(Phrase p, FloatRange beatRange, int tempo, DrumKit drumKit)
+    private void processSwingFeelTempoAdapter(Phrase p, FloatRange beatRange, int tempo, DrumKit drumKit)
     {
-        LOGGER.log(Level.SEVERE, "processSwingFeelTempoAdapter() beatRange={0}", beatRange);
-        SwingProfile profile = BassGeneratorSettings.getInstance().getSwingProfile();
-        SwingDrumsTempoAdapter drumsAdapter = new SwingDrumsTempoAdapter(profile, new Random());
-        drumsAdapter.adaptToTempo(p, ne -> beatRange.contains(ne.getBeatRange(), true), tempo, rhythm.getTimeSignature(), drumKit);
+        float intensity = BassGeneratorSettings.getInstance().getSwingProfileIntensity();
+        LOGGER.log(Level.FINE, "processSwingFeelTempoAdapter() beatRange={0} intensity={1}", new Object[]
+        {
+            beatRange, intensity
+        });
+        SwingProfile profile = SwingProfile.createForDrums(intensity);
+        SwingDrumsTempoAdapter drumsAdapter = new SwingDrumsTempoAdapter(profile, rhythm.getTimeSignature(), drumKit.getKeyMap());
+        drumsAdapter.adaptToTempo(p, beatRange, ne -> true, tempo);
     }
 
     private List<SongPart> getRhythmSpts(SongContext context)

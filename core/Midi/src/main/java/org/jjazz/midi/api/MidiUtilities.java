@@ -56,7 +56,8 @@ public class MidiUtilities
     /**
      * Get MidiEvents converted from MidiEvents with a different PPQ resolution (Midi Pulses Per Quarter).
      * <p>
-     * Note: if PPQ resolution is made smaller, it might be possible that the result contains zero-length notes (i.e. NOTE_ON and NOTE_OFF have same tick position).
+     * Note: if PPQ resolution is made smaller, it might be possible that the result contains zero-length notes (i.e. NOTE_ON and NOTE_OFF have same tick
+     * position).
      *
      * @param srcEvents A list of MidiEvents at srcPPQ resolution
      * @param srcPPQ    E.g. 480
@@ -632,6 +633,17 @@ public class MidiUtilities
         return buildMessage(ShortMessage.CONTROL_CHANGE, channel, MidiConst.CTRL_CHG_RESET_ALL_CONTROLLERS, 0);
     }
 
+    /**
+     * Utility to convert milliseconds to beat fraction at given tempo.
+     *
+     * @param ms    Time in milliseconds
+     * @param tempo Tempo in BPM
+     * @return Beat fraction
+     */
+    static public float msToBeats(float ms, float tempo)
+    {
+        return (ms / 60000f) * tempo;
+    }
 
     /**
      * Convert a tempo in BPM (beat per minute) into a tempo in microseconds per quarter.

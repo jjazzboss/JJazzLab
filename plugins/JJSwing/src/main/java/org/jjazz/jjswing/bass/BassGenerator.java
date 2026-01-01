@@ -6,7 +6,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
-import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -14,7 +13,6 @@ import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.Position;
-import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.synths.InstrumentFamily;
 import org.jjazz.midimix.api.MidiMix;
@@ -30,8 +28,8 @@ import org.jjazz.jjswing.api.RP_BassStyle;
 import org.jjazz.jjswing.bass.db.Velocities;
 import org.jjazz.jjswing.bass.db.WbpSource;
 import org.jjazz.jjswing.bass.db.WbpSourceDatabase;
-import org.jjazz.phrase.api.SwingBassTempoAdapter;
-import org.jjazz.phrase.api.SwingProfile;
+import org.jjazz.jjswing.tempoadapter.SwingBassTempoAdapter;
+import org.jjazz.jjswing.tempoadapter.SwingProfile;
 import org.jjazz.rhythm.api.Division;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
@@ -671,10 +669,14 @@ public class BassGenerator implements MusicGenerator
 
     private void processSwingFeelTempoAdapter(Phrase p, FloatRange beatRange, int tempo)
     {
-        LOGGER.log(Level.SEVERE, "processSwingFeelTempoAdapter() beatRange={0}", beatRange);
-        SwingProfile profile = BassGeneratorSettings.getInstance().getSwingProfile();
-        SwingBassTempoAdapter bassAdapter = new SwingBassTempoAdapter(profile, new Random());
-        bassAdapter.adaptToTempo(p, ne -> beatRange.contains(ne.getBeatRange(), true), tempo, rhythm.getTimeSignature());
+        float intensity = BassGeneratorSettings.getInstance().getSwingProfileIntensity();
+        LOGGER.log(Level.FINE, "processSwingFeelTempoAdapter() beatRange={0} intensity={1}", new Object[]
+        {
+            beatRange, intensity
+        });
+        SwingProfile profile = SwingProfile.create(intensity);
+        SwingBassTempoAdapter bassAdapter = new SwingBassTempoAdapter(profile, rhythm.getTimeSignature());
+        bassAdapter.adaptToTempo(p, beatRange, ne -> true, tempo);
     }
 
     /**

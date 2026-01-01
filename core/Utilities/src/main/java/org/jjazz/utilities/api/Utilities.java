@@ -176,7 +176,7 @@ public class Utilities
     }
 
     /**
-     * Get the next gaussian random value between -1 and 1 (using a standard deviation is 0.3).
+     * Get the next gaussian random value between -1 and 1 using a standard deviation of 0.3.
      *
      * @param random
      * @return

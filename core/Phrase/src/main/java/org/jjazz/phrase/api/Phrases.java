@@ -146,6 +146,37 @@ public class Phrases
         p.addAll(nes);
     }
 
+    /**
+     * Calculate the median velocity from a list of note events.
+     * <p>
+     *
+     * @param notes
+     * @param defaultValue Return value if notes is empty
+     * @return
+     */
+    static public int computeMedianVelocity(List<NoteEvent> notes, int defaultValue)
+    {
+        if (notes.isEmpty())
+        {
+            return 70;  // Default fallback for empty list
+        }
+
+        var velocities = notes.stream()
+                .map(NoteEvent::getVelocity)
+                .sorted()
+                .toList();
+
+        int size = velocities.size();
+        if (size % 2 == 0)
+        {
+            // Even number: average of two middle values
+            return (velocities.get(size / 2 - 1) + velocities.get(size / 2)) / 2;
+        } else
+        {
+            // Odd number: middle value
+            return velocities.get(size / 2);
+        }
+    }
 
     /**
      * Get the pitch range used by p's notes.

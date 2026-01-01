@@ -26,16 +26,16 @@ package org.jjazz.jjswing.bass;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.logging.Logger;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.jjswing.api.BassStyle;
-import org.jjazz.phrase.api.SwingBassTempoAdapter;
-import org.jjazz.phrase.api.SwingProfile;
+import org.jjazz.jjswing.tempoadapter.SwingProfile;
+import org.jjazz.jjswing.tempoadapter.SwingBassTempoAdapter;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
+import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
 
 /**
@@ -57,7 +57,7 @@ public class WalkingDoubleTimePhraseBuilder implements PhraseBuilder
             tempo, scsList
         });
 
-        // Expand the SimpleChordSequences
+        // Expand the SimpleChordSequences (2x longer)
         var scsListExpanded = getExpandedSimpleChordSequences(scsList);
 
 
@@ -67,10 +67,14 @@ public class WalkingDoubleTimePhraseBuilder implements PhraseBuilder
 
 
         // Adapt to a double tempo
-        SwingProfile profile = SwingProfile.getRecommended(2 * tempo);
-        SwingBassTempoAdapter bassAdapter = new SwingBassTempoAdapter(profile, new Random());
-        bassAdapter.adaptToTempo(p, ne -> true, 2 * tempo, TimeSignature.FOUR_FOUR);
-
+        if (!scsListExpanded.isEmpty())
+        {
+            var beatRange = new FloatRange(scsListExpanded.getFirst().getBeatRange().from, scsListExpanded.getLast().getBeatRange().to);
+            float intensity = BassGeneratorSettings.getInstance().getSwingProfileIntensity();
+            SwingProfile profile = SwingProfile.create(intensity);
+            SwingBassTempoAdapter bassAdapter = new SwingBassTempoAdapter(profile, TimeSignature.FOUR_FOUR);
+            bassAdapter.adaptToTempo(p, beatRange, ne -> true, 2 * tempo);
+        }
 
         // Shrink back the phrase
         p.processNotes(ne -> true, ne -> 

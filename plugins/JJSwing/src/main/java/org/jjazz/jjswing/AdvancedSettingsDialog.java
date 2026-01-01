@@ -24,15 +24,14 @@
  */
 package org.jjazz.jjswing;
 
+import org.jjazz.jjswing.tempoadapter.SwingProfile;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JDialog;
 import org.jjazz.jjswing.bass.BassGeneratorSettings;
-import org.jjazz.phrase.api.SwingProfile;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Marker;
 import org.jjazz.song.api.Song;
 import org.jjazz.uiutilities.api.UIUtilities;
-import org.openide.util.Lookup;
 import org.openide.util.Utilities;
 import org.openide.windows.WindowManager;
 
@@ -73,43 +72,40 @@ public class AdvancedSettingsDialog extends JDialog
     private void triggerCurrentSongChange()
     {
         Song song = Utilities.actionsGlobalContext().lookup(Song.class);
-        if (song != null)
+        if (song == null)
         {
-            var sgs = song.getSongStructure();
-            var spts = sgs.getSongParts();
-            if (spts.isEmpty() || !spts.getFirst().getRhythm().getUniqueId().equals("jjSwing-ID"))
-            {
-                return;
-            }
-            LOGGER.log(Level.SEVERE, "Generating dummy change in {0}", song);
-            var spt = spts.getFirst();
-            var r = spt.getRhythm();
-            var rpMarker = RP_SYS_Marker.getMarkerRp(r);
-            var rpValue = spt.getRPValue(rpMarker);
-            rpValue = rpMarker.getNextValue(rpValue);
-            sgs.setRhythmParameterValue(spt, rpMarker, rpValue);                
+            return;
         }
+        var sgs = song.getSongStructure();
+        var spts = sgs.getSongParts();
+        if (spts.isEmpty() || !spts.getFirst().getRhythm().getUniqueId().equals("jjSwing-ID"))
+        {
+            return;
+        }
+        LOGGER.log(Level.SEVERE, "Generating dummy change in {0}", song);
+        var spt = spts.getFirst();
+        var r = spt.getRhythm();
+        var rpMarker = RP_SYS_Marker.getMarkerRp(r);
+        var rpValue = spt.getRPValue(rpMarker);
+        rpValue = rpMarker.getNextValue(rpValue);
+        sgs.setRhythmParameterValue(spt, rpMarker, rpValue);
     }
 
     private void modelChanged()
     {
         var settings = BassGeneratorSettings.getInstance();
-        var profile = settings.getSwingProfile();
-        if (profile == SwingProfile.DISABLED)
+        float newIntensity = settings.getSwingProfileIntensity();
+        if (newIntensity != readIntensity())
         {
-            cb_enableSwingFeelAdaptation.setSelected(false);
-            cmb_swingProfile.setEnabled(false);
-        } else
-        {
-            cb_enableSwingFeelAdaptation.setSelected(true);
-            cmb_swingProfile.setEnabled(true);
-            String selProfile = (String) cmb_swingProfile.getSelectedItem();
-            if (!selProfile.equals(profile.name()))
-            {
-                cmb_swingProfile.setSelectedItem(profile.name());
-            }
+            cmb_swingProfileIntensity.setSelectedItem(String.valueOf(newIntensity));
         }
         triggerCurrentSongChange();
+    }
+
+    private float readIntensity()
+    {
+        String strIntensity = (String) cmb_swingProfileIntensity.getSelectedItem();
+        return Float.parseFloat(strIntensity);
     }
 
     /**
@@ -122,34 +118,24 @@ public class AdvancedSettingsDialog extends JDialog
     {
 
         jPanel1 = new javax.swing.JPanel();
-        cb_enableSwingFeelAdaptation = new javax.swing.JCheckBox();
-        cmb_swingProfile = new javax.swing.JComboBox<>();
+        cmb_swingProfileIntensity = new javax.swing.JComboBox<>();
         jLabel1 = new javax.swing.JLabel();
         btn_ok = new javax.swing.JButton();
 
         setTitle("jjSwing advanced settings"); // NOI18N
 
-        jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Swing-feel tempo adaptation")); // NOI18N
+        jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Swing-feel tempo adaptation"));
 
-        org.openide.awt.Mnemonics.setLocalizedText(cb_enableSwingFeelAdaptation, "Enable"); // NOI18N
-        cb_enableSwingFeelAdaptation.addActionListener(new java.awt.event.ActionListener()
+        cmb_swingProfileIntensity.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "0", "1", "2" }));
+        cmb_swingProfileIntensity.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                cb_enableSwingFeelAdaptationActionPerformed(evt);
+                cmb_swingProfileIntensityActionPerformed(evt);
             }
         });
 
-        cmb_swingProfile.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "RELAXED", "NEUTRAL", "DRIVING" }));
-        cmb_swingProfile.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                cmb_swingProfileActionPerformed(evt);
-            }
-        });
-
-        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, "Swing profile"); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel1, "Swing feel adaptation intensity"); // NOI18N
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -157,24 +143,19 @@ public class AdvancedSettingsDialog extends JDialog
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(cb_enableSwingFeelAdaptation)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(cmb_swingProfile, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel1)))
-                .addContainerGap(276, Short.MAX_VALUE))
+                .addComponent(cmb_swingProfileIntensity, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel1)
+                .addContainerGap(196, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(cb_enableSwingFeelAdaptation)
-                .addGap(18, 18, 18)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(cmb_swingProfile, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(cmb_swingProfileIntensity, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel1))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(44, Short.MAX_VALUE))
         );
 
         org.openide.awt.Mnemonics.setLocalizedText(btn_ok, "OK"); // NOI18N
@@ -217,28 +198,15 @@ public class AdvancedSettingsDialog extends JDialog
         setVisible(false);
     }//GEN-LAST:event_btn_okActionPerformed
 
-    private void cb_enableSwingFeelAdaptationActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cb_enableSwingFeelAdaptationActionPerformed
-    {//GEN-HEADEREND:event_cb_enableSwingFeelAdaptationActionPerformed
-        var settings = BassGeneratorSettings.getInstance();
-        if (cb_enableSwingFeelAdaptation.isSelected())
-        {
-            settings.setSwingProfile(SwingProfile.toSwingProfile((String) cmb_swingProfile.getSelectedItem()));
-        } else
-        {
-            settings.setSwingProfile(SwingProfile.DISABLED);
-        }
-    }//GEN-LAST:event_cb_enableSwingFeelAdaptationActionPerformed
-
-    private void cmb_swingProfileActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cmb_swingProfileActionPerformed
-    {//GEN-HEADEREND:event_cmb_swingProfileActionPerformed
-        BassGeneratorSettings.getInstance().setSwingProfile(SwingProfile.toSwingProfile((String) cmb_swingProfile.getSelectedItem()));
-    }//GEN-LAST:event_cmb_swingProfileActionPerformed
+    private void cmb_swingProfileIntensityActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cmb_swingProfileIntensityActionPerformed
+    {//GEN-HEADEREND:event_cmb_swingProfileIntensityActionPerformed
+        BassGeneratorSettings.getInstance().setSwingProfileIntensity(readIntensity());
+    }//GEN-LAST:event_cmb_swingProfileIntensityActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_ok;
-    private javax.swing.JCheckBox cb_enableSwingFeelAdaptation;
-    private javax.swing.JComboBox<String> cmb_swingProfile;
+    private javax.swing.JComboBox<String> cmb_swingProfileIntensity;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     // End of variables declaration//GEN-END:variables

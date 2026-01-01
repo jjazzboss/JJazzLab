@@ -1,12 +1,9 @@
 package org.jjazz.jjswing.bass;
 
-import com.google.common.base.Preconditions;
 import java.beans.PropertyChangeListener;
-import java.util.Objects;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.event.SwingPropertyChangeSupport;
-import org.jjazz.phrase.api.SwingProfile;
 import org.openide.util.NbPreferences;
 
 /**
@@ -17,7 +14,7 @@ public class BassGeneratorSettings
 
     private static final String PREF_WBPSA_STORE_RANDOMIZED = "PrefRandomizedWbpsaStore";
     private static final String PREF_ACCEPT_NON_CHORD_BASS_START_NOTE = "PrefAcceptNonChordBassStartNote";
-    private static final String PREF_SWING_PROFILE = "PrefSwingProfile";
+    private static final String PREF_SWING_PROFILE_INTENSITY = "PrefSwingProfileIntensity";
     private static BassGeneratorSettings INSTANCE;
     private final Preferences prefs = NbPreferences.forModule(BassGeneratorSettings.class);
     private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
@@ -79,18 +76,22 @@ public class BassGeneratorSettings
         pcs.firePropertyChange(PREF_WBPSA_STORE_RANDOMIZED, old, b);
     }
 
-    public SwingProfile getSwingProfile()
+    /**
+     * Intensity of swing tempo-based adjutments.
+     *
+     * @return 0 means no adjustment, 1 full adjustment.
+     * @see org.jjazz.jjswing.tempoadapter.SwingProfile
+     */
+    public float getSwingProfileIntensity()
     {
-        String s = prefs.get(PREF_SWING_PROFILE, SwingProfile.NEUTRAL.name());
-        return SwingProfile.toSwingProfile(s);
+        return prefs.getFloat(PREF_SWING_PROFILE_INTENSITY, 1f);
     }
 
-    public void setSwingProfile(SwingProfile profile)
+    public void setSwingProfileIntensity(float intensity)
     {
-        Objects.requireNonNull(profile);
-        var old = getSwingProfile();
-        prefs.put(PREF_SWING_PROFILE, profile.name());
-        pcs.firePropertyChange(PREF_SWING_PROFILE, old, profile);
+        float old = getSwingProfileIntensity();
+        prefs.putFloat(PREF_SWING_PROFILE_INTENSITY, intensity);
+        pcs.firePropertyChange(PREF_SWING_PROFILE_INTENSITY, old, intensity);
     }
 
     public synchronized void addPropertyChangeListener(PropertyChangeListener listener)
