@@ -24,7 +24,10 @@ package org.jjazz.rhythmmusicgeneration.api;
 
 import com.google.common.base.Preconditions;
 import static com.google.common.base.Preconditions.checkArgument;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.TimeSignature;
@@ -49,6 +52,7 @@ import org.jjazz.utilities.api.IntRange;
  */
 public class SongChordSequence extends ChordSequence
 {
+
     private final Song song;
     private static final Logger LOGGER = Logger.getLogger(SongChordSequence.class.getSimpleName());
 
@@ -155,6 +159,72 @@ public class SongChordSequence extends ChordSequence
         return duration;
     }
 
+
+    /**
+     * Build a SimpleChordSequence for each sequence of contiguous SongParts which match the predicate.
+     * <p>
+     * Returned SimpleChordSequences are limited to the bar range of this SongChordSequence.
+     *
+     * @param sptTester All the accepted SongParts must have the same TimeSignature
+     * @return An ordered list by bar. Can be empty.
+     * @throws IllegalArgumentException If all the accepted SongParts don't have the same TimeSignature
+     */
+    public List<SimpleChordSequence> buildSimpleChordSequences(Predicate<SongPart> sptTester)
+    {
+        Objects.requireNonNull(sptTester);
+        List<SimpleChordSequence> res = new ArrayList<>();
+
+        // the SongParts which intersect this SongChordSequence range
+        var rangeSpts = getSongParts().stream()
+                .filter(spt -> sptTester.test(spt))
+                .toList();
+        if (rangeSpts.isEmpty())
+        {
+            return res;
+        }
+
+        var ts = rangeSpts.getFirst().getRhythm().getTimeSignature();
+        if (rangeSpts.stream()
+                .anyMatch(spt -> !spt.getRhythm().getTimeSignature().equals(ts)))
+        {
+            throw new IllegalArgumentException("All accepted SongParts should have the same TimeSignature. spts=" + rangeSpts + " this=" + this);
+        }
+
+
+        List<SongPart> tmpList = new ArrayList<>();
+        SongPart prevSpt = null;
+
+        for (var spt : rangeSpts)
+        {
+            if (prevSpt == null || prevSpt.getStartBarIndex() + prevSpt.getNbBars() == spt.getStartBarIndex())
+            {
+                tmpList.add(spt);
+            } else if (!tmpList.isEmpty())
+            {
+                // Create a SimpleChordSequence for these contiguous SongParts
+                var brSptFirst = tmpList.getFirst().getBarRange().getIntersection(getBarRange());
+                var brSptLast = tmpList.getLast().getBarRange().getIntersection(getBarRange());
+                var barRange = new IntRange(brSptFirst.from, brSptLast.to);
+                var beatStart = song.getSongStructure().toBeatRange(brSptFirst).from;
+                var scs = new SimpleChordSequence(subSequence(barRange, false), beatStart, ts);
+                res.add(scs);
+                tmpList.clear();
+            }
+            prevSpt = spt;
+        }
+
+        if (!tmpList.isEmpty())
+        {
+            var brSptFirst = tmpList.getFirst().getBarRange().getIntersection(getBarRange());
+            var brSptLast = tmpList.getLast().getBarRange().getIntersection(getBarRange());
+            var barRange = new IntRange(brSptFirst.from, brSptLast.to);
+            var beatStart = song.getSongStructure().toBeatRange(brSptFirst).from;
+            var scs = new SimpleChordSequence(subSequence(barRange, false), beatStart, ts);
+            res.add(scs);
+        }
+
+        return res;
+    }
 
     /**
      * Fill a ChordSequence with the chord symbols of the specified song (or part of the song).

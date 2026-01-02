@@ -1247,20 +1247,20 @@ public class SongSequenceBuilder
     private void checkPhrasesScope(SongContext context, Rhythm r, Map<RhythmVoice, Phrase> rvPhrases) throws MusicGenerationException
     {
         // Get the bar ranges used by r
-        List<FloatRange> sptRanges = new ArrayList<>();
+        List<FloatRange> sptBeatRanges = new ArrayList<>();
         for (SongPart spt : context.getSongParts())
         {
             if (spt.getRhythm() == r)
             {
                 FloatRange rg = context.getSptBeatRange(spt);
-                if (!sptRanges.isEmpty() && sptRanges.get(sptRanges.size() - 1).to == rg.from)
+                if (!sptBeatRanges.isEmpty() && sptBeatRanges.get(sptBeatRanges.size() - 1).to == rg.from)
                 {
                     // Extend previous range
-                    rg = new FloatRange(sptRanges.get(sptRanges.size() - 1).from, rg.to);
-                    sptRanges.set(sptRanges.size() - 1, rg);
+                    rg = new FloatRange(sptBeatRanges.getLast().from, rg.to);
+                    sptBeatRanges.set(sptBeatRanges.size() - 1, rg);
                 } else
                 {
-                    sptRanges.add(rg);
+                    sptBeatRanges.add(rg);
                 }
             }
         }
@@ -1271,17 +1271,17 @@ public class SongSequenceBuilder
             Phrase p = rvPhrases.get(rv);
             for (NoteEvent ne : p)
             {
-                boolean inRange = sptRanges.stream()
+                boolean inRange = sptBeatRanges.stream()
                         .anyMatch(rg -> rg.contains(ne.getPositionInBeats(), true));
                 if (!inRange)
                 {
-                    LOGGER.log(Level.SEVERE, "checkRhythmPhrasesScope() Invalid note position ne={0} r={1} rv={2}", new Object[]
+                    LOGGER.log(Level.SEVERE, "checkRhythmPhrasesScope() Invalid note position ne={0} nePos={1} rv={2}", new Object[]
                     {
-                        ne, r.getName(), rv
+                        ne, ne.getPositionInBeats(), rv
                     });
-                    LOGGER.log(Level.SEVERE, "checkRhythmPhrasesScope() {0} sptRanges={1}", new Object[]
+                    LOGGER.log(Level.SEVERE, "checkRhythmPhrasesScope() {0} sptBeatRanges={1}", new Object[]
                     {
-                        context, sptRanges
+                        context, sptBeatRanges
                     });
                     LOGGER.log(Level.SEVERE, "p={0}", p.toStringOneNotePerLine());
 

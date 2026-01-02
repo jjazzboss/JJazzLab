@@ -76,7 +76,7 @@ public class AccentProcessor
         IGNORE
     }
     private final SimpleChordSequence simpleChordSequence;
-    private FloatRange cSeqBeatRange;
+    private final FloatRange cSeqBeatRange;
     private int nbCellsPerBeat;
     private int lastCellIndex;
     private float cellDuration;

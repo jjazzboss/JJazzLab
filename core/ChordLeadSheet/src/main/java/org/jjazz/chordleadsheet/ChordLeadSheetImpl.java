@@ -71,7 +71,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     private final TreeSet<ChordLeadSheetItem> items = new TreeSet<>();
     private final Object lock = new Object();
     /**
-     * The size of the leadsheet.
+     * The size of the leadsheet in bars.
      */
     private int size;
     private transient ClsActionEvent activeClsActionEvent;
@@ -158,10 +158,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
 
         // Update state
-        synchronized (lock)
-        {
-            size = newSize;
-        }
+        size = newSize;
 
 
         // Create the undoable event
@@ -171,10 +168,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             public void undoBody()
             {
                 LOGGER.log(Level.FINER, "setSize.undoBody() newSize={0}", newSize);
-                synchronized (lock)
-                {
-                    size = oldSize;
-                }
+                size = oldSize;
                 fireNonVetoableChangeEvent(new SizeChangedEvent(ChordLeadSheetImpl.this, newSize, oldSize));
             }
 
@@ -182,10 +176,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             public void redoBody()
             {
                 LOGGER.log(Level.FINER, "setSize.redoBody() newSize={0}", newSize);
-                synchronized (lock)
-                {
-                    size = newSize;
-                }
+                size = newSize;
                 fireNonVetoableChangeEvent(new SizeChangedEvent(ChordLeadSheetImpl.this, oldSize, newSize));
             }
         };
@@ -199,7 +190,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
 
     @Override
-    public synchronized int getSizeInBars()
+    public int getSizeInBars()
     {
         return size;
     }
@@ -292,15 +283,12 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         Preconditions.checkArgument(cliSection instanceof WritableItem, "cliSection=%s", cliSection);
 
         var bar = cliSection.getPosition().getBar();
-        if (bar >= getSizeInBars())
-        {
-            throw new IllegalArgumentException("cliSection=" + cliSection + ", getSize()=" + getSizeInBars());
-        }
+        Preconditions.checkArgument(bar < this.size, "cliSection=%s this.size=%s", cliSection, size);
+
         var sameNameSection = getSection(cliSection.getData().getName());
-        if (sameNameSection != null && sameNameSection.getPosition().getBar() != bar)
-        {
-            throw new IllegalArgumentException("cliSection=" + cliSection + ", sameNameSection=" + sameNameSection);
-        }
+        Preconditions.checkArgument(sameNameSection == null || sameNameSection.getPosition().getBar() == bar,
+                "cliSection=%s sameNameSection=%s", cliSection, sameNameSection);
+
 
         CLI_Section res;
         var curSection = getSection(bar);
@@ -951,22 +939,28 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     }
 
     @Override
-    public synchronized boolean contains(ChordLeadSheetItem<?> item)
+    public boolean contains(ChordLeadSheetItem<?> item)
     {
-        return items.contains(item);
+        synchronized (lock)
+        {
+            return items.contains(item);
+        }
     }
 
 
     @Override
-    public synchronized <T extends ChordLeadSheetItem<?>> T getFirstItemAfter(Position posFrom, boolean inclusiveFrom, Class<T> itemClass, Predicate<T> tester)
+    public <T extends ChordLeadSheetItem<?>> T getFirstItemAfter(Position posFrom, boolean inclusiveFrom, Class<T> itemClass, Predicate<T> tester)
     {
-        var itemFrom = ChordLeadSheetItem.createItemFrom(posFrom, inclusiveFrom);
-        T res = getFirstItemAfter(itemFrom, itemClass, tester);
-        return res;
+        synchronized (lock)
+        {
+            var itemFrom = ChordLeadSheetItem.createItemFrom(posFrom, inclusiveFrom);
+            T res = getFirstItemAfter(itemFrom, itemClass, tester);
+            return res;
+        }
     }
 
     @Override
-    public synchronized <T extends ChordLeadSheetItem<?>> T getFirstItemAfter(ChordLeadSheetItem<?> cli, Class<T> itemClass, Predicate<T> tester)
+    public <T extends ChordLeadSheetItem<?>> T getFirstItemAfter(ChordLeadSheetItem<?> cli, Class<T> itemClass, Predicate<T> tester)
     {
         Preconditions.checkNotNull(cli);
         Preconditions.checkNotNull(tester);
@@ -974,16 +968,19 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
         T res = null;
 
-        var tailSet = items.tailSet(cli, false);
-        for (var item : tailSet)
+        synchronized (lock)
         {
-            if (itemClass.isAssignableFrom(item.getClass()))
+            var tailSet = items.tailSet(cli, false);
+            for (var item : tailSet)
             {
-                T itemT = (T) item;
-                if (tester.test(itemT))
+                if (itemClass.isAssignableFrom(item.getClass()))
                 {
-                    res = itemT;
-                    break;
+                    T itemT = (T) item;
+                    if (tester.test(itemT))
+                    {
+                        res = itemT;
+                        break;
+                    }
                 }
             }
         }
@@ -993,43 +990,47 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
 
     @Override
-    public synchronized <T extends ChordLeadSheetItem<?>> T getLastItemBefore(Position posTo, boolean inclusiveTo, Class<T> itemClass, Predicate<T> tester)
+    public <T extends ChordLeadSheetItem<?>> T getLastItemBefore(Position posTo, boolean inclusiveTo, Class<T> itemClass, Predicate<T> tester)
     {
-        var itemTo = ChordLeadSheetItem.createItemTo(posTo, inclusiveTo);
-        T res = getLastItemBefore(itemTo, itemClass, tester);
-        return res;
+        synchronized (lock)
+        {
+            var itemTo = ChordLeadSheetItem.createItemTo(posTo, inclusiveTo);
+            T res = getLastItemBefore(itemTo, itemClass, tester);
+            return res;
+        }
     }
 
     @Override
-    public synchronized <T extends ChordLeadSheetItem<?>> T getLastItemBefore(ChordLeadSheetItem<?> cli, Class<T> itemClass, Predicate<T> tester)
+    public <T extends ChordLeadSheetItem<?>> T getLastItemBefore(ChordLeadSheetItem<?> cli, Class<T> itemClass, Predicate<T> tester)
     {
         Preconditions.checkNotNull(cli);
         Preconditions.checkNotNull(tester);
         Preconditions.checkNotNull(itemClass);
         T res = null;
-
-        var headSet = items.headSet(cli, false);
-        var it = headSet.descendingIterator();
-        while (it.hasNext())
+        synchronized (lock)
         {
-            var item = it.next();
-            if (itemClass.isAssignableFrom(item.getClass()))
+            var headSet = items.headSet(cli, false);
+            var it = headSet.descendingIterator();
+            while (it.hasNext())
             {
-                T itemT = (T) item;
-                if (tester.test(itemT))
+                var item = it.next();
+                if (itemClass.isAssignableFrom(item.getClass()))
                 {
-                    res = itemT;
-                    break;
+                    T itemT = (T) item;
+                    if (tester.test(itemT))
+                    {
+                        res = itemT;
+                        break;
+                    }
                 }
             }
         }
-
         return res;
     }
 
 
     @Override
-    public synchronized <T extends ChordLeadSheetItem<?>> List<T> getItems(Position posFrom, boolean inclusiveFrom, Position posTo, boolean inclusiveTo,
+    public <T extends ChordLeadSheetItem<?>> List<T> getItems(Position posFrom, boolean inclusiveFrom, Position posTo, boolean inclusiveTo,
             Class<T> itemClass,
             Predicate<T> tester)
     {
@@ -1037,19 +1038,22 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         Preconditions.checkNotNull(posTo);
         Preconditions.checkNotNull(tester);
         Preconditions.checkNotNull(itemClass);
+        synchronized (lock)
+        {
+            var rangeItems = items.subSet(ChordLeadSheetItem.createItemFrom(posFrom, inclusiveFrom),
+                    false, // useless because of createItemFrom
+                    ChordLeadSheetItem.createItemTo(posTo, inclusiveTo),
+                    false);   // useless because of createItemFrom
 
-        var rangeItems = items.subSet(ChordLeadSheetItem.createItemFrom(posFrom, inclusiveFrom),
-                false, // useless because of createItemFrom
-                ChordLeadSheetItem.createItemTo(posTo, inclusiveTo),
-                false);   // useless because of createItemFrom
+            var res = rangeItems.stream()
+                    .filter(item -> itemClass.isAssignableFrom(item.getClass()))
+                    .map(cli -> (T) cli)
+                    .filter(cli -> tester.test(cli))
+                    .toList();
 
-        var res = rangeItems.stream()
-                .filter(item -> itemClass.isAssignableFrom(item.getClass()))
-                .map(cli -> (T) cli)
-                .filter(cli -> tester.test(cli))
-                .toList();
 
-        return res;
+            return res;
+        }
     }
 
 
@@ -1460,37 +1464,49 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
      *
      * @param item
      */
-    private synchronized void addItemChecked(ChordLeadSheetItem<?> item)
+    private void addItemChecked(ChordLeadSheetItem<?> item)
     {
-        var b = items.add(item);
-        assert b : "item=" + item + " items=" + items;
+        synchronized (lock)
+        {
+            var b = items.add(item);
+            assert b : "item=" + item + " items=" + items;
+        }
     }
 
-    private synchronized void removeItemChecked(ChordLeadSheetItem<?> item)
+    private void removeItemChecked(ChordLeadSheetItem<?> item)
     {
-        var b = items.remove(item);
-        assert b : "item=" + item + " items=" + items;
+        synchronized (lock)
+        {
+            var b = items.remove(item);
+            assert b : "item=" + item + " items=" + items;
+        }
     }
 
-    private synchronized <T> void changeItemDataChecked(ChordLeadSheetItem<T> item, T newData)
+    private <T> void changeItemDataChecked(ChordLeadSheetItem<T> item, T newData)
     {
-        // Remove and add, in case data impacts the ordering
-        WritableItem<T> wItem = (WritableItem<T>) item;
-        var b = items.remove(wItem);
-        assert b : "wItem=" + wItem + " newData=" + newData + " items=" + items;
-        wItem.setData(newData);
-        b = items.add(wItem);
-        assert b : "wItem=" + wItem + " newData=" + newData + " items=" + items;
+        synchronized (lock)
+        {
+            // Remove and add, in case data impacts the ordering
+            WritableItem<T> wItem = (WritableItem<T>) item;
+            var b = items.remove(wItem);
+            assert b : "wItem=" + wItem + " newData=" + newData + " items=" + items;
+            wItem.setData(newData);
+            b = items.add(wItem);
+            assert b : "wItem=" + wItem + " newData=" + newData + " items=" + items;
+        }
     }
 
-    private synchronized <T> void changeItemPositionChecked(ChordLeadSheetItem<T> item, Position newPos)
+    private <T> void changeItemPositionChecked(ChordLeadSheetItem<T> item, Position newPos)
     {
-        WritableItem<T> wItem = (WritableItem<T>) item;
-        var b = items.remove(wItem);
-        assert b : "wItem=" + wItem + " newPos=" + newPos + " items=" + items;
-        wItem.setPosition(newPos);
-        b = items.add(wItem);
-        assert b : "wItem=" + wItem + " newPos=" + newPos + " items=" + items;
+        synchronized (lock)
+        {
+            WritableItem<T> wItem = (WritableItem<T>) item;
+            var b = items.remove(wItem);
+            assert b : "wItem=" + wItem + " newPos=" + newPos + " items=" + items;
+            wItem.setPosition(newPos);
+            b = items.add(wItem);
+            assert b : "wItem=" + wItem + " newPos=" + newPos + " items=" + items;
+        }
     }
 
     /**
@@ -1522,8 +1538,11 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
         if (!(event instanceof ClsActionEvent))
         {
-            assert activeClsActionEvent != null : "event=" + event;
-            activeClsActionEvent.addSubEvent(event);
+            synchronized (lock)
+            {
+                assert activeClsActionEvent != null : "event=" + event;
+                activeClsActionEvent.addSubEvent(event);
+            }
         }
 
 
@@ -1564,12 +1583,18 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     private void fireClsActionEventStart(ClsActionEvent.API_ID apiId, Object data)
     {
         Objects.requireNonNull(apiId);
-
-        if (activeClsActionEvent != null)
+        LOGGER.log(Level.FINE, "fireClsActionEventStart() -- apiId={0} activeClsActionEvent.apiId={1}  data={2}", new Object[]
         {
-            assert activeClsActionEvent.getApiId() != apiId :
-                    "apiId=" + apiId + " activeClsActionEvent=" + activeClsActionEvent + " data=" + Objects.toString(data, "null");
-            return;
+            apiId, activeClsActionEvent == null ? "null" : activeClsActionEvent.getApiId(), data
+        });
+        synchronized (lock)
+        {
+            if (activeClsActionEvent != null)
+            {
+                assert activeClsActionEvent.getApiId() != apiId :
+                        "apiId=" + apiId + " activeClsActionEvent=" + activeClsActionEvent + " data=" + Objects.toString(data, "null");
+                return;
+            }
         }
 
 
@@ -1579,25 +1604,37 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             @Override
             public void undoBody()
             {
-                assert activeClsActionEvent != null;        // previously set by undo from fireClsActionEventComplete()
-                activeClsActionEvent.complete();
-                fireNonVetoableChangeEvent(activeClsActionEvent);
-                activeClsActionEvent = null;
+                synchronized (lock)
+                {
+                    assert activeClsActionEvent != null;        // previously set by undo from fireClsActionEventComplete()
+                    activeClsActionEvent.complete();
+                    fireNonVetoableChangeEvent(activeClsActionEvent);
+                    activeClsActionEvent = null;
+                }
             }
 
             @Override
             public void redoBody()
             {
-                assert activeClsActionEvent == null : "activeClsActionEvent" + activeClsActionEvent;        // previously set by undoBody()
-                activeClsActionEvent = new ClsActionEvent(ChordLeadSheetImpl.this, apiId, data);
-                fireNonVetoableChangeEvent(activeClsActionEvent);
+                synchronized (lock)
+                {
+                    assert activeClsActionEvent == null : "activeClsActionEvent" + activeClsActionEvent;        // previously set by undoBody()
+                    activeClsActionEvent = new ClsActionEvent(ChordLeadSheetImpl.this, apiId, data);
+                    fireNonVetoableChangeEvent(activeClsActionEvent);
+                }
             }
         };
         fireUndoableEditHappened(edit);
 
-
-        activeClsActionEvent = new ClsActionEvent(this, apiId, data);
-        fireNonVetoableChangeEvent(activeClsActionEvent);
+        synchronized (lock)
+        {
+            LOGGER.log(Level.FINE, "fireClsActionEventStart() create new activeClsActionEvent apiId={0}  data={1}", new Object[]
+            {
+                apiId, data
+            });
+            activeClsActionEvent = new ClsActionEvent(this, apiId, data);
+            fireNonVetoableChangeEvent(activeClsActionEvent);
+        }
     }
 
     /**
@@ -1608,42 +1645,57 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     private void fireClsActionEventComplete(ClsActionEvent.API_ID apiId)
     {
         Objects.requireNonNull(apiId);
+        UndoableEdit edit;
 
-        assert activeClsActionEvent != null : "apiId=" + apiId;
-        if (activeClsActionEvent.getApiId() != apiId)
+        synchronized (lock)
         {
-            return;
+            assert activeClsActionEvent != null : "apiId=" + apiId;
+            if (activeClsActionEvent.getApiId() != apiId)
+            {
+                return;
+            }
+
+            var data = activeClsActionEvent.getData();
+
+            // Create an undoable event for this event which does nothing but refiring the ClsActionEvent
+            edit = new SimpleEdit("ClsActionEventEdit(" + apiId + ")")
+            {
+                @Override
+                public void undoBody()
+                {
+                    synchronized (lock)
+                    {
+                        assert activeClsActionEvent == null : "activeClsActionEvent=" + activeClsActionEvent;   // previously set by fireClsActionEventComplete()
+                        activeClsActionEvent = new ClsActionEvent(ChordLeadSheetImpl.this, apiId, data);
+                        fireNonVetoableChangeEvent(activeClsActionEvent);
+                    }
+                }
+
+                @Override
+                public void redoBody()
+                {
+                    synchronized (lock)
+                    {
+                        assert activeClsActionEvent != null;            // previously set by undoBody
+                        activeClsActionEvent.complete();
+                        fireNonVetoableChangeEvent(activeClsActionEvent);
+                        activeClsActionEvent = null;
+                    }
+                }
+            };
         }
-
-        var data = activeClsActionEvent.getData();
-
-        // Create an undoable event for this event which does nothing but refiring the ClsActionEvent
-        UndoableEdit edit = new SimpleEdit("ClsActionEventEdit(" + apiId + ")")
-        {
-            @Override
-            public void undoBody()
-            {
-                assert activeClsActionEvent == null : "activeClsActionEvent=" + activeClsActionEvent;   // previously set by fireClsActionEventComplete()
-                activeClsActionEvent = new ClsActionEvent(ChordLeadSheetImpl.this, apiId, data);
-                fireNonVetoableChangeEvent(activeClsActionEvent);
-            }
-
-            @Override
-            public void redoBody()
-            {
-                assert activeClsActionEvent != null;            // previously set by undoBody
-                activeClsActionEvent.complete();
-                fireNonVetoableChangeEvent(activeClsActionEvent);
-                activeClsActionEvent = null;
-            }
-        };
         fireUndoableEditHappened(edit);
 
-
-        activeClsActionEvent.complete();
-        fireNonVetoableChangeEvent(activeClsActionEvent);
-        activeClsActionEvent = null;
-
+        synchronized (lock)
+        {
+            activeClsActionEvent.complete();
+            fireNonVetoableChangeEvent(activeClsActionEvent);
+            LOGGER.log(Level.FINE, "fireClsActionEventComplete() RESETTING activeClsActionEvent apiId={0}", new Object[]
+            {
+                apiId
+            });
+            activeClsActionEvent = null;
+        }
     }
 
     /**

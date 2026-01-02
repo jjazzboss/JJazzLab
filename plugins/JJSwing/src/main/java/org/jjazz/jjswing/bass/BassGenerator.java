@@ -142,8 +142,9 @@ public class BassGenerator implements MusicGenerator
             pRes.add(p);
         }
 
-        // Do all the postprocessing
-        postProcess(context, pRes);
+        postProcessSongParts(context, pRes);
+        postProcessGlobal(context, pRes);       // Throws UserErrorGenerationException
+        enforceSongPartsBounds(context, pRes);
 
         // Some overlaps might happen when :
         // - combining 2 WbpSources, if last note of 1st WbpSource is long and has the same pitch than 1st note of 2nd WbpSource, and 2nd WbpSource has firstNoteBeatShift < 0
@@ -158,60 +159,55 @@ public class BassGenerator implements MusicGenerator
     }
 
     /**
-     * Post process the phrase by SongPart, since SongParts using our rhythm can be any anywhere in the song.
+     * Post processing which depend on SongPart parameters.
      *
      * @param context
      * @param pRes
-     * @throws UserErrorGenerationException
      */
-    private void postProcess(SongContext context, Phrase pRes) throws UserErrorGenerationException
+    private void postProcessSongParts(SongContext context, Phrase pRes)
     {
         var rpIntensity = RP_SYS_Intensity.getIntensityRp(rhythm);
         var rpFill = RP_SYS_Fill.getFillRp(rhythm);
 
-
-        var song = context.getSong();
-        SongChordSequence songChordSequence = new SongChordSequence(song, context.getBarRange());  // throws UserErrorGenerationException. Handle alternate chord symbols.                               
-
-
-        SongPart prevSpt = null;
         var rhythmSpts = getRhythmSpts(context);
         for (var spt : rhythmSpts)
         {
             var sptBeatRange = context.getSptBeatRange(spt);
-            var sptBarRange = context.getSptBarRange(spt);
-            var scsSpt = new SimpleChordSequence(songChordSequence.subSequence(sptBarRange, false), sptBeatRange.from, rhythm.getTimeSignature());
 
-
-            if (sptBeatRange.from > 0 && (prevSpt == null || prevSpt.getStartBarIndex() + prevSpt.getNbBars() != spt.getStartBarIndex()))
-            {
-                // Previous spt is for another rhythm, make sure our first note does not start a bit before spt start because of non quantization
-                enforceCleanStart(pRes, sptBeatRange.from);
-            }
-
-            // Adapt notes for pedal bass and slash chords
-            processPedalBassAndSlashChords(pRes, scsSpt, song.getTempo());
-
-
-            // Accents and chord anticipations
-            processAccentAndChordAnticipation(pRes, scsSpt, song.getTempo());
-
-
-            // process RP_SYS_Intensity
             processIntensity(pRes, sptBeatRange, spt.getRPValue(rpIntensity));
 
-
-            // Update phrase depending on the fill parameter value
             processFill(pRes, sptBeatRange, spt.getRPValue(rpFill));
+        }
+    }
 
+    /**
+     * Post processing which does not depend on SongPart parameters.
+     *
+     * @param context
+     * @param pRes
+     * @throws org.jjazz.rhythm.api.UserErrorGenerationException
+     */
+    private void postProcessGlobal(SongContext context, Phrase pRes) throws UserErrorGenerationException
+    {
+        var song = context.getSong();
+        var songChordSequence = new SongChordSequence(song, context.getBarRange());  // throws UserErrorGenerationException. Handle alternate chord symbols.                               
+
+        // Merged SimpleChordSequences with our rhythm
+        var scsList = songChordSequence.buildSimpleChordSequences(spt -> spt.getRhythm() == rhythm);
+        for (var scs : scsList)
+        {
+            // Adapt notes for pedal bass and slash chords
+            processPedalBassAndSlashChords(pRes, scs, song.getTempo());
+
+            // Accents and chord anticipations
+            processAccentAndChordAnticipation(pRes, scs, song.getTempo());
 
             // Add tempo-based adjustment
-            processSwingFeelTempoAdapter(pRes, sptBeatRange, song.getTempo());
-
-            prevSpt = spt;
+            processSwingFeelTempoAdapter(pRes, scs.getBeatRange(), song.getTempo());
         }
 
     }
+
 
     private List<SongPart> getRhythmSpts(SongContext context)
     {
@@ -663,13 +659,12 @@ public class BassGenerator implements MusicGenerator
                 cliCs = scsSpt.higher(cliCs);
             }
 
-
         }
     }
 
     private void processSwingFeelTempoAdapter(Phrase p, FloatRange beatRange, int tempo)
     {
-        var brAdjusted = beatRange.getTransformed(beatRange.from >= 0.4f ? -0.4f : 0, 0);       // Take into accound possible anticipated/pushed notes
+        var brAdjusted = beatRange.getTransformed(beatRange.from >= 0.4f ? -0.4f : 0, 0);       // Take into accound possible anticipated/pushed notes        
         float intensity = BassGeneratorSettings.getInstance().getSwingProfileIntensity();
         LOGGER.log(Level.FINE, "processSwingFeelTempoAdapter() beatRange={0} intensity={1} tempo={2}", new Object[]
         {
@@ -680,6 +675,58 @@ public class BassGenerator implements MusicGenerator
         bassAdapter.adaptToTempo(p, brAdjusted, ne -> true, tempo);   // Does not process notes not contained in brAdjusted
     }
 
+    /**
+     * Make sure our notes do not overlap other SongParts.
+     *
+     * @param context
+     * @param p
+     * @throws org.jjazz.rhythm.api.UserErrorGenerationException
+     */
+    private void enforceSongPartsBounds(SongContext context, Phrase p) throws UserErrorGenerationException
+    {
+        Song song = context.getSong();
+        var barRange = context.getBarRange();
+        var songChordSequence = new SongChordSequence(song, barRange);  // throws UserErrorGenerationException. Handle alternate chord symbols.                               
+
+        // Merged SimpleChordSequences which do NOT use our rhythm
+        var scsList = songChordSequence.buildSimpleChordSequences(spt -> spt.getRhythm() != rhythm);
+        for (var scs : scsList)
+        {
+            var beatRange = scs.getBeatRange();
+            Phrases.silence(p, beatRange, true, false, NON_QUANTIZED_WINDOW);
+
+
+//            var crossingNotes = Phrases.getCrossingNotes(p, beatRange.from, false);
+//            LOGGER.log(Level.SEVERE, "enforceSongPartsBounds() DEBUG control br={0} crossingNotesStart={1}", new Object[]
+//            {
+//                beatRange, crossingNotes
+//            });
+        }
+
+        // If context bar range is in the middle of the song, we need also to silence bars before and after
+        var beatRange = songChordSequence.getBeatRange();
+        if (beatRange.from > 1)
+        {
+            // Silence only 1 beat, we just want to silent slight overlaps due non-quantized play or swing-feel tempo adaptations            
+            var beatRangeBefore = new FloatRange(beatRange.from - 1f, beatRange.from);
+            Phrases.silence(p, beatRangeBefore, true, false, NON_QUANTIZED_WINDOW);
+        }
+        if (barRange.to < song.getSize() - 1)
+        {
+            // Silence only 1 beat, we just want to silent slight overlaps due non-quantized play or swing-feel tempo adaptations            
+            var beatRangeBefore = new FloatRange(beatRange.to, beatRange.to + 1f);
+            Phrases.silence(p, beatRangeBefore, true, false, NON_QUANTIZED_WINDOW);
+        }
+
+    }
+
+    /**
+     * Add pedal notes to p with pattern quarter-half-quarter-half-quarter etc.
+     *
+     * @param extendedChordBeatRange Add notes in this range. Starts on beat 0 of a bar
+     * @param pitch                  The pedal note pitch
+     * @param p
+     */
     /**
      * Add pedal notes to p with pattern quarter-half-quarter-half-quarter etc.
      *
@@ -735,24 +782,6 @@ public class BassGenerator implements MusicGenerator
             p.add(ne);
 
             beatPos += advance;
-        }
-    }
-
-
-    /**
-     * Make sure no note start a bit before sptBeatPos because of non quantization.
-     *
-     * @param p
-     * @param beatPos
-     */
-    private void enforceCleanStart(Phrase p, float beatPos)
-    {
-        var nes = Phrases.getCrossingNotes(p, beatPos, true);
-        for (var ne : nes)
-        {
-            var dur = ne.getDurationInBeats() - (beatPos - ne.getPositionInBeats());
-            var newNe = ne.setAll(-1, dur, -1, beatPos, null, false);
-            p.replace(ne, newNe);
         }
     }
 

@@ -547,7 +547,7 @@ public class Phrases
      * <p>
      * If a note is starting before range.from and ending after range.from: <br>
      * - if cutLeft is false, the note is not removed.<br>
-     * - if cutLeft is true, the note is replaced by a shorter identical that ends at range.from, except if the note starts in the range
+     * - if cutLeft is true, the note is replaced by a shorter identical one that ends at range.from, except if the note starts in the range
      * [range.from-beatWindow;range.from[, then it's removed.<p>
      * If a note is starting before range.to and ending after range.to: <br>
      * - if keepRight is false, the note is removed, except if the note starts in the range [range.to-beatWindow;range.to[, then it's replaced by a shorter
@@ -671,7 +671,6 @@ public class Phrases
         }
         return res;
     }
-
 
     /**
      * Get phrase notes matching the specified tester and return them per pitch.
