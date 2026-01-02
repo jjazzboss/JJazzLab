@@ -111,7 +111,7 @@ public final class Save extends AbstractAction implements PropertyChangeListener
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        LOGGER.fine(Utilities.toDebugString(evt));
+        // LOGGER.fine(Utilities.toDebugString(evt));
         if (evt.getSource() == song)
         {
             if (evt.getPropertyName().equals(Song.PROP_MODIFIED_OR_SAVED_OR_RESET))

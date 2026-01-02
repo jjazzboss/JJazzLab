@@ -34,7 +34,7 @@
                 <goal>nbm:run-platform</goal>
             </goals>
             <properties>
-                <netbeans.run.params.ide>-J-Drun.from.ide=true --locale en:US -J-DSongSequenceBuilder.level=100 -J-DYamJJazzRhythmGenerator.level=100</netbeans.run.params.ide>
+                <netbeans.run.params.ide>-J-Drun.from.ide=true --locale en:US -J-DChordLeadSheetImpl.level=100</netbeans.run.params.ide>
             </properties>
         </action>
         <action>

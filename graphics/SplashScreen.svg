@@ -1189,9 +1189,9 @@
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.54382px;line-height:1.25;font-family:'Eras Medium ITC';-inkscape-font-specification:'Eras Medium ITC, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;white-space:pre;shape-inside:url(#rect14402);display:inline;vector-effect:none;fill:#f9f921;fill-opacity:1;stroke:none;stroke-width:0.475685;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000"><tspan
          x="496.99414"
          y="836.61064"
-         id="tspan2"><tspan
+         id="tspan4"><tspan
            style="stroke-width:0.654292"
-           id="tspan1">YOU CAN PLAY!</tspan></tspan></text>
+           id="tspan3">YOU CAN PLAY!</tspan></tspan></text>
     <flowRoot
        transform="matrix(0.55254824,0,0,0.57519363,-88.987373,-53.046658)"
        style="font-style:normal;font-variant:normal;font-weight:200;font-stretch:normal;font-size:17.3958px;line-height:1.25;font-family:'DejaVu Sans';-inkscape-font-specification:'DejaVu Sans, Ultra-Light';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;opacity:0.75;fill:#808080;fill-opacity:1;stroke:#ffffff;stroke-width:0.728723;stroke-opacity:1"
@@ -1232,7 +1232,7 @@
        xml:space="preserve"
        id="flowRoot34083"
        style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:39.0145px;line-height:1.25;font-family:Alef;-inkscape-font-specification:'Alef, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;font-variation-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#2b3f76;fill-opacity:1;stroke:#f9f921;stroke-width:0.507241;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000"
-       transform="matrix(0.94265166,0,0,0.9351694,-31.009027,-527.97547)"
+       transform="matrix(0.94265166,0,0,0.9351694,-22.604291,-527.32895)"
        inkscape:export-xdpi="25.389999"
        inkscape:export-ydpi="25.389999"
        inkscape:export-filename="D:\JeromeDocs\JJazzLab\src\JJazzLab\graphics\SplashScreen475x300-3.0.png"><flowRegion
@@ -1245,6 +1245,6 @@
            y="568.95612"
            style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:39.0145px;font-family:Alef;-inkscape-font-specification:'Alef, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;font-variation-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#2b3f76;fill-opacity:1;stroke:#f9f921;stroke-width:0.507241;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000;stop-opacity:1" /></flowRegion><flowPara
          id="flowPara34081"
-         style="font-variation-settings:normal;fill:#2b3f76;fill-opacity:1;stroke:#f9f921;stroke-width:0.507241;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000;stop-opacity:1">5.0</flowPara></flowRoot>
+         style="font-variation-settings:normal;fill:#2b3f76;fill-opacity:1;stroke:#f9f921;stroke-width:0.507241;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000;stop-opacity:1">5.1</flowPara></flowRoot>
   </g>
 </svg>
