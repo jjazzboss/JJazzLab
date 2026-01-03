@@ -122,7 +122,7 @@ public final class TesAllRhythmsGenerateSequence implements ActionListener
                 var newSpts = new ArrayList<SongPart>();
                 for (SongPart spt : oldSpts)
                 {
-                    SongPart newSpt = spt.clone(r, spt.getStartBarIndex(), spt.getNbBars(), spt.getParentSection());
+                    SongPart newSpt = spt.getCopy(r, spt.getStartBarIndex(), spt.getNbBars(), spt.getParentSection());
                     newSpts.add(newSpt);
                 }
                 try

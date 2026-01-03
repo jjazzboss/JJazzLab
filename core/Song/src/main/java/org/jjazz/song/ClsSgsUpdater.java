@@ -251,7 +251,7 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
                     assert secondSection != null : "initSection=" + initSection;
                     var oldSpts = songStructure.getSongParts(spt -> spt.getParentSection() == initSection);
                     var newSpts = oldSpts.stream()
-                            .map(spt -> spt.clone(null, spt.getStartBarIndex(), spt.getNbBars(), secondSection))
+                            .map(spt -> spt.getCopy(null, spt.getStartBarIndex(), spt.getNbBars(), secondSection))
                             .toList();
                     songStructure.replaceSongParts(oldSpts, newSpts);
 
@@ -456,11 +456,11 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
                     if (authorizeOnly)
                     {
                         // Can't pass cliSection as argument
-                        // cliSection is not changed yet, clone would fail because time signature doesn't match newRhythm
-                        newSpt = oldSpt.clone(newRhythm, oldSpt.getStartBarIndex(), oldSpt.getNbBars(), null);
+                        // cliSection is not changed yet, getCopy would fail because time signature doesn't match newRhythm
+                        newSpt = oldSpt.getCopy(newRhythm, oldSpt.getStartBarIndex(), oldSpt.getNbBars(), null);
                     } else
                     {
-                        newSpt = oldSpt.clone(newRhythm, oldSpt.getStartBarIndex(), oldSpt.getNbBars(), oldSpt.getParentSection());
+                        newSpt = oldSpt.getCopy(newRhythm, oldSpt.getStartBarIndex(), oldSpt.getNbBars(), oldSpt.getParentSection());
                     }
                     newSpts.add(newSpt);
                 }

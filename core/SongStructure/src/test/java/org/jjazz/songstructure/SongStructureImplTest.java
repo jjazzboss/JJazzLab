@@ -104,11 +104,11 @@ public class SongStructureImplTest
             spt4 = new SongPartImpl(r44_1, 30, 8, null);
 
 
-            u_spt0 = spt0.clone(spt0.getRhythm(), spt0.getStartBarIndex(), spt0.getNbBars(), spt0.getParentSection());
-            u_spt1 = spt1.clone(spt1.getRhythm(), spt1.getStartBarIndex(), spt1.getNbBars(), spt0.getParentSection());
-            u_spt2 = spt2.clone(spt2.getRhythm(), spt2.getStartBarIndex(), spt2.getNbBars(), spt0.getParentSection());
-            u_spt3 = spt3.clone(spt3.getRhythm(), spt3.getStartBarIndex(), spt3.getNbBars(), spt0.getParentSection());
-            u_spt4 = spt4.clone(spt4.getRhythm(), spt4.getStartBarIndex(), spt4.getNbBars(), spt0.getParentSection());
+            u_spt0 = spt0.getCopy(spt0.getRhythm(), spt0.getStartBarIndex(), spt0.getNbBars(), spt0.getParentSection());
+            u_spt1 = spt1.getCopy(spt1.getRhythm(), spt1.getStartBarIndex(), spt1.getNbBars(), spt0.getParentSection());
+            u_spt2 = spt2.getCopy(spt2.getRhythm(), spt2.getStartBarIndex(), spt2.getNbBars(), spt0.getParentSection());
+            u_spt3 = spt3.getCopy(spt3.getRhythm(), spt3.getStartBarIndex(), spt3.getNbBars(), spt0.getParentSection());
+            u_spt4 = spt4.getCopy(spt4.getRhythm(), spt4.getStartBarIndex(), spt4.getNbBars(), spt0.getParentSection());
 
 
             sgs.addSongParts(Arrays.asList(spt0, spt1, spt2));
@@ -232,7 +232,7 @@ public class SongStructureImplTest
         assertTrue(sgs.getSizeInBars() == 20);
         assertTrue(sgs.getSongParts().get(1) == spt3);
         Rhythm r = r44_2;
-        SongPartImpl newSpt = (SongPartImpl) spt0.clone(r, spt0.getStartBarIndex(), spt0.getNbBars(), spt0.getParentSection());
+        SongPartImpl newSpt = (SongPartImpl) spt0.getCopy(r, spt0.getStartBarIndex(), spt0.getNbBars(), spt0.getParentSection());
         try
         {
             sgs.replaceSongParts(Arrays.asList((SongPart) spt0), Arrays.asList((SongPart) newSpt));

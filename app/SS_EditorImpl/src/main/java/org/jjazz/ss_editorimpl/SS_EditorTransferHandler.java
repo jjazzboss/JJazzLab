@@ -227,7 +227,7 @@ public class SS_EditorTransferHandler extends TransferHandler
         }
 
 
-        // In all cases we need a spt clone
+        // In all cases we need a spt getCopy
         SongPart newSpt;
         int newStartBarIndex = 0;
         if (targetSptIndex > 0)
@@ -235,7 +235,7 @@ public class SS_EditorTransferHandler extends TransferHandler
             SongPart prevSpt = spts.get(targetSptIndex - 1);
             newStartBarIndex = prevSpt.getStartBarIndex() + prevSpt.getNbBars();
         }
-        newSpt = spt.clone(spt.getRhythm(), newStartBarIndex, spt.getNbBars(), spt.getParentSection());
+        newSpt = spt.getCopy(spt.getRhythm(), newStartBarIndex, spt.getNbBars(), spt.getParentSection());
 
 
         // Unselect all, restore at the end

@@ -196,9 +196,9 @@ public class MusicGenerationQueue implements Runnable
 
         while (running)
         {
-            SongContext incoming = readThreadSharedSongContextThenNullify();
+            SongContext incomingSgContext = readThreadSharedSongContextThenNullify();
 
-            if (incoming != null)
+            if (incomingSgContext != null)
             {
                 // DON'T REMOVE commented logging! A few recurrent bugs have shown up and it helps to troubleshoot them.
 //                LOGGER.log(Level.FINE, "MusicGenerationQueue.run() handling incoming={0} nanoTime()={1}", new Object[]
@@ -208,7 +208,7 @@ public class MusicGenerationQueue implements Runnable
                 // LOGGER.info("UpdateRequestsHandler.run() handling cls=" + toDebugString(incoming.getSong().getChordLeadSheet()));
 
                 // Handle new context, save as pending if handling failed
-                pendingSongContext = handleContext(incoming) ? null : incoming;
+                pendingSongContext = handleContext(incomingSgContext) ? null : incomingSgContext;
 
             } else if (pendingSongContext != null)
             {

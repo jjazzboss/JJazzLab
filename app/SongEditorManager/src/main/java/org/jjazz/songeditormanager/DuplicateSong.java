@@ -59,7 +59,7 @@ public final class DuplicateSong implements ActionListener
     public void actionPerformed(ActionEvent e)
     {
         SongFactory sf = SongFactory.getInstance();
-        Song newSong = sf.getCopy(song, true);
+        Song newSong = sf.getCopy(song, false, true);
         newSong.setName(song.getName() + " Copy" + counter);
         newSong.setSaveNeeded(false);
         SongEditorManager sm = SongEditorManager.getDefault();

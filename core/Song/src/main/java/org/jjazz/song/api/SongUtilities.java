@@ -176,7 +176,7 @@ public class SongUtilities
         if (ss.getSongParts().isEmpty())
         {
             // Special case
-            return SongFactory.getInstance().getCopy(song, register);
+            return SongFactory.getInstance().getCopy(song, false, register);
         }
 
 
@@ -255,7 +255,7 @@ public class SongUtilities
 
 
             // Create the corresponding SongPart
-            SongPart resSpt = spt.clone(null, barIndex, spt.getNbBars(), resCliSection);
+            SongPart resSpt = spt.getCopy(null, barIndex, spt.getNbBars(), resCliSection);
             newSpts.add(resSpt);
 
             sectionCounter++;
@@ -302,7 +302,7 @@ public class SongUtilities
         }
 
         // Create a full copy to preserve links between SongParts and Sections
-        Song resSong = SongFactory.getInstance().getCopy(song, register);
+        Song resSong = SongFactory.getInstance().getCopy(song, false, register);
         ChordLeadSheet resCls = resSong.getChordLeadSheet();
 
 

@@ -35,6 +35,7 @@ import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.MusicController.State;
+import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession.Context;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
 import org.jjazz.musiccontrol.spi.ActiveSongBackgroundMusicBuilder;
 import org.jjazz.song.api.Song;
@@ -99,7 +100,7 @@ public class ActiveSongBackgroundMusicBuilderImpl implements PropertyChangeListe
     public boolean isLastResultUpToDate()
     {
         boolean outdated = lastResult == null
-                || (songMusicBuilderTask != null  && songMusicBuilderTask.isGeneratingMusic())
+                || (songMusicBuilderTask != null && songMusicBuilderTask.isGeneratingMusic())
                 || (updatableSongSession != null && updatableSongSession.isDirty());
         return !outdated;
     }
@@ -189,57 +190,27 @@ public class ActiveSongBackgroundMusicBuilderImpl implements PropertyChangeListe
         MidiMix newMidiMix = activeMidiMix;
 
 
-        if (evt.getSource() == asm)
+        if (evt.getSource() == asm && evt.getPropertyName().equals(ActiveSongManager.PROP_ACTIVE_SONG)
+                || evt.getSource() == mc && evt.getPropertyName().equals(MusicController.PROP_STATE))
         {
-            if (evt.getPropertyName().equals(ActiveSongManager.PROP_ACTIVE_SONG))
+            // Active song or music controller state has changed
+            newSong = asm.getActiveSong();
+            newMidiMix = asm.getActiveMidiMix();
+            var newState = mc.getState();
+            var newSession = mc.getPlaybackSession();
+
+            if (newSong == null || newSession == null || newSession.getContext() != Context.SONG)
             {
-                newSong = (Song) evt.getNewValue();          // Can be null
-                newMidiMix = (MidiMix) evt.getOldValue();
-
-                if (EnumSet.of(State.PAUSED, State.PLAYING).contains(mc.getState())
-                        && mc.getPlaybackSession() instanceof UpdatableSongSession uss
-                        && uss.getSongContext().getSong() == newSong)
-                {
-                    newUpdatableSongSession = uss;
-                    newMode = Mode.PLAYING_SONG;
-                } else
-                {
-                    newMode = newSong != null ? Mode.NON_PLAYING_SONG : Mode.OFF;
-                }
-            }
-
-        } else if (evt.getSource() == mc)
-        {
-            if (evt.getPropertyName().equals(MusicController.PROP_STATE))
+                newMode = Mode.OFF;
+            } else if (EnumSet.of(State.PAUSED, State.PLAYING).contains(newState)
+                    && newSession instanceof UpdatableSongSession uss
+                    && uss.getSongContext().getSong() == newSong)
             {
-                var oldState = (MusicController.State) evt.getOldValue();
-                var newState = (MusicController.State) evt.getNewValue();
-
-
-                if ((oldState == State.PAUSED && newState == State.PLAYING)
-                        || (oldState == State.PLAYING && newState == State.PAUSED))
-                {
-                    // Do nothing
-
-                } else if (newState == State.PLAYING)
-                {
-                    // Check if our song is playing
-                    var session = mc.getPlaybackSession();
-                    if (session instanceof UpdatableSongSession uss && uss.getSongContext().getSong() == activeSong)
-                    {
-                        newUpdatableSongSession = uss;
-                        newMode = Mode.PLAYING_SONG;
-
-                    } else
-                    {
-                        // MusicController plays something else, stop providing updates 
-                        // This may be the Arranger, the instrument selection dialog, the RhythmSelectionDialog, the RP Drums Transform dialog, etc...
-                        newMode = Mode.OFF;
-                    }
-                } else
-                {
-                    newMode = activeSong != null ? Mode.NON_PLAYING_SONG : Mode.OFF;
-                }
+                newUpdatableSongSession = uss;
+                newMode = Mode.PLAYING_SONG;
+            } else
+            {
+                newMode = Mode.NON_PLAYING_SONG;
             }
 
         } else if (evt.getSource() == updatableSongSession)

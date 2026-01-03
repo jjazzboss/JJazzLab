@@ -69,7 +69,7 @@ public class ClsUtilities
      */
     static public ChordLeadSheet getSimplified(ChordLeadSheet cls)
     {
-        ChordLeadSheet simplifiedCls = ChordLeadSheetFactory.getDefault().getCopy(cls);
+        ChordLeadSheet simplifiedCls =cls.getDeepCopy();
 
         for (int barIndex = 0; barIndex < simplifiedCls.getSizeInBars(); barIndex++)
         {

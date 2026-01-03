@@ -125,74 +125,77 @@ public class ActiveSongManagerImpl implements PropertyChangeListener, ActiveSong
         {
             throw new IllegalArgumentException("sg=" + sg + " mm=" + mm);
         }
-        if (activeSong == sg)
+
+        synchronized (this)
         {
-            return true;
-        }
-        String err;
-        if (sg != null && (err = isActivable(sg)) != null)
-        {
-            LOGGER.log(Level.WARNING, "setActive() sg={0} is not activable: {1}", new Object[]
+            if (activeSong == sg)
             {
-                sg, err
-            });
-            return false;
-        }
-
-
-        if (activeMidiMix != null)
-        {
-            unregisterMidiMix(activeMidiMix);
-        }
-        if (activeSong != null)
-        {
-            activeSong.removePropertyChangeListener(this);
-        }
-
-        // Change state
-        activeSong = sg;
-        activeMidiMix = (sg == null) ? null : mm;
-
-
-        // Reset MusicController
-        var mc = MusicController.getInstance();
-        mc.stop();
-        try
-        {
-            mc.setPlaybackSession(null, false);
-        } catch (MusicGenerationException ex)
-        {
-            // Should never happen
-            Exceptions.printStackTrace(ex);
-        }
-
-
-        // Register
-        if (activeMidiMix != null)
-        {
-            registerMidiMix(activeMidiMix);              // Listen to added/replace/removed instruments, or settings changes
-            activeSong.addPropertyChangeListener(this);  // Listen to close song events
-            if (sendMidiMessagePolicy.contains(SendMidiMessagePolicy.ACTIVATION))
+                return true;
+            }
+            String err;
+            if (sg != null && (err = isActivable(sg)) != null)
             {
-                sendActivationMessages();
-                sendAllMidiMixMessages();
+                LOGGER.log(Level.WARNING, "setActive() sg={0} is not activable: {1}", new Object[]
+                {
+                    sg, err
+                });
+                return false;
+            }
+
+
+            if (activeMidiMix != null)
+            {
+                unregisterMidiMix(activeMidiMix);
+            }
+            if (activeSong != null)
+            {
+                activeSong.removePropertyChangeListener(this);
+            }
+
+            // Change state
+            activeSong = sg;
+            activeMidiMix = (sg == null) ? null : mm;
+
+
+            // Reset MusicController
+            var mc = MusicController.getInstance();
+            mc.stop();
+            try
+            {
+                mc.setPlaybackSession(null, false);
+            } catch (MusicGenerationException ex)
+            {
+                // Should never happen
+                Exceptions.printStackTrace(ex);
+            }
+
+
+            // Register
+            if (activeMidiMix != null)
+            {
+                registerMidiMix(activeMidiMix);              // Listen to added/replace/removed instruments, or settings changes
+                activeSong.addPropertyChangeListener(this);  // Listen to close song events
+                if (sendMidiMessagePolicy.contains(SendMidiMessagePolicy.ACTIVATION))
+                {
+                    sendActivationMessages();
+                    sendAllMidiMixMessages();
+                }
             }
         }
-
-
+        
         pcs.firePropertyChange(PROP_ACTIVE_SONG, activeMidiMix, activeSong);
         return true;
     }
 
 
     @Override
-    public MidiMix getActiveMidiMix()
+    public synchronized MidiMix getActiveMidiMix()
     {
         return activeMidiMix;
     }
 
     @Override
-    public Song getActiveSong()
+    public synchronized Song getActiveSong()
     {
         return activeSong;
     }

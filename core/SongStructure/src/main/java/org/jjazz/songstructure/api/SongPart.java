@@ -123,15 +123,15 @@ public interface SongPart extends Transferable
      * Create a new SongPart with same name based on this object.
      * <p>
      * Parameters of the new SongPart can be adjusted.<br>
-     * If using a different rhythm, try to adapt the value of compatible RhythmParameters.
+     * If using a different rhythm, try to adapt the value of compatible RhythmParameters. ClientProperties are also copied.
      *
      * @param r             The new Rhythm to be used. If null Rhythm is unchanged.
      * @param startBarIndex The startBarIndex of the new SongPart
      * @param nbBars        The nbBars of the new SongPart
      * @param parentSection The parentSection of the new SongPart. TimeSignature must match the specified rhythm. Can be null.
-     * @return A new SongPart.
+     * @return A new SongPart with the same name and same container.
      */
-    SongPart clone(Rhythm r, int startBarIndex, int nbBars, CLI_Section parentSection);
+    SongPart getCopy(Rhythm r, int startBarIndex, int nbBars, CLI_Section parentSection);
 
     void addPropertyChangeListener(PropertyChangeListener l);
 

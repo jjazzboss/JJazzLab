@@ -114,7 +114,7 @@ public class ClsSgsUpdaterTest
             JJazzUndoManagerFinder.getDefault().put(cls1, undoManager);
 
             // Copy for undo/redo test
-            u_cls1 = ChordLeadSheetFactory.getDefault().getCopy(cls1);
+            u_cls1 =cls1.getDeepCopy();
 
             // Extra items to play with
             newChord = new CLI_ChordSymbolImpl(ExtChordSymbol.get("A"), new Position(2, 1));
@@ -133,7 +133,7 @@ public class ClsSgsUpdaterTest
 
             // Copy for undo/redo test
             u_sgs = SongStructureFactory.getDefault().createSgs(cls1);
-            u_spt0 = spt0.clone(null, spt0.getStartBarIndex(), spt0.getNbBars(), spt0.getParentSection());
+            u_spt0 = spt0.getCopy(null, spt0.getStartBarIndex(), spt0.getNbBars(), spt0.getParentSection());
             u_sgs.addSongParts(List.of(u_spt0));
         } catch (ParseException ex)
         {
@@ -588,7 +588,7 @@ public class ClsSgsUpdaterTest
         {
             return spt;
         }
-        var newSpt = spt.clone(r, spt.getStartBarIndex(), spt.getNbBars(), spt.getParentSection());
+        var newSpt = spt.getCopy(r, spt.getStartBarIndex(), spt.getNbBars(), spt.getParentSection());
         sgs.replaceSongParts(List.of(spt), List.of(newSpt));    // throws UnsupportedEditException
         return newSpt;
     }

@@ -49,6 +49,15 @@ public interface ChordLeadSheet
 
     public static final int MAX_SIZE = 1024;
 
+
+    /**
+     * Get a deep copy of this ChordLeadSheet (all ChordLeadSheetItems are deeply copied).
+     *
+     * Transient fields such as listeners are not copied.
+     * @return
+     */
+    ChordLeadSheet getDeepCopy();
+
     /**
      * Add an item to the leadsheet.
      * <p>

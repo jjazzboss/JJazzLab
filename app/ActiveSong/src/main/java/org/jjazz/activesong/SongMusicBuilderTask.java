@@ -26,7 +26,6 @@ import org.jjazz.musiccontrol.api.MusicGenerationQueue;
 import com.google.common.base.Preconditions;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;

@@ -290,11 +290,10 @@ public class SongFactory implements PropertyChangeListener
     /**
      * Return a deep copy of the specified song.
      * <p>
-     * Copy the following variables: chordleadsheet, songStructure, name, tempo, comments, tags, user phrases, clientProperties.<br>
-     * ChordLeadSheetItem's clientProperties are copied.<br>
      * Listeners or file are NOT copied. Returned song is not closed, even if the original song was.
      *
      * @param song
+     * @param noClsSgsLink If true, updating the chord leadsheet will not update the song structure
      * @param register If true register the created song
      * @return
      */
@@ -302,163 +301,14 @@ public class SongFactory implements PropertyChangeListener
             {
                 "unchecked"
             })
-    public Song getCopy(Song song, boolean register)
+    public Song getCopy(Song song, boolean noClsSgsLink, boolean register)
     {
-        if (song == null)
-        {
-            throw new IllegalArgumentException("song");
-        }
-        ChordLeadSheetFactory clsf = ChordLeadSheetFactory.getDefault();
-        ChordLeadSheet newCls = clsf.getCopy(song.getChordLeadSheet());
-
-        Song s = null;
-        try
-        {
-            s = new Song(song.getName(), newCls);       // SongStructure and ChordLeadsheet will be linked
-        } catch (UnsupportedEditException ex)
-        {
-            // Should not occur since it's a clone, ie already accepted edits
-            throw new IllegalArgumentException("clone() failed. Song's name=" + song.getName(), ex);
-        }
-        s.setComments(song.getComments());
-        s.setTempo(song.getTempo());
-        s.setTags(song.getTags());
-
-
-        // Clean the default songStructure
-        SongStructure newSgs = s.getSongStructure();
-        try
-        {
-            newSgs.removeSongParts(newSgs.getSongParts());
-        } catch (UnsupportedEditException ex)
-        {
-            // Should not happen since it's a copy
-            Exceptions.printStackTrace(ex);
-        }
-
-        // Recreate each SongPart copy
-        var newSpts = new ArrayList<SongPart>();
-        for (SongPart spt : song.getSongStructure().getSongParts())
-        {
-            CLI_Section newParentSection = newCls.getSection(spt.getParentSection().getData().getName());
-            assert newParentSection != null :
-                    "spt.getStartBarIndex()=" + spt.getStartBarIndex()
-                    + " spt.getParentSection()=" + spt.getParentSection()
-                    + "  newCls-sections=" + newCls.getItems(CLI_Section.class);
-            SongPart sptCopy = spt.clone(spt.getRhythm(), spt.getStartBarIndex(), spt.getNbBars(), newParentSection);
-            newSpts.add(sptCopy);
-        }
-
-        // Add new song parts in one shot to avoid issue if an AdaptedRhythm is used
-        try
-        {
-            newSgs.addSongParts(newSpts);            // Can raise UnsupportedEditException
-        } catch (UnsupportedEditException ex)
-        {
-            // Should never happen
-            throw new IllegalArgumentException(
-                    "getCopy() failed. Song's name=" + song.getName() + " newSgs=" + newSgs + " newSpts=" + newSpts, ex);
-        }
-
-
-        // Copy the user phrases
-        for (String name : song.getUserPhraseNames())
-        {
-            try
-            {
-                s.setUserPhrase(name, song.getUserPhrase(name).clone());
-            } catch (PropertyVetoException ex)
-            {
-                // Should never happen as it was OK for song
-                Exceptions.printStackTrace(ex);
-            }
-        }
-
-
-        // Copy client properties
-        s.getClientProperties().set(song.getClientProperties());
-
-
-        s.setSaveNeeded(false);
+       Song res = song.getDeepCopy(noClsSgsLink);
         if (register)
         {
-            registerSong(s);
+            registerSong(res);
         }
-        return s;
-    }
-
-    /**
-     * Return a copy of the song where the SongStructure and the ChordLeadsheet are not linked (updating one does not update the other).
-     * <p>
-     * WARNING: changes might result in Song inconsistent states. This should be used only in special cases.
-     * <p>
-     * Copy the following variables: chordleadsheet, songStructure, name, tempo, comments, tags, user phrases. Listeners or file are NOT copied.
-     *
-     * @param song
-     * @param register If true register the created song.
-     * @return
-     */
-    @SuppressWarnings(
-            {
-                "unchecked"
-            })
-    public Song getCopyUnlinked(Song song, boolean register)
-    {
-        if (song == null)
-        {
-            throw new IllegalArgumentException("song");
-        }
-        ChordLeadSheet cls = ChordLeadSheetFactory.getDefault().getCopy(song.getChordLeadSheet());
-        SongStructure sgs = null;
-        try
-        {
-            sgs = SongStructureFactory.getDefault().createSgs(cls);     // Can raise UnsupportedEditException
-            sgs.removeSongParts(sgs.getSongParts());
-
-
-            // Get a copy for each SongPart
-            var newSpts = new ArrayList<SongPart>();
-            for (SongPart spt : song.getSongStructure().getSongParts())
-            {
-                String parentSectionName = spt.getParentSection().getData().getName();
-                CLI_Section parentSectionCopy = cls.getSection(parentSectionName);
-                SongPart sptCopy = spt.clone(spt.getRhythm(), spt.getStartBarIndex(), spt.getNbBars(), parentSectionCopy);
-                newSpts.add(sptCopy);
-            }
-
-
-            // Add new song parts in one shot to avoid issue if an AdaptedRhythm is used      
-            sgs.addSongParts(newSpts);            // Can raise UnsupportedEditException    
-
-        } catch (UnsupportedEditException ex)
-        {
-            throw new IllegalArgumentException("getCopyUnlinked() failed. Song's name=" + song.getName() + " ss=" + sgs, ex);
-        }
-
-        // Now create the song copy
-        Song s = new Song(song.getName(), sgs, true);       // unlinked
-        s.setComments(song.getComments());
-        s.setTempo(song.getTempo());
-        s.setTags(song.getTags());
-        for (String name : song.getUserPhraseNames())
-        {
-            try
-            {
-                s.setUserPhrase(name, song.getUserPhrase(name).clone());
-            } catch (PropertyVetoException ex)
-            {
-                // Should never happen as it was OK for song
-                Exceptions.printStackTrace(ex);
-            }
-        }
-
-
-        s.setSaveNeeded(false);
-        if (register)
-        {
-            registerSong(s);
-        }
-        return s;
+        return res;
     }
 
     // =================================================================================

@@ -84,7 +84,7 @@ public class RemoveRhythmChange extends SS_ContextAction implements HideIfDisabl
                 break;
             }
             oldSpts.add(spt);
-            SongPart newSpt = spt.clone(prevRhythm, spt.getStartBarIndex(), spt.getNbBars(), spt.getParentSection());
+            SongPart newSpt = spt.getCopy(prevRhythm, spt.getStartBarIndex(), spt.getNbBars(), spt.getParentSection());
             newSpts.add(newSpt);
         }
 

@@ -97,7 +97,7 @@ public class ChordLeadSheetImplTest
             cls1.addUndoableEditListener(undoManager);
 
             // cls2 = deep copy to make the comparison after a undo/redo/undo cycle
-            cls2 = ChordLeadSheetFactory.getDefault().getCopy(cls1);
+            cls2 = cls1.getDeepCopy();
 
             // Items to play with
             cliSection34_b3 = new CLI_SectionImpl("NewSection34", TimeSignature.THREE_FOUR, 3);

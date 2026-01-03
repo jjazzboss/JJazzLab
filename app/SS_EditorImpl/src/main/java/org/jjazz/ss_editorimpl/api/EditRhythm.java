@@ -249,7 +249,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
                         break;
                     }
                     oldSpts.add(spt);
-                    SongPart newSpt = spt.clone(newRhythm, spt.getStartBarIndex(), spt.getNbBars(), spt.getParentSection());
+                    SongPart newSpt = spt.getCopy(newRhythm, spt.getStartBarIndex(), spt.getNbBars(), spt.getParentSection());
                     newSpts.add(newSpt);
                 }
             }
@@ -261,7 +261,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
                 if (oldSpt.getRhythm() != newRhythm && oldSpt.getRhythm().getTimeSignature().equals(newRhythm.getTimeSignature()))
                 {
                     oldSpts.add(oldSpt);
-                    SongPart newSpt = oldSpt.clone(newRhythm, oldSpt.getStartBarIndex(), oldSpt.getNbBars(), oldSpt.getParentSection());
+                    SongPart newSpt = oldSpt.getCopy(newRhythm, oldSpt.getStartBarIndex(), oldSpt.getNbBars(), oldSpt.getParentSection());
                     newSpts.add(newSpt);
                 }
             }

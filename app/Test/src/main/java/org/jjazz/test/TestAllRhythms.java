@@ -112,7 +112,7 @@ public final class TestAllRhythms implements ActionListener
                     continue;
                 }
                 SongPart spt = sgs.getSongPart(0);
-                SongPart newSpt = spt.clone(r, spt.getStartBarIndex(), spt.getNbBars(), spt.getParentSection());
+                SongPart newSpt = spt.getCopy(r, spt.getStartBarIndex(), spt.getNbBars(), spt.getParentSection());
                 RhythmParameter<?> rp0 = r.getRhythmParameters().get(0);
                 try
                 {

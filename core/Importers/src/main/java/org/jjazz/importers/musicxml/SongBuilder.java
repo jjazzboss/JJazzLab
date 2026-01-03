@@ -482,7 +482,7 @@ public class SongBuilder implements MusicXmlParserListener
                 if (spt.getStartBarIndex() != songBarIndex)
                 {
                     // Need to move it
-                    var newSpt = spt.clone(null, songBarIndex, spt.getNbBars(), newSection);
+                    var newSpt = spt.getCopy(null, songBarIndex, spt.getNbBars(), newSection);
                     try
                     {
                         sgs.removeSongParts(List.of(spt));

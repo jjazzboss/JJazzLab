@@ -139,9 +139,11 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
 
 
         // Prepare a working context which can be modified 
+        IntRange contextBarRange = contextOriginal.getBarRange();
+        FloatRange contextBeatRange = contextOriginal.getBeatRange();
         SongFactory sf = SongFactory.getInstance();
-        Song songWork = sf.getCopyUnlinked(contextOriginal.getSong(), false);
-        this.contextWork = new SongContext(songWork, contextOriginal.getMidiMix(), contextOriginal.getBarRange());
+        Song songWork = sf.getCopy(contextOriginal.getSong(), true, false);     // Sgs disconnected from Cls
+        this.contextWork = new SongContext(songWork, contextOriginal.getMidiMix(), contextBarRange);
 
 
         // Introduce fake section/songpart when a Fill rhythm parameter is used
@@ -159,7 +161,19 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
 
         // The final result to fill in
         List<ChordSeqPhrases> chordSeqPhrases = getAllPhrasesAllChordSequences();
+                
+        // Robustness check
         assert !chordSeqPhrases.isEmpty();
+        for (var csp : chordSeqPhrases)
+        {
+            if (!contextBarRange.contains(csp.simpleChordSequence.getBarRange()))
+            {
+                throw new IllegalStateException("contextBarRange=" + contextBarRange + " csp=" + csp);
+            } else if (!contextBeatRange.contains(csp.simpleChordSequence.getBeatRange(), false))
+            {
+                throw new IllegalStateException("contextBeatRange=" + contextBeatRange + " csp.beatRange()=" + csp.simpleChordSequence.getBeatRange());
+            }
+        }
 
         // Get a simplified version: merge all ChordSequences which use our rhythm
         List<ChordSeqPhrases> chordSeqPhrasesMerged = mergeChordSequences(chordSeqPhrases);
@@ -977,8 +991,8 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
     /**
      * Modify the song's SongStructure and ChordLeadSheet to facilitate the processing of the RP_STD_FILL parameter.
      * <p>
-     * Add a "fill" section on the last bar of each existing section for RP_STD_Fill parameter: introduce "fake" Section/SongParts with
-     * Fill_In_AA-like styles parts
+     * Add a "fill" section on the last bar of each existing section for RP_STD_Fill parameter: introduce "fake" Section/SongParts with Fill_In_AA-like styles
+     * parts
      * <p>
      * @param context SongStructure must not be linked to the ChordLeadSheet
      */
@@ -1020,7 +1034,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
                     ss.resizeSongParts(Map.of(spt, nbBars - 1));
 
                     // Add the 1-bar SongPart
-                    SongPart fillSpt = spt.clone(null, startBar + nbBars - 1, 1, fillSection);
+                    SongPart fillSpt = spt.getCopy(null, startBar + nbBars - 1, 1, fillSection);
                     ss.addSongParts(Arrays.asList(fillSpt));
                 }
             }
@@ -1030,7 +1044,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
             Exceptions.printStackTrace(ex);
         }
 
-        
+
         // Change rpComplexity value for "fill" songParts depending on the rpFill value
         for (SongPart spt : context.getSongParts())
         {
@@ -1257,6 +1271,10 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
      */
     private List<ChordSeqPhrases> mergeChordSequences(List<ChordSeqPhrases> chordSeqPhrases)
     {
+        Objects.requireNonNull(chordSeqPhrases);
+        Preconditions.checkArgument(!chordSeqPhrases.isEmpty());
+
+
         List<ChordSeqPhrases> res = new ArrayList<>();
         int startBar = chordSeqPhrases.get(0).simpleChordSequence().getBarRange().from;
         int startIndex = 0;

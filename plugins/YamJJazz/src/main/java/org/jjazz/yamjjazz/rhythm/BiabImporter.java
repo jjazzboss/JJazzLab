@@ -154,7 +154,7 @@ public class BiabImporter implements SongImporter
         var newSpts = new ArrayList<SongPart>();
         for (SongPart spt : ss.getSongParts())
         {
-            newSpts.add(spt.clone(r, spt.getStartBarIndex(), spt.getNbBars(), spt.getParentSection()));
+            newSpts.add(spt.getCopy(r, spt.getStartBarIndex(), spt.getNbBars(), spt.getParentSection()));
         }
         try
         {

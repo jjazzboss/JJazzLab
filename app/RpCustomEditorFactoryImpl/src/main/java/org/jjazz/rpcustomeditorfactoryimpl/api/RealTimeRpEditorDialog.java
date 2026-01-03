@@ -172,7 +172,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditorDialog<E> implement
         checkArgument(sptContext.getSongParts().size() == 1, "sptContext=%s, rp=%s, rpValue=%s", sptContext, rp, rpValue);
 
         // Get a song copy which uses the edited RP value        
-        Song songCopy = SongFactory.getInstance().getCopy(sptContext.getSong(), false);
+        Song songCopy = SongFactory.getInstance().getCopy(sptContext.getSong(), false, false);
         SongStructure ss = songCopy.getSongStructure();
         ChordLeadSheet cls = songCopy.getChordLeadSheet();
         SongPart spt = ss.getSongPart(sptContext.getBarRange().from);

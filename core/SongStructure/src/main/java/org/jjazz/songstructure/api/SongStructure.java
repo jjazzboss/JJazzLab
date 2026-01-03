@@ -38,7 +38,6 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
-import org.jjazz.songstructure.api.event.SgsVetoableChangeEvent;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
 
@@ -168,7 +167,7 @@ public interface SongStructure
     /**
      * An optional parent ChordLeadSheet.
      * <p>
-     * The SongStructure might listen to ChordLeadSheet changes to update itself accordingly.
+     * If set the SongStructure will listen to ChordLeadSheet changes to update itself accordingly.
      *
      * @return Can be null.
      */
@@ -391,6 +390,17 @@ public interface SongStructure
      * @return Can't be null
      */
     public Rhythm getRecommendedRhythm(TimeSignature ts, int sptStartBarIndex);
+
+    /**
+     * Get a deep copy of this SongStructure.
+     * <p>
+     * Transient fields such as listeners are not copied.
+     *
+     * @param parentCls Can be null. The parent chordleadsheet of the returned copy. If not null should contain sections with names matching this object's
+     *                  SongPart names.
+     * @return
+     */
+    public SongStructure getDeepCopy(ChordLeadSheet parentCls);
 
     /**
      * Add a listener to changes of this object.

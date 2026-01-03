@@ -298,7 +298,7 @@ public class BassGenerator implements MusicGenerator
 
         // Prepare a working context because we'll use a modified song copy 
         SongFactory sf = SongFactory.getInstance();
-        Song songWork = sf.getCopyUnlinked(sgContextOrig.getSong(), false);
+        Song songWork = sf.getCopy(sgContextOrig.getSong(), true, false);
         SongContext contextWork = new SongContext(songWork, sgContextOrig.getMidiMix(), sgContextOrig.getBarRange());
         preprocessBassStyleAutoValue(contextWork);     // Update SongStructure to replace auto BassStyle values by standard BassStyle values
 

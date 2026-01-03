@@ -257,7 +257,7 @@ public class RhythmPreviewerImpl implements RhythmPreviewer
     {
         // Get a copy
         var sf = SongFactory.getInstance();
-        Song newSong = sf.getCopy(song, false);
+        Song newSong = sf.getCopy(song, true, false);
 
         SongStructure newSs = newSong.getSongStructure();
         ChordLeadSheet newCls = newSong.getChordLeadSheet();
@@ -268,7 +268,7 @@ public class RhythmPreviewerImpl implements RhythmPreviewer
         // Get the first SongPart with the new rhythm
         List<SongPart> newSpts = new ArrayList<>();
         var parentSection = newCls.getSection(spt.getParentSection().getData().getName());
-        var newSpt0 = spt.clone(r, 0, spt.getNbBars(), parentSection);
+        var newSpt0 = spt.getCopy(r, 0, spt.getNbBars(), parentSection);
         newSpts.add(newSpt0);
 
         // If r is an AdaptedRhythm we must also add its source rhythm
@@ -281,7 +281,7 @@ public class RhythmPreviewerImpl implements RhythmPreviewer
                     CLI_Section.class,
                     s -> s.getData().getTimeSignature().equals(sourceRhythm.getTimeSignature()));
             assert parentSection != null : " newCls=" + newCls;
-            var newSpt1 = spt.clone(ar.getSourceRhythm(), spt.getNbBars(), spt.getNbBars(), parentSection);
+            var newSpt1 = spt.getCopy(ar.getSourceRhythm(), spt.getNbBars(), spt.getNbBars(), parentSection);
             newSpts.add(newSpt1);
         }
 

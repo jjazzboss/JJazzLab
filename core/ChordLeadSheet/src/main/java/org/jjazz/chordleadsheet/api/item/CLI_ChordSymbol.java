@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.harmony.api.Position;
@@ -480,6 +481,7 @@ public interface CLI_ChordSymbol extends ChordLeadSheetItem<ExtChordSymbol>
          */
         private ComparableCsItem(Position pos, boolean beforeOrAfterItem, boolean inclusive)
         {
+            Objects.requireNonNull(pos);
             this.position = pos;
 
             if (beforeOrAfterItem)

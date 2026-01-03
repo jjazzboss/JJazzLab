@@ -233,7 +233,7 @@ public final class CreatePracticeSong extends AbstractAction implements ContextA
             for (int j = spts.size() - 1; j >= 0; j--)
             {
                 var spt = spts.get(j);
-                var newSpt = spt.clone(null, 0, spt.getNbBars(), spt.getParentSection());
+                var newSpt = spt.getCopy(null, 0, spt.getNbBars(), spt.getParentSection());
                 try
                 {
                     sgs.addSongParts(Arrays.asList(newSpt));
@@ -317,7 +317,7 @@ public final class CreatePracticeSong extends AbstractAction implements ContextA
             // Get the equivalent section in the new song
             var newCliSection = newCls.getSection(sectionBar - selRange.from);
             int newSptSize = newCls.getBarRange(newCliSection).size();      // Might be < sptSize if 1st selected bar had no section defined
-            SongPart newSpt = spt.clone(null, newCliSection.getPosition().getBar(), newSptSize, newCliSection);
+            SongPart newSpt = spt.getCopy(null, newCliSection.getPosition().getBar(), newSptSize, newCliSection);
             if (RP_SYS_TempoFactor.getTempoFactorRp(newSpt.getRhythm()) == null)
             {
                 throw new UnsupportedEditException(

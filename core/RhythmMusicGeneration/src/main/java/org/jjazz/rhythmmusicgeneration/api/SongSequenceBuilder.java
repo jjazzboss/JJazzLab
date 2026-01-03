@@ -109,7 +109,6 @@ public class SongSequenceBuilder
      */
     static public class SongSequence
     {
-
         public Sequence sequence;
         public Map<RhythmVoice, Integer> mapRvTrackId;
         public Map<RhythmVoice, Phrase> mapRvPhrase;
@@ -489,11 +488,6 @@ public class SongSequenceBuilder
 
         }
 
-    }
-
-    public SongContext getSongContext()
-    {
-        return songContextOriginal;
     }
 
     @Override

@@ -100,7 +100,7 @@ public class SongPartCopyBuffer
             CLI_Section sectionClone = (parentSection != null) ? (CLI_Section) parentSection.getCopy((Section) null, null) : null;
 
             // Add a copy of the song part with a copy of the parent section
-            sptBuffer.add(spt.clone(spt.getRhythm(), spt.getStartBarIndex(), spt.getNbBars(), sectionClone));
+            sptBuffer.add(spt.getCopy(spt.getRhythm(), spt.getStartBarIndex(), spt.getNbBars(), sectionClone));
         }
 
         // Sort our buffer
@@ -190,7 +190,7 @@ public class SongPartCopyBuffer
             for (SongPart spt : sptBuffer)
             {
                 // don't change the rhythm and set parent section to null
-                spts.add(spt.clone(null, spt.getStartBarIndex() - barShift, spt.getNbBars(), null));
+                spts.add(spt.getCopy(null, spt.getStartBarIndex() - barShift, spt.getNbBars(), null));
             }
         } else
         {
@@ -204,7 +204,7 @@ public class SongPartCopyBuffer
                 if (newParentSection != null && newParentSection.getData().getTimeSignature().equals(parentSectionTs))
                 {
                     int nbBars = targetCls.getBarRange(newParentSection).size();
-                    spts.add(spt.clone(null, spt.getStartBarIndex() - barShift, nbBars, newParentSection));
+                    spts.add(spt.getCopy(null, spt.getStartBarIndex() - barShift, nbBars, newParentSection));
                 }
             }
         }

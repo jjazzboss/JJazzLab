@@ -69,14 +69,4 @@ public interface ChordLeadSheetFactory
      */
     ChordLeadSheet createRamdomLeadSheet(String sectionName, TimeSignature ts, int size);
 
-    /**
-     * Get a deep copy of specified chordleadsheet: individual ChordLeadSheetItems are copied.
-     *
-     * @param cls
-     * @return
-     * @throws IllegalStateException If cls does not have an initial section
-     */
-    ChordLeadSheet getCopy(ChordLeadSheet cls);
-
-
 }

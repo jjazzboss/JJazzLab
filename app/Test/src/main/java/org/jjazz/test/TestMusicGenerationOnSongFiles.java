@@ -198,7 +198,7 @@ public final class TestMusicGenerationOnSongFiles implements ActionListener
                     .filter(spt -> spt.getRhythm() != rhythm && spt.getRhythm().getTimeSignature() == rhythm.getTimeSignature())
                     .toList();
             var newSpts = oldSpts.stream()
-                    .map(spt -> spt.clone(rhythm, spt.getStartBarIndex(), spt.getNbBars(), spt.getParentSection()))
+                    .map(spt -> spt.getCopy(rhythm, spt.getStartBarIndex(), spt.getNbBars(), spt.getParentSection()))
                     .toList();
             sgs.replaceSongParts(oldSpts, newSpts);
 
@@ -225,7 +225,7 @@ public final class TestMusicGenerationOnSongFiles implements ActionListener
             {
                 for (var spt : rhythmSpts.reversed())
                 {
-                    var newSpt = spt.clone(null, insertBar, spt.getNbBars(), spt.getParentSection());
+                    var newSpt = spt.getCopy(null, insertBar, spt.getNbBars(), spt.getParentSection());
                     sgs.addSongParts(List.of(newSpt));
                     sgs.setRhythmParameterValue(newSpt, RP_BassStyle.get(rhythm), RP_BassStyle.toRpValue(bassStyle));
                 }

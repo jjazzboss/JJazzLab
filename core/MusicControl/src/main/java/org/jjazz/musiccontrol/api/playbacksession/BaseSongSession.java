@@ -92,10 +92,10 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     /**
      * Create a session with the specified parameters.
      * <p>
-     * @param sgContext Can not be null
-     * @param sConfig Can not be null
+     * @param sgContext                           Can not be null
+     * @param sConfig                             Can not be null
      * @param useActiveSongBackgroundMusicBuilder If true use ActiveSongBackgroundMusicBuilder when possible to speed up music generation
-     * @param context Can not be null
+     * @param context                             Can not be null
      */
     public BaseSongSession(SongContext sgContext, SessionConfig sConfig, boolean useActiveSongBackgroundMusicBuilder, Context context)
     {
@@ -552,12 +552,12 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
 
         SongSequenceBuilder seqBuilder = new SongSequenceBuilder(sgContext); // Will work on a deep copy of sgContext
 
-        // Reuse ActiveSongBackgroundMusicBuilder result when possible
+        // Reuse ActiveSongBackgroundMusicBuilder result when possible (map Rv=>Phrase)
         var asbmb = ActiveSongBackgroundMusicBuilder.getDefault();
-        if (asbmb != null)
+        if (asbmb != null && useBackgroundMusicBuilder)
         {
             var lastResult = asbmb.getLastResult();
-            if (useBackgroundMusicBuilder
+            if (lastResult != null
                     && asbmb.isLastResultUpToDate()
                     && lastResult.throwable() == null
                     && sgContext.equals(lastResult.songContext()))

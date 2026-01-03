@@ -217,7 +217,7 @@ public class Song implements Serializable, PropertyChangeListener
      * @param name    Must be the name of an existing phrase
      * @param newName
      */
-    public void renameUserPhrase(String name, String newName)
+    public synchronized void renameUserPhrase(String name, String newName)
     {
         var p = getUserPhrase(name);
         if (p == null)
@@ -243,7 +243,10 @@ public class Song implements Serializable, PropertyChangeListener
             @Override
             public void undoBody()
             {
-                mapUserPhrases = oldMap;
+                synchronized (Song.this)
+                {
+                    mapUserPhrases = oldMap;
+                }
                 try
                 {
                     vcs.fireVetoableChange(PROP_VETOABLE_PHRASE_NAME, newName, name);
@@ -258,7 +261,10 @@ public class Song implements Serializable, PropertyChangeListener
             @Override
             public void redoBody()
             {
-                mapUserPhrases = newMap;
+                synchronized (Song.this)
+                {
+                    mapUserPhrases = newMap;
+                }
                 try
                 {
                     vcs.fireVetoableChange(PROP_VETOABLE_PHRASE_NAME, name, newName);
@@ -298,7 +304,7 @@ public class Song implements Serializable, PropertyChangeListener
      * @see Song#PROP_VETOABLE_USER_PHRASE
      * @see Song#PROP_VETOABLE_USER_PHRASE_CONTENT
      */
-    public void setUserPhrase(String name, Phrase p) throws PropertyVetoException
+    public synchronized void setUserPhrase(String name, Phrase p) throws PropertyVetoException
     {
         checkNotNull(name);
         checkNotNull(p);
@@ -317,10 +323,7 @@ public class Song implements Serializable, PropertyChangeListener
 
         // Perform the change
         final var oldMap = new HashMap<>(mapUserPhrases);
-        synchronized (this)
-        {
-            mapUserPhrases.put(name, newPhrase);
-        }
+        mapUserPhrases.put(name, newPhrase);
         final var newMap = new HashMap<>(mapUserPhrases);
 
 
@@ -442,7 +445,7 @@ public class Song implements Serializable, PropertyChangeListener
      * @param name
      * @return The removed phrase or null
      */
-    public Phrase removeUserPhrase(String name)
+    public synchronized Phrase removeUserPhrase(String name)
     {
         checkNotNull(name);
 
@@ -458,10 +461,7 @@ public class Song implements Serializable, PropertyChangeListener
 
         // Perform the change
         final var oldMap = new HashMap<>(mapUserPhrases);
-        synchronized (this)
-        {
-            mapUserPhrases.remove(name);
-        }
+        mapUserPhrases.remove(name);
         final var newMap = new HashMap<>(mapUserPhrases);
 
 
@@ -579,6 +579,7 @@ public class Song implements Serializable, PropertyChangeListener
         return tempo;
     }
 
+
     /**
      * Set the preferred tempo for this song.
      * <p>
@@ -586,7 +587,7 @@ public class Song implements Serializable, PropertyChangeListener
      *
      * @param newTempo
      */
-    public final void setTempo(final int newTempo)
+    public synchronized final void setTempo(final int newTempo)
     {
         if (!TempoRange.checkTempo(newTempo))
         {
@@ -609,7 +610,7 @@ public class Song implements Serializable, PropertyChangeListener
      *
      * @param newTags Must not be null but can be an empty list. Tags are space-trimmed and converted to lower case.
      */
-    public void setTags(List<String> newTags)
+    public synchronized void setTags(List<String> newTags)
     {
         if (newTags == null)
         {
@@ -635,7 +636,7 @@ public class Song implements Serializable, PropertyChangeListener
     /**
      * @return List can be empty if not tags. Tags are lowercase.
      */
-    public List<String> getTags()
+    public synchronized List<String> getTags()
     {
         return new ArrayList<>(tags);
     }
@@ -645,7 +646,7 @@ public class Song implements Serializable, PropertyChangeListener
      *
      * @return
      */
-    public String getName()
+    public synchronized String getName()
     {
         return name;
     }
@@ -657,7 +658,7 @@ public class Song implements Serializable, PropertyChangeListener
      *
      * @param newName A non-empty string.
      */
-    public final void setName(final String newName)
+    public synchronized final void setName(final String newName)
     {
         if (newName == null || newName.trim().isEmpty())
         {
@@ -680,7 +681,7 @@ public class Song implements Serializable, PropertyChangeListener
      *
      * @param releaseRhythmResources True if the method should also call releaseResources() for each used rhythm.
      */
-    public void close(boolean releaseRhythmResources)
+    public synchronized void close(boolean releaseRhythmResources)
     {
         if (releaseRhythmResources)
         {
@@ -703,7 +704,7 @@ public class Song implements Serializable, PropertyChangeListener
      *
      * @return True if close() has been called.
      */
-    public boolean isClosed()
+    public synchronized boolean isClosed()
     {
         return closed;
     }
@@ -713,7 +714,7 @@ public class Song implements Serializable, PropertyChangeListener
      *
      * @return Can be an empty String.
      */
-    public String getComments()
+    public synchronized String getComments()
     {
         return comments;
     }
@@ -725,7 +726,7 @@ public class Song implements Serializable, PropertyChangeListener
      *
      * @param newComments
      */
-    public void setComments(final String newComments)
+    public synchronized void setComments(final String newComments)
     {
         if (newComments == null)
         {
@@ -746,7 +747,7 @@ public class Song implements Serializable, PropertyChangeListener
      *
      * @return Can be null for example if it's a builtin song or created programmatically.
      */
-    public File getFile()
+    public synchronized File getFile()
     {
         return file;
     }
@@ -756,7 +757,7 @@ public class Song implements Serializable, PropertyChangeListener
      *
      * @param f Can be null.
      */
-    public void setFile(File f)
+    public synchronized void setFile(File f)
     {
         file = f;
     }
@@ -858,7 +859,7 @@ public class Song implements Serializable, PropertyChangeListener
      * @throws java.io.IOException
      * @see getFile()
      */
-    public void saveToFile(File songFile, boolean isCopy) throws IOException
+    public synchronized void saveToFile(File songFile, boolean isCopy) throws IOException
     {
         if (songFile == null)
         {
@@ -902,7 +903,7 @@ public class Song implements Serializable, PropertyChangeListener
     /**
      * @return True if song has some unsaved changes.
      */
-    public boolean isSaveNeeded()
+    public synchronized boolean isSaveNeeded()
     {
         return saveNeeded;
     }
@@ -914,7 +915,7 @@ public class Song implements Serializable, PropertyChangeListener
      *
      * @param b
      */
-    public void setSaveNeeded(boolean b)
+    public synchronized void setSaveNeeded(boolean b)
     {
         if (b == saveNeeded)
         {
@@ -930,7 +931,41 @@ public class Song implements Serializable, PropertyChangeListener
         }
     }
 
-    public void addUndoableEditListener(UndoableEditListener l)
+    /**
+     * Get a deep copy of this Song.
+     * <p>
+     * Listeners or file are NOT copied. Returned song is not closed, even if the original song was.
+     *
+     * @param noClsSgsLink If true SongStructure will not get updated for some chord leadsheet changes (eg a new section is added)
+     * @return
+     */
+    protected synchronized Song getDeepCopy(boolean noClsSgsLink)
+    {
+        var cls = chordLeadSheet.getDeepCopy();
+        var sgs = songStructure.getDeepCopy(cls);
+        Song res = new Song(name, sgs, noClsSgsLink);
+        res.comments = comments;
+        res.tempo = tempo;
+        res.tags = tags;
+
+
+        // Clone user phrases
+        mapUserPhrases.keySet().stream()
+                .forEach(name -> 
+                {
+                    var p = mapUserPhrases.get(name);
+                    var pNew = p.clone();
+                    res.mapUserPhrases.put(name, pNew);
+                });
+
+
+        // Copy client properties
+        res.getClientProperties().set(getClientProperties());
+
+        return res;
+    }
+
+    public synchronized void addUndoableEditListener(UndoableEditListener l)
     {
         if (l == null)
         {
@@ -940,7 +975,7 @@ public class Song implements Serializable, PropertyChangeListener
         undoListeners.add(l);
     }
 
-    public void removeUndoableEditListener(UndoableEditListener l)
+    public synchronized void removeUndoableEditListener(UndoableEditListener l)
     {
         if (l == null)
         {
@@ -1041,7 +1076,7 @@ public class Song implements Serializable, PropertyChangeListener
     /**
      * Fire a PROP_MODIFIED_OR_SAVED_OR_RESET property change event with oldValue=false, newValue=true
      */
-    private void fireIsModified()
+    private synchronized void fireIsModified()
     {
         saveNeeded = true;
         pcs.firePropertyChange(PROP_MODIFIED_OR_SAVED_OR_RESET, false, true);
@@ -1050,7 +1085,7 @@ public class Song implements Serializable, PropertyChangeListener
     /**
      * Fire a PROP_MODIFIED_OR_SAVED_OR_RESET property change event with oldValue=true newValue=false
      */
-    private void fireSaved()
+    private synchronized void fireSaved()
     {
         saveNeeded = false;
         pcs.firePropertyChange(PROP_MODIFIED_OR_SAVED_OR_RESET, true, false);
@@ -1063,14 +1098,19 @@ public class Song implements Serializable, PropertyChangeListener
             throw new IllegalArgumentException("edit=" + edit);
         }
         UndoableEditEvent event = new UndoableEditEvent(this, edit);
-        for (UndoableEditListener l : undoListeners.toArray(new UndoableEditListener[undoListeners.size()]))
+        UndoableEditListener[] snapshot;
+        synchronized (this)
+        {
+            snapshot = undoListeners.toArray(new UndoableEditListener[undoListeners.size()]);
+        }
+        for (UndoableEditListener l : snapshot)
         {
             l.undoableEditHappened(event);
 
         }
     }
 
-    private String getPhraseName(Phrase p)
+    private synchronized String getPhraseName(Phrase p)
     {
         return mapUserPhrases.keySet().stream()
                 .filter(n -> getUserPhrase(n) == p)

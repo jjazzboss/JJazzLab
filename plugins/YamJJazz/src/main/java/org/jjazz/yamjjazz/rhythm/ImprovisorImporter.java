@@ -115,7 +115,7 @@ public class ImprovisorImporter implements SongImporter
         }
 
         // Assign the new rhythm
-        SongPart newSpt = spt0.clone(r, spt0.getStartBarIndex(), spt0.getNbBars(), spt0.getParentSection());
+        SongPart newSpt = spt0.getCopy(r, spt0.getStartBarIndex(), spt0.getNbBars(), spt0.getParentSection());
         try
         {
             ss.replaceSongParts(Arrays.asList(spt0), Arrays.asList(newSpt));
@@ -164,7 +164,7 @@ public class ImprovisorImporter implements SongImporter
             for (int i = 1; i < spts.size(); i++)
             {
                 SongPart oldSpt = spts.get(i);
-                newSpt = oldSpt.clone(r, oldSpt.getStartBarIndex(), oldSpt.getNbBars(), oldSpt.getParentSection());
+                newSpt = oldSpt.getCopy(r, oldSpt.getStartBarIndex(), oldSpt.getNbBars(), oldSpt.getParentSection());
                 try
                 {
                     ss.replaceSongParts(Arrays.asList(oldSpt), Arrays.asList(newSpt));
@@ -205,7 +205,7 @@ public class ImprovisorImporter implements SongImporter
         SongStructure ss = sptFrom.getContainer();
         int startBarIndex = ss.getSizeInBars();
         int nbBars = sptFrom.getNbBars();
-        SongPart newSpt = sptFrom.clone(null, startBarIndex, nbBars, sptFrom.getParentSection());
+        SongPart newSpt = sptFrom.getCopy(null, startBarIndex, nbBars, sptFrom.getParentSection());
         try
         {
             ss.addSongParts(Arrays.asList(newSpt));

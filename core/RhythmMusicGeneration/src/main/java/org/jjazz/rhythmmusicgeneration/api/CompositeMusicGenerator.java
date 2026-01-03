@@ -676,7 +676,7 @@ public class CompositeMusicGenerator implements MusicGenerator
             res = new SongContext(context, br);
         } else
         {
-            // Need to change the SongStructure, create a clone context
+            // Need to change the SongStructure, create a getCopy context
             res = new SongContext(context, br).deepClone(false, true);   // setMidiMixSong=true because MidiMix must update itself when we will later replace the rhythm
 
             
@@ -689,7 +689,7 @@ public class CompositeMusicGenerator implements MusicGenerator
                     .map(spt -> sgsCopy.getSongPart(spt.getStartBarIndex()))
                     .toList();
             var newSpts = oldSpts.stream()
-                    .map(spt -> spt.clone(delegateRhythm, spt.getStartBarIndex(), spt.getNbBars(), spt.getParentSection()))
+                    .map(spt -> spt.getCopy(delegateRhythm, spt.getStartBarIndex(), spt.getNbBars(), spt.getParentSection()))
                     .toList();
             try
             {

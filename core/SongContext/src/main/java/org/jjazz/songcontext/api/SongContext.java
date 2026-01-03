@@ -122,7 +122,7 @@ public class SongContext
     }
 
     /**
-     * Deep clone the SongContext : make a copy of the song and the midimix.
+     * Deep getCopy the SongContext : make a copy of the song and the midimix.
      *
      * @param registerSong   If true the created song is registered by the SongFactory
      * @param setMidiMixSong If true MidMix.setSong() is called on the created MidiMix with the created Song.
@@ -131,7 +131,7 @@ public class SongContext
     public SongContext deepClone(boolean registerSong, boolean setMidiMixSong)
     {
         SongFactory sf = SongFactory.getInstance();
-        Song songCopy = sf.getCopy(song, registerSong);
+        Song songCopy = sf.getCopy(song, false, registerSong);
         MidiMix mixCopy = midiMix.getDeepCopy();
         if (setMidiMixSong)
         {

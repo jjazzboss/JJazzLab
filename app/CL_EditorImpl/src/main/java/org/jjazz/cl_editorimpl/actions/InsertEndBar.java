@@ -121,7 +121,7 @@ public class InsertEndBar extends CL_ContextAction
             {
                 // Move the SongPart at the end
                 sgs.removeSongParts(List.of(sptEnd));
-                sptEnd = sptEnd.clone(null, sgs.getSizeInBars(), 1, endSection);
+                sptEnd = sptEnd.getCopy(null, sgs.getSizeInBars(), 1, endSection);
                 sgs.addSongParts(List.of(sptEnd));
             }
             

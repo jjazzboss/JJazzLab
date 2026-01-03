@@ -156,41 +156,6 @@ public class ChordLeadSheetFactoryImpl implements ChordLeadSheetFactory
         return cls;
     }
 
-    @Override
-    public ChordLeadSheet getCopy(ChordLeadSheet cls)
-    {
-        CLI_Section initSection = cls.getSection(0);
-        if (cls == null)
-        {
-            throw new IllegalStateException("No initSection found in cls=" + cls.toDebugString());
-        }
-        ChordLeadSheet clsCopy = new ChordLeadSheetImpl(initSection.getData().getName(), initSection.getData().getTimeSignature(), cls.getSizeInBars());
-        for (var item : cls.getItems())
-        {
-            if (item == initSection)
-            {
-                continue;
-            }
-            var itemCopy = item.getCopy(null, null);
-            if (itemCopy instanceof CLI_Section cliSectionCopy)
-            {
-                try
-                {
-                    clsCopy.addSection(cliSectionCopy);
-                } catch (UnsupportedEditException ex)
-                {
-                    // We should not be there normally
-                    throw new IllegalStateException("Unexpected 'UnsupportedEditException'.", ex);
-                }
-            } else
-            {
-                clsCopy.addItem(itemCopy);
-            }
-        }
-        return clsCopy;
-    }
-
-
     // ============================================================================================
     // Private methods
     // ============================================================================================    

@@ -94,7 +94,7 @@ public class DuplicateSpt extends SS_ContextAction
                     {
                         for (SongPart spt : spts)
                         {
-                            SongPart newSpt = spt.clone(null, nextStartBarIndex, spt.getNbBars(), spt.getParentSection());
+                            SongPart newSpt = spt.getCopy(null, nextStartBarIndex, spt.getNbBars(), spt.getParentSection());
                             sptCopies.add(newSpt);
                             nextStartBarIndex += spt.getNbBars();
                         }

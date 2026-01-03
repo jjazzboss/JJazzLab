@@ -317,7 +317,7 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
         });
 
         // Get a work copy
-        Song songWork = SongFactory.getInstance().getCopy(sgContext.getSong(), false);
+        Song songWork = SongFactory.getInstance().getCopy(sgContext.getSong(), false, false);
         songWork.setName(ARRANGER_WORK_SONG_NAME);
         var sgsWork = songWork.getSongStructure();
         var spts = sgsWork.getSongParts();

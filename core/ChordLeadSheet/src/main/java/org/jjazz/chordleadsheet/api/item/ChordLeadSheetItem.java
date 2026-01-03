@@ -131,6 +131,7 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
     @Override
     default int compareTo(ChordLeadSheetItem<?> other)
     {
+        Objects.requireNonNull(other);
         if (this.equals(other))
         {
             return 0;

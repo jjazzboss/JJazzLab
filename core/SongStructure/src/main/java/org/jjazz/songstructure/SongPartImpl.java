@@ -71,11 +71,12 @@ import org.openide.util.lookup.ServiceProvider;
  */
 public class SongPartImpl implements SongPart, Serializable, ChangeListener
 {
+
     public static final String NO_NAME = "NoName";
     /**
      * The rhythm of this part.
      */
-    private Rhythm rhythm;
+    private final Rhythm rhythm;
     /**
      * Starts at this bar index.
      */
@@ -91,12 +92,12 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
     /**
      * Parent section.
      */
-    private CLI_Section parentSection;
-    private StringProperties clientProperties;
+    private final CLI_Section parentSection;
+    private final StringProperties clientProperties;
     /**
      * The value associated to each RhythmParameter.
      */
-    private final SmallMap<RhythmParameter<?>, Object> mapRpValue = new SmallMap<>();
+    private SmallMap<RhythmParameter<?>, Object> mapRpValue = new SmallMap<>();
     /**
      * Our container. Must be transient to avoid circular dependency at deserialization.
      */
@@ -125,10 +126,10 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
             throw new IllegalArgumentException(
                     "r=" + r + " startBarIndex=" + startBarIndex + " nbBars=" + nbBars + " parentSection=" + parentSection);
         }
-        rhythm = r;
+        this.rhythm = r;
         this.startBarIndex = startBarIndex;
         this.nbBars = nbBars;
-        name = parentSection == null ? NO_NAME : parentSection.getData().getName();
+        this.name = parentSection == null ? NO_NAME : parentSection.getData().getName();
         this.parentSection = parentSection;
         this.clientProperties = new StringProperties(this);
 
@@ -147,7 +148,7 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
 
 
     @Override
-    public String getName()
+    public synchronized String getName()
     {
         return name;
     }
@@ -158,43 +159,46 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
         {
             throw new IllegalArgumentException("name=" + name);
         }
-        String oldName = this.name;
-        if (!name.equals(this.name))
+
+        String oldName;
+        boolean changed;
+        synchronized (this)
         {
-            // LOGGER.log(Level.FINE, "setName getName()=" + getName() + " name=" + name);
-            this.name = name;
-            pcs.firePropertyChange(PROP_NAME, oldName, name);
+            oldName = this.name;
+            changed = !name.equals(this.name);
+            if (changed)
+            {
+                this.name = name;
+            }
         }
+
+        pcs.firePropertyChange(PROP_NAME, oldName, name);
     }
 
     @Override
-    public SongStructure getContainer()
+    public synchronized SongStructure getContainer()
     {
         return container;
     }
 
-    public void setContainer(SongStructure sgs)
+    public synchronized void setContainer(SongStructure sgs)
     {
         container = sgs;
     }
 
     /**
-     * Get the value of a RhythmParameter at a specified barIndex.
+     * Get the value of a RhythmParameter
      *
      * @param rp
      * @return
      */
     @Override
-    public <T> T getRPValue(RhythmParameter<T> rp)
+    public synchronized <T> T getRPValue(RhythmParameter<T> rp)
     {
         Objects.requireNonNull(rp);
         Preconditions.checkArgument(rhythm.getRhythmParameters().contains(rp), "this=%s rhythm=%s rp=%s", this, rhythm, rp);
         @SuppressWarnings("unchecked")
-        T value;
-        synchronized (this)
-        {
-            value = (T) mapRpValue.getValue(rp);
-        }
+        T value = (T) mapRpValue.getValue(rp);
         assert value != null : "rp=" + rp + " mapRpValue=" + mapRpValue;
         return value;
     }
@@ -204,7 +208,6 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
      * <p>
      * Fire a PROP_RP_VALUE with OldValue=rp, NewValue=vp.
      *
-     * @param <T>
      * @param rp
      * @param value Must be a valid value for rp
      */
@@ -214,25 +217,36 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
         Objects.requireNonNull(value);
         Preconditions.checkArgument(rhythm.getRhythmParameters().contains(rp), "rhythm=%s rp=%s", rhythm, rp);
         Preconditions.checkArgument(rp.isValidValue(value), "rp=%s value=%s", rp, value);
-        @SuppressWarnings("unchecked")
-        T oldValue = (T) mapRpValue.getValue(rp);
-        assert oldValue != null : "rpValueProfileMap=" + mapRpValue + " rp=" + rp + " value=" + value;
-        if (!oldValue.equals(value))
+
+        T oldValue;
+        boolean changed;
+
+        synchronized (this)
         {
-            if (oldValue instanceof MutableRpValue mValue)
+            @SuppressWarnings("unchecked")
+            T current = (T) mapRpValue.getValue(rp);
+            oldValue = current;
+            assert oldValue != null : "rpValueProfileMap=" + mapRpValue + " rp=" + rp + " value=" + value;
+            changed = !oldValue.equals(value);
+            if (!changed)
             {
-                mValue.removeChangeListener(this);
+                return;
             }
-            if (value instanceof MutableRpValue mValue)
+
+            if (oldValue instanceof MutableRpValue mValueOld)
             {
-                mValue.addChangeListener(this);
+                mValueOld.removeChangeListener(this);
             }
-            synchronized (this)
+            if (value instanceof MutableRpValue mValueNew)
             {
-                mapRpValue.putValue(rp, value);     // Don't use rp.cloneValue() since we now accept mutable values (eg custom phrase)
+                mValueNew.addChangeListener(this);
             }
-            pcs.firePropertyChange(PROP_RP_VALUE, rp, value);
+
+            mapRpValue.putValue(rp, value);     // Don't use rp.cloneValue() since we now accept mutable values (eg custom phrase)
         }
+
+        // Fire outside lock
+        pcs.firePropertyChange(PROP_RP_VALUE, rp, value);
     }
 
     @Override
@@ -252,12 +266,20 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
         {
             throw new IllegalArgumentException("barIndex=" + barIndex);
         }
-        if (barIndex != startBarIndex)
+
+        int old;
+        boolean changed;
+        synchronized (this)
         {
-            int old = startBarIndex;
-            startBarIndex = barIndex;
-            pcs.firePropertyChange(SongPart.PROP_START_BAR_INDEX, old, startBarIndex);
+            old = startBarIndex;
+            changed = (barIndex != startBarIndex);
+            if (changed)
+            {
+                startBarIndex = barIndex;
+            }
         }
+
+        pcs.firePropertyChange(SongPart.PROP_START_BAR_INDEX, old, barIndex);
     }
 
     @Override
@@ -271,7 +293,7 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
             {
                 "unchecked", "rawtypes"
             })
-    public SongPart clone(Rhythm r, int newStartBarIndex, int newNbBars, CLI_Section cliSection)
+    public synchronized SongPart getCopy(Rhythm r, int newStartBarIndex, int newNbBars, CLI_Section cliSection)
     {
         if (newStartBarIndex < 0)
         {
@@ -291,29 +313,38 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
         newSpt.setName(name);
 
 
-        // Update the values for compatible RhythmParameters
-        for (RhythmParameter<?> newRp : newRhythm.getRhythmParameters())
+        if (newRhythm == getRhythm())
         {
-            RhythmParameter crp = RhythmParameter.findFirstCompatibleRp(getRhythm().getRhythmParameters(), newRp);
-            if (crp != null)
+            newSpt.mapRpValue = mapRpValue.clone();
+        } else
+        {
+            // Update the values for compatible RhythmParameters
+            for (RhythmParameter<?> newRp : newRhythm.getRhythmParameters())
             {
-                Object crpValue = getRPValue(crp);
-                Object newRpValue = newRp.convertValue(crp, crpValue);
-                if (newRpValue != null)
+                RhythmParameter crp = RhythmParameter.findFirstCompatibleRp(getRhythm().getRhythmParameters(), newRp);
+                if (crp != null)
                 {
-                    newSpt.mapRpValue.putValue(newRp, newRpValue);
-                } else
-                {
-                    LOGGER.log(Level.WARNING,
-                            "clone() Can''t transpose value crpValue={0} to newRp={1} (newRhythm={2}), despite newRp being compatible with crp={3} (rhythm={4})",
-                            new Object[]
-                            {
-                                crpValue,
-                                newRp.getId(), newRhythm.getName(), crp.getId(), rhythm.getName()
-                            });
+                    Object crpValue = getRPValue(crp);
+                    Object newRpValue = newRp.convertValue(crp, crpValue);
+                    if (newRpValue != null)
+                    {
+                        newSpt.mapRpValue.putValue(newRp, newRpValue);
+                    } else
+                    {
+                        LOGGER.log(Level.WARNING,
+                                "clone() Can''t transpose value crpValue={0} to newRp={1} (newRhythm={2}), despite newRp being compatible with crp={3} (rhythm={4})",
+                                new Object[]
+                                {
+                                    crpValue,
+                                    newRp.getId(), newRhythm.getName(), crp.getId(), rhythm.getName()
+                                });
+                    }
                 }
             }
         }
+        
+        newSpt.getClientProperties().set(clientProperties);
+        
         return newSpt;
     }
 
@@ -328,16 +359,24 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
         {
             throw new IllegalArgumentException("n=" + n);
         }
-        if (nbBars != n)
+
+        int old;
+        boolean changed;
+        synchronized (this)
         {
-            int old = nbBars;
-            nbBars = n;
-            pcs.firePropertyChange(PROP_NB_BARS, old, nbBars);
+            old = nbBars;
+            changed = (nbBars != n);
+            if (changed)
+            {
+                nbBars = n;
+            }
         }
+
+        pcs.firePropertyChange(PROP_NB_BARS, old, n);
     }
 
     @Override
-    public int getNbBars()
+    public synchronized int getNbBars()
     {
         return nbBars;
     }
@@ -355,12 +394,12 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
     }
 
     @Override
-    public String toString()
+    public synchronized String toString()
     {
         return name + getBarRange() + "-" + rhythm.getName();
     }
 
-    public String toDumpString()
+    public synchronized String toDumpString()
     {
         StringBuilder sb = new StringBuilder();
         sb.append(toString()).append("\n");
