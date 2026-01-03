@@ -89,7 +89,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditorDialog<E> implement
         initComponents();
         UIUtilities.installEnterKeyAction(this, () -> fbtn_okActionPerformed(null));
         UIUtilities.installEscapeKeyAction(this, () -> exit(false));
-        
+
         pnl_editor.add(editor, BorderLayout.CENTER);
         pack();
 
@@ -519,6 +519,10 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditorDialog<E> implement
         if (result == NotifyDescriptor.OK_OPTION)
         {
             editor.setEditedRpValue(editor.getRhythmParameter().getDefaultValue());
+            if (tbtn_hear.isSelected())
+            {
+                updateRpValueInPreviewContext(editor.getEditedRpValue());
+            }
         }
     }//GEN-LAST:event_fbtn_resetActionPerformed
 

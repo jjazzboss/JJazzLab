@@ -211,31 +211,8 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
     {
         lastValue = uiValue;
         uiValue = new RP_SYS_DrumsTransformValue(rpValue);
+        refreshUI();
         fireUiValueChanged();
-
-        // Update the mix part
-        var mix = uiValue.getDrumsMixTransform();
-        unregisterKnobs();          // We don't want to generate change events because it's not user-triggered        
-        knb_bassDrum.setValue(mix.getBassDrumOffset());
-        knb_snare.setValue(mix.getSnareOffset());
-        knb_toms.setValue(mix.getTomsOffset());
-        knb_cymbals.setValue(mix.getCymbalsOffset());
-        knb_crash.setValue(mix.getCrashOffset());
-        knb_hihat.setValue(mix.getHiHatOffset());
-        knb_perc.setValue(mix.getPercOffset());
-        registerKnobs();
-
-
-        // Update the transform part        
-        var transformChainNoMix = uiValue.getTransformChain(true);
-        list_transformChainModel.removeListDataListener(this);  // We don't want to generate change events because it's not user-triggered        
-        list_transformChainModel.clear();
-        if (transformChainNoMix != null)
-        {
-            list_transformChainModel.addAll(transformChainNoMix);
-        }
-        list_transformChainModel.addListDataListener(this);
-
     }
 
     @Override
@@ -308,11 +285,11 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
     // ===============================================================================  
 
     @Override
-    public boolean isAccepted(PlaybackSession session)            
+    public boolean isAccepted(PlaybackSession session)
     {
         return session.getContext() == Context.RP_VALUE_PREVIEW;
     }
-    
+
     @Override
     public void enabledChanged(boolean b)
     {
@@ -466,6 +443,29 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
         birdview_outPhrase.setModel(outPhrase, outPhrase.getTimeSignature(), outPhrase.getNotesBeatRange());
         // birdview_outPhrase.setForeground(transformChain != null ? PHRASE_COMP_CUSTOMIZED_FOREGROUND : PHRASE_COMP_FOREGROUND);
         birdview_outPhrase.setForeground(transformChainComplete != null ? PHRASE_COMP_FOREGROUND : PHRASE_COMP_FOREGROUND);
+
+        // Update the mix part
+        var mix = uiValue.getDrumsMixTransform();
+        unregisterKnobs();          // We don't want to generate change events because it's not user-triggered        
+        knb_bassDrum.setValue(mix.getBassDrumOffset());
+        knb_snare.setValue(mix.getSnareOffset());
+        knb_toms.setValue(mix.getTomsOffset());
+        knb_cymbals.setValue(mix.getCymbalsOffset());
+        knb_crash.setValue(mix.getCrashOffset());
+        knb_hihat.setValue(mix.getHiHatOffset());
+        knb_perc.setValue(mix.getPercOffset());
+        registerKnobs();
+
+
+        // Update the transform part        
+        var transformChainNoMix = uiValue.getTransformChain(true);
+        list_transformChainModel.removeListDataListener(this);  // We don't want to generate change events because it's not user-triggered        
+        list_transformChainModel.clear();
+        if (transformChainNoMix != null)
+        {
+            list_transformChainModel.addAll(transformChainNoMix);
+        }
+        list_transformChainModel.addListDataListener(this);
 
 
         // Update the clear button
