@@ -72,7 +72,7 @@ public class Utilities
      * @see #systemOpenFile(java.io.File, boolean, java.util.List)
      */
     public static final List<String> SAFE_OPEN_EXTENSIONS = List.of(
-            "pdf", "txt", "md", "rtf",
+            "pdf", "txt", "md", "rtf", "sti",
             "jpg", "jpeg", "png", "gif", "webp", "svg", "bmp",
             "mp3", "wav", "flac", "ogg", "m4a", "aac", "wma",
             "mp4", "mov", "avi", "mkv", "webm",
