@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazzlab.rhythmmocks;
+package org.jjazz.rhythmmocks;
 
 import java.io.File;
 import java.io.IOException;
