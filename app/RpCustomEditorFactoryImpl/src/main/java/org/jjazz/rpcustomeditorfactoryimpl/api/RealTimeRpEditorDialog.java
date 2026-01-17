@@ -242,7 +242,8 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditorDialog<E> implement
                 mc.setPlaybackSession(null, true);
             } catch (MusicGenerationException ex)
             {
-                // Should not happen when clearing the session (passing null), only when generating a new one
+                // Should not happen when clearing the session (passing null) after calling stop().
+                // Could only occur if playback is disabled or if the state is unexpected.
                 LOGGER.log(Level.WARNING, "exit() Unexpected exception when clearing playback session: {0}", ex.getMessage());
             }
         }
