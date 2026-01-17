@@ -199,7 +199,7 @@ public class ActiveSongBackgroundMusicBuilderImpl implements PropertyChangeListe
             var newState = mc.getState();
             var newSession = mc.getPlaybackSession();
 
-            if (newSong == null || newSession == null || newSession.getContext() != Context.SONG)
+            if (newSong == null || (newSession != null && newSession.getContext() != Context.SONG))
             {
                 newMode = Mode.OFF;
             } else if (EnumSet.of(State.PAUSED, State.PLAYING).contains(newState)
