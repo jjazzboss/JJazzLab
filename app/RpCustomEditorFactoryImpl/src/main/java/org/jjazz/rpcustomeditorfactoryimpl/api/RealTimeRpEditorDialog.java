@@ -76,6 +76,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditorDialog<E> implement
     private final E rpDefaultValue;
     private E saveRpValue;
     private GlobalKeyActionListener globalKeyListener;
+    private boolean wasSongSessionPlayingOnOpen;
     private static final Logger LOGGER = Logger.getLogger(RealTimeRpEditorDialog.class.getSimpleName());
 
     public RealTimeRpEditorDialog(RealTimeRpEditorComponent<E> comp)
@@ -232,6 +233,20 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditorDialog<E> implement
         MusicController mc = MusicController.getInstance();
         mc.stop();
         mc.removePropertyChangeListener(this);
+
+        // If a preview session was created (hear preview button was used), we need to clear it
+        // so that music generation will be triggered properly when the RP value change is processed
+        if (session != null)
+        {
+            try
+            {
+                mc.setPlaybackSession(null, true);
+            } catch (MusicGenerationException ex)
+            {
+                // Should not happen when setting null
+                LOGGER.log(Level.WARNING, "exit() Unexpected exception when clearing playback session: {0}", ex.getMessage());
+            }
+        }
 
         exitOk = ok;
         setVisible(false);
@@ -486,6 +501,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditorDialog<E> implement
         var mc = MusicController.getInstance();
         mc.addPropertyChangeListener(this);
 
+        wasSongSessionPlayingOnOpen = false;
         if (mc.isPlaying())
         {
             mc.stop();
@@ -493,6 +509,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditorDialog<E> implement
             // Auto start preview mode if a song was playing
             if (mc.getPlaybackSession().getContext() == PlaybackSession.Context.SONG)
             {
+                wasSongSessionPlayingOnOpen = true;
                 tbtn_hear.setSelected(true);
                 tbtn_hearActionPerformed(null);     // This will start playing the preview
             }
