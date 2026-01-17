@@ -29,7 +29,6 @@ import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.text.ParseException;
 import org.jjazz.harmony.api.ChordSymbol;
-import org.jjazz.harmony.spi.ChordTypeDatabase;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.xstream.spi.XStreamConfigurator;
 import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_LOAD;
@@ -74,11 +73,18 @@ public class VoidAltExtChordSymbol extends AltExtChordSymbol implements Serializ
     }
 
     @Override
+    public AltExtChordSymbol getTransposedChordSymbol(int t, Note.Accidental alt)
+    {
+        return this;
+    }
+
+    @Override
     public String toString()
     {
         return "VoidAltExtChordSymbolInstance";
     }
-  /**
+
+    /**
      * This enables XStream instance configuration even for private classes or classes from non-public packages of Netbeans modules.
      */
     @ServiceProvider(service = XStreamConfigurator.class)
@@ -110,6 +116,7 @@ public class VoidAltExtChordSymbol extends AltExtChordSymbol implements Serializ
             }
         }
     }
+
     // --------------------------------------------------------------------- 
     // Serialization
     // ---------------------------------------------------------------------
