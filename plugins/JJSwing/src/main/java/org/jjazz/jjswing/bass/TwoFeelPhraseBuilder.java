@@ -29,6 +29,7 @@ import org.jjazz.jjswing.bass.db.WbpSourceDatabase;
 import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -197,20 +198,16 @@ public class TwoFeelPhraseBuilder implements PhraseBuilder
     /**
      * Try to create one or more new WbpSources for scs.
      *
-     * @param scs         Must start at bar 0.
+     * @param scs         Must start at bar 0 and contain 2+ chords (if only 1 chord, it should have be processed earlier)
      * @param targetPitch -1 if unknown
      * @return
      */
     private List<WbpSource> create2feelCustomWbpSources(SimpleChordSequence scs, int targetPitch)
     {
-        Preconditions.checkArgument(scs.getBarRange().from == 0, "subSeq=%s", scs);
+        Objects.requireNonNull(scs);
+        Preconditions.checkArgument(scs.size() > 1 && scs.getBarRange().from == 0, "scs=%s", scs);
 
         LOGGER.log(Level.ALL, "createCustomWbpSources() - scs={0}", scs);
-
-        if (scs.size() == 1)
-        {
-            LOGGER.log(Level.WARNING, "createCustomWbpSources() chord sequence with only 1 chord should have been processed earlier. scs={0}", scs);
-        }
 
         var ts = scs.getTimeSignature();
         boolean is2chordsPerBar = scs.isMatchingInBarBeatPositions(false,
@@ -286,7 +283,7 @@ public class TwoFeelPhraseBuilder implements PhraseBuilder
 
 
     /**
-     * Create 2-feel phrases for all non standard cases of chord positions (minimum 2 chords per bar).
+     * Create 2-feel phrases for all non-standard cases of chord positions (2 chords minimum).
      *
      * @param scs
      * @param targetPitch -1 if unknown
@@ -294,7 +291,7 @@ public class TwoFeelPhraseBuilder implements PhraseBuilder
      */
     private List<SizedPhrase> createDefaultPhrases(SimpleChordSequence scs, int targetPitch)
     {
-        Preconditions.checkArgument(scs.size() >= 2 && scs.getBarRange().from == 0, "subSeq=%s", scs);
+        Preconditions.checkArgument(scs.size() >= 2 && scs.getBarRange().from == 0, "scs=%s", scs);
 
         SizedPhrase sp = new SizedPhrase(0, scs.getBeatRange(), scs.getTimeSignature(), false);
 
@@ -302,7 +299,9 @@ public class TwoFeelPhraseBuilder implements PhraseBuilder
         {
             int relPitch = cliCs.getData().getBassNote().getRelativePitch();
             int bassPitch = InstrumentFamily.Bass.toAbsolutePitch(relPitch);
-            FloatRange brCliCsAdjusted = scs.getBeatRange(cliCs).getTransformed(0, -DURATION_BEAT_MARGIN);
+            var brCliCs = scs.getBeatRange(cliCs);
+            FloatRange brCliCsAdjusted = brCliCs.size() > DURATION_BEAT_MARGIN ? brCliCs.getTransformed(0, -DURATION_BEAT_MARGIN)
+                    : brCliCs.getTransformed(0, -0.000001f);      // Robustness case
             int velocity = Velocities.getRandomBassVelocity();
 
             if (brCliCsAdjusted.size() >= 2.8f)
