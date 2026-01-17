@@ -76,7 +76,6 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditorDialog<E> implement
     private final E rpDefaultValue;
     private E saveRpValue;
     private GlobalKeyActionListener globalKeyListener;
-    private boolean wasSongSessionPlayingOnOpen;
     private static final Logger LOGGER = Logger.getLogger(RealTimeRpEditorDialog.class.getSimpleName());
 
     public RealTimeRpEditorDialog(RealTimeRpEditorComponent<E> comp)
@@ -501,7 +500,6 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditorDialog<E> implement
         var mc = MusicController.getInstance();
         mc.addPropertyChangeListener(this);
 
-        wasSongSessionPlayingOnOpen = false;
         if (mc.isPlaying())
         {
             mc.stop();
@@ -509,7 +507,6 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditorDialog<E> implement
             // Auto start preview mode if a song was playing
             if (mc.getPlaybackSession().getContext() == PlaybackSession.Context.SONG)
             {
-                wasSongSessionPlayingOnOpen = true;
                 tbtn_hear.setSelected(true);
                 tbtn_hearActionPerformed(null);     // This will start playing the preview
             }
