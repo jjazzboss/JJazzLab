@@ -41,12 +41,15 @@ import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.utilities.api.ResUtil;
 
+/**
+ * Make the current selected bar the last bar of the chord leadsheet.
+ */
 @ActionRegistration(displayName = "not_used", lazy = false)
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.setendbar")
 @ActionReferences(
         {
             @ActionReference(path = "Actions/Bar", position = 205),
-            @ActionReference(path = "Shortcuts", name = "D-E")
+            @ActionReference(path = "Shortcuts", name = "D-E")   // ctrl-E on Win/Linux
         })
 public final class SetEndBar extends CL_ContextAction
 {
@@ -59,13 +62,14 @@ public final class SetEndBar extends CL_ContextAction
     {
         putValue(NAME, ResUtil.getString(getClass(), "CTL_SetEndBar"));
         putValue(ACCELERATOR_KEY, KEYSTROKE);
-        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.BAR_SELECTION));
+        putValue(CL_ContextAction.LISTENING_TARGETS, EnumSet.of(ListeningTarget.BAR_SELECTION));
     }
 
     @Override
     protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_Selection selection)
     {
-
+        assert endBar != -1;
+        
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(cls);
         um.startCEdit(getActionName());
 
