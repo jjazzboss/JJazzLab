@@ -233,6 +233,21 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditorDialog<E> implement
         mc.stop();
         mc.removePropertyChangeListener(this);
 
+        // If a preview session was created (hear preview button was used), we need to clear it
+        // so that music generation will be triggered properly when the RP value change is processed
+        if (session != null)
+        {
+            try
+            {
+                mc.setPlaybackSession(null, true);
+            } catch (MusicGenerationException ex)
+            {
+                // Should not happen when clearing the session (passing null) after calling stop().
+                // Could only occur if playback is disabled or if the state is unexpected.
+                LOGGER.log(Level.WARNING, "exit() Unexpected exception when clearing playback session: {0}", ex.getMessage());
+            }
+        }
+
         exitOk = ok;
         setVisible(false);
         dispose();

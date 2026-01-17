@@ -23,9 +23,9 @@
             <li>
                 <em>Musically alive</em> - Add variety, rhythmic accents and natural dynamics that keep your practice sessions inspiring.</li>
             <li>
-                <em>Hundreds of styles at your fingertips</em> - Master jazz standards with the signature <b>jjSwing</b> style, or explore any genre using compatible Yamaha style files for endless possibilities.</li>          
+                <em>Hundreds of styles at your fingertips</em> - Master jazz standards with the signature jjSwing style, or explore any genre using compatible Yamaha style files for endless possibilities.</li>
             <li>
-                <em>Simple user interface</em> - Type in a few chord symbols, choose a style and hit play. No complex setup required.</li>                    
+                <em>Simple user interface</em> - Type in a few chord symbols, choose a style and hit play. No complex setup required.</li>
             <li>
                 <em>Grows with your skills</em> - Whether you're working on a simple blues or a complex composition with multiple sections and tempo changes, JJazzLab adapts to your needs.</li>
             <li>
@@ -43,15 +43,15 @@
             <url type="details">https://github.com/jjazzboss/JJazzLab/releases/tag/5.1</url>
             <description>
                 <p>Release description</p>
-                <ul>              
-                    <li>This is the latest stable release</li>     
-                    <li>23 bug fixes</li>                    
+                <ul>
+                    <li>This is the latest stable release</li>
+                    <li>23 bug fixes</li>
                     <li>jjSwing style improvements: drums fills, tempo-based swing-feel adaptations, ...</li>
                     <li>4 new Yamaha styles</li>
                     <li>Other new features...</li>
                 </ul>
             </description>
-        </release> 	        
+        </release> 	
         <release version="5.0.1" date="2025-11-26">
             <url type="details">https://github.com/jjazzboss/JJazzLab/releases/tag/5.0.1</url>
             <description>
@@ -96,7 +96,7 @@
                 </ul>
             </description>
         </release>
-       
+
     </releases>
     <content_rating type="oars-1.1"/>
 </component>
