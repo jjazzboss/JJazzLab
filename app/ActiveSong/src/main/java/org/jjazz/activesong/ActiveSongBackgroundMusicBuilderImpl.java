@@ -191,7 +191,8 @@ public class ActiveSongBackgroundMusicBuilderImpl implements PropertyChangeListe
 
 
         if (evt.getSource() == asm && evt.getPropertyName().equals(ActiveSongManager.PROP_ACTIVE_SONG)
-                || evt.getSource() == mc && evt.getPropertyName().equals(MusicController.PROP_STATE))
+                || evt.getSource() == mc && (evt.getPropertyName().equals(MusicController.PROP_STATE) 
+                        || evt.getPropertyName().equals(MusicController.PROP_PLAYBACK_SESSION)))
         {
             // Active song or music controller state has changed
             newSong = asm.getActiveSong();
