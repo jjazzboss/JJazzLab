@@ -27,6 +27,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.event.ChangeEvent;
@@ -190,8 +191,8 @@ public class ActiveSongBackgroundMusicBuilderImpl implements PropertyChangeListe
         MidiMix newMidiMix = activeMidiMix;
 
 
-        if (evt.getSource() == asm && evt.getPropertyName().equals(ActiveSongManager.PROP_ACTIVE_SONG)
-                || evt.getSource() == mc && evt.getPropertyName().equals(MusicController.PROP_STATE))
+        if ((evt.getSource() == asm && evt.getPropertyName().equals(ActiveSongManager.PROP_ACTIVE_SONG))
+                || (evt.getSource() == mc && List.of(MusicController.PROP_STATE, MusicController.PROP_PLAYBACK_SESSION).contains(evt.getPropertyName())))
         {
             // Active song or music controller state has changed
             newSong = asm.getActiveSong();
@@ -199,7 +200,13 @@ public class ActiveSongBackgroundMusicBuilderImpl implements PropertyChangeListe
             var newState = mc.getState();
             var newSession = mc.getPlaybackSession();
 
-            if (newSong == null || newSession == null || newSession.getContext() != Context.SONG)
+            LOGGER.log(Level.FINE, "propertyChange() evt.source={0} newSong={1} newState={2} newSession={3}", new Object[]
+            {
+                evt.getSource().getClass().getSimpleName(),
+                newSong, newState, newSession
+            });
+
+            if (newSong == null || (newSession != null && newSession.getContext() != Context.SONG))
             {
                 newMode = Mode.OFF;
             } else if (EnumSet.of(State.PAUSED, State.PLAYING).contains(newState)
@@ -247,6 +254,8 @@ public class ActiveSongBackgroundMusicBuilderImpl implements PropertyChangeListe
         {
             return;
         }
+
+        LOGGER.log(Level.FINE, "setState() -- newMode={0}", newMode);
 
         activeSong = newSong;
         activeMidiMix = newMidiMix;

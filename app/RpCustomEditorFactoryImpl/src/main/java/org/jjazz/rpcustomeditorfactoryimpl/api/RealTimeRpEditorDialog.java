@@ -234,7 +234,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditorDialog<E> implement
         mc.removePropertyChangeListener(this);
 
         // If a preview session was created (hear preview button was used), we need to clear it
-        // so that music generation will be triggered properly when the RP value change is processed
+        // so that music generation will be triggered properly when the RP value change is processed later
         if (session != null)
         {
             try
