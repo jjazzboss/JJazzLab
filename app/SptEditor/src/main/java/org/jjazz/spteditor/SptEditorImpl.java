@@ -75,7 +75,6 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
      * The songparts currently edited by this editor.
      */
     private final List<SongPart> songParts;
-    private Rhythm previousRhythm;
     private Song songModel;
     private SS_Editor ssEditor;
     private final SptEditorSettings settings;
@@ -345,13 +344,11 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
      */
     private void refresh(Lookup context)
     {
-        Collection<? extends SongPart> spts = context.lookupAll(SongPart.class
-        );
+        Collection<? extends SongPart> spts = context.lookupAll(SongPart.class);
         if (spts.isEmpty())
         {
             // Possible SongPartParameter selection
-            Collection<? extends SongPartParameter> sptps = context.lookupAll(SongPartParameter.class
-            );
+            Collection<? extends SongPartParameter> sptps = context.lookupAll(SongPartParameter.class);
             ArrayList<SongPart> spts2 = new ArrayList<>();
             // Get the list of SongParts corresponding to these RhythmParameters
             for (SongPartParameter sptp : sptps)
@@ -446,7 +443,6 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
         songModel = song;
         songModel.addPropertyChangeListener(this); // Listen to closed events
         instanceContent.add(songModel);
-        // instanceContent.add(songModel.getChordLeadSheet());          // Commented out april 2021: seems useless
 
         var ssTc = SS_EditorTopComponent.get(songModel.getSongStructure()); // Might be null !? See Issue #395
         if (ssTc == null)
@@ -506,19 +502,12 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
         lbl_SptSelection.setText(sptText);
 
 
-        // Update the RpEditors if needed
-        if (rhythm0 != previousRhythm)
+        // Update the RpEditors with new selection
+        for (RpEditor rpe : getRpEditors())
         {
-            for (RpEditor rpe : getRpEditors())
-            {
-                removeRpEditor(rpe);
-            }
-
-            // Add RpEditors
-            addRpEditors(spt0, rhythm0.getRhythmParameters());
-
-            previousRhythm = rhythm0;
+            removeRpEditor(rpe);
         }
+        addRpEditors(spt0, rhythm0.getRhythmParameters());
 
 
         // Update the RpEditors value with spt0 values
