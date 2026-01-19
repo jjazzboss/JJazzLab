@@ -19,7 +19,7 @@ JJazzLab is a musical application which generates MIDI backing tracks. It's a ja
 - **Records**: For classes primarily intended to store data, **Java Records should be used instead of traditional classes**.
 - **Pattern Matching**: Utilize pattern matching for `instanceof` and `switch` expression to simplify conditional logic and type casting.
 - **Type Inference**: Use `var` for local variable declarations to improve readability, but only when the type is explicitly clear from the right-hand side of the expression.
-- **javadoc**: required except for trivial cases such as a short method with a self-explanatory name.
+- **Javadoc**: required except for trivial cases such as a short method with a self-explanatory name.
 - **Comment**: use comments in the code
 
 ### Naming Conventions

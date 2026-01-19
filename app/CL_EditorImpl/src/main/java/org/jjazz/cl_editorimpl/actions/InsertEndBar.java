@@ -35,12 +35,13 @@ import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.cl_editor.api.CL_ContextAction;
 import static org.jjazz.cl_editor.api.CL_ContextAction.LISTENING_TARGETS;
 import org.jjazz.cl_editor.api.CL_Editor;
-import org.jjazz.cl_editor.api.CL_EditorClientProperties;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.cl_editor.api.CL_Selection;
 import org.jjazz.harmony.api.Position;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
 import org.jjazz.song.api.Song;
+import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.utilities.api.ResUtil;
@@ -62,18 +63,18 @@ import org.openide.util.Exceptions;
         })
 public class InsertEndBar extends CL_ContextAction
 {
-    
+
     private static final String DEFAULT_END_SECTION_NAME = "End";
     private static final Logger LOGGER = Logger.getLogger(InsertEndBar.class.getSimpleName());
-    
-    
+
+
     @Override
     protected void configureAction()
     {
         putValue(NAME, ResUtil.getString(getClass(), "CTL_InsertEndBar"));
         putValue(LISTENING_TARGETS, EnumSet.of(CL_ContextAction.ListeningTarget.BAR_SELECTION));
     }
-    
+
     @Override
     protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_Selection selection)
     {
@@ -81,10 +82,10 @@ public class InsertEndBar extends CL_ContextAction
         Song song = editor.getSongModel();
         SongStructure sgs = song.getSongStructure();
         var um = JJazzUndoManagerFinder.getDefault().get(cls);
-        
+
         try
         {
-            
+
             um.startCEdit(getActionName());
 
 
@@ -124,20 +125,11 @@ public class InsertEndBar extends CL_ContextAction
                 sptEnd = sptEnd.getCopy(null, sgs.getSizeInBars(), 1, endSection);
                 sgs.addSongParts(List.of(sptEnd));
             }
-            
-            // Try to set its variation to "Ending A-1"
-            var rpVariation = RP_SYS_Variation.getVariationRp(sptEnd.getRhythm());            
-            if (rpVariation != null)
-            {
-                String variation = "Ending A-1";
-                if (!rpVariation.getPossibleValues().contains(variation))
-                {
-                    // Use the default variation
-                    variation = rpVariation.getDefaultValue();
-                }
-                sgs.setRhythmParameterValue(sptEnd, rpVariation, variation);
-            }
-            
+
+
+            resetRhythmParameters(sptEnd);
+
+
             um.endCEdit(getActionName());
         } catch (UnsupportedEditException ex)
         {
@@ -146,12 +138,42 @@ public class InsertEndBar extends CL_ContextAction
             um.abortCEdit(getActionName(), ex.getLocalizedMessage());
         }
     }
-    
+
     @Override
     public void selectionChange(CL_Selection selection)
     {
         boolean b = selection.isBarSelectedWithinCls();
         setEnabled(b);
+    }
+
+
+    // ============================================================================================================
+    // Private methods
+    // ============================================================================================================
+    private void resetRhythmParameters(SongPart spt)
+    {
+        var sgs = spt.getContainer();
+
+        for (var rp : spt.getRhythm().getRhythmParameters())
+        {
+            switch (rp)
+            {
+                case RP_SYS_Variation rpv ->
+                {
+                    String variation = "Ending A-1";
+                    if (!rpv.getPossibleValues().contains(variation))
+                    {
+                        // Use the default variation
+                        variation = rpv.getDefaultValue();
+                    }
+                    sgs.setRhythmParameterValue(spt, rpv, variation);
+                }
+                default ->
+                {
+                    sgs.setRhythmParameterValue(spt, (RhythmParameter) rp, rp.getDefaultValue());
+                }
+            }
+        }
     }
 
     /**
@@ -170,5 +192,5 @@ public class InsertEndBar extends CL_ContextAction
         }
         return name;
     }
-    
+
 }

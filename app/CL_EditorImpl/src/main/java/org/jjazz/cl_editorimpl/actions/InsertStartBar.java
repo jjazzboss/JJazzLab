@@ -36,6 +36,7 @@ import org.jjazz.cl_editor.api.CL_EditorClientProperties;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.cl_editor.api.CL_Selection;
 import org.jjazz.harmony.api.Position;
+import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
 import org.jjazz.song.api.Song;
 import org.jjazz.songstructure.api.SongPart;
@@ -51,6 +52,7 @@ import org.openide.awt.ActionRegistration;
  * Insert a start bar/section whose corresponding SongPart is set to use the Intro A-1 variation.
  * <p>
  */
+
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.insertstartbar")
 @ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
@@ -102,24 +104,14 @@ public class InsertStartBar extends CL_ContextAction
         CLI_Section sectionAtBar1 = cls.getSection(1);
         CL_EditorClientProperties.setSectionIsOnNewLine(sectionAtBar1, true);
 
+        
         // Try to set start SongPart to use variation "Intro A-1"
         SongPart startSpt = sgs.getSongPart(0);
-        if (startSpt != null)
-        {
-            assert startSpt.getParentSection() == startSection : "startSpt=" + startSpt + " startSection=" + startSection;
-            RP_SYS_Variation rpVariation = RP_SYS_Variation.getVariationRp(startSpt.getRhythm());
-            if (rpVariation != null)
-            {
-                String variation = "Intro A-1";
-                if (!rpVariation.getPossibleValues().contains(variation))
-                {
-                    // Use the default variation
-                    variation = rpVariation.getDefaultValue();
-                }
-                sgs.setRhythmParameterValue(startSpt, rpVariation, variation);
-            }
-        }
+        assert startSpt != null;
+        assert startSpt.getParentSection() == startSection : "startSpt=" + startSpt + " startSection=" + startSection;
+        resetRhythmParameters(startSpt);
 
+        
         um.endCEdit(getActionName());
     }
 
@@ -128,6 +120,36 @@ public class InsertStartBar extends CL_ContextAction
     {
         boolean b = selection.isBarSelectedWithinCls();
         setEnabled(b);
+    }
+
+    // ============================================================================================================
+    // Private methods
+    // ============================================================================================================
+
+    private void resetRhythmParameters(SongPart spt)
+    {
+        var sgs = spt.getContainer();
+
+        for (var rp : spt.getRhythm().getRhythmParameters())
+        {
+            switch (rp)
+            {
+                case RP_SYS_Variation rpv ->
+                {
+                    String variation = "Intro A-1";
+                    if (!rpv.getPossibleValues().contains(variation))
+                    {
+                        // Use the default variation
+                        variation = rpv.getDefaultValue();
+                    }
+                    sgs.setRhythmParameterValue(spt, rpv, variation);
+                }
+                default ->
+                {
+                    sgs.setRhythmParameterValue(spt, (RhythmParameter) rp, rp.getDefaultValue());
+                }
+            }
+        }
     }
 
     /**
