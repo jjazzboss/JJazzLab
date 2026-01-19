@@ -30,7 +30,7 @@ import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
  * How a CL_BarEditorDialog can be preset.
  *
  * @param type
- * @param item can be null only when type=BarEdit or AnnotationEdit
+ * @param item Must be non-null if type==ChordSymbolEdit. Ignored if type==BarEdit. Optional for other types.
  * @param key  if != 0, indicates the edit action was triggered by this key press
  */
 public record Preset(Preset.Type type, ChordLeadSheetItem<?> item, char key)
@@ -44,6 +44,6 @@ public record Preset(Preset.Type type, ChordLeadSheetItem<?> item, char key)
     public Preset
     {
         Objects.requireNonNull(type);
-        Preconditions.checkArgument(item != null || (type == Type.BarEdit || type == Type.AnnotationEdit), "%s", this);
+        Preconditions.checkArgument(type != Type.ChordSymbolEdit || item != null, "%s", this);
     }
 }
