@@ -134,11 +134,13 @@ public class ChordSymbol implements Cloneable
     public ChordSymbol(String str) throws ParseException
     {
         Objects.requireNonNull(str);
-        Preconditions.checkArgument(!str.isBlank());
-
 
         final String errorInvalidCs = ResUtil.getString(getClass(), "CTL_InvalidChordSymbol");
 
+        if (str.isBlank())
+        {
+            throw new ParseException(errorInvalidCs + ": blank chord", 0);
+        }
 
         // Rename unusual notes
         str = str.replaceAll("[Cc]b", "B").replaceAll("[Bb]#", "C").replaceAll("[Ee]#", "F").replaceAll("[Ff]b", "E").trim();
@@ -215,7 +217,7 @@ public class ChordSymbol implements Cloneable
             throw new ParseException(errorInvalidCs + ": " + originalName, 0);
         }
 
-        
+
         rootNote = buildStdRootNote(nRoot);
         bassNote = buildStdRootNote(nBass);
         name = computeName(rootNote, bassNote, chordType);

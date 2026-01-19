@@ -552,8 +552,12 @@ public final class MusicXmlParser
         }
         ChordTypeDatabase ctdb = ChordTypeDatabase.getDefault();
 
-        // Mandatory : the root note
+        
         String strRoot = getNoteFromRootElement(elHarmony);
+        if (strRoot.isBlank())
+        {
+            return;
+        }
 
         // Optional bass note
         String strBass = getNoteFromBassElement(elHarmony);
@@ -686,6 +690,11 @@ public final class MusicXmlParser
         fireChordSymbolParsed(strChord, pos);
     }
 
+    /**
+     *
+     * @param harmony
+     * @return An empty string if no root element found (possible if numeral or function was used instead)
+     */
     private String getNoteFromRootElement(Element harmony)
     {
         StringBuilder sb = new StringBuilder();
