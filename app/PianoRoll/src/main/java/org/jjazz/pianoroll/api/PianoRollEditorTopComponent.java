@@ -40,6 +40,9 @@ import org.jjazz.phrase.api.Phrase;
 import org.jjazz.pianoroll.SidePanel;
 import org.jjazz.pianoroll.ToolbarPanel;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
+import org.jjazz.quantizer.api.Quantization;
+import org.jjazz.rhythm.api.Division;
+import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongMetaEvents;
@@ -168,12 +171,16 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 
 
         songPart = spt;
+        var r = spt.getRhythm();
         var beatRange = getBeatRange();
         var beatRange0 = beatRange.getTransformed(-beatRange.from);          // phrase starts at beat 0
         TreeMap<Float, TimeSignature> mapPosTs = new TreeMap<>();
-        mapPosTs.put(0f, songPart.getRhythm().getTimeSignature());
+        mapPosTs.put(0f, r.getTimeSignature());
 
         editor.setModel(p, beatRange0, spt.getStartBarIndex(), channel, mapPosTs, keyMap);
+        
+        var q = getQuantization(r);
+        editor.setQuantization(q);
 
         refreshToolbarTitle();
 
@@ -205,6 +212,10 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 
 
         editor.setModel(p, getBeatRange(), 0, channel, mapPosTs, keyMap);
+        
+        var q = getQuantization(spts.get(0).getRhythm());
+        editor.setQuantization(q);
+        
 
         refreshToolbarTitle();
 
@@ -494,6 +505,10 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 //        splitpane_tools_editor.setDividerLocation(leftWidth);
     }
 
+    private Quantization getQuantization(Rhythm r)
+    {
+        return r.getFeatures().division().isTernary() ? Quantization.ONE_THIRD_BEAT : Quantization.ONE_QUARTER_BEAT;
+    }
 
     void writeProperties(java.util.Properties p)
     {
