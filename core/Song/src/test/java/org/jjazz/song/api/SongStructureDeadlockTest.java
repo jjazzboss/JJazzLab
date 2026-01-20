@@ -1,7 +1,7 @@
 /*
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  * 
- *  Copyright @2019 Jerome Lelasseux. All rights reserved.
+ *  Copyright @2025 Jerome Lelasseux. All rights reserved.
  *
  *  This file is part of the JJazzLab software.
  *   
@@ -127,8 +127,7 @@ public class SongStructureDeadlockTest
         // Latches to coordinate thread execution
         CountDownLatch thread1Ready = new CountDownLatch(1);
         CountDownLatch thread2Ready = new CountDownLatch(1);
-        CountDownLatch thread1Proceed = new CountDownLatch(1);
-        CountDownLatch thread2Proceed = new CountDownLatch(1);
+
         
         AtomicReference<Throwable> thread1Exception = new AtomicReference<>();
         AtomicReference<Throwable> thread2Exception = new AtomicReference<>();
