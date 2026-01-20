@@ -195,10 +195,12 @@ public class SongStructureDeadlockTest
         setParameterThread.start();
 
         // Wait for both threads to complete with a reasonable timeout
-        boolean thread1Finished = deepCopyThread.join(8000); // 8 seconds max
-        boolean thread2Finished = setParameterThread.join(8000); // 8 seconds max
+        deepCopyThread.join(8000); // 8 seconds max
+        setParameterThread.join(8000); // 8 seconds max
 
         // Check if threads completed
+        boolean thread1Finished = !deepCopyThread.isAlive();
+        boolean thread2Finished = !setParameterThread.isAlive();
         assertTrue(thread1Finished, "Thread 1 (deep copy) did not finish in time - possible deadlock");
         assertTrue(thread2Finished, "Thread 2 (set parameter) did not finish in time - possible deadlock");
 
