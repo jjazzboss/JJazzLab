@@ -31,6 +31,7 @@ import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Fill;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Intensity;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
 import org.jjazz.rhythmmusicgeneration.api.AccentProcessor;
+import org.jjazz.rhythmmusicgeneration.api.AccentProcessorConfig;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.song.api.Song;
@@ -378,7 +379,9 @@ public class DrumsGenerator implements MusicGenerator
         Objects.requireNonNull(scsSpt);
         Objects.requireNonNull(kit);
         int nbCellsPerBeat = Grid.getRecommendedNbCellsPerBeat(rhythm.getTimeSignature(), rhythm.getFeatures().division().isSwing());
-        AccentProcessor ap = new AccentProcessor(scsSpt, nbCellsPerBeat, tempo, BassGenerator.NON_QUANTIZED_WINDOW);
+        AccentProcessorConfig config = new AccentProcessorConfig();
+        config.defaultCrashVelocity = 39;       // lower for jjSwing
+        AccentProcessor ap = new AccentProcessor(scsSpt, nbCellsPerBeat, tempo, BassGenerator.NON_QUANTIZED_WINDOW, config);
 
         ap.processAccentDrums(p, kit);
         ap.processHoldShotDrums(p, kit, AccentProcessor.HoldShotMode.NORMAL);
