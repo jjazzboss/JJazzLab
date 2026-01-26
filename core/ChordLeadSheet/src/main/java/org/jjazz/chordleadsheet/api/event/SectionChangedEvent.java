@@ -22,40 +22,62 @@
  */
 package org.jjazz.chordleadsheet.api.event;
 
+import java.util.List;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.chordleadsheet.api.Section;
+import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 
 /**
- * One item has changed its content.
- * <p>
- * For a CLI_Section change use a SectionChangedEvent.
+ * One section name and/or TimeSignature has changed.
  */
-public class ItemChangedEvent extends ClsChangeEvent
+public class SectionChangedEvent extends ClsChangeEvent
 {
 
-    private final Object oldData;
-    private final Object newData;
+    private final Section oldData;
+    private final Section newData;
+    private final List<ChordLeadSheetItem<?>> movedItems;
 
-    public ItemChangedEvent(ChordLeadSheet src, ChordLeadSheetItem<?> item, Object oldData, Object newData)
+    /**
+     *
+     * @param src
+     * @param item
+     * @param oldData
+     * @param newData
+     * @param movedItems   Possible items (like CLI_ChordSymbols) whose beat was moved sooner in the bar because of a new time signature with less beats. Can be
+     *                     empty.
+     */
+    public SectionChangedEvent(ChordLeadSheet src, CLI_Section item, Section oldData, Section newData, List<ChordLeadSheetItem<?>> movedItems)
     {
         super(src, item);
         this.oldData = oldData;
         this.newData = newData;
+        this.movedItems = movedItems;
     }
 
-    public Object getOldData()
+    public List<ChordLeadSheetItem<?>> getMovedItems()
+    {
+        return movedItems;
+    }
+
+    public Section getOldSection()
     {
         return oldData;
     }
 
-    public Object getNewData()
+    public Section getNewSection()
     {
         return newData;
+    }
+
+    public CLI_Section getCLI_Section()
+    {
+        return (CLI_Section) getItem();
     }
 
     @Override
     public String toString()
     {
-        return "ItemChangedEvent[item=" + getItem() + ", prevData=" + oldData + ", newData=" + newData + "]";
+        return "SectionChangedEvent[section=" + getCLI_Section() + ", oldData=" + oldData + ", newData=" + newData + "]";
     }
 }

@@ -36,7 +36,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.TreeSet;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.event.UndoableEditEvent;
@@ -66,20 +68,21 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 {
 
     /**
-     * The main data structure: keep the items sorted.
+     * The main data structure: keep the items sorted by position and type.
      * <p>
      * We can safely use a TreeSet because methods to add/move/change prevent having 2 equal ChordLeadSheetItems.
      */
-    private final TreeSet<ChordLeadSheetItem> items = new TreeSet<>();
+    private final TreeSet<ChordLeadSheetItem> items;
     /**
      * The size of the leadsheet in bars.
      */
     private int size;
-    private transient ClsActionEvent activeClsActionEvent;
+    private final transient ReentrantReadWriteLock lock;
     /**
      * The listeners for changes in this LeadSheet.
      */
-    protected transient List<ClsChangeListener> listeners = new ArrayList<>();
+    protected transient List<ClsChangeListener> listeners;
+    protected transient List<ClsChangeListener> syncListeners;
     /**
      * The listeners for undoable edits in this LeadSheet.
      */
@@ -97,403 +100,479 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         Preconditions.checkArgument(initSection.getPosition().getBar() == 0, "initSection=%s", initSection);
         Preconditions.checkArgument(size >= 1 && size <= MAX_SIZE, "size=%s", size);
 
+        this.syncListeners = new ArrayList<>();
+        this.listeners = new ArrayList<>();
+        this.items = new TreeSet<>();
+        this.lock = new ReentrantReadWriteLock();
         this.size = size;
+
 
         WritableItem<Section> wSection = (WritableItem<Section>) initSection;
         wSection.setContainer(this);
         addItemChecked(wSection);
     }
-    
+
     @Override
-    public synchronized ChordLeadSheetImpl getDeepCopy()
+    public ReentrantReadWriteLock getLock()
     {
-        var initSection=getSection(0);
-        assert initSection!=null;
-        
-        ChordLeadSheetImpl clsCopy = new ChordLeadSheetImpl(initSection.getData().getName(), initSection.getData().getTimeSignature(), size);
-                
-        
-        for (var item : getItems())
+        return lock;
+    }
+
+    @Override
+    public ChordLeadSheetImpl getDeepCopy()
+    {
+        ChordLeadSheetImpl clsCopy = null;
+
+        lock.readLock().lock();
+
+        try
         {
-            if (item == initSection)
+            var initSection = getSection(0);
+            assert initSection != null;
+
+            clsCopy = new ChordLeadSheetImpl(initSection.getData().getName(), initSection.getData().getTimeSignature(), size);
+
+
+            for (var item : getItems())
             {
-                clsCopy.getSection(0).getClientProperties().set(initSection.getClientProperties());
-                continue;
-            }
-            
-            var itemCopy = item.getCopy(null, null);
-            if (itemCopy instanceof CLI_Section cliSectionCopy)
-            {
-                try
+                if (item == initSection)
                 {
-                    clsCopy.addSection(cliSectionCopy);
-                } catch (UnsupportedEditException ex)
-                {
-                    // We should not be there normally
-                    throw new IllegalStateException("Unexpected 'UnsupportedEditException'.", ex);
+                    clsCopy.getSection(0).getClientProperties().set(initSection.getClientProperties());
+                    continue;
                 }
-            } else
-            {
-                clsCopy.addItem(itemCopy);
+
+                var itemCopy = item.getCopy(null, null);
+                if (itemCopy instanceof CLI_Section cliSectionCopy)
+                {
+                    try
+                    {
+                        clsCopy.addSection(cliSectionCopy);
+                    } catch (UnsupportedEditException ex)
+                    {
+                        // we should not be there since current instance is supposed to be ok
+                        throw new IllegalStateException("Unexpected 'UnsupportedEditException'.", ex);
+                    }
+                } else
+                {
+                    clsCopy.addItem(itemCopy);
+                }
             }
+        } finally
+        {
+            lock.readLock().unlock();
         }
+
         return clsCopy;
     }
 
     @Override
-    public synchronized void setSizeInBars(final int newSize) throws UnsupportedEditException
+    public void setSizeInBars(final int newSize)
     {
         Preconditions.checkArgument(newSize >= 1 && newSize <= MAX_SIZE, "newSize=%s", newSize);
 
-        LOGGER.log(Level.FINE, "setSize() -- newSize={0}", newSize);
+        LOGGER.log(Level.FINE, "setSizeInBars() -- newSize={0}", newSize);
 
 
-        final int oldSize = size;
-        int delta = newSize - oldSize;
-        if (delta == 0)
+        // Operation
+        Supplier<OperationResults> operation = () -> 
         {
-            return;
-        }
+            final int oldSize = size;
 
-        fireClsActionEventStart(ClsActionEvent.API_ID.SetSizeInBars, oldSize);
-
-
-        if (delta > 0)
-        {
-            // Nothing to do            
-
-        } else if (delta < 0)
-        {
-            // For undo to work we need to remove possible extra items before setting the size
-            var itemFrom = ChordLeadSheetItem.createItemFrom(newSize);
-            var itemsToRemove = items.tailSet(itemFrom);
-            try
+            if (newSize == oldSize)
             {
-                removeSectionsAndItems(itemsToRemove);       // Possible exception here
-            } catch (UnsupportedEditException ex)
-            {
-                fireClsActionEventComplete(ClsActionEvent.API_ID.SetSizeInBars);       // We need to complete the action
-                throw ex;
-            }
-        }
-
-
-        // Check that change is not vetoed
-        var event = new SizeChangedEvent(ChordLeadSheetImpl.this, oldSize, newSize);
-        try
-        {
-            fireVetoableChangeEvent(new ClsVetoableChangeEvent(this, event));
-        } catch (UnsupportedEditException ex)
-        {
-            fireClsActionEventComplete(ClsActionEvent.API_ID.SetSizeInBars);       // We need to complete the action
-            throw ex;
-        }
-
-
-        // Update state
-        size = newSize;
-
-
-        // Create the undoable event
-        UndoableEdit edit = new SimpleEdit("Set Size " + newSize)
-        {
-            @Override
-            public void undoBody()
-            {
-                LOGGER.log(Level.FINER, "setSize.undoBody() newSize={0}", newSize);
-                synchronized (ChordLeadSheetImpl.this)
-                {
-                    size = oldSize;
-                }
-                fireNonVetoableChangeEvent(new SizeChangedEvent(ChordLeadSheetImpl.this, newSize, oldSize));
+                return new OperationResults(null, null, null);
             }
 
-            @Override
-            public void redoBody()
+
+            final List<ChordLeadSheetItem> itemsToRemove = new ArrayList<>();
+            if (newSize < oldSize)
             {
-                LOGGER.log(Level.FINER, "setSize.redoBody() newSize={0}", newSize);
-                synchronized (ChordLeadSheetImpl.this)
-                {
-                    size = newSize;
-                }
-                fireNonVetoableChangeEvent(new SizeChangedEvent(ChordLeadSheetImpl.this, oldSize, newSize));
-            }
-        };
-
-        fireUndoableEditHappened(edit);
-
-        fireNonVetoableChangeEvent(event);
-
-        fireClsActionEventComplete(ClsActionEvent.API_ID.SetSizeInBars);
-    }
-
-
-    @Override
-    public synchronized int getSizeInBars()
-    {
-        return size;
-    }
-
-    @Override
-    public synchronized boolean addItem(ChordLeadSheetItem<?> item)
-    {
-        Objects.requireNonNull(item);
-        Preconditions.checkArgument(item instanceof WritableItem, "item=%s", item);
-        Preconditions.checkArgument(!(item instanceof CLI_Section), "item=%s", item);
-
-        LOGGER.log(Level.FINE, "addItem() -- item={0}", item);
-
-
-        if (items.contains(item))
-        {
-            return false;
-        }
-
-        final WritableItem<?> wItem = (WritableItem<?>) item;
-        int barIndex = wItem.getPosition().getBar();
-        if (barIndex >= getSizeInBars())
-        {
-            throw new IllegalArgumentException("item=" + item + " size=" + getSizeInBars());
-        }
-
-
-        fireClsActionEventStart(ClsActionEvent.API_ID.AddItem, item);
-
-
-        final Position oldPos;
-        final ChordLeadSheet oldContainer;
-        final ChordLeadSheet newContainer;
-        final Position newAdjustedPos;
-
-        // Set the container
-        oldContainer = wItem.getContainer();
-        newContainer = this;
-        wItem.setContainer(newContainer);
-
-        // Adjust position if required
-        oldPos = wItem.getPosition();
-        newAdjustedPos = oldPos.getAdjusted(getSection(barIndex).getData().getTimeSignature());
-        wItem.setPosition(newAdjustedPos);
-
-
-        // Change state
-        addItemChecked(wItem);
-
-
-        // Create the undoable event
-        UndoableEdit edit = new SimpleEdit("Add " + wItem)
-        {
-            @Override
-            public void undoBody()
-            {
-                LOGGER.log(Level.FINER, "addItem.undoBody() item={0}", item);
-                synchronized (ChordLeadSheetImpl.this)
-                {
-                    removeItemChecked(wItem);
-                    wItem.setPosition(oldPos);
-                    wItem.setContainer(oldContainer);
-                }
-                fireNonVetoableChangeEvent(new ItemRemovedEvent(ChordLeadSheetImpl.this, wItem));
+                itemsToRemove.addAll(getItems(newSize, Integer.MAX_VALUE, ChordLeadSheetItem.class));
             }
 
-            @Override
-            public void redoBody()
-            {
-                LOGGER.log(Level.FINER, "addItem.redoBody() item={0}", item);
-                synchronized (ChordLeadSheetImpl.this)
-                {
-                    wItem.setPosition(newAdjustedPos);
-                    wItem.setContainer(newContainer);
-                    addItemChecked(wItem);
-                }
-                fireNonVetoableChangeEvent(new ItemAddedEvent(ChordLeadSheetImpl.this, wItem));
-            }
-        };
 
-        fireUndoableEditHappened(edit);
-
-        // Fire ItemChange event
-        fireNonVetoableChangeEvent(new ItemAddedEvent(ChordLeadSheetImpl.this, wItem));
-
-        fireClsActionEventComplete(ClsActionEvent.API_ID.AddItem);
-
-        return true;
-    }
+            // Update model
+            itemsToRemove.forEach(item -> removeItemChecked(item));
+            size = newSize;
 
 
-    @Override
-    public synchronized CLI_Section addSection(final CLI_Section cliSection) throws UnsupportedEditException
-    {
-        Objects.requireNonNull(cliSection);
-        Preconditions.checkArgument(cliSection instanceof WritableItem, "cliSection=%s", cliSection);
-
-        var bar = cliSection.getPosition().getBar();
-        Preconditions.checkArgument(bar < this.size, "cliSection=%s this.size=%s", cliSection, size);
-
-        var sameNameSection = getSection(cliSection.getData().getName());
-        Preconditions.checkArgument(sameNameSection == null || sameNameSection.getPosition().getBar() == bar,
-                "cliSection=%s sameNameSection=%s", cliSection, sameNameSection);
-
-
-        CLI_Section res;
-        var curSection = getSection(bar);
-        if (curSection.getPosition().getBar() == bar)
-        {
-            setSectionName(curSection, cliSection.getData().getName());
-            setSectionTimeSignature(curSection, cliSection.getData().getTimeSignature());
-            res = curSection;
-
-        } else
-        {
-            LOGGER.log(Level.FINE, "addSection() -- cliSection={0}", cliSection);
-
-            res = cliSection;
-
-            // Check that change is not vetoed
-            var event = new ItemAddedEvent(ChordLeadSheetImpl.this, cliSection);
-            fireVetoableChangeEvent(new ClsVetoableChangeEvent(this, event));   // throws UnsupportedEditException
-            fireClsActionEventStart(ClsActionEvent.API_ID.AddSection, cliSection);
-
-
-            // Prepare data
-            final int barIndex = cliSection.getPosition().getBar();
-            final WritableItem<Section> wSection = (WritableItem<Section>) cliSection;
-            final ChordLeadSheet oldContainer = wSection.getContainer();
-            final ChordLeadSheet newContainer = this;
-            wSection.setContainer(newContainer);
-            final CLI_Section oldSection = getSection(barIndex);
-            if (oldSection.getPosition().getBar() == barIndex)
-            {
-                throw new IllegalArgumentException("cliSection=" + cliSection + " prevSection=" + oldSection);
-            }
-            TimeSignature oldTs = oldSection.getData().getTimeSignature();
-            TimeSignature newTs = cliSection.getData().getTimeSignature();
-
-
-            // Change state
-            if (!newTs.equals(oldTs))
-            {
-                // Adjust position of trailing items if required
-                // For undo to work properly, must be done before firing the "Add section" UndoableEdit.      
-                var oldSectionBarRange = getBarRange(oldSection);
-                var iitems = getItems(barIndex, oldSectionBarRange.to, ChordLeadSheetItem.class);
-                adjustItemsToTimeSignature(oldTs, newTs, iitems);
-            }
-            addItemChecked(wSection);
-
-
-            // Create the undoable event
-            UndoableEdit edit = new SimpleEdit("Add section " + wSection)
+            // Create events
+            UndoableEdit edit = new SimpleEdit("Set Size " + newSize)
             {
                 @Override
                 public void undoBody()
                 {
-                    LOGGER.log(Level.FINER, "addSection.undoBody() cliSection={0}", cliSection);
-                    synchronized (ChordLeadSheetImpl.this)
+                    LOGGER.log(Level.FINER, "setSizeInBars.undoBody() newSize={0}", newSize);
+                    performAPImethodUndoRedo(() -> 
                     {
-                        removeItemChecked(wSection);
-                        wSection.setContainer(oldContainer);
-                    }
-                    fireNonVetoableChangeEvent(new ItemRemovedEvent(ChordLeadSheetImpl.this, wSection));
+                        size = oldSize;
+                        itemsToRemove.forEach(item -> addItemChecked(item));
+
+                        var event = new SizeChangedEvent(ChordLeadSheetImpl.this, oldSize, newSize, itemsToRemove);
+                        event.setIsUndo();
+                        return event;
+                    });
                 }
 
                 @Override
                 public void redoBody()
                 {
-                    LOGGER.log(Level.FINER, "addSection.redoBody() cliSection={0}", cliSection);
-                    synchronized (ChordLeadSheetImpl.this)
+                    LOGGER.log(Level.FINER, "setSizeInBars.redoBody() newSize={0}", newSize);
+                    performAPImethodUndoRedo(() -> 
                     {
-                        wSection.setContainer(newContainer);
-                        addItemChecked(wSection);
-                    }
-                    fireNonVetoableChangeEvent(new ItemAddedEvent(ChordLeadSheetImpl.this, wSection));
+                        itemsToRemove.forEach(item -> removeItemChecked(item));
+                        size = newSize;
+
+                        var event = new SizeChangedEvent(ChordLeadSheetImpl.this, oldSize, newSize, itemsToRemove);
+                        event.setIsRedo();
+                        return event;
+                    });
                 }
             };
 
-            // Must be fired BEFORE the vetoable change
-            fireUndoableEditHappened(edit);
+            var event = new SizeChangedEvent(ChordLeadSheetImpl.this, oldSize, newSize, itemsToRemove);
+            return new OperationResults(event, edit, null);
+        };
 
-            fireNonVetoableChangeEvent(event);
-
-            fireClsActionEventComplete(ClsActionEvent.API_ID.AddSection);
-
-        }
-
-        return res;
+        performAPImethod(operation);
     }
 
 
     @Override
-    public synchronized void removeSection(final CLI_Section cliSection) throws UnsupportedEditException
+    public int getSizeInBars()
+    {
+        lock.readLock().lock();
+        try
+        {
+            return size;
+        } finally
+        {
+            lock.readLock().unlock();
+        }
+    }
+
+
+    @Override
+    public boolean addItem(ChordLeadSheetItem<?> item)
+    {
+        Objects.requireNonNull(item);
+        Preconditions.checkArgument(item instanceof WritableItem, "item=%s", item);
+        Preconditions.checkArgument(!(item instanceof CLI_Section), "item=%s", item);
+
+
+        LOGGER.log(Level.FINE, "addItem() -- item={0}", item);
+
+
+        Supplier<OperationResults> operation = () -> 
+        {
+            if (items.contains(item))
+            {
+                LOGGER.log(Level.FINE, "addItem() item already present. item={0}", item);
+                return new OperationResults(null, null, Boolean.FALSE);
+            }
+
+            final Position oldPos = item.getPosition();
+            int barIndex = oldPos.getBar();
+            if (barIndex >= getSizeInBars())
+            {
+                throw new IllegalArgumentException("item=" + item + " size=" + getSizeInBars());
+            }
+
+
+            final ChordLeadSheet oldContainer = item.getContainer();
+            final ChordLeadSheet newContainer = this;
+
+
+            // Update model
+            final WritableItem<?> wItem = (WritableItem<?>) item;
+            wItem.setContainer(newContainer);
+            final Position newAdjustedPos = oldPos.getAdjusted(getSection(barIndex).getData().getTimeSignature());
+            wItem.setPosition(newAdjustedPos);
+            addItemChecked(wItem);
+
+
+            // Create the undoable event
+            UndoableEdit edit = new SimpleEdit("Add " + wItem)
+            {
+                @Override
+                public void undoBody()
+                {
+                    LOGGER.log(Level.FINER, "addItem.undoBody() item={0}", item);
+                    performAPImethodUndoRedo(() -> 
+                    {
+                        removeItemChecked(wItem);
+                        wItem.setPosition(oldPos);
+                        wItem.setContainer(oldContainer);
+                        var event = new ItemAddedEvent(ChordLeadSheetImpl.this, wItem);
+                        event.setIsUndo();
+                        return event;
+                    });
+
+                }
+
+                @Override
+                public void redoBody()
+                {
+                    LOGGER.log(Level.FINER, "addItem.redoBody() item={0}", item);
+                    performAPImethodUndoRedo(() -> 
+                    {
+                        wItem.setPosition(newAdjustedPos);
+                        wItem.setContainer(newContainer);
+                        addItemChecked(wItem);
+                        var event = new ItemAddedEvent(ChordLeadSheetImpl.this, wItem);
+                        event.setIsRedo();
+                        return event;
+                    });
+                }
+            };
+
+            var event = new ItemAddedEvent(ChordLeadSheetImpl.this, wItem);
+            return new OperationResults(event, edit, Boolean.TRUE);
+        };
+
+        Boolean b = (Boolean) performAPImethod(operation);
+        return b;
+    }
+
+
+    @Override
+    public void addSection(final CLI_Section cliSection) throws UnsupportedEditException
+    {
+        Objects.requireNonNull(cliSection);
+        Preconditions.checkArgument(cliSection instanceof WritableItem, "cliSection=%s", cliSection);
+
+
+        LOGGER.log(Level.FINE, "addSection() -- cliSection={0}", cliSection);
+
+
+        // Preliminary checks
+        lock.readLock().lock();
+        try
+        {
+            int bar = cliSection.getPosition().getBar();
+            Preconditions.checkArgument(bar < this.size, "cliSection=%s this.size=%s", cliSection, size);
+
+            // Check name uniqueness (allow same name if it's the section at the same bar which will be replaced)
+            var sameNameSection = getSection(cliSection.getData().getName());
+            Preconditions.checkArgument(sameNameSection == null || sameNameSection.getPosition().getBar() == bar,
+                    "cliSection=%s sameNameSection=%s", cliSection, sameNameSection);
+        } finally
+        {
+            lock.readLock().unlock();
+        }
+
+
+        // Fire vetoable event
+        var vetoEvent = new ItemAddedEvent(this, cliSection);
+        fireVetoableChangeEvent(new ClsVetoableChangeEvent(this, vetoEvent));   // throws UnsupportedEditException
+
+
+        // Operation
+        Supplier<OperationResults> operation = () -> 
+        {
+            final int bar = cliSection.getPosition().getBar();
+
+
+            // Re-verify constraints
+            Preconditions.checkArgument(bar < this.size, "cliSection=%s this.size=%s", cliSection, size);
+            var sameNameSection = getSection(cliSection.getData().getName());
+            Preconditions.checkArgument(sameNameSection == null || sameNameSection.getPosition().getBar() == bar,
+                    "cliSection=%s sameNameSection=%s", cliSection, sameNameSection);
+
+
+            // Prepare data
+            final CLI_Section curSection = getSection(bar);
+            final TimeSignature oldTs = curSection.getData().getTimeSignature();
+            final boolean isReplace = curSection.getPosition().getBar() == bar;
+            final WritableItem<Section> wSection = (WritableItem<Section>) cliSection;
+            final ChordLeadSheet oldContainer = wSection.getContainer();
+            final ChordLeadSheet newContainer = ChordLeadSheetImpl.this;
+
+
+            // Update model
+            if (isReplace)
+            {
+                removeItemChecked(curSection);
+            }
+
+            wSection.setContainer(newContainer);
+            addItemChecked(cliSection);
+
+            final TimeSignature newTs = cliSection.getData().getTimeSignature();
+            final List<ItemMoved> adjustments = new ArrayList<>();
+            final List<ChordLeadSheetItem> adjustedItems = new ArrayList<>();
+            if (newTs.getNbNaturalBeats() < oldTs.getNbNaturalBeats())
+            {
+                var iitems = getItems(cliSection, ChordLeadSheetItem.class, cli -> !newTs.checkBeat(cli.getPosition().getBeat()));
+                adjustments.addAll(adjustItemsToTimeSignature(oldTs, newTs, iitems));
+                adjustedItems.addAll(adjustments.stream().map(ItemMoved::item).toList());
+            }
+
+
+            // Create events
+            UndoableEdit edit = new SimpleEdit("Add Section " + wSection)
+            {
+                @Override
+                public void undoBody()
+                {
+                    LOGGER.log(Level.FINER, "addSection.undoBody() section={0}", wSection);
+                    performAPImethodUndoRedo(() -> 
+                    {
+                        for (var adjustment : adjustments.reversed())
+                        {
+                            changeItemPositionChecked(adjustment.item(), adjustment.oldPos());
+                        }
+
+                        removeItemChecked(wSection);
+                        wSection.setContainer(oldContainer);
+
+                        if (isReplace)
+                        {
+                            addItemChecked(curSection);
+                        }
+
+                        var event = new SectionAddedEvent(ChordLeadSheetImpl.this, cliSection, isReplace ? curSection : null, adjustedItems);
+                        event.setIsUndo();
+                        return event;
+                    });
+                }
+
+                @Override
+                public void redoBody()
+                {
+                    LOGGER.log(Level.FINER, "addSection.redoBody() section={0}", wSection);
+                    performAPImethodUndoRedo(() -> 
+                    {
+                        if (isReplace)
+                        {
+                            removeItemChecked(curSection);
+                        }
+
+                        wSection.setContainer(newContainer);
+                        addItemChecked(wSection);
+
+                        for (var adjustment : adjustments)
+                        {
+                            changeItemPositionChecked(adjustment.item(), adjustment.newPos());
+                        }
+
+                        var event = new SectionAddedEvent(ChordLeadSheetImpl.this, cliSection, isReplace ? curSection : null, adjustedItems);
+                        event.setIsRedo();
+                        return event;
+                    });
+                }
+            };
+
+            var event = new SectionAddedEvent(ChordLeadSheetImpl.this, cliSection, isReplace ? curSection : null, adjustedItems);
+            return new OperationResults(event, edit, null);
+        };
+
+        performAPImethod(operation);
+    }
+
+    @Override
+    public void removeSection(final CLI_Section cliSection) throws UnsupportedEditException
     {
         Objects.requireNonNull(cliSection);
         Preconditions.checkArgument(cliSection.getPosition().getBar() != 0, "cliSection=%s", cliSection);
-        Preconditions.checkArgument(items.contains(cliSection), "cliSection=%s items=%s", cliSection, items);
 
         LOGGER.log(Level.FINE, "removeSection() -- cliSection={0}", cliSection);
 
-        final int barIndex = cliSection.getPosition().getBar();
-
-
-        // Check that change is not vetoed
-        var event = new ItemRemovedEvent(ChordLeadSheetImpl.this, cliSection);
-        fireVetoableChangeEvent(new ClsVetoableChangeEvent(this, event));   // throws UnsupportedEditException
-        fireClsActionEventStart(ClsActionEvent.API_ID.RemoveSection, cliSection);
-
-        // Prepare data
-        var newSection = getSection(barIndex - 1);
-        var newTs = newSection.getData().getTimeSignature();
-        var oldTs = cliSection.getData().getTimeSignature();
-
-
-        // Change state
-        if (!newTs.equals(oldTs))
+        // Preliminary checks
+        lock.readLock().lock();
+        try
         {
-            // Adjust position of trailing items if required
-            // For undo to work properly, must be done before firing the "Remove section" UndoableEdit.      
-            adjustItemsToTimeSignature(oldTs, newTs, getItems(cliSection, ChordLeadSheetItem.class, cli -> true));
+            Preconditions.checkArgument(items.contains(cliSection), "cliSection=%s items=%s", cliSection, items);
+        } finally
+        {
+            lock.readLock().unlock();
         }
-        removeItemChecked(cliSection);
 
 
-        // Create the undoable event
-        UndoableEdit edit = new SimpleEdit("Remove section " + cliSection)
+        // Fire vetoable event
+        var vetoEvent = new ItemRemovedEvent(this, cliSection);
+        fireVetoableChangeEvent(new ClsVetoableChangeEvent(this, vetoEvent));       // is it really necessary ?
+
+
+        // Operation
+        Supplier<OperationResults> operation = () -> 
         {
-            @Override
-            public void undoBody()
+            // Re-verify constraints
+            Preconditions.checkArgument(items.contains(cliSection), "cliSection=%s items=%s", cliSection, items);
+
+
+            // Context: The section previous to the one being removed will take over the scope
+            final int bar = cliSection.getPosition().getBar();
+            final CLI_Section prevSection = getSection(bar - 1);
+            final TimeSignature newTs = prevSection.getData().getTimeSignature();
+            final TimeSignature oldTs = cliSection.getData().getTimeSignature();
+
+
+            // Update model
+            removeItemChecked(cliSection);
+
+            final List<ItemMoved> adjustments = new ArrayList<>();
+            final List<ChordLeadSheetItem> adjustedItems = new ArrayList<>();
+            if (newTs.getNbNaturalBeats() < oldTs.getNbNaturalBeats())
             {
-                LOGGER.log(Level.FINER, "removeSection.undoBody() cliSection={0}", cliSection);
-                synchronized (ChordLeadSheetImpl.this)
-                {
-                    addItemChecked(cliSection);
-                }
-                fireNonVetoableChangeEvent(new ItemAddedEvent(ChordLeadSheetImpl.this, cliSection));
+                var iitems = getItems(prevSection, ChordLeadSheetItem.class, cli -> !newTs.checkBeat(cli.getPosition().getBeat()));
+                adjustments.addAll(adjustItemsToTimeSignature(oldTs, newTs, iitems));
+                adjustedItems.addAll(adjustments.stream().map(ItemMoved::item).toList());
             }
 
-            @Override
-            public void redoBody()
+
+            // Create events
+            UndoableEdit edit = new SimpleEdit("Remove Section " + cliSection)
             {
-                LOGGER.log(Level.FINER, "removeSection.redoBody() cliSection={0}", cliSection);
-                synchronized (ChordLeadSheetImpl.this)
+                @Override
+                public void undoBody()
                 {
-                    removeItemChecked(cliSection);
+                    LOGGER.log(Level.FINER, "removeSection.undoBody() section={0}", cliSection);
+                    performAPImethodUndoRedo(() -> 
+                    {
+                        for (var adjustment : adjustments.reversed())
+                        {
+                            changeItemPositionChecked(adjustment.item(), adjustment.oldPos());
+                        }
+
+                        addItemChecked(cliSection);
+
+                        var event = new SectionRemovedEvent(ChordLeadSheetImpl.this, cliSection, adjustedItems);
+                        event.setIsUndo();
+                        return event;
+                    });
                 }
-                fireNonVetoableChangeEvent(new ItemRemovedEvent(ChordLeadSheetImpl.this, cliSection));
-            }
+
+                @Override
+                public void redoBody()
+                {
+                    LOGGER.log(Level.FINER, "removeSection.redoBody() section={0}", cliSection);
+                    performAPImethodUndoRedo(() -> 
+                    {
+                        removeItemChecked(cliSection);
+
+                        for (var adjustment : adjustments)
+                        {
+                            changeItemPositionChecked(adjustment.item(), adjustment.newPos());
+                        }
+
+                        var event = new SectionRemovedEvent(ChordLeadSheetImpl.this, cliSection, adjustedItems);
+                        event.setIsRedo();
+                        return event;
+                    });
+                }
+            };
+
+            var event = new SectionRemovedEvent(ChordLeadSheetImpl.this, cliSection, adjustedItems);
+            return new OperationResults(event, edit, null);
         };
 
-        fireUndoableEditHappened(edit);
-
-        // Fire ItemChange event
-        fireNonVetoableChangeEvent(event);
-
-
-        fireClsActionEventComplete(ClsActionEvent.API_ID.RemoveSection);
+        performAPImethod(operation);
     }
 
 
     @Override
-    public synchronized void moveSection(final CLI_Section cliSection, final int newBarIndex) throws UnsupportedEditException
+    public void moveSection(final CLI_Section cliSection, final int newBarIndex) throws UnsupportedEditException
     {
         Preconditions.checkArgument(cliSection instanceof WritableItem, "cliSection=%s", cliSection);
         Preconditions.checkArgument(newBarIndex > 0 && newBarIndex < getSizeInBars(), "newBarIndex=%s", newBarIndex);
@@ -560,7 +639,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 {
                     cliSection, newBarIndex
                 });
-                synchronized (ChordLeadSheetImpl.this)
+                (ChordLeadSheetImpl.this)
                 {
                     changeItemPositionChecked(cliSection, new Position(oldBarIndex));
                 }
@@ -574,7 +653,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 {
                     cliSection, newBarIndex
                 });
-                synchronized (ChordLeadSheetImpl.this)
+                (ChordLeadSheetImpl.this)
                 {
                     changeItemPositionChecked(cliSection, new Position(newBarIndex));
                 }
@@ -592,197 +671,207 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
 
     @Override
-    public synchronized void removeItem(final ChordLeadSheetItem<?> item)
+    public void removeItem(final ChordLeadSheetItem<?> item)
     {
         Objects.requireNonNull(item);
         Preconditions.checkArgument(!(item instanceof CLI_Section), "item=%s", item);
-        Preconditions.checkArgument(items.contains(item), "items=%s item=%s", items, item);
 
         LOGGER.log(Level.FINE, "removeItem() -- item={0}", item);
 
-        fireClsActionEventStart(ClsActionEvent.API_ID.RemoveItem, item);
-
-        // Change state
-        removeItemChecked(item);
-
-        // Create the undoable event
-        UndoableEdit edit = new SimpleEdit("Remove " + item)
+        Supplier<OperationResults> operation = () -> 
         {
-            @Override
-            public void undoBody()
+            if (!items.contains(item))
             {
-                LOGGER.log(Level.FINER, "removeItem.undoBody() item={0}", item);
-                synchronized (ChordLeadSheetImpl.this)
-                {
-                    addItemChecked(item);
-                }
-                fireNonVetoableChangeEvent(new ItemAddedEvent(ChordLeadSheetImpl.this, item));
+                throw new IllegalArgumentException("items=" + items + " item=" + item);
             }
 
-            @Override
-            public void redoBody()
+            // Change state
+            removeItemChecked(item);
+
+            // Create the undoable event
+            UndoableEdit edit = new SimpleEdit("Remove " + item)
             {
-                LOGGER.log(Level.FINER, "removeItem.redoBody() item={0}", item);
-                synchronized (ChordLeadSheetImpl.this)
+                @Override
+                public void undoBody()
                 {
-                    removeItemChecked(item);
+                    LOGGER.log(Level.FINER, "removeItem.undoBody() item={0}", item);
+                    performAPImethodUndoRedo(() -> 
+                    {
+                        addItemChecked(item);
+                        var event = new ItemRemovedEvent(ChordLeadSheetImpl.this, item);
+                        event.setIsUndo();
+                        return event;
+                    });
                 }
-                fireNonVetoableChangeEvent(new ItemRemovedEvent(ChordLeadSheetImpl.this, item));
-            }
+
+                @Override
+                public void redoBody()
+                {
+                    LOGGER.log(Level.FINER, "removeItem.redoBody() item={0}", item);
+                    performAPImethodUndoRedo(() -> 
+                    {
+                        removeItemChecked(item);
+                        var event = new ItemRemovedEvent(ChordLeadSheetImpl.this, item);
+                        event.setIsRedo();
+                        return event;
+                    });
+                }
+            };
+
+            var event = new ItemRemovedEvent(ChordLeadSheetImpl.this, item);
+            return new OperationResults(event, edit, null);
         };
 
-        fireUndoableEditHappened(edit);
-
-        // Fire ItemChange event
-        fireNonVetoableChangeEvent(new ItemRemovedEvent(ChordLeadSheetImpl.this, item));
-
-
-        fireClsActionEventComplete(ClsActionEvent.API_ID.RemoveItem);
+        performAPImethod(operation);
     }
 
 
     @Override
-    public synchronized boolean moveItem(ChordLeadSheetItem<?> item, Position newPos)
+    public boolean moveItem(ChordLeadSheetItem<?> item, Position newPos)
     {
         Objects.requireNonNull(newPos);
         Preconditions.checkArgument(item instanceof WritableItem, "item=%s", item);
         Preconditions.checkArgument(!(item instanceof CLI_Section), "item=%s", item);
-        Preconditions.checkArgument(items.contains(item), "items=%s item=%s", items, item);
-
 
         LOGGER.log(Level.FINE, "moveItem() -- item={0} newPos={1}", new Object[]
         {
             item, newPos
         });
 
-        final Position oldPos = item.getPosition();
-        final Position newAdjustedPos = newPos.getAdjusted(getSection(newPos.getBar()).getData().getTimeSignature());
-        if (oldPos.equals(newAdjustedPos) || items.contains(item.getCopy(null, newPos)))
+        Supplier<OperationResults> operation = () -> 
         {
-            return false;
-        }
-
-        fireClsActionEventStart(ClsActionEvent.API_ID.MoveItem, item);
-
-
-        // Change state
-        changeItemPositionChecked(item, newAdjustedPos);
-
-
-        // Create the undoable event
-        UndoableEdit edit = new SimpleEdit("Move " + item)
-        {
-            @Override
-            public void undoBody()
+            if (!items.contains(item))
             {
-                LOGGER.log(Level.FINER, "moveItem.undoBody() item={0} oldPos={1} newAdjustedPos={2}", new Object[]
-                {
-                    item, oldPos,
-                    newAdjustedPos
-                });
-                synchronized (ChordLeadSheetImpl.this)
-                {
-                    changeItemPositionChecked(item, oldPos);
-                }
-                fireNonVetoableChangeEvent(new ItemMovedEvent(ChordLeadSheetImpl.this, item, newAdjustedPos, oldPos));
+                throw new IllegalArgumentException("items=" + items + " item=" + item);
             }
 
-            @Override
-            public void redoBody()
+            final Position oldPos = item.getPosition();
+            final Position newAdjustedPos = newPos.getAdjusted(getSection(newPos.getBar()).getData().getTimeSignature());
+
+            if (oldPos.equals(newAdjustedPos) || items.contains(item.getCopy(null, newPos)))
             {
-                LOGGER.log(Level.FINER, "moveItem.redoBody() item={0} oldPos={1} newAdjustedPos={2}", new Object[]
-                {
-                    item, oldPos,
-                    newAdjustedPos
-                });
-                synchronized (ChordLeadSheetImpl.this)
-                {
-                    changeItemPositionChecked(item, newAdjustedPos);
-                }
-                fireNonVetoableChangeEvent(new ItemMovedEvent(ChordLeadSheetImpl.this, item, oldPos, newAdjustedPos));
+                return new OperationResults(null, null, Boolean.FALSE);
             }
+
+            // Change state
+            changeItemPositionChecked(item, newAdjustedPos);
+
+            // Create the undoable event
+            UndoableEdit edit = new SimpleEdit("Move " + item)
+            {
+                @Override
+                public void undoBody()
+                {
+                    LOGGER.log(Level.FINER, "moveItem.undoBody() item={0} oldPos={1} newAdjustedPos={2}", new Object[]
+                    {
+                        item, oldPos,
+                        newAdjustedPos
+                    });
+                    performAPImethodUndoRedo(() -> 
+                    {
+                        changeItemPositionChecked(item, oldPos);
+                        var event = new ItemMovedEvent(ChordLeadSheetImpl.this, item, oldPos, newAdjustedPos);
+                        event.setIsUndo();
+                        return event;
+                    });
+                }
+
+                @Override
+                public void redoBody()
+                {
+                    LOGGER.log(Level.FINER, "moveItem.redoBody() item={0} oldPos={1} newAdjustedPos={2}", new Object[]
+                    {
+                        item, oldPos,
+                        newAdjustedPos
+                    });
+                    performAPImethodUndoRedo(() -> 
+                    {
+                        changeItemPositionChecked(item, newAdjustedPos);
+                        var event = new ItemMovedEvent(ChordLeadSheetImpl.this, item, oldPos, newAdjustedPos);
+                        event.setIsRedo();
+                        return event;
+                    });
+                }
+            };
+
+            var event = new ItemMovedEvent(ChordLeadSheetImpl.this, item, oldPos, newAdjustedPos);
+            return new OperationResults(event, edit, Boolean.TRUE);
         };
-        fireUndoableEditHappened(edit);
 
-        // Fire ItemChange event
-        fireNonVetoableChangeEvent(new ItemMovedEvent(ChordLeadSheetImpl.this, item, oldPos, newAdjustedPos));
-
-        fireClsActionEventComplete(ClsActionEvent.API_ID.MoveItem);
-
-        return true;
+        Boolean b = (Boolean) performAPImethod(operation);
+        return b;
     }
 
-
     @Override
-    public synchronized <T> boolean changeItem(ChordLeadSheetItem<T> item, final T newData)
+    public <T> boolean changeItem(ChordLeadSheetItem<T> item, final T newData)
     {
         Preconditions.checkArgument(item instanceof WritableItem, "item=%s", item);
         Preconditions.checkArgument(!(item instanceof CLI_Section), "item=%s", item);
-        Preconditions.checkArgument(items.contains(item), "items=%s item=%s", items, item);
 
         LOGGER.log(Level.FINE, "changeItem() -- item={0} newData={1}", new Object[]
         {
             item, newData
         });
 
-        final T oldData = item.getData();
-        if (oldData.equals(newData) || items.contains(item.getCopy(newData, null)))
+        Supplier<OperationResults> operation = () -> 
         {
-            return false;
-        }
-
-        fireClsActionEventStart(ClsActionEvent.API_ID.ChangeItem, item);
-
-
-        // Change state
-        changeItemDataChecked(item, newData);
-
-
-        // Create the undoable event
-        UndoableEdit edit = new SimpleEdit("Change " + item)
-        {
-            @Override
-            public void undoBody()
+            if (!items.contains(item))
             {
-                LOGGER.log(Level.FINER, "changeItem.undoBody() item={0} oldData={1} newData={2}", new Object[]
-                {
-                    item, oldData, newData
-                });
-
-                synchronized (ChordLeadSheetImpl.this)
-                {
-                    changeItemDataChecked(item, oldData);
-                }
-                fireNonVetoableChangeEvent(new ItemChangedEvent(ChordLeadSheetImpl.this, item, newData, oldData));
+                throw new IllegalArgumentException("items=" + items + " item=" + item);
             }
 
-            @Override
-            public void redoBody()
+            final T oldData = item.getData();
+            if (oldData.equals(newData) || items.contains(item.getCopy(newData, null)))
             {
-                LOGGER.log(Level.FINER, "changeItem.undoBody() item={0} oldData={1} newData={2}", new Object[]
-                {
-                    item, oldData, newData
-                });
-                synchronized (ChordLeadSheetImpl.this)
-                {
-                    changeItemDataChecked(item, newData);
-                }
-                fireNonVetoableChangeEvent(new ItemChangedEvent(ChordLeadSheetImpl.this, item, oldData, newData));
+                return new OperationResults(null, null, Boolean.FALSE);
             }
+
+            // Change state
+            changeItemDataChecked(item, newData);
+
+            // Create the undoable event
+            UndoableEdit edit = new SimpleEdit("Change " + item)
+            {
+                @Override
+                public void undoBody()
+                {
+                    LOGGER.log(Level.FINER, "changeItem.undoBody() item={0} oldData={1} newData={2}", new Object[]
+                    {
+                        item, oldData, newData
+                    });
+                    performAPImethodUndoRedo(() -> 
+                    {
+                        changeItemDataChecked(item, oldData);
+                        return new ItemChangedEvent(ChordLeadSheetImpl.this, item, newData, oldData);
+                    });
+                }
+
+                @Override
+                public void redoBody()
+                {
+                    LOGGER.log(Level.FINER, "changeItem.redoBody() item={0} oldData={1} newData={2}", new Object[]
+                    {
+                        item, oldData, newData
+                    });
+                    performAPImethodUndoRedo(() -> 
+                    {
+                        changeItemDataChecked(item, newData);
+                        return new ItemChangedEvent(ChordLeadSheetImpl.this, item, oldData, newData);
+                    });
+                }
+            };
+
+            var event = new ItemChangedEvent(ChordLeadSheetImpl.this, item, oldData, newData);
+            return new OperationResults(event, edit, Boolean.TRUE);
         };
-        fireUndoableEditHappened(edit);
 
-        // Fire ItemChange event
-        fireNonVetoableChangeEvent(new ItemChangedEvent(ChordLeadSheetImpl.this, item, oldData, newData));
-
-        fireClsActionEventComplete(ClsActionEvent.API_ID.ChangeItem);
-
-        return true;
+        boolean b = (boolean) performAPImethod(operation);
+        return b;
     }
 
 
     @Override
-    public synchronized void insertBars(final int barIndex, final int nbBars)
+    public void insertBars(final int barIndex, final int nbBars)
     {
         Preconditions.checkArgument(barIndex >= 0 && barIndex <= getSizeInBars(), "barIndex=%s nbBars=%s", barIndex, nbBars);
         Preconditions.checkArgument(nbBars >= 0, "barIndex=%s nbBars=%s", barIndex, nbBars);
@@ -855,12 +944,9 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
 
     @Override
-    public synchronized void deleteBars(int barIndexFrom, int barIndexTo) throws UnsupportedEditException
+    public void deleteBars(int barIndexFrom, int barIndexTo)
     {
-        Preconditions.checkArgument(barIndexFrom >= 0
-                && barIndexTo >= barIndexFrom
-                && barIndexTo < getSizeInBars()
-                && (barIndexTo - barIndexFrom + 1) < getSizeInBars(),
+        Preconditions.checkArgument(barIndexFrom >= 0 && barIndexTo >= barIndexFrom,
                 "barIndexFrom=%s barIndexTo=%s", barIndexFrom, barIndexTo);
 
         LOGGER.log(Level.FINE, "deleteBars() -- barIndexFrom={0} barIndexTo={1}", new Object[]
@@ -869,136 +955,319 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         });
 
 
-        fireClsActionEventStart(ClsActionEvent.API_ID.DeleteBars, barIndexFrom);
-
-
-        // Save data after the bars deletion
-        CLI_Section afterDeletionSection = (barIndexTo + 1 > size - 1) ? null : getSection(barIndexTo + 1);
-        var afterDeletionSectionItems = afterDeletionSection == null ? null : getItems(afterDeletionSection,
-                ChordLeadSheetItem.class,
-                cli -> cli.getPosition().getBar() > barIndexTo);
-
-
-        // Get items to be moved or removed
-        CLI_Section initSection = getSection(0);
-        var itemsToMove = getItems(barIndexTo + 1, Integer.MAX_VALUE, ChordLeadSheetItem.class, cli -> true);
-        var itemsToRemove = getItems(barIndexFrom, barIndexTo, ChordLeadSheetItem.class, cli -> cli != initSection);
-
-
-        // Remove items except the initial block
-        try
+        Supplier<OperationResults> operation = () -> 
         {
-            removeSectionsAndItems(itemsToRemove);       // Possible exception here. Note that some changes might have been done before exception is thrown
-        } catch (UnsupportedEditException ex)
-        {
-            fireClsActionEventComplete(ClsActionEvent.API_ID.DeleteBars);       // We need to complete the action
-            throw ex;
-        }
-
-        int range = barIndexTo - barIndexFrom + 1;
-
-        // Handle special case if barIndexFrom == 0 and there is a section right after the deleted bars
-        if (barIndexFrom == 0 && afterDeletionSection != null && afterDeletionSection.getPosition().getBar() == barIndexTo + 1)
-        {
-            // Remove the initial section (and fire undoableEvent)
-            try
+            if (barIndexTo >= size || (barIndexTo - barIndexFrom + 1) >= size)
             {
-                removeInitialSection();     // Possible exception here
-            } catch (UnsupportedEditException ex)
-            {
-                fireClsActionEventComplete(ClsActionEvent.API_ID.DeleteBars);        // Need to complete the ClsActionEvent
-                throw ex;
+                throw new IllegalArgumentException("Invalid range " + barIndexFrom + "-" + barIndexTo + " for size " + size);
             }
-        }
-
-        // Shift remaining items
-        shiftItems(itemsToMove, -range);
-
-        // Adjust the size
-        setSizeInBars(getSizeInBars() - range);         // Possible exception here! But should not happen since we removed items/sections before.
 
 
-        // Adjust positions of items after the deletion
-        if (afterDeletionSectionItems != null)
-        {
-            CLI_Section newSection = getSection(barIndexFrom);
-            adjustItemsToTimeSignature(afterDeletionSection.getData().getTimeSignature(),
-                    newSection.getData().getTimeSignature(),
-                    afterDeletionSectionItems);
-        }
+            final int nbBars = barIndexTo - barIndexFrom + 1;
+            final int oldSize = size;
+            final int newSize = size - nbBars;
+            CLI_Section section0 = getSection(0);
 
-        fireClsActionEventComplete(ClsActionEvent.API_ID.DeleteBars);
 
+            // Determine context *before* mutation at the point just after the cut
+            final boolean noBarsAfterCut = barIndexTo + 1 == oldSize;
+            final CLI_Section oldSectionAfter = noBarsAfterCut ? null : getSection(barIndexTo + 1);
+            final TimeSignature oldTsAfter = oldSectionAfter != null ? oldSectionAfter.getData().getTimeSignature() : null;
+
+
+            // Identify items to remove
+            // If we delete from 0, and there is a section immediately after the cut, it replaces the current initSection, then we can remove it
+            boolean removeInitSection = barIndexFrom == 0 && oldSectionAfter != null && oldSectionAfter.getPosition().getBar() == barIndexTo + 1;
+            final var itemsToRemove = getItems(barIndexFrom, barIndexTo, ChordLeadSheetItem.class, removeInitSection ? cli -> true : cli -> cli != section0);
+
+
+            // Identify items to shift
+            final var itemsToShift = getItems(barIndexTo + 1, Integer.MAX_VALUE, ChordLeadSheetItem.class, cli -> true);      // empty if noBarsAfterCut
+
+
+            // Update model
+            for (var item : itemsToRemove)
+            {
+                removeItemChecked(item);
+            }
+
+            for (var item : itemsToShift)
+            {
+                Position oldPos = item.getPosition();
+                Position newPos = oldPos.getMoved(-nbBars, 0);
+                changeItemPositionChecked(item, newPos);
+            }
+
+            final List<ItemMoved> adjustments = new ArrayList<>();
+            final List<ChordLeadSheetItem> itemsToAdjust = new ArrayList<>();
+            if (!noBarsAfterCut)
+            {
+                // Determine the new context at the deletion point
+                CLI_Section newSectionAfter = getSection(barIndexFrom);
+                TimeSignature newTsAfter = newSectionAfter.getData().getTimeSignature();
+                if (newTsAfter.getNbNaturalBeats() < oldTsAfter.getNbNaturalBeats())
+                {
+                    var iitems = getItems(newSectionAfter, ChordLeadSheetItem.class, cli -> itemsToShift.contains(cli));
+                    adjustments.addAll(adjustItemsToTimeSignature(oldTsAfter, newTsAfter, iitems));
+                    itemsToAdjust.addAll(adjustments.stream().map(ItemMoved::item).toList());
+                }
+            }
+
+            size = newSize;
+
+
+            // Create events
+            UndoableEdit edit = new SimpleEdit("Delete Bars " + barIndexFrom + "-" + barIndexTo)
+            {
+                @Override
+                public void undoBody()
+                {
+                    LOGGER.log(Level.FINER, "deleteBars.undoBody() nbBars={0}", nbBars);
+                    performAPImethodUndoRedo(() -> 
+                    {
+                        size = oldSize;
+
+                        for (var adjustment : adjustments.reversed())
+                        {
+                            changeItemPositionChecked(adjustment.item(), adjustment.oldPos());
+                        }
+
+                        for (var item : itemsToShift.reversed())
+                        {
+                            Position newPos = item.getPosition().getMoved(nbBars, 0);
+                            changeItemPositionChecked(item, newPos);
+                        }
+
+                        for (var item : itemsToRemove)
+                        {
+                            addItemChecked(item);
+                        }
+
+                        var event = new DeletedBarsEvent(ChordLeadSheetImpl.this, barIndexFrom, barIndexTo, itemsToRemove, itemsToShift, itemsToAdjust);
+                        event.setIsUndo();
+                        return event;
+                    });
+                }
+
+                @Override
+                public void redoBody()
+                {
+                    LOGGER.log(Level.FINER, "deleteBars.redoBody() nbBars={0}", nbBars);
+                    performAPImethodUndoRedo(() -> 
+                    {
+                        for (var item : itemsToRemove)
+                        {
+                            removeItemChecked(item);
+                        }
+
+                        for (var item : itemsToShift)
+                        {
+                            Position newPos = item.getPosition().getMoved(-nbBars, 0);
+                            changeItemPositionChecked(item, newPos);
+                        }
+
+                        for (var adjustment : adjustments)
+                        {
+                            changeItemPositionChecked(adjustment.item(), adjustment.newPos());
+                        }
+
+                        size = newSize;
+                        var event = new DeletedBarsEvent(ChordLeadSheetImpl.this, barIndexFrom, barIndexTo, itemsToRemove, itemsToShift, itemsToAdjust);
+                        event.setIsRedo();
+                        return event;
+                    });
+                }
+            };
+
+            var event = new DeletedBarsEvent(ChordLeadSheetImpl.this, barIndexFrom, barIndexTo, itemsToRemove, itemsToShift, itemsToAdjust);
+            return new OperationResults(event, edit, null);
+        };
+
+        performAPImethod(operation);
     }
 
-
     @Override
-    public synchronized void setSectionName(CLI_Section cliSection, String name)
+    public void setSectionName(CLI_Section cliSection, String name)
     {
         Preconditions.checkNotNull(cliSection);
         Preconditions.checkNotNull(name);
-
-        LOGGER.log(Level.FINE, "setSectionName() -- cliSection={0} name={1}", new Object[]
-        {
-            cliSection, name
-        });
+        Preconditions.checkArgument(cliSection instanceof WritableItem, "cliSection=%s", cliSection);
 
         if (cliSection.getData().getName().equals(name))
         {
             return;
         }
 
-        if (!(cliSection instanceof WritableItem) || !items.contains(cliSection) || getSection(name) != null || !items.contains(cliSection))
+        LOGGER.log(Level.FINE, "setSectionName() -- cliSection={0} name={1}", new Object[]
         {
-            throw new IllegalArgumentException("section=" + cliSection + " name=" + name + " items=" + items);
-        }
+            cliSection, name
+        });
 
-        fireClsActionEventStart(ClsActionEvent.API_ID.SetSectionName, cliSection);
-
-        try
+        Supplier<OperationResults> operation = () -> 
         {
-            changeSection(cliSection, new Section(name, cliSection.getData().getTimeSignature()));
-        } catch (UnsupportedEditException ex)
-        {
-            // Should never happen
-            fireClsActionEventComplete(ClsActionEvent.API_ID.SetSectionName);
-            Exceptions.printStackTrace(ex);
-        }
+            if (!items.contains(cliSection))
+            {
+                throw new IllegalArgumentException("section=" + cliSection + " items=" + items);
+            }
 
-        fireClsActionEventComplete(ClsActionEvent.API_ID.SetSectionName);
+            if (getSection(name) != null)
+            {
+                throw new IllegalArgumentException("section=" + cliSection + " name=" + name + " already exists.");
+            }
+
+            final Section oldData = cliSection.getData();
+            final Section newData = new Section(name, oldData.getTimeSignature());
+
+
+            // Change state
+            changeItemDataChecked(cliSection, newData);
+
+            // Create the undoable event
+            UndoableEdit edit = new SimpleEdit("Set Section Name " + name)
+            {
+                @Override
+                public void undoBody()
+                {
+                    LOGGER.log(Level.FINER, "setSectionName.undoBody() cliSection={0} oldData={1} newData={2}", new Object[]
+                    {
+                        cliSection, oldData,
+                        newData
+                    });
+                    performAPImethodUndoRedo(() -> 
+                    {
+                        changeItemDataChecked(cliSection, oldData);
+                        var event = new SectionChangedEvent(ChordLeadSheetImpl.this, cliSection, oldData, newData, Collections.emptyList());
+                        event.setIsUndo();
+                        return event;
+                    });
+                }
+
+                @Override
+                public void redoBody()
+                {
+                    LOGGER.log(Level.FINER, "setSectionName.redoBody() cliSection={0} oldData={1} newData={2}", new Object[]
+                    {
+                        cliSection, oldData,
+                        newData
+                    });
+                    performAPImethodUndoRedo(() -> 
+                    {
+                        changeItemDataChecked(cliSection, newData);
+                        var event = new SectionChangedEvent(ChordLeadSheetImpl.this, cliSection, oldData, newData, Collections.emptyList());
+                        event.setIsRedo();
+                        return event;
+                    });
+                }
+            };
+
+            var event = new SectionChangedEvent(ChordLeadSheetImpl.this, cliSection, oldData, newData, Collections.emptyList());
+            return new OperationResults(event, edit, null);
+        };
+
+        performAPImethod(operation);
     }
 
-
     @Override
-    public synchronized void setSectionTimeSignature(CLI_Section cliSection, TimeSignature ts) throws UnsupportedEditException
+    public void setSectionTimeSignature(CLI_Section cliSection, TimeSignature ts) throws UnsupportedEditException
     {
         Preconditions.checkNotNull(ts);
         Preconditions.checkArgument(cliSection instanceof WritableItem, "cliSection=%s", cliSection);
-        Preconditions.checkArgument(items.contains(cliSection), "items=%s cliSection=%s", items, cliSection);
-
-        LOGGER.log(Level.FINE, "setSectionTimeSignature() -- cliSection={0} ts={1}", new Object[]
-        {
-            cliSection, ts
-        });
 
         if (cliSection.getData().getTimeSignature().equals(ts))
         {
             return;
         }
 
-
-        fireClsActionEventStart(ClsActionEvent.API_ID.SetSectionTimeSignature, cliSection);
-
-        try
+        LOGGER.log(Level.FINE, "setSectionTimeSignature() -- cliSection={0} ts={1}", new Object[]
         {
-            changeSection(cliSection, new Section(cliSection.getData().getName(), ts));
-        } catch (UnsupportedEditException ex)
-        {
-            fireClsActionEventComplete(ClsActionEvent.API_ID.SetSectionTimeSignature);          // Need to complete the ClsActionEvent
-            throw ex;
-        }
+            cliSection, ts
+        });
 
-        fireClsActionEventComplete(ClsActionEvent.API_ID.SetSectionTimeSignature);
+        final Section oldData = cliSection.getData();
+        final Section newData = new Section(oldData.getName(), ts);
+
+
+        // Fire vetoable event (don't need moved items yet)
+        var vetoEvent = new SectionChangedEvent(ChordLeadSheetImpl.this, cliSection, oldData, newData, Collections.emptyList());
+        fireVetoableChangeEvent(new ClsVetoableChangeEvent(this, vetoEvent));
+
+
+        Supplier<OperationResults> operation = () -> 
+        {
+            if (!items.contains(cliSection))
+            {
+                throw new IllegalArgumentException("items=" + items + " cliSection=" + cliSection);
+            }
+
+
+            // First adjust items if required
+            List<ItemMoved> adjustments;
+            if (ts.getNbNaturalBeats() < oldData.getTimeSignature().getNbNaturalBeats())
+            {
+                var iitems = getItems(cliSection, ChordLeadSheetItem.class, cli -> !ts.checkBeat(cli.getPosition().getBeat()));
+                adjustments = adjustItemsToTimeSignature(oldData.getTimeSignature(), ts, iitems);
+            } else
+            {
+                adjustments = Collections.emptyList();
+            }
+
+
+            // Update section
+            changeItemDataChecked(cliSection, newData);
+
+
+            // Prepare event data
+            final List<ChordLeadSheetItem<?>> movedItems = adjustments.stream()
+                    .map(ItemMoved::item)
+                    .toList();
+
+
+            UndoableEdit edit = new SimpleEdit("Set Section Time Signature " + ts)
+            {
+                @Override
+                public void undoBody()
+                {
+                    LOGGER.log(Level.FINER, "setSectionTimeSignature.undoBody() cliSection={0}", cliSection);
+                    performAPImethodUndoRedo(() -> 
+                    {
+                        changeItemDataChecked(cliSection, oldData);
+
+                        for (var adj : adjustments.reversed())
+                        {
+                            changeItemPositionChecked(adj.item(), adj.oldPos());
+                        }
+
+                        var event = new SectionChangedEvent(ChordLeadSheetImpl.this, cliSection, oldData, newData, movedItems);
+                        event.setIsUndo();
+                        return event;
+                    });
+                }
+
+                @Override
+                public void redoBody()
+                {
+                    LOGGER.log(Level.FINER, "setSectionTimeSignature.redoBody() cliSection={0}", cliSection);
+                    performAPImethodUndoRedo(() -> 
+                    {
+                        for (var adj : adjustments)
+                        {
+                            changeItemPositionChecked(adj.item(), adj.newPos());
+                        }
+
+                        changeItemDataChecked(cliSection, newData);
+
+                        var event = new SectionChangedEvent(ChordLeadSheetImpl.this, cliSection, oldData, newData, movedItems);
+                        event.setIsRedo();
+                        return event;
+                    });
+                }
+            };
+
+            var event = new SectionChangedEvent(ChordLeadSheetImpl.this, cliSection, oldData, newData, movedItems);
+            return new OperationResults(event, edit, null);
+        };
+
+        performAPImethod(operation);
     }
 
 
@@ -1009,7 +1278,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     }
 
     @Override
-    public synchronized boolean contains(ChordLeadSheetItem<?> item)
+    public boolean contains(ChordLeadSheetItem<?> item)
     {
         return items.contains(item);
     }
@@ -1023,26 +1292,35 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     }
 
     @Override
-    public synchronized <T extends ChordLeadSheetItem<?>> T getFirstItemAfter(ChordLeadSheetItem<?> cli, Class<T> itemClass, Predicate<T> tester)
+    public <T extends ChordLeadSheetItem<?>> T getFirstItemAfter(ChordLeadSheetItem<?> cli, Class<T> itemClass, Predicate<T> tester)
     {
         Preconditions.checkNotNull(cli);
         Preconditions.checkNotNull(tester);
         Preconditions.checkNotNull(itemClass);
 
         T res = null;
-        var tailSet = items.tailSet(cli, false);
-        for (var item : tailSet)
+
+        lock.readLock().lock();
+        try
         {
-            if (itemClass.isAssignableFrom(item.getClass()))
+            var tailSet = items.tailSet(cli, false);
+            for (var item : tailSet)
             {
-                T itemT = (T) item;
-                if (tester.test(itemT))
+                if (itemClass.isAssignableFrom(item.getClass()))
                 {
-                    res = itemT;
-                    break;
+                    T itemT = (T) item;
+                    if (tester.test(itemT))
+                    {
+                        res = itemT;
+                        break;
+                    }
                 }
             }
+        } finally
+        {
+            lock.readLock().unlock();
         }
+
 
         return res;
     }
@@ -1056,26 +1334,34 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     }
 
     @Override
-    public synchronized <T extends ChordLeadSheetItem<?>> T getLastItemBefore(ChordLeadSheetItem<?> cli, Class<T> itemClass, Predicate<T> tester)
+    public <T extends ChordLeadSheetItem<?>> T getLastItemBefore(ChordLeadSheetItem<?> cli, Class<T> itemClass, Predicate<T> tester)
     {
         Preconditions.checkNotNull(cli);
         Preconditions.checkNotNull(tester);
         Preconditions.checkNotNull(itemClass);
         T res = null;
-        var headSet = items.headSet(cli, false);
-        var it = headSet.descendingIterator();
-        while (it.hasNext())
+
+        lock.readLock().lock();
+        try
         {
-            var item = it.next();
-            if (itemClass.isAssignableFrom(item.getClass()))
+            var headSet = items.headSet(cli, false);
+            var it = headSet.descendingIterator();
+            while (it.hasNext())
             {
-                T itemT = (T) item;
-                if (tester.test(itemT))
+                var item = it.next();
+                if (itemClass.isAssignableFrom(item.getClass()))
                 {
-                    res = itemT;
-                    break;
+                    T itemT = (T) item;
+                    if (tester.test(itemT))
+                    {
+                        res = itemT;
+                        break;
+                    }
                 }
             }
+        } finally
+        {
+            lock.readLock().unlock();
         }
 
         return res;
@@ -1083,7 +1369,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
 
     @Override
-    public synchronized <T extends ChordLeadSheetItem<?>> List<T> getItems(Position posFrom, boolean inclusiveFrom, Position posTo, boolean inclusiveTo,
+    public <T extends ChordLeadSheetItem<?>> List<T> getItems(Position posFrom, boolean inclusiveFrom, Position posTo, boolean inclusiveTo,
             Class<T> itemClass,
             Predicate<T> tester)
     {
@@ -1092,73 +1378,83 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         Preconditions.checkNotNull(tester);
         Preconditions.checkNotNull(itemClass);
 
-        var rangeItems = items.subSet(
-                ChordLeadSheetItem.createItemFrom(posFrom, inclusiveFrom),
-                false,
-                ChordLeadSheetItem.createItemTo(posTo, inclusiveTo),
-                false);
+        List<T> res;
 
-        var res = rangeItems.stream()
-                .filter(item -> itemClass.isAssignableFrom(item.getClass()))
-                .map(cli -> (T) cli)
-                .filter(tester)
-                .toList();
+        lock.readLock().lock();
+        try
+        {
+            var rangeItems = items.subSet(
+                    ChordLeadSheetItem.createItemFrom(posFrom, inclusiveFrom),
+                    false,
+                    ChordLeadSheetItem.createItemTo(posTo, inclusiveTo),
+                    false);
+
+            res = rangeItems.stream()
+                    .filter(item -> itemClass.isAssignableFrom(item.getClass()))
+                    .map(cli -> (T) cli)
+                    .filter(tester)
+                    .toList();
+        } finally
+        {
+            lock.readLock().unlock();
+        }
 
         return res;
     }
 
 
     @Override
-    public synchronized void addUndoableEditListener(UndoableEditListener l)
+    public void addUndoableEditListener(UndoableEditListener l)
     {
-        if (l == null)
-        {
-            throw new NullPointerException("l=" + l);
-        }
+        Objects.requireNonNull(l);
         undoListeners.remove(l);
         undoListeners.add(l);
     }
 
     @Override
-    public synchronized void removeUndoableEditListener(UndoableEditListener l)
+    public void removeUndoableEditListener(UndoableEditListener l)
     {
-        if (l == null)
-        {
-            throw new NullPointerException("l=" + l);
-        }
+        Objects.requireNonNull(l);
         undoListeners.remove(l);
     }
 
     @Override
-    public synchronized void addClsChangeListener(ClsChangeListener l)
+    public void addClsChangeListener(ClsChangeListener l)
     {
-        if (l == null)
-        {
-            throw new NullPointerException("l=" + l);
-        }
+        Objects.requireNonNull(l);
         listeners.remove(l);
         listeners.add(l);
     }
 
     @Override
-    public synchronized void removeClsChangeListener(ClsChangeListener l)
+    public void removeClsChangeListener(ClsChangeListener l)
     {
-        if (l == null)
-        {
-            throw new NullPointerException("l=" + l);
-        }
         listeners.remove(l);
     }
 
     @Override
-    public synchronized String toString()
+    public void addClsChangeSyncListener(ClsChangeListener l)
+    {
+        Objects.requireNonNull(l);
+        syncListeners.remove(l);
+        syncListeners.add(l);
+    }
+
+    @Override
+    public void removeClsChangeSyncListener(ClsChangeListener l)
+    {
+        syncListeners.remove(l);
+    }
+
+    @Override
+    public String toString()
     {
         return "ChordLeadSheet section0=" + getSection(0).getData().getName() + " size=" + getSizeInBars();
     }
 
 
     @Override
-    public synchronized boolean equals(Object obj)
+    public boolean equals(Object obj)
     {
         if (this == obj)
         {
@@ -1173,17 +1469,25 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             return false;
         }
         final ChordLeadSheetImpl other = (ChordLeadSheetImpl) obj;
-        if (this.size != other.size)
+
+        boolean b = false;
+        lock.readLock().lock();
+        try
         {
-            return false;
+            if (this.size == other.size)
+            {
+                b = Objects.equals(this.items, other.items);
+            }
+        } finally
+        {
+            lock.readLock().unlock();
         }
-        return Objects.equals(this.items, other.items);
+        return b;
     }
-
-
     // --------------------------------------------------------------------------------------
     // Private methods
     // --------------------------------------------------------------------------------------
+
     /**
      * Remove sections and items.
      * <p>
@@ -1219,7 +1523,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         // Remove all non section items
         if (!removedItems.isEmpty())
         {
-            synchronized (this)
+            (this)
             {
                 removedItems.forEach(item -> removeItemChecked(item));
             }
@@ -1231,7 +1535,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 public void undoBody()
                 {
                     LOGGER.log(Level.FINER, "removeSectionsAndItems.undoBody() removedItems={0}", removedItems);
-                    synchronized (ChordLeadSheetImpl.this)
+                    (ChordLeadSheetImpl.this)
                     {
                         removedItems.forEach(item -> addItemChecked(item));
                     }
@@ -1242,7 +1546,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 public void redoBody()
                 {
                     LOGGER.log(Level.FINER, "removeSectionsAndItems.redoBody() removedItems={0}", removedItems);
-                    synchronized (ChordLeadSheetImpl.this)
+                    (ChordLeadSheetImpl.this)
                     {
                         removedItems.forEach(item -> removeItemChecked(item));
                     }
@@ -1265,28 +1569,31 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     }
 
     /**
-     * Adjust the position of the specified items from oldTs to newTs.
+     * Adjust the position of the specified items to fit newTs.
+     * <p>
      *
      * @param oldTs
      * @param newTs
      * @param iitems
+     * @return The list of moved items (each item stays within its bar)
      */
     @SuppressWarnings("rawtypes")
-    private void adjustItemsToTimeSignature(TimeSignature oldTs, TimeSignature newTs, List<? extends ChordLeadSheetItem> iitems)
+    private List<ItemMoved> adjustItemsToTimeSignature(TimeSignature oldTs, TimeSignature newTs, List<? extends ChordLeadSheetItem> iitems)
     {
-        if (newTs == null || iitems == null || oldTs == null)
-        {
-            throw new IllegalArgumentException("iitems=" + iitems + " oldTs=" + oldTs + " newTs=" + newTs);
-        }
+        Objects.requireNonNull(oldTs);
+        Objects.requireNonNull(newTs);
+        Objects.requireNonNull(iitems);
 
         LOGGER.log(Level.FINER, "adjustItemsToTimeSignature() -- oldTs={0} newTs={1} iitems={2}", new Object[]
         {
             oldTs, newTs, iitems
         });
 
-        if (oldTs.equals(newTs))
+        List<ItemMoved> res = new ArrayList<>();
+
+        if (oldTs.getNbNaturalBeats() == newTs.getNbNaturalBeats())
         {
-            return;
+            return res;
         }
 
         for (ChordLeadSheetItem<?> item : iitems)
@@ -1295,13 +1602,23 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             Position newPos = oldPos.getConverted(oldTs, newTs);
             if (!newPos.equals(oldPos))
             {
-                if (!moveItem(item, newPos))
+                // Make sure we don't have a collision
+                while (items.contains(item.getCopy(null, newPos)))
                 {
-                    // Special case, eg in 4/4: 2 identical chords are on beats 3 and 3.5, when switching to 3/4, the move from 3.5 to 3 will do nothing
-                    removeItem(item);
+                    float newBeat = (float) (Math.floor((newPos.getBeat() - 0.00001f) / 0.25f) * 0.25f);     // nearest 0.25 multiple below
+                    if (newBeat < 0)
+                    {
+                        // Theorically can happen, but it would mean user fully packed the bar with many identical chords, which makes no sense
+                        throw new IllegalStateException("oldTs=" + oldTs + " newTs=" + newTs + " item=" + item + " newBeat=" + newBeat + " iitems=" + items);
+                    }
+                    newPos.setBeat(newBeat);
                 }
+
+                changeItemPositionChecked(item, newPos);
+                res.add(new ItemMoved(item, oldPos, newPos));
             }
         }
+        return res;
     }
 
     /**
@@ -1328,7 +1645,6 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             shiftedItems, nbBars
         });
 
-        Collections.synchronizedList(listeners);
         if (shiftedItems.isEmpty() || nbBars == 0)
         {
             return;
@@ -1340,8 +1656,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         }
         final List<SavedItem> savedItems = new ArrayList<>();
         final List<ChordLeadSheetItem> itemList = nbBars < 0 ? shiftedItems : shiftedItems.reversed();
-
-        synchronized (this)
+        (this)
         {
             for (var item : itemList)
             {
@@ -1364,7 +1679,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 {
                     shiftedItems, nbBars
                 });
-                synchronized (ChordLeadSheetImpl.this)
+                (ChordLeadSheetImpl.this)
                 {
                     for (var savedItem : savedItems.reversed())
                     {
@@ -1381,7 +1696,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 {
                     shiftedItems, nbBars
                 });
-                synchronized (ChordLeadSheetImpl.this)
+                (ChordLeadSheetImpl.this)
                 {
                     for (var savedItem : savedItems)
                     {
@@ -1432,8 +1747,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             var iitems = getItems(cliSection, ChordLeadSheetItem.class, cli -> true);
             adjustItemsToTimeSignature(oldTs, newTs, iitems);
         }
-
-        synchronized (this)
+        (this)
         {
             changeItemDataChecked(cliSection, newData);
         }
@@ -1450,7 +1764,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                     cliSection, oldData,
                     newData
                 });
-                synchronized (ChordLeadSheetImpl.this)
+                (ChordLeadSheetImpl.this)
                 {
                     changeItemDataChecked(cliSection, oldData);
                 }
@@ -1465,7 +1779,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                     cliSection, oldData,
                     newData
                 });
-                synchronized (ChordLeadSheetImpl.this)
+                (ChordLeadSheetImpl.this)
                 {
                     changeItemDataChecked(cliSection, newData);
                 }
@@ -1487,10 +1801,10 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
         // Check change is not vetoed
         var event = new ItemRemovedEvent(ChordLeadSheetImpl.this, cliSection);
-        fireVetoableChangeEvent(new ClsVetoableChangeEvent(this, event));   // throws UnsupportedEditException
+        fireVetoableChangeEvent(new ClsVetoableChangeEvent(this, event)); // throws UnsupportedEditException
 
         // Change state
-        synchronized (this)
+        (this)
         {
             removeItemChecked(cliSection);
         }
@@ -1502,7 +1816,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             public void undoBody()
             {
                 LOGGER.log(Level.FINER, "removeInitialSection.undoBody() cliSection={0}", cliSection);
-                synchronized (ChordLeadSheetImpl.this)
+                (ChordLeadSheetImpl.this)
                 {
                     addItemChecked(cliSection);
                 }
@@ -1513,7 +1827,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             public void redoBody()
             {
                 LOGGER.log(Level.FINER, "removeInitialSection.redoBody() cliSection={0}", cliSection);
-                synchronized (ChordLeadSheetImpl.this)
+                (ChordLeadSheetImpl.this)
                 {
                     removeItemChecked(cliSection);
                 }
@@ -1565,61 +1879,68 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     }
 
     /**
-     * Make sure that a change is authorized by all listeners.
+     * Make sure that the changed will be authorized by all (non sycnrhonized) listeners.
      * <p>
      *
      * @param event
      * @throws org.jjazz.chordleadsheet.api.UnsupportedEditException
      */
-    protected void fireVetoableChangeEvent(ClsVetoableChangeEvent event) throws UnsupportedEditException
+    private void fireVetoableChangeEvent(ClsVetoableChangeEvent event) throws UnsupportedEditException
     {
-        ClsChangeListener[] snapshot;
-        synchronized (this)
+        Objects.requireNonNull(event);
+
+        for (ClsChangeListener l : getListenersSnapshot(listeners))
         {
-            snapshot = listeners.toArray(ClsChangeListener[]::new);
-        }
-        for (ClsChangeListener l : snapshot)
-        {
-            l.chordLeadSheetChanged(event);
+            l.chordLeadSheetChanged(event);         // throws UnsupportedEditException
         }
     }
 
     /**
-     * Fire a change event to all listeners.
+     * Fire a change event to all (non synchronized) listeners.
      * <p>
-     * If it's not a ClsActionEvent also add the event to the active ClsActionEvent.
      *
      * @param event Can not be a ClsVetoableChangeEvent
      */
-    protected void fireNonVetoableChangeEvent(ClsChangeEvent event)
+    private void fireNonVetoableChangeEvent(ClsChangeEvent event)
     {
-        Objects.requireNonNull(event);
-        Preconditions.checkArgument(!(event instanceof ClsVetoableChangeEvent), "event=%s", event);
+        Preconditions.checkArgument(event != null && !(event instanceof ClsVetoableChangeEvent), "event=%s", event);
 
-        ClsChangeListener[] snapshot;
-        synchronized (this)
-        {
-            if (!(event instanceof ClsActionEvent))
-            {
-                assert activeClsActionEvent != null : "event=" + event;
-                activeClsActionEvent.addSubEvent(event);
-            }
-
-            snapshot = listeners.toArray(ClsChangeListener[]::new);
-        }
-
-        for (ClsChangeListener l : snapshot)
+        for (ClsChangeListener l : getListenersSnapshot(listeners))
         {
             try
             {
                 l.chordLeadSheetChanged(event);
             } catch (UnsupportedEditException ex)
             {
-                // Should never happen
+                // Should never happen since non vetoable
                 Exceptions.printStackTrace(ex);
             }
         }
     }
+
+    /**
+     * Fire a change event to all synchronized listeners.
+     * <p>
+     *
+     * @param event
+     */
+    private void fireSynchronizedNonVetoableChangeEvent(ClsChangeEvent event)
+    {
+        Preconditions.checkArgument(event != null && !(event instanceof ClsVetoableChangeEvent), "event=%s", event);
+
+        for (ClsChangeListener l : getListenersSnapshot(syncListeners))
+        {
+            try
+            {
+                l.chordLeadSheetChanged(event);
+            } catch (UnsupportedEditException ex)
+            {
+                // Should never happen since non vetoable
+                Exceptions.printStackTrace(ex);
+            }
+        }
+    }
+
 
     private void fireUndoableEditHappened(UndoableEdit edit)
     {
@@ -1630,7 +1951,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         UndoableEditEvent event = new UndoableEditEvent(this, edit);
 
         UndoableEditListener[] snapshot;
-        synchronized (this)
+        synchronized (lock)
         {
             snapshot = undoListeners.toArray(UndoableEditListener[]::new);
         }
@@ -1642,117 +1963,104 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     }
 
     /**
-     * Set the active ClsActionEvent, unless there is already an active ClsActionEvent, and fire the required events.
-     * <p>
-     * This creates an undoable edit and notify listeners.
+     * Get a synchronized snapshot of the specified listeners.
      *
-     * @param apiId
-     * @param data
+     * @param listeners
+     * @return
      */
-    private synchronized void fireClsActionEventStart(ClsActionEvent.API_ID apiId, Object data)
+    private ClsChangeListener[] getListenersSnapshot(List<ClsChangeListener> listeners)
     {
-        Objects.requireNonNull(apiId);
-        LOGGER.log(Level.FINE, "fireClsActionEventStart() -- apiId={0} activeClsActionEvent.apiId={1}  data={2}", new Object[]
+        ClsChangeListener[] snapshot;
+        synchronized (lock)
         {
-            apiId, activeClsActionEvent == null ? "null" : activeClsActionEvent.getApiId(), data
-        });
+            snapshot = listeners.toArray(ClsChangeListener[]::new);
+        }
+        return snapshot;
+    }
 
-        if (activeClsActionEvent != null)
+
+    /**
+     * Safely perform a mutating API method.
+     *
+     * @param operation Updates the model and returns the events
+     * @return The returnValue from OperationResults
+     */
+    private Object performAPImethod(Supplier<OperationResults> operation)
+    {
+        OperationResults results = null;
+
+        lock.writeLock().lock();
+        try
         {
-            assert activeClsActionEvent.getApiId() != apiId :
-                    "apiId=" + apiId + " activeClsActionEvent=" + activeClsActionEvent + " data=" + Objects.toString(data, "null");
-            return;
+            results = operation.get();
+            assert results != null;
+
+            if (results.undoableEdit() != null)
+            {
+                fireUndoableEditHappened(results.undoableEdit());
+            }
+            if (results.clsChangeEvent() != null)
+            {
+                fireSynchronizedNonVetoableChangeEvent(results.clsChangeEvent());
+            }
+        } finally
+        {
+            lock.writeLock().unlock();
         }
 
-        // Create an undoable event for this event which does nothing but refiring the ClsActionEvent
-        UndoableEdit edit = new SimpleEdit("ClsActionEventEdit(" + apiId + ")")
+        if (results.clsChangeEvent() != null)
         {
-            @Override
-            public void undoBody()
-            {
-                synchronized (ChordLeadSheetImpl.this)
-                {
-                    assert activeClsActionEvent != null;        // previously set by undo from fireClsActionEventComplete()
-                    activeClsActionEvent.complete();
-                    fireNonVetoableChangeEvent(activeClsActionEvent);
-                    activeClsActionEvent = null;
-                }
-            }
-
-            @Override
-            public void redoBody()
-            {
-                synchronized (ChordLeadSheetImpl.this)
-                {
-                    assert activeClsActionEvent == null : "activeClsActionEvent" + activeClsActionEvent;        // previously set by undoBody()
-                    activeClsActionEvent = new ClsActionEvent(ChordLeadSheetImpl.this, apiId, data);
-                    fireNonVetoableChangeEvent(activeClsActionEvent);
-                }
-            }
-        };
-        fireUndoableEditHappened(edit);
-
-        LOGGER.log(Level.FINE, "fireClsActionEventStart() create new activeClsActionEvent apiId={0}  data={1}", new Object[]
-        {
-            apiId, data
-        });
-        activeClsActionEvent = new ClsActionEvent(this, apiId, data);
-        fireNonVetoableChangeEvent(activeClsActionEvent);
+            fireNonVetoableChangeEvent(results.clsChangeEvent());
+        }
+        return results.returnValue();
     }
 
     /**
-     * Complete the active ClsActionEvent, unless the active one is not linked to actionId, and fire the required events.
+     * Safely perform an undo or redo operation for mutating API method.
      *
-     * @param apiId
+     * @param operation Updates model and return a ClsChangeEvent
      */
-    private synchronized void fireClsActionEventComplete(ClsActionEvent.API_ID apiId)
+    private void performAPImethodUndoRedo(Supplier<ClsChangeEvent> operation)
     {
-        Objects.requireNonNull(apiId);
-        UndoableEdit edit;
-
-        assert activeClsActionEvent != null : "apiId=" + apiId;
-        if (activeClsActionEvent.getApiId() != apiId)
+        ClsChangeEvent event;
+        lock.writeLock().lock();
+        try
         {
-            return;
+            event = operation.get();
+            assert event != null;
+            fireSynchronizedNonVetoableChangeEvent(event);
+        } finally
+        {
+            lock.writeLock().unlock();
         }
+        fireNonVetoableChangeEvent(event);
+    }
+    // ==========================================================================================================================
+    // Inner classes
+    // ==========================================================================================================================    
 
-        var data = activeClsActionEvent.getData();
 
-        // Create an undoable event for this event which does nothing but refiring the ClsActionEvent
-        edit = new SimpleEdit("ClsActionEventEdit(" + apiId + ")")
-        {
-            @Override
-            public void undoBody()
+    /**
+     * Helper class to store the events and return value produced by a mutating API method.
+     */
+    private record OperationResults(ClsChangeEvent clsChangeEvent, UndoableEdit undoableEdit, Object returnValue)
             {
-                synchronized (ChordLeadSheetImpl.this)
-                {
-                    assert activeClsActionEvent == null : "activeClsActionEvent=" + activeClsActionEvent;   // previously set by fireClsActionEventComplete()
-                    activeClsActionEvent = new ClsActionEvent(ChordLeadSheetImpl.this, apiId, data);
-                    fireNonVetoableChangeEvent(activeClsActionEvent);
-                }
-            }
 
-            @Override
-            public void redoBody()
+    }
+
+    /**
+     * Helper class to store a moved item.
+     */
+    private record ItemMoved(ChordLeadSheetItem<?> item, Position oldPos, Position newPos)
             {
-                synchronized (ChordLeadSheetImpl.this)
-                {
-                    assert activeClsActionEvent != null;            // previously set by undoBody
-                    activeClsActionEvent.complete();
-                    fireNonVetoableChangeEvent(activeClsActionEvent);
-                    activeClsActionEvent = null;
-                }
-            }
-        };
-        fireUndoableEditHappened(edit);
 
-        activeClsActionEvent.complete();
-        fireNonVetoableChangeEvent(activeClsActionEvent);
-        LOGGER.log(Level.FINE, "fireClsActionEventComplete() RESETTING activeClsActionEvent apiId={0}", new Object[]
+        ItemMoved
         {
-            apiId
-        });
-        activeClsActionEvent = null;
+            Objects.requireNonNull(item);
+            Objects.requireNonNull(oldPos);
+            Objects.requireNonNull(newPos);
+            Preconditions.checkArgument(!oldPos.equals(newPos), "this=%s", this);
+        }
     }
 
     /**

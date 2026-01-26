@@ -28,8 +28,8 @@ import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 /**
  * A special vetoable event sent before performing a ChordLeadSheet change that can be vetoed by its listeners.
  * <p>
- * For example changeSection() can be vetoed by a SongStructure listener if it can't find a Rhythm for the new TimeSignature, or if there is not enough Midi
- * channels.
+ * For example a section's time signature change can be vetoed by a SongStructure listener if no Rhythm is found for the new TimeSignature, or if there is not
+ * enough Midi channels.
  * <p>
  * All the ChordLeadSheet methods which throw UnsupportedEditException send a ClsVetoableChangeEvent. The listener is responsible to analyze the passed
  * ClsChangeEvent and throw an UnsupportedEditException (with an user error message) to veto the change.
@@ -45,10 +45,7 @@ public class ClsVetoableChangeEvent extends ClsChangeEvent
     public ClsVetoableChangeEvent(ChordLeadSheet src, ClsChangeEvent changeEvent)
     {
         super(src);
-        Preconditions.checkArgument(
-                !(changeEvent instanceof ClsActionEvent)
-                && !(changeEvent instanceof ClsVetoableChangeEvent)
-                && changeEvent.getSource() == src,
+        Preconditions.checkArgument(!(changeEvent instanceof ClsVetoableChangeEvent) && changeEvent.getSource() == src,
                 "changeEvent=%s", changeEvent);
         this.changeEvent = changeEvent;
     }

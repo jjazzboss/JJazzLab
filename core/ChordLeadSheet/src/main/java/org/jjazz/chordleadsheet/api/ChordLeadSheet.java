@@ -24,6 +24,7 @@ package org.jjazz.chordleadsheet.api;
 
 import com.google.common.base.Preconditions;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Predicate;
 import javax.swing.event.UndoableEditListener;
 import org.jjazz.harmony.api.TimeSignature;
@@ -37,9 +38,6 @@ import org.jjazz.utilities.api.IntRange;
  * <p>
  * The leadsheet is made of sections (a name + a time signature) and items like chord symbols or bar annotations.
  * <p>
- * Implementation must fire the relevant ClsChangeEvents: start and complete ClsActionEvents for an API method, with the related low-level ClsChangeEvents. If
- * API method1 calls API method2, ClsActionEvents are only fired for API method1, i.e. ClsActionEvents are not nested.
- * <p>
  * - The first bar must always contain a section <br>
  * - 2 sections can't have the same name<br>
  * - All ChordLeadSheetItems belonging to a chord leadsheet must be unique (2 ChordLeadSheetItems can not be equal)<br>
@@ -51,12 +49,11 @@ public interface ChordLeadSheet
 
 
     /**
-     * Get a deep copy of this ChordLeadSheet (all ChordLeadSheetItems are deeply copied).
+     * Set the size of the ChordLeadSheet.
      *
-     * Transient fields such as listeners are not copied.
-     * @return
+     * @param size The numbers of bars, must be &gt;= 1 and &lt; MAX_SIZE.
      */
-    ChordLeadSheet getDeepCopy();
+    void setSizeInBars(int size);
 
     /**
      * Add an item to the leadsheet.
@@ -81,16 +78,15 @@ public interface ChordLeadSheet
     void removeItem(ChordLeadSheetItem<?> item);
 
     /**
-     * Add a section to the leadsheet or, if a section already exists at the same bar, update its section name and time signature.
+     * Add a section to the leadsheet.
      * <p>
-     * Trailing items' position might be adjusted if it results in a time signature change.
+     * Replace any existing section at the same bar. Trailing items' position might be adjusted if it results in a time signature change.
      *
      * @param cliSection
-     * @return cliSection if it was added, or the existing CLI_Section that was updated.
      * @throws IllegalArgumentException If section is invalid (e.g. section is after chordleadsheet size)
      * @throws UnsupportedEditException If a ChordLeadSheet change listener vetoes this edit. Exception is thrown before any change is done.
      */
-    CLI_Section addSection(CLI_Section cliSection) throws UnsupportedEditException;
+    void addSection(CLI_Section cliSection) throws UnsupportedEditException;
 
     /**
      * Remove a section from the leadsheet.
@@ -98,9 +94,8 @@ public interface ChordLeadSheet
      * The section on bar 0 can not be removed. Trailing items' position might be adjusted if it results in a time signature change.
      *
      * @param section
-     * @throws UnsupportedEditException If a ChordLeadSheet change listener vetoes this edit. Exception is thrown before any change is done.
      */
-    void removeSection(CLI_Section section) throws UnsupportedEditException;
+    void removeSection(CLI_Section section);
 
     /**
      * Change the name of section.
@@ -152,7 +147,8 @@ public interface ChordLeadSheet
     /**
      * Change the data of a specific item.
      * <p>
-     * Nothing is done if an equal item (using data) is already in the chord leadsheet.
+     * Nothing is done if an equal item (using data) is already in the chord leadsheet. For CLI_Section use the dedicated methods setSectionName() and
+     * setSectionTimeSignature().
      *
      * @param <T>
      * @param item Must be a WritableItem. Can not be a section.
@@ -189,11 +185,9 @@ public interface ChordLeadSheet
      *
      * @param barIndexFrom
      * @param barIndexTo
-     * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. IMPORTANT:some undoable changes might have been done
-     *                                  before exception is thrown, caller will need to rollback them.
      * @throws IllegalArgumentException If barIndexFrom/To are not consistent with this chord leadsheet, or if all bars would be deleted
      */
-    void deleteBars(int barIndexFrom, int barIndexTo) throws UnsupportedEditException;
+    void deleteBars(int barIndexFrom, int barIndexTo);
 
     /**
      * Cleanup function to be called so that the object can be garbaged.
@@ -508,19 +502,31 @@ public interface ChordLeadSheet
         return new IntRange(pos.getBar(), lastBar);
     }
 
-
     /**
-     * Set the size of the ChordLeadSheet.
+     * The synchronization lock used by this object.
+     * <p>
+     * To be used for higher-level synchronization purposes.
      *
-     * @param size The numbers of bars, must be &gt;= 1 and &lt; MAX_SIZE.
-     * @throws UnsupportedEditException If a ChordLeadSheet change listener does not authorize this edit. Exception is thrown before any change is done.
+     * @return Can not be null
      */
-    void setSizeInBars(int size) throws UnsupportedEditException;
+    ReentrantReadWriteLock getLock();
 
     /**
-     * Add a listener to item changes of this object.
+     * Get a deep copy of this ChordLeadSheet (all ChordLeadSheetItems are deeply copied).
+     * <p>
+     * Transient fields such as listeners are not copied.
+     *
+     * @return
+     */
+    ChordLeadSheet getDeepCopy();
+
+    /**
+     * Add a listener to changes of this object.
+     * <p>
+     * Listener will be called while outside of the ReentrantReadWriteLock write lock. General-purpose listeners (e.g. for updating UI ) should use this method.
      *
      * @param l
+     * @see #addClsChangeSyncListener(org.jjazz.chordleadsheet.api.ClsChangeListener)
      */
     void addClsChangeListener(ClsChangeListener l);
 
@@ -530,6 +536,23 @@ public interface ChordLeadSheet
      * @param l
      */
     void removeClsChangeListener(ClsChangeListener l);
+
+    /**
+     * Add a synchronized listener to changes of this object.
+     * <p>
+     * Listener will be called while the ReentrantReadWriteLock write lock is held. General purpose listeners should use addClsChangeListener() instead.
+     *
+     * @param l
+     * @see #addClsChangeListener(org.jjazz.chordleadsheet.api.ClsChangeListener)
+     */
+    void addClsChangeSyncListener(ClsChangeListener l);
+
+    /**
+     * Remove a synchronized listener to this object's changes.
+     *
+     * @param l
+     */
+    void removeClsChangeSyncListener(ClsChangeListener l);
 
     /**
      * Add a listener to undoable edits.

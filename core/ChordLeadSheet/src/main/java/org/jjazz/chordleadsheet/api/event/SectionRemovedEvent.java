@@ -24,45 +24,43 @@ package org.jjazz.chordleadsheet.api.event;
 
 import java.util.List;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 
-
 /**
- * Size was changed.
- * <p>
- * getItems() return the possible removed items.
+ * A CLI_Section was removed, possibly replacing an existing one in the same bar.
  */
-public class SizeChangedEvent extends ClsChangeEvent
+public class SectionRemovedEvent extends ClsChangeEvent
 {
 
-    final private int oldSize, newSize;
+    private final List<ChordLeadSheetItem> adjustedItems;
 
-    public SizeChangedEvent(ChordLeadSheet src, int oldSize, int newSize, List<ChordLeadSheetItem> removedItems)
+    /**
+     *
+     * @param src
+     * @param cliSection    The added section
+     * @param adjustedItems Possible items (like CLI_ChordSymbols) whose beat was moved sooner in the bar because of a new time signature with less beats. Can
+     *                      be empty.
+     */
+    public SectionRemovedEvent(ChordLeadSheet src, CLI_Section cliSection, List<ChordLeadSheetItem> adjustedItems)
     {
-        super(src, removedItems);
-        this.oldSize = oldSize;
-        this.newSize = newSize;
+        super(src, cliSection);
+        this.adjustedItems = adjustedItems;
+    }
+
+    public List<ChordLeadSheetItem> getAdjustedItems()
+    {
+        return adjustedItems;
+    }
+
+    public CLI_Section getCLI_Section()
+    {
+        return (CLI_Section) getItem();
     }
 
     @Override
     public String toString()
     {
-        return "SizeChangedEvent[oldSize=" + getOldSize() + ", newSize=" + getNewSize() + ", removedItems=" + items + "]";
-    }
-
-    /**
-     * @return the oldSize
-     */
-    public int getOldSize()
-    {
-        return oldSize;
-    }
-
-    /**
-     * @return the newSize
-     */
-    public int getNewSize()
-    {
-        return newSize;
+        return "SectionRemovedEvent[item=" + getCLI_Section() + ", adjustedItems=" + adjustedItems + "]";
     }
 }

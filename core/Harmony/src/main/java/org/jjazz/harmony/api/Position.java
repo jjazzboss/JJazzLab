@@ -40,6 +40,8 @@ import org.openide.util.lookup.ServiceProvider;
 
 /**
  * A bar/beat position.
+ * <p>
+ * This is a mutable class.
  */
 public final class Position implements Comparable<Position>, Serializable
 {

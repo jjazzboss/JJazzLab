@@ -10,7 +10,7 @@ JJazzLab is a musical application which generates MIDI backing tracks. It's a ja
 
 ## Libraries
 
-- Guava
+- **Guava**
 - Xstream for serialization
 
 ## Best practices
@@ -21,6 +21,7 @@ JJazzLab is a musical application which generates MIDI backing tracks. It's a ja
 - **Type Inference**: Use `var` for local variable declarations to improve readability, but only when the type is explicitly clear from the right-hand side of the expression.
 - **Javadoc**: required except for trivial cases such as a short method with a self-explanatory name.
 - **Comment**: use comments in the code
+- **Preconditions**: use Objects.requireNonNull(var) and Guava Preconditions methods for other cases.
 
 ### Naming Conventions
 

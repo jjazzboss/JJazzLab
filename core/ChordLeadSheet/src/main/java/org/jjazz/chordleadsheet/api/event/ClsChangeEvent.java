@@ -23,14 +23,14 @@
 package org.jjazz.chordleadsheet.api.event;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 
 /**
- * The base class which represents a change in the ChordLeadSheet.
+ * Each mutating ChordLeadSheet API method fires one ClsChangeEvent.
  */
 public abstract class ClsChangeEvent
 {
@@ -40,17 +40,17 @@ public abstract class ClsChangeEvent
      */
     protected ChordLeadSheet source;
     /**
-     * The ChordLeadSheet items which have changed.
+     * The ChordLeadSheet items which were impacted
      */
     protected List<ChordLeadSheetItem> items;
 
 
+    private boolean isUndo, isRedo;
+
+
     protected ClsChangeEvent(ChordLeadSheet src)
     {
-        if (src == null)
-        {
-            throw new IllegalArgumentException("src=" + src);
-        }
+        Objects.requireNonNull(src);
         source = src;
         items = new ArrayList<>();
     }
@@ -61,23 +61,72 @@ public abstract class ClsChangeEvent
      */
     protected ClsChangeEvent(ChordLeadSheet src, ChordLeadSheetItem<?> item)
     {
-        this(src, Arrays.asList(item));
+        this(src, List.of(item));
     }
 
     /**
      * @param src
-     * @param items The list of the ChordLeadSheetItems which have changed.
+     * @param items The list of the impacted ChordLeadSheetItems.
      */
     protected ClsChangeEvent(ChordLeadSheet src, List<ChordLeadSheetItem> items)
     {
         this(src);
-        if (items == null)
+        Objects.requireNonNull(items);
+        this.items = new ArrayList<>(items);
+        Collections.sort(this.items);
+    }
+
+    public void addItem(ChordLeadSheetItem<?> item)
+    {
+        if (!items.contains(item))
         {
-            throw new NullPointerException("src=" + src + " items=" + items);
+            items.add(item);
+            Collections.sort(items);
         }
-        var sortedItems = new ArrayList<>(items);
-        Collections.sort(sortedItems);
-        this.items.addAll(sortedItems);
+    }
+
+    /**
+     * Set isUndo to true.
+     */
+    public void setIsUndo()
+    {
+        this.isUndo = true;
+    }
+
+    /**
+     * Set isRedo to true.
+     */
+    public void setIsRedo()
+    {
+        this.isRedo = true;
+    }
+
+
+    /**
+     * True if this is an undo event, i.e. this event's change was just undone.
+     *
+     * @return
+     * @see #setIsUndo()
+     */
+    public boolean isUndo()
+    {
+        return isUndo;
+    }
+
+    /**
+     * True if this is a redo event, i.e. this event's change was just redone.
+     *
+     * @return
+     * @see #setIsRedo()
+     */
+    public boolean isRedo()
+    {
+        return isRedo;
+    }
+
+    public boolean isUndoOrRedo()
+    {
+        return isUndo || isRedo;
     }
 
     /**
