@@ -85,9 +85,9 @@ import org.openide.util.actions.Presenter;
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.insertchordprogression")
 @ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
-        {
-            @ActionReference(path = "Actions/BarInsert", position = 200)
-        })
+    {
+        @ActionReference(path = "Actions/BarInsert", position = 200)
+    })
 public final class InsertChordProgressionActionMenu extends AbstractAction implements Presenter.Popup, ContextAwareAction
 {
 
@@ -135,7 +135,6 @@ public final class InsertChordProgressionActionMenu extends AbstractAction imple
         // Not used
     }
 
-
     // ============================================================================================= 
     // Presenter.Popup implementation
     // =============================================================================================      
@@ -148,7 +147,6 @@ public final class InsertChordProgressionActionMenu extends AbstractAction imple
     // ============================================================================================= 
     // Private methods
     // =============================================================================================    
-
     private JMenu prepareMenu(JMenu menu, CL_Selection selection)
     {
         File chordProgressionFile = getChordProgressionTextFile();
@@ -285,16 +283,15 @@ public final class InsertChordProgressionActionMenu extends AbstractAction imple
         }
 
         if (!CHORD_PROGRESSION_TEXT_FILE.exists()
-                && !org.jjazz.utilities.api.Utilities.copyResource(getClass(), CHORD_PROGRESSION_RESOURCE, CHORD_PROGRESSION_TEXT_FILE.toPath()))
+            && !org.jjazz.utilities.api.Utilities.copyResource(getClass(), CHORD_PROGRESSION_RESOURCE, CHORD_PROGRESSION_TEXT_FILE.toPath()))
         {
             LOGGER.log(Level.SEVERE, "getChordProgressionTextFile() Could not " + CHORD_PROGRESSION_RESOURCE + " to {0}",
-                    CHORD_PROGRESSION_TEXT_FILE.getAbsolutePath());
+                CHORD_PROGRESSION_TEXT_FILE.getAbsolutePath());
             CHORD_PROGRESSION_TEXT_FILE = null;
         }
 
         return CHORD_PROGRESSION_TEXT_FILE;
     }
-
 
     /**
      * Convert the line in a chord sequence.
@@ -352,19 +349,7 @@ public final class InsertChordProgressionActionMenu extends AbstractAction imple
         int newSize = modelBarIndex + barRange.size();
         if (newSize > cls.getSizeInBars())
         {
-            try
-            {
-                cls.setSizeInBars(newSize);
-            } catch (UnsupportedEditException ex)
-            {
-                LOGGER.log(Level.SEVERE, "insertChordProgression() Can not set size={0} of cls. ex={1}", new Object[]
-                {
-                    newSize, ex.getMessage()
-                });
-                String msg = "Impossible to resize chord leadsheet.\n" + ex.getLocalizedMessage();
-                um.abortCEdit(menu.getText(), msg);
-                return;
-            }
+            cls.setSizeInBars(newSize);
         }
 
 
@@ -435,17 +420,16 @@ public final class InsertChordProgressionActionMenu extends AbstractAction imple
     private boolean checkChordSequence(ChordSequence cSeq)
     {
         boolean b = cSeq.getBarRange().stream()
-                .allMatch(bar -> cSeq.subSequence(new IntRange(bar, bar), false).size() <= 2);
+            .allMatch(bar -> cSeq.subSequence(new IntRange(bar, bar), false).size() <= 2);
         return b;
     }
 
     private boolean guessSwing(CLI_Section cliSection, Song song)
     {
         boolean b = song.getSongStructure().getSongParts().stream()
-                .filter(spt -> spt.getParentSection() == cliSection)
-                .allMatch(spt -> !spt.getRhythm().getFeatures().division().isBinary());
+            .filter(spt -> spt.getParentSection() == cliSection)
+            .allMatch(spt -> !spt.getRhythm().getFeatures().division().isBinary());
         return b;
     }
-
 
 }

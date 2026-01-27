@@ -83,12 +83,12 @@ public class Paste extends CL_ContextAction implements FlavorListener
     @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.paste")
     @ActionRegistration(displayName = "not_used", lazy = false)
     @ActionReferences(
-            {
-                @ActionReference(path = "Actions/Section", position = 1200),
-                @ActionReference(path = "Actions/ChordSymbol", position = 1200),
-                @ActionReference(path = "Actions/Bar", position = 1200),
-                @ActionReference(path = "Actions/BarAnnotation", position = 1020)
-            })
+        {
+            @ActionReference(path = "Actions/Section", position = 1200),
+            @ActionReference(path = "Actions/ChordSymbol", position = 1200),
+            @ActionReference(path = "Actions/Bar", position = 1200),
+            @ActionReference(path = "Actions/BarAnnotation", position = 1020)
+        })
     public static Paste getInstance()
     {
         if (INSTANCE == null)
@@ -211,17 +211,7 @@ public class Paste extends CL_ContextAction implements FlavorListener
             if (targetBarIndex >= cls.getSizeInBars())
             {
                 // Resize
-                try
-                {
-                    cls.setSizeInBars(targetBarIndex + nbInsertBars);
-                } catch (UnsupportedEditException ex)
-                {
-                    // Should never happen when resizing bigger
-                    String msg = "Impossible to resize.\n" + ex.getLocalizedMessage();
-                    msg += "\n" + ex.getLocalizedMessage();
-                    um.abortCEdit(getActionName(), msg);
-                    return;
-                }
+                cls.setSizeInBars(targetBarIndex + nbInsertBars);
             } else
             {
                 // Insert bars
@@ -247,7 +237,7 @@ public class Paste extends CL_ContextAction implements FlavorListener
                     CLI_Section newSection = (CLI_Section) itemSection.getCopy(null, cls);
                     try
                     {
-                        newSection = cls.addSection(newSection);
+                        cls.addSection(newSection);
                         LOGGER.log(Level.FINE, "newSection={0}", newSection);   // Just to make sure newSection is used
                     } catch (UnsupportedEditException ex)
                     {
@@ -292,7 +282,6 @@ public class Paste extends CL_ContextAction implements FlavorListener
         setEnabled(b);
     }
 
-
     // =================================================================================================
     // FlavorListener
     // =================================================================================================    
@@ -305,7 +294,6 @@ public class Paste extends CL_ContextAction implements FlavorListener
     // =================================================================================================
     // Private
     // =================================================================================================    
-
     /**
      * Get the first supported DataFlavor available in the system clipboard.
      *
@@ -331,6 +319,5 @@ public class Paste extends CL_ContextAction implements FlavorListener
         }
         return null;
     }
-
 
 }

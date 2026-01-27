@@ -47,10 +47,10 @@ import org.jjazz.utilities.api.ResUtil;
 @ActionRegistration(displayName = "not_used", lazy = false)
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.setendbar")
 @ActionReferences(
-        {
-            @ActionReference(path = "Actions/Bar", position = 205),
-            @ActionReference(path = "Shortcuts", name = "D-E")   // ctrl-E on Win/Linux
-        })
+    {
+        @ActionReference(path = "Actions/Bar", position = 205),
+        @ActionReference(path = "Shortcuts", name = "D-E")   // ctrl-E on Win/Linux
+    })
 public final class SetEndBar extends CL_ContextAction
 {
 
@@ -69,23 +69,14 @@ public final class SetEndBar extends CL_ContextAction
     protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_Selection selection)
     {
         assert endBar != -1;
-        
+
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(cls);
         um.startCEdit(getActionName());
 
-        try
-        {
-            cls.setSizeInBars(endBar + 1);
-        } catch (UnsupportedEditException ex)
-        {
-            String msg = "Impossible to resize.\n" + ex.getLocalizedMessage();
-            um.abortCEdit(getActionName(), msg);
-            return;
-        }
+        cls.setSizeInBars(endBar + 1);
 
         um.endCEdit(getActionName());
     }
-
 
     @Override
     public void selectionChange(CL_Selection selection)

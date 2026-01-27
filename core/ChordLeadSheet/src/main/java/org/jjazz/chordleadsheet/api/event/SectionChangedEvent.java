@@ -36,7 +36,7 @@ public class SectionChangedEvent extends ClsChangeEvent
 
     private final Section oldData;
     private final Section newData;
-    private final List<ChordLeadSheetItem<?>> movedItems;
+    private final List<ChordLeadSheetItem<?>> adjustedItems;
 
     /**
      *
@@ -44,20 +44,20 @@ public class SectionChangedEvent extends ClsChangeEvent
      * @param item
      * @param oldData
      * @param newData
-     * @param movedItems   Possible items (like CLI_ChordSymbols) whose beat was moved sooner in the bar because of a new time signature with less beats. Can be
+     * @param adjustedItems   Possible items (like CLI_ChordSymbols) whose beat was moved sooner within their bar because of a new time signature with less beats. Can be
      *                     empty.
      */
-    public SectionChangedEvent(ChordLeadSheet src, CLI_Section item, Section oldData, Section newData, List<ChordLeadSheetItem<?>> movedItems)
+    public SectionChangedEvent(ChordLeadSheet src, CLI_Section item, Section oldData, Section newData, List<ChordLeadSheetItem<?>> adjustedItems)
     {
         super(src, item);
         this.oldData = oldData;
         this.newData = newData;
-        this.movedItems = movedItems;
+        this.adjustedItems = adjustedItems;
     }
 
-    public List<ChordLeadSheetItem<?>> getMovedItems()
+    public List<ChordLeadSheetItem<?>> getAdjustedItems()
     {
-        return movedItems;
+        return adjustedItems;
     }
 
     public Section getOldSection()

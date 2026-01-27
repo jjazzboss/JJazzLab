@@ -70,7 +70,7 @@ public class ImprovisorFileReader
     {
         if (f == null)
         {
-            throw new NullPointerException("f");   
+            throw new NullPointerException("f");
         }
         this.initMap();
         this.file = f;
@@ -137,8 +137,11 @@ public class ImprovisorFileReader
                         }
                     } catch (NumberFormatException ex)
                     {
-                        LOGGER.log(Level.WARNING, "readSong() file={0}, line {1}, ex={2}", new Object[]{file.getName(), lineCount,
-                            ex.getMessage()});   
+                        LOGGER.log(Level.WARNING, "readSong() file={0}, line {1}, ex={2}", new Object[]
+                        {
+                            file.getName(), lineCount,
+                            ex.getMessage()
+                        });
                     }
                 } else if (mMeter.find())
                 {
@@ -149,16 +152,22 @@ public class ImprovisorFileReader
                         upper = Integer.parseUnsignedInt(mMeter.group(1));
                     } catch (NumberFormatException ex)
                     {
-                        LOGGER.log(Level.WARNING, "readSong() file={0}, line {1}, ex={2}", new Object[]{file.getName(), lineCount,
-                            ex.getMessage()});   
+                        LOGGER.log(Level.WARNING, "readSong() file={0}, line {1}, ex={2}", new Object[]
+                        {
+                            file.getName(), lineCount,
+                            ex.getMessage()
+                        });
                     }
                     try
                     {
                         lower = Integer.parseUnsignedInt(mMeter.group(2));
                     } catch (NumberFormatException ex)
                     {
-                        LOGGER.log(Level.WARNING, "readSong() file={0}, line {1}, ex={2}", new Object[]{file.getName(), lineCount,
-                            ex.getMessage()});   
+                        LOGGER.log(Level.WARNING, "readSong() file={0}, line {1}, ex={2}", new Object[]
+                        {
+                            file.getName(), lineCount,
+                            ex.getMessage()
+                        });
                     }
                     ts = TimeSignature.get(upper, lower);
                     if (ts == null)
@@ -252,14 +261,7 @@ public class ImprovisorFileReader
         List<ChordSymbol> currentBarCsBuffer = new ArrayList<>();
         while (scanner.hasNext())
         {
-            try
-            {
-                cls.setSizeInBars(barIndex + 1);     // Make sure chordleadsheet is big enough            
-            } catch (UnsupportedEditException ex)
-            {
-                // Should never happen 
-                Exceptions.printStackTrace(ex);
-            }
+            cls.setSizeInBars(barIndex + 1);     // Make sure chordleadsheet is big enough            
             String token = scanner.next();
             char firstChar = token.charAt(0);
             if (firstChar >= 'A' && firstChar <= 'G')
@@ -273,8 +275,11 @@ public class ImprovisorFileReader
                 ChordSymbol cs = getChordSymbol(token);
                 if (cs == null)
                 {
-                    LOGGER.log(Level.WARNING, "fillInChordLeadSheet() chord symbol not recognized: ''{0}'', file={1}, line {2}", new Object[]{token,
-                        f.getName(), lineIndex});   
+                    LOGGER.log(Level.WARNING, "fillInChordLeadSheet() chord symbol not recognized: ''{0}'', file={1}, line {2}", new Object[]
+                    {
+                        token,
+                        f.getName(), lineIndex
+                    });
                 } else
                 {
                     currentBarCsBuffer.add(cs);
@@ -376,7 +381,10 @@ public class ImprovisorFileReader
 
         } catch (ParseException ex)
         {
-            LOGGER.log(Level.WARNING, "getChordSymbol() can''t convert token={0}. ex={1}", new Object[]{token, ex.getMessage()});   
+            LOGGER.log(Level.WARNING, "getChordSymbol() can''t convert token={0}. ex={1}", new Object[]
+            {
+                token, ex.getMessage()
+            });
         }
 
         return cs;
@@ -393,7 +401,7 @@ public class ImprovisorFileReader
      */
     private void flush(ChordLeadSheet cls, TimeSignature ts, List<ChordSymbol> barCsBuffer, int barIndex)
     {
-        assert !barCsBuffer.isEmpty() : "barCsBuffer empty ! barIndex=" + barIndex;   
+        assert !barCsBuffer.isEmpty() : "barCsBuffer empty ! barIndex=" + barIndex;
         CLI_Factory clif = CLI_Factory.getDefault();
         float beatStep = ts.getNbNaturalBeats() / barCsBuffer.size();
         int i = 0;

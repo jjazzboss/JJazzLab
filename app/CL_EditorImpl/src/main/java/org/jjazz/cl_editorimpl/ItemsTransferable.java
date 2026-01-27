@@ -111,7 +111,7 @@ public class ItemsTransferable implements Transferable
             {
                 try
                 {
-                    sectionItem = res.addSection(sectionItem);
+                    res.addSection(sectionItem);
                 } catch (UnsupportedEditException ex)
                 {
                     // Should never happen

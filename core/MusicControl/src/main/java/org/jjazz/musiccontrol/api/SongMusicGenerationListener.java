@@ -31,7 +31,6 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import javax.swing.Timer;
-import org.jjazz.chordleadsheet.api.event.ClsActionEvent;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongMetaEvents;

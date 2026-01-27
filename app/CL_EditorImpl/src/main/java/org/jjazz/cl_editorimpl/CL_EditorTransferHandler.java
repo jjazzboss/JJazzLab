@@ -295,7 +295,7 @@ public class CL_EditorTransferHandler extends TransferHandler
                     String errMsg = ResUtil.getString(getClass(), "IMPOSSIBLE_TO_COPY_SECTION", cliSection.getData());
                     try
                     {
-                        sectionCopy = cls.addSection(sectionCopy);
+                        cls.addSection(sectionCopy);
                     } catch (UnsupportedEditException ex)
                     {
                         errMsg += "\n" + ex.getLocalizedMessage();
@@ -332,16 +332,8 @@ public class CL_EditorTransferHandler extends TransferHandler
                         editorImpl.setFocusOnItem(curSection, IR_Type.Section);
                     } else
                     {
-                        try
-                        {
-                            // No section there, we can move
-                            cls.moveSection(cliSection, newBarIndex);
-                        } catch (UnsupportedEditException ex)
-                        {
-                            errMsg += "\n" + ex.getLocalizedMessage();
-                            um.abortCEdit(editName, errMsg);
-                            return false;
-                        }
+                        // No section there, we can move
+                        cls.moveSection(cliSection, newBarIndex);
                         editorImpl.selectItem(cliSection, true);
                         editorImpl.setFocusOnItem(cliSection, IR_Type.Section);
                     }

@@ -163,10 +163,10 @@ public class SongBuilder implements MusicXmlParserListener
             } catch (UnsupportedEditException ex)
             {
                 LOGGER.log(Level.WARNING, "onTimeSignatureParsed() Can''t change time signature to {0} at bar {1} because: {2}",
-                        new Object[]
-                        {
-                            ts, barIndex, ex
-                        });
+                    new Object[]
+                    {
+                        ts, barIndex, ex
+                    });
             }
         }
     }
@@ -204,11 +204,11 @@ public class SongBuilder implements MusicXmlParserListener
         } catch (ParseException ex)
         {
             LOGGER.log(Level.WARNING, "onChordSymbolParsed() Invalid chord string={0}({1}), can''t insert chord at pos={2}",
-                    new Object[]
-                    {
-                        strChord,
-                        ex.getMessage(), pos
-                    });
+                new Object[]
+                {
+                    strChord,
+                    ex.getMessage(), pos
+                });
             return;
         }
         CLI_ChordSymbol cliCs = CLI_Factory.getDefault().createChordSymbol(ecs, pos);
@@ -257,7 +257,6 @@ public class SongBuilder implements MusicXmlParserListener
         }
     }
 
-
     @Override
     public void onOtherPlayParsed(int barIndex, String value, String type)
     {
@@ -298,7 +297,8 @@ public class SongBuilder implements MusicXmlParserListener
                 endType = EndingType.DISCONTINUE;
                 beat = getLastPossibleBeat();
             }
-            default -> throw new IllegalStateException("type=" + type);
+            default ->
+                throw new IllegalStateException("type=" + type);
         }
 
         Ending data = new Ending(endType, numbers);
@@ -331,7 +331,6 @@ public class SongBuilder implements MusicXmlParserListener
     // ==========================================================================================
     // Private methods
     // ==========================================================================================
-
     /**
      * Build the final song from parsed data collected into clsWork.
      *
@@ -343,14 +342,7 @@ public class SongBuilder implements MusicXmlParserListener
         {
             nbMeasures = 4;
         }
-        try
-        {
-            clsWork.setSizeInBars(nbMeasures);
-        } catch (UnsupportedEditException ex)
-        {
-            // Should never occur
-            Exceptions.printStackTrace(ex);
-        }
+        clsWork.setSizeInBars(nbMeasures);
 
         LOGGER.log(Level.FINE, "buildSong() musicalStyle={0}", musicalStyle);
         LOGGER.log(Level.FINE, "buildSong() clsWork={0}", Utilities.toMultilineString(clsWork.getItems(), "  "));
@@ -449,14 +441,8 @@ public class SongBuilder implements MusicXmlParserListener
             // Is this bar list already associated to a section ?             
             if (cliSection == null)
             {
-                try
-                {
-                    // No, create the section with the implied SongPart
-                    cls.setSizeInBars(clsBarIndex + barList.size());
-                } catch (UnsupportedEditException ex)
-                {
-                    Exceptions.printStackTrace(ex);  // Should never occur
-                }
+                // No, create the section with the implied SongPart
+                cls.setSizeInBars(clsBarIndex + barList.size());
                 CLI_Section clsWorkSection = sectionsOrdered.get(barListsOrdered.indexOf(barList));
                 var name = clsWorkSection.getData().getName();
                 if (clsBarIndex > 0)
@@ -467,7 +453,7 @@ public class SongBuilder implements MusicXmlParserListener
                 CLI_Section newSection = CLI_Factory.getDefault().createSection(name, ts, clsBarIndex, cls);
                 try
                 {
-                    newSection = cls.addSection(newSection);
+                    cls.addSection(newSection);
                     LOGGER.log(java.util.logging.Level.FINE, "buildSong() Adding new section {0}", newSection);
                 } catch (UnsupportedEditException ex)
                 {
@@ -515,9 +501,9 @@ public class SongBuilder implements MusicXmlParserListener
                 // Yes, just add the corresponding song part                
                 var spts = sgs.getSongParts();
                 var curSpt = spts.stream()
-                        .filter(spt -> spt.getParentSection() == cliSection)
-                        .findAny()
-                        .orElseThrow();
+                    .filter(spt -> spt.getParentSection() == cliSection)
+                    .findAny()
+                    .orElseThrow();
                 var spt = sgs.createSongPart(curSpt.getRhythm(), cliSection.getData().getName(), songBarIndex, barList.size(), cliSection, true);
                 LOGGER.log(java.util.logging.Level.FINE, "buildSong() Adding SongPart={0}", spt);
                 try
@@ -624,5 +610,4 @@ public class SongBuilder implements MusicXmlParserListener
     // ===================================================================================================
     // Private classes
     // ===================================================================================================
-
 }

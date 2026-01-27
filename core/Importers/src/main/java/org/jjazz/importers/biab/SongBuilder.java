@@ -523,7 +523,7 @@ public class SongBuilder
     {
         try
         {
-            section = s.getChordLeadSheet().addSection(section);
+            s.getChordLeadSheet().addSection(section);
         } catch (UnsupportedEditException ex)
         {
             // Should never happen

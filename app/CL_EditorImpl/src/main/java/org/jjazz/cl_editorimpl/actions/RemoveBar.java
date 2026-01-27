@@ -44,10 +44,10 @@ import org.openide.awt.ActionRegistration;
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.removebar")
 @ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
-        {
-            @ActionReference(path = "Actions/Bar", position = 400),
-            @ActionReference(path = "Shortcuts", name = "S-DELETE")
-        })
+    {
+        @ActionReference(path = "Actions/Bar", position = 400),
+        @ActionReference(path = "Shortcuts", name = "S-DELETE")
+    })
 public class RemoveBar extends CL_ContextAction
 {
 
@@ -68,7 +68,7 @@ public class RemoveBar extends CL_ContextAction
         int minBar = selection.getMinBarIndexWithinCls();
         int maxBar = selection.getMaxBarIndexWithinCls();
         int lastBar = selection.getChordLeadSheet().getSizeInBars() - 1;
-        
+
         LOGGER.log(Level.FINE, "actionPerformed() minBar={0} cls={1}", new Object[]
         {
             minBar, cls
@@ -77,17 +77,7 @@ public class RemoveBar extends CL_ContextAction
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(cls);
         um.startCEdit(getActionName());
 
-
-        try
-        {
-            cls.deleteBars(minBar, Math.min(maxBar, lastBar));
-        } catch (UnsupportedEditException ex)
-        {
-            String msg = "Impossible to remove bars.\n" + ex.getLocalizedMessage();
-            um.abortCEdit(getActionName(), msg);
-            return;
-        }
-
+        cls.deleteBars(minBar, Math.min(maxBar, lastBar));
 
         um.endCEdit(getActionName());
     }

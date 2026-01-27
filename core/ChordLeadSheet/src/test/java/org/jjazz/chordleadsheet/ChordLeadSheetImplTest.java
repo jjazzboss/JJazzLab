@@ -27,7 +27,6 @@ package org.jjazz.chordleadsheet;
 import java.text.ParseException;
 import java.util.TreeSet;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.chordleadsheet.api.ChordLeadSheetFactory;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
@@ -161,33 +160,33 @@ public class ChordLeadSheetImplTest
         assertSame(res.last(), cliChordSymbolG_b6_0);
 
         res = items.subSet(ChordLeadSheetItem.createItemFrom(new Position(0), false), false,
-                ChordLeadSheetItem.createItemTo(new Position(6), true), true);
+            ChordLeadSheetItem.createItemTo(new Position(6), true), true);
         System.out.println("subItems4(false0, true6)=" + res);
         assertSame(res.first(), cliChordSymbolF_b3_3);
         assertSame(res.last(), cliChordSymbolG_b6_0);
 
 
         res = items.subSet(ChordLeadSheetItem.createItemFrom(new Position(0), false), false,
-                ChordLeadSheetItem.createItemTo(new Position(6), false), false);
+            ChordLeadSheetItem.createItemTo(new Position(6), false), false);
         System.out.println("subItems5(false0, false6)=" + res);
         assertSame(res.first(), cliChordSymbolF_b3_3);
         assertSame(res.last(), chord4);
 
 
         res = items.subSet(ChordLeadSheetItem.createItemFrom(new Position(0), false), false,
-                ChordLeadSheetItem.createItemTo(new Position(4), true), true);
+            ChordLeadSheetItem.createItemTo(new Position(4), true), true);
         System.out.println("subItems6(false0, true4)=" + res);
         assertSame(res.first(), cliChordSymbolF_b3_3);
         assertSame(res.last(), chord4);
 
         res = items.subSet(ChordLeadSheetItem.createItemFrom(new Position(0), false), false,
-                ChordLeadSheetItem.createItemTo(new Position(4), false), false);
+            ChordLeadSheetItem.createItemTo(new Position(4), false), false);
         System.out.println("subItems7(false0, false4)=" + res);
         assertSame(res.first(), cliChordSymbolF_b3_3);
         assertSame(res.last(), cliChordSymbolF_b3_3);
 
         res = items.subSet(ChordLeadSheetItem.createItemFrom(new Position(0), true), true,
-                ChordLeadSheetItem.createItemTo(new Position(4), false), false);
+            ChordLeadSheetItem.createItemTo(new Position(4), false), false);
         System.out.println("subItems8(true0, false4)=" + res);
         assertSame(res.first(), initSection);
         assertSame(res.last(), cliChordSymbolF_b3_3);
@@ -199,11 +198,11 @@ public class ChordLeadSheetImplTest
     {
         System.out.println("=== getItems() ");
         var res = cls1.getItems(new Position(0),
-                true,
-                new Position(2),
-                false,
-                ChordLeadSheetItem.class,
-                cli -> true);
+            true,
+            new Position(2),
+            false,
+            ChordLeadSheetItem.class,
+            cli -> true);
         assertEquals(res.size(), 4);
         assertSame(res.get(0), cls1.getSection(0));
         assertEquals(res.get(3).getPosition(), new Position(1, 3));
@@ -251,7 +250,6 @@ public class ChordLeadSheetImplTest
         var cliClone = cli.getCopy(null, null);
         assertFalse(cls1.addItem(cliClone));
     }
-
 
     @Test
     public void testAddItemOutOfTimeSignature()
@@ -316,8 +314,12 @@ public class ChordLeadSheetImplTest
         System.out.println("=== addSection over another");
         try
         {
-            var cli = cls1.addSection(cliSection54_b5);
-            assertTrue(cli.equals(cliSection54_b5) && cli != cliSection54_b5);
+            final int bar = cliSection54_b5.getPosition().getBar();
+            var existingSection = cls1.getSection(bar);
+            assert existingSection.getPosition().getBar() == bar;
+            cls1.addSection(cliSection54_b5);
+            assertTrue(cls1.getSection(bar) == cliSection54_b5);
+            assertTrue(!cls1.getItems(CLI_Section.class).contains(existingSection));
         } catch (UnsupportedEditException ex)
         {
             Exceptions.printStackTrace(ex);
@@ -347,13 +349,7 @@ public class ChordLeadSheetImplTest
     {
         System.out.println("=== RemoveSection Section2");
         CLI_Section cliSection = cls1.getSection("Section2");
-        try
-        {
-            cls1.removeSection(cliSection);
-        } catch (UnsupportedEditException ex)
-        {
-            Exceptions.printStackTrace(ex);
-        }
+        cls1.removeSection(cliSection);
         assertEquals(5, cls1.getBarRange(cls1.getSection(0)).size());
     }
 
@@ -362,18 +358,11 @@ public class ChordLeadSheetImplTest
     {
         System.out.println("=== RemoveSection and adjust items positions");
         CLI_Section cliSection = cls1.getSection("Section3");
-        try
-        {
-            cls1.removeSection(cliSection);
-        } catch (UnsupportedEditException ex)
-        {
-            Exceptions.printStackTrace(ex);
-        }
+        cls1.removeSection(cliSection);
         assertEquals(new Position(7, 2), cls1.getItems(cls1.getSection("Section2"), ChordLeadSheetItem.class).get(3).getPosition());
     }
 
     // MoveItem() --------------------------------------------------
-
     @Test
     public void testMoveItem()
     {
@@ -403,13 +392,7 @@ public class ChordLeadSheetImplTest
     {
         System.out.println("=== testMoveSection0 move init section");
         CLI_Section cliSection0 = cls1.getSection(0);
-        try
-        {
-            cls1.moveSection(cliSection0, 3);
-        } catch (UnsupportedEditException ex)
-        {
-            Exceptions.printStackTrace(ex);
-        }
+        cls1.moveSection(cliSection0, 3);
         assertEquals(new Position(2, 2), cliSection0.getPosition());
     }
 
@@ -418,13 +401,7 @@ public class ChordLeadSheetImplTest
     {
         System.out.println("=== testMoveSection1 move section on another");
         CLI_Section cliSection0 = cls1.getSection(5);
-        try
-        {
-            cls1.moveSection(cliSection0, 2);
-        } catch (UnsupportedEditException ex)
-        {
-            Exceptions.printStackTrace(ex);
-        }
+        cls1.moveSection(cliSection0, 2);
     }
 
     @Test
@@ -432,13 +409,7 @@ public class ChordLeadSheetImplTest
     {
         System.out.println("=== testMoveSection2 moved section does not cross other sections");
         CLI_Section cliSection0 = cls1.getSection(2);
-        try
-        {
-            cls1.moveSection(cliSection0, 1);
-        } catch (UnsupportedEditException ex)
-        {
-            Exceptions.printStackTrace(ex);
-        }
+        cls1.moveSection(cliSection0, 1);
         assertEquals(new Position(1, 2), cls1.getItems(1, 1, CLI_ChordSymbol.class).get(1).getPosition());
         assertEquals(1, cls1.getSection(1).getPosition().getBar());
     }
@@ -448,13 +419,7 @@ public class ChordLeadSheetImplTest
     {
         System.out.println("=== testMoveSection3 moved section crosses other sections");
         CLI_Section cliSection0 = cls1.getSection(5);
-        try
-        {
-            cls1.moveSection(cliSection0, 1);
-        } catch (UnsupportedEditException ex)
-        {
-            Exceptions.printStackTrace(ex);
-        }
+        cls1.moveSection(cliSection0, 1);
         assertEquals(new Position(7, 2), cls1.getItems(7, 7, ChordLeadSheetItem.class, cli -> true).get(0).getPosition());
         assertSame(cliSection0, cls1.getSection(1));
     }
@@ -500,13 +465,7 @@ public class ChordLeadSheetImplTest
     public void testDeleteBarsFromStartUntilEndOfSection()
     {
         System.out.println("=== deleteBars from start until end of section barFrom=0  barTo=1");
-        try
-        {
-            cls1.deleteBars(0, 1);
-        } catch (UnsupportedEditException ex)
-        {
-            Exceptions.printStackTrace(ex);
-        }
+        cls1.deleteBars(0, 1);
         assertEquals(6, cls1.getSizeInBars());
         assertEquals(2, cls1.getItems(CLI_Section.class).size());
         assertEquals("Section2", cls1.getSection(0).getData().getName());
@@ -516,13 +475,7 @@ public class ChordLeadSheetImplTest
     public void testDeleteBarsFromStartUntilMiddleOfSection()
     {
         System.out.println("=== deleteBars from start middle of section barFrom=0  barTo=3");
-        try
-        {
-            cls1.deleteBars(0, 3);
-        } catch (UnsupportedEditException ex)
-        {
-            Exceptions.printStackTrace(ex);
-        }
+        cls1.deleteBars(0, 3);
         CLI_Section cliSection0 = cls1.getSection(0);
         assertEquals(4, cls1.getSizeInBars());
         assertEquals("Section1", cliSection0.getData().getName());
@@ -550,13 +503,7 @@ public class ChordLeadSheetImplTest
     public void testDeleteBarsToEnd()
     {
         System.out.println("=== deleteBars until end barFrom=4  barTo=7");
-        try
-        {
-            cls1.deleteBars(4, 7);
-        } catch (UnsupportedEditException ex)
-        {
-            Exceptions.printStackTrace(ex);
-        }
+        cls1.deleteBars(4, 7);
         assertEquals(cls1.getSizeInBars(), 4);
     }
 
@@ -564,13 +511,7 @@ public class ChordLeadSheetImplTest
     public void testDeleteBarsMiddle()
     {
         System.out.println("=== deleteBars multi sections barFrom=1  barTo=5");
-        try
-        {
-            cls1.deleteBars(1, 5);
-        } catch (UnsupportedEditException ex)
-        {
-            Exceptions.printStackTrace(ex);
-        }
+        cls1.deleteBars(1, 5);
         assertEquals(3, cls1.getSizeInBars());
         assertEquals("Section1", cls1.getSection(2).getData().getName());
     }
@@ -592,9 +533,8 @@ public class ChordLeadSheetImplTest
         assertEquals(new Position(1, 2f), cli.getPosition());
     }
 
-
     /**
-     * 2 equal clis (but different positions) are adjusted with time signature change, and end up at same position => one is removed.
+     * 2 equal clis (but different positions) are adjusted with time signature change, and end up at same position => one is moved just before (0.25 step).
      */
     @Test
     public void testSetTimeSignatureSpecialCase()
@@ -603,20 +543,21 @@ public class ChordLeadSheetImplTest
 
         var cli1 = cls1.getItems(1, 1, ChordLeadSheetItem.class, c -> true).get(1); // beat 3
         var cli2 = cli1.getCopy(null, cli1.getPosition().setBeat(3.5f));
-        cls1.addItem(cli2);
+        cls1.addItem(cli2);         // Ok 
 
         CLI_Section cliSection0 = cls1.getSection(0);
         try
         {
-            cls1.setSectionTimeSignature(cliSection0, TimeSignature.THREE_FOUR); // removes cli2
+            cls1.setSectionTimeSignature(cliSection0, TimeSignature.THREE_FOUR); // moves cli2 just before cli1
         } catch (UnsupportedEditException ex)
         {
             Exceptions.printStackTrace(ex);
         }
 
         var clis = cls1.getItems(1, 1, ChordLeadSheetItem.class, c -> true);
-        assertEquals(2, clis.size());
+        assertEquals(3, clis.size());
         assertEquals(new Position(1, 2f), cli1.getPosition());
+        assertEquals(new Position(1, 1.75f), cli2.getPosition());
     }
 
     @Test
@@ -641,13 +582,7 @@ public class ChordLeadSheetImplTest
     public void testSetSize()
     {
         System.out.println("=== setSize() new size = 3");
-        try
-        {
-            cls1.setSizeInBars(3);
-        } catch (UnsupportedEditException ex)
-        {
-            Exceptions.printStackTrace(ex);
-        }
+        cls1.setSizeInBars(3);
         assertEquals(3, cls1.getSizeInBars());
         assertEquals(6, cls1.getItems(ChordLeadSheetItem.class).size());
     }

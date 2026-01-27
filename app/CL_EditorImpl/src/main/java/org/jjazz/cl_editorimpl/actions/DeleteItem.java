@@ -54,18 +54,17 @@ import org.openide.util.actions.SystemAction;
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.deleteitem")
 @ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
-        {
-            @ActionReference(path = "Actions/Bar", position = 410),
-            @ActionReference(path = "Actions/Section", position = 230, separatorAfter = 250),
-            @ActionReference(path = "Actions/ChordSymbol", position = 480),
-            @ActionReference(path = "Actions/BarAnnotation", position = 110)
-        })
+    {
+        @ActionReference(path = "Actions/Bar", position = 410),
+        @ActionReference(path = "Actions/Section", position = 230, separatorAfter = 250),
+        @ActionReference(path = "Actions/ChordSymbol", position = 480),
+        @ActionReference(path = "Actions/BarAnnotation", position = 110)
+    })
 public class DeleteItem extends CL_ContextAction
 {
 
     public static final KeyStroke KEYSTROKE = KeyStroke.getKeyStroke("DELETE");
     private static final Logger LOGGER = Logger.getLogger(DeleteItem.class.getSimpleName());
-
 
     @Override
     protected void configureAction()
@@ -74,7 +73,7 @@ public class DeleteItem extends CL_ContextAction
         putValue(ACCELERATOR_KEY, KEYSTROKE);
         Icon icon = SystemAction.get(DeleteAction.class).getIcon();
         putValue(SMALL_ICON, icon);
-        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES, ListeningTarget.BAR_SELECTION));                
+        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES, ListeningTarget.BAR_SELECTION));
     }
 
     @Override
@@ -108,15 +107,7 @@ public class DeleteItem extends CL_ContextAction
                 CLI_Section section = (CLI_Section) item;
                 if (section.getPosition().getBar() > 0)
                 {
-                    try
-                    {
-                        cls.removeSection(section);
-                    } catch (UnsupportedEditException ex)
-                    {
-                        String msg = "Impossible to cut section " + section.getData().getName() + ".\n" + ex.getLocalizedMessage();
-                        um.abortCEdit(getActionName(), msg);
-                        return;
-                    }
+                    cls.removeSection(section);
                 }
             } else
             {

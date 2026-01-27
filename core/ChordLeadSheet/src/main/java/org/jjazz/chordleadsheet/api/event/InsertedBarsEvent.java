@@ -24,56 +24,50 @@ package org.jjazz.chordleadsheet.api.event;
 
 import java.util.List;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 
 /**
- * One section has been moved.
+ * Some bars were inserted.
+ * <p>
+ * getItems() returns the shifted items.
  */
-public class SectionMovedEvent extends ClsChangeEvent
+public class InsertedBarsEvent extends ClsChangeEvent
 {
 
-    /**
-     * The index of the section before it was moved.
-     */
-    private final int oldBar, newBar;
+    private final int barFrom;
+    private final int nbBars;
 
-    private final List<ChordLeadSheetItem> adjustedItems;
-
-    public SectionMovedEvent(ChordLeadSheet src, CLI_Section item, int oldBar, int newBar, List<ChordLeadSheetItem> adjustedItems)
+    public InsertedBarsEvent(ChordLeadSheet src, int barFrom, int nbBars, List<ChordLeadSheetItem> shiftedItems)
     {
-        super(src, item);
-        this.oldBar = oldBar;
-        this.newBar = newBar;
-        this.adjustedItems = adjustedItems;
+        super(src, shiftedItems);
+        this.barFrom = barFrom;
+        this.nbBars = nbBars;
     }
 
-    public List<ChordLeadSheetItem> getAdjustedItems()
+    public int getBarFrom()
     {
-        return adjustedItems;
+        return barFrom;
     }
 
-    /**
-     * @return The barIndex of the section before it was moved
-     */
-    public int getOldBar()
+    public int getBarTo()
     {
-        return oldBar;
+        return barFrom + nbBars - 1;
     }
 
-    public int getNewBar()
+    public int getNbBars()
     {
-        return newBar;
-    }
-
-    public CLI_Section getSection()
-    {
-        return (CLI_Section) getItem();
+        return nbBars;
     }
 
     @Override
     public String toString()
     {
-        return "SectionMovedEvent[section=" + getSection() + ", oldBar=" + oldBar + ", newBar=" + newBar + "]";
+        return "InsertedBarsEvent[barFrom=" + barFrom + " nbBars=" + nbBars + "]";
     }
+
+    public String toDebugString()
+    {
+        return "InsertedBarsEvent[barFrom=" + barFrom + " nbBars=" + nbBars + "shiftedItems=" + getItems() + "]";
+    }
+
 }

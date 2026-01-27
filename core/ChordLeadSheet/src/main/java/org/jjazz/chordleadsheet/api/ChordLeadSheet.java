@@ -72,10 +72,10 @@ public interface ChordLeadSheet
      * Remove an item from the leadsheet.
      *
      * @param item The item to be removed.
-     * @throws IllegalArgumentException If no such item or item is a section.
+     * @return True if item was removed
      * @see #removeSection(org.jjazz.chordleadsheet.api.item.CLI_Section)
      */
-    void removeItem(ChordLeadSheetItem<?> item);
+    boolean removeItem(ChordLeadSheetItem<?> item);
 
     /**
      * Add a section to the leadsheet.
@@ -125,10 +125,9 @@ public interface ChordLeadSheet
      *
      * @param section     The section to be moved
      * @param newBarIndex The bar index section will be moved to
-     * @throws UnsupportedEditException If a ChordLeadSheet change listener vetoes this edit. Exception is thrown before any change is done.
      * @throws IllegalArgumentException If new position is not valid.
      */
-    void moveSection(CLI_Section section, int newBarIndex) throws UnsupportedEditException;
+    void moveSection(CLI_Section section, int newBarIndex) ;
 
     /**
      * Move an item to a new position.

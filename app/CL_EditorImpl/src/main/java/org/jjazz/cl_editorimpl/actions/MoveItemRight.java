@@ -53,8 +53,8 @@ import org.openide.util.Exceptions;
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.moveitemright")
 @ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
-        {
-            // Only via keyboard shortcut
+    {
+        // Only via keyboard shortcut
         })
 public class MoveItemRight extends CL_ContextAction
 {
@@ -62,12 +62,12 @@ public class MoveItemRight extends CL_ContextAction
     public static final KeyStroke KEYSTROKE = getGenericControlKeyStroke(KeyEvent.VK_RIGHT);
     private static final Logger LOGGER = Logger.getLogger(MoveItemLeft.class.getSimpleName());
 
-  @Override
+    @Override
     protected void configureAction()
     {
         putValue(NAME, ResUtil.getString(getClass(), "CTL_MoveItemRight"));
         putValue(ACCELERATOR_KEY, KEYSTROKE);
-        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION));        
+        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION));
     }
 
     @Override
@@ -86,7 +86,6 @@ public class MoveItemRight extends CL_ContextAction
     // ===========================================================================================================
     // Private methods
     // ===========================================================================================================    
-
     static protected void performMove(CL_Selection selection, String actionText, boolean moveRight)
     {
         ChordLeadSheet cls = selection.getChordLeadSheet();
@@ -121,15 +120,8 @@ public class MoveItemRight extends CL_ContextAction
             }
             if (model.getItems(targetBar, targetBar, CLI_Section.class).isEmpty())
             {
-                try
-                {
-                    // No section on the previous bar, move ok
-                    model.moveSection(cliSection, targetBar);
-                } catch (UnsupportedEditException ex)
-                {
-                    // Should never happen
-                    Exceptions.printStackTrace(ex);
-                }
+                // No section on the previous bar, move ok
+                model.moveSection(cliSection, targetBar);
             }
         }
     }

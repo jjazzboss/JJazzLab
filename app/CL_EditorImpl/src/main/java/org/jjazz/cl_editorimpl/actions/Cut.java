@@ -61,12 +61,12 @@ import org.openide.util.actions.SystemAction;
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.cut")
 @ActionRegistration(displayName = "cl-cut-not-used", lazy = false)
 @ActionReferences(
-        {
-            @ActionReference(path = "Actions/Section", position = 1000),
-            @ActionReference(path = "Actions/ChordSymbol", position = 1000, separatorBefore = 950),
-            @ActionReference(path = "Actions/Bar", position = 1000),
-            @ActionReference(path = "Actions/BarAnnotation", position = 1000, separatorBefore = 999)
-        })
+    {
+        @ActionReference(path = "Actions/Section", position = 1000),
+        @ActionReference(path = "Actions/ChordSymbol", position = 1000, separatorBefore = 950),
+        @ActionReference(path = "Actions/Bar", position = 1000),
+        @ActionReference(path = "Actions/BarAnnotation", position = 1000, separatorBefore = 999)
+    })
 public class Cut extends CL_ContextAction implements ClipboardOwner
 {
 
@@ -79,7 +79,7 @@ public class Cut extends CL_ContextAction implements ClipboardOwner
         Icon icon = SystemAction.get(CutAction.class).getIcon();
         putValue(SMALL_ICON, icon);
         putValue(ACCELERATOR_KEY, KEYSTROKE);
-        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES, ListeningTarget.BAR_SELECTION));                
+        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES, ListeningTarget.BAR_SELECTION));
     }
 
     @Override
@@ -106,16 +106,7 @@ public class Cut extends CL_ContextAction implements ClipboardOwner
             var firstSection = cls.getSection(clsBarIndexes.get(0)).getData();
             var data = new BarsTransferable.Data(firstSection, barRange, items);
             t = new BarsTransferable(data);
-
-            try
-            {
-                cls.deleteBars(barRange.from, barRange.to);
-            } catch (UnsupportedEditException ex)
-            {
-                String msg = "Impossible to cut bars.\n" + ex.getLocalizedMessage();
-                um.abortCEdit(getActionName(), msg);
-                return;
-            }
+            cls.deleteBars(barRange.from, barRange.to);
         } else if (selection.isItemSelected())
         {
             items.addAll(selection.getSelectedItems());
@@ -132,15 +123,7 @@ public class Cut extends CL_ContextAction implements ClipboardOwner
                     CLI_Section section = (CLI_Section) item;
                     if (section.getPosition().getBar() > 0)
                     {
-                        try
-                        {
-                            cls.removeSection(section);
-                        } catch (UnsupportedEditException ex)
-                        {
-                            String msg = "Impossible to cut section " + section.getData().getName() + ".\n" + ex.getLocalizedMessage();
-                            um.abortCEdit(getActionName(), msg);
-                            return;
-                        }
+                        cls.removeSection(section);
                     }
                 } else
                 {
@@ -187,6 +170,5 @@ public class Cut extends CL_ContextAction implements ClipboardOwner
     {
         // Nothing
     }
-
 
 }

@@ -28,6 +28,7 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.*;
 import java.text.ParseException;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.utilities.api.ResUtil;
@@ -89,7 +90,7 @@ public final class Position implements Comparable<Position>, Serializable
     }
 
     /**
-     * @param bar  The index of the bar (&gt;=0).
+     * @param bar The index of the bar (&gt;=0).
      * @param beat The beat within this bar.
      */
     public Position(int bar, float beat)
@@ -153,7 +154,6 @@ public final class Position implements Comparable<Position>, Serializable
         setBar(p.getBar());
         return this;
     }
-
 
     /**
      * Change position to be on first beat.
@@ -259,7 +259,7 @@ public final class Position implements Comparable<Position>, Serializable
      * <p>
      * Ex: beat 2 for ts=4/4, beat 1.5 for 3/4 (if not swing), or beat 3 for 5/4.
      *
-     * @param ts    The TimeSignature of the bar.
+     * @param ts The TimeSignature of the bar.
      * @param swing If true for example half beat for a 3/4 waltz is 5/3=1.666...
      *
      * @return
@@ -295,11 +295,9 @@ public final class Position implements Comparable<Position>, Serializable
      */
     public Position getConverted(TimeSignature tsFrom, TimeSignature tsTo)
     {
-        if (tsFrom == null || tsTo == null || beat >= tsFrom.getNbNaturalBeats())
-        {
-            throw new IllegalArgumentException("this=" + this + " tsFrom=" + tsFrom + " tsTo=" + tsTo);
-        }
-
+        Objects.requireNonNull(tsFrom);
+        Objects.requireNonNull(tsTo);
+        Preconditions.checkArgument(beat < tsFrom.getNbNaturalBeats(), "tsFrom=%s this=%s", tsFrom, this);
 
         Position newPos = new Position(this);
         float lastBeat = tsTo.getNbNaturalBeats() - 1;
@@ -519,9 +517,9 @@ public final class Position implements Comparable<Position>, Serializable
      * Ex: "[2:3.5]" will set bar=2 and beat=3.5<br>
      * Ex: "[3.5]" set bar=defaultBar and beat=3.5
      *
-     * @param posString  The string as returned by toString() or toUserString()
+     * @param posString The string as returned by toString() or toUserString()
      * @param defaultBar If bar is not specified, defaultBar is used.
-     * @param oneBased   If true bar/beat in userString are considered 1-based instead of 0-based
+     * @param oneBased If true bar/beat in userString are considered 1-based instead of 0-based
      * @return This instance
      *
      * @throws ParseException If syntax error in string.
@@ -625,7 +623,6 @@ public final class Position implements Comparable<Position>, Serializable
     // --------------------------------------------------------------------- 
     // Inner classes
     // ---------------------------------------------------------------------
-
     /**
      * This enables XStream instance configuration even for private classes or classes from non-public packages of Netbeans modules.
      */
@@ -663,7 +660,8 @@ public final class Position implements Comparable<Position>, Serializable
                 {
                     // Nothing
                 }
-                default -> throw new AssertionError(instanceId.name());
+                default ->
+                    throw new AssertionError(instanceId.name());
             }
         }
     }
@@ -699,7 +697,7 @@ public final class Position implements Comparable<Position>, Serializable
         }
 
         private Object readResolve()
-                throws ObjectStreamException
+            throws ObjectStreamException
         {
             Position pos = new Position();
             try
