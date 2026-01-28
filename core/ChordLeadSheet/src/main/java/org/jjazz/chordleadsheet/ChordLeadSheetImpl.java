@@ -653,9 +653,9 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
         Supplier<OperationResults> operation = () ->
         {
-            if (items.contains(item))
+            if (!items.contains(item))
             {
-                LOGGER.log(Level.FINE, "addItem() item already present. item={0}", item);
+                LOGGER.log(Level.FINE, "addItem() item not present. item={0}", item);
                 return new OperationResults(null, null, Boolean.FALSE);
             }
 
@@ -975,7 +975,8 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
         Supplier<OperationResults> operation = () ->
         {
-            Preconditions.checkArgument(barIndexTo < size, "barIndexFrom=%s barIndexTo=%s size=%s", barIndexFrom, barIndexTo, size);
+            Preconditions.checkArgument(barIndexTo < size && barIndexTo - barIndexFrom + 1 < size, "barIndexFrom=%s barIndexTo=%s size=%s", barIndexFrom, barIndexTo, size);
+            Preconditions.checkArgument(barIndexTo - barIndexFrom < size, "barIndexFrom=%s barIndexTo=%s size=%s", barIndexFrom, barIndexTo, size);
 
             final int nbBars = barIndexTo - barIndexFrom + 1;
             final int oldSize = size;
@@ -1284,7 +1285,14 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     @Override
     public boolean contains(ChordLeadSheetItem<?> item)
     {
-        return items.contains(item);
+        lock.readLock().lock();
+        try
+        {
+            return items.contains(item);
+        } finally
+        {
+            lock.readLock().unlock();
+        }
     }
 
     @Override
@@ -1514,6 +1522,8 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         {
             return res;
         }
+
+        assert lock.isWriteLockedByCurrentThread();
 
         for (ChordLeadSheetItem<?> item : iitems)
         {
