@@ -67,22 +67,25 @@ import org.openide.util.lookup.ServiceProvider;
 /**
  * ChordLeadSheet implementation.
  * <p>
- * This implementation is thread-safe: all model access is protected by a ReentrantReadWriteLock. Mutating item implementations are internal-only and cannot be
- * modified by API clients. Synchronous listeners are invoked while holding the write lock and must follow the documented non-blocking contract.
+ * This implementation is thread-safe: <br>
+ * - Reads and writes are serialized using ReentrantReadWriteLock.<br>
+ * - Item implementations cannot be modified by API clients (WritableItem interface is module-private).<br>
+ * <p>
+ * Synchronous listeners (which are invoked while holding the write lock) must follow the documented non-blocking contract.
  */
 public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 {
-
     /**
      * The main data structure: keep the items sorted by position and type.
      * <p>
      * We can safely use a TreeSet because methods to add/move/change prevent having 2 equal ChordLeadSheetItems.
      */
     private final TreeSet<ChordLeadSheetItem> items;
+
     /**
      * The size of the leadsheet in bars.
      */
-    private volatile int size;
+    private int size;
     /**
      * Lock can be shared via getLock() for external synchronization
      */
@@ -248,7 +251,14 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     @Override
     public int getSizeInBars()
     {
-        return size;
+        lock.readLock().lock();
+        try
+        {
+            return size;
+        } finally
+        {
+            lock.readLock().unlock();
+        }
     }
 
     @Override
@@ -346,8 +356,9 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
             // Verify constraints
             final int bar = cliSection.getPosition().getBar();
-            final CLI_Section curSection = getSection(bar);
             Preconditions.checkArgument(bar < this.size, "cliSection=%s this.size=%s", cliSection, size);
+
+            final CLI_Section curSection = getSection(bar);
             var sameNameSection = getSection(cliSection.getData().getName());
             Preconditions.checkArgument(sameNameSection == null || sameNameSection.getPosition().getBar() == bar,
                     "cliSection=%s sameNameSection=%s", cliSection, sameNameSection);
@@ -963,7 +974,6 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         {
             Preconditions.checkArgument(barIndexTo < size && barIndexTo - barIndexFrom + 1 < size, "barIndexFrom=%s barIndexTo=%s size=%s", barIndexFrom,
                     barIndexTo, size);
-            Preconditions.checkArgument(barIndexTo - barIndexFrom < size, "barIndexFrom=%s barIndexTo=%s size=%s", barIndexFrom, barIndexTo, size);
 
             final int nbBars = barIndexTo - barIndexFrom + 1;
             final int oldSize = size;
@@ -1264,12 +1274,12 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     }
 
     @Override
-    public boolean contains(ChordLeadSheetItem<?> item)
+    public List<ChordLeadSheetItem> getItems()
     {
         lock.readLock().lock();
         try
         {
-            return items.contains(item);
+            return List.copyOf(items);
         } finally
         {
             lock.readLock().unlock();
@@ -1556,11 +1566,18 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         ((WritableItem) item).setContainer(this);
     }
 
+    /**
+     * Perform the remove while checking internal state consistency, then set item's container to null.
+     *
+     * @param item
+     */
     private void removeItemChecked(ChordLeadSheetItem<?> item)
     {
         assert lock.isWriteLockedByCurrentThread();
+        Preconditions.checkArgument(item instanceof WritableItem, "item=%s", item);
         var b = items.remove(item);
         assert b : "item=" + item + " items=" + items;
+        ((WritableItem) item).setContainer(null);
     }
 
     private <T> void changeItemDataChecked(ChordLeadSheetItem<T> item, T newData)

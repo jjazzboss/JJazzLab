@@ -69,6 +69,8 @@ public interface ChordLeadSheet
 
     /**
      * Remove an item from the leadsheet.
+     * <p>
+     * This sets the item's container to null.
      *
      * @param item The item to be removed.
      * @return True if item was removed
@@ -162,7 +164,10 @@ public interface ChordLeadSheet
      * @param item
      * @return
      */
-    boolean contains(ChordLeadSheetItem<?> item);
+    default boolean contains(ChordLeadSheetItem<?> item)
+    {
+        return getItems().contains(item);
+    }
 
     /**
      * Insert bars from a specific position.
@@ -253,10 +258,7 @@ public interface ChordLeadSheet
      *
      * @return A non-modifiable ordered list of items
      */
-    default List<ChordLeadSheetItem> getItems()
-    {
-        return getItems(ChordLeadSheetItem.class);
-    }
+    List<ChordLeadSheetItem> getItems();
 
     /**
      * Get all the matching items of this leadsheet.
@@ -361,7 +363,7 @@ public interface ChordLeadSheet
     default <T extends ChordLeadSheetItem<?>> List<T> getItems(CLI_Section cliSection, Class<T> itemClass, Predicate<T> tester)
     {
         var barRange = getBarRange(cliSection);
-        return getItems(barRange.from, barRange.to, itemClass, cli -> cli != cliSection);
+        return getItems(barRange.from, barRange.to, itemClass, cli -> cli != cliSection && tester.test(cli));
     }
 
     /**
@@ -484,12 +486,12 @@ public interface ChordLeadSheet
     default IntRange getBarRange(CLI_Section cliSection)
     {
         Preconditions.checkNotNull(cliSection);
-        Position pos = cliSection.getPosition();
-        Preconditions.checkArgument(getSection(pos.getBar()) == cliSection, "cliSection=%s this=%s", cliSection, this);
+        int bar = cliSection.getPosition().getBar();
+        Preconditions.checkArgument(getSection(bar) == cliSection, "cliSection=%s this=%s", cliSection, this);
 
         var nextSection = getNextItem(cliSection);
         int lastBar = nextSection == null ? getSizeInBars() - 1 : nextSection.getPosition().getBar() - 1;
-        return new IntRange(pos.getBar(), lastBar);
+        return new IntRange(bar, lastBar);
     }
 
     /**
@@ -531,8 +533,8 @@ public interface ChordLeadSheet
     /**
      * Add a synchronized listener for this object.
      * <p>
-     * Listener will be called while the ReentrantReadWriteLock write lock is held, so listener should keep processing simple  VetoableClsChangeEvents are only sent to synchronized listeners. General
-     * purpose listeners should use addClsChangeListener() instead.
+     * Listener will be called while the ReentrantReadWriteLock write lock is held, so listener should keep processing simple VetoableClsChangeEvents are only
+     * sent to synchronized listeners. General purpose listeners should use addClsChangeListener() instead.
      *
      * @param l
      * @see #addClsChangeListener(org.jjazz.chordleadsheet.api.ClsChangeListener)

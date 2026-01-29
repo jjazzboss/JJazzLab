@@ -101,6 +101,8 @@ public class ChordLeadSheetImplTest
             cls1.addItem(new CLI_ChordSymbolImpl(getChord("Eb7b9#5"), new Position(5, 0.75f)));
             cls1.addItem(new CLI_ChordSymbolImpl(getChord("Db"), new Position(7, 3f)));
 
+            System.out.println("cls1="+cls1.toDebugString());
+            
             cls1.addUndoableEditListener(undoManager);
 
             // cls2 = deep copy to make the comparison after a undo/redo/undo cycle
