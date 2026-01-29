@@ -57,11 +57,11 @@ public interface ChordLeadSheet
     /**
      * Add an item to the leadsheet.
      * <p>
-     * Item position might be adjusted to the bar's TimeSignature. This will set the item's container to this ChordLeadSheet. Nothing is done if an
-     * equal item is already in the ChordLeadSheet.
+     * Item position might be adjusted to the bar's TimeSignature. This will set the item's container to this ChordLeadSheet. Nothing is done if an equal item
+     * is already in the ChordLeadSheet.
      *
      * @param item The ChordLeadSheetItem to add. Must be a WritableItem. Can not be a CLI_Section.
-     * @return True is item was added
+     * @return True if item was added
      * @throws IllegalArgumentException If item's position out of leadsheet bounds or item is a CLI_Section.
      * @see #addSection(org.jjazz.chordleadsheet.api.item.CLI_Section)
      */
@@ -120,10 +120,9 @@ public interface ChordLeadSheet
     /**
      * Move a section to a new position.
      * <p>
-     * New position must be free of a section. Section on first bar can not be moved. Some items position might be adjusted to the new bar's
-     * TimeSignature.
+     * New position must be free of a section. Section on first bar can not be moved. Some items position might be adjusted due to time because of the move.
      *
-     * @param section The section to be moved
+     * @param section     The section to be moved
      * @param newBarIndex The bar index section will be moved to
      * @throws IllegalArgumentException If new position is not valid.
      */
@@ -135,7 +134,7 @@ public interface ChordLeadSheet
      * Item position might be adjusted to the bar's TimeSignature. Nothing is done if an equal item is already at the target position.
      *
      * @param item The item to be moved. Must be a WritableItem. Can not be used on a Section.
-     * @param pos The new position.
+     * @param pos  The new position.
      * @return True if the item was moved.
      * @throws IllegalArgumentException If new position is not valid of if item is a CLI_Section
      * @see #moveSection(org.jjazz.chordleadsheet.api.item.CLI_Section, int)
@@ -168,11 +167,11 @@ public interface ChordLeadSheet
     /**
      * Insert bars from a specific position.
      * <p>
-     * If there are bars after barIndex, they are shifted accordingly. If barIndex==0, a new section with a new name is created at bar 0 reusing the
-     * previous initial section's time signature.
+     * If there are bars after barIndex, they are shifted accordingly. If barIndex==0, a new section with a new name is created at bar 0 reusing the previous
+     * initial section's time signature.
      *
      * @param barIndex The bar index from which to insert the new bars.
-     * @param nbBars The number of bars to insert.
+     * @param nbBars   The number of bars to insert.
      * @throws IllegalArgumentException If barIndex &lt; 0 or barIndex &gt; size()
      */
     void insertBars(int barIndex, int nbBars);
@@ -189,11 +188,6 @@ public interface ChordLeadSheet
     void deleteBars(int barIndexFrom, int barIndexTo);
 
     /**
-     * Cleanup function to be called so that the object can be garbaged.
-     */
-    void cleanup();
-
-    /**
      * Get the matching items whose position is in the position range.
      *
      * @param <T>
@@ -201,13 +195,13 @@ public interface ChordLeadSheet
      * @param inclusiveFrom
      * @param posTo
      * @param inclusiveTo
-     * @param itemClass Accept items which are instance of class itemClass
-     * @param tester Accept items which satisfy the tester.
+     * @param itemClass     Accept items which are instance of class itemClass
+     * @param tester        Accept items which satisfy the tester.
      * @return A non-modifiable ordered list of items
      */
     <T extends ChordLeadSheetItem<?>> List<T> getItems(Position posFrom, boolean inclusiveFrom, Position posTo, boolean inclusiveTo,
-        Class<T> itemClass,
-        Predicate<T> tester);
+            Class<T> itemClass,
+            Predicate<T> tester);
 
     /**
      * Get the last matching item whose position is before (or equal, if inclusive is true) posHigh.
@@ -215,7 +209,7 @@ public interface ChordLeadSheet
      * @param <T>
      * @param posTo
      * @param inclusiveTo
-     * @param itemClass Accept items which are assignable from aClass
+     * @param itemClass   Accept items which are assignable from aClass
      * @param tester
      * @return Can be null.
      */
@@ -281,7 +275,7 @@ public interface ChordLeadSheet
      *
      * @param <T>
      * @param itemClass Accept items which are instance of class itemClass
-     * @param tester Accept items which satisfy the tester.
+     * @param tester    Accept items which satisfy the tester.
      * @return A non-modifiable ordered list of items
      */
     default <T extends ChordLeadSheetItem<?>> List<T> getItems(Class<T> itemClass, Predicate<T> tester)
@@ -297,7 +291,7 @@ public interface ChordLeadSheet
      * @param barFrom
      * @param barTo
      * @param itemClass Accept items which are instance of class aClass.
-     * @param tester Accept items which satisfy the tester.
+     * @param tester    Accept items which satisfy the tester.
      * @return A non-modifiable ordered list of items
      */
     default <T extends ChordLeadSheetItem<?>> List<T> getItems(int barFrom, int barTo, Class<T> itemClass, Predicate<T> tester)
@@ -329,7 +323,7 @@ public interface ChordLeadSheet
      * @param posFrom
      * @param inclusive
      * @param itemClass Accept items which are instance of class itemClass
-     * @param tester Accept items which satisfy the tester.
+     * @param tester    Accept items which satisfy the tester.
      * @return A non-modifiable ordered list of items
      */
     default <T extends ChordLeadSheetItem<?>> List<T> getItemsAfter(Position posFrom, boolean inclusive, Class<T> itemClass, Predicate<T> tester)
@@ -345,7 +339,7 @@ public interface ChordLeadSheet
      * @param posTo
      * @param inclusive
      * @param itemClass Accept items which are instance of class itemClass. Can't be null.
-     * @param tester Accept items which satisfy the tester.
+     * @param tester    Accept items which satisfy the tester.
      * @return A non-modifiable ordered list of items
      */
     default <T extends ChordLeadSheetItem<?>> List<T> getItemsBefore(Position posTo, boolean inclusive, Class<T> itemClass, Predicate<T> tester)
@@ -360,8 +354,8 @@ public interface ChordLeadSheet
      *
      * @param <T>
      * @param cliSection
-     * @param itemClass Accept items which are instance of class aClass
-     * @param tester Accept items which satisfy the tester.
+     * @param itemClass  Accept items which are instance of class aClass
+     * @param tester     Accept items which satisfy the tester.
      * @return A non-modifiable ordered list of items
      */
     default <T extends ChordLeadSheetItem<?>> List<T> getItems(CLI_Section cliSection, Class<T> itemClass, Predicate<T> tester)
@@ -376,7 +370,7 @@ public interface ChordLeadSheet
      *
      * @param <T>
      * @param cliSection
-     * @param itemClass Accept items which are instance of class aClass
+     * @param itemClass  Accept items which are instance of class aClass
      * @return A non-modifiable ordered list of items
      */
     default <T extends ChordLeadSheetItem<?>> List<T> getItems(CLI_Section cliSection, Class<T> itemClass)
@@ -517,10 +511,10 @@ public interface ChordLeadSheet
     ChordLeadSheet getDeepCopy();
 
     /**
-     * Add a listener to changes of this object.
+     * Add a (non-synchronized) listener for this object.
      * <p>
-     * Listener will be called while outside of the ReentrantReadWriteLock write lock. General-purpose listeners (e.g. for updating UI ) should use
-     * this method.
+     * Listener will be called while outside of the ReentrantReadWriteLock write lock. General-purpose listeners (e.g. for updating UI ) should use this method.
+     * If you want to receive VetoableClsChangeEvents, use addClsChangeSyncListener() instead.
      *
      * @param l
      * @see #addClsChangeSyncListener(org.jjazz.chordleadsheet.api.ClsChangeListener)
@@ -528,17 +522,17 @@ public interface ChordLeadSheet
     void addClsChangeListener(ClsChangeListener l);
 
     /**
-     * Remove a listener to this object's changes.
+     * Remove a (non-synchronized) listener.
      *
      * @param l
      */
     void removeClsChangeListener(ClsChangeListener l);
 
     /**
-     * Add a synchronized listener to changes of this object.
+     * Add a synchronized listener for this object.
      * <p>
-     * Listener will be called while the ReentrantReadWriteLock write lock is held. General purpose listeners should use addClsChangeListener()
-     * instead.
+     * Listener will be called while the ReentrantReadWriteLock write lock is held, so listener should keep processing simple  VetoableClsChangeEvents are only sent to synchronized listeners. General
+     * purpose listeners should use addClsChangeListener() instead.
      *
      * @param l
      * @see #addClsChangeListener(org.jjazz.chordleadsheet.api.ClsChangeListener)
@@ -546,21 +540,21 @@ public interface ChordLeadSheet
     void addClsChangeSyncListener(ClsChangeListener l);
 
     /**
-     * Remove a synchronized listener to this object's changes.
+     * Remove a synchronized listener.
      *
      * @param l
      */
     void removeClsChangeSyncListener(ClsChangeListener l);
 
     /**
-     * Add a listener to undoable edits.
+     * Add a listener for undoable edits.
      *
      * @param l
      */
     void addUndoableEditListener(UndoableEditListener l);
 
     /**
-     * Remove a listener to undoable edits.
+     * Remove a listener for undoable edits.
      *
      * @param l
      */

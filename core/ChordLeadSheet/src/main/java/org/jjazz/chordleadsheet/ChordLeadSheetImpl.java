@@ -23,7 +23,6 @@
 package org.jjazz.chordleadsheet;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 import com.thoughtworks.xstream.XStream;
 import org.jjazz.undomanager.api.SimpleEdit;
 import java.io.InvalidObjectException;
@@ -31,13 +30,13 @@ import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -65,6 +64,12 @@ import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_SAVE;
 import org.openide.util.Exceptions;
 import org.openide.util.lookup.ServiceProvider;
 
+/**
+ * ChordLeadSheet implementation.
+ * <p>
+ * This implementation is thread-safe: all model access is protected by a ReentrantReadWriteLock. Mutating item implementations are internal-only and cannot be
+ * modified by API clients. Synchronous listeners are invoked while holding the write lock and must follow the documented non-blocking contract.
+ */
 public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 {
 
@@ -77,7 +82,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     /**
      * The size of the leadsheet in bars.
      */
-    private int size;
+    private volatile int size;
     /**
      * Lock can be shared via getLock() for external synchronization
      */
@@ -85,12 +90,12 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     /**
      * The listeners for changes in this LeadSheet.
      */
-    protected transient List<ClsChangeListener> listeners;
-    protected transient List<ClsChangeListener> syncListeners;
+    protected final transient CopyOnWriteArrayList<ClsChangeListener> listeners;
+    protected final transient CopyOnWriteArrayList<ClsChangeListener> syncListeners;
     /**
      * The listeners for undoable edits in this LeadSheet.
      */
-    protected transient List<UndoableEditListener> undoListeners = new ArrayList<>();
+    protected final transient CopyOnWriteArrayList<UndoableEditListener> undoListeners;
     private static final Logger LOGGER = Logger.getLogger(ChordLeadSheetImpl.class.getSimpleName());
 
     public ChordLeadSheetImpl(String initSection, TimeSignature ts, int size)
@@ -104,13 +109,15 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         Preconditions.checkArgument(initSection.getPosition().getBar() == 0, "initSection=%s", initSection);
         Preconditions.checkArgument(size >= 1 && size <= MAX_SIZE, "size=%s", size);
 
-        this.syncListeners = new ArrayList<>();
-        this.listeners = new ArrayList<>();
+        this.syncListeners = new CopyOnWriteArrayList<>();
+        this.listeners = new CopyOnWriteArrayList<>();
+        this.undoListeners = new CopyOnWriteArrayList<>();
         this.items = new TreeSet<>();
         this.lock = new ReentrantReadWriteLock();
         this.size = size;
 
-        addItemChecked(initSection);
+
+        items.add(initSection);
     }
 
     @Override
@@ -175,7 +182,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
 
         // Operation
-        Supplier<OperationResults> operation = () ->
+        Supplier<OperationResults> operation = () -> 
         {
             final int oldSize = size;
 
@@ -204,7 +211,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 public void undoBody()
                 {
                     LOGGER.log(Level.FINER, "setSizeInBars.undoBody() newSize={0}", newSize);
-                    performAPImethodUndoRedo(() ->
+                    performAPImethodUndoRedo(() -> 
                     {
                         size = oldSize;
                         itemsToRemove.forEach(item -> addItemChecked(item));
@@ -219,7 +226,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 public void redoBody()
                 {
                     LOGGER.log(Level.FINER, "setSizeInBars.redoBody() newSize={0}", newSize);
-                    performAPImethodUndoRedo(() ->
+                    performAPImethodUndoRedo(() -> 
                     {
                         itemsToRemove.forEach(item -> removeItemChecked(item));
                         size = newSize;
@@ -241,14 +248,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     @Override
     public int getSizeInBars()
     {
-        lock.readLock().lock();
-        try
-        {
-            return size;
-        } finally
-        {
-            lock.readLock().unlock();
-        }
+        return size;
     }
 
     @Override
@@ -262,7 +262,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         LOGGER.log(Level.FINE, "addItem() -- item={0}", item);
 
 
-        Supplier<OperationResults> operation = () ->
+        Supplier<OperationResults> operation = () -> 
         {
             if (items.contains(item))
             {
@@ -279,7 +279,6 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
 
             final ChordLeadSheet oldContainer = item.getContainer();
-            final ChordLeadSheet newContainer = this;
 
 
             // Update model
@@ -296,7 +295,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 public void undoBody()
                 {
                     LOGGER.log(Level.FINER, "addItem.undoBody() item={0}", item);
-                    performAPImethodUndoRedo(() ->
+                    performAPImethodUndoRedo(() -> 
                     {
                         removeItemChecked(wItem);
                         wItem.setPosition(oldPos);
@@ -312,7 +311,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 public void redoBody()
                 {
                     LOGGER.log(Level.FINER, "addItem.redoBody() item={0}", item);
-                    performAPImethodUndoRedo(() ->
+                    performAPImethodUndoRedo(() -> 
                     {
                         wItem.setPosition(newAdjustedPos);
                         addItemChecked(wItem);
@@ -327,7 +326,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             return new OperationResults(event, edit, Boolean.TRUE);
         };
 
-        Boolean b = (Boolean) performAPImethod(operation);
+        Boolean b = performAPImethod(operation);
         return b;
     }
 
@@ -341,46 +340,31 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         LOGGER.log(Level.FINE, "addSection() -- cliSection={0}", cliSection);
 
 
-        // Preliminary checks
-        lock.readLock().lock();
-        try
-        {
-            int bar = cliSection.getPosition().getBar();
-            Preconditions.checkArgument(bar < this.size, "cliSection=%s this.size=%s", cliSection, size);
-            var sameNameSection = getSection(cliSection.getData().getName());
-            Preconditions.checkArgument(sameNameSection == null || sameNameSection.getPosition().getBar() == bar,
-                "cliSection=%s sameNameSection=%s", cliSection, sameNameSection);
-        } finally
-        {
-            lock.readLock().unlock();
-        }
-
-
-        // Fire vetoable event
-        var vetoEvent = new ItemAddedEvent(this, cliSection);
-        fireVetoableChangeEvent(new ClsVetoableChangeEvent(this, vetoEvent));   // throws UnsupportedEditException
-
-
         // Operation
-        Supplier<OperationResults> operation = () ->
+        ThrowingSupplier<OperationResults, UnsupportedEditException> operation = () -> 
         {
+
+            // Verify constraints
             final int bar = cliSection.getPosition().getBar();
-
-
-            // Re-verify constraints
+            final CLI_Section curSection = getSection(bar);
             Preconditions.checkArgument(bar < this.size, "cliSection=%s this.size=%s", cliSection, size);
             var sameNameSection = getSection(cliSection.getData().getName());
             Preconditions.checkArgument(sameNameSection == null || sameNameSection.getPosition().getBar() == bar,
-                "cliSection=%s sameNameSection=%s", cliSection, sameNameSection);
+                    "cliSection=%s sameNameSection=%s", cliSection, sameNameSection);
+
+
+            // Fire vetoable event
+            var vetoEvent = new SectionAddedEvent(ChordLeadSheetImpl.this, cliSection,
+                    curSection.getPosition().getBar() == bar ? curSection : null,
+                    Collections.emptyList());
+            fireSynchronizedVetoableChangeEvent(new ClsVetoableChangeEvent(ChordLeadSheetImpl.this, vetoEvent));   // throws UnsupportedEditException
 
 
             // Prepare data
-            final CLI_Section curSection = getSection(bar);
             final TimeSignature oldTs = curSection.getData().getTimeSignature();
             final boolean isReplace = curSection.getPosition().getBar() == bar;
             final WritableItem<Section> wSection = (WritableItem<Section>) cliSection;
             final ChordLeadSheet oldContainer = wSection.getContainer();
-            final ChordLeadSheet newContainer = ChordLeadSheetImpl.this;
 
 
             // Update model
@@ -409,7 +393,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 public void undoBody()
                 {
                     LOGGER.log(Level.FINER, "addSection.undoBody() section={0}", wSection);
-                    performAPImethodUndoRedo(() ->
+                    performAPImethodUndoRedo(() -> 
                     {
                         for (var adjustment : adjustments.reversed())
                         {
@@ -434,7 +418,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 public void redoBody()
                 {
                     LOGGER.log(Level.FINER, "addSection.redoBody() section={0}", wSection);
-                    performAPImethodUndoRedo(() ->
+                    performAPImethodUndoRedo(() -> 
                     {
                         if (isReplace)
                         {
@@ -459,7 +443,9 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             return new OperationResults(event, edit, null);
         };
 
-        performAPImethod(operation);
+
+        performAPImethodThrowing(operation);            // throws UnsupportedEditException
+
     }
 
     @Override
@@ -472,7 +458,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
 
         // Operation
-        Supplier<OperationResults> operation = () ->
+        Supplier<OperationResults> operation = () -> 
         {
             Preconditions.checkArgument(items.contains(cliSection), "cliSection=%s items=%s", cliSection, items);
 
@@ -504,7 +490,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 public void undoBody()
                 {
                     LOGGER.log(Level.FINER, "removeSection.undoBody() section={0}", cliSection);
-                    performAPImethodUndoRedo(() ->
+                    performAPImethodUndoRedo(() -> 
                     {
                         for (var adjustment : adjustments.reversed())
                         {
@@ -523,7 +509,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 public void redoBody()
                 {
                     LOGGER.log(Level.FINER, "removeSection.redoBody() section={0}", cliSection);
-                    performAPImethodUndoRedo(() ->
+                    performAPImethodUndoRedo(() -> 
                     {
                         removeItemChecked(cliSection);
 
@@ -557,7 +543,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             cliSection, newBarIndex
         });
 
-        Supplier<OperationResults> operation = () ->
+        Supplier<OperationResults> operation = () -> 
         {
             Preconditions.checkArgument(newBarIndex < size, "newBarIndex=%s size=%s", newBarIndex, size);
             Preconditions.checkArgument(items.contains(cliSection), "cliSection=%s items=%s", cliSection, items);
@@ -601,7 +587,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 public void undoBody()
                 {
                     LOGGER.log(Level.FINER, "moveSection.undoBody() section={0}", cliSection);
-                    performAPImethodUndoRedo(() ->
+                    performAPImethodUndoRedo(() -> 
                     {
                         for (var adjustment : adjustments.reversed())
                         {
@@ -620,7 +606,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 public void redoBody()
                 {
                     LOGGER.log(Level.FINER, "moveSection.redoBody() section={0}", cliSection);
-                    performAPImethodUndoRedo(() ->
+                    performAPImethodUndoRedo(() -> 
                     {
                         changeItemPositionChecked(cliSection, new Position(newBarIndex));
 
@@ -651,7 +637,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
         LOGGER.log(Level.FINE, "removeItem() -- item={0}", item);
 
-        Supplier<OperationResults> operation = () ->
+        Supplier<OperationResults> operation = () -> 
         {
             if (!items.contains(item))
             {
@@ -671,7 +657,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 public void undoBody()
                 {
                     LOGGER.log(Level.FINER, "removeItem.undoBody() item={0}", item);
-                    performAPImethodUndoRedo(() ->
+                    performAPImethodUndoRedo(() -> 
                     {
                         addItemChecked(item);
                         var event = new ItemRemovedEvent(ChordLeadSheetImpl.this, item);
@@ -684,7 +670,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 public void redoBody()
                 {
                     LOGGER.log(Level.FINER, "removeItem.redoBody() item={0}", item);
-                    performAPImethodUndoRedo(() ->
+                    performAPImethodUndoRedo(() -> 
                     {
                         removeItemChecked(item);
                         var event = new ItemRemovedEvent(ChordLeadSheetImpl.this, item);
@@ -698,7 +684,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             return new OperationResults(event, edit, Boolean.TRUE);
         };
 
-        Boolean b = (Boolean) performAPImethod(operation);
+        Boolean b = performAPImethod(operation);
         return b;
     }
 
@@ -714,14 +700,14 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             item, newPos
         });
 
-        Supplier<OperationResults> operation = () ->
+        Supplier<OperationResults> operation = () -> 
         {
             Preconditions.checkArgument(items.contains(item), "item=%s items=%s", item, items);
 
             final Position oldPos = item.getPosition();
             final Position newAdjustedPos = newPos.getAdjusted(getSection(newPos.getBar()).getData().getTimeSignature());
 
-            if (oldPos.equals(newAdjustedPos) || items.contains(item.getCopy(null, newPos)))
+            if (oldPos.equals(newAdjustedPos) || items.contains(item.getCopy(null, newAdjustedPos)))
             {
                 return new OperationResults(null, null, Boolean.FALSE);
             }
@@ -740,7 +726,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                         item, oldPos,
                         newAdjustedPos
                     });
-                    performAPImethodUndoRedo(() ->
+                    performAPImethodUndoRedo(() -> 
                     {
                         changeItemPositionChecked(item, oldPos);
                         var event = new ItemMovedEvent(ChordLeadSheetImpl.this, item, oldPos, newAdjustedPos);
@@ -757,7 +743,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                         item, oldPos,
                         newAdjustedPos
                     });
-                    performAPImethodUndoRedo(() ->
+                    performAPImethodUndoRedo(() -> 
                     {
                         changeItemPositionChecked(item, newAdjustedPos);
                         var event = new ItemMovedEvent(ChordLeadSheetImpl.this, item, oldPos, newAdjustedPos);
@@ -771,7 +757,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             return new OperationResults(event, edit, Boolean.TRUE);
         };
 
-        Boolean b = (Boolean) performAPImethod(operation);
+        Boolean b = performAPImethod(operation);
         return b;
     }
 
@@ -786,7 +772,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             item, newData
         });
 
-        Supplier<OperationResults> operation = () ->
+        Supplier<OperationResults> operation = () -> 
         {
             Preconditions.checkArgument(items.contains(item), "item=%s items=%s", item, items);
 
@@ -809,7 +795,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                     {
                         item, oldData, newData
                     });
-                    performAPImethodUndoRedo(() ->
+                    performAPImethodUndoRedo(() -> 
                     {
                         changeItemDataChecked(item, oldData);
                         var event = new ItemChangedEvent(ChordLeadSheetImpl.this, item, oldData, newData);
@@ -825,7 +811,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                     {
                         item, oldData, newData
                     });
-                    performAPImethodUndoRedo(() ->
+                    performAPImethodUndoRedo(() -> 
                     {
                         changeItemDataChecked(item, newData);
                         var event = new ItemChangedEvent(ChordLeadSheetImpl.this, item, oldData, newData);
@@ -839,7 +825,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             return new OperationResults(event, edit, Boolean.TRUE);
         };
 
-        boolean b = (boolean) performAPImethod(operation);
+        boolean b = performAPImethod(operation);
         return b;
     }
 
@@ -858,7 +844,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             return;
         }
 
-        Supplier<OperationResults> operation = () ->
+        Supplier<OperationResults> operation = () -> 
         {
             Preconditions.checkArgument(barIndex <= size, "barIndex=%s size=%s", barIndex, size);
 
@@ -908,7 +894,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 public void undoBody()
                 {
                     LOGGER.log(Level.FINER, "insertBars.undoBody() nbBars={0}", nbBars);
-                    performAPImethodUndoRedo(() ->
+                    performAPImethodUndoRedo(() -> 
                     {
                         if (newSection0 != null)
                         {
@@ -932,9 +918,9 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 public void redoBody()
                 {
                     LOGGER.log(Level.FINER, "insertBars.redoBody() nbBars={0}", nbBars);
-                    performAPImethodUndoRedo(() ->
+                    performAPImethodUndoRedo(() -> 
                     {
-                        size = oldSize;
+                        size = newSize;
 
 
                         for (var item : shiftedItems.reversed())
@@ -965,7 +951,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     public void deleteBars(int barIndexFrom, int barIndexTo)
     {
         Preconditions.checkArgument(barIndexFrom >= 0 && barIndexTo >= barIndexFrom,
-            "barIndexFrom=%s barIndexTo=%s", barIndexFrom, barIndexTo);
+                "barIndexFrom=%s barIndexTo=%s", barIndexFrom, barIndexTo);
 
         LOGGER.log(Level.FINE, "deleteBars() -- barIndexFrom={0} barIndexTo={1}", new Object[]
         {
@@ -973,9 +959,10 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         });
 
 
-        Supplier<OperationResults> operation = () ->
+        Supplier<OperationResults> operation = () -> 
         {
-            Preconditions.checkArgument(barIndexTo < size && barIndexTo - barIndexFrom + 1 < size, "barIndexFrom=%s barIndexTo=%s size=%s", barIndexFrom, barIndexTo, size);
+            Preconditions.checkArgument(barIndexTo < size && barIndexTo - barIndexFrom + 1 < size, "barIndexFrom=%s barIndexTo=%s size=%s", barIndexFrom,
+                    barIndexTo, size);
             Preconditions.checkArgument(barIndexTo - barIndexFrom < size, "barIndexFrom=%s barIndexTo=%s size=%s", barIndexFrom, barIndexTo, size);
 
             final int nbBars = barIndexTo - barIndexFrom + 1;
@@ -987,7 +974,6 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             // Determine context *before* mutation at the point just after the cut
             final boolean noBarsAfterCut = barIndexTo + 1 == oldSize;
             final CLI_Section oldSectionAfter = noBarsAfterCut ? null : getSection(barIndexTo + 1);
-            final TimeSignature oldTsAfter = oldSectionAfter != null ? oldSectionAfter.getData().getTimeSignature() : null;
 
 
             // Identify items to remove
@@ -1018,6 +1004,8 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             if (!noBarsAfterCut)
             {
                 // Determine the new context at the deletion point
+                assert oldSectionAfter != null;
+                var oldTsAfter = oldSectionAfter.getData().getTimeSignature();
                 CLI_Section newSectionAfter = getSection(barIndexFrom);
                 TimeSignature newTsAfter = newSectionAfter.getData().getTimeSignature();
                 if (newTsAfter.getNbNaturalBeats() < oldTsAfter.getNbNaturalBeats())
@@ -1038,7 +1026,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 public void undoBody()
                 {
                     LOGGER.log(Level.FINER, "deleteBars.undoBody() nbBars={0}", nbBars);
-                    performAPImethodUndoRedo(() ->
+                    performAPImethodUndoRedo(() -> 
                     {
                         size = oldSize;
 
@@ -1068,7 +1056,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 public void redoBody()
                 {
                     LOGGER.log(Level.FINER, "deleteBars.redoBody() nbBars={0}", nbBars);
-                    performAPImethodUndoRedo(() ->
+                    performAPImethodUndoRedo(() -> 
                     {
                         for (var item : itemsToRemove)
                         {
@@ -1118,7 +1106,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             cliSection, name
         });
 
-        Supplier<OperationResults> operation = () ->
+        Supplier<OperationResults> operation = () -> 
         {
             Preconditions.checkArgument(items.contains(cliSection), "cliSection=%s items=%s", cliSection, items);
             Preconditions.checkArgument(getSection(name) == null, "cliSection=%s items=%s", cliSection, items);
@@ -1142,7 +1130,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                         cliSection, oldData,
                         newData
                     });
-                    performAPImethodUndoRedo(() ->
+                    performAPImethodUndoRedo(() -> 
                     {
                         changeItemDataChecked(cliSection, oldData);
                         var event = new SectionChangedEvent(ChordLeadSheetImpl.this, cliSection, oldData, newData, Collections.emptyList());
@@ -1159,7 +1147,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                         cliSection, oldData,
                         newData
                     });
-                    performAPImethodUndoRedo(() ->
+                    performAPImethodUndoRedo(() -> 
                     {
                         changeItemDataChecked(cliSection, newData);
                         var event = new SectionChangedEvent(ChordLeadSheetImpl.this, cliSection, oldData, newData, Collections.emptyList());
@@ -1181,8 +1169,8 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     {
         Preconditions.checkNotNull(ts);
         Preconditions.checkArgument(cliSection instanceof WritableItem, "cliSection=%s", cliSection);
-
-        if (cliSection.getData().getTimeSignature().equals(ts))
+        final Section oldData = cliSection.getData();
+        if (oldData.getTimeSignature().equals(ts))
         {
             return;
         }
@@ -1192,18 +1180,16 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             cliSection, ts
         });
 
-        final Section oldData = cliSection.getData();
-        final Section newData = new Section(oldData.getName(), ts);
 
-
-        // Fire vetoable event (don't need moved items yet)
-        var vetoEvent = new SectionChangedEvent(ChordLeadSheetImpl.this, cliSection, oldData, newData, Collections.emptyList());
-        fireVetoableChangeEvent(new ClsVetoableChangeEvent(this, vetoEvent));
-
-
-        Supplier<OperationResults> operation = () ->
+        ThrowingSupplier<OperationResults, UnsupportedEditException> operation = () -> 
         {
             Preconditions.checkArgument(items.contains(cliSection), "cliSection=%s items=%s", cliSection, items);
+
+            final Section newData = new Section(oldData.getName(), ts);
+
+            // Fire vetoable event (don't need moved items yet)
+            var vetoEvent = new SectionChangedEvent(ChordLeadSheetImpl.this, cliSection, oldData, newData, Collections.emptyList());
+            fireSynchronizedVetoableChangeEvent(new ClsVetoableChangeEvent(this, vetoEvent));       // throws UnsupportedEditException
 
 
             // First adjust items if required
@@ -1214,8 +1200,8 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 var iitems = getItems(cliSection, ChordLeadSheetItem.class, cli -> !ts.checkBeat(cli.getPosition().getBeat()));
                 adjustments = adjustItemsToTimeSignature(oldData.getTimeSignature(), ts, iitems);
                 adjustedItems = adjustments.stream()
-                    .map(ItemMoved::item)
-                    .toList();
+                        .map(ItemMoved::item)
+                        .toList();
             } else
             {
                 adjustments = Collections.emptyList();
@@ -1234,7 +1220,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 public void undoBody()
                 {
                     LOGGER.log(Level.FINER, "setSectionTimeSignature.undoBody() cliSection={0}", cliSection);
-                    performAPImethodUndoRedo(() ->
+                    performAPImethodUndoRedo(() -> 
                     {
                         changeItemDataChecked(cliSection, oldData);
 
@@ -1253,7 +1239,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 public void redoBody()
                 {
                     LOGGER.log(Level.FINER, "setSectionTimeSignature.redoBody() cliSection={0}", cliSection);
-                    performAPImethodUndoRedo(() ->
+                    performAPImethodUndoRedo(() -> 
                     {
                         for (var adj : adjustments)
                         {
@@ -1273,13 +1259,8 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             return new OperationResults(event, edit, null);
         };
 
-        performAPImethod(operation);
-    }
+        performAPImethodThrowing(operation);         // throws UnsupportedEditException
 
-    @Override
-    public void cleanup()
-    {
-        // Nothing
     }
 
     @Override
@@ -1379,8 +1360,8 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
     @Override
     public <T extends ChordLeadSheetItem<?>> List<T> getItems(Position posFrom, boolean inclusiveFrom, Position posTo, boolean inclusiveTo,
-        Class<T> itemClass,
-        Predicate<T> tester)
+            Class<T> itemClass,
+            Predicate<T> tester)
     {
         Preconditions.checkNotNull(posFrom);
         Preconditions.checkNotNull(posTo);
@@ -1393,16 +1374,16 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         try
         {
             var rangeItems = items.subSet(
-                ChordLeadSheetItem.createItemFrom(posFrom, inclusiveFrom),
-                false,
-                ChordLeadSheetItem.createItemTo(posTo, inclusiveTo),
-                false);
+                    ChordLeadSheetItem.createItemFrom(posFrom, inclusiveFrom),
+                    false,
+                    ChordLeadSheetItem.createItemTo(posTo, inclusiveTo),
+                    false);
 
             res = rangeItems.stream()
-                .filter(item -> itemClass.isAssignableFrom(item.getClass()))
-                .map(cli -> (T) cli)
-                .filter(tester)
-                .toList();
+                    .filter(item -> itemClass.isAssignableFrom(item.getClass()))
+                    .map(cli -> (T) cli)
+                    .filter(tester)
+                    .toList();
         } finally
         {
             lock.readLock().unlock();
@@ -1467,29 +1448,40 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         {
             return true;
         }
-        if (obj == null)
+        if (obj == null || getClass() != obj.getClass())
         {
             return false;
         }
-        if (getClass() != obj.getClass())
-        {
-            return false;
-        }
-        final ChordLeadSheetImpl other = (ChordLeadSheetImpl) obj;
 
-        boolean b = false;
+        ChordLeadSheetImpl other = (ChordLeadSheetImpl) obj;
+
+        // Snapshot this
+        final int thisSize;
+        final List<ChordLeadSheetItem> thisItems;
         lock.readLock().lock();
         try
         {
-            if (this.size == other.size)
-            {
-                b = Objects.equals(this.items, other.items);
-            }
+            thisSize = this.size;
+            thisItems = List.copyOf(this.items); // preserves order from TreeSet iteration
         } finally
         {
             lock.readLock().unlock();
         }
-        return b;
+
+        // Snapshot other
+        final int otherSize;
+        final List<ChordLeadSheetItem> otherItems;
+        other.lock.readLock().lock();
+        try
+        {
+            otherSize = other.size;
+            otherItems = List.copyOf(other.items);
+        } finally
+        {
+            other.lock.readLock().unlock();
+        }
+
+        return thisSize == otherSize && thisItems.equals(otherItems);
     }
     // --------------------------------------------------------------------------------------
     // Private methods
@@ -1537,7 +1529,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                     float newBeat = (float) (Math.floor((newPos.getBeat() - 0.00001f) / 0.25f) * 0.25f);     // nearest 0.25 multiple below
                     if (newBeat < 0)
                     {
-                        // Theorically can happen, but it would mean user fully packed the bar with many identical chords, which makes no sense
+                        // It can happen theoretically, but it would mean user fully packed the bar with many identical chords, which makes no sense
                         throw new IllegalStateException("oldTs=" + oldTs + " newTs=" + newTs + " item=" + item + " newBeat=" + newBeat + " iitems=" + items);
                     }
                     newPos.setBeat(newBeat);
@@ -1557,6 +1549,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
      */
     private void addItemChecked(ChordLeadSheetItem<?> item)
     {
+        assert lock.isWriteLockedByCurrentThread();
         Preconditions.checkArgument(item instanceof WritableItem, "item=%s", item);
         var b = items.add(item);
         assert b : "item=" + item + " items=" + items;
@@ -1565,12 +1558,14 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
     private void removeItemChecked(ChordLeadSheetItem<?> item)
     {
+        assert lock.isWriteLockedByCurrentThread();
         var b = items.remove(item);
         assert b : "item=" + item + " items=" + items;
     }
 
     private <T> void changeItemDataChecked(ChordLeadSheetItem<T> item, T newData)
     {
+        assert lock.isWriteLockedByCurrentThread();
         WritableItem<T> wItem = (WritableItem<T>) item;
         var b = items.remove(wItem);
         assert b : "wItem=" + wItem + " newData=" + newData + " items=" + items;
@@ -1581,6 +1576,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
     private <T> void changeItemPositionChecked(ChordLeadSheetItem<T> item, Position newPos)
     {
+        assert lock.isWriteLockedByCurrentThread();
         WritableItem<T> wItem = (WritableItem<T>) item;
         var b = items.remove(wItem);
         assert b : "wItem=" + wItem + " newPos=" + newPos + " items=" + items;
@@ -1590,24 +1586,22 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     }
 
     /**
-     * Make sure that the changed will be authorized by all (non sycnrhonized) listeners.
-     * <p>
+     * Fire a vetoable change event to all synchronized listeners.
      *
      * @param event
      * @throws org.jjazz.chordleadsheet.api.UnsupportedEditException
      */
-    private void fireVetoableChangeEvent(ClsVetoableChangeEvent event) throws UnsupportedEditException
+    private void fireSynchronizedVetoableChangeEvent(ClsVetoableChangeEvent event) throws UnsupportedEditException
     {
         Objects.requireNonNull(event);
-
-        for (ClsChangeListener l : getListenersSnapshot(listeners))
+        for (var l : syncListeners)
         {
             l.chordLeadSheetChanged(event);         // throws UnsupportedEditException
         }
     }
 
     /**
-     * Fire a change event to all (non synchronized) listeners.
+     * Fire a non vetoable change event to all (non synchronized) listeners.
      * <p>
      *
      * @param event Can not be a ClsVetoableChangeEvent
@@ -1616,11 +1610,11 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     {
         Preconditions.checkArgument(event != null && !(event instanceof ClsVetoableChangeEvent), "event=%s", event);
 
-        for (ClsChangeListener l : getListenersSnapshot(listeners))
+        for (ClsChangeListener l : listeners)
         {
             try
             {
-                l.chordLeadSheetChanged(event);
+                l.chordLeadSheetChanged(event);      // throws UnsupportedEditException
             } catch (UnsupportedEditException ex)
             {
                 // Should never happen since non vetoable
@@ -1630,7 +1624,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     }
 
     /**
-     * Fire a change event to all synchronized listeners.
+     * Fire a non vetoable change event to all synchronized listeners.
      * <p>
      *
      * @param event
@@ -1639,11 +1633,11 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     {
         Preconditions.checkArgument(event != null && !(event instanceof ClsVetoableChangeEvent), "event=%s", event);
 
-        for (ClsChangeListener l : getListenersSnapshot(syncListeners))
+        for (ClsChangeListener l : syncListeners)
         {
             try
             {
-                l.chordLeadSheetChanged(event);
+                l.chordLeadSheetChanged(event);      // throws UnsupportedEditException
             } catch (UnsupportedEditException ex)
             {
                 // Should never happen since non vetoable
@@ -1654,47 +1648,22 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
     private void fireUndoableEditHappened(UndoableEdit edit)
     {
-        if (edit == null)
-        {
-            throw new IllegalArgumentException("edit=" + edit);
-        }
+        Objects.requireNonNull(edit);
         UndoableEditEvent event = new UndoableEditEvent(this, edit);
-
-        UndoableEditListener[] snapshot;
-        synchronized (lock)
-        {
-            snapshot = undoListeners.toArray(UndoableEditListener[]::new);
-        }
-
-        for (UndoableEditListener l : snapshot)
+        for (UndoableEditListener l : undoListeners)
         {
             l.undoableEditHappened(event);
         }
     }
 
     /**
-     * Get a synchronized snapshot of the specified listeners.
+     * Safely perform a mutating API method possibly returning a value.
      *
-     * @param listeners
-     * @return
-     */
-    private ClsChangeListener[] getListenersSnapshot(List<ClsChangeListener> listeners)
-    {
-        ClsChangeListener[] snapshot;
-        synchronized (lock)
-        {
-            snapshot = listeners.toArray(ClsChangeListener[]::new);
-        }
-        return snapshot;
-    }
-
-    /**
-     * Safely perform a mutating API method.
-     *
+     * @param <R>       The type of the return value
      * @param operation Updates the model and returns the events
-     * @return The returnValue from OperationResults
+     * @return The returnValue from OperationResults. Can be null.
      */
-    private Object performAPImethod(Supplier<OperationResults> operation)
+    private <R> R performAPImethod(Supplier<OperationResults> operation)
     {
         OperationResults results = null;
 
@@ -1721,7 +1690,52 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         {
             fireNonVetoableChangeEvent(results.clsChangeEvent());
         }
-        return results.returnValue();
+
+        @SuppressWarnings("unchecked")
+        R returnValue = (R) results.returnValue();
+        return returnValue;
+    }
+
+    /**
+     * Safely perform a mutating API method possibly returning a value or throwing an exception
+     *
+     * @param operation Updates the model and returns the events
+     * @return The returnValue from OperationResults. Can be null.
+     * @param <R>
+     * @param <E>
+     * @throws E
+     */
+    private <R, E extends Exception> R performAPImethodThrowing(ThrowingSupplier<OperationResults, E> operation) throws E
+    {
+        OperationResults results;
+
+        lock.writeLock().lock();
+        try
+        {
+            results = operation.get();           // may throw E
+            assert results != null;
+
+            if (results.undoableEdit() != null)
+            {
+                fireUndoableEditHappened(results.undoableEdit());
+            }
+            if (results.clsChangeEvent() != null)
+            {
+                fireSynchronizedNonVetoableChangeEvent(results.clsChangeEvent());
+            }
+        } finally
+        {
+            lock.writeLock().unlock();
+        }
+
+        if (results.clsChangeEvent() != null)
+        {
+            fireNonVetoableChangeEvent(results.clsChangeEvent());
+        }
+
+        @SuppressWarnings("unchecked")
+        R returnValue = (R) results.returnValue();
+        return returnValue;
     }
 
     /**
@@ -1744,15 +1758,22 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         }
         fireNonVetoableChangeEvent(event);
     }
+
     // ==========================================================================================================================
     // Inner classes
     // ==========================================================================================================================    
+    @FunctionalInterface
+    private interface ThrowingSupplier<T, E extends Exception>
+    {
+
+        T get() throws E;
+    }
 
     /**
      * Helper class to store the events and return value produced by a mutating API method.
      */
     private record OperationResults(ClsChangeEvent clsChangeEvent, UndoableEdit undoableEdit, Object returnValue)
-        {
+            {
 
     }
 
@@ -1760,9 +1781,9 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
      * Helper class to store a moved item.
      */
     private record ItemMoved(ChordLeadSheetItem<?> item, Position oldPos, Position newPos)
-        {
+            {
 
-        ItemMoved  
+        ItemMoved
         {
             Objects.requireNonNull(item);
             Objects.requireNonNull(oldPos);

@@ -39,8 +39,9 @@ import org.jjazz.utilities.api.StringProperties;
  * <p>
  * PropertyChangeEvents are fired when an attribute is modified.
  * <p>
- * This is a mutable class and subclasses should define equals() and hashCode(): if you want to use ChordLeadSheetItems as Map keys you should use an
- * IdentityHashMap, unless you are sure ChordLeadSheetItems won't mutate. Same for a Set, you should use Guava Sets.newIdentityHashSet().
+ * This is a mutable class and subclasses should define equals() and hashCode(), preferably reusing the static helper method ChordLeadSheetItem.equals() static
+ * method. If you want to use ChordLeadSheetItems as Map keys you should use an IdentityHashMap, unless you are sure ChordLeadSheetItems won't mutate. Same for
+ * a Set, you should use Guava Sets.newIdentityHashSet().
  *
  * @param <T>
  */
