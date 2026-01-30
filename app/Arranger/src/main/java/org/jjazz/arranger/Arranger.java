@@ -324,31 +324,16 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
         var clsWork = songWork.getChordLeadSheet();
         SongPart sptWork = sgsWork.getSongPart(spt.getStartBarIndex());
 
-        try
-        {
-            // Keep only our SongPart
-            List<SongPart> unusedSpts = new ArrayList<>(spts);
-            unusedSpts.remove(sptWork);
-            try
-            {
-                sgsWork.removeSongParts(unusedSpts);
-            } catch (UnsupportedEditException ex)
-            {
-                // Should never happen
-                Exceptions.printStackTrace(ex);
-            }
+        // Keep only our SongPart
+        List<SongPart> unusedSpts = new ArrayList<>(spts);
+        unusedSpts.remove(sptWork);
+        sgsWork.removeSongParts(unusedSpts);
 
-            // Shorten section size if required
-            if (sptWork.getNbBars() > maxSptWorkNbBars)
-            {
-                var parentSection = sptWork.getParentSection();
-                clsWork.setSizeInBars(parentSection.getPosition().getBar() + maxSptWorkNbBars);  // throws UnsupportedEditException
-            }
-
-        } catch (UnsupportedEditException ex)
+        // Shorten section size if required
+        if (sptWork.getNbBars() > maxSptWorkNbBars)
         {
-            // Should never happen 
-            Exceptions.printStackTrace(ex);
+            var parentSection = sptWork.getParentSection();
+            clsWork.setSizeInBars(parentSection.getPosition().getBar() + maxSptWorkNbBars);  // throws UnsupportedEditException
         }
 
 

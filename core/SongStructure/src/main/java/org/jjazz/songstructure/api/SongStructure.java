@@ -315,12 +315,11 @@ public interface SongStructure
     /**
      * Remove some SongParts.
      * <p>
-     * The startBarIndex of the trailing SongParts are updated.
+     * The startBarIndex of the trailing SongParts are updated. The SongPart container will be set to null.
      *
      * @param spts A List of SongParts.
-     * @throws UnsupportedEditException Exception is thrown before any change is done. See authorizeRemoveSongParts()
      */
-    public void removeSongParts(List<SongPart> spts) throws UnsupportedEditException;
+    public void removeSongParts(List<SongPart> spts);
 
     /**
      * Change the size in bars of SongParts.

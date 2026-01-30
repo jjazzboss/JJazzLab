@@ -172,7 +172,7 @@ public interface ChordLeadSheet
     /**
      * Insert bars from a specific position.
      * <p>
-     * If there are bars after barIndex, they are shifted accordingly. If barIndex==0, a new section with a new name is created at bar 0 reusing the previous
+     * If there are bars after barIndex, their items are shifted accordingly. If barIndex==0, a new section with a new name is created at bar 0 reusing the previous
      * initial section's time signature.
      *
      * @param barIndex The bar index from which to insert the new bars.
@@ -184,7 +184,8 @@ public interface ChordLeadSheet
     /**
      * Delete bars and items from barIndexFrom to barIndexTo (inclusive).
      * <p>
-     * Bars after the deleted bars are shifted accordingly. Trailing items positions might be adjusted if it results in a time signature change.
+     * Bars after the deleted bars are shifted accordingly. Trailing items positions might be adjusted if it results in a time signature change. If
+     * barIndexFrom==0 and there is no section at barIndexTo the initial section is not removed.
      *
      * @param barIndexFrom
      * @param barIndexTo

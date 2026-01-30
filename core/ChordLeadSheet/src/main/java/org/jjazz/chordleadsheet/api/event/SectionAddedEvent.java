@@ -34,7 +34,10 @@ import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 public class SectionAddedEvent extends ClsChangeEvent
 {
 
-    private final CLI_Section replacedCliSection;
+    private final CLI_Section sameBarReplacedCliSection;
+    private final CLI_Section previousBarSection;
+
+
     private final List<ChordLeadSheetItem> adjustedItems;
 
     /**
@@ -48,10 +51,12 @@ public class SectionAddedEvent extends ClsChangeEvent
     public SectionAddedEvent(ChordLeadSheet src, CLI_Section cliSection, CLI_Section replacedCliSection, List<ChordLeadSheetItem> adjustedItems)
     {
         super(src, cliSection);
-        Preconditions.checkArgument(replacedCliSection == null || replacedCliSection.getPosition().getBar() == cliSection.getPosition().getBar(),
+        int bar = cliSection.getPosition().getBar();
+        Preconditions.checkArgument(replacedCliSection == null || replacedCliSection.getPosition().getBar() == bar,
                 "cliSection=%s replacedCliSection=%s", cliSection, replacedCliSection);
-        this.replacedCliSection = replacedCliSection;
+        this.sameBarReplacedCliSection = replacedCliSection;
         this.adjustedItems = adjustedItems;
+        this.previousBarSection = bar == 0 ? null : src.getSection(bar - 1);
     }
 
     public List<ChordLeadSheetItem> getAdjustedItems()
@@ -59,9 +64,24 @@ public class SectionAddedEvent extends ClsChangeEvent
         return adjustedItems;
     }
 
-    public CLI_Section getReplacedSection()
+    /**
+     * The optional section at same bar which was replaced by getCLi_Section().
+     *
+     * @return Can be null
+     */
+    public CLI_Section getSameBarReplacedSection()
     {
-        return replacedCliSection;
+        return sameBarReplacedCliSection;
+    }
+
+    /**
+     * The section of the previous bar.
+     *
+     * @return Null if getCLI_Section() is at bar 0
+     */
+    public CLI_Section getPreviousBarSection()
+    {
+        return previousBarSection;
     }
 
     public CLI_Section getCLI_Section()
@@ -72,6 +92,6 @@ public class SectionAddedEvent extends ClsChangeEvent
     @Override
     public String toString()
     {
-        return "SectionAddedEvent[item=" + getCLI_Section() + ", replacedCliSection=" + replacedCliSection + ", adjustedItems=" + adjustedItems + "]";
+        return "SectionAddedEvent[item=" + getCLI_Section() + ", replacedCliSection=" + sameBarReplacedCliSection + ", adjustedItems=" + adjustedItems + "]";
     }
 }

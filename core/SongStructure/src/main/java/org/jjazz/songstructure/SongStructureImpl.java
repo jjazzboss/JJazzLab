@@ -44,6 +44,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -53,6 +55,7 @@ import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.UndoableEdit;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.chordleadsheet.api.ClsChangeListener;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
@@ -79,9 +82,17 @@ import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_SAVE;
 import org.openide.util.Exceptions;
 import org.openide.util.lookup.ServiceProvider;
 
+
+/**
+ * SongStructure implementation.
+ * <p>
+ * Implementation is thread-safe and uses the same concurrency design than ChordLeadSheet. Parent ChordLeadSheet's lock is reused (also used by the enclosing
+ * Song).
+ */
 public class SongStructureImpl implements SongStructure, Serializable, PropertyChangeListener
 {
 
+    private final transient ReentrantReadWriteLock lock;
     /**
      * Keep SongParts ordered by startBarIndex.
      */
@@ -98,11 +109,12 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
     /**
      * The listeners for changes.
      */
-    private final transient List<SgsChangeListener> listeners;
+    private final transient CopyOnWriteArrayList<SgsChangeListener> listeners;
+    private final transient CopyOnWriteArrayList<SgsChangeListener> syncListeners;
     /**
      * The listeners for undoable edits.
      */
-    private final transient List<UndoableEditListener> undoListeners;
+    private final transient CopyOnWriteArrayList<UndoableEditListener> undoListeners;
     private static final Logger LOGGER = Logger.getLogger(SongStructureImpl.class.getSimpleName());
 
 
@@ -120,8 +132,10 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
         parentCls = cls;
         songParts = new ArrayList<>();
         mapTsLastRhythm = new HashMap<>();
-        listeners = new ArrayList<>();
-        undoListeners = new ArrayList<>();
+        listeners = new CopyOnWriteArrayList<>();
+        syncListeners = new CopyOnWriteArrayList<>();
+        undoListeners = new CopyOnWriteArrayList<>();
+        lock = cls == null ? new ReentrantReadWriteLock() : cls.getLock();  // Song/ChordLeadSheet/SongSTructure all share the same lock
     }
 
 
@@ -278,7 +292,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
     }
 
     @Override
-    public synchronized void removeSongParts(List<SongPart> spts) throws UnsupportedEditException
+    public synchronized void removeSongParts(List<SongPart> spts)
     {
         Objects.requireNonNull(spts);
 
@@ -288,8 +302,6 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
         {
             return;
         }
-
-        testChangeEventForVeto(new SptRemovedEvent(this, spts));           // Possible exception here        
 
         var saveSpts = new ArrayList<>(spts);
         fireSgsActionEventStart(SgsActionEvent.API_ID.RemoveSongParts, saveSpts);

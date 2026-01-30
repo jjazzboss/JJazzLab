@@ -39,11 +39,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.chordleadsheet.api.ClsChangeListener;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
-import org.jjazz.chordleadsheet.api.event.ClsActionEvent;
-import static org.jjazz.chordleadsheet.api.event.ClsActionEvent.API_ID.AddSection;
-import static org.jjazz.chordleadsheet.api.event.ClsActionEvent.API_ID.MoveSection;
-import static org.jjazz.chordleadsheet.api.event.ClsActionEvent.API_ID.RemoveSection;
-import static org.jjazz.chordleadsheet.api.event.ClsActionEvent.API_ID.SetSectionTimeSignature;
 import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.songstructure.api.SgsChangeListener;
@@ -52,9 +47,8 @@ import static org.jjazz.songstructure.api.event.SgsActionEvent.API_ID.SetRhythmP
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
 
 /**
- * A helper class which listens to lower-level Song/ChordLeadSheet/SongStructure change events to provide higher-level song change events.
+ * A helper class which listens to Song/ChordLeadSheet/SongStructure change events to provide higher-level song change events.
  * <p>
- * Whenever possible change events are fired when all low-level changes are complete, in order to minimize the number of fired events.
  */
 public class SongMetaEvents implements ClsChangeListener, SgsChangeListener, PropertyChangeListener, VetoableChangeListener
 {
@@ -63,7 +57,7 @@ public class SongMetaEvents implements ClsChangeListener, SgsChangeListener, Pro
     /**
      * Fired when the song modification initiated by a ChordLeadSheet/SongStructure API method is complete.
      * <p>
-     * OldValue=the source ClsSourceActionEvent/SgsSourceActionEvent that initially triggered the change.<br>
+     * OldValue=the source ClsActionEvent/SgsActionEvent that initially triggered the change.<br>
      * NewValue=the optional associated data
      */
     public static final String PROP_CLS_SGS_API_CHANGE_COMPLETE = "PropClsSgsAPIChangeComplete";
@@ -74,7 +68,7 @@ public class SongMetaEvents implements ClsChangeListener, SgsChangeListener, Pro
      * Source changes might contain e.g. chord symbol changes, inserted bars, rhythm parameter value changes -but not a section name change. Because a rhythm
      * generation engine might adjust the generated music to the tempo, a song tempo change is considered as a musical content change.<p>
      * <p>
-     * OldValue=the Song property name or the source ClsSourceActionEvent/SgsSourceActionEvent that initially triggered the musical change.<br>
+     * OldValue=the Song property name or the source ClsActionEvent/SgsActionEvent that initially triggered the musical change.<br>
      * NewValue=the optional associated data
      */
     public static final String PROP_MUSIC_GENERATION = "PropMusicGeneration";
@@ -82,7 +76,7 @@ public class SongMetaEvents implements ClsChangeListener, SgsChangeListener, Pro
     /**
      * Fired when at least one song bar was added/removed/moved, or a time signature was changed.
      * <p>
-     * OldValue=the source ClsSourceActionEvent/SgsSourceActionEvent that initially triggered the change.<br>
+     * OldValue=the source ClsActionEvent/SgsActionEvent that initially triggered the change.<br>
      * NewValue=the optional associated data
      */
     public static final String PROP_SONG_STRUCTURE = "PropSongStructure";

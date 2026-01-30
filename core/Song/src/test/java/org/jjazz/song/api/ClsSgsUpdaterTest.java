@@ -113,7 +113,7 @@ public class ClsSgsUpdaterTest
             JJazzUndoManagerFinder.getDefault().put(cls1, undoManager);
 
             // Copy for undo/redo test
-            u_cls1 =cls1.getDeepCopy();
+            u_cls1 = cls1.getDeepCopy();
 
             // Extra items to play with
             newChord = new CLI_ChordSymbolImpl(ExtChordSymbol.get("A"), new Position(2, 1));
@@ -155,14 +155,28 @@ public class ClsSgsUpdaterTest
     @After
     public void tearDown()
     {
+        if (undoManager.getCurrentCEditName() == null)
+        {
+            return;
+        }
         undoManager.endCEdit(UT_EDIT_NAME);
         undoAll();
         redoAll();
         undoAll();
+        boolean b1 = cls1.equals(u_cls1);
+        boolean b2 = sgs.equals(u_sgs);
+        if (!b1)
+        {
+            System.out.println("\nu_cls1=" + u_cls1.toDebugString());
+            System.out.println("cls1 after Undo ALL=" + cls1.toDebugString());
+        }
+        if (!b2)
+        {
+            System.out.println("\nu_sgs=" + u_sgs);
+            System.out.println("sgs after Undo ALL =" + sgs);
+
+        }
         assertEquals(u_cls1, cls1);
-        System.out.println("\ncls after Undo ALL=" + cls1.toDebugString());
-        System.out.println("\n  sgs after Undo ALL =" + sgs);
-        System.out.println("u_sgs after Undo ALL =" + u_sgs);
         assertTrue(isEqual(sgs, u_sgs));
     }
 
@@ -179,7 +193,7 @@ public class ClsSgsUpdaterTest
 
         cls1.insertBars(0, 1);
         System.out.println(" sgs after=" + sgs);
-        
+
         var s0 = cls1.getSection(0);
         var s1 = cls1.getSection(1);
         assertEquals(10, sgs.getSizeInBars());
@@ -190,10 +204,10 @@ public class ClsSgsUpdaterTest
         assertSame(saveSptSection2.getRhythm(), sgs.getSongPart(1).getRhythm());
         assertSame(s1, sgs.getSongPart(9).getParentSection());
         assertEquals(saveSptSection2.getNbBars(), sgs.getSongPart(9).getNbBars());
-        assertSame(saveSptSection2.getRhythm(), sgs.getSongPart(9).getRhythm());        
+        assertSame(saveSptSection2.getRhythm(), sgs.getSongPart(9).getRhythm());
         assertEquals(saveSection2ChordSymbols, cls1.getItems(s1, CLI_ChordSymbol.class));
     }
-    
+
     @Test
     public void testAddAndRemove()
     {
@@ -219,13 +233,7 @@ public class ClsSgsUpdaterTest
         assertEquals(2, sgs.getSongParts().get(4).getNbBars());
         System.out.println("\n== Test testAddAndRemove removeSection");
         assertEquals(10, sgs.getSizeInBars());
-        try
-        {
             cls1.removeSection(section2);
-        } catch (UnsupportedEditException ex)
-        {
-            Exceptions.printStackTrace(ex);
-        }
         System.out.println(" sgs after=" + sgs);
         assertEquals(8, sgs.getSizeInBars());
         assertEquals(3, sgs.getSongParts().size());
@@ -239,13 +247,7 @@ public class ClsSgsUpdaterTest
     {
         System.out.println("\n============ testAdd2");
         assertTrue(sgs.getSizeInBars() == 11);
-        try
-        {
             sgs.removeSongParts(List.of(sgs.getSongParts().get(1)));
-        } catch (UnsupportedEditException ex)
-        {
-            Exceptions.printStackTrace(ex);
-        }
         System.out.println(" sgs after(1)=" + sgs);
         try
         {
@@ -265,13 +267,7 @@ public class ClsSgsUpdaterTest
     {
         System.out.println("\n============ testAdd3 after absent section");
         assertTrue(sgs.getSizeInBars() == 11);
-        try
-        {
             sgs.removeSongParts(List.of(sgs.getSongParts().get(2)));
-        } catch (UnsupportedEditException ex)
-        {
-            Exceptions.printStackTrace(ex);
-        }
         System.out.println(" sgs after(1)=" + sgs);
         try
         {
@@ -405,13 +401,7 @@ public class ClsSgsUpdaterTest
     public void testMoveSection()
     {
         System.out.println("\n============ testMoveSection");
-        try
-        {
             cls1.moveSection(section2, 1);
-        } catch (UnsupportedEditException ex)
-        {
-            Exceptions.printStackTrace(ex);
-        }
         System.out.println(" sgs after=" + sgs);
         assertTrue(sgs.getSongParts().get(1).getStartBarIndex() == 1);
         assertTrue(sgs.getSongParts().get(1).getNbBars() == 4);
@@ -422,13 +412,7 @@ public class ClsSgsUpdaterTest
     public void testMoveSectionBig()
     {
         System.out.println("\n============ testMoveSectionBig");
-        try
-        {
             cls1.moveSection(section2, 6);
-        } catch (UnsupportedEditException ex)
-        {
-            Exceptions.printStackTrace(ex);
-        }
         System.out.println(" sgs after=" + sgs);
         assertTrue(sgs.getSongParts().size() == 3);
         assertTrue(sgs.getSongParts().get(2).getStartBarIndex() == 6);
@@ -439,13 +423,7 @@ public class ClsSgsUpdaterTest
     public void testResize()
     {
         System.out.println("\n============ TestResize");
-        try
-        {
             cls1.setSizeInBars(10);
-        } catch (UnsupportedEditException ex)
-        {
-            Exceptions.printStackTrace(ex);
-        }
         System.out.println(" sgs after=" + sgs);
         assertTrue(sgs.getSizeInBars() == 13);
         assertTrue(sgs.getSongParts().get(2).getNbBars() == 5);
@@ -456,13 +434,7 @@ public class ClsSgsUpdaterTest
     public void testRemoveSection()
     {
         System.out.println("\n============ Test testRemoveOneSection");
-        try
-        {
             cls1.removeSection(section2);
-        } catch (UnsupportedEditException ex)
-        {
-            Exceptions.printStackTrace(ex);
-        }
         System.out.println(" sgs after=" + sgs);
         assertTrue(sgs.getSongParts().size() == 2);
         assertTrue(sgs.getSongParts().get(0).getNbBars() == 5);
@@ -474,13 +446,7 @@ public class ClsSgsUpdaterTest
     public void testRemoveBars()
     {
         System.out.println("\n============ testRemoveBars");
-        try
-        {
             cls1.deleteBars(4, 5);
-        } catch (UnsupportedEditException ex)
-        {
-            Exceptions.printStackTrace(ex);
-        }
         System.out.println(" cls1 after=" + cls1.toDebugString());
         System.out.println(" sgs after=" + sgs);
         assertTrue(sgs.getSizeInBars() == 10);
@@ -524,13 +490,7 @@ public class ClsSgsUpdaterTest
             Exceptions.printStackTrace(ex);
         }
         assertTrue(sgs.getSongParts().size() == 5);
-        try
-        {
             cls1.deleteBars(6, 7);
-        } catch (UnsupportedEditException ex)
-        {
-            Exceptions.printStackTrace(ex);
-        }
         System.out.println(" cls1 after=" + cls1.toDebugString());
         System.out.println(" sgs after=" + sgs);
         assertTrue(sgs.getSongParts().size() == 4);

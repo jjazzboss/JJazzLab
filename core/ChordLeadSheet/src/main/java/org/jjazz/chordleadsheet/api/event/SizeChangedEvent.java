@@ -22,6 +22,7 @@
  */
 package org.jjazz.chordleadsheet.api.event;
 
+import com.google.common.base.Preconditions;
 import java.util.List;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
@@ -37,9 +38,17 @@ public class SizeChangedEvent extends ClsChangeEvent
 
     final private int oldSize, newSize;
 
+    /**
+     * 
+     * @param src
+     * @param oldSize
+     * @param newSize Must be different from oldSize
+     * @param removedItems 
+     */
     public SizeChangedEvent(ChordLeadSheet src, int oldSize, int newSize, List<ChordLeadSheetItem> removedItems)
     {
         super(src, removedItems);
+        Preconditions.checkArgument(oldSize != newSize, "oldSize=%s", oldSize);
         this.oldSize = oldSize;
         this.newSize = newSize;
     }
@@ -64,5 +73,10 @@ public class SizeChangedEvent extends ClsChangeEvent
     public int getNewSize()
     {
         return newSize;
+    }
+
+    public boolean isGrowing()
+    {
+        return newSize > oldSize;
     }
 }

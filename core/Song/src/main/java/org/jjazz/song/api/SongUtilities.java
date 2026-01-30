@@ -26,7 +26,6 @@ package org.jjazz.song.api;
 import java.util.ArrayList;
 import java.util.List;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.chordleadsheet.api.ChordLeadSheetFactory;
 import org.jjazz.chordleadsheet.api.ClsUtilities;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
@@ -107,15 +106,8 @@ public class SongUtilities
         }
         ChordLeadSheet cls = song.getChordLeadSheet();
 
-        try
-        {
-            // Update size
-            cls.setSizeInBars(cls.getSizeInBars() * 2);
-        } catch (UnsupportedEditException ex)
-        {
-            // Should never happen
-            Exceptions.printStackTrace(ex);
-        }
+        // Update size
+        cls.setSizeInBars(cls.getSizeInBars() * 2);
 
         // Move items
         var items = cls.getItems();
@@ -136,14 +128,7 @@ public class SongUtilities
             {
                 if (bar > 0)
                 {
-                    try
-                    {
-                        cls.moveSection(section, newBar);
-                    } catch (UnsupportedEditException ex)
-                    {
-                        // Should never happen
-                        Exceptions.printStackTrace(ex);
-                    }
+                    cls.moveSection(section, newBar);
                 }
             } else
             {
@@ -184,15 +169,8 @@ public class SongUtilities
         var newSong = SongFactory.getInstance().createEmptySong(song.getName(), ss.getSizeInBars(), "A", TimeSignature.FOUR_FOUR, null);
         var newCls = newSong.getChordLeadSheet();
         var resSs = newSong.getSongStructure();
-        try
-        {
-            // Remove all SongParts
-            resSs.removeSongParts(resSs.getSongParts());
-        } catch (UnsupportedEditException ex)
-        {
-            // Should never happen as we remove everything
-            Exceptions.printStackTrace(ex);
-        }
+        // Remove all SongParts
+        resSs.removeSongParts(resSs.getSongParts());
 
 
         // The created song parts
@@ -232,7 +210,7 @@ public class SongUtilities
                 resCliSection.getClientProperties().set(parentCliSection.getClientProperties());
                 try
                 {
-                    resCliSection = newCls.addSection(resCliSection);
+                    newCls.addSection(resCliSection);
                     // The section creation automatically creates a SongPart, remove it
                     resSs.removeSongParts(resSs.getSongParts());
                 } catch (UnsupportedEditException ex)
@@ -321,8 +299,6 @@ public class SongUtilities
         {
             resCls.addItem(item);
         }
-
-        simplifiedCls.cleanup();
 
         return resSong;
     }

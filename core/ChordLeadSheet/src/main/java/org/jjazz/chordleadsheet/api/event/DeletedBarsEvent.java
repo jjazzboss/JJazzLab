@@ -22,8 +22,11 @@
  */
 package org.jjazz.chordleadsheet.api.event;
 
+import com.google.common.base.Preconditions;
 import java.util.List;
+import java.util.Objects;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 
 /**
@@ -33,10 +36,12 @@ import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
  */
 public class DeletedBarsEvent extends ClsChangeEvent
 {
+
     private final int barFrom;
     private final int barTo;
     private final List<ChordLeadSheetItem> shiftedItems;
     private final List<ChordLeadSheetItem> adjustedItems; // Items moved due to TimeSignature adjustment
+    private final boolean initSectionRemoved;
 
     public DeletedBarsEvent(ChordLeadSheet src, int barFrom, int barTo,
             List<ChordLeadSheetItem> removedItems,
@@ -44,10 +49,34 @@ public class DeletedBarsEvent extends ClsChangeEvent
             List<ChordLeadSheetItem> adjustedItems)
     {
         super(src, removedItems);
+        Objects.requireNonNull(shiftedItems);
+        Objects.requireNonNull(adjustedItems);
+        Preconditions.checkArgument(barFrom <= barTo, "barFrom=%s barTo=%s", barFrom, barTo);
         this.barFrom = barFrom;
         this.barTo = barTo;
         this.shiftedItems = shiftedItems;
         this.adjustedItems = adjustedItems;
+        this.initSectionRemoved = removedItems.stream().anyMatch(cli -> cli instanceof CLI_Section && cli.getPosition().getBar() == 0);
+    }
+
+    public int getBarFrom()
+    {
+        return barFrom;
+    }
+
+    public int getBarTo()
+    {
+        return barTo;
+    }
+
+    /**
+     * Check if the initial Section was removed and replaced by the first section from shiftedItems.
+     *
+     * @return
+     */
+    public boolean isInitSectionRemoved()
+    {
+        return initSectionRemoved;
     }
 
     /**

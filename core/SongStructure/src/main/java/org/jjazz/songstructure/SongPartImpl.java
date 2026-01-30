@@ -295,10 +295,9 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
             })
     public synchronized SongPart getCopy(Rhythm r, int newStartBarIndex, int newNbBars, CLI_Section cliSection)
     {
-        if (newStartBarIndex < 0)
-        {
-            throw new IllegalArgumentException("newStartBarIndex=" + newStartBarIndex);
-        }
+        Preconditions.checkArgument(newStartBarIndex>=0, "newStartBarIndex=%s", newStartBarIndex);
+        Preconditions.checkArgument(newNbBars>0, "newNbBars=%s", newNbBars);
+        
         Rhythm newRhythm = (r == null) ? getRhythm() : r;
 
         // Check that time signature match

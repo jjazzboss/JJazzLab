@@ -72,8 +72,12 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.MouseInputListener;
 import org.jjazz.chordleadsheet.api.ClsChangeListener;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
-import org.jjazz.chordleadsheet.api.event.ClsActionEvent;
 import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
+import org.jjazz.chordleadsheet.api.event.ItemAddedEvent;
+import org.jjazz.chordleadsheet.api.event.ItemChangedEvent;
+import org.jjazz.chordleadsheet.api.event.ItemMovedEvent;
+import org.jjazz.chordleadsheet.api.event.ItemRemovedEvent;
+import org.jjazz.chordleadsheet.api.event.SectionChangedEvent;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.harmony.api.Position;
@@ -140,6 +144,7 @@ import org.openide.util.lookup.InstanceContent;
  * - its ActionMap instance<br>
  * - a Zoomable instance
  */
+
 public class PianoRollEditor extends JPanel implements PropertyChangeListener, ClsChangeListener
 {
 
@@ -402,7 +407,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
      * The channel is used e.g. when "hear preview" or "solo mode" is activated, or when notes are imported from a dragged Midi file.
      *
      * @return
-     * @see #setModel(org.jjazz.phrase.api.Phrase, org.jjazz.utilities.api.FloatRange, int, int, java.util.NavigableMap, org.jjazz.midi.api.DrumKit.KeyMap) 
+     * @see #setModel(org.jjazz.phrase.api.Phrase, org.jjazz.utilities.api.FloatRange, int, int, java.util.NavigableMap, org.jjazz.midi.api.DrumKit.KeyMap)
      */
     public int getChannel()
     {
@@ -1163,22 +1168,27 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
     // ==========================================================================================================    
 
     @Override
-    public void chordLeadSheetChanged(ClsChangeEvent e) throws UnsupportedEditException
+    public void chordLeadSheetChanged(ClsChangeEvent evt) throws UnsupportedEditException
     {
-        if (e instanceof ClsActionEvent ae && ae.isComplete())
+        // Listen to all user actions which do not trigger a song structure change
+        boolean doUpdate = switch (evt)
         {
-            // Listen to all user actions which do not trigger a song structure change
-            switch (ae.getApiId())
-            {
-                case AddItem, ChangeItem, RemoveItem, MoveItem, SetSectionName ->
-                {
-                    updateChordSequence();
-                }
-                default ->
-                {
-                    // Nothing
-                }
-            }
+            case ItemAddedEvent e ->
+                true;
+            case ItemChangedEvent e ->
+                true;
+            case ItemRemovedEvent e ->
+                true;
+            case ItemMovedEvent e ->
+                true;
+            case SectionChangedEvent e when e.isNameChanged() ->
+                true;
+            default ->
+                false;
+        };
+        if (doUpdate)
+        {
+            updateChordSequence();
         }
     }
 

@@ -22,7 +22,9 @@
  */
 package org.jjazz.chordleadsheet.api.event;
 
+import com.google.common.base.Preconditions;
 import java.util.List;
+import java.util.Objects;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.Section;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
@@ -44,12 +46,16 @@ public class SectionChangedEvent extends ClsChangeEvent
      * @param item
      * @param oldData
      * @param newData
-     * @param adjustedItems   Possible items (like CLI_ChordSymbols) whose beat was moved sooner within their bar because of a new time signature with less beats. Can be
-     *                     empty.
+     * @param adjustedItems Possible items (like CLI_ChordSymbols) whose beat was moved sooner within their bar because of a new time signature with less beats.
+     *                      Can be empty.
      */
     public SectionChangedEvent(ChordLeadSheet src, CLI_Section item, Section oldData, Section newData, List<ChordLeadSheetItem<?>> adjustedItems)
     {
         super(src, item);
+        Objects.requireNonNull(oldData);
+        Objects.requireNonNull(newData);
+        Objects.requireNonNull(adjustedItems);
+        Preconditions.checkArgument(!oldData.equals(newData), "oldData=%s", oldData);
         this.oldData = oldData;
         this.newData = newData;
         this.adjustedItems = adjustedItems;
@@ -68,6 +74,16 @@ public class SectionChangedEvent extends ClsChangeEvent
     public Section getNewSection()
     {
         return newData;
+    }
+
+    public boolean isNameChanged()
+    {
+        return !oldData.getName().equals(newData.getName());
+    }
+
+    public boolean isTimeSignatureChanged()
+    {
+        return !oldData.getTimeSignature().equals(newData.getTimeSignature());
     }
 
     public CLI_Section getCLI_Section()

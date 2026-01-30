@@ -987,7 +987,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
 
             // Identify items to remove
-            // If we delete from 0, and there is a section immediately after the cut, it replaces the current initSection, then we can remove it
+            // If we delete from 0 and there is a section immediately after the cut, it replaces the current initSection, then we can remove it
             boolean removeInitSection = barIndexFrom == 0 && oldSectionAfter != null && oldSectionAfter.getPosition().getBar() == barIndexTo + 1;
             final var itemsToRemove = getItems(barIndexFrom, barIndexTo, ChordLeadSheetItem.class, removeInitSection ? cli -> true : cli -> cli != section0);
 
@@ -1009,11 +1009,11 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 changeItemPositionChecked(item, newPos);
             }
 
+            // We may have to adjust some items if time signature has changed
             final List<ItemMoved> adjustments = new ArrayList<>();
             final List<ChordLeadSheetItem> itemsToAdjust = new ArrayList<>();
             if (!noBarsAfterCut)
             {
-                // Determine the new context at the deletion point
                 assert oldSectionAfter != null;
                 var oldTsAfter = oldSectionAfter.getData().getTimeSignature();
                 CLI_Section newSectionAfter = getSection(barIndexFrom);

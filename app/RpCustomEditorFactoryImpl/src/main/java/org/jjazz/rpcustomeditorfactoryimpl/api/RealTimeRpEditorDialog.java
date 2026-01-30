@@ -184,14 +184,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditorDialog<E> implement
         if (sectionRange.size() > PREVIEW_MAX_NB_BARS)
         {
             // Shorten the section
-            try
-            {
-                cls.setSizeInBars(sectionRange.from + PREVIEW_MAX_NB_BARS);
-            } catch (UnsupportedEditException ex)
-            {
-                // We're removing a section, should never happen
-                Exceptions.printStackTrace(ex);
-            }
+            cls.setSizeInBars(sectionRange.from + PREVIEW_MAX_NB_BARS);
         }
 
         // Apply the RP value

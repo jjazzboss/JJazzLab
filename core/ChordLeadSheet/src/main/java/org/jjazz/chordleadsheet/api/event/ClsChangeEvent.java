@@ -49,10 +49,8 @@ public abstract class ClsChangeEvent
 
 
     protected ClsChangeEvent(ChordLeadSheet src)
-    {
-        Objects.requireNonNull(src);
-        source = src;
-        items = new ArrayList<>();
+    {   
+        this(src, new ArrayList<>());
     }
 
     /**
@@ -70,8 +68,9 @@ public abstract class ClsChangeEvent
      */
     protected ClsChangeEvent(ChordLeadSheet src, List<ChordLeadSheetItem> items)
     {
-        this(src);
+        Objects.requireNonNull(src);
         Objects.requireNonNull(items);
+        this.source = src;
         this.items = new ArrayList<>(items);
         Collections.sort(this.items);
     }
@@ -144,6 +143,22 @@ public abstract class ClsChangeEvent
     public List<ChordLeadSheetItem> getItems()
     {
         return items;
+    }
+
+    /**
+     * Get the items which are instance the specified class.
+     *
+     * @param <T>
+     * @param clazz
+     * @return
+     */
+    public <T extends ChordLeadSheetItem<?>> List<T> getItems(Class<T> clazz)
+    {
+        var res = items.stream()
+                .filter(item -> clazz.isAssignableFrom(item.getClass()))
+                .map(item -> clazz.cast(item))
+                .toList();
+        return res;
     }
 
     public ChordLeadSheet getSource()

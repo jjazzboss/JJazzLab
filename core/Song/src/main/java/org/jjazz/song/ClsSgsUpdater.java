@@ -33,22 +33,21 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.chordleadsheet.api.Section;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.event.SectionMovedEvent;
-import org.jjazz.chordleadsheet.api.event.ItemAddedEvent;
-import org.jjazz.chordleadsheet.api.event.ItemBarShiftedEvent;
 import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
-import org.jjazz.chordleadsheet.api.event.ItemChangedEvent;
-import org.jjazz.chordleadsheet.api.event.ItemRemovedEvent;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.chordleadsheet.api.ClsChangeListener;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
-import org.jjazz.chordleadsheet.api.event.ClsActionEvent;
 import org.jjazz.chordleadsheet.api.event.ClsVetoableChangeEvent;
+import org.jjazz.chordleadsheet.api.event.DeletedBarsEvent;
+import org.jjazz.chordleadsheet.api.event.InsertedBarsEvent;
+import org.jjazz.chordleadsheet.api.event.SectionAddedEvent;
+import org.jjazz.chordleadsheet.api.event.SectionChangedEvent;
+import org.jjazz.chordleadsheet.api.event.SectionRemovedEvent;
 import org.jjazz.chordleadsheet.api.event.SizeChangedEvent;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.quantizer.api.Quantization;
@@ -56,15 +55,12 @@ import org.jjazz.quantizer.api.Quantizer;
 import org.jjazz.rhythm.api.Division;
 import static org.jjazz.rhythm.api.Division.EIGHTH_SHUFFLE;
 import static org.jjazz.rhythm.api.Division.EIGHTH_TRIPLET;
-import org.jjazz.rhythmdatabase.api.RhythmDatabase;
-import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.song.api.Song;
 import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.jjazz.songstructure.api.event.SptAddedEvent;
-import org.jjazz.songstructure.api.event.SptRemovedEvent;
 import org.jjazz.songstructure.api.event.SptReplacedEvent;
 import org.openide.util.Exceptions;
 
@@ -74,27 +70,25 @@ import org.openide.util.Exceptions;
  * For example if ChordLeadSheet size is shortened, some SongParts will be probably need to be removed or resized. Inversely, switching a SongPart to a
  * swing-feel rhythm might require adjusting some CLI_ChordSymbols position.
  */
+
 public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
 {
 
-    private enum State
-    {
-        DEFAULT, INSERT_INIT_BARS
-    };
     private final Song song;
-    private State state;
-    private SongStructure songStructure;
-    private ChordLeadSheet chordLeadSheet;
+    private final SongStructure songStructure;
+    private final ChordLeadSheet chordLeadSheet;
     private static final Logger LOGGER = Logger.getLogger(ClsSgsUpdater.class.getSimpleName());
 
     public ClsSgsUpdater(Song song)
     {
         Objects.requireNonNull(song);
-        state = State.DEFAULT;
         this.song = song;
         this.songStructure = song.getSongStructure();
         this.chordLeadSheet = song.getChordLeadSheet();
-        this.chordLeadSheet.addClsChangeListener(this);
+
+        // We must be use synchronized listeners to guarantee global consistency between ChordLeadSheet and songStructure (they use the same lock).
+        // Otherwise Song.getDeepCopy() could get a snapshot where the Song's SongStructure is not in sync with the Song's ChordLeadSheet.
+        this.chordLeadSheet.addClsChangeSyncListener(this);
         this.songStructure.addSgsChangeListener(this);
     }
 
@@ -110,13 +104,12 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
     @Override
     public void chordLeadSheetChanged(ClsChangeEvent evt) throws UnsupportedEditException
     {
-        JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(songStructure);
-        if (um != null && um.isUndoRedoInProgress())
+        if (evt.isUndoOrRedo())
         {
             // IMPORTANT : SongStructure generates his own undoableEdits,
             // so we must not listen to chordleadsheet changes if undo/redo in progress, otherwise 
             // the "undo/redo" restore operations will be performed twice !
-            LOGGER.log(Level.FINE, "chordLeadSheetChanged() undo is in progress, exiting");
+            LOGGER.log(Level.FINE, "chordLeadSheetChanged() undo/redo is in progress, exiting");
             return;
         }
 
@@ -135,7 +128,7 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
         {
             // Should never happen if it has been authorized first
             Exceptions.printStackTrace(ex);
-            throw new IllegalStateException();
+            throw new IllegalStateException("evt=" + evt);
         }
     }
     // ============================================================================================= 
@@ -143,7 +136,7 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
     // =============================================================================================    
 
     @Override
-    public void songStructureChanged(SgsChangeEvent e)
+    public void songStructureChanged(SgsChangeEvent evt)
     {
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(songStructure);
         if (um != null && um.isUndoRedoInProgress())
@@ -151,12 +144,12 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
             // IMPORTANT : ChordLeadSheet generates his own undoableEdits,
             // so we must not listen to SongStructure changes if undo/redo in progress, otherwise 
             // the "undo/redo" restore operations will be performed twice !
-            LOGGER.log(Level.FINE, "songStructureChanged() undo is in progress, exiting");
+            LOGGER.log(Level.FINE, "songStructureChanged() undo/redo is in progress, exiting");
             return;
         }
 
 
-        switch (e)
+        switch (evt)
         {
             case SptReplacedEvent sre ->
             {
@@ -180,141 +173,51 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
             evt, authorizeOnly
         });
 
-
-        // Get the sections in the event's items
-        var cliSections = evt.getItems().stream()
-                .filter(cli -> cli instanceof CLI_Section)
-                .map(cli -> (CLI_Section) cli)
-                .toList();
-
-        switch (state)
+        switch (evt)
         {
-            case DEFAULT ->
+            case SizeChangedEvent e when !authorizeOnly -> processSizeChanged(e);
+            case DeletedBarsEvent e when !authorizeOnly -> processDeletedBars(e);
+            case InsertedBarsEvent e when !authorizeOnly -> processInsertedBars(e);
+            case SectionRemovedEvent e when !authorizeOnly -> processSectionRemoved(e);
+            case SectionAddedEvent e -> processSectionAdded(e, authorizeOnly);
+            case SectionMovedEvent e when !authorizeOnly -> processSectionMoved(e);
+            case SectionChangedEvent e ->
             {
-                if (evt instanceof ClsActionEvent cae
-                        && cae.getApiId() == ClsActionEvent.API_ID.InsertBars
-                        && !cae.isComplete()
-                        && cae.getData().equals(Integer.valueOf(0)))
+                if (e.isTimeSignatureChanged())
                 {
-                    // When inserting initial bars ("before" bar 0), ChordLeadSheet produces an unusual change event sequence because of the special init section. 
-                    // This leads to song structure not updated as the user would expect (see Issue #459).
-                    // So it's better to wait for the "insert initial bars ClsActionEvent" to be completed then update song structure properly.                    
-                    state = State.INSERT_INIT_BARS;
-                    
-                } else if (evt instanceof SizeChangedEvent)
+                    processSectionTimeSignatureChanged(e, authorizeOnly);
+                }
+                if (!authorizeOnly && e.isNameChanged())
                 {
-                    processSizeChanged(authorizeOnly);
-
-                } else if (!cliSections.isEmpty() && (evt instanceof ItemBarShiftedEvent ise))
-                {
-                    processSectionsShifted(ise, cliSections, authorizeOnly);
-
-                } else if (!cliSections.isEmpty() && (evt instanceof ItemChangedEvent ice))
-                {
-                    processSectionChanged(ice, cliSections.get(0), authorizeOnly);
-
-                } else if (!cliSections.isEmpty() && (evt instanceof ItemAddedEvent iae))
-                {
-                    processSectionsAdded(iae, cliSections, authorizeOnly);
-
-                } else if (!cliSections.isEmpty() && (evt instanceof ItemRemovedEvent ire))
-                {
-                    processSectionsRemoved(ire, cliSections, authorizeOnly);
-
-                } else if (evt instanceof SectionMovedEvent sme)
-                {
-                    if (authorizeOnly)
-                    {
-                        checkSectionMoveForVeto(sme, cliSections.get(0));
-                    } else
-                    {
-                        processSectionMoved(sme, cliSections.get(0));
-                    }
-
-                } else
-                {
-                    LOGGER.fine("processClsChangeEvent() -> evt not handled");
+                    processSectionNameChanged(e);
                 }
             }
-
-            case INSERT_INIT_BARS ->
+            default ->
             {
-                if (evt instanceof ClsActionEvent cae
-                        && cae.getApiId() == ClsActionEvent.API_ID.InsertBars
-                        && cae.isComplete())
-                {
-                    // Now we can update the song structure
-
-                    // Reaffect the parent section of the song parts that were assigned to the initial section (before the insert bars action)
-                    var initSection = chordLeadSheet.getSection(0);
-                    var secondSection = (CLI_Section) chordLeadSheet.getNextItem(initSection);
-                    assert secondSection != null : "initSection=" + initSection;
-                    var oldSpts = songStructure.getSongParts(spt -> spt.getParentSection() == initSection);
-                    var newSpts = oldSpts.stream()
-                            .map(spt -> spt.getCopy(null, spt.getStartBarIndex(), spt.getNbBars(), secondSection))
-                            .toList();
-                    songStructure.replaceSongParts(oldSpts, newSpts);
-
-
-                    // Now add the new initial song part linked to the new initial section
-                    var ts = initSection.getData().getTimeSignature();
-                    Rhythm r = songStructure.getLastUsedRhythm(ts);     // Might be null in special cases where songStructure is empty
-                    if (r == null)
-                    {
-                        var rdb = RhythmDatabase.getDefault();
-                        try
-                        {
-                            r = rdb.getRhythmInstance(rdb.getDefaultRhythm(ts));
-                        } catch (UnavailableRhythmException ex)
-                        {
-                            LOGGER.log(Level.WARNING, "processChangeEvent() Can''t add initial song part with ts={0}. ex={1}", new Object[]
-                            {
-                                ts, ex.getMessage()
-                            });
-                        }
-                    }
-                    if (r != null)
-                    {
-                        var initSpt = songStructure.createSongPart(r, initSection.getData().getName(), 0, secondSection.getPosition().getBar(), initSection, false);
-                        songStructure.addSongParts(List.of(initSpt));
-                    }
-
-                    // Go back to default behaviour
-                    state = State.DEFAULT;
-                }
             }
-            default -> throw new AssertionError(state.name());
-
         }
-
-
     }
 
 
 //----------------------------------------------------------------------------------------------------
 // Private functions
 //----------------------------------------------------------------------------------------------------  
-    /**
-     * CLI_Section was already moved.
-     *
-     * @param evt
-     * @param cliSection
-     * @param authorizeOnly
-     * @throws UnsupportedEditException
-     */
-    private void processSectionMoved(SectionMovedEvent evt, CLI_Section cliSection) throws UnsupportedEditException
+    private void processSectionMoved(SectionMovedEvent evt)
     {
+        var cliSection = evt.getCLI_Section();
         int newBarIndex = cliSection.getPosition().getBar();
         assert newBarIndex > 0 : "cliSection=" + cliSection;
-        CLI_Section prevSection = chordLeadSheet.getSection(newBarIndex - 1);
-        CLI_Section sectionPrevBar = chordLeadSheet.getSection(evt.getOldBar());
+
+
+        CLI_Section newBarPrevSection = evt.getNewBarPrevSection();
+        CLI_Section oldBarNewSection = evt.getOldBarNewSection();
         Map<SongPart, Integer> mapSptSize = new HashMap<>();
 
-        if (sectionPrevBar == prevSection || sectionPrevBar == cliSection)
+        if (oldBarNewSection == newBarPrevSection || oldBarNewSection == cliSection)
         {
             // It's a "small move", do not cross any other section, so it's just resize operations
             fillMapSptSize(mapSptSize, cliSection);
-            fillMapSptSize(mapSptSize, prevSection);
+            fillMapSptSize(mapSptSize, newBarPrevSection);
             songStructure.resizeSongParts(mapSptSize);
 
         } else
@@ -323,208 +226,256 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
 
             // We remove and re-add
             songStructure.removeSongParts(getSongParts(cliSection));
-            SongPart spt = createSptAfterSection(cliSection, chordLeadSheet.getBarRange(cliSection).size(), prevSection);
-            songStructure.addSongParts(Arrays.asList(spt));
+            SongPart spt = createSptAfterSection(cliSection, chordLeadSheet.getBarRange(cliSection).size(), newBarPrevSection);
+            try
+            {
+                songStructure.addSongParts(List.of(spt));
+            } catch (UnsupportedEditException ex)
+            {
+                // Should never happen since we don't introduce new rhythm
+                Exceptions.printStackTrace(ex);
+            }
 
             // Resize impacted SongParts 
-            fillMapSptSize(mapSptSize, sectionPrevBar);
-            fillMapSptSize(mapSptSize, prevSection);
+            fillMapSptSize(mapSptSize, oldBarNewSection);
+            fillMapSptSize(mapSptSize, newBarPrevSection);
             songStructure.resizeSongParts(mapSptSize);
 
         }
 
     }
 
+    private void processSizeChanged(SizeChangedEvent evt)
+    {
+        if (!evt.isGrowing())
+        {
+            // Possibly remove song parts
+            var removedSections = evt.getItems(CLI_Section.class);
+            for (var cliSection : removedSections)
+            {
+                var spts = getSongParts(cliSection);
+                songStructure.removeSongParts(spts);
+            }
+        }
+
+        // Last section might have changed
+        Map<SongPart, Integer> mapSptSize = new HashMap<>();
+        CLI_Section lastSection = getLastSection();
+        fillMapSptSize(mapSptSize, lastSection);
+        songStructure.resizeSongParts(mapSptSize);
+    }
+
+    private void processDeletedBars(DeletedBarsEvent evt)
+    {
+        // Possibly remove song parts
+        // Init section will be removed too if evt.isInitSectionRemoved() == true
+        for (var cliSection : evt.getItems(CLI_Section.class))
+        {
+            var spts = getSongParts(cliSection);
+            songStructure.removeSongParts(spts);
+        }
+
+        // Section before the deleted bars might have changed
+        Map<SongPart, Integer> mapSptSize = new HashMap<>();
+        if (evt.getBarFrom() > 0)
+        {
+            var cliSection = chordLeadSheet.getSection(evt.getBarFrom() - 1);
+            fillMapSptSize(mapSptSize, cliSection);
+        } else if (!evt.isInitSectionRemoved())
+        {
+            // Init bar was deleted and the init section was not replaced by the first shifted section
+            var cliSection = chordLeadSheet.getSection(0);
+            fillMapSptSize(mapSptSize, cliSection);
+        }
+        songStructure.resizeSongParts(mapSptSize);
+    }
+
+    private void processInsertedBars(InsertedBarsEvent evt)
+    {
+        // Section before the insertion is resized
+        Map<SongPart, Integer> mapSptSize = new HashMap<>();
+        if (evt.getBarFrom() > 0)
+        {
+            var cliSection = chordLeadSheet.getSection(evt.getBarFrom() - 1);
+            fillMapSptSize(mapSptSize, cliSection);
+            songStructure.resizeSongParts(mapSptSize);
+        } else
+        {
+            // Insertion from init bar, a new init section was created
+            var cliSection = chordLeadSheet.getSection(0);
+            var section = cliSection.getData();
+            var nbBars = chordLeadSheet.getBarRange(cliSection).size();
+            var spt = songStructure.getSongPart(0);
+            SongPart newSpt;
+            if (spt != null)
+            {
+                newSpt = spt.getCopy(null, 0, nbBars, cliSection);
+            } else
+            {
+                var r = songStructure.getRecommendedRhythm(section.getTimeSignature(), 0);
+                newSpt = songStructure.createSongPart(r, section.getName(), 0, nbBars, cliSection, true);
+            }
+            try
+            {
+                songStructure.addSongParts(List.of(newSpt));
+            } catch (UnsupportedEditException ex)
+            {
+                // Should never happen since we use a rhythm already in use
+                Exceptions.printStackTrace(ex);
+            }
+        }
+    }
+
+    private void processSectionRemoved(SectionRemovedEvent evt)
+    {
+        var cliSection = evt.getCLI_Section();
+
+        // Remove SongParts
+        songStructure.removeSongParts(getSongParts(cliSection));
+
+        // Previous replacing section got bigger
+        Map<SongPart, Integer> mapSptSize = new HashMap<>();
+        fillMapSptSize(mapSptSize, evt.getPreviousBarSection());
+        songStructure.resizeSongParts(mapSptSize);
+    }
+
+    private void processSectionAdded(SectionAddedEvent evt, boolean authorizeOnly) throws UnsupportedEditException
+    {
+        var cliSection = evt.getCLI_Section();
+        CLI_Section sameBarReplacedSection = evt.getSameBarReplacedSection();
+
+        if (sameBarReplacedSection != null)
+        {
+            // Special case, section replaces another one at same bar
+            processSectionReplaced(sameBarReplacedSection, cliSection, authorizeOnly);
+            return;
+        }
+
+        // Section added to an empty bar
+        int bar = cliSection.getPosition().getBar();
+        CLI_Section prevSection = evt.getPreviousBarSection();
+        assert bar > 0 && prevSection != null : "evt=" + evt;
+
+        if (authorizeOnly)
+        {
+            SongPart spt = createSptAfterSection(cliSection, getVirtualSectionSize(bar), prevSection);
+            var event = new SptAddedEvent(songStructure, List.of(spt));
+            songStructure.testChangeEventForVeto(event);          // throws UnsupportedEditException
+            return;
+        } else
+        {
+            SongPart spt = createSptAfterSection(cliSection, chordLeadSheet.getBarRange(cliSection).size(), prevSection);
+            songStructure.addSongParts(Arrays.asList(spt));        // throws UnsupportedEditException
+        }
+
+        // Resize previous section
+        Map<SongPart, Integer> mapSptSize = new HashMap<>();
+        fillMapSptSize(mapSptSize, prevSection);
+        songStructure.resizeSongParts(mapSptSize);
+    }
+
     /**
-     * CLI_Section has NOT moved yet.
+     * A section was replaced by a new one in the same bar.
      *
-     * @param evt
-     * @param cliSection
+     * @param oldSection
+     * @param newSection
+     * @param authorizeOnly
      * @throws UnsupportedEditException
      */
-    private void checkSectionMoveForVeto(SectionMovedEvent evt, CLI_Section cliSection) throws UnsupportedEditException
+    private void processSectionReplaced(CLI_Section oldSection, CLI_Section newSection, boolean authorizeOnly) throws UnsupportedEditException
     {
-        int newBarIndex = evt.getNewBar();
-        int oldBarIndex = evt.getOldBar();
-
-
-        // Small move cases (no section crossed)
-        if (newBarIndex == oldBarIndex)
-        {
-            return;
-        } else if (newBarIndex > oldBarIndex && chordLeadSheet.getSection(newBarIndex) == cliSection)
-        {
-            return;
-        } else if (newBarIndex < oldBarIndex && chordLeadSheet.getSection(newBarIndex) == chordLeadSheet.getSection(oldBarIndex - 1))
+        var oldSpts = getSongParts(oldSection);
+        if (oldSpts.isEmpty())
         {
             return;
         }
 
-        // It's a "big move", which crosses at least another section
-
-        // Test remove and re-add
-        CLI_Section prevSection = chordLeadSheet.getSection(newBarIndex - 1);
-        songStructure.testChangeEventForVeto(new SptRemovedEvent(songStructure, getSongParts(cliSection)));     // throws UnsupportedEditException
-
-        SongPart spt = createSptAfterSection(cliSection, getVirtualSectionSize(newBarIndex), prevSection);
-        songStructure.testChangeEventForVeto(new SptAddedEvent(songStructure, List.of(spt)));   // throws UnsupportedEditException
-
-    }
-
-    private void processSectionsRemoved(ItemRemovedEvent evt, List<CLI_Section> cliSections, boolean authorizeOnly) throws UnsupportedEditException
-    {
-        // Remove the linked SongParts and resize previous section
-        for (CLI_Section cliSection : cliSections)
+        // Create the replacing SongParts
+        List<SongPart> newSpts = new ArrayList<>();
+        List<SongPart> toBeRenamedSpts = new ArrayList<>();
+        for (var oldSpt : oldSpts)
         {
-            if (authorizeOnly)
+            var r = songStructure.getRecommendedRhythm(newSection.getData().getTimeSignature(), oldSpt.getStartBarIndex());
+            var newSpt = oldSpt.getCopy(r, oldSpt.getStartBarIndex(), oldSpt.getNbBars(), newSection);
+            newSpts.add(newSpt);
+
+            // Rename unless SongPart name has been modified by user
+            if (oldSpt.getName().equalsIgnoreCase(oldSection.getData().getName()))
             {
-                var event = new SptRemovedEvent(songStructure, getSongParts(cliSection));
-                songStructure.testChangeEventForVeto(event);          // Possible exception here    
-            } else
-            {
-                songStructure.removeSongParts(getSongParts(cliSection));
-            }
-
-
-            int barIndex = cliSection.getPosition().getBar();
-            if (barIndex > 0 && !authorizeOnly)
-            {
-                Map<SongPart, Integer> mapSptSize = new HashMap<>();
-                CLI_Section prevSection = chordLeadSheet.getSection(barIndex - 1);
-                fillMapSptSize(mapSptSize, prevSection);
-                songStructure.resizeSongParts(mapSptSize);
-            }
-        }
-    }
-
-    private void processSectionsAdded(ItemAddedEvent evt, List<CLI_Section> cliSections, boolean authorizeOnly) throws UnsupportedEditException
-    {
-        // For each section add a SongPart, and resize the previous section
-        for (CLI_Section cliSection : cliSections)
-        {
-            int barIndex = cliSection.getPosition().getBar();
-            CLI_Section prevSection = (barIndex > 0) ? chordLeadSheet.getSection(barIndex - 1) : null;
-
-            if (authorizeOnly)
-            {
-                SongPart spt = createSptAfterSection(cliSection, getVirtualSectionSize(barIndex), prevSection);
-                var event = new SptAddedEvent(songStructure, List.of(spt));
-                songStructure.testChangeEventForVeto(event);          // Possible exception here    
-            } else
-            {
-                // Possible exception here !
-                SongPart spt = createSptAfterSection(cliSection, chordLeadSheet.getBarRange(cliSection).size(), prevSection);
-                songStructure.addSongParts(Arrays.asList(spt));
-            }
-            if (prevSection != null && !authorizeOnly)
-            {
-                // Resize previous section if there is one
-                Map<SongPart, Integer> mapSptSize = new HashMap<>();
-                fillMapSptSize(mapSptSize, prevSection);
-                songStructure.resizeSongParts(mapSptSize);
-            }
-        }
-
-    }
-
-    private void processSectionChanged(ItemChangedEvent evt, CLI_Section cliSection, boolean authorizeOnly) throws UnsupportedEditException
-    {
-        TimeSignature newTs = ((Section) evt.getNewData()).getTimeSignature();
-        TimeSignature oldTs = ((Section) evt.getOldData()).getTimeSignature();
-        String newName = ((Section) evt.getNewData()).getName();
-        String oldName = ((Section) evt.getOldData()).getName();
-
-
-        if (!newTs.equals(oldTs))
-        {
-            // Time Signature has changed
-
-
-            // Need to replace all impacted SongParts based on this section
-            List<SongPart> oldSpts = getSongParts(cliSection);
-            if (!oldSpts.isEmpty())
-            {
-
-                // Get the new rhythm to use
-                Rhythm newRhythm = songStructure.getRecommendedRhythm(newTs, oldSpts.get(0).getStartBarIndex());
-
-
-                ArrayList<SongPart> newSpts = new ArrayList<>();
-                for (SongPart oldSpt : oldSpts)
-                {
-                    SongPart newSpt;
-                    if (authorizeOnly)
-                    {
-                        // Can't pass cliSection as argument
-                        // cliSection is not changed yet, getCopy would fail because time signature doesn't match newRhythm
-                        newSpt = oldSpt.getCopy(newRhythm, oldSpt.getStartBarIndex(), oldSpt.getNbBars(), null);
-                    } else
-                    {
-                        newSpt = oldSpt.getCopy(newRhythm, oldSpt.getStartBarIndex(), oldSpt.getNbBars(), oldSpt.getParentSection());
-                    }
-                    newSpts.add(newSpt);
-                }
-
-                if (authorizeOnly)
-                {
-                    var event = new SptReplacedEvent(songStructure, oldSpts, oldSpts);
-                    songStructure.testChangeEventForVeto(event);          // Possible exception here     
-                } else
-                {
-                    // Possible exception here
-                    songStructure.replaceSongParts(oldSpts, newSpts);         // Possible exception here     
-                }
+                toBeRenamedSpts.add(newSpt);
             }
         }
 
 
-        if (!newName.equals(oldName) && !authorizeOnly)
-        {
-            // CLI_Section name has changed : rename songparts which have not been renamed by user
-            List<SongPart> spts = getSongParts(cliSection).stream()
-                    .filter(spt -> spt.getName().equalsIgnoreCase(oldName))
-                    .toList();
-            songStructure.setSongPartsName(spts, newName);
-        }
-    }
-
-    private void processSectionsShifted(ItemBarShiftedEvent evt, List<CLI_Section> cliSections, boolean authorizeOnly)
-    {
         if (authorizeOnly)
         {
+            var event = new SptReplacedEvent(songStructure, oldSpts, newSpts);
+            songStructure.testChangeEventForVeto(event);          // throws UnsupportedEditException
+        } else
+        {
+            songStructure.replaceSongParts(oldSpts, newSpts);        // throws UnsupportedEditException
+            songStructure.setSongPartsName(toBeRenamedSpts, newSection.getData().getName());
+        }
+    }
+
+    private void processSectionTimeSignatureChanged(SectionChangedEvent evt, boolean authorizeOnly) throws UnsupportedEditException
+    {
+        assert evt.isTimeSignatureChanged() : "evt=" + evt;
+
+        var cliSection = evt.getCLI_Section();
+        TimeSignature newTs = evt.getNewSection().getTimeSignature();
+
+
+        // Need to replace all impacted SongParts based on this section
+        List<SongPart> oldSpts = getSongParts(cliSection);
+        if (oldSpts.isEmpty())
+        {
             return;
         }
 
-        // Resize sections before and after the shifted bars.
-        // Size of the section before the shifted items has changed
-        Map<SongPart, Integer> mapSptSize = new HashMap<>();
-        int firstBarIndex = cliSections.get(0).getPosition().getBar();
-        if (firstBarIndex > 0)
+
+        // Get the new rhythm to use
+        Rhythm newRhythm = songStructure.getRecommendedRhythm(newTs, oldSpts.get(0).getStartBarIndex());
+
+
+        ArrayList<SongPart> newSpts = new ArrayList<>();
+        for (SongPart oldSpt : oldSpts)
         {
-            CLI_Section prevSection = chordLeadSheet.getSection(firstBarIndex - 1);
-            fillMapSptSize(mapSptSize, prevSection);
+            SongPart newSpt;
+            if (authorizeOnly)
+            {
+                // Can't pass cliSection as argument
+                // cliSection is not changed yet, getCopy would fail because time signature doesn't match newRhythm
+                newSpt = oldSpt.getCopy(newRhythm, oldSpt.getStartBarIndex(), oldSpt.getNbBars(), null);
+            } else
+            {
+                newSpt = oldSpt.getCopy(newRhythm, oldSpt.getStartBarIndex(), oldSpt.getNbBars(), oldSpt.getParentSection());
+            }
+            newSpts.add(newSpt);
         }
 
-        // Size of the last section of the shifted items has changed too
-        int lastBarIndex = evt.getItems().get(evt.getItems().size() - 1).getPosition().getBar();
-        CLI_Section lastSection = chordLeadSheet.getSection(lastBarIndex);
-        fillMapSptSize(mapSptSize, lastSection);
-        songStructure.resizeSongParts(mapSptSize);
-    }
-
-    private void processSizeChanged(boolean authorizeOnly)
-    {
         if (authorizeOnly)
         {
-            return;
+            var event = new SptReplacedEvent(songStructure, oldSpts, oldSpts);
+            songStructure.testChangeEventForVeto(event);          // Possible exception here     
+        } else
+        {
+            songStructure.replaceSongParts(oldSpts, newSpts);         // Possible exception here     
         }
 
-        // Need to update size of impacted SongParts
-        Map<SongPart, Integer> mapSptSize = new HashMap<>();
-        CLI_Section lastSection = chordLeadSheet.getSection(chordLeadSheet.getSizeInBars() - 1);
-        fillMapSptSize(mapSptSize, lastSection);
-        songStructure.resizeSongParts(mapSptSize);
     }
+
+    private void processSectionNameChanged(SectionChangedEvent evt)
+    {
+        assert evt.isNameChanged() : "evt=" + evt;
+
+        List<SongPart> spts = getSongParts(evt.getCLI_Section()).stream()
+                .filter(spt -> spt.getName().equalsIgnoreCase(evt.getOldSection().getName()))
+                .toList();
+
+        songStructure.setSongPartsName(spts, evt.getNewSection().getName());
+    }
+
 
     /**
      * Update ChordLeadSheet off-beat chord symbols position if a SongPart's rhythm switches between ternary and binary feel.
@@ -587,15 +538,7 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
      */
     private List<SongPart> getSongParts(CLI_Section parentSection)
     {
-        ArrayList<SongPart> spts = new ArrayList<>();
-        for (SongPart spt : songStructure.getSongParts())
-        {
-            if (spt.getParentSection() == parentSection)
-            {
-                spts.add(spt);
-            }
-        }
-        return spts;
+        return songStructure.getSongParts(cli -> cli.getParentSection() == parentSection);
     }
 
     /**
@@ -679,5 +622,10 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
     {
         CLI_Section curSection = chordLeadSheet.getSection(sectionBar);
         return chordLeadSheet.getBarRange(curSection).to - sectionBar + 1;
+    }
+
+    private CLI_Section getLastSection()
+    {
+        return chordLeadSheet.getSection(chordLeadSheet.getSizeInBars() - 1);
     }
 }

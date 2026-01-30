@@ -1062,7 +1062,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
                 }
                 case SectionMovedEvent e ->
                 {
-                    CLI_Section section = e.getSection();
+                    CLI_Section section = e.getCLI_Section();
                     CL_EditorClientProperties.setSectionIsOnNewLine(section, false);
                     int barIndex = section.getPosition().getBar();
                     int prevBarIndex = e.getOldBar();
