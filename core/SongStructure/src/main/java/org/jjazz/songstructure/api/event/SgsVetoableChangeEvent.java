@@ -45,8 +45,7 @@ public class SgsVetoableChangeEvent extends SgsChangeEvent
     {
         super(src);
         Preconditions.checkArgument(
-                !(changeEvent instanceof SgsActionEvent)
-                && !(changeEvent instanceof SgsVetoableChangeEvent)
+                !(changeEvent instanceof SgsVetoableChangeEvent)
                 && changeEvent.getSource() == src,
                 "changeEvent=%s", changeEvent
         );

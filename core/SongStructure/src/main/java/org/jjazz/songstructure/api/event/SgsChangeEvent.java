@@ -28,6 +28,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 
@@ -42,6 +43,8 @@ public class SgsChangeEvent
      * Ordered list.
      */
     private final ArrayList<SongPart> songParts = new ArrayList<>();
+    private boolean isUndo;
+    private boolean isRedo;
 
     public SgsChangeEvent(SongStructure src)
     {
@@ -60,10 +63,8 @@ public class SgsChangeEvent
      */
     public SgsChangeEvent(SongStructure src, Collection<SongPart> spts)
     {
-        if (src == null || spts == null)
-        {
-            throw new IllegalArgumentException("src=" + src + " spts=" + spts);   
-        }
+        Objects.requireNonNull(src);
+        Objects.requireNonNull(spts);
         source = src;
         songParts.addAll(spts);
         sortSongParts(songParts);
@@ -89,6 +90,49 @@ public class SgsChangeEvent
     public SongStructure getSource()
     {
         return source;
+    }
+
+    /**
+     * Set isUndo to true.
+     */
+    public void setIsUndo()
+    {
+        this.isUndo = true;
+    }
+
+    /**
+     * Set isRedo to true.
+     */
+    public void setIsRedo()
+    {
+        this.isRedo = true;
+    }
+
+    /**
+     * True if this is an undo event, i.e. this event's change was just undone.
+     *
+     * @return
+     * @see #setIsUndo()
+     */
+    public boolean isUndo()
+    {
+        return isUndo;
+    }
+
+    /**
+     * True if this is a redo event, i.e. this event's change was just redone.
+     *
+     * @return
+     * @see #setIsRedo()
+     */
+    public boolean isRedo()
+    {
+        return isRedo;
+    }
+
+    public boolean isUndoOrRedo()
+    {
+        return isUndo || isRedo;
     }
 
     public static void sortSongParts(List<SongPart> spts)

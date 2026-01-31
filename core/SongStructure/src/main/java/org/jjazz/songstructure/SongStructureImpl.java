@@ -38,7 +38,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +46,7 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -55,7 +55,6 @@ import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.UndoableEdit;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.chordleadsheet.api.ClsChangeListener;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
@@ -70,7 +69,6 @@ import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.songstructure.api.event.SgsActionEvent;
 import org.jjazz.songstructure.api.event.SgsVetoableChangeEvent;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
@@ -101,7 +99,6 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
      * Our parent ChordLeadSheet.
      */
     private ChordLeadSheet parentCls;
-    private transient SgsActionEvent activeSgsActionEvent;
     /**
      * Keep the last Rhythm used for each TimeSignature.
      */
@@ -140,25 +137,32 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
 
 
     @Override
-    public synchronized SongStructureImpl getDeepCopy(ChordLeadSheet parentCls)
+    public SongStructureImpl getDeepCopy(ChordLeadSheet parentCls)
     {
         SongStructureImpl res = new SongStructureImpl(parentCls);
 
-        var newSpts = getSongParts().stream()
-                .map(spt -> 
-                {
-                    CLI_Section oldParentSection = spt.getParentSection();
-                    CLI_Section newParentSection = null;
-                    if (oldParentSection != null && parentCls != null)
+        lock.readLock().lock();
+        try
+        {
+            var newSpts = getSongParts().stream()
+                    .map(spt -> 
                     {
-                        newParentSection = parentCls.getSection(oldParentSection.getData().getName());
-                    }
-                    return spt.getCopy(null, spt.getStartBarIndex(), spt.getNbBars(), newParentSection);
-                })
-                .toList();
-        res.songParts.addAll(newSpts);
+                        CLI_Section oldParentSection = spt.getParentSection();
+                        CLI_Section newParentSection = null;
+                        if (oldParentSection != null && parentCls != null)
+                        {
+                            newParentSection = parentCls.getSection(oldParentSection.getData().getName());
+                        }
+                        return spt.getCopy(null, spt.getStartBarIndex(), spt.getNbBars(), newParentSection);
+                    })
+                    .toList();
+            res.songParts.addAll(newSpts);
 
-        res.mapTsLastRhythm = new HashMap<>(mapTsLastRhythm);
+            res.mapTsLastRhythm = new HashMap<>(mapTsLastRhythm);
+        } finally
+        {
+            lock.readLock().unlock();
+        }
 
         return res;
     }
@@ -178,55 +182,75 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
                 "unchecked"
             })
     @Override
-    public synchronized List<SongPart> getSongParts()
+    public List<SongPart> getSongParts()
     {
-        return (List<SongPart>) songParts.clone();
+        lock.readLock().lock();
+        try
+        {
+            return List.copyOf(songParts);
+        } finally
+        {
+            lock.readLock().unlock();
+        }
     }
 
     @Override
-    public synchronized int getSizeInBars()
+    public int getSizeInBars()
     {
-        int res = songParts.isEmpty() ? 0 : getSptLastBarIndex(songParts.size() - 1) + 1;
-        return res;
+        lock.readLock().lock();
+        try
+        {
+            return songParts.isEmpty() ? 0 : getSptLastBarIndex(songParts.size() - 1) + 1;
+        } finally
+        {
+            lock.readLock().unlock();
+        }
     }
 
     @Override
     public FloatRange toBeatRange(IntRange rg)
     {
-        if (getSizeInBars() == 0)
+        lock.readLock().lock();
+        try
         {
-            return FloatRange.EMPTY_FLOAT_RANGE;
-        }
-
-        IntRange songRange = new IntRange(0, getSizeInBars() - 1);
-        if (rg == null)
-        {
-            rg = songRange;
-        } else if (!songRange.contains(rg))
-        {
-            return FloatRange.EMPTY_FLOAT_RANGE;
-        }
-
-        float startPos = -1;
-        float endPos = -1;
-        for (SongPart spt : getSongParts())     // Synchronized
-        {
-            TimeSignature ts = spt.getRhythm().getTimeSignature();
-            IntRange ir = rg.getIntersection(spt.getBarRange());
-            if (ir.isEmpty())
+            if (getSizeInBars() == 0)
             {
-                continue;
+                return FloatRange.EMPTY_FLOAT_RANGE;
             }
-            if (startPos == -1)
+
+            IntRange songRange = new IntRange(0, getSizeInBars() - 1);
+            if (rg == null)
             {
-                startPos = toPositionInNaturalBeats(ir.from);
-                endPos = startPos + ir.size() * ts.getNbNaturalBeats();
-            } else
+                rg = songRange;
+            } else if (!songRange.contains(rg))
             {
-                endPos += ir.size() * ts.getNbNaturalBeats();
+                return FloatRange.EMPTY_FLOAT_RANGE;
             }
+
+            float startPos = -1;
+            float endPos = -1;
+            for (SongPart spt : songParts)
+            {
+                TimeSignature ts = spt.getRhythm().getTimeSignature();
+                IntRange ir = rg.getIntersection(spt.getBarRange());
+                if (ir.isEmpty())
+                {
+                    continue;
+                }
+                if (startPos == -1)
+                {
+                    startPos = toPositionInNaturalBeats(ir.from);
+                    endPos = startPos + ir.size() * ts.getNbNaturalBeats();
+                } else
+                {
+                    endPos += ir.size() * ts.getNbNaturalBeats();
+                }
+            }
+            return new FloatRange(startPos, endPos);
+        } finally
+        {
+            lock.readLock().unlock();
         }
-        return new FloatRange(startPos, endPos);
     }
 
     @Override
@@ -262,7 +286,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
 
 
     @Override
-    public synchronized void addSongParts(final List<SongPart> spts) throws UnsupportedEditException
+    public void addSongParts(final List<SongPart> spts) throws UnsupportedEditException
     {
         Objects.requireNonNull(spts);
 
@@ -273,18 +297,73 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
             return;
         }
 
-        testChangeEventForVeto(new SptAddedEvent(this, spts));           // Possible exception here        
-
-        var saveSpts = new ArrayList<>(spts);
-        fireSgsActionEventStart(SgsActionEvent.API_ID.AddSongParts, saveSpts);
-
-        // Change state
-        for (SongPart spt : spts)
+        ThrowingSupplier<OperationResults, UnsupportedEditException> operation = () -> 
         {
-            addSongPartImpl(spt);
-        }
+            testChangeEventForVeto(new SptAddedEvent(this, spts));           // Possible exception here        
 
-        fireSgsActionEventComplete(SgsActionEvent.API_ID.AddSongParts);
+            final ArrayList<SongPart> oldSpts = new ArrayList<>(songParts);
+        final Map<TimeSignature, Rhythm> oldMapTsRhythm = new HashMap<>(mapTsLastRhythm);
+            final Map<SongPart, SongStructure> oldContainers = new HashMap<>();
+            for (SongPart spt : spts)
+            {
+                oldContainers.put(spt, spt.getContainer());
+            }
+
+            for (SongPart spt : spts)
+            {
+                addSongPartImpl(spt);
+            }
+
+            final ArrayList<SongPart> newSpts = new ArrayList<>(songParts);
+            final Map<TimeSignature, Rhythm> newMapTsRhythm = new HashMap<>(mapTsLastRhythm);
+
+            UndoableEdit edit = new SimpleEdit("Add SongParts")
+            {
+                @Override
+                public void undoBody()
+                {
+                    LOGGER.log(Level.FINER, "addSongParts.undoBody() spts={0}", spts);
+                    performAPImethodUndoRedo(() -> 
+                    {
+                        songParts = new ArrayList<>(oldSpts);
+                        mapTsLastRhythm = new HashMap<>(oldMapTsRhythm);
+                        updateStartBarIndexes();
+                        for (SongPart spt : spts)
+                        {
+                            ((SongPartImpl) spt).setContainer(oldContainers.get(spt));
+                            spt.removePropertyChangeListener(SongStructureImpl.this);
+                        }
+                        var event = new SptRemovedEvent(SongStructureImpl.this, spts);
+                        event.setIsUndo();
+                        return event;
+                    });
+                }
+
+                @Override
+                public void redoBody()
+                {
+                    LOGGER.log(Level.FINER, "addSongParts.redoBody() spts={0}", spts);
+                    performAPImethodUndoRedo(() -> 
+                    {
+                        songParts = new ArrayList<>(newSpts);
+                        mapTsLastRhythm = new HashMap<>(newMapTsRhythm);
+                        updateStartBarIndexes();
+                        for (SongPart spt : spts)
+                        {
+                            ((SongPartImpl) spt).setContainer(SongStructureImpl.this);
+                            spt.addPropertyChangeListener(SongStructureImpl.this);
+                        }
+                        var event = new SptAddedEvent(SongStructureImpl.this, spts);
+                        event.setIsRedo();
+                        return event;
+                    });
+                }
+            };
+
+            return new OperationResults(new SptAddedEvent(this, spts), edit, spts.size());
+        };
+
+        performAPImethodThrowing(operation);
 
         // Make sure all AdaptedRhythms for the song rhythms are generated in the database so that user can 
         // access them if he wants too
@@ -292,7 +371,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
     }
 
     @Override
-    public synchronized void removeSongParts(List<SongPart> spts)
+    public void removeSongParts(List<SongPart> spts)
     {
         Objects.requireNonNull(spts);
 
@@ -303,18 +382,60 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
             return;
         }
 
-        var saveSpts = new ArrayList<>(spts);
-        fireSgsActionEventStart(SgsActionEvent.API_ID.RemoveSongParts, saveSpts);
+        Supplier<OperationResults> operation = () -> 
+        {
+            final ArrayList<SongPart> oldSpts = new ArrayList<>(songParts);
+            final Map<TimeSignature, Rhythm> oldMapTsRhythm = new HashMap<>(mapTsLastRhythm);
 
-        // Perform the change
-        removeSongPartsImpl(spts);
+            removeSongPartsImpl(spts);
 
-        fireSgsActionEventComplete(SgsActionEvent.API_ID.RemoveSongParts);
+            final ArrayList<SongPart> newSpts = new ArrayList<>(songParts);
+            final Map<TimeSignature, Rhythm> newMapTsRhythm = new HashMap<>(mapTsLastRhythm);
+
+            UndoableEdit edit = new SimpleEdit("Remove SongParts")
+            {
+                @Override
+                public void undoBody()
+                {
+                    LOGGER.log(Level.FINER, "removeSongParts.undoBody() spts={0}", spts);
+                    performAPImethodUndoRedo(() -> 
+                    {
+                        songParts = new ArrayList<>(oldSpts);
+                        mapTsLastRhythm = new HashMap<>(oldMapTsRhythm);
+                        updateStartBarIndexes();
+                        spts.forEach(spt -> spt.addPropertyChangeListener(SongStructureImpl.this));
+                        var event = new SptAddedEvent(SongStructureImpl.this, spts);
+                        event.setIsUndo();
+                        return event;
+                    });
+                }
+
+                @Override
+                public void redoBody()
+                {
+                    LOGGER.log(Level.FINER, "removeSongParts.redoBody() spts={0}", spts);
+                    performAPImethodUndoRedo(() -> 
+                    {
+                        songParts = new ArrayList<>(newSpts);
+                        mapTsLastRhythm = new HashMap<>(newMapTsRhythm);
+                        updateStartBarIndexes();
+                        spts.forEach(spt -> spt.removePropertyChangeListener(SongStructureImpl.this));
+                        var event = new SptRemovedEvent(SongStructureImpl.this, spts);
+                        event.setIsRedo();
+                        return event;
+                    });
+                }
+            };
+
+            return new OperationResults(new SptRemovedEvent(this, spts), edit, spts.size());
+        };
+
+        performAPImethod(operation);
     }
 
 
     @Override
-    public synchronized void resizeSongParts(Map<SongPart, Integer> mapSptSize)
+    public void resizeSongParts(Map<SongPart, Integer> mapSptSize)
     {
         Objects.requireNonNull(mapSptSize);
 
@@ -325,80 +446,79 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
             return;
         }
 
-        final Map<SongPart, Integer> saveMap = new HashMap<>(mapSptSize);
-        final Map<SongPart, Integer> oldMap = new HashMap<>();
-
-        fireSgsActionEventStart(SgsActionEvent.API_ID.ResizeSongParts, saveMap);
-
-        for (SongPart spt : mapSptSize.keySet())
+        Supplier<OperationResults> operation = () -> 
         {
-            if (!songParts.contains(spt))
-            {
-                throw new IllegalArgumentException("this=" + this + " spt=" + spt + " mapSptsSize=" + mapSptSize);
-            }
-            // Save the old size before modifying it
-            oldMap.put(spt, spt.getNbBars());
-            SongPartImpl wspt = (SongPartImpl) spt;
-            wspt.setNbBars(mapSptSize.get(spt));
-        }
-        updateStartBarIndexes();
+            final Map<SongPart, Integer> saveMap = new HashMap<>(mapSptSize);
+            final Map<SongPart, Integer> oldMap = new HashMap<>();
 
-        // Create the undoable event
-        UndoableEdit edit = new SimpleEdit("Resize SongParts")
-        {
-            @Override
-            public void undoBody()
+            for (SongPart spt : mapSptSize.keySet())
             {
-                LOGGER.log(Level.FINER, "resizeSongParts.undoBody() mapSptSize={0}", mapSptSize);
-                synchronized (SongStructureImpl.this)
+                if (!songParts.contains(spt))
                 {
-                    for (SongPart spt : oldMap.keySet())
-                    {
-                        ((SongPartImpl) spt).setNbBars(oldMap.get(spt));
-                    }
-                    updateStartBarIndexes();
+                    throw new IllegalArgumentException("this=" + this + " spt=" + spt + " mapSptsSize=" + mapSptSize);
                 }
-                fireAuthorizedChangeEvent(new SptResizedEvent(SongStructureImpl.this, saveMap));
+                oldMap.put(spt, spt.getNbBars());
+                SongPartImpl wspt = (SongPartImpl) spt;
+                wspt.setNbBars(mapSptSize.get(spt));
             }
+            updateStartBarIndexes();
 
-            @Override
-            public void redoBody()
+            UndoableEdit edit = new SimpleEdit("Resize SongParts")
             {
-                LOGGER.log(Level.FINER, "resizeSongParts.redoBody() mapSptSize={0}", mapSptSize);
-                synchronized (SongStructureImpl.this)
+                @Override
+                public void undoBody()
                 {
-                    for (SongPart spt : saveMap.keySet())
+                    LOGGER.log(Level.FINER, "resizeSongParts.undoBody() mapSptSize={0}", mapSptSize);
+                    performAPImethodUndoRedo(() -> 
                     {
-                        ((SongPartImpl) spt).setNbBars(saveMap.get(spt));
-                    }
-                    updateStartBarIndexes();
+                        for (SongPart spt : oldMap.keySet())
+                        {
+                            ((SongPartImpl) spt).setNbBars(oldMap.get(spt));
+                        }
+                        updateStartBarIndexes();
+                        var event = new SptResizedEvent(SongStructureImpl.this, saveMap);
+                        event.setIsUndo();
+                        return event;
+                    });
                 }
-                fireAuthorizedChangeEvent(new SptResizedEvent(SongStructureImpl.this, oldMap));
-            }
+
+                @Override
+                public void redoBody()
+                {
+                    LOGGER.log(Level.FINER, "resizeSongParts.redoBody() mapSptSize={0}", mapSptSize);
+                    performAPImethodUndoRedo(() -> 
+                    {
+                        for (SongPart spt : saveMap.keySet())
+                        {
+                            ((SongPartImpl) spt).setNbBars(saveMap.get(spt));
+                        }
+                        updateStartBarIndexes();
+                        var event = new SptResizedEvent(SongStructureImpl.this, oldMap);
+                        event.setIsRedo();
+                        return event;
+                    });
+                }
+            };
+
+            var event = new SptResizedEvent(this, oldMap);
+            return new OperationResults(event, edit, mapSptSize.size());
         };
 
-        var event = new SptResizedEvent(this, oldMap);
-
-        fireUndoableEditHappened(edit);
-
-        // Fire event
-        fireAuthorizedChangeEvent(event);
-
-        fireSgsActionEventComplete(SgsActionEvent.API_ID.ResizeSongParts);
+        performAPImethod(operation);
     }
 
 
     /**
      * Test if a change is authorized by listeners.
      *
-     * @param event Can not be a SgsActionEvent
+     * @param event Can not be a SgsVetoableChangeEvent
      * @throws UnsupportedEditException If change is vetoed by a listener
      */
     @Override
     public void testChangeEventForVeto(SgsChangeEvent event) throws UnsupportedEditException
     {
         Objects.requireNonNull(event);
-        Preconditions.checkArgument(event.getSource() == this && !(event instanceof SgsActionEvent), "event=%s", event);
+        Preconditions.checkArgument(event.getSource() == this, "event=%s", event);
         SgsVetoableChangeEvent svce;
         if (event instanceof SgsVetoableChangeEvent ve)
         {
@@ -408,13 +528,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
             svce = new SgsVetoableChangeEvent(this, event);
         }
 
-        SgsChangeListener[] snapshot;
-        synchronized (this)
-        {
-            snapshot = listeners.toArray(SgsChangeListener[]::new);
-        }
-
-        for (SgsChangeListener l : snapshot)
+        for (SgsChangeListener l : syncListeners)
         {
             l.songStructureChanged(svce);   // Possible exception here
         }
@@ -434,7 +548,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
      * @throws UnsupportedEditException The exception will be thrown before any change is done.
      */
     @Override
-    public synchronized void replaceSongParts(final List<SongPart> oldSpts, final List<SongPart> newSpts) throws UnsupportedEditException
+    public void replaceSongParts(final List<SongPart> oldSpts, final List<SongPart> newSpts) throws UnsupportedEditException
     {
         Objects.requireNonNull(oldSpts);
         Objects.requireNonNull(newSpts);
@@ -446,129 +560,113 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
             oldSpts.toString(), newSpts.toString()
         });
 
-
-        // Check arguments consistency
-        for (int i = 0; i < oldSpts.size(); i++)
+        ThrowingSupplier<OperationResults, UnsupportedEditException> operation = () -> 
         {
-            SongPart oldSpt = oldSpts.get(i);
-            SongPart newSpt = newSpts.get(i);
-            if (!songParts.contains(oldSpt) || ((oldSpt != newSpt) && songParts.contains(newSpt))
-                    || oldSpt.getStartBarIndex() != newSpt.getStartBarIndex()
-                    || oldSpt.getNbBars() != newSpt.getNbBars())
+            for (int i = 0; i < oldSpts.size(); i++)
             {
-                throw new IllegalArgumentException("this=" + this + " oldSpts=" + oldSpts + " newSpts=" + newSpts);
-            }
-        }
-        if (oldSpts.equals(newSpts))
-        {
-            return;
-        }
-
-        testChangeEventForVeto(new SptReplacedEvent(this, oldSpts, newSpts));           // Possible exception here        
-
-        var saveNewSpts = new ArrayList<>(newSpts);
-        fireSgsActionEventStart(SgsActionEvent.API_ID.ReplaceSongParts, saveNewSpts);
-
-
-        // Save old state and perform the changes
-        final Map<TimeSignature, Rhythm> oldMapTsRhythm = new HashMap<>(mapTsLastRhythm);
-        final ArrayList<SongPart> oldSongParts = new ArrayList<>(songParts);
-        final ArrayList<SongStructure> newSptsOldContainer = new ArrayList<>();
-
-        for (int i = 0; i < oldSpts.size(); i++)
-        {
-            SongPart oldSpt = oldSpts.get(i);
-            SongPart newSpt = newSpts.get(i);
-
-            // Save previous container
-            newSptsOldContainer.add(newSpt.getContainer());
-
-            int rpIndex = songParts.indexOf(oldSpt);
-            songParts.set(rpIndex, newSpt);
-            ((SongPartImpl) newSpt).setContainer(this);
-
-            // Update mapTsLastRhythm
-            Rhythm r = newSpt.getRhythm();
-            TimeSignature ts = r.getTimeSignature();
-            mapTsLastRhythm.put(ts, r);
-
-            oldSpt.removePropertyChangeListener(this);
-            newSpt.addPropertyChangeListener(this);
-        }
-
-        final ArrayList<SongPart> newSongParts = new ArrayList<>(songParts);
-        final Map<TimeSignature, Rhythm> newMapTsRhythm = new HashMap<>(mapTsLastRhythm);
-
-        // Create the undoable event
-        UndoableEdit edit = new SimpleEdit("Replace SongParts")
-        {
-            @Override
-            public void undoBody()
-            {
-                LOGGER.log(Level.FINER, "ReplaceSongParts.undoBody() songParts={0}", songParts);
-
-                synchronized (SongStructureImpl.this)
+                SongPart oldSpt = oldSpts.get(i);
+                SongPart newSpt = newSpts.get(i);
+                if (!songParts.contains(oldSpt) || ((oldSpt != newSpt) && songParts.contains(newSpt))
+                        || oldSpt.getStartBarIndex() != newSpt.getStartBarIndex()
+                        || oldSpt.getNbBars() != newSpt.getNbBars())
                 {
-                    // Restore the state of the songStructure
-                    songParts = new ArrayList<>(oldSongParts);      // Must use a copy to make sure oldSongParts remains unaffected
-                    mapTsLastRhythm = new HashMap<>(oldMapTsRhythm);           // Must use a copy to make sure map remains unaffected            
-                    // restore the container of the replacing songparts
-                    for (int i = 0; i < newSpts.size(); i++)
-                    {
-                        var newSpt = newSpts.get(i);
-                        var oldSpt = oldSpts.get(i);
-                        SongStructure sgs = newSptsOldContainer.get(i);
-                        ((SongPartImpl) newSpt).setContainer(sgs);
-                        newSpt.removePropertyChangeListener(SongStructureImpl.this);
-                        oldSpt.addPropertyChangeListener(SongStructureImpl.this);
-                    }
+                    throw new IllegalArgumentException("this=" + this + " oldSpts=" + oldSpts + " newSpts=" + newSpts);
                 }
-                // Don't use vetoablechange  : it already worked, normally there is no reason it would change            
-                fireAuthorizedChangeEvent(new SptReplacedEvent(SongStructureImpl.this, newSpts, oldSpts));
             }
-
-            @Override
-            public void redoBody()
+            if (oldSpts.equals(newSpts))
             {
-                LOGGER.log(Level.FINER, "ReplaceSongParts.redoBody() songParts={0}", songParts);
-
-                synchronized (SongStructureImpl.this)
-                {
-                    // Restore the state of the songStructure
-                    songParts = new ArrayList<>(newSongParts);      // Must use a copy to make sure newSongParts remains unaffected
-                    mapTsLastRhythm = new HashMap<>(newMapTsRhythm);          // Must use a copy to make sure map remains unaffected                        
-                    // Change the container of the replacing songparts
-                    for (int i = 0; i < newSpts.size(); i++)
-                    {
-                        var newSpt = newSpts.get(i);
-                        var oldSpt = oldSpts.get(i);
-                        ((SongPartImpl) newSpt).setContainer(SongStructureImpl.this);
-                        newSpt.addPropertyChangeListener(SongStructureImpl.this);
-                        oldSpt.removePropertyChangeListener(SongStructureImpl.this);
-                    }
-                }
-                // Don't use vetoablechange : it already worked, normally there is no reason it would change
-                fireAuthorizedChangeEvent(new SptReplacedEvent(SongStructureImpl.this, oldSpts, newSpts));
+                return new OperationResults(null, null, Boolean.FALSE);
             }
+
+            testChangeEventForVeto(new SptReplacedEvent(this, oldSpts, newSpts));           // Possible exception here        
+
+            final Map<TimeSignature, Rhythm> oldMapTsRhythm = new HashMap<>(mapTsLastRhythm);
+            final ArrayList<SongPart> oldSongParts = new ArrayList<>(songParts);
+            final ArrayList<SongStructure> newSptsOldContainer = new ArrayList<>();
+
+            for (int i = 0; i < oldSpts.size(); i++)
+            {
+                SongPart oldSpt = oldSpts.get(i);
+                SongPart newSpt = newSpts.get(i);
+
+                newSptsOldContainer.add(newSpt.getContainer());
+
+                int rpIndex = songParts.indexOf(oldSpt);
+                songParts.set(rpIndex, newSpt);
+                ((SongPartImpl) newSpt).setContainer(this);
+
+                Rhythm r = newSpt.getRhythm();
+                TimeSignature ts = r.getTimeSignature();
+                mapTsLastRhythm.put(ts, r);
+
+                oldSpt.removePropertyChangeListener(this);
+                newSpt.addPropertyChangeListener(this);
+            }
+
+            final ArrayList<SongPart> newSongParts = new ArrayList<>(songParts);
+            final Map<TimeSignature, Rhythm> newMapTsRhythm = new HashMap<>(mapTsLastRhythm);
+
+            UndoableEdit edit = new SimpleEdit("Replace SongParts")
+            {
+                @Override
+                public void undoBody()
+                {
+                    LOGGER.log(Level.FINER, "ReplaceSongParts.undoBody() songParts={0}", songParts);
+
+                    performAPImethodUndoRedo(() -> 
+                    {
+                        songParts = new ArrayList<>(oldSongParts);
+                        mapTsLastRhythm = new HashMap<>(oldMapTsRhythm);
+                        for (int i = 0; i < newSpts.size(); i++)
+                        {
+                            var newSpt = newSpts.get(i);
+                            var oldSpt = oldSpts.get(i);
+                            SongStructure sgs = newSptsOldContainer.get(i);
+                            ((SongPartImpl) newSpt).setContainer(sgs);
+                            newSpt.removePropertyChangeListener(SongStructureImpl.this);
+                            oldSpt.addPropertyChangeListener(SongStructureImpl.this);
+                        }
+                        var event = new SptReplacedEvent(SongStructureImpl.this, newSpts, oldSpts);
+                        event.setIsUndo();
+                        return event;
+                    });
+                }
+
+                @Override
+                public void redoBody()
+                {
+                    LOGGER.log(Level.FINER, "ReplaceSongParts.redoBody() songParts={0}", songParts);
+
+                    performAPImethodUndoRedo(() -> 
+                    {
+                        songParts = new ArrayList<>(newSongParts);
+                        mapTsLastRhythm = new HashMap<>(newMapTsRhythm);
+                        for (int i = 0; i < newSpts.size(); i++)
+                        {
+                            var newSpt = newSpts.get(i);
+                            var oldSpt = oldSpts.get(i);
+                            ((SongPartImpl) newSpt).setContainer(SongStructureImpl.this);
+                            newSpt.addPropertyChangeListener(SongStructureImpl.this);
+                            oldSpt.removePropertyChangeListener(SongStructureImpl.this);
+                        }
+                        var event = new SptReplacedEvent(SongStructureImpl.this, oldSpts, newSpts);
+                        event.setIsRedo();
+                        return event;
+                    });
+                }
+            };
+
+            return new OperationResults(new SptReplacedEvent(SongStructureImpl.this, oldSpts, newSpts), edit, newSpts.size());
         };
 
-        // Need to be fired before change event
-        fireUndoableEditHappened(edit);
+        performAPImethodThrowing(operation);
 
-        // Notify listeners        
-        var event = new SptReplacedEvent(SongStructureImpl.this, oldSpts, newSpts);
-        fireAuthorizedChangeEvent(event);
-
-        fireSgsActionEventComplete(SgsActionEvent.API_ID.ReplaceSongParts);
-
-        // Make sure all AdaptedRhythms for the song rhythms are generated in the database so that user can 
-        // access them if he wants too
         generateAllAdaptedRhythms();
     }
 
 
     @Override
-    public synchronized void setSongPartsName(List<SongPart> spts, final String name)
+    public void setSongPartsName(List<SongPart> spts, final String name)
     {
         Objects.requireNonNull(spts);
         Objects.requireNonNull(name);
@@ -583,140 +681,150 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
             return;
         }
 
-        var saveSpts = new ArrayList<>(spts);
-        fireSgsActionEventStart(SgsActionEvent.API_ID.setSongPartsName, saveSpts);
-
-        final Map<SongPart, String> saveMap = new HashMap<>();
-        for (SongPart spt : spts)
+        Supplier<OperationResults> operation = () -> 
         {
-            SongPartImpl wspt = (SongPartImpl) spt;
-            saveMap.put(wspt, wspt.getName());
-            wspt.setName(name);
-        }
-
-        // Create the undoable event
-        UndoableEdit edit = new SimpleEdit("Rename SongParts")
-        {
-            @Override
-            public void undoBody()
+            final Map<SongPart, String> saveMap = new HashMap<>();
+            for (SongPart spt : spts)
             {
-                LOGGER.log(Level.FINER, "setSongPartsName.undoBody() spts={0} name={1}", new Object[]
-                {
-                    spts, name
-                });
-                synchronized (SongStructureImpl.this)
-                {
-                    for (SongPart wspt : saveMap.keySet())
-                    {
-                        ((SongPartImpl) wspt).setName(saveMap.get(wspt));
-                    }
-                }
-                fireAuthorizedChangeEvent(new SptRenamedEvent(SongStructureImpl.this, saveSpts));
+                SongPartImpl wspt = (SongPartImpl) spt;
+                saveMap.put(wspt, wspt.getName());
+                wspt.setName(name);
             }
 
-            @Override
-            public void redoBody()
+            UndoableEdit edit = new SimpleEdit("Rename SongParts")
             {
-                LOGGER.log(Level.FINER, "setSongPartsName.redoBody() spts={0} name={1}", new Object[]
+                @Override
+                public void undoBody()
                 {
-                    spts, name
-                });
-                synchronized (SongStructureImpl.this)
-                {
-                    for (SongPart wspt : saveMap.keySet())
+                    LOGGER.log(Level.FINER, "setSongPartsName.undoBody() spts={0} name={1}", new Object[]
                     {
-                        ((SongPartImpl) wspt).setName(name);
-                    }
+                        spts, name
+                    });
+                    performAPImethodUndoRedo(() -> 
+                    {
+                        for (SongPart wspt : saveMap.keySet())
+                        {
+                            ((SongPartImpl) wspt).setName(saveMap.get(wspt));
+                        }
+                        var event = new SptRenamedEvent(SongStructureImpl.this, spts);
+                        event.setIsUndo();
+                        return event;
+                    });
                 }
-                fireAuthorizedChangeEvent(new SptRenamedEvent(SongStructureImpl.this, saveSpts));
-            }
+
+                @Override
+                public void redoBody()
+                {
+                    LOGGER.log(Level.FINER, "setSongPartsName.redoBody() spts={0} name={1}", new Object[]
+                    {
+                        spts, name
+                    });
+                    performAPImethodUndoRedo(() -> 
+                    {
+                        for (SongPart wspt : saveMap.keySet())
+                        {
+                            ((SongPartImpl) wspt).setName(name);
+                        }
+                        var event = new SptRenamedEvent(SongStructureImpl.this, spts);
+                        event.setIsRedo();
+                        return event;
+                    });
+                }
+            };
+
+            return new OperationResults(new SptRenamedEvent(this, spts), edit, spts.size());
         };
 
-        fireUndoableEditHappened(edit);
-
-        // Fire event                
-        fireAuthorizedChangeEvent(new SptRenamedEvent(this, saveSpts));
-
-        fireSgsActionEventComplete(SgsActionEvent.API_ID.setSongPartsName);
+        performAPImethod(operation);
     }
 
 
     @Override
-    public synchronized <T> void setRhythmParameterValue(SongPart spt, final RhythmParameter<T> rp, final T newValue)
+    public <T> void setRhythmParameterValue(SongPart spt, final RhythmParameter<T> rp, final T newValue)
     {
         Objects.requireNonNull(spt);
         Objects.requireNonNull(rp);
         Objects.requireNonNull(newValue);
-        if (!songParts.contains(spt) || !spt.getRhythm().getRhythmParameters().contains(rp))
-        {
-            throw new IllegalArgumentException("this=" + this + " spt=" + spt + " rp=" + rp + " newValue=" + newValue);
-        }
 
         LOGGER.log(Level.FINE, "setRhythmParameterValue() -- spt={0} rp={1} newValue={2}", new Object[]
         {
             spt, rp, newValue
         });
 
-        final T oldValue = spt.getRPValue(rp);
-        if (oldValue.equals(newValue))
+        Supplier<OperationResults> operation = () -> 
         {
-            return;
-        }
-
-        fireSgsActionEventStart(SgsActionEvent.API_ID.SetRhythmParameterValue, rp);
-
-        final SongPartImpl wspt = (SongPartImpl) spt;
-        wspt.setRPValue(rp, newValue);
-
-        // Create the undoable event
-        UndoableEdit edit = new SimpleEdit("set Rhythm Parameter Value")
-        {
-            @Override
-            public void undoBody()
+            if (!songParts.contains(spt) || !spt.getRhythm().getRhythmParameters().contains(rp))
             {
-                LOGGER.log(Level.FINER, "setRhythmParameterValue.undoBody() spt={0} rp={1} newValue={2}", new Object[]
-                {
-                    spt, rp, newValue
-                });
-                synchronized (SongStructureImpl.this)
-                {
-                    wspt.setRPValue(rp, oldValue);
-                }
-                fireAuthorizedChangeEvent(new RpValueChangedEvent(SongStructureImpl.this, wspt, rp, newValue, oldValue));
+                throw new IllegalArgumentException("this=" + this + " spt=" + spt + " rp=" + rp + " newValue=" + newValue);
             }
 
-            @Override
-            public void redoBody()
+            final T oldValue = spt.getRPValue(rp);
+            if (oldValue.equals(newValue))
             {
-                LOGGER.log(Level.FINER, "setRhythmParameterValue.redoBody() spt={0} rp={1} newValue={2}", new Object[]
-                {
-                    spt, rp, newValue
-                });
-                synchronized (SongStructureImpl.this)
-                {
-                    wspt.setRPValue(rp, newValue);
-                }
-                fireAuthorizedChangeEvent(new RpValueChangedEvent(SongStructureImpl.this, wspt, rp, oldValue, newValue));
+                return new OperationResults(null, null, Boolean.FALSE);
             }
+
+            final SongPartImpl wspt = (SongPartImpl) spt;
+            wspt.setRPValue(rp, newValue);
+
+            UndoableEdit edit = new SimpleEdit("set Rhythm Parameter Value")
+            {
+                @Override
+                public void undoBody()
+                {
+                    LOGGER.log(Level.FINER, "setRhythmParameterValue.undoBody() spt={0} rp={1} newValue={2}", new Object[]
+                    {
+                        spt, rp, newValue
+                    });
+                    performAPImethodUndoRedo(() -> 
+                    {
+                        wspt.setRPValue(rp, oldValue);
+                        var event = new RpValueChangedEvent(SongStructureImpl.this, wspt, rp, newValue, oldValue);
+                        event.setIsUndo();
+                        return event;
+                    });
+                }
+
+                @Override
+                public void redoBody()
+                {
+                    LOGGER.log(Level.FINER, "setRhythmParameterValue.redoBody() spt={0} rp={1} newValue={2}", new Object[]
+                    {
+                        spt, rp, newValue
+                    });
+                    performAPImethodUndoRedo(() -> 
+                    {
+                        wspt.setRPValue(rp, newValue);
+                        var event = new RpValueChangedEvent(SongStructureImpl.this, wspt, rp, oldValue, newValue);
+                        event.setIsRedo();
+                        return event;
+                    });
+                }
+            };
+
+            return new OperationResults(new RpValueChangedEvent(SongStructureImpl.this, wspt, rp, oldValue, newValue), edit, Boolean.TRUE);
         };
-        fireUndoableEditHappened(edit);
 
-        // Fire event                
-        fireAuthorizedChangeEvent(new RpValueChangedEvent(SongStructureImpl.this, wspt, rp, oldValue, newValue));
-
-        fireSgsActionEventComplete(SgsActionEvent.API_ID.SetRhythmParameterValue);
+        performAPImethod(operation);
     }
 
 
     @Override
-    public synchronized Rhythm getLastUsedRhythm(TimeSignature ts)
+    public Rhythm getLastUsedRhythm(TimeSignature ts)
     {
-        Rhythm r = mapTsLastRhythm.get(ts);
-        LOGGER.log(Level.FINE, "getLastUsedRhythm() ts={0} result r={1}", new Object[]
+        lock.readLock().lock();
+        try
         {
-            ts, r
-        });
-        return r;
+            Rhythm r = mapTsLastRhythm.get(ts);
+            LOGGER.log(Level.FINE, "getLastUsedRhythm() ts={0} result r={1}", new Object[]
+            {
+                ts, r
+            });
+            return r;
+        } finally
+        {
+            lock.readLock().unlock();
+        }
     }
 
 
@@ -735,66 +843,84 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
             ts, sptBarIndex, getSizeInBars()
         });
 
-        // Try to use the last used rhythm for this new time signature
-        Rhythm r = getLastUsedRhythm(ts);
-
-        // Try to use an AdaptedRhythm from the current rhythm
-        if (r == null && !songParts.isEmpty())
+        lock.readLock().lock();
+        try
         {
-            // sptBarIndex is either on an existing rhythm part, or is right after the last song part
-            Rhythm curRhythm = getSongPart(sptBarIndex > 0 ? sptBarIndex - 1 : sptBarIndex).getRhythm();
-            if (curRhythm instanceof AdaptedRhythm ar)
+            Rhythm r = mapTsLastRhythm.get(ts);
+
+            if (r == null && !songParts.isEmpty())
             {
-                curRhythm = ar.getSourceRhythm();
+                SongPart refSpt = getSongPart(sptBarIndex > 0 ? sptBarIndex - 1 : sptBarIndex);
+                Rhythm curRhythm = refSpt.getRhythm();
+                if (curRhythm instanceof AdaptedRhythm ar)
+                {
+                    curRhythm = ar.getSourceRhythm();
+                }
+                r = rdb.getAdaptedRhythmInstance(curRhythm, ts);        // may be null
             }
-            r = rdb.getAdaptedRhythmInstance(curRhythm, ts);        // may be null
-        }
 
-        // Last option
-        if (r == null)
-        {
-            RhythmInfo ri = null;
-            try
+            if (r == null)
             {
-                ri = rdb.getDefaultRhythm(ts);
-                r = rdb.getRhythmInstance(ri);
-            } catch (UnavailableRhythmException ex)
-            {
-                LOGGER.log(Level.WARNING, "getRecommendedRhythm() Can''t get rhythm instance for {0}. Using stub rhythm instead. ex={1}",
-                        new Object[]
-                        {
-                            ri.name(), ex.getMessage()
-                        });
-                r = rdb.getDefaultStubRhythmInstance(ts);  // non null
+                RhythmInfo ri = null;
+                try
+                {
+                    ri = rdb.getDefaultRhythm(ts);
+                    r = rdb.getRhythmInstance(ri);
+                } catch (UnavailableRhythmException ex)
+                {
+                    LOGGER.log(Level.WARNING, "getRecommendedRhythm() Can''t get rhythm instance for {0}. Using stub rhythm instead. ex={1}",
+                            new Object[]
+                            {
+                                ri.name(), ex.getMessage()
+                            });
+                    r = rdb.getDefaultStubRhythmInstance(ts);  // non null
+                }
             }
-        }
 
-        LOGGER.log(Level.FINE, "getRecommendedRhythm() ts={0} sptBarIndex={1} result r={2}", new Object[]
+            LOGGER.log(Level.FINE, "getRecommendedRhythm() ts={0} sptBarIndex={1} result r={2}", new Object[]
+            {
+                ts, sptBarIndex, r
+            });
+            return r;
+        } finally
         {
-            ts, sptBarIndex, r
-        });
-        return r;
+            lock.readLock().unlock();
+        }
     }
 
 
     @Override
-    public synchronized SongPart getSongPart(int absoluteBarIndex)
+    public SongPart getSongPart(int absoluteBarIndex)
     {
-        int abi = absoluteBarIndex;
-        for (SongPart spt : songParts)
+        lock.readLock().lock();
+        try
         {
-            if (spt.getBarRange().contains(abi))
+            int abi = absoluteBarIndex;
+            for (SongPart spt : songParts)
             {
-                return spt;
+                if (spt.getBarRange().contains(abi))
+                {
+                    return spt;
+                }
             }
+            return null;
+        } finally
+        {
+            lock.readLock().unlock();
         }
-        return null;
     }
 
     @Override
-    public synchronized List<SongPart> getSongParts(Predicate<SongPart> tester)
+    public List<SongPart> getSongParts(Predicate<SongPart> tester)
     {
-        return songParts.stream().filter(tester).toList();
+        lock.readLock().lock();
+        try
+        {
+            return songParts.stream().filter(tester).toList();
+        } finally
+        {
+            lock.readLock().unlock();
+        }
     }
 
     @Override
@@ -804,53 +930,65 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
         {
             throw new IllegalArgumentException("posInBeats=" + posInBeats);
         }
-        for (SongPart spt : getSongParts())     // Synchronized
+        lock.readLock().lock();
+        try
         {
-            FloatRange rg = toBeatRange(spt.getBarRange());
-            if (rg.contains(posInBeats, true))
+            for (SongPart spt : songParts)
             {
-                TimeSignature ts = spt.getRhythm().getTimeSignature();
-                float beatInSpt = posInBeats - rg.from;
-                int barOffset = (int) Math.floor(beatInSpt / ts.getNbNaturalBeats());
-                int bar = spt.getStartBarIndex() + barOffset;
-                float beatInBar = posInBeats - rg.from - barOffset * ts.getNbNaturalBeats();
-                return new Position(bar, beatInBar);
+                FloatRange rg = toBeatRange(spt.getBarRange());
+                if (rg.contains(posInBeats, true))
+                {
+                    TimeSignature ts = spt.getRhythm().getTimeSignature();
+                    float beatInSpt = posInBeats - rg.from;
+                    int barOffset = (int) Math.floor(beatInSpt / ts.getNbNaturalBeats());
+                    int bar = spt.getStartBarIndex() + barOffset;
+                    float beatInBar = posInBeats - rg.from - barOffset * ts.getNbNaturalBeats();
+                    return new Position(bar, beatInBar);
+                }
             }
+            return null;
+        } finally
+        {
+            lock.readLock().unlock();
         }
-        return null;
     }
 
     @Override
-    public synchronized float toPositionInNaturalBeats(int barIndex)
+    public float toPositionInNaturalBeats(int barIndex)
     {
-        int size = getSizeInBars();
-        Preconditions.checkArgument(barIndex >= 0 && barIndex < size, "barIndex=%s size=%s", barIndex, size);
+        lock.readLock().lock();
+        try
+        {
+            int size = getSizeInBars();
+            Preconditions.checkArgument(barIndex >= 0 && barIndex < size, "barIndex=%s size=%s", barIndex, size);
 
-        float posInBeats = 0;
-        if (barIndex == getSizeInBars())
-        {
-            // Special case : barIndex is the bar right after the end of the songStructure
-            for (SongPart spt : songParts)
+            float posInBeats = 0;
+            if (barIndex == getSizeInBars())
             {
-                TimeSignature ts = spt.getParentSection().getData().getTimeSignature();
-                posInBeats += spt.getNbBars() * ts.getNbNaturalBeats();
-            }
-        } else
-        {
-            // Normal case: it's a bar within the songStructure
-            SongPart spt = getSongPart(barIndex);
-            for (SongPart spti : songParts)
-            {
-                TimeSignature ts = spti.getParentSection().getData().getTimeSignature();
-                if (spti == spt)
+                for (SongPart spt : songParts)
                 {
-                    posInBeats += (barIndex - spt.getStartBarIndex()) * ts.getNbNaturalBeats();
-                    break;
+                    TimeSignature ts = spt.getParentSection().getData().getTimeSignature();
+                    posInBeats += spt.getNbBars() * ts.getNbNaturalBeats();
                 }
-                posInBeats += spti.getNbBars() * ts.getNbNaturalBeats();
+            } else
+            {
+                SongPart spt = getSongPart(barIndex);
+                for (SongPart spti : songParts)
+                {
+                    TimeSignature ts = spti.getParentSection().getData().getTimeSignature();
+                    if (spti == spt)
+                    {
+                        posInBeats += (barIndex - spt.getStartBarIndex()) * ts.getNbNaturalBeats();
+                        break;
+                    }
+                    posInBeats += spti.getNbBars() * ts.getNbNaturalBeats();
+                }
             }
+            return posInBeats;
+        } finally
+        {
+            lock.readLock().unlock();
         }
-        return posInBeats;
     }
 
     @Override
@@ -882,55 +1020,44 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
     @Override
     public void addSgsChangeListener(SgsChangeListener l)
     {
-        if (l == null)
-        {
-            throw new NullPointerException("l=" + l);
-        }
-        synchronized (this)
-        {
-            listeners.remove(l);
-            listeners.add(l);
-        }
+        Objects.requireNonNull(l);
+        listeners.remove(l);
+        listeners.add(l);
     }
 
     @Override
     public void removeSgsChangeListener(SgsChangeListener l)
     {
-        if (l == null)
-        {
-            throw new NullPointerException("l=" + l);
-        }
-        synchronized (this)
-        {
-            listeners.remove(l);
-        }
+        Objects.requireNonNull(l);
+        listeners.remove(l);
+    }
+
+    public void addSgsChangeSyncListener(SgsChangeListener l)
+    {
+        Objects.requireNonNull(l);
+        syncListeners.remove(l);
+        syncListeners.add(l);
+    }
+
+    public void removeSgsChangeSyncListener(SgsChangeListener l)
+    {
+        Objects.requireNonNull(l);
+        syncListeners.remove(l);
     }
 
     @Override
     public void addUndoableEditListener(UndoableEditListener l)
     {
-        if (l == null)
-        {
-            throw new NullPointerException("l=" + l);
-        }
-        synchronized (this)
-        {
-            undoListeners.remove(l);
-            undoListeners.add(l);
-        }
+        Objects.requireNonNull(l);
+        undoListeners.remove(l);
+        undoListeners.add(l);
     }
 
     @Override
     public void removeUndoableEditListener(UndoableEditListener l)
     {
-        if (l == null)
-        {
-            throw new NullPointerException("l=" + l);
-        }
-        synchronized (this)
-        {
-            undoListeners.remove(l);
-        }
+        Objects.requireNonNull(l);
+        undoListeners.remove(l);
     }
 
     //=============================================================================
@@ -944,16 +1071,16 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
         {
             if (evt.getPropertyName().equals(SongPart.PROP_RP_MUTABLE_VALUE))
             {
-                // Propagate mutable value change events as SgsActionEvent + RpValueChangedEvent
                 @SuppressWarnings("unchecked")
                 RhythmParameter<?> rp = (RhythmParameter<?>) evt.getOldValue();
                 Object rpValue = evt.getNewValue();
 
-                fireSgsActionEventStart(SgsActionEvent.API_ID.SetRhythmParameterMutableValue, rp);
+                Supplier<OperationResults> operation = () -> new OperationResults(
+                        new RpValueChangedEvent(SongStructureImpl.this, spt, rp, null, rpValue),
+                        null,
+                        Boolean.TRUE);
 
-                fireAuthorizedChangeEvent(new RpValueChangedEvent(SongStructureImpl.this, spt, rp, null, rpValue));
-
-                fireSgsActionEventComplete(SgsActionEvent.API_ID.SetRhythmParameterMutableValue);
+                performAPImethod(operation);
             }
         }
     }
@@ -1002,10 +1129,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
     {
         LOGGER.log(Level.FINE, "addSongPartInternal() -- spt={0}", spt);
 
-        // Save the old state
-        final ArrayList<SongPart> oldSpts = new ArrayList<>(songParts);
-        final Map<TimeSignature, Rhythm> oldMapTsRhythm = new HashMap<>(mapTsLastRhythm);
-        final SongStructure oldContainer = spt.getContainer();
+        Preconditions.checkState(lock.isWriteLockedByCurrentThread(), "write lock required");
 
         int barIndex = spt.getStartBarIndex();
         if (songParts.contains(spt) || barIndex > getSizeInBars())
@@ -1013,86 +1137,24 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
             throw new IllegalArgumentException("this=" + this + " spt=" + spt);
         }
 
-        // Update state       
         if (barIndex == getSizeInBars())
         {
-            // Append at the end
             songParts.add(spt);
         } else
         {
-            // Insert 
             SongPart curSpt = getSongPart(barIndex);
             if (barIndex != curSpt.getStartBarIndex())
             {
-                // Caller must have correctly set startBarIndex of the inserted spt
                 throw new IllegalArgumentException("this=" + this + " spt=" + spt + " curSpt=" + curSpt);
             }
             int rpIndex = songParts.indexOf(curSpt);
             songParts.add(rpIndex, spt);
         }
 
-
-        // Restore correct startBarIndexes of following songparts
         updateStartBarIndexes();
-        // Set the container
         ((SongPartImpl) spt).setContainer(this);
-        // Keep the default rhythm map updated
         mapTsLastRhythm.put(spt.getRhythm().getTimeSignature(), spt.getRhythm());
-
-        // Listen to mutable RP value changes
         spt.addPropertyChangeListener(this);
-
-        // Save the new state
-        final ArrayList<SongPart> newSpts = new ArrayList<>(songParts);
-        final Map<TimeSignature, Rhythm> newMapTsRhythm = new HashMap<>(mapTsLastRhythm);
-
-        // Create the undoable event
-        UndoableEdit edit = new SimpleEdit("Add SongPart spt=" + spt)
-        {
-            @Override
-            public void undoBody()
-            {
-                LOGGER.log(Level.FINER, "addSongPartInternal.undoBody() spt={0}", spt);
-                synchronized (SongStructureImpl.this)
-                {
-                    ((SongPartImpl) spt).setContainer(oldContainer);
-                    songParts = new ArrayList<>(oldSpts);         // Must use a copy to make sure oldSpts remains unaffected
-                    mapTsLastRhythm = new HashMap<>(oldMapTsRhythm);           // Must use a copy to make sure map remains unaffected
-                    updateStartBarIndexes();
-                }
-
-                spt.removePropertyChangeListener(SongStructureImpl.this);
-
-                // Don't use vetoable change  : it already worked, normally there is no reason it would change
-                fireAuthorizedChangeEvent(new SptRemovedEvent(SongStructureImpl.this, Arrays.asList(spt)));
-            }
-
-            @Override
-            public void redoBody()
-            {
-                LOGGER.log(Level.FINER, "addSongPartInternal.redoBody() spt={0}", spt);
-
-                synchronized (SongStructureImpl.this)
-                {
-                    ((SongPartImpl) spt).setContainer(SongStructureImpl.this);
-                    songParts = new ArrayList<>(newSpts);          // Must use a copy to make sure newSpts remains unaffected
-                    mapTsLastRhythm = new HashMap<>(newMapTsRhythm);           // Must use a copy to make sure map remains unaffected
-                    updateStartBarIndexes();
-                }
-
-                spt.addPropertyChangeListener(SongStructureImpl.this);
-
-                // Don't use vetoable change : it already worked, normally there is no reason it would change
-                fireAuthorizedChangeEvent(new SptAddedEvent(SongStructureImpl.this, Arrays.asList(spt)));
-            }
-        };
-
-
-        // Need to be before the change event
-        fireUndoableEditHappened(edit);
-
-        // Fire change event
-        fireAuthorizedChangeEvent(new SptAddedEvent(this, Arrays.asList(spt)));
     }
 
     /**
@@ -1102,15 +1164,11 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
      */
     protected void removeSongPartsImpl(List<SongPart> spts)
     {
-        if (spts == null)
-        {
-            throw new IllegalArgumentException("this=" + this + " spts=" + spts);
-        }
+        Objects.requireNonNull(spts);
 
         LOGGER.log(Level.FINER, "removeSongPartInternal() -- spts={0}", spts);
 
-        // Save state
-        final ArrayList<SongPart> oldSpts = new ArrayList<>(songParts);
+        Preconditions.checkState(lock.isWriteLockedByCurrentThread(), "write lock required");
 
         for (SongPart spt : spts)
         {
@@ -1121,54 +1179,10 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
             spt.removePropertyChangeListener(this);
         }
         updateStartBarIndexes();
-
-        final ArrayList<SongPart> saveSpts = new ArrayList<>(spts);
-        final ArrayList<SongPart> newSpts = new ArrayList<>(songParts);
-
-
-        // Save the new state
-        // Create the undoable event
-        UndoableEdit edit = new SimpleEdit("Remove SongPart")
-        {
-            @Override
-            public void undoBody()
-            {
-                LOGGER.log(Level.FINER, "removeSongPartInternal.undoBody() spts={0}", spts);
-                synchronized (SongStructureImpl.this)
-                {
-                    songParts = new ArrayList<>(oldSpts);
-                    updateStartBarIndexes();
-                    spts.forEach(spt -> spt.addPropertyChangeListener(SongStructureImpl.this));
-                }
-                fireAuthorizedChangeEvent(new SptAddedEvent(SongStructureImpl.this, saveSpts));
-            }
-
-            @Override
-            public void redoBody()
-            {
-                LOGGER.log(Level.FINER, "removeSongPartInternal.redoBody() spts={0}", spts);
-                synchronized (SongStructureImpl.this)
-                {
-                    songParts = new ArrayList<>(newSpts);            // Must use a copy to make sure newSpts remains unaffected
-                    updateStartBarIndexes();
-                    spts.forEach(spt -> spt.removePropertyChangeListener(SongStructureImpl.this));
-                }
-                fireAuthorizedChangeEvent(new SptRemovedEvent(SongStructureImpl.this, saveSpts));
-            }
-        };
-
-
-        // Before change event
-        fireUndoableEditHappened(edit);
-
-
-        // Fire change event
-        var event = new SptRemovedEvent(this, spts);
-        fireAuthorizedChangeEvent(event);
     }
 
 
-    private synchronized int getSptLastBarIndex(int sptIndex)
+    private int getSptLastBarIndex(int sptIndex)
     {
         Preconditions.checkElementIndex(0, songParts.size(), "sptIndex");
         SongPart spt = songParts.get(sptIndex);
@@ -1194,29 +1208,38 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
 
 
     /**
-     * Fire an authorized change event to all listeners.
+     * Fire a non vetoable change event to all (non synchronized) listeners.
      * <p>
-     * If it's not a SgsActionEvent, also adds the event to the active SgsActionEvent.
      *
      * @param event Can not be a SgsVetoableChangeEvent
      */
-    private void fireAuthorizedChangeEvent(SgsChangeEvent event)
+    private void fireNonVetoableChangeEvent(SgsChangeEvent event)
     {
-        Objects.requireNonNull(event);
-        Preconditions.checkArgument(!(event instanceof SgsVetoableChangeEvent), "event=%s", event);
+        Preconditions.checkArgument(event != null && !(event instanceof SgsVetoableChangeEvent), "event=%s", event);
 
-        SgsChangeListener[] snapshot;
-        synchronized (this)
+        for (SgsChangeListener l : listeners)
         {
-            if (!(event instanceof SgsActionEvent))
+            try
             {
-                assert activeSgsActionEvent != null : "event=" + event;
-                activeSgsActionEvent.addSubEvent(event);
+                l.songStructureChanged(event);
+            } catch (UnsupportedEditException ex)
+            {
+                Exceptions.printStackTrace(ex);
             }
-            snapshot = listeners.toArray(SgsChangeListener[]::new);
         }
+    }
 
-        for (SgsChangeListener l : snapshot)
+    /**
+     * Fire a non vetoable change event to all synchronized listeners.
+     * <p>
+     *
+     * @param event
+     */
+    private void fireSynchronizedNonVetoableChangeEvent(SgsChangeEvent event)
+    {
+        Preconditions.checkArgument(event != null && !(event instanceof SgsVetoableChangeEvent), "event=%s", event);
+
+        for (SgsChangeListener l : syncListeners)
         {
             try
             {
@@ -1229,128 +1252,133 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
     }
 
 
-    /**
-     * Set the active SgsActionEvent, unless there is already an active SgsActionEvent, and fire the required events.
-     * <p>
-     *
-     * @param apiId
-     * @param data
-     */
-    private synchronized void fireSgsActionEventStart(SgsActionEvent.API_ID apiId, Object data)
-    {
-        Objects.requireNonNull(apiId);
-
-        if (activeSgsActionEvent != null)
-        {
-            assert activeSgsActionEvent.getApiId() != apiId :
-                    "apiId=" + apiId + " activeSgsActionEvent=" + activeSgsActionEvent + " data=" + Objects.toString(data, "null");
-            return;
-        }
-
-
-        // Create an undoable event for this event which does nothing but refiring the ClsActionEvent
-        UndoableEdit edit = new SimpleEdit("SgsActionEventEdit(" + apiId + ")")
-        {
-            @Override
-            public void undoBody()
-            {
-                synchronized (SongStructureImpl.this)
-                {
-                    assert activeSgsActionEvent != null;
-                    activeSgsActionEvent.complete();
-                    fireAuthorizedChangeEvent(activeSgsActionEvent);
-                    activeSgsActionEvent = null;
-                }
-            }
-
-            @Override
-            public void redoBody()
-            {
-                synchronized (SongStructureImpl.this)
-                {
-                    assert activeSgsActionEvent == null : "activeSgsActionEvent" + activeSgsActionEvent;
-                    activeSgsActionEvent = new SgsActionEvent(SongStructureImpl.this, apiId, data);
-                    fireAuthorizedChangeEvent(activeSgsActionEvent);
-                }
-            }
-        };
-        fireUndoableEditHappened(edit);
-
-        activeSgsActionEvent = new SgsActionEvent(this, apiId, data);
-        fireAuthorizedChangeEvent(activeSgsActionEvent);
-    }
-
-
-    /**
-     * Complete the active SgsActionEvent, unless the active one is not linked to apiId, and fire the required events.
-     *
-     * @param apiId
-     */
-    private synchronized void fireSgsActionEventComplete(SgsActionEvent.API_ID apiId)
-    {
-        Objects.requireNonNull(apiId);
-
-        assert activeSgsActionEvent != null : "apiId=" + apiId;
-        if (activeSgsActionEvent.getApiId() != apiId)
-        {
-            return;
-        }
-
-        var data = activeSgsActionEvent.getData();
-
-
-        // Create an undoable event for this event which does nothing but refiring the SgsActionEvent
-        UndoableEdit edit = new SimpleEdit("SgsActionEventEdit(" + apiId + ")")
-        {
-            @Override
-            public void undoBody()
-            {
-                synchronized (SongStructureImpl.this)
-                {
-                    assert activeSgsActionEvent == null : "activeSgsActionEvent=" + activeSgsActionEvent;
-                    activeSgsActionEvent = new SgsActionEvent(SongStructureImpl.this, apiId, data);
-                    fireAuthorizedChangeEvent(activeSgsActionEvent);
-                }
-            }
-
-            @Override
-            public void redoBody()
-            {
-                synchronized (SongStructureImpl.this)
-                {
-                    assert activeSgsActionEvent != null;
-                    activeSgsActionEvent.complete();
-                    fireAuthorizedChangeEvent(activeSgsActionEvent);
-                    activeSgsActionEvent = null;
-                }
-            }
-        };
-        fireUndoableEditHappened(edit);
-
-        activeSgsActionEvent.complete();
-        fireAuthorizedChangeEvent(activeSgsActionEvent);
-        activeSgsActionEvent = null;
-    }
-
-
     private void fireUndoableEditHappened(UndoableEdit edit)
     {
-        if (edit == null)
-        {
-            throw new IllegalArgumentException("edit=" + edit);
-        }
+        Objects.requireNonNull(edit);
         UndoableEditEvent event = new UndoableEditEvent(this, edit);
 
-        UndoableEditListener[] snapshot;
-        synchronized (this)
-        {
-            snapshot = undoListeners.toArray(UndoableEditListener[]::new);
-        }
-
-        for (UndoableEditListener l : snapshot)
+        for (UndoableEditListener l : undoListeners)
         {
             l.undoableEditHappened(event);
         }
+    }
+
+    /**
+     * Safely perform a mutating API method possibly returning a value.
+     *
+     * @param <R>       The type of the return value
+     * @param operation Updates the model and returns the events
+     * @return The returnValue from OperationResults. Can be null.
+     */
+    private <R> R performAPImethod(Supplier<OperationResults> operation)
+    {
+        OperationResults results = null;
+
+        lock.writeLock().lock();
+        try
+        {
+            results = operation.get();
+            assert results != null;
+
+            if (results.undoableEdit() != null)
+            {
+                fireUndoableEditHappened(results.undoableEdit());
+            }
+            if (results.sgsChangeEvent() != null)
+            {
+                fireSynchronizedNonVetoableChangeEvent(results.sgsChangeEvent());
+            }
+        } finally
+        {
+            lock.writeLock().unlock();
+        }
+
+        if (results.sgsChangeEvent() != null)
+        {
+            fireNonVetoableChangeEvent(results.sgsChangeEvent());
+        }
+
+        @SuppressWarnings("unchecked")
+        R returnValue = (R) results.returnValue();
+        return returnValue;
+    }
+
+    /**
+     * Safely perform a mutating API method possibly returning a value or throwing an exception
+     *
+     * @param operation Updates the model and returns the events
+     * @return The returnValue from OperationResults. Can be null.
+     * @param <R>
+     * @param <E>
+     * @throws E
+     */
+    private <R, E extends Exception> R performAPImethodThrowing(ThrowingSupplier<OperationResults, E> operation) throws E
+    {
+        OperationResults results;
+
+        lock.writeLock().lock();
+        try
+        {
+            results = operation.get();
+            assert results != null;
+
+            if (results.undoableEdit() != null)
+            {
+                fireUndoableEditHappened(results.undoableEdit());
+            }
+            if (results.sgsChangeEvent() != null)
+            {
+                fireSynchronizedNonVetoableChangeEvent(results.sgsChangeEvent());
+            }
+        } finally
+        {
+            lock.writeLock().unlock();
+        }
+
+        if (results.sgsChangeEvent() != null)
+        {
+            fireNonVetoableChangeEvent(results.sgsChangeEvent());
+        }
+
+        @SuppressWarnings("unchecked")
+        R returnValue = (R) results.returnValue();
+        return returnValue;
+    }
+
+    /**
+     * Safely perform an undo or redo operation for mutating API method.
+     *
+     * @param operation Updates model and return a SgsChangeEvent
+     */
+    private void performAPImethodUndoRedo(Supplier<SgsChangeEvent> operation)
+    {
+        SgsChangeEvent event;
+        lock.writeLock().lock();
+        try
+        {
+            event = operation.get();
+            assert event != null;
+            fireSynchronizedNonVetoableChangeEvent(event);
+        } finally
+        {
+            lock.writeLock().unlock();
+        }
+        fireNonVetoableChangeEvent(event);
+    }
+
+    @FunctionalInterface
+    private interface ThrowingSupplier<T, E extends Exception>
+    {
+
+        T get() throws E;
+    }
+
+    /**
+     * Helper class to store the events and return value produced by a mutating API method.
+     */
+    private record OperationResults(SgsChangeEvent sgsChangeEvent, UndoableEdit undoableEdit, Object returnValue)
+            {
+
     }
 
     /**
