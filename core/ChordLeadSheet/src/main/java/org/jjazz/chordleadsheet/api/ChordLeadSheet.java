@@ -41,6 +41,9 @@ import org.jjazz.utilities.api.IntRange;
  * - The first bar must always contain a section <br>
  * - 2 sections can't have the same name<br>
  * - All ChordLeadSheetItems belonging to a chord leadsheet must be unique (2 ChordLeadSheetItems can not be equal)<br>
+ * - Each mutating API method fires one ClsChangeEvent subclass at the end of the operation.<br>
+ * - Mutating API method which throws UnsupportedEditException also fires, before starting the operation, a ClsVetoableChangeEvent to the synchronized
+ * listeners.<br>
  */
 public interface ChordLeadSheet
 {
@@ -172,8 +175,8 @@ public interface ChordLeadSheet
     /**
      * Insert bars from a specific position.
      * <p>
-     * If there are bars after barIndex, their items are shifted accordingly. If barIndex==0, a new section with a new name is created at bar 0 reusing the previous
-     * initial section's time signature.
+     * If there are bars after barIndex, their items are shifted accordingly. If barIndex==0, a new section with a new name is created at bar 0 reusing the
+     * previous initial section's time signature.
      *
      * @param barIndex The bar index from which to insert the new bars.
      * @param nbBars   The number of bars to insert.
@@ -516,8 +519,8 @@ public interface ChordLeadSheet
     /**
      * Add a (non-synchronized) listener for this object.
      * <p>
-     * Listener will be called while outside of the ReentrantReadWriteLock write lock. General-purpose listeners (e.g. for updating UI ) should use this method.
-     * If you want to receive VetoableClsChangeEvents, use addClsChangeSyncListener() instead.
+     * General-purpose listeners (e.g. for updating UI ) should use this method. If you want to receive VetoableClsChangeEvents, use addClsChangeSyncListener()
+     * instead.
      *
      * @param l
      * @see #addClsChangeSyncListener(org.jjazz.chordleadsheet.api.ClsChangeListener)
@@ -534,7 +537,7 @@ public interface ChordLeadSheet
     /**
      * Add a synchronized listener for this object.
      * <p>
-     * Listener will be called while the ReentrantReadWriteLock write lock is held, so listener should keep processing simple VetoableClsChangeEvents are only
+     * Listener will be called while the write lock is held, so listener must keep processing simple and in the current thread. VetoableClsChangeEvents are only
      * sent to synchronized listeners. General purpose listeners should use addClsChangeListener() instead.
      *
      * @param l

@@ -75,6 +75,7 @@ import org.openide.util.lookup.ServiceProvider;
  */
 public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 {
+
     /**
      * The main data structure: keep the items sorted by position and type.
      * <p>
@@ -1525,7 +1526,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             return res;
         }
 
-        assert lock.isWriteLockedByCurrentThread();
+        Preconditions.checkState(lock.isWriteLockedByCurrentThread(), "write lock required");
 
         for (ChordLeadSheetItem<?> item : iitems)
         {
@@ -1559,7 +1560,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
      */
     private void addItemChecked(ChordLeadSheetItem<?> item)
     {
-        assert lock.isWriteLockedByCurrentThread();
+        Preconditions.checkState(lock.isWriteLockedByCurrentThread(), "write lock required");
         Preconditions.checkArgument(item instanceof WritableItem, "item=%s", item);
         var b = items.add(item);
         assert b : "item=" + item + " items=" + items;
@@ -1573,7 +1574,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
      */
     private void removeItemChecked(ChordLeadSheetItem<?> item)
     {
-        assert lock.isWriteLockedByCurrentThread();
+        Preconditions.checkState(lock.isWriteLockedByCurrentThread(), "write lock required");
         Preconditions.checkArgument(item instanceof WritableItem, "item=%s", item);
         var b = items.remove(item);
         assert b : "item=" + item + " items=" + items;
@@ -1582,7 +1583,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
     private <T> void changeItemDataChecked(ChordLeadSheetItem<T> item, T newData)
     {
-        assert lock.isWriteLockedByCurrentThread();
+        Preconditions.checkState(lock.isWriteLockedByCurrentThread(), "write lock required");
         WritableItem<T> wItem = (WritableItem<T>) item;
         var b = items.remove(wItem);
         assert b : "wItem=" + wItem + " newData=" + newData + " items=" + items;
@@ -1593,7 +1594,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
     private <T> void changeItemPositionChecked(ChordLeadSheetItem<T> item, Position newPos)
     {
-        assert lock.isWriteLockedByCurrentThread();
+        Preconditions.checkState(lock.isWriteLockedByCurrentThread(), "write lock required");
         WritableItem<T> wItem = (WritableItem<T>) item;
         var b = items.remove(wItem);
         assert b : "wItem=" + wItem + " newPos=" + newPos + " items=" + items;
