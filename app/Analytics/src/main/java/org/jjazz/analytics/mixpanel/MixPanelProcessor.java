@@ -18,6 +18,7 @@ import java.util.logging.Logger;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.analytics.spi.AnalyticsProcessor;
 import org.jjazz.utilities.api.CheckedRunnable;
+import org.jjazz.utilities.api.SharedExecutorServices;
 import org.jjazz.utilities.api.Utilities;
 import org.json.JSONObject;
 
@@ -236,8 +237,7 @@ public class MixPanelProcessor implements AnalyticsProcessor
 
 
         // Run the task and wait no more than time out
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        Future<?> future = executor.submit(new CheckedRunnable(task));
+        Future<?> future = SharedExecutorServices.getExecutor().submit(new CheckedRunnable(task));
 
         try
         {
@@ -250,8 +250,6 @@ public class MixPanelProcessor implements AnalyticsProcessor
             future.cancel(true);
             LOGGER.log(Level.INFO, "logEventsImmediatly() timed out (delay={0}ms)", timeOut);
         }
-
-        executor.shutdownNow();
     }
 
 

@@ -40,6 +40,7 @@ import org.jjazz.rhythm.api.UserErrorGenerationException;
 import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder;
 import org.jjazz.songcontext.api.SongContext;
 import org.jjazz.utilities.api.CheckedRunnable;
+import org.jjazz.utilities.api.SharedExecutorServices;
 import org.jjazz.utilities.api.Utilities;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -71,8 +72,8 @@ public class MusicGenerationQueue implements Runnable
 
     }
 
-    private ExecutorService executorService;
-    private ScheduledExecutorService generationExecutorService;
+    private final ExecutorService executorService;
+    private final ScheduledExecutorService generationExecutorService;
     private Future<?> generationFuture;
     private UpdateGenerationTask generationTask;
     private SongContext threadSharedSongContext;
@@ -94,6 +95,8 @@ public class MusicGenerationQueue implements Runnable
     {
         this.preUpdateBufferTimeMs = preUpdateBufferTimeMs;
         this.postUpdateSleepTimeMs = postUpdateSleepTimeMs;
+        executorService = Executors.newSingleThreadExecutor(SharedExecutorServices.getThreadFactory("JL-MusicGenerationQueue", true));
+        generationExecutorService = Executors.newScheduledThreadPool(1, SharedExecutorServices.getThreadFactory("JL-MusicGenerationQueueScheduled", true));
     }
 
     /**
@@ -139,9 +142,7 @@ public class MusicGenerationQueue implements Runnable
         if (!running)
         {
             running = true;
-            executorService = Executors.newSingleThreadExecutor();
             executorService.submit(new CheckedRunnable(this));
-            generationExecutorService = Executors.newScheduledThreadPool(1);
         }
     }
 

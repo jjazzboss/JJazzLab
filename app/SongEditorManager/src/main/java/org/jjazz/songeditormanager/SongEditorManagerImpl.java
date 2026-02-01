@@ -235,17 +235,6 @@ public class SongEditorManagerImpl implements SongEditorManager, PropertyChangeL
 
     }
 
-    /**
-     * Load or import a song from a file then show it.
-     * <p>
-     * Load or import the song from file, fix the MidiMix if required, then call showSong(song, makeActive).
-     *
-     * @param f
-     * @param makeActive
-     * @param updateLastSongDirectory If true and the file is not already shown, update the LastSongDirectory in FileDirectoryManager.
-     * @return The created song from file f
-     * @throws org.jjazz.song.api.SongCreationException
-     */
     @Override
     public Song showSong(File f, boolean makeActive, boolean updateLastSongDirectory) throws SongCreationException
     {
@@ -315,14 +304,6 @@ public class SongEditorManagerImpl implements SongEditorManager, PropertyChangeL
     }
 
 
-    /**
-     * Open (or show) the song's PianoRollEditor and set it up to edit a user track associated to userRhythmVoice.
-     *
-     * @param song
-     * @param midiMix
-     * @param userRhythmVoice
-     * @return
-     */
     @Override
     public PianoRollEditorTopComponent showPianoRollEditorForUserTrack(Song song, MidiMix midiMix, UserRhythmVoice userRhythmVoice)
     {
@@ -446,16 +427,6 @@ public class SongEditorManagerImpl implements SongEditorManager, PropertyChangeL
         return preTc;
     }
 
-    /**
-     * Open (or show) the song's PianoRollEditor and set it up to edit a custom phrase of a SongPart.
-     *
-     * @param song
-     * @param spt  The SongPart for which a phrase is customized
-     * @param rv   The RhythmVoice for which we customize the phrase
-     * @param p    The customized phrase
-     *
-     * @return
-     */
     @Override
     public PianoRollEditorTopComponent showPianoRollEditorForSptCustomPhrase(Song song, MidiMix midiMix, SongPart spt, RhythmVoice rv, Phrase p)
     {

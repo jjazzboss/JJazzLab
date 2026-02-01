@@ -48,6 +48,7 @@ import org.jjazz.utilities.api.CheckedRunnable;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.util.lookup.ServiceProvider;
 import org.jjazz.utilities.api.MultipleErrorsReport;
+import org.jjazz.utilities.api.SharedExecutorServices;
 import org.jjazz.utilities.api.Utilities;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.netbeans.api.progress.ProgressHandle;
@@ -136,8 +137,7 @@ public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory, Propert
             }
 
 
-            ExecutorService executor = Executors.newSingleThreadExecutor();
-            initFuture = executor.submit(new CheckedRunnable(() -> doInitialization()));
+            initFuture = SharedExecutorServices.getExecutor().submit(new CheckedRunnable(() -> doInitialization()));
         }
         return initFuture;
     }

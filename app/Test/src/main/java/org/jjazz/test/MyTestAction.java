@@ -52,6 +52,7 @@ import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.utilities.api.CheckedRunnable;
 import org.jjazz.utilities.api.MultipleErrorsReport;
 import org.jjazz.utilities.api.ResUtil;
+import org.jjazz.utilities.api.SharedExecutorServices;
 import org.jjazz.utilities.api.Utilities;
 import org.netbeans.api.progress.ProgressHandle;
 import org.openide.awt.ActionID;
@@ -124,8 +125,7 @@ public final class MyTestAction implements ActionListener
         if (initFuture == null)
         {
             LOGGER.log(Level.INFO, "testProgressHandle2() [{0}] -- initFuture is null, create task", runId);
-            ExecutorService executor = Executors.newSingleThreadExecutor();
-            initFuture = executor.submit(new CheckedRunnable(() -> doSomethingLong()));
+            initFuture = SharedExecutorServices.getExecutor().submit(new CheckedRunnable(() -> doSomethingLong()));
         } else
         {
             LOGGER.log(Level.INFO, "testProgressHandle2() [{0}] -- initFuture.state()={1}", new Object[]

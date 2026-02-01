@@ -70,6 +70,7 @@ import org.openide.util.lookup.ServiceProvider;
  * <p>
  * Fire change events when modified, see the PROP_* values. Fire undoable events.
  * <p>
+ * Implementation is not thread-safe.
  */
 public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, NavigableSet<NoteEvent>, Serializable
 {

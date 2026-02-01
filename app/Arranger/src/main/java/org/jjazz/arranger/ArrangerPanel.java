@@ -64,6 +64,7 @@ import org.jjazz.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.ss_editor.api.SS_Selection;
 import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.utilities.api.ResUtil;
+import org.jjazz.utilities.api.SharedExecutorServices;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.Exceptions;
@@ -106,7 +107,7 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
         spn_splitNote.setModel(new SpinnerListModel(notes));
 
         // Prepare the data
-        chordSymbolFinderBuildFuture = Executors.newSingleThreadExecutor().submit(() -> ChordSymbolFinder.buildStaticData());   // Can take a few seconds on slow computers
+        chordSymbolFinderBuildFuture = SharedExecutorServices.getExecutor().submit(() -> ChordSymbolFinder.buildStaticData());   // Can take a few seconds on slow computers
         chordSymbolFinder = new ChordSymbolFinder(4);
     }
 

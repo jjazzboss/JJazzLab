@@ -58,6 +58,7 @@ import org.jjazz.rhythmdatabaseimpl.api.FavoriteRhythms;
 import org.jjazz.rhythmdatabase.api.RhythmInfo;
 import org.jjazz.uiutilities.api.StringMetrics;
 import org.jjazz.utilities.api.ResUtil;
+import org.jjazz.utilities.api.SharedExecutorServices;
 
 /**
  * A JTable to show a list of rhythms.
@@ -241,7 +242,7 @@ public class RhythmJTable extends JTable implements PropertyChangeListener
             SwingUtilities.invokeLater(() -> adjustWidths());
 
             // Start a background task to update the default rhythm mix column
-            Executors.newSingleThreadExecutor().submit((Runnable) () -> updateDefaultMixValues(this.rhythms));
+            SharedExecutorServices.getExecutor().submit((Runnable) () -> updateDefaultMixValues(this.rhythms));
         }
 
         public List<? extends RhythmInfo> getRhythms()
