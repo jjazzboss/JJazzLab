@@ -288,7 +288,7 @@ public class DefaultRhythmDatabase implements RhythmDatabase
     public List<RhythmInfo> getRhythms(RhythmProvider rp)
     {
         Objects.requireNonNull(rp);
-        var res = Collections.unmodifiableList(mmapRpRinfos.get(rp));
+        var res = List.copyOf(mmapRpRinfos.get(rp));
         return res;
     }
     

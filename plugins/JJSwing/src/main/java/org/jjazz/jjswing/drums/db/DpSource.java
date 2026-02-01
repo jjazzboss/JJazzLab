@@ -1,6 +1,7 @@
 package org.jjazz.jjswing.drums.db;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import com.google.common.collect.Streams;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -62,8 +63,7 @@ public class DpSource
         this.alternateId = altId;
         this.drumsPhrase = dPhrase;
         this.percPhrase = pPhrase;
-        this.tags = new ArrayList<>();
-        Stream.of(tags).forEach(t -> this.tags.add(t.toLowerCase()));
+        this.tags = Collections.unmodifiableList(Stream.of(tags).map(t -> t.toLowerCase()).toList());
 
 
         Phrases.fixEndOfPhraseNotes(drumsPhrase);
@@ -209,7 +209,7 @@ public class DpSource
 
     public List<String> getTags()
     {
-        return Collections.unmodifiableList(tags);
+        return tags;
     }
 
     public boolean addTag(String tag)

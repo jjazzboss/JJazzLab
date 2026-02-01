@@ -118,7 +118,7 @@ public class Chord implements Cloneable
      */
     public List<Note> getNotes()
     {
-        return Collections.unmodifiableList(notes);
+        return List.copyOf(notes);
     }
 
     /**
