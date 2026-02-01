@@ -30,10 +30,9 @@ import java.util.List;
  * A RhythmParameter implementation can have additional capabilities by implementing additional interfaces, such as RpEnumerable, RpCustomEditorFactory,
  * RpViewerRendererFactory, etc.
  * <p>
+ * A RhythmParameter value can be set via SongStructure.setRPValue().
  *
- * @param <E> The type of value of this RhythmParameter. E.toString() should return a short (max ~30 characters) user-readable string. Always prefer an
- *            immutable value class, but if it's not possible E must implement the MutableRpValue interface.
- * @see MutableRpValue
+ * @param <E> The type of value of this RhythmParameter. E.toString() should return a short (max ~30 characters) user-readable string.
  */
 public interface RhythmParameter<E>
 {

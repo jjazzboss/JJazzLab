@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
+import java.beans.PropertyChangeListener;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -31,8 +32,10 @@ import org.jjazz.song.api.Song;
 import org.jjazz.songcontext.api.SongPartContext;
 import org.jjazz.songeditormanager.spi.SongEditorManager;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.ss_editor.rpviewer.api.RpCustomEditorDialog;
 import org.jjazz.uiutilities.api.UIUtilities;
+import org.jjazz.utilities.api.CoalescingTaskScheduler;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
@@ -43,19 +46,21 @@ import org.openide.util.Exceptions;
 /**
  * A RpCustomEditor for RP_SYS_CustomPhrase.
  * <p>
- * The editor can not use the standard RpCustomEditorDialog<E> mechanism (i.e. make the modifications within the modal dialog) because we use a
- * PianoRollEditorTopComponent which remains available after dialog is closed, and RP_SYS_CustomPhraseValue is mutable (MutableRpValue instance).
+ * The editor can not use RealTimeRpEditorDialog because modifications must be done in a PianoRoll editor which remains available after dialog is closed.
  */
 public class RP_SYS_CustomPhraseEditor extends RpCustomEditorDialog<RP_SYS_CustomPhraseValue>
 {
 
     public static final Color PHRASE_COMP_CUSTOMIZED_FOREGROUND = new Color(255, 102, 102);
     public static final Color PHRASE_COMP_FOREGROUND = new Color(102, 153, 255);
+
+    private static final long PHRASE_CHANGE_COALESCING_DELAY_MS = 100; // ms. Minimum delay between 2 SongStructure.setRPValue() calls 
     private final RP_SYS_CustomPhrase rp;
     private RP_SYS_CustomPhraseValue rpValue;
     private SongPartContext songPartContext;
+    private CoalescingTaskScheduler coalescingTaskScheduler;
     private boolean exitOk;
-    private final Map<RhythmVoice, Phrase> mapRvPhrase = new HashMap<>();
+    private final Map<RhythmVoice, Phrase> mapRvNonCustomizedPhrase = new HashMap<>();
     private static final Logger LOGGER = Logger.getLogger(RP_SYS_CustomPhraseEditor.class.getSimpleName());
 
     public RP_SYS_CustomPhraseEditor(RP_SYS_CustomPhrase rp)
@@ -64,7 +69,7 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditorDialog<RP_SYS_Custo
         this.rp = rp;
 
         initComponents();
-
+        coalescingTaskScheduler = new CoalescingTaskScheduler(PHRASE_CHANGE_COALESCING_DELAY_MS);     
         list_rhythmVoices.setCellRenderer(new RhythmVoiceRenderer());
 
         UIUtilities.installEscapeKeyAction(this, () -> btn_cancelActionPerformed(null));
@@ -86,7 +91,7 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditorDialog<RP_SYS_Custo
 
         setTitle(buildTitle(sptContext.getSongPart()));
 
-        mapRvPhrase.clear();
+        mapRvNonCustomizedPhrase.clear();
 
 
         songPartContext = sptContext;
@@ -100,11 +105,7 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditorDialog<RP_SYS_Custo
         });
 
 
-        // We need a new RP_SYS_CustomPhraseValue instance between the caller framework will compare with equals() the old rpValue with the new rpValue
-        // to decide to update the SongPart RP value.
-        // If there is at least 1 non-empty customized phrase, rpValue instances will be different because NoteEvents are never equal.
-        this.rpValue = new RP_SYS_CustomPhraseValue(r);
-        this.rpValue.set(rpValue);       // This let's us add/remove a customized phrase but with the same Phrase instances
+        this.rpValue = rpValue;
 
 
         // Populate the JList and select the first customized RhythmVoice, if any
@@ -193,8 +194,8 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditorDialog<RP_SYS_Custo
     {
         // LOGGER.log(Level.SEVERE, "setMapRvPhrase() -- map={0}", org.jjazz.util.api.Utilities.toMultilineString(map));
 
-        mapRvPhrase.clear();
-        mapRvPhrase.putAll(map);
+        mapRvNonCustomizedPhrase.clear();
+        mapRvNonCustomizedPhrase.putAll(map);
 
         SwingUtilities.invokeLater(() -> refreshUI());  // Refresh the birdview
     }
@@ -206,45 +207,46 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditorDialog<RP_SYS_Custo
      * Manage the case of a RhythmVoice or RhythmVoiceDelegate
      *
      * @param rv
-     * @return Can be null!
+     * @return Can be null
      */
     private synchronized Phrase getPhrase(RhythmVoice rv)
     {
-        if (mapRvPhrase.isEmpty() || rpValue == null)
+        if (mapRvNonCustomizedPhrase.isEmpty() || rpValue == null)
         {
             return null;
         }
-        Phrase p = null;
+        Phrase p;
         if (isCustomizedPhrase(rv))
         {
             p = rpValue.getCustomizedPhrase(rv);
-        } else if (rv instanceof RhythmVoiceDelegate)
+        } else if (rv instanceof RhythmVoiceDelegate rvd)
         {
-            p = mapRvPhrase.get(((RhythmVoiceDelegate) rv).getSource());
+            p = mapRvNonCustomizedPhrase.get(rvd.getSource());
         } else
         {
-            p = mapRvPhrase.get(rv);
+            p = mapRvNonCustomizedPhrase.get(rv);
         }
 
         return p;
     }
 
-    private void setCustomizedPhrase(RhythmVoice rv, Phrase p)
+
+    private void setCustomizedPhrase(final RhythmVoice rv, final Phrase p)
     {
-        rpValue.setCustomizedPhrase(rv, p);
+        rpValue = rpValue.setCustomizedPhrase(rv, p);
         forceListRepaint();
     }
 
+
     private void removeCustomizedPhrase(RhythmVoice rv)
     {
-        rpValue.removeCustomizedPhrase(rv);
+        rpValue = rpValue.removeCustomizedPhrase(rv);
         forceListRepaint();
     }
 
     private void forceListRepaint()
     {
-        list_rhythmVoices.repaint(list_rhythmVoices.getCellBounds(0,
-                songPartContext.getSongPart().getRhythm().getRhythmVoices().size() - 1));
+        list_rhythmVoices.repaint(list_rhythmVoices.getCellBounds(0, songPartContext.getSongPart().getRhythm().getRhythmVoices().size() - 1));
     }
 
     private boolean isCustomizedPhrase(RhythmVoice rv)
@@ -291,7 +293,7 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditorDialog<RP_SYS_Custo
 
     private void editCurrentPhrase()
     {
-        RhythmVoice rv = getCurrentRhythmVoice();
+        final RhythmVoice rv = getCurrentRhythmVoice();
         if (rv == null)
         {
             return;
@@ -316,7 +318,24 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditorDialog<RP_SYS_Custo
             Exceptions.printStackTrace(ex);
             return;
         }
-        var spt = songPartContext.getSongPart();
+        final var spt = songPartContext.getSongPart();
+
+
+        // Build a listener which calls SongStructure.setRPValue() each time phrase is updated by user using the pianoroll editor.
+        final SongStructure sgs = spt.getContainer();
+        PropertyChangeListener listener = evt -> 
+        {
+            if (Phrase.isAdjustingEvent(evt.getPropertyName()))
+            {
+                return;
+            }
+            RP_SYS_CustomPhraseValue oldRpValue = spt.getRPValue(rp);
+            RP_SYS_CustomPhraseValue newRpValue = oldRpValue.setCustomizedPhrase(rv, p);    // This will make a deep-copy snapshot of p
+            // We coalesce requests to limit the number of fired SongStructure change events
+            coalescingTaskScheduler.request(() -> SwingUtilities.invokeLater(() -> sgs.setRhythmParameterValue(spt, rp, newRpValue)));
+        };
+        // p should be garbage-collected after pianoroll editor does not edit p anymore, so our listener with it
+        p.addPropertyChangeListener(listener);
 
 
         SongEditorManager.getDefault().showPianoRollEditorForSptCustomPhrase(song, midiMix, spt, rv, p);

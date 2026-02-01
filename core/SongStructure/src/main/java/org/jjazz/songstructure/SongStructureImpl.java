@@ -90,7 +90,7 @@ import org.openide.util.lookup.ServiceProvider;
  * Implementation is thread-safe and uses the same concurrency design than ChordLeadSheet. Parent ChordLeadSheet's lock is reused (also used by the enclosing
  * Song).
  */
-public class SongStructureImpl implements SongStructure, Serializable, PropertyChangeListener
+public class SongStructureImpl implements SongStructure, Serializable
 {
 
     private final transient ReentrantReadWriteLock lock;
@@ -338,7 +338,6 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
                         for (SongPart spt : spts)
                         {
                             ((SongPartImpl) spt).setContainer(oldContainers.get(spt));
-                            spt.removePropertyChangeListener(SongStructureImpl.this);
                         }
 
                         var event = new SptAddedEvent(SongStructureImpl.this, spts);
@@ -359,7 +358,6 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
                         for (SongPart spt : spts)
                         {
                             ((SongPartImpl) spt).setContainer(SongStructureImpl.this);
-                            spt.addPropertyChangeListener(SongStructureImpl.this);
                         }
 
                         var event = new SptAddedEvent(SongStructureImpl.this, spts);
@@ -418,7 +416,6 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
                         songParts = new ArrayList<>(oldSongParts);
                         mapTsLastRhythm = new HashMap<>(oldMapTsRhythm);
                         updateStartBarIndexes();
-                        spts.forEach(spt -> spt.addPropertyChangeListener(SongStructureImpl.this));
 
                         var event = new SptRemovedEvent(SongStructureImpl.this, spts);
                         event.setIsUndo();
@@ -435,7 +432,6 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
                         songParts = new ArrayList<>(newSongParts);
                         mapTsLastRhythm = new HashMap<>(newMapTsRhythm);
                         updateStartBarIndexes();
-                        spts.forEach(spt -> spt.removePropertyChangeListener(SongStructureImpl.this));
 
                         var event = new SptRemovedEvent(SongStructureImpl.this, spts);
                         event.setIsRedo();
@@ -541,7 +537,7 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
 
         for (SgsChangeListener l : syncListeners)
         {
-            l.songStructureChanged(svce);   // Possible exception here
+            l.songStructureChanged(svce);   // throws UnsupportedEditException
         }
     }
 
@@ -616,9 +612,6 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
                 Rhythm r = newSpt.getRhythm();
                 TimeSignature ts = r.getTimeSignature();
                 mapTsLastRhythm.put(ts, r);
-
-                oldSpt.removePropertyChangeListener(this);
-                newSpt.addPropertyChangeListener(this);
             }
 
             final ArrayList<SongPart> newSongParts = new ArrayList<>(songParts);
@@ -642,8 +635,6 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
                             var oldSpt = oldSpts.get(i);
                             SongStructure sgs = newSptsOldContainer.get(i);
                             ((SongPartImpl) newSpt).setContainer(sgs);
-                            newSpt.removePropertyChangeListener(SongStructureImpl.this);
-                            oldSpt.addPropertyChangeListener(SongStructureImpl.this);
                         }
 
                         var event = new SptReplacedEvent(SongStructureImpl.this, oldSpts, newSpts);
@@ -667,8 +658,6 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
                             var newSpt = newSpts.get(i);
                             var oldSpt = oldSpts.get(i);
                             ((SongPartImpl) newSpt).setContainer(SongStructureImpl.this);
-                            newSpt.addPropertyChangeListener(SongStructureImpl.this);
-                            oldSpt.removePropertyChangeListener(SongStructureImpl.this);
                         }
 
                         var event = new SptReplacedEvent(SongStructureImpl.this, oldSpts, newSpts);
@@ -1103,29 +1092,6 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
         undoListeners.remove(l);
     }
 
-    //=============================================================================
-    // PropertyChangeListener interface
-    //=============================================================================
-
-    @Override
-    public void propertyChange(PropertyChangeEvent evt)
-    {
-        if (evt.getSource() instanceof SongPart spt)
-        {
-            if (evt.getPropertyName().equals(SongPart.PROP_RP_MUTABLE_VALUE))
-            {
-                // A mutable RP value has changed
-                @SuppressWarnings("unchecked")
-                RhythmParameter<?> rp = (RhythmParameter<?>) evt.getOldValue();
-                Object rpValue = evt.getNewValue();
-                
-                // Forward the change as a RpValueChangedEvent
-                var event = new RpValueChangedEvent(SongStructureImpl.this, spt, rp, null, rpValue);
-                fireSynchronizedNonVetoableChangeEvent(event);
-                fireNonVetoableChangeEvent(event);
-            }
-        }
-    }
 
     // -------------------------------------------------------------------------------------------
     // Private methods
@@ -1198,9 +1164,6 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
         updateStartBarIndexes();
         mapTsLastRhythm.put(spt.getRhythm().getTimeSignature(), spt.getRhythm());
 
-
-        // Listen ton SongPart changes
-        spt.addPropertyChangeListener(this);
     }
 
     private void removeSongPartImpl(final SongPart spt)
@@ -1215,7 +1178,6 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
             throw new IllegalArgumentException("Can not remove absent SongPart: this=" + this + " spt=" + spt + " songParts=" + songParts);
         }
         updateStartBarIndexes();
-        spt.removePropertyChangeListener(this);
     }
 
 
@@ -1286,21 +1248,6 @@ public class SongStructureImpl implements SongStructure, Serializable, PropertyC
             {
                 Exceptions.printStackTrace(ex);
             }
-        }
-    }
-
-    /**
-     * Fire a vetoable change event to all synchronized listeners.
-     *
-     * @param event
-     * @throws org.jjazz.chordleadsheet.api.UnsupportedEditException
-     */
-    private void fireSynchronizedVetoableChangeEvent(SgsVetoableChangeEvent event) throws UnsupportedEditException
-    {
-        Objects.requireNonNull(event);
-        for (var l : syncListeners)
-        {
-            l.songStructureChanged(event);         // throws UnsupportedEditException
         }
     }
 

@@ -40,24 +40,12 @@ import org.jjazz.utilities.api.StringProperties;
  */
 public interface SongPart extends Transferable
 {
-
     /**
-     * Fired when a rhythm parameter value has changed.
-     * <p>
-     * Occurs when value was replaced by another value (for immutable values), or value state has changed (for RpMutableValue instances).
+     * Fired when a new rhythm parameter value was set (rhythm parameter values are immutable).
      * <p>
      * oldValue=rhythm parameter, newValue=value.
      */
     public static final String PROP_RP_VALUE = "SptRpValue";
-
-    /**
-     * Fired when a mutable value has changed (in addition to the PROP_RP_VALUE change event).
-     * <p>
-     * Occurs when the value state of a RpMutableValue instance has changed.
-     * <p>
-     * oldValue=rhythm parameter, newValue=value.
-     */
-    public static final String PROP_RP_MUTABLE_VALUE = "SptRpMutableValue";
     public static final String PROP_START_BAR_INDEX = "SptStartBarIndex";
     public static final String PROP_NB_BARS = "SptNbBars";
     public static final String PROP_NAME = "SptName";

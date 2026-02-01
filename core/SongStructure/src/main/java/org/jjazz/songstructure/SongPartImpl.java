@@ -37,12 +37,9 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.rhythm.api.MutableRpValue;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmFeatures;
 import org.jjazz.rhythm.api.RhythmParameter;
@@ -66,9 +63,9 @@ import org.openide.util.lookup.ServiceProvider;
 /**
  * SongPart implementation.
  * <p>
- * This is a mutable class. In a Song, SongPartImpl mutation can only be performed via its SongStructure container which manages synchronization.
+ * This is a mutable class. In a Song, SongPart mutation can only be achieved via the enclosing SongStructure methods which manage synchronization.
  */
-public class SongPartImpl implements SongPart, Serializable, ChangeListener
+public class SongPartImpl implements SongPart, Serializable
 {
 
     public static final String NO_NAME = "NoName";
@@ -104,7 +101,7 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
     /**
      * The listeners for changes in this model.
      */
-    private transient SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private final transient SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(SongPartImpl.class.getSimpleName());
 
 
@@ -138,10 +135,6 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
         {
             var rpValue = rp.getDefaultValue();
             mapRpValue.putValue(rp, rpValue);
-            if (rpValue instanceof MutableRpValue mValue)
-            {
-                mValue.addChangeListener(this); 
-            }
         }
     }
 
@@ -252,16 +245,7 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
             return;
         }
 
-        if (oldValue instanceof MutableRpValue mValueOld)
-        {
-            mValueOld.removeChangeListener(this);
-        }
-        if (value instanceof MutableRpValue mValueNew)
-        {
-            mValueNew.addChangeListener(this);
-        }
-
-        mapRpValue.putValue(rp, value);     // Don't use rp.cloneValue() since we now accept mutable values (eg custom phrase)
+        mapRpValue.putValue(rp, value);
 
         // Fire outside lock
         pcs.firePropertyChange(PROP_RP_VALUE, rp, value);
@@ -437,23 +421,6 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
     public void removePropertyChangeListener(PropertyChangeListener l)
     {
         pcs.removePropertyChangeListener(l);
-    }
-
-    //=============================================================================
-    // ChangeListener interface
-    //=============================================================================
-
-    /**
-     * Propagate mutable value change events.
-     */
-    @Override
-    public void stateChanged(ChangeEvent e)
-    {
-        var rpValue = e.getSource();
-        var rp = mapRpValue.getKey(rpValue);
-        assert rp != null : "rpValue=" + rpValue + " rp=" + rp + " mapRpValue=" + mapRpValue;
-        pcs.firePropertyChange(SongPart.PROP_RP_MUTABLE_VALUE, rp, rpValue);
-        pcs.firePropertyChange(SongPart.PROP_RP_VALUE, rp, rpValue);
     }
 
     // ------------------------------------------------------------------------------

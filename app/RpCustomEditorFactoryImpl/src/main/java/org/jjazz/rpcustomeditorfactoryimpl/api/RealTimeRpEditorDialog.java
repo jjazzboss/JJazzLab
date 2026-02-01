@@ -34,7 +34,6 @@ import java.util.logging.Logger;
 import javax.sound.midi.Sequencer;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.playbacksession.UpdateProviderSongSession;
@@ -53,7 +52,6 @@ import org.jjazz.uiutilities.api.UIUtilities;
 import org.jjazz.utilities.api.IntRange;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.*;
-import org.openide.util.Exceptions;
 
 /**
  * A RpCustomEditor dialog implementation which lets user preview the RP value changes in real time (while the sequence is playing).

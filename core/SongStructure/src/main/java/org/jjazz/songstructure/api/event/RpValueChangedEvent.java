@@ -28,9 +28,8 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 
 /**
- * A RhythmParameter value has changed.
+ * A RhythmParameter value was changed via SongStructure.setRPValue().
  * <p>
- * It means a new immutable RP value was set using SongStructure.setRPValue(), or a mutable RP value was changed.
  */
 public class RpValueChangedEvent extends SgsChangeEvent
 {

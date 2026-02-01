@@ -3,8 +3,6 @@ package org.jjazz.rhythm.api.rhythmparameters;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import static com.google.common.base.Preconditions.checkNotNull;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.text.ParseException;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -15,67 +13,103 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.logging.Logger;
-import javax.swing.event.ChangeListener;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SizedPhrase;
-import org.jjazz.rhythm.api.MutableRpValue;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.openide.util.ChangeSupport;
 
 /**
- * A RhythmParameter to replace one or more RhythmVoice phrases by custom phrases.
+ * The value of RP_SYS_CustomPhrase.
  * <p>
- * All custom phrases start at beat 0. This is a mutable class which fires a ChangeEvent when a phrase is added/removed, or when an added
- * phrase content is modified.
+ * All custom phrases start at beat 0.
  */
-public class RP_SYS_CustomPhraseValue implements MutableRpValue, PropertyChangeListener
+public class RP_SYS_CustomPhraseValue
 {
 
     private Rhythm rhythm;
-    private Map<RhythmVoice, Phrase> mapRvPhrase = new HashMap<>();
-    private transient final ChangeSupport cs = new ChangeSupport(this);
+    private final Map<RhythmVoice, Phrase> mapRvPhrase;
     private static final Logger LOGGER = Logger.getLogger(RP_SYS_CustomPhraseValue.class.getSimpleName());
 
 
+    /**
+     * Create an empty value.
+     *
+     * @param r
+     */
     public RP_SYS_CustomPhraseValue(Rhythm r)
     {
-        checkNotNull(r);
-        rhythm = r;
+        this(r, new HashMap<>());
     }
 
     /**
-     * Create a deep copy of the specified value.
+     * Create a value with custom phrases.
+     *
+     * @param r
+     * @param mapRvPhrase The custom phrases. Can be empty. The instance will keep deep copies of the phrases.
+     */
+    public RP_SYS_CustomPhraseValue(Rhythm r, Map<RhythmVoice, Phrase> mapRvPhrase)
+    {
+        rhythm = r;
+        this.mapRvPhrase = new HashMap<>();
+        for (var rv : mapRvPhrase.keySet())
+        {
+            Phrase p = mapRvPhrase.get(rv);
+            if (p == null)
+            {
+                throw new IllegalArgumentException("mapRvPhrase=" + mapRvPhrase);
+            }
+            this.mapRvPhrase.put(rv, p.clone());
+        }
+    }
+
+    /**
+     * Create a deep copy.
      *
      * @param value
      */
     public RP_SYS_CustomPhraseValue(RP_SYS_CustomPhraseValue value)
     {
-        this(value.getRhythm());
+        rhythm = value.rhythm;
+        mapRvPhrase = new HashMap<>();
+        
         for (var rv : value.getCustomizedRhythmVoices())
         {
-            var p = value.getCustomizedPhrase(rv).clone();
-            p.addPropertyChangeListener(this);
+            var p = value.getCustomizedPhrase(rv);
             mapRvPhrase.put(rv, p);
         }
     }
 
+
     /**
-     * Set the customized phrases from the specified value (phrases are directly reused, not cloned).
+     * Get a new instance with the specified customized phrase set.
      *
-     * @param value Must share the same rhythm
+     * @param rv Must belong to the rhythm
+     * @param p  Phrase must be beat-0 based.
+     * @return
      */
-    public void set(RP_SYS_CustomPhraseValue value)
+    public RP_SYS_CustomPhraseValue setCustomizedPhrase(RhythmVoice rv, Phrase p)
     {
-        assert value.getRhythm() == rhythm : " value.getRhythm()=" + value.getRhythm() + " rhythm=" + rhythm;
-        mapRvPhrase.clear();
-        for (var rv : value.getCustomizedRhythmVoices())
-        {
-            var p = value.getCustomizedPhrase(rv);
-            p.addPropertyChangeListener(this);
-            mapRvPhrase.put(rv, p);
-        }
-        fireChanged();
+        Preconditions.checkArgument(rhythm.getRhythmVoices().contains(rv), "rhythm=%s rv=%s", rhythm, rv);
+        Preconditions.checkNotNull(p);
+
+        var newMapRvPhrase = new HashMap<>(mapRvPhrase);
+        newMapRvPhrase.put(rv, p);
+        return new RP_SYS_CustomPhraseValue(rhythm, newMapRvPhrase);
+    }
+
+    /**
+     * Get a new instance with a customized phrase removed.
+     *
+     * @param rv The RhythmVoice to be removed
+     * @return
+     */
+    public RP_SYS_CustomPhraseValue removeCustomizedPhrase(RhythmVoice rv)
+    {
+        Objects.requireNonNull(rv);
+
+        var newMapRvPhrase = new HashMap<>(mapRvPhrase);
+        newMapRvPhrase.remove(rv);
+        return new RP_SYS_CustomPhraseValue(rhythm, newMapRvPhrase);
     }
 
     public RP_SYS_CustomPhrase getRhythmParameter()
@@ -83,38 +117,6 @@ public class RP_SYS_CustomPhraseValue implements MutableRpValue, PropertyChangeL
         var rp = RP_SYS_CustomPhrase.getCustomPhraseRp(rhythm);
         assert rp != null : "rhythm=" + rhythm;
         return rp;
-    }
-
-    /**
-     * Set the customized phrase for the specified RhythmVoice.
-     *
-     * @param rv Must belong to the rhythm
-     * @param p  Can't be null. Phrase starts at beat 0.
-     */
-    public void setCustomizedPhrase(RhythmVoice rv, Phrase p)
-    {
-        Preconditions.checkArgument(rhythm.getRhythmVoices().contains(rv), "rhythm=%s rv=%s", rhythm, rv);
-        Preconditions.checkNotNull(p);
-        mapRvPhrase.put(rv, p);
-        p.addPropertyChangeListener(this);
-        fireChanged();
-    }
-
-    /**
-     * Remove the customized phrase for the specified RhythmVoice.
-     *
-     * @param rv
-     * @return The removed phrase, or null
-     */
-    public Phrase removeCustomizedPhrase(RhythmVoice rv)
-    {
-        var p = mapRvPhrase.remove(rv);
-        if (p != null)
-        {
-            p.removePropertyChangeListener(this);
-            fireChanged();
-        }
-        return p;
     }
 
     /**
@@ -128,14 +130,16 @@ public class RP_SYS_CustomPhraseValue implements MutableRpValue, PropertyChangeL
     }
 
     /**
-     * Get the custom phrase for the specified RhythmVoice.
+     * Get a deep copy of the custom phrase for the specified RhythmVoice.
      *
      * @param rv
      * @return Null if no customized phrase for rv. Phrase starts at beat 0.
      */
     public Phrase getCustomizedPhrase(RhythmVoice rv)
     {
-        return mapRvPhrase.get(rv);
+        Objects.requireNonNull(rv);
+        Phrase p = mapRvPhrase.get(rv);
+        return p == null ? null : p.clone();
     }
 
     /**
@@ -169,7 +173,7 @@ public class RP_SYS_CustomPhraseValue implements MutableRpValue, PropertyChangeL
      *
      * @param v
      * @return
-     * @see #loadFromString(org.jjazz.rhythm.api.Rhythm, java.lang.String) 
+     * @see #loadFromString(org.jjazz.rhythm.api.Rhythm, java.lang.String)
      */
     static public String saveAsString(RP_SYS_CustomPhraseValue v)
     {
@@ -294,45 +298,8 @@ public class RP_SYS_CustomPhraseValue implements MutableRpValue, PropertyChangeL
 
 
     // ===================================================================================
-    // MutableRpValue interface
-    // ===================================================================================  
-    @Override
-    public void addChangeListener(ChangeListener listener)
-    {
-        cs.addChangeListener(listener);
-    }
-
-    @Override
-    public void removeChangeListener(ChangeListener listener)
-    {
-        cs.removeChangeListener(listener);
-    }
-
-
-    //=============================================================================
-    // PropertyChangeListener interface
-    //=============================================================================
-    @Override
-    public void propertyChange(PropertyChangeEvent evt)
-    {
-        if (evt.getSource() instanceof Phrase)
-        {
-            if (!Phrase.isAdjustingEvent(evt.getPropertyName()))
-            {
-                fireChanged();
-            }
-        }
-    }
-
-    // ===================================================================================
     // Private methods
     // ===================================================================================   
-
-    private void fireChanged()
-    {
-        cs.fireChange();
-    }
-
     /**
      * Check is saveString is for a SizedPhrase or a simple phrase.
      *

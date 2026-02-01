@@ -45,19 +45,19 @@ import org.jjazz.utilities.api.IntRange;
 /**
  * A SongStructure manages SongParts.
  * <p>
- * - Manage a list of SongParts. Note that this list can be empty. <br>
- * - If a parent ChordLeadSheet is set, the SongStructure will reuse its read-write lock (same for the enclosing Song).<br>
+ * - Manage a list of SongParts (list can be empty). <br>
+ * - If a parent ChordLeadSheet is set, the SongStructure will reuse its read-write lock (and the enclosing Song as well).<br>
  * - Each mutating API method fires one SgsChangeEvent subclass at the end of the operation.<br>
- * - Mutating API method which throws UnsupportedEditException also fires, before starting the operation, a SgsVetoableChangeEvent to the synchronized
+ * - Mutating API methods which throw UnsupportedEditException also fire, before starting the operation, a SgsVetoableChangeEvent to the synchronized
  * listeners.<br>
- * - A RhythmParameter value can be modified via SongStructure.setRPValue() (typically for immutable RP value types), or directly for mutable RP value types. In
- * both cases the SongStructure implementation must fire a RpValueChangedEvent.
  */
 public interface SongStructure
 {
 
     /**
      * The synchronization lock.
+     * <p>
+     * This is the parent ChordLeadSheet lock if parent ChordLeadSheet is not null.
      *
      * @return
      */
