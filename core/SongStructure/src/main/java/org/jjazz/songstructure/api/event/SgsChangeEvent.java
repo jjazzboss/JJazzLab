@@ -42,7 +42,7 @@ public class SgsChangeEvent
     /**
      * Ordered list.
      */
-    private final ArrayList<SongPart> songParts = new ArrayList<>();
+    private final ArrayList<SongPart> songParts;
     private boolean isUndo;
     private boolean isRedo;
 
@@ -65,6 +65,7 @@ public class SgsChangeEvent
     {
         Objects.requireNonNull(src);
         Objects.requireNonNull(spts);
+        this.songParts = new ArrayList<>();
         source = src;
         songParts.addAll(spts);
         sortSongParts(songParts);

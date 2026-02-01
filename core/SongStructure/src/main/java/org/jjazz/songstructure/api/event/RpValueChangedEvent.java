@@ -22,19 +22,22 @@
  */
 package org.jjazz.songstructure.api.event;
 
+import java.util.Objects;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 
 /**
  * A RhythmParameter value has changed.
+ * <p>
+ * It means a new immutable RP value was set using SongStructure.setRPValue(), or a mutable RP value was changed.
  */
 public class RpValueChangedEvent extends SgsChangeEvent
 {
 
-    private RhythmParameter<?> rhytmParameter;
-    private Object oldValue;
-    private Object newValue;
+    private final RhythmParameter<?> rhytmParameter;
+    private final Object oldValue;
+    private final Object newValue;
 
 
     /**
@@ -49,10 +52,8 @@ public class RpValueChangedEvent extends SgsChangeEvent
     public RpValueChangedEvent(SongStructure src, SongPart spt, RhythmParameter<?> rp, Object oldValue, Object newValue)
     {
         super(src, spt);
-        if (spt == null || rp == null || newValue == null)
-        {
-            throw new IllegalArgumentException("spt=" + spt + " rp=" + rp + " oldValue=" + oldValue + " newValue=" + newValue);   
-        }
+        Objects.requireNonNull(rp);
+        Objects.requireNonNull(newValue);
         this.rhytmParameter = rp;
         this.oldValue = oldValue;
         this.newValue = newValue;

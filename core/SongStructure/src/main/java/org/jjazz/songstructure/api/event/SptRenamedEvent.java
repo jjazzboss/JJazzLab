@@ -22,21 +22,40 @@
  */
 package org.jjazz.songstructure.api.event;
 
-import java.util.Collection;
+import java.util.IdentityHashMap;
+import java.util.Map;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 
 public class SptRenamedEvent extends SgsChangeEvent
 {
 
+    public record Renaming(String oldName, String newName)
+            {
+
+    }
+    private final Map<SongPart, Renaming> mapSptRenaming;
+
     /**
      * Some SongParts names have been changed
      *
      * @param src
-     * @param renamedSpts The list of renamed SongParts.
+     * @param mapSptRenaming Provide the old and new name for each renamed SongPart
      */
-    public SptRenamedEvent(SongStructure src, Collection<SongPart> renamedSpts)
+    public SptRenamedEvent(SongStructure src, Map<SongPart, Renaming> mapSptRenaming)
     {
-        super(src, renamedSpts);
+        super(src, mapSptRenaming.keySet());        
+        this.mapSptRenaming = new IdentityHashMap<>(mapSptRenaming);
     }
+
+    public String getOldName(SongPart spt)
+    {
+        return mapSptRenaming.get(spt).oldName();
+    }
+
+    public String getNewName(SongPart spt)
+    {
+        return mapSptRenaming.get(spt).newName();
+    }
+
 }

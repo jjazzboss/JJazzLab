@@ -34,11 +34,13 @@ import org.jjazz.utilities.api.StringProperties;
 /**
  * A song part defines how a rhythm is played for a number of bars starting at startBarIndex.
  * <p>
- * Rhythm generation is controlled by the RhythmParameters values. Rhythm can not be changed but a SongPart can be cloned using a new rhythm.
+ * Music generation is controlled by the RhythmParameters values. SongPart instances can be modified via its SongStructure container. Rhythm can not be changed
+ * but a SongPart can be cloned using a new rhythm.
  * <p>
  */
 public interface SongPart extends Transferable
 {
+
     /**
      * Fired when a rhythm parameter value has changed.
      * <p>

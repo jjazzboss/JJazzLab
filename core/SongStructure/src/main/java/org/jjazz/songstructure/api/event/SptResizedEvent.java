@@ -22,32 +22,43 @@
  */
 package org.jjazz.songstructure.api.event;
 
+import java.util.IdentityHashMap;
 import java.util.Map;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 
+/**
+ * Song parts were resized.
+ */
 public class SptResizedEvent extends SgsChangeEvent
 {
 
-    private Map<SongPart, Integer> mapOldSptSize;
+    public record Resizing(int oldSize, int newSize)
+            {
+
+    }
+    private final Map<SongPart, Resizing> mapSptResizing;
 
     /**
      * Some SongParts have been resized.
      *
      * @param src
-     * @param mapOldSptSize The old size of each resized RhythPart.
+     * @param mapSptResizing A map providing the resizing for each SongPart
      */
-    public SptResizedEvent(SongStructure src, Map<SongPart, Integer> mapOldSptSize)
+    public SptResizedEvent(SongStructure src, Map<SongPart, Resizing> mapSptResizing)
     {
-        super(src, mapOldSptSize.keySet());
-        this.mapOldSptSize = mapOldSptSize;
+        super(src, mapSptResizing.keySet());
+        this.mapSptResizing = new IdentityHashMap<>(mapSptResizing);
     }
 
-    /**
-     * @return A map with the old size of each resized SongPart.
-     */
-    public Map<SongPart, Integer> getMapOldSptSize()
+
+    public int getOldSize(SongPart spt)
     {
-        return mapOldSptSize;
+        return mapSptResizing.get(spt).oldSize();
+    }
+
+    public int getNewSize(SongPart spt)
+    {
+        return mapSptResizing.get(spt).newSize();
     }
 }

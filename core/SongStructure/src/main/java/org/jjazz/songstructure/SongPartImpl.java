@@ -66,8 +66,7 @@ import org.openide.util.lookup.ServiceProvider;
 /**
  * SongPart implementation.
  * <p>
- * SongParts are mutable and used as Map keys in the SongStructure API: we don't define equals() and hashCode(), it would be too dangerous. Use
- * SongPart.isEqual() instead.
+ * This is a mutable class. In a Song, SongPartImpl mutation can only be performed via its SongStructure container which manages synchronization.
  */
 public class SongPartImpl implements SongPart, Serializable, ChangeListener
 {
@@ -141,14 +140,39 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
             mapRpValue.putValue(rp, rpValue);
             if (rpValue instanceof MutableRpValue mValue)
             {
-                mValue.addChangeListener(this);
+                mValue.addChangeListener(this); 
             }
         }
     }
 
+    /**
+     * Use identify hash code because SongParts can be used as Map keys.
+     * <p>
+     *
+     * @return
+     */
+    @Override
+    public int hashCode()
+    {
+        return System.identityHashCode(this);
+    }
+
+    /**
+     * Use identity equality because SongParts can be used as Map keys.
+     *
+     * @param obj
+     * @return
+     * @see SongPart#isEqual(org.jjazz.songstructure.api.SongPart)
+     */
+    @Override
+    public boolean equals(Object obj)
+    {
+        return this == obj;
+    }
+
 
     @Override
-    public synchronized String getName()
+    public String getName()
     {
         return name;
     }
@@ -162,26 +186,23 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
 
         String oldName;
         boolean changed;
-        synchronized (this)
+        oldName = this.name;
+        changed = !name.equals(this.name);
+        if (changed)
         {
-            oldName = this.name;
-            changed = !name.equals(this.name);
-            if (changed)
-            {
-                this.name = name;
-            }
+            this.name = name;
         }
 
         pcs.firePropertyChange(PROP_NAME, oldName, name);
     }
 
     @Override
-    public synchronized SongStructure getContainer()
+    public SongStructure getContainer()
     {
         return container;
     }
 
-    public synchronized void setContainer(SongStructure sgs)
+    public void setContainer(SongStructure sgs)
     {
         container = sgs;
     }
@@ -193,7 +214,7 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
      * @return
      */
     @Override
-    public synchronized <T> T getRPValue(RhythmParameter<T> rp)
+    public <T> T getRPValue(RhythmParameter<T> rp)
     {
         Objects.requireNonNull(rp);
         Preconditions.checkArgument(rhythm.getRhythmParameters().contains(rp), "this=%s rhythm=%s rp=%s", this, rhythm, rp);
@@ -221,29 +242,26 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
         T oldValue;
         boolean changed;
 
-        synchronized (this)
+        @SuppressWarnings("unchecked")
+        T current = (T) mapRpValue.getValue(rp);
+        oldValue = current;
+        assert oldValue != null : "rpValueProfileMap=" + mapRpValue + " rp=" + rp + " value=" + value;
+        changed = !oldValue.equals(value);
+        if (!changed)
         {
-            @SuppressWarnings("unchecked")
-            T current = (T) mapRpValue.getValue(rp);
-            oldValue = current;
-            assert oldValue != null : "rpValueProfileMap=" + mapRpValue + " rp=" + rp + " value=" + value;
-            changed = !oldValue.equals(value);
-            if (!changed)
-            {
-                return;
-            }
-
-            if (oldValue instanceof MutableRpValue mValueOld)
-            {
-                mValueOld.removeChangeListener(this);
-            }
-            if (value instanceof MutableRpValue mValueNew)
-            {
-                mValueNew.addChangeListener(this);
-            }
-
-            mapRpValue.putValue(rp, value);     // Don't use rp.cloneValue() since we now accept mutable values (eg custom phrase)
+            return;
         }
+
+        if (oldValue instanceof MutableRpValue mValueOld)
+        {
+            mValueOld.removeChangeListener(this);
+        }
+        if (value instanceof MutableRpValue mValueNew)
+        {
+            mValueNew.addChangeListener(this);
+        }
+
+        mapRpValue.putValue(rp, value);     // Don't use rp.cloneValue() since we now accept mutable values (eg custom phrase)
 
         // Fire outside lock
         pcs.firePropertyChange(PROP_RP_VALUE, rp, value);
@@ -295,9 +313,9 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
             })
     public synchronized SongPart getCopy(Rhythm r, int newStartBarIndex, int newNbBars, CLI_Section cliSection)
     {
-        Preconditions.checkArgument(newStartBarIndex>=0, "newStartBarIndex=%s", newStartBarIndex);
-        Preconditions.checkArgument(newNbBars>0, "newNbBars=%s", newNbBars);
-        
+        Preconditions.checkArgument(newStartBarIndex >= 0, "newStartBarIndex=%s", newStartBarIndex);
+        Preconditions.checkArgument(newNbBars > 0, "newNbBars=%s", newNbBars);
+
         Rhythm newRhythm = (r == null) ? getRhythm() : r;
 
         // Check that time signature match
@@ -341,9 +359,9 @@ public class SongPartImpl implements SongPart, Serializable, ChangeListener
                 }
             }
         }
-        
+
         newSpt.getClientProperties().set(clientProperties);
-        
+
         return newSpt;
     }
 

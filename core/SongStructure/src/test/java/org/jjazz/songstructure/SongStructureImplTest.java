@@ -168,7 +168,7 @@ public class SongStructureImplTest
         {
             Exceptions.printStackTrace(ex);
         }
-        
+
         SongPartImpl sptX = new SongPartImpl(r54, 0, 1, null);
         try
         {
@@ -189,13 +189,7 @@ public class SongStructureImplTest
     public void testRemoveSongPart()
     {
         System.out.println("\n============ Test removeSongPart");
-        try
-        {
-            sgs.removeSongParts(ml(spt0));
-        } catch (UnsupportedEditException ex)
-        {
-            Exceptions.printStackTrace(ex);
-        }
+        sgs.removeSongParts(ml(spt0));
         System.out.println("sgs=" + sgs);
         assertTrue(sgs.getSizeInBars() == 10);
         assertTrue(sgs.getSongParts().get(0) == spt1 && sgs.getSongParts().get(1) == spt2);

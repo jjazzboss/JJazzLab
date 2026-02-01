@@ -26,6 +26,7 @@ import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Predicate;
 import javax.swing.event.UndoableEditListener;
 import org.jjazz.harmony.api.TimeSignature;
@@ -44,13 +45,23 @@ import org.jjazz.utilities.api.IntRange;
 /**
  * A SongStructure manages SongParts.
  * <p>
- * Implementation must fire the relevant SgsChangeEvents (including RpValueChangedEvents for mutable RP value changes, see
- * {@link org.jjazz.rhythm.api.MutableRpValue}): start and complete SgsActionEvents for an API method, with the related low-level SgsChangeEvents. If API
- * method1 calls API method2, SgsActionEvents are only fired for API method1 (SgsActionEvents are not nested).
- * <p>
+ * - Manage a list of SongParts. Note that this list can be empty. <br>
+ * - If a parent ChordLeadSheet is set, the SongStructure will reuse its read-write lock (same for the enclosing Song).<br>
+ * - Each mutating API method fires one SgsChangeEvent subclass at the end of the operation.<br>
+ * - Mutating API method which throws UnsupportedEditException also fires, before starting the operation, a SgsVetoableChangeEvent to the synchronized
+ * listeners.<br>
+ * - A RhythmParameter value can be modified via SongStructure.setRPValue() (typically for immutable RP value types), or directly for mutable RP value types. In
+ * both cases the SongStructure implementation must fire a RpValueChangedEvent.
  */
 public interface SongStructure
 {
+
+    /**
+     * The synchronization lock.
+     *
+     * @return
+     */
+    public ReentrantReadWriteLock getLock();
 
     /**
      * Return the list of unique rhythms used in this SongStructure.
@@ -167,7 +178,7 @@ public interface SongStructure
     /**
      * An optional parent ChordLeadSheet.
      * <p>
-     * If set the SongStructure will listen to ChordLeadSheet changes to update itself accordingly.
+     * If non-null the SongStructure implementation will reuse its read-write lock. <br>
      *
      * @return Can be null.
      */
@@ -304,18 +315,19 @@ public interface SongStructure
      * Each SongPart's startBarIndex must be a valid barIndex, either:<br>
      * - equals to the startBarIndex of an existing SongPart <br>
      * - the last barIndex+1 <br>
-     * The startBarIndex of the trailing SongParts is shifted accordingly. The SongPart container will be set to this object.
+     * The startBarIndex of the trailing SongParts is shifted accordingly. The SongParts container will be set to this object.
      * <p>
      *
      * @param spts
-     * @throws UnsupportedEditException Exception is thrown before any change is done. See authorizeAddSongParts().
+     * @throws UnsupportedEditException Exception is thrown before any change is done. See testChangeEventForVeto().
+     * @see #testChangeEventForVeto(org.jjazz.songstructure.api.event.SgsChangeEvent)
      */
     public void addSongParts(List<SongPart> spts) throws UnsupportedEditException;
 
     /**
      * Remove some SongParts.
      * <p>
-     * The startBarIndex of the trailing SongParts are updated. The SongPart container will be set to null.
+     * The startBarIndex of the trailing SongParts are updated. The SongParts container will be set to null.
      *
      * @param spts A List of SongParts.
      */
@@ -326,14 +338,16 @@ public interface SongStructure
      * <p>
      * The startBarIndex of the trailing SongParts are updated.
      *
-     * @param mapSptSize A map which associates a SongPart and the new desired size.
+     * @param mapSptNewSize A map which associates a SongPart and the new desired size.
      */
-    public void resizeSongParts(Map<SongPart, Integer> mapSptSize);
+    public void resizeSongParts(Map<SongPart, Integer> mapSptNewSize);
 
     /**
-     * Test if a change is vetoed by listeners.
+     * Test if a change is vetoed by its synchronized listeners.
+     * <p>
+     * Method is used internally by mutating API methods which throws UnsupportedEditException to check they can proceed with the change.
      *
-     * @param event Can not be a SgsActionEvent
+     * @param event
      * @throws UnsupportedEditException If change is vetoed by a listener
      */
     public void testChangeEventForVeto(SgsChangeEvent event) throws UnsupportedEditException;
@@ -346,7 +360,9 @@ public interface SongStructure
      *
      * @param oldSpts
      * @param newSpts size must match oldSpts
-     * @throws UnsupportedEditException Exception is thrown before any change is done. See authorizeReplaceSongParts()
+     * @throws UnsupportedEditException Exception is thrown before any change is done. See testChangeEventForVeto().
+     * @see #testChangeEventForVeto(org.jjazz.songstructure.api.event.SgsChangeEvent)
+     *
      */
     public void replaceSongParts(List<SongPart> oldSpts, List<SongPart> newSpts) throws UnsupportedEditException;
 
@@ -390,6 +406,7 @@ public interface SongStructure
      */
     public Rhythm getRecommendedRhythm(TimeSignature ts, int sptStartBarIndex);
 
+
     /**
      * Get a deep copy of this SongStructure.
      * <p>
@@ -402,18 +419,40 @@ public interface SongStructure
     public SongStructure getDeepCopy(ChordLeadSheet parentCls);
 
     /**
-     * Add a listener to changes of this object.
+     * Add a (non-synchronized) listener for this object.
+     * <p>
+     * General-purpose listeners (e.g. for updating UI ) should use this method. If you want to receive VetoableSgsChangeEvents, use addSgsChangeSyncListener()
+     * instead.
      *
      * @param l
+     * @see #addSgsChangeSyncListener(org.jjazz.songstructure.api.SgsChangeListener)
      */
     public void addSgsChangeListener(SgsChangeListener l);
 
     /**
-     * Remove a listener to this object's changes.
+     * Add a synchronized listener for this object.
+     * <p>
+     * Listener will be called while the write lock is held, so listener must keep processing simple and in the current thread. VetoableSgsChangeEvents are only
+     * sent to synchronized listeners. General purpose listeners should use addSgsChangeListener() instead.
+     *
+     * @param l
+     * @see #addSgsChangeListener(org.jjazz.songstructure.api.SgsChangeListener)
+     */
+    public void addSgsChangeSyncListener(SgsChangeListener l);
+
+    /**
+     * Remove a (non-synchronized) listener.
      *
      * @param l
      */
     public void removeSgsChangeListener(SgsChangeListener l);
+
+    /**
+     * Remove a synchronized listener.
+     *
+     * @param l
+     */
+    public void removeSgsChangeSyncListener(SgsChangeListener l);
 
     /**
      * Add a listener to undoable edits.

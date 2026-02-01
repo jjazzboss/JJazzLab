@@ -23,10 +23,11 @@
 package org.jjazz.songstructure.api.event;
 
 import com.google.common.base.Preconditions;
+import java.util.Objects;
 import org.jjazz.songstructure.api.SongStructure;
 
 /**
- * A special vetoable event sent before performing a SongStructure change that can be vetoed by its listeners.
+ * A special vetoable event sent before performing a SongStructure change that can be vetoed by its synchronized listeners.
  * <p>
  * For example replaceSongParts() can be vetoed by a listener if there is not enough Midi channels.
  * <p>
@@ -44,6 +45,7 @@ public class SgsVetoableChangeEvent extends SgsChangeEvent
     public SgsVetoableChangeEvent(SongStructure src, SgsChangeEvent changeEvent)
     {
         super(src);
+        Objects.requireNonNull(changeEvent);
         Preconditions.checkArgument(
                 !(changeEvent instanceof SgsVetoableChangeEvent)
                 && changeEvent.getSource() == src,
