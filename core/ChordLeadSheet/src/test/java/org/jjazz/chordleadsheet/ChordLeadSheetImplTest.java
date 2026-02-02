@@ -101,8 +101,8 @@ public class ChordLeadSheetImplTest
             cls1.addItem(new CLI_ChordSymbolImpl(getChord("Eb7b9#5"), new Position(5, 0.75f)));
             cls1.addItem(new CLI_ChordSymbolImpl(getChord("Db"), new Position(7, 3f)));
 
-            System.out.println("cls1="+cls1.toDebugString());
-            
+            // System.out.println("cls1="+cls1.toDebugString());
+
             cls1.addUndoableEditListener(undoManager);
 
             // cls2 = deep copy to make the comparison after a undo/redo/undo cycle
@@ -141,6 +141,7 @@ public class ChordLeadSheetImplTest
         boolean b = cls1.equals(cls2);
         if (!b)
         {
+            System.out.println("cls1 & cls2 MISMATCH after undo/redo/undoss");
             System.out.println(cls1BeforeStr);
             System.out.println("--");
             System.out.println(cls1.toDebugString());
@@ -289,14 +290,18 @@ public class ChordLeadSheetImplTest
     public void testAddCloneItemSamePosition()
     {
         System.out.println("=== testAddCloneItemSamePosition()");
+        System.out.println("cls1=" + cls1.toDebugString());
         var cli = cls1.getItems(1, 1, CLI_ChordSymbol.class).get(0);
         var cliClone = cli.getCopy(null, null);
         assertFalse(cls1.addItem(cliClone));
 
         var cliNC = cli.getCopy(new NCExtChordSymbol(), null);
         assertTrue(cls1.addItem(cliNC));
-        cliNC = cliNC.getCopy(cliNC.getData().getTransposedChordSymbol(1, Note.Accidental.FLAT), null); // transposing NC chord should return the same instance
-        assertFalse(cls1.addItem(cliNC));
+        var cliNC2 = cliNC.getCopy(cliNC.getData().getTransposedChordSymbol(1, Note.Accidental.FLAT), null); // transposing NC chord should return the same instance
+        System.out.println("cliN1.equals(cliNC2)=" + cliNC.equals(cliNC2));
+        boolean b = cls1.addItem(cliNC2);
+        System.out.println("b=" + b + "   => cls1=" + cls1.toDebugString());
+        assertFalse(b);
     }
 
     // FIX: this test previously missed @Test and never ran.

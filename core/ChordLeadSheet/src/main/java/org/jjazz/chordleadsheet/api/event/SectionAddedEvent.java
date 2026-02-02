@@ -65,7 +65,7 @@ public class SectionAddedEvent extends ClsChangeEvent
     }
 
     /**
-     * The optional section at same bar which was replaced by getCLi_Section().
+     * The optional section at same bar which was replaced by getCLI_Section().
      *
      * @return Can be null
      */

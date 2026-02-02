@@ -36,8 +36,6 @@ public class SectionMovedEvent extends ClsChangeEvent
 {
 
     private final int oldBar, newBar;
-    private final CLI_Section oldBarNewSection;
-    private final CLI_Section newBarPrevSection;
     private final List<ChordLeadSheetItem> adjustedItems;
 
     public SectionMovedEvent(ChordLeadSheet src, CLI_Section item, int oldBar, int newBar, List<ChordLeadSheetItem> adjustedItems)
@@ -49,26 +47,6 @@ public class SectionMovedEvent extends ClsChangeEvent
         this.oldBar = oldBar;
         this.newBar = newBar;
         this.adjustedItems = adjustedItems;
-        this.oldBarNewSection = src.getSection(oldBar);
-        this.newBarPrevSection = src.getSection(newBar - 1);
-    }
-
-    /**
-     *
-     * @return Might be == getCLI_Section() if section was moved in a previous bar and there was no section in between
-     */
-    public CLI_Section getOldBarNewSection()
-    {
-        return oldBarNewSection;
-    }
-
-    /**
-     *
-     * @return Might be == getOldBarNewSection() if section was moved to a next bar and there was no section in between
-     */
-    public CLI_Section getNewBarPrevSection()
-    {
-        return newBarPrevSection;
     }
 
     public List<ChordLeadSheetItem> getAdjustedItems()

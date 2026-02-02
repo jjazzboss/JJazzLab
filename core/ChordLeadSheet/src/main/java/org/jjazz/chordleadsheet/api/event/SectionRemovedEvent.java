@@ -22,6 +22,7 @@
  */
 package org.jjazz.chordleadsheet.api.event;
 
+import com.google.common.base.Preconditions;
 import java.util.List;
 import java.util.Objects;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
@@ -48,11 +49,10 @@ public class SectionRemovedEvent extends ClsChangeEvent
     {
         super(src, cliSection);
         Objects.requireNonNull(adjustedItems);
+        Preconditions.checkArgument(cliSection.getPosition().getBar() > 0, "cliSection=%s", cliSection);
         this.adjustedItems = adjustedItems;
         var pos = cliSection.getPosition();
-        this.previousBarSection = src.getSection(pos.getBar());
-        var repPos = previousBarSection.getPosition();
-        assert !pos.equals(repPos) : "cliSection=" + cliSection + " replacingSection=" + previousBarSection;
+        this.previousBarSection = src.getSection(pos.getBar() - 1);
     }
 
     public List<ChordLeadSheetItem> getAdjustedItems()
