@@ -69,23 +69,27 @@ public class NCExtChordSymbol extends ExtChordSymbol implements Serializable
     }
 
     @Override
-    public NCExtChordSymbol getCopy(ChordSymbol cs, ChordRenderingInfo rInfo, AltExtChordSymbol altChordSymbol, AltDataFilter altFilter)
+    public NCExtChordSymbol getCopy(ChordSymbol cs, ChordRenderingInfo cri, AltExtChordSymbol altChordSymbol, AltDataFilter altFilter)
     {
         if ((altChordSymbol == null && altFilter != null) || (altChordSymbol != null && altFilter == null))
         {
-            throw new IllegalArgumentException("rInfo=" + rInfo + " altChordSymbol=" + altChordSymbol + " altFilter=" + altFilter);
+            throw new IllegalArgumentException("cri=" + cri + " altChordSymbol=" + altChordSymbol + " altFilter=" + altFilter);
         }
-        rInfo = rInfo != null ? rInfo : getRenderingInfo();
+        cri = cri != null ? cri : getRenderingInfo();
         altChordSymbol = altChordSymbol != null ? altChordSymbol : getAlternateChordSymbol();
         altFilter = altFilter != null ? altFilter : getAlternateFilter();
-        return new NCExtChordSymbol(rInfo, altChordSymbol, altFilter);
+        return new NCExtChordSymbol(cri, altChordSymbol, altFilter);
     }
 
 
     @Override
     public ExtChordSymbol getTransposedChordSymbol(int t, Note.Accidental alt)
     {
-        return this;
+        ChordRenderingInfo cri = getRenderingInfo().getTransposed(t);
+        AltExtChordSymbol altCs = (getAlternateChordSymbol() == null)
+                ? null
+                : getAlternateChordSymbol().getTransposedChordSymbol(t, alt);
+        return new NCExtChordSymbol(cri, altCs, getAlternateFilter());
     }
 
     @Override
@@ -153,7 +157,7 @@ public class NCExtChordSymbol extends ExtChordSymbol implements Serializable
             }
         }
     }
-    
+
     // --------------------------------------------------------------------- 
     // Serialization
     // ---------------------------------------------------------------------
@@ -169,18 +173,18 @@ public class NCExtChordSymbol extends ExtChordSymbol implements Serializable
 
     /**
      * Serialization proxy.
-     * 
+     * <p>
      * spVERSION 2 introduces new XStream aliases (see XStreamConfig)
-     */    
+     */
     private static class SerializationProxy implements Serializable
     {
 
         private int spVERSION = 2;      // Do not make final!
         private static final long serialVersionUID = -118977269L;
-        private  String spName;
-        private  ChordRenderingInfo spRenderingInfo;
-        private  AltExtChordSymbol spAltChordSymbol;
-        private  AltDataFilter spAltFilter;
+        private String spName;
+        private ChordRenderingInfo spRenderingInfo;
+        private AltExtChordSymbol spAltChordSymbol;
+        private AltDataFilter spAltFilter;
 
         private SerializationProxy(NCExtChordSymbol ncecs)
         {

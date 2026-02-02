@@ -43,7 +43,8 @@ public class SectionMovedEvent extends ClsChangeEvent
         super(src, item);
         Objects.requireNonNull(adjustedItems);
         Preconditions.checkArgument(oldBar > 0 && newBar > 0 && oldBar != newBar, "item=%s oldBar=%s newBar=%s", item, oldBar, newBar);
-        Preconditions.checkArgument(item.getPosition().getBar() == newBar, "item=%s newBar=%s", item, newBar);
+        Preconditions.checkArgument(item.getPosition().getBar() == newBar || item.getPosition().getBar() == oldBar,
+                "item=%s oldBar=%s newBar=%s", item, oldBar, newBar);
         this.oldBar = oldBar;
         this.newBar = newBar;
         this.adjustedItems = adjustedItems;
