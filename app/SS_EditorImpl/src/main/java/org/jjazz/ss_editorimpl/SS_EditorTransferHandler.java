@@ -405,7 +405,7 @@ public class SS_EditorTransferHandler extends TransferHandler
 
 
         // Create the song part
-        SongPart spt = sgs.createSongPart(r, parentSection.getData().getName(), startBarIndex, nbBars, parentSection, true);
+        SongPart spt = sgs.createSongPart(r, parentSection.getData().getName(), startBarIndex, parentSection, true);
 
 
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(sgs);

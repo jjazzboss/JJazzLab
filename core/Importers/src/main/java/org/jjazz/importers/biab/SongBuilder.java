@@ -347,7 +347,7 @@ public class SongBuilder
                 for (SongPart spt : chorusSongParts)
                 {
                     section = spt.getParentSection();
-                    SongPart newSpt = ss.createSongPart(r, section.getData().getName(), startBar, spt.getNbBars(), section, false);
+                    SongPart newSpt = ss.createSongPart(r, section.getData().getName(), startBar, section, false);
                     try
                     {
                         ss.addSongParts(Arrays.asList(newSpt));

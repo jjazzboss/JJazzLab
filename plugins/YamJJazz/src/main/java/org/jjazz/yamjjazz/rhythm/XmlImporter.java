@@ -242,13 +242,15 @@ public class XmlImporter implements SongImporter
                 });
                 return;
             }
-            var newSpt = oldSpt.getCopy(r, oldSpt.getStartBarIndex(), oldSpt.getNbBars(), oldSpt.getParentSection());
+            SongPart newSpt;
             try
             {
-                sgs.replaceSongParts(List.of(oldSpt), List.of(newSpt));
+                var sptList = sgs.setSongPartsRhythm(List.of(oldSpt), r);       // throws UnsupportedEditException
+                newSpt = sptList.get(0);
             } catch (UnsupportedEditException ex)
             {
                 Exceptions.printStackTrace(ex);
+                return;
             }
 
 

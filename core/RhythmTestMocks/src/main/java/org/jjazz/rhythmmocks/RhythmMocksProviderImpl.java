@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.rhythm.api.Division;
 import org.jjazz.rhythm.api.Genre;
@@ -38,38 +39,44 @@ import org.jjazz.utilities.api.MultipleErrorsReport;
 import org.openide.util.lookup.ServiceProvider;
 import org.openide.util.lookup.ServiceProviders;
 
+
+/**
+ * Rhythm provider for unit tests.
+ * <p>
+ * Provides 2 rhythm instances per time signature, each one with different RhythmFeatures.
+ * <p>
+ * Module has no dependence to RhythmMusicGeneration module to avoid a circular dependency problem during unit tests.
+ * <p>
+ */
 @ServiceProviders(value =
 {
     @ServiceProvider(service = StubRhythmProvider.class),
     @ServiceProvider(service = RhythmProvider.class)            // So it's collected by the rhythmdatabase
 })
-public  class RhythmMocksProviderImpl implements StubRhythmProvider
+public class RhythmMocksProviderImpl implements StubRhythmProvider
 {
-    public static final String ID = "RhythmMocksProviderID";
+
+    public static final String ID = "RhythmTestMocksProviderID";
     private final Info info;
     private final ArrayList<Rhythm> rhythms = new ArrayList<>();
 
     public RhythmMocksProviderImpl()
     {
-        info = new Info(ID, "DUMMY_RHYTHMS", "DUMMY_RHYTHMS_DESC", "JL", "1.0");
-        for (Division div : Division.values())
+        info = new Info(ID, "RhythmTestMocksProvider", "dummy desc", "JL", "1.0");
+
+        for (TimeSignature ts : TimeSignature.values())
         {
-            for (TimeSignature ts : TimeSignature.values())
-            {
-                rhythms.add(new RhythmMocks("RhythmStubID-" + ts.toString(), ts,
-                        new RhythmFeatures(Genre.BALLROOM, div, TempoRange.ALL_TEMPO)));
-            }
+            var r1 = new RhythmMock("BossaMockID-" + ts.toString(), ts, new RhythmFeatures(Genre.BOSSA, Division.BINARY, TempoRange.ALL_TEMPO));
+            var r2 = new RhythmMock("JazzMockID-" + ts.toString(), ts, new RhythmFeatures(Genre.JAZZ, Division.EIGHTH_SHUFFLE, TempoRange.MEDIUM));
+            rhythms.add(r1);
+            rhythms.add(r2);
         }
-        System.out.println("=================== RHYTHMS CREATED =============================");
     }
 
     @Override
     public Rhythm getStubRhythm(TimeSignature ts)
     {
-        if (ts == null)
-        {
-            throw new NullPointerException("ts");
-        }
+        Objects.requireNonNull(ts);
         Rhythm res = null;
         for (Rhythm r : rhythms)
         {
@@ -138,9 +145,9 @@ public  class RhythmMocksProviderImpl implements StubRhythmProvider
     }
 
     @Override
-    public AdaptedRhythmMocks getAdaptedRhythm(Rhythm r, TimeSignature ts)
+    public AdaptedRhythmMock getAdaptedRhythm(Rhythm r, TimeSignature ts)
     {
-        var res = (r instanceof RhythmMocks rs) ? new AdaptedRhythmMocks(rs, ts) : null;
+        var res = (r instanceof RhythmMock rs) ? new AdaptedRhythmMock(rs, ts) : null;
         return res;
     }
 }

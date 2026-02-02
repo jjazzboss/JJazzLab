@@ -25,6 +25,7 @@ package org.jjazz.test;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
@@ -112,11 +113,11 @@ public final class TestAllRhythms implements ActionListener
                     continue;
                 }
                 SongPart spt = sgs.getSongPart(0);
-                SongPart newSpt = spt.getCopy(r, spt.getStartBarIndex(), spt.getNbBars(), spt.getParentSection());
                 RhythmParameter<?> rp0 = r.getRhythmParameters().get(0);
                 try
                 {
-                    sgs.replaceSongParts(Arrays.asList(spt), Arrays.asList(newSpt));
+                    List<SongPart> newSpts = sgs.setSongPartsRhythm(Arrays.asList(spt), r);     // throws UnsupportedEditException
+                    var newSpt = newSpts.get(0);
                     if (rp0.getDisplayName().equals("Style part") && ((RP_State) rp0).getPossibleValues().contains("Main A"))
                     {
                         @SuppressWarnings("unchecked")

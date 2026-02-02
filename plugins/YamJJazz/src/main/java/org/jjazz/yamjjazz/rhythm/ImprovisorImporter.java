@@ -115,14 +115,17 @@ public class ImprovisorImporter implements SongImporter
         }
 
         // Assign the new rhythm
-        SongPart newSpt = spt0.getCopy(r, spt0.getStartBarIndex(), spt0.getNbBars(), spt0.getParentSection());
+        SongPart newSpt;
         try
         {
-            ss.replaceSongParts(Arrays.asList(spt0), Arrays.asList(newSpt));
+            var sptList = ss.setSongPartsRhythm(List.of(spt0), r);       // throws UnsupportedEditException
+            newSpt = sptList.get(0);
         } catch (UnsupportedEditException ex)
         {
             Exceptions.printStackTrace(ex);
+            return;
         }
+
 
         RP_SYS_Variation rpVariation = RP_SYS_Variation.getVariationRp(r);
         RP_SYS_Intensity rpIntensity = RP_SYS_Intensity.getIntensityRp(r);
@@ -164,10 +167,9 @@ public class ImprovisorImporter implements SongImporter
             for (int i = 1; i < spts.size(); i++)
             {
                 SongPart oldSpt = spts.get(i);
-                newSpt = oldSpt.getCopy(r, oldSpt.getStartBarIndex(), oldSpt.getNbBars(), oldSpt.getParentSection());
                 try
                 {
-                    ss.replaceSongParts(Arrays.asList(oldSpt), Arrays.asList(newSpt));
+                    ss.setSongPartsRhythm(Arrays.asList(oldSpt), r);
                 } catch (UnsupportedEditException ex)
                 {
                     Exceptions.printStackTrace(ex);

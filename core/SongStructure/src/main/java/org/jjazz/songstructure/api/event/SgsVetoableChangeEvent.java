@@ -29,9 +29,9 @@ import org.jjazz.songstructure.api.SongStructure;
 /**
  * A special vetoable event sent before performing a SongStructure change that can be vetoed by its synchronized listeners.
  * <p>
- * For example replaceSongParts() can be vetoed by a listener if there is not enough Midi channels.
+ * For example setSongPartsRhythm() can be vetoed by a synchronized listener if there is not enough Midi channels.
  * <p>
- * All the SongStructure methods which throw UnsupportedEditException send a SgsVetoableChangeEvent. The listener is responsible to analyze the passed
+ * All the SongStructure methods which throw UnsupportedEditException send a SgsVetoableChangeEvent. The synchronized listener is responsible to quickly analyze the passed
  * SgsChangeEvent and throw an UnsupportedEditException (with an user error message) to veto the change.
  *
  * @see SongStructure

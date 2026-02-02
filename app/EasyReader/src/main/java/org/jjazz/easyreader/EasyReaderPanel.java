@@ -63,7 +63,7 @@ import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.jjazz.songstructure.api.event.SptAddedEvent;
 import org.jjazz.songstructure.api.event.SptRemovedEvent;
 import org.jjazz.songstructure.api.event.SptRenamedEvent;
-import org.jjazz.songstructure.api.event.SptReplacedEvent;
+import org.jjazz.songstructure.api.event.SptRhythmChanged;
 import org.jjazz.songstructure.api.event.SptResizedEvent;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
@@ -506,51 +506,55 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
     public void songStructureChanged(final SgsChangeEvent e)
     {
         // Model changes can be generated outside the EDT
-        Runnable run = () -> 
+        Runnable run = new Runnable() 
         {
-            if (e instanceof SptRemovedEvent)
+            @Override
+            public void run()
             {
-                var songSize = song.getSongStructure().getSizeInBars();
-                if (songSize == 0)
+                if (e instanceof SptRemovedEvent)
                 {
-                    barBox.setModelBarIndex(-1);
-                    nextBarBox.setModelBarIndex(-1);
-                } else if (songSize == 1)
+                    var songSize = song.getSongStructure().getSizeInBars();
+                    if (songSize == 0)
+                    {
+                        barBox.setModelBarIndex(-1);
+                        nextBarBox.setModelBarIndex(-1);
+                    } else if (songSize == 1)
+                    {
+                        nextBarBox.setModelBarIndex(-1);
+                    }
+                    updateAnnotation();    // text might be impacted if using # lines
+                } else if (e instanceof SptAddedEvent)
                 {
-                    nextBarBox.setModelBarIndex(-1);
+                    if (barBox.getModelBarIndex() == -1)
+                    {
+                        barBox.setModelBarIndex(0);     // 0 because playback must be disabled
+                    }
+                    if (nextBarBox.getModelBarIndex() == -1 && song.getSongStructure().getSizeInBars() > 1)
+                    {
+                        nextBarBox.setModelBarIndex(1);
+                    }
+                    updateAnnotation();    // text might be impacted if using # lines
+                } else if (e instanceof SptRhythmChanged re)
+                {
+                    // Nothing
+                } else if (e instanceof SptResizedEvent sre)
+                {
+                    // Nothing
+                } else if (e instanceof SptRenamedEvent sre)
+                {
+                    if (sre.getSongParts().contains(songPart))
+                    {
+                        lbl_songPart.setText(songPart.getName());
+                    }
+                    if (sre.getSongParts().contains(nextSongPart))
+                    {
+                        lbl_nextSongPart.setText(buildNextSongPartString(nextSongPart));
+                    }
+                    updateAnnotation();    // text might be impacted if using # lines
+                } else if (e instanceof RpValueChangedEvent)
+                {
+                    // Nothing
                 }
-                updateAnnotation();    // text might be impacted if using # lines
-            } else if (e instanceof SptAddedEvent)
-            {
-                if (barBox.getModelBarIndex() == -1)
-                {
-                    barBox.setModelBarIndex(0);     // 0 because playback must be disabled
-                }
-                if (nextBarBox.getModelBarIndex() == -1 && song.getSongStructure().getSizeInBars() > 1)
-                {
-                    nextBarBox.setModelBarIndex(1);
-                }
-                updateAnnotation();    // text might be impacted if using # lines
-            } else if (e instanceof SptReplacedEvent re)
-            {
-                // Nothing
-            } else if (e instanceof SptResizedEvent sre)
-            {
-                // Nothing
-            } else if (e instanceof SptRenamedEvent sre)
-            {
-                if (sre.getSongParts().contains(songPart))
-                {
-                    lbl_songPart.setText(songPart.getName());
-                }
-                if (sre.getSongParts().contains(nextSongPart))
-                {
-                    lbl_nextSongPart.setText(buildNextSongPartString(nextSongPart));
-                }
-                updateAnnotation();    // text might be impacted if using # lines
-            } else if (e instanceof RpValueChangedEvent)
-            {
-                // Nothing
             }
         };
         UIUtilities.invokeLaterIfNeeded(run);

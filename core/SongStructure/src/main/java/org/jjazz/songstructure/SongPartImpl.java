@@ -27,6 +27,7 @@ import com.thoughtworks.xstream.XStream;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
@@ -35,9 +36,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.rhythm.api.Rhythm;
@@ -63,7 +64,8 @@ import org.openide.util.lookup.ServiceProvider;
 /**
  * SongPart implementation.
  * <p>
- * This is a mutable class. In a Song, SongPart mutation can only be achieved via the enclosing SongStructure methods which manage synchronization.
+ * This is a mutable class. Within a Song, SongPart mutating methods can only be called via the enclosing SongStructure methods which manage synchronization.
+ * For read operations the implementation reuses the SongStructure lock if available.
  */
 public class SongPartImpl implements SongPart, Serializable
 {
@@ -85,6 +87,7 @@ public class SongPartImpl implements SongPart, Serializable
      * The length in bars.
      */
     private int nbBars;
+    private ReentrantReadWriteLock lock;
     /**
      * Parent section.
      */
@@ -101,7 +104,7 @@ public class SongPartImpl implements SongPart, Serializable
     /**
      * The listeners for changes in this model.
      */
-    private final transient SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private final transient PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(SongPartImpl.class.getSimpleName());
 
 
@@ -128,6 +131,7 @@ public class SongPartImpl implements SongPart, Serializable
         this.name = parentSection == null ? NO_NAME : parentSection.getData().getName();
         this.parentSection = parentSection;
         this.clientProperties = new StringProperties(this);
+        this.lock = new ReentrantReadWriteLock();
 
 
         // Associate a default value to each RhythmParameter                    
@@ -170,20 +174,26 @@ public class SongPartImpl implements SongPart, Serializable
         return name;
     }
 
+    /**
+     * Can only be called by SongStructure.
+     *
+     * @param name
+     */
     public void setName(String name)
     {
-        if (name == null || name.length() == 0)
-        {
-            throw new IllegalArgumentException("name=" + name);
-        }
+        Objects.requireNonNull(name);
+        Preconditions.checkArgument(!name.isBlank());
 
         String oldName;
-        boolean changed;
-        oldName = this.name;
-        changed = !name.equals(this.name);
-        if (changed)
+
+        lock.writeLock().lock();
+        try
         {
+            oldName = this.name;
             this.name = name;
+        } finally
+        {
+            lock.writeLock().unlock();
         }
 
         pcs.firePropertyChange(PROP_NAME, oldName, name);
@@ -195,9 +205,15 @@ public class SongPartImpl implements SongPart, Serializable
         return container;
     }
 
+    /**
+     * Can only be called by SongStructure.
+     *
+     * @param sgs
+     */
     public void setContainer(SongStructure sgs)
     {
         container = sgs;
+        this.lock = container != null ? container.getLock() : new ReentrantReadWriteLock();
     }
 
     /**
@@ -211,17 +227,28 @@ public class SongPartImpl implements SongPart, Serializable
     {
         Objects.requireNonNull(rp);
         Preconditions.checkArgument(rhythm.getRhythmParameters().contains(rp), "this=%s rhythm=%s rp=%s", this, rhythm, rp);
-        @SuppressWarnings("unchecked")
-        T value = (T) mapRpValue.getValue(rp);
-        assert value != null : "rp=" + rp + " mapRpValue=" + mapRpValue;
-        return value;
+
+        lock.readLock().lock();
+        try
+        {
+            @SuppressWarnings("unchecked")
+            T value = (T) mapRpValue.getValue(rp);
+            assert value != null : "rp=" + rp + " mapRpValue=" + mapRpValue;
+            return value;
+        } finally
+        {
+            lock.readLock().unlock();
+        }
     }
 
     /**
      * Change the value for a given RhythmParameter.
      * <p>
      * Fire a PROP_RP_VALUE with OldValue=rp, NewValue=vp.
+     * <p>
+     * Can only be called by SongStructure.
      *
+     * @param <T>
      * @param rp
      * @param value Must be a valid value for rp
      */
@@ -235,18 +262,24 @@ public class SongPartImpl implements SongPart, Serializable
         T oldValue;
         boolean changed;
 
-        @SuppressWarnings("unchecked")
-        T current = (T) mapRpValue.getValue(rp);
-        oldValue = current;
-        assert oldValue != null : "rpValueProfileMap=" + mapRpValue + " rp=" + rp + " value=" + value;
-        changed = !oldValue.equals(value);
-        if (!changed)
+        lock.writeLock().lock();
+        try
         {
-            return;
+            @SuppressWarnings("unchecked")
+            T current = (T) mapRpValue.getValue(rp);
+            oldValue = current;
+            assert oldValue != null : "rpValueProfileMap=" + mapRpValue + " rp=" + rp + " value=" + value;
+            changed = !oldValue.equals(value);
+            if (!changed)
+            {
+                return;
+            }
+
+            mapRpValue.putValue(rp, value);
+        } finally
+        {
+            lock.writeLock().unlock();
         }
-
-        mapRpValue.putValue(rp, value);
-
         // Fire outside lock
         pcs.firePropertyChange(PROP_RP_VALUE, rp, value);
     }
@@ -258,36 +291,40 @@ public class SongPartImpl implements SongPart, Serializable
     }
 
     /**
-     * Fire a propertyChangeEvent.
+     * Can only be called by SongStructure.
      *
      * @param barIndex
      */
     public void setStartBarIndex(int barIndex)
     {
-        if (barIndex < 0)
-        {
-            throw new IllegalArgumentException("barIndex=" + barIndex);
-        }
+        Preconditions.checkArgument(barIndex >= 0, "barIndex=%s", barIndex);
 
         int old;
-        boolean changed;
-        synchronized (this)
+
+        lock.writeLock().lock();
+        try
         {
             old = startBarIndex;
-            changed = (barIndex != startBarIndex);
-            if (changed)
-            {
-                startBarIndex = barIndex;
-            }
+            startBarIndex = barIndex;
+        } finally
+        {
+            lock.writeLock().unlock();
         }
 
         pcs.firePropertyChange(SongPart.PROP_START_BAR_INDEX, old, barIndex);
     }
 
     @Override
-    public synchronized int getStartBarIndex()
+    public int getStartBarIndex()
     {
-        return startBarIndex;
+        lock.readLock().lock();
+        try
+        {
+            return startBarIndex;
+        } finally
+        {
+            lock.readLock().unlock();
+        }
     }
 
     @Override
@@ -295,7 +332,7 @@ public class SongPartImpl implements SongPart, Serializable
             {
                 "unchecked", "rawtypes"
             })
-    public synchronized SongPart getCopy(Rhythm r, int newStartBarIndex, int newNbBars, CLI_Section cliSection)
+    public SongPart getCopy(Rhythm r, int newStartBarIndex, int newNbBars, CLI_Section cliSection)
     {
         Preconditions.checkArgument(newStartBarIndex >= 0, "newStartBarIndex=%s", newStartBarIndex);
         Preconditions.checkArgument(newNbBars > 0, "newNbBars=%s", newNbBars);
@@ -308,15 +345,20 @@ public class SongPartImpl implements SongPart, Serializable
             throw new IllegalArgumentException("r=" + r + " newRhythm=" + newRhythm + " cliSection=" + cliSection);
         }
 
-
         SongPartImpl newSpt = new SongPartImpl(newRhythm, newStartBarIndex, newNbBars, cliSection);
         newSpt.setContainer(container);
         newSpt.setName(name);
 
-
         if (newRhythm == getRhythm())
         {
-            newSpt.mapRpValue = mapRpValue.clone();
+            lock.readLock().lock();
+            try
+            {
+                newSpt.mapRpValue = mapRpValue.clone();
+            } finally
+            {
+                lock.readLock().unlock();
+            }
         } else
         {
             // Update the values for compatible RhythmParameters
@@ -350,36 +392,39 @@ public class SongPartImpl implements SongPart, Serializable
     }
 
     /**
-     * Fire a propertyChangeEvent.
+     * Can only be called by SongStructure.
      *
      * @param n
      */
     public void setNbBars(int n)
     {
-        if (n < 1)
-        {
-            throw new IllegalArgumentException("n=" + n);
-        }
+        Preconditions.checkArgument(n >= 1, "n=%s", n);
 
         int old;
-        boolean changed;
-        synchronized (this)
+        lock.writeLock().lock();
+        try
         {
             old = nbBars;
-            changed = (nbBars != n);
-            if (changed)
-            {
-                nbBars = n;
-            }
+            nbBars = n;
+        } finally
+        {
+            lock.writeLock().unlock();
         }
 
         pcs.firePropertyChange(PROP_NB_BARS, old, n);
     }
 
     @Override
-    public synchronized int getNbBars()
+    public int getNbBars()
     {
-        return nbBars;
+        lock.readLock().lock();
+        try
+        {
+            return nbBars;
+        } finally
+        {
+            lock.readLock().unlock();
+        }
     }
 
     @Override
@@ -395,12 +440,12 @@ public class SongPartImpl implements SongPart, Serializable
     }
 
     @Override
-    public synchronized String toString()
+    public String toString()
     {
         return name + getBarRange() + "-" + rhythm.getName();
     }
 
-    public synchronized String toDumpString()
+    public String toDumpString()
     {
         StringBuilder sb = new StringBuilder();
         sb.append(toString()).append("\n");

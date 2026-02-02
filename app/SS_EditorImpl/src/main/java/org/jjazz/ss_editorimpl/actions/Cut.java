@@ -50,6 +50,7 @@ import org.jjazz.utilities.api.ResUtil;
         })
 public class Cut extends SS_ContextAction
 {
+
     public static final KeyStroke KEYSTROKE = getGenericControlKeyStroke(KeyEvent.VK_X);
 
     @Override
@@ -66,18 +67,12 @@ public class Cut extends SS_ContextAction
         SongPartCopyBuffer buffer = SongPartCopyBuffer.getInstance();
         buffer.put(selection.getSelectedSongParts());
         SongStructure sgs = selection.getModel();
+        
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(sgs);
         um.startCEdit(getActionName());
-        try
-        {
-            sgs.removeSongParts(selection.getSelectedSongParts());
-        } catch (UnsupportedEditException ex)
-        {
-            String msg = ResUtil.getString(getClass(), "ERR_CantCut");
-            msg += "\n" + ex.getLocalizedMessage();
-            um.abortCEdit(getActionName(), msg);
-            return;
-        }
+        
+        sgs.removeSongParts(selection.getSelectedSongParts());
+        
         um.endCEdit(getActionName());
     }
 

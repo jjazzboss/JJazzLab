@@ -62,7 +62,7 @@ import org.jjazz.songstructure.api.event.RpValueChangedEvent;
 import org.jjazz.songstructure.api.event.SptAddedEvent;
 import org.jjazz.songstructure.api.event.SptRemovedEvent;
 import org.jjazz.songstructure.api.event.SptRenamedEvent;
-import org.jjazz.songstructure.api.event.SptReplacedEvent;
+import org.jjazz.songstructure.api.event.SptRhythmChanged;
 import org.jjazz.songstructure.api.event.SptResizedEvent;
 import org.jjazz.ss_editor.sptviewer.api.SptViewer;
 import org.jjazz.ss_editor.sptviewer.spi.SptViewerFactory;
@@ -779,7 +779,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
                         .map(spt -> spt.getRhythm())
                         .toList());
 
-            } else if (e instanceof SptReplacedEvent re)
+            } else if (e instanceof SptRhythmChanged re)
             {
                 List<SongPart> oldSpts = re.getSongParts();
                 List<SongPart> newSpts = re.getNewSpts();

@@ -27,9 +27,9 @@ import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.openide.util.Lookup;
 
 /**
- *
+ * Create a SongStructure.
  */
-public abstract class SongStructureFactory
+public interface SongStructureFactory
 {
 
     public static SongStructureFactory getDefault()
@@ -38,23 +38,14 @@ public abstract class SongStructureFactory
         return result;
     }
 
-    abstract public SongStructure createEmptySgs();
-
-    /**
-     * A simple SGS with just 1 SongPart of 4 bars and the RhythmDatabase default rhythm.
-     *
-     * @return
-     */
-    abstract public SongStructure createSimpleSgs();
-
     /**
      * Create a SongStructure with cls as parentChordLeadSheet.
      * <p>
      * One SongPart is created for each cls section. <br>
      *
-     * @param cls 
+     * @param cls Cannot be null
      * @return
      * @throws org.jjazz.chordleadsheet.api.UnsupportedEditException
      */
-    abstract public SongStructure createSgs(ChordLeadSheet cls) throws UnsupportedEditException;
+    SongStructure createSgs(ChordLeadSheet cls) throws UnsupportedEditException;
 }

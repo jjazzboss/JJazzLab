@@ -38,14 +38,19 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmFeatures;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythm.api.RhythmVoice;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhrase;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Fill;
+import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Intensity;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
 
 /**
- * Test mock for {@link Rhythm} that does not implement MusicGeneratorProvider. This class can be used
- * when testing with rhythms without the need of music generation; e.g. SongStructure.
+ * Test mock for {@link Rhythm} that does not implement MusicGeneratorProvider.
+ * <p>
+ * This class can be used when testing with rhythms without the need of music generation, e.g. for SongStructure.
  */
-public class RhythmMocks implements Rhythm
+public class RhythmMock implements Rhythm
 {
+
     private final String uniqueId;
     private final TimeSignature timeSignature;
     private final RhythmFeatures features;
@@ -63,10 +68,11 @@ public class RhythmMocks implements Rhythm
      *
      * @param uniqueId
      * @param ts
+     * @param fs
      */
-    public RhythmMocks(String uniqueId, TimeSignature ts, RhythmFeatures fs)
+    public RhythmMock(String uniqueId, TimeSignature ts, RhythmFeatures fs)
     {
-        if (uniqueId == null || uniqueId.trim().isEmpty() || ts == null|| fs == null)
+        if (uniqueId == null || uniqueId.trim().isEmpty() || ts == null || fs == null)
         {
             throw new IllegalArgumentException("uniqueId=" + uniqueId + " ts=" + ts);
         }
@@ -83,6 +89,9 @@ public class RhythmMocks implements Rhythm
 
         // Our Rhythm Parameters
         rhythmParameters.add(new RP_SYS_Variation(true));
+        rhythmParameters.add(new RP_SYS_Fill(true));
+        rhythmParameters.add(new RP_SYS_Intensity(true));
+        rhythmParameters.add(new RP_SYS_CustomPhrase(this, true));
     }
 
     // ==============================================================================================
@@ -93,7 +102,7 @@ public class RhythmMocks implements Rhythm
     public boolean equals(Object o)
     {
         boolean res = false;
-        if (o instanceof RhythmMocks rs)
+        if (o instanceof RhythmMock rs)
         {
             res = rs.uniqueId.equals(uniqueId);
         }

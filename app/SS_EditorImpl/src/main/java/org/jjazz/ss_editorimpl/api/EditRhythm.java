@@ -69,9 +69,9 @@ import org.openide.NotifyDescriptor;
 @ActionID(category = "JJazz", id = "org.jjazz.ss_editorimpl.actions.editrhythm")
 @ActionRegistration(displayName = "#CTL_EditRhythm", lazy = false)
 @ActionReferences(
-    {
-        @ActionReference(path = "Actions/SongPart", position = 80)
-    })
+        {
+            @ActionReference(path = "Actions/SongPart", position = 80)
+        })
 public class EditRhythm extends AbstractAction implements ContextAwareAction, SS_ContextActionListener
 {
 
@@ -228,8 +228,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
         }
 
 
-        ArrayList<SongPart> oldSpts = new ArrayList<>();
-        ArrayList<SongPart> newSpts = new ArrayList<>();
+        ArrayList<SongPart> sptsToBeUpdated = new ArrayList<>();
 
         if (customComp.isApplyRhythmToNextSongParts() && selSpts.size() == 1)
         {
@@ -239,7 +238,6 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
             int index = allSpts.indexOf(selSpt0);
             if (newRhythm != rSelSpt0)
             {
-                // Get the spts and prepare the new spts
                 for (int i = index; i < allSpts.size(); i++)
                 {
                     SongPart spt = allSpts.get(i);
@@ -248,9 +246,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
                         // Exit at first different spt
                         break;
                     }
-                    oldSpts.add(spt);
-                    SongPart newSpt = spt.getCopy(newRhythm, spt.getStartBarIndex(), spt.getNbBars(), spt.getParentSection());
-                    newSpts.add(newSpt);
+                    sptsToBeUpdated.add(spt);
                 }
             }
         } else
@@ -260,9 +256,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
             {
                 if (oldSpt.getRhythm() != newRhythm && oldSpt.getRhythm().getTimeSignature().equals(newRhythm.getTimeSignature()))
                 {
-                    oldSpts.add(oldSpt);
-                    SongPart newSpt = oldSpt.getCopy(newRhythm, oldSpt.getStartBarIndex(), oldSpt.getNbBars(), oldSpt.getParentSection());
-                    newSpts.add(newSpt);
+                    sptsToBeUpdated.add(oldSpt);
                 }
             }
         }
@@ -270,7 +264,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
         // Perform the rhythm change
         try
         {
-            sgs.replaceSongParts(oldSpts, newSpts);
+            sgs.setSongPartsRhythm(sptsToBeUpdated, newRhythm);
         } catch (UnsupportedEditException ex)
         {
             String msg = undoText + ": " + newRhythm.getName() + ".\n" + ex.getLocalizedMessage();

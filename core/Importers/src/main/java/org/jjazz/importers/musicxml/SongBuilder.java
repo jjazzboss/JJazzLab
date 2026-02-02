@@ -504,7 +504,7 @@ public class SongBuilder implements MusicXmlParserListener
                     .filter(spt -> spt.getParentSection() == cliSection)
                     .findAny()
                     .orElseThrow();
-                var spt = sgs.createSongPart(curSpt.getRhythm(), cliSection.getData().getName(), songBarIndex, barList.size(), cliSection, true);
+                var spt = sgs.createSongPart(curSpt.getRhythm(), cliSection.getData().getName(), songBarIndex, cliSection, true);
                 LOGGER.log(java.util.logging.Level.FINE, "buildSong() Adding SongPart={0}", spt);
                 try
                 {

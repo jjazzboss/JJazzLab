@@ -197,13 +197,10 @@ public final class TestMusicGenerationOnSongFiles implements ActionListener
             var oldSpts = sgs.getSongParts().stream()
                     .filter(spt -> spt.getRhythm() != rhythm && spt.getRhythm().getTimeSignature() == rhythm.getTimeSignature())
                     .toList();
-            var newSpts = oldSpts.stream()
-                    .map(spt -> spt.getCopy(rhythm, spt.getStartBarIndex(), spt.getNbBars(), spt.getParentSection()))
-                    .toList();
-            sgs.replaceSongParts(oldSpts, newSpts);
+            sgs.setSongPartsRhythm(oldSpts, rhythm);
 
 
-            var rhythmSpts = new ArrayList<>(sgs.getSongParts(spt -> spt.getRhythm() == rhythm));
+            var rhythmSpts = sgs.getSongParts(spt -> spt.getRhythm() == rhythm);
             if (rhythmSpts.isEmpty())
             {
                 LOGGER.log(Level.INFO, "   No relevant song parts to use {0}, skipping song", rhythm.getName());

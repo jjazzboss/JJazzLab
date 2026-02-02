@@ -22,28 +22,42 @@
  */
 package org.jjazz.songstructure.api.event;
 
+import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.List;
+import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 
 /**
- * A SongPart has been replaced with another one with same size/startBarIndex.
+ * A SongPart has been replaced by its clone but with a different rhythm.
+ * <p>
+ * getSongParts() will return oldSpts.
  */
-public class SptReplacedEvent extends SgsChangeEvent
+public class SptRhythmChanged extends SgsChangeEvent
 {
 
     private final ArrayList<SongPart> newSpts = new ArrayList<>();
+    private final Rhythm rhythm;
 
-    public SptReplacedEvent(SongStructure src, List<SongPart> oldSpts, List<SongPart> newSpts)
+    public SptRhythmChanged(SongStructure src, Rhythm r, List<SongPart> oldSpts, List<SongPart> newSpts)
     {
         super(src, oldSpts);
+        Preconditions.checkArgument(newSpts.stream().allMatch(spt -> spt.getRhythm() == r), "r=%s newSpts=%s", newSpts);
+
+        this.rhythm = r;
         this.newSpts.addAll(newSpts);
         SgsChangeEvent.sortSongParts(this.newSpts);
     }
 
+    public Rhythm getNewRhythm()
+    {
+        return rhythm;
+    }
+
+
     /**
-     * @return The songpart to replace the source song part, ordered by startBarIndex (like oldSpts)
+     * @return The replacing SongParts, ordered by startBarIndex (like oldSpts but with the new rhythm)
      */
     public List<SongPart> getNewSpts()
     {

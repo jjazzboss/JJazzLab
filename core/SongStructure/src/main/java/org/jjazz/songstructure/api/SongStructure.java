@@ -45,23 +45,26 @@ import org.jjazz.utilities.api.IntRange;
 /**
  * A SongStructure manages SongParts.
  * <p>
- * - Manage a list of SongParts (list can be empty). <br>
- * - If a parent ChordLeadSheet is set, the SongStructure will reuse its read-write lock (and the enclosing Song as well).<br>
+ * - Manages a list of SongParts (list can be empty). <br>
+ * - The SongStructure reuses the parent ChordLeadSheet read-write lock (and the enclosing Song as well).<br>
+ * - Synchronized listeners are invoked while holding the write lock (typically for ClsSgsUpdater); non-synchronized listeners are invoked after the lock is
+ * released.<br>
  * - Each mutating API method fires one SgsChangeEvent subclass at the end of the operation.<br>
- * - Mutating API methods which throw UnsupportedEditException also fire, before starting the operation, a SgsVetoableChangeEvent to the synchronized
- * listeners.<br>
+ * - Mutating API methods that throw UnsupportedEditException also fire a SgsVetoableChangeEvent to synchronized listeners before starting the operation.<br>
+ * <p>
  */
 public interface SongStructure
 {
 
     /**
-     * The synchronization lock.
-     * <p>
-     * This is the parent ChordLeadSheet lock if parent ChordLeadSheet is not null.
+     * SongStructure reuses the parent ChordLeadSheet lock.
      *
      * @return
      */
-    public ReentrantReadWriteLock getLock();
+    default ReentrantReadWriteLock getLock()
+    {
+        return getParentChordLeadSheet().getLock();
+    }
 
     /**
      * Return the list of unique rhythms used in this SongStructure.
@@ -72,22 +75,25 @@ public interface SongStructure
      * contains only spt1=bossa[3/4], then bossa(4/4) is the implicit source rhythm of the AdaptedRhythm bossa[3/4]. If song contains spt1=bossa and
      * spt2=bossa[3/4], then bossa(4/4) is a source rhythm but is not an "implicit source rhythm".
      * <p>
-     * If both excludeAdaptedRhythms and excludeImplicitSourceRhythms parameters are false and there is an implicit source rhythm, then the return list will
-     * contain the AdaptedRhythm instance juste before the implicit rhythm instance.
+     * If both excludeAdaptedRhythms and excludeImplicitSourceRhythms are false and there is an implicit source rhythm, then the return list will contain the
+     * AdaptedRhythm instance just before the implicit rhythm instance.
      *
      * @param excludeAdaptedRhythms        If true, don't return AdaptedRhythm instances
      * @param excludeImplicitSourceRhythms If true don't return "implicit source rhythms" instances
      * @return The list of rhythms, in the order they are used in the song.
      */
-    default public List<Rhythm> getUniqueRhythms(boolean excludeAdaptedRhythms, boolean excludeImplicitSourceRhythms)
+    default List<Rhythm> getUniqueRhythms(boolean excludeAdaptedRhythms, boolean excludeImplicitSourceRhythms)
     {
         ArrayList<Rhythm> res = new ArrayList<>();
-        var allRhythms = getSongParts().stream()
+
+
+        var spts = getSongParts();
+        var allRhythms = spts.stream()
                 .map(spt -> spt.getRhythm())
                 .toList();
 
 
-        for (SongPart spt : getSongParts())
+        for (SongPart spt : spts)
         {
             Rhythm r = spt.getRhythm();
 
@@ -122,13 +128,13 @@ public interface SongStructure
      *
      * @return Can be empty. List is ordered by SongPart order.
      */
-    default public List<AdaptedRhythm> getUniqueAdaptedRhythms()
+    default List<AdaptedRhythm> getUniqueAdaptedRhythms()
     {
         ArrayList<AdaptedRhythm> res = new ArrayList<>();
         for (SongPart spt : getSongParts())
         {
             Rhythm r = spt.getRhythm();
-            if (r instanceof AdaptedRhythm ar)
+            if (r instanceof AdaptedRhythm ar && !res.contains(ar))
             {
                 res.add(ar);
             }
@@ -146,12 +152,12 @@ public interface SongStructure
      * @return
      * @see #getUniqueRhythms(boolean, boolean)
      */
-    default public List<RhythmVoice> getUniqueRhythmVoices(boolean excludeAdaptedRhythms, boolean excludeImplicitRhythms)
+    default List<RhythmVoice> getUniqueRhythmVoices(boolean excludeAdaptedRhythms, boolean excludeImplicitRhythms)
     {
         ArrayList<RhythmVoice> rvs = new ArrayList<>();
         for (Rhythm r : getUniqueRhythms(excludeAdaptedRhythms, excludeImplicitRhythms))
         {
-            r.getRhythmVoices().forEach(rv -> rvs.add(rv));
+            rvs.addAll(r.getRhythmVoices());
         }
         return rvs;
     }
@@ -161,7 +167,7 @@ public interface SongStructure
      *
      * @return List is ordered by SongPart order.
      */
-    default public List<TimeSignature> getUniqueTimeSignatures()
+    default List<TimeSignature> getUniqueTimeSignatures()
     {
         List<TimeSignature> timeSignatures = new ArrayList<>();
         for (var spt : getSongParts())
@@ -176,33 +182,31 @@ public interface SongStructure
     }
 
     /**
-     * An optional parent ChordLeadSheet.
+     * The parent ChordLeadSheet.
      * <p>
-     * If non-null the SongStructure implementation will reuse its read-write lock. <br>
-     *
-     * @return Can be null.
+     * @return Cannot be null.
      */
-    public ChordLeadSheet getParentChordLeadSheet();
+    ChordLeadSheet getParentChordLeadSheet();
 
     /**
      * Create a new SongPart instance whose container is this object.
+     * <p>
      * <p>
      * Use default rhythm parameters values, unless reusePrevParamValues is true and there is a previous song part.
      *
      * @param r
      * @param name                 The name of the created SongPart.
      * @param startBarIndex
-     * @param nbBars
-     * @param parentSection        Can be null
+     * @param parentSection        Cannot be null. Time signature must match r.
      * @param reusePrevParamValues
      * @return
      */
-    public SongPart createSongPart(Rhythm r, String name, int startBarIndex, int nbBars, CLI_Section parentSection, boolean reusePrevParamValues);
+    SongPart createSongPart(Rhythm r, String name, int startBarIndex, CLI_Section parentSection, boolean reusePrevParamValues);
 
     /**
      * @return A copy of the list of SongParts ordered according to their getStartBarIndex().
      */
-    public List<SongPart> getSongParts();
+    List<SongPart> getSongParts();
 
     /**
      * Get the SongParts which match the tester.
@@ -210,7 +214,7 @@ public interface SongStructure
      * @param tester
      * @return
      */
-    public List<SongPart> getSongParts(Predicate<SongPart> tester);
+    List<SongPart> getSongParts(Predicate<SongPart> tester);
 
     /**
      * Get the SongPart which contains a specific bar.
@@ -218,24 +222,25 @@ public interface SongStructure
      * @param absoluteBarIndex
      * @return Can be null
      */
-    public SongPart getSongPart(int absoluteBarIndex);
+    SongPart getSongPart(int absoluteBarIndex);
 
     /**
      * Get the size in bars of the song.
      *
      * @return
      */
-    public int getSizeInBars();
+    int getSizeInBars();
 
     /**
      * The bar range corresponding to this song structure.
      *
-     * @return [0;getSizeInBars()-1]
+     * @return [0;getSizeInBars()-1] or IntRange.EMPTY_RANGE
      * @see #getSizeInBars()
      */
-    default public IntRange getBarRange()
+    default IntRange getBarRange()
     {
-        return new IntRange(0, getSizeInBars() - 1);
+        int size = getSizeInBars();
+        return size == 0 ? IntRange.EMPTY_RANGE : new IntRange(0, size - 1);
     }
 
     /**
@@ -246,7 +251,7 @@ public interface SongStructure
      * @param barRange If null use the whole song structure.
      * @return Can be an empty range if barRange is not contained in the song structure.
      */
-    public FloatRange toBeatRange(IntRange barRange);
+    FloatRange toBeatRange(IntRange barRange);
 
     /**
      * Converts the position of the specified bar in natural beats: take into account the possible different time signatures before specified bar.
@@ -254,15 +259,16 @@ public interface SongStructure
      * @param absoluteBarIndex A value in the range [0; getSizeInBars()].
      * @return
      */
-    public float toPositionInNaturalBeats(int absoluteBarIndex);
+    float toPositionInNaturalBeats(int absoluteBarIndex);
 
     /**
      * Converts the specified position in natural beats: take into account the possible different time signatures before specified bar.
+     * <p>
      *
      * @param pos
      * @return
      */
-    default public float toPositionInNaturalBeats(Position pos)
+    default float toPositionInNaturalBeats(Position pos)
     {
         return SongStructure.this.toPositionInNaturalBeats(pos.getBar()) + pos.getBeat();
     }
@@ -273,7 +279,7 @@ public interface SongStructure
      * @param pos
      * @return null if pos is beyond the end of the song
      */
-    default public Position toClsPosition(Position pos)
+    default Position toClsPosition(Position pos)
     {
         Position res = null;
         SongPart spt = getSongPart(pos.getBar());
@@ -295,26 +301,26 @@ public interface SongStructure
      * @param posInBeats
      * @return Null if posInBeats is beyond the end of the song.
      */
-    public Position toPosition(float posInBeats);
+    Position toPosition(float posInBeats);
 
 
     /**
      * Get the absolute position in the song structure of a chordleadsheet item referred to by the specified song part.
+     * <p>
      *
      * @param spt
      * @param clsItem
      * @return A position within spt range
      * @throws IllegalArgumentException If clsItem does not belong to spt's parent Section.
-     * @throws IllegalStateException    If getParentChordLeadSheet() returns null.
      */
-    public Position getSptItemPosition(SongPart spt, ChordLeadSheetItem<?> clsItem);
+    Position getSptItemPosition(SongPart spt, ChordLeadSheetItem<?> clsItem);
 
     /**
-     * Add one by one a list of SongParts.
+     * Add a list of SongParts.
      * <p>
-     * Each SongPart's startBarIndex must be a valid barIndex, either:<br>
+     * Each SongPart must have a parent section set and a valid startBarIndex, either:<br>
      * - equals to the startBarIndex of an existing SongPart <br>
-     * - the last barIndex+1 <br>
+     * - equals to getSizeInBars() (append SongPart) <br>
      * The startBarIndex of the trailing SongParts is shifted accordingly. The SongParts container will be set to this object.
      * <p>
      *
@@ -322,7 +328,7 @@ public interface SongStructure
      * @throws UnsupportedEditException Exception is thrown before any change is done. See testChangeEventForVeto().
      * @see #testChangeEventForVeto(org.jjazz.songstructure.api.event.SgsChangeEvent)
      */
-    public void addSongParts(List<SongPart> spts) throws UnsupportedEditException;
+    void addSongParts(List<SongPart> spts) throws UnsupportedEditException;
 
     /**
      * Remove some SongParts.
@@ -331,7 +337,7 @@ public interface SongStructure
      *
      * @param spts A List of SongParts.
      */
-    public void removeSongParts(List<SongPart> spts);
+    void removeSongParts(List<SongPart> spts);
 
     /**
      * Change the size in bars of SongParts.
@@ -340,7 +346,7 @@ public interface SongStructure
      *
      * @param mapSptNewSize A map which associates a SongPart and the new desired size.
      */
-    public void resizeSongParts(Map<SongPart, Integer> mapSptNewSize);
+    void resizeSongParts(Map<SongPart, Integer> mapSptNewSize);
 
     /**
      * Test if a change is vetoed by its synchronized listeners.
@@ -350,21 +356,20 @@ public interface SongStructure
      * @param event
      * @throws UnsupportedEditException If change is vetoed by a listener
      */
-    public void testChangeEventForVeto(SgsChangeEvent event) throws UnsupportedEditException;
+    void testChangeEventForVeto(SgsChangeEvent event) throws UnsupportedEditException;
 
     /**
-     * Replace SongParts by other SongParts.
+     * Set the rhythm for the specified SongParts.
      * <p>
-     * Typically used to changed rhythm. The size and startBarIndex of new SongParts must be the same than the replaced ones. The container of newSpt will be
-     * set to this object.
+     * Note that method does not modify the spts SongParts, they are replaced by clones using rhythm r.
      *
-     * @param oldSpts
-     * @param newSpts size must match oldSpts
+     * @param spts
+     * @param r    New rhythm to use
+     * @return The new cloned SongParts with rhythm r
      * @throws UnsupportedEditException Exception is thrown before any change is done. See testChangeEventForVeto().
      * @see #testChangeEventForVeto(org.jjazz.songstructure.api.event.SgsChangeEvent)
-     *
      */
-    public void replaceSongParts(List<SongPart> oldSpts, List<SongPart> newSpts) throws UnsupportedEditException;
+    List<SongPart> setSongPartsRhythm(List<SongPart> spts, Rhythm r) throws UnsupportedEditException;
 
     /**
      * Change the name of one or more SongParts.
@@ -372,7 +377,7 @@ public interface SongStructure
      * @param spts
      * @param name The name of the SongParts.
      */
-    public void setSongPartsName(List<SongPart> spts, String name);
+    void setSongPartsName(List<SongPart> spts, String name);
 
     /**
      * Change the value of a specific RhythmParameter.
@@ -382,7 +387,7 @@ public interface SongStructure
      * @param rp    The RhythmParameter.
      * @param value The new value to apply for rp.
      */
-    public <T> void setRhythmParameterValue(SongPart spt, RhythmParameter<T> rp, T value);
+    <T> void setRhythmParameterValue(SongPart spt, RhythmParameter<T> rp, T value);
 
     /**
      * Returns the last rhythm used in this songStructure for this TimeSignature.
@@ -391,7 +396,7 @@ public interface SongStructure
      * @param ts
      * @return Can be null if the specified time signature has never been used by this SongStructure.
      */
-    public Rhythm getLastUsedRhythm(TimeSignature ts);
+    Rhythm getLastUsedRhythm(TimeSignature ts);
 
     /**
      * Get the recommended rhythm to use for a new SongPart.
@@ -404,7 +409,7 @@ public interface SongStructure
      * @param sptStartBarIndex The start bar index of the new song part, can be on an existing song part, or right after the last song part.
      * @return Can't be null
      */
-    public Rhythm getRecommendedRhythm(TimeSignature ts, int sptStartBarIndex);
+    Rhythm getRecommendedRhythm(TimeSignature ts, int sptStartBarIndex);
 
 
     /**
@@ -412,11 +417,11 @@ public interface SongStructure
      * <p>
      * Transient fields such as listeners are not copied.
      *
-     * @param parentCls Can be null. The parent chordleadsheet of the returned copy. If not null should contain sections with names matching this object's
-     *                  SongPart names.
+     * @param parentCls The parent chordleadsheet of the returned copy. Must contain sections with names matching this object's SongPart names. If null reuse
+     *                  the current parent ChordLeadSheet.
      * @return
      */
-    public SongStructure getDeepCopy(ChordLeadSheet parentCls);
+    SongStructure getDeepCopy(ChordLeadSheet parentCls);
 
     /**
      * Add a (non-synchronized) listener for this object.
@@ -427,7 +432,7 @@ public interface SongStructure
      * @param l
      * @see #addSgsChangeSyncListener(org.jjazz.songstructure.api.SgsChangeListener)
      */
-    public void addSgsChangeListener(SgsChangeListener l);
+    void addSgsChangeListener(SgsChangeListener l);
 
     /**
      * Add a synchronized listener for this object.
@@ -438,33 +443,33 @@ public interface SongStructure
      * @param l
      * @see #addSgsChangeListener(org.jjazz.songstructure.api.SgsChangeListener)
      */
-    public void addSgsChangeSyncListener(SgsChangeListener l);
+    void addSgsChangeSyncListener(SgsChangeListener l);
 
     /**
      * Remove a (non-synchronized) listener.
      *
      * @param l
      */
-    public void removeSgsChangeListener(SgsChangeListener l);
+    void removeSgsChangeListener(SgsChangeListener l);
 
     /**
      * Remove a synchronized listener.
      *
      * @param l
      */
-    public void removeSgsChangeSyncListener(SgsChangeListener l);
+    void removeSgsChangeSyncListener(SgsChangeListener l);
 
     /**
      * Add a listener to undoable edits.
      *
      * @param l
      */
-    public void addUndoableEditListener(UndoableEditListener l);
+    void addUndoableEditListener(UndoableEditListener l);
 
     /**
      * Remove a listener to undoable edits.
      *
      * @param l
      */
-    public void removeUndoableEditListener(UndoableEditListener l);
+    void removeUndoableEditListener(UndoableEditListener l);
 }

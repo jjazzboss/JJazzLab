@@ -72,8 +72,7 @@ public class RemoveRhythmChange extends SS_ContextAction implements HideIfDisabl
 
 
         // Prepare the song parts
-        var newSpts = new ArrayList<SongPart>();
-        var oldSpts = new ArrayList<SongPart>();
+        var sptsToBeUpdated = new ArrayList<SongPart>();
         int index = spts.indexOf(spt0);
         for (int i = index; i < spts.size(); i++)
         {
@@ -83,9 +82,7 @@ public class RemoveRhythmChange extends SS_ContextAction implements HideIfDisabl
                 // Exit at first different spt
                 break;
             }
-            oldSpts.add(spt);
-            SongPart newSpt = spt.getCopy(prevRhythm, spt.getStartBarIndex(), spt.getNbBars(), spt.getParentSection());
-            newSpts.add(newSpt);
+            sptsToBeUpdated.add(spt);
         }
 
 
@@ -93,7 +90,7 @@ public class RemoveRhythmChange extends SS_ContextAction implements HideIfDisabl
         um.startCEdit(getActionName());
         try
         {
-            sgs.replaceSongParts(oldSpts, newSpts);
+            sgs.setSongPartsRhythm(sptsToBeUpdated, prevRhythm);
         } catch (UnsupportedEditException ex)
         {
             // We possibly removed 1 rhythm, can't be here

@@ -22,7 +22,6 @@
  */
 package org.jjazz.ss_editorimpl.actions;
 
-import org.jjazz.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -43,7 +42,6 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.Lookup;
 import org.openide.windows.WindowManager;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
@@ -101,8 +99,7 @@ public class InsertSpt extends SS_ContextAction
             // Create the new song part
             int startBarIndex = spts.get(selection.getMinStartSptIndex()).getStartBarIndex();
             Rhythm r = sgs.getRecommendedRhythm(parentSection.getData().getTimeSignature(), startBarIndex);
-            int nbBars = cls.getBarRange(parentSection).size();
-            SongPart newSpt = sgs.createSongPart(r, parentSection.getData().getName(), startBarIndex, nbBars, parentSection, true);
+            SongPart newSpt = sgs.createSongPart(r, parentSection.getData().getName(), startBarIndex, parentSection, true);
 
 
             JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(sgs);

@@ -24,10 +24,8 @@ package org.jjazz.songstructure;
 
 import com.google.common.base.Preconditions;
 import com.thoughtworks.xstream.XStream;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import org.jjazz.songstructure.api.event.RpValueChangedEvent;
-import org.jjazz.songstructure.api.event.SptReplacedEvent;
+import org.jjazz.songstructure.api.event.SptRhythmChanged;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.jjazz.songstructure.api.event.SptResizedEvent;
 import org.jjazz.songstructure.api.event.SptRemovedEvent;
@@ -38,6 +36,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -87,13 +86,12 @@ import org.openide.util.lookup.ServiceProvider;
 /**
  * SongStructure implementation.
  * <p>
- * Implementation is thread-safe and uses the same concurrency design than ChordLeadSheet. Parent ChordLeadSheet's lock is reused (also used by the enclosing
- * Song).
+ * Implementation is thread-safe and uses the same concurrency design as ChordLeadSheet. If available the parent ChordLeadSheet lock is reused (it is also used
+ * by the enclosing Song).
  */
 public class SongStructureImpl implements SongStructure, Serializable
 {
 
-    private final transient ReentrantReadWriteLock lock;
     /**
      * SongParts ordered by startBarIndex.
      */
@@ -102,6 +100,7 @@ public class SongStructureImpl implements SongStructure, Serializable
      * Our parent ChordLeadSheet.
      */
     private ChordLeadSheet parentCls;
+    private final ReentrantReadWriteLock lock;
     /**
      * Keep the last Rhythm used for each TimeSignature.
      */
@@ -129,24 +128,21 @@ public class SongStructureImpl implements SongStructure, Serializable
      */
     public SongStructureImpl(ChordLeadSheet cls)
     {
+        Objects.requireNonNull(cls);
         parentCls = cls;
+        lock = cls.getLock();
         songParts = new ArrayList<>();
         mapTsLastRhythm = new HashMap<>();
         listeners = new CopyOnWriteArrayList<>();
         syncListeners = new CopyOnWriteArrayList<>();
         undoListeners = new CopyOnWriteArrayList<>();
-        lock = cls == null ? new ReentrantReadWriteLock() : cls.getLock();  // Song/ChordLeadSheet/SongSTructure all share the same lock
-    }
-
-    public ReentrantReadWriteLock getLock()
-    {
-        return lock;
     }
 
     @Override
-    public SongStructureImpl getDeepCopy(ChordLeadSheet parentCls)
+    public SongStructureImpl getDeepCopy(ChordLeadSheet newParentCls)
     {
-        SongStructureImpl res = new SongStructureImpl(parentCls);
+        var newParent = newParentCls == null ? parentCls : newParentCls;
+        SongStructureImpl res = new SongStructureImpl(newParent);
 
         lock.readLock().lock();
         try
@@ -155,17 +151,14 @@ public class SongStructureImpl implements SongStructure, Serializable
                     .map(spt -> 
                     {
                         CLI_Section oldParentSection = spt.getParentSection();
-                        CLI_Section newParentSection = null;
-                        if (oldParentSection != null && parentCls != null)
-                        {
-                            newParentSection = parentCls.getSection(oldParentSection.getData().getName());
-                        }
+                        CLI_Section newParentSection = newParent.getSection(oldParentSection.getData().getName());
                         return spt.getCopy(null, spt.getStartBarIndex(), spt.getNbBars(), newParentSection);
                     })
                     .toList();
-            res.songParts.addAll(newSpts);
 
+            res.songParts.addAll(newSpts);
             res.mapTsLastRhythm = new HashMap<>(mapTsLastRhythm);
+
         } finally
         {
             lock.readLock().unlock();
@@ -184,10 +177,6 @@ public class SongStructureImpl implements SongStructure, Serializable
     /**
      * @return A copy of the list of SongParts ordered according to their getStartBarIndex().
      */
-    @SuppressWarnings(
-            {
-                "unchecked"
-            })
     @Override
     public List<SongPart> getSongParts()
     {
@@ -261,29 +250,25 @@ public class SongStructureImpl implements SongStructure, Serializable
     }
 
     @Override
-    public SongPart createSongPart(Rhythm r, String name, int startBarIndex, int nbBars, CLI_Section parentSection, boolean reusePrevParamValues)
+    public SongPart createSongPart(Rhythm r, String name, int startBarIndex, CLI_Section parentSection, boolean reusePrevParamValues)
     {
-        if (r == null || startBarIndex < 0 || nbBars < 0 || name == null)
-        {
-            throw new IllegalArgumentException("r=" + r + " name=" + name
-                    + " startBarIndex=" + startBarIndex + " nbBars=" + nbBars
-                    + " parentSection=" + parentSection + " reusePrevParamValues=" + reusePrevParamValues);
-        }
+        Objects.requireNonNull(r);
+        Objects.requireNonNull(name);
+        Objects.requireNonNull(parentSection);
+        Preconditions.checkArgument(r.getTimeSignature() == parentSection.getData().getTimeSignature(), "r=%s parentSection=%s", r, parentSection);
+        Preconditions.checkArgument(startBarIndex >= 0, "name=%s startBarIndex=%s", name, startBarIndex);
 
         SongPartImpl spt;
-
+        int nbBars = parentCls.getBarRange(parentSection).size();
         if (startBarIndex > 0 && reusePrevParamValues)
         {
             // New song part which reuse parameters from previous song part
             SongPart prevSpt = getSongPart(startBarIndex - 1);
             spt = (SongPartImpl) prevSpt.getCopy(r, startBarIndex, nbBars, parentSection);
-
         } else
         {
             // New song part with default RP values
             spt = new SongPartImpl(r, startBarIndex, nbBars, parentSection);
-            spt.setContainer(this);
-
         }
 
         spt.setName(name);
@@ -374,8 +359,7 @@ public class SongStructureImpl implements SongStructure, Serializable
         performAPImethodThrowing(operation);        // throws UnsupportedEditException
 
 
-        // Make sure all AdaptedRhythms for the song rhythms are generated in the database so that user can 
-        // access them if he wants too
+        // Make sure all AdaptedRhythms for the song’s rhythms are generated in the database so that the user can access them if needed.
         generateAllAdaptedRhythms();
     }
 
@@ -415,6 +399,10 @@ public class SongStructureImpl implements SongStructure, Serializable
                     {
                         songParts = new ArrayList<>(oldSongParts);
                         mapTsLastRhythm = new HashMap<>(oldMapTsRhythm);
+                        for (SongPart spt : spts)
+                        {
+                            ((SongPartImpl) spt).setContainer(SongStructureImpl.this);
+                        }
                         updateStartBarIndexes();
 
                         var event = new SptRemovedEvent(SongStructureImpl.this, spts);
@@ -431,6 +419,10 @@ public class SongStructureImpl implements SongStructure, Serializable
                     {
                         songParts = new ArrayList<>(newSongParts);
                         mapTsLastRhythm = new HashMap<>(newMapTsRhythm);
+                        for (SongPart spt : spts)
+                        {
+                            ((SongPartImpl) spt).setContainer(null);
+                        }
                         updateStartBarIndexes();
 
                         var event = new SptRemovedEvent(SongStructureImpl.this, spts);
@@ -541,59 +533,41 @@ public class SongStructureImpl implements SongStructure, Serializable
         }
     }
 
-    /**
-     * We need a method that works with a list of SongParts because replacing a single spt at a time may cause problems when there is an
-     * UnsupportedEditException.
-     * <p>
-     * Example: We have spt1=rhythm0, spt2=rhythm0, spt3=rhythm1. There are enough Midi channels for both rhythms.<br>
-     * We want to change rhythm of both spt1 and spt2. If we do one spt at a time, after the first replacement on spt0 we'll have 3 rhythms and possibly our
-     * listeners will trigger an UnsupportedEditException (if not enough Midi channels), though there should be no problem since we want to change both spt1 AND
-     * spt2 !
-     *
-     * @param oldSpts
-     * @param newSpts
-     * @throws UnsupportedEditException The exception will be thrown before any change is done.
-     */
+
     @Override
-    public void replaceSongParts(final List<SongPart> oldSpts, final List<SongPart> newSpts) throws UnsupportedEditException
+    public List<SongPart> setSongPartsRhythm(final List<SongPart> oldSpts, final Rhythm r) throws UnsupportedEditException
     {
         Objects.requireNonNull(oldSpts);
-        Objects.requireNonNull(newSpts);
-        Preconditions.checkArgument(oldSpts.size() == newSpts.size(), "oldSpts=%s, newSpts=%s", oldSpts, newSpts);
+        Objects.requireNonNull(r);
 
-
-        LOGGER.log(Level.FINE, "replaceSongParts() -- oldSpts=={0} newSpts={1}", new Object[]
+        LOGGER.log(Level.FINE, "setSongPartsRhythm() -- oldSpts=={0} r={1}", new Object[]
         {
-            oldSpts.toString(), newSpts.toString()
+            oldSpts.toString(), r
         });
+
+        if (oldSpts.isEmpty())
+        {
+            return Collections.emptyList();
+        }
 
         ThrowingSupplier<OperationResults, UnsupportedEditException> operation = () -> 
         {
             // Preconditions
-            for (int i = 0; i < oldSpts.size(); i++)
-            {
-                SongPart oldSpt = oldSpts.get(i);
-                SongPart newSpt = newSpts.get(i);
-                if (!songParts.contains(oldSpt) || ((oldSpt != newSpt) && songParts.contains(newSpt))
-                        || oldSpt.getStartBarIndex() != newSpt.getStartBarIndex()
-                        || oldSpt.getNbBars() != newSpt.getNbBars())
-                {
-                    throw new IllegalArgumentException("this=" + this + " oldSpts=" + oldSpts + " newSpts=" + newSpts);
-                }
-            }
-            if (oldSpts.equals(newSpts))
-            {
-                return new OperationResults(null, null, Boolean.FALSE);
-            }
+            Preconditions.checkArgument(songParts.containsAll(oldSpts), "oldSpts=%s this=%s", oldSpts, this);
+
+
+            // Create the replacing SongParts
+            final var newSpts = oldSpts.stream()
+                    .map(spt -> spt.getCopy(r, spt.getStartBarIndex(), spt.getNbBars(), spt.getParentSection()))
+                    .toList();
 
 
             // Check for possible veto
-            testChangeEventForVeto(new SptReplacedEvent(this, oldSpts, newSpts));           // throws UnsupportedEditException  
+            testChangeEventForVeto(new SptRhythmChanged(this, r, oldSpts, newSpts));           // throws UnsupportedEditException  
 
 
+            final List<SongPart> oldSongParts = new ArrayList<>(songParts);
             final Map<TimeSignature, Rhythm> oldMapTsRhythm = new HashMap<>(mapTsLastRhythm);
-            final ArrayList<SongPart> oldSongParts = new ArrayList<>(songParts);
-            final ArrayList<SongStructure> newSptsOldContainer = new ArrayList<>();
 
 
             // Update model
@@ -601,43 +575,28 @@ public class SongStructureImpl implements SongStructure, Serializable
             {
                 SongPart oldSpt = oldSpts.get(i);
                 SongPart newSpt = newSpts.get(i);
-                Preconditions.checkArgument(newSpt instanceof SongPartImpl, "newSpt=%s", newSpt);
-
-                newSptsOldContainer.add(newSpt.getContainer());
-
                 int index = songParts.indexOf(oldSpt);
                 songParts.set(index, newSpt);
-                ((SongPartImpl) newSpt).setContainer(this);
-
-                Rhythm r = newSpt.getRhythm();
-                TimeSignature ts = r.getTimeSignature();
-                mapTsLastRhythm.put(ts, r);
             }
+            mapTsLastRhythm.put(r.getTimeSignature(), r);
+
 
             final ArrayList<SongPart> newSongParts = new ArrayList<>(songParts);
             final Map<TimeSignature, Rhythm> newMapTsRhythm = new HashMap<>(mapTsLastRhythm);
 
-            UndoableEdit edit = new SimpleEdit("Replace SongParts")
+            UndoableEdit edit = new SimpleEdit("Set SongParts rhythm")
             {
                 @Override
                 public void undoBody()
                 {
-                    LOGGER.log(Level.FINER, "ReplaceSongParts.undoBody() songParts={0}", songParts);
+                    LOGGER.log(Level.FINER, "setSongPartsRhythm.undoBody() songParts={0}", songParts);
 
                     performAPImethodUndoRedo(() -> 
                     {
                         songParts = new ArrayList<>(oldSongParts);
                         mapTsLastRhythm = new HashMap<>(oldMapTsRhythm);
 
-                        for (int i = 0; i < newSpts.size(); i++)
-                        {
-                            var newSpt = newSpts.get(i);
-                            var oldSpt = oldSpts.get(i);
-                            SongStructure sgs = newSptsOldContainer.get(i);
-                            ((SongPartImpl) newSpt).setContainer(sgs);
-                        }
-
-                        var event = new SptReplacedEvent(SongStructureImpl.this, oldSpts, newSpts);
+                        var event = new SptRhythmChanged(SongStructureImpl.this, r, oldSpts, newSpts);
                         event.setIsUndo();
                         return event;
                     });
@@ -646,33 +605,28 @@ public class SongStructureImpl implements SongStructure, Serializable
                 @Override
                 public void redoBody()
                 {
-                    LOGGER.log(Level.FINER, "ReplaceSongParts.redoBody() songParts={0}", songParts);
+                    LOGGER.log(Level.FINER, "setSongPartsRhythm.redoBody() songParts={0}", songParts);
 
                     performAPImethodUndoRedo(() -> 
                     {
                         songParts = new ArrayList<>(newSongParts);
                         mapTsLastRhythm = new HashMap<>(newMapTsRhythm);
 
-                        for (int i = 0; i < newSpts.size(); i++)
-                        {
-                            var newSpt = newSpts.get(i);
-                            var oldSpt = oldSpts.get(i);
-                            ((SongPartImpl) newSpt).setContainer(SongStructureImpl.this);
-                        }
-
-                        var event = new SptReplacedEvent(SongStructureImpl.this, oldSpts, newSpts);
+                        var event = new SptRhythmChanged(SongStructureImpl.this, r, oldSpts, newSpts);
                         event.setIsRedo();
                         return event;
                     });
                 }
             };
 
-            return new OperationResults(new SptReplacedEvent(SongStructureImpl.this, oldSpts, newSpts), edit, null);
+            return new OperationResults(new SptRhythmChanged(SongStructureImpl.this, r, oldSpts, newSpts), edit, newSpts);
         };
 
-        performAPImethodThrowing(operation);
+        List<SongPart> res = performAPImethodThrowing(operation);
 
         generateAllAdaptedRhythms();
+        
+        return res;
     }
 
 
@@ -957,10 +911,6 @@ public class SongStructureImpl implements SongStructure, Serializable
     @Override
     public Position toPosition(float posInBeats)
     {
-        if (posInBeats < 0)
-        {
-            throw new IllegalArgumentException("posInBeats=" + posInBeats);
-        }
         lock.readLock().lock();
         try
         {
@@ -991,7 +941,7 @@ public class SongStructureImpl implements SongStructure, Serializable
         try
         {
             int size = getSizeInBars();
-            Preconditions.checkArgument(barIndex >= 0 && barIndex < size, "barIndex=%s size=%s", barIndex, size);
+            Preconditions.checkArgument(barIndex >= 0 && barIndex <= size, "barIndex=%s size=%s", barIndex, size);
 
             float posInBeats = 0;
             if (barIndex == getSizeInBars())
@@ -1025,17 +975,14 @@ public class SongStructureImpl implements SongStructure, Serializable
     @Override
     public Position getSptItemPosition(SongPart spt, ChordLeadSheetItem<?> clsItem)
     {
-        if (parentCls == null)
+        CLI_Section parentSection = spt.getParentSection();
+        if (parentSection == null || !parentCls.getItems(parentSection, clsItem.getClass()).contains(clsItem))
         {
-            throw new IllegalStateException("parentCls is null. spt=" + spt + " clsItem=" + clsItem);
+            throw new IllegalArgumentException("clsItem=" + clsItem + " not found in parent section items. section=" + parentSection + ", spt=" + spt);
         }
-        CLI_Section section = spt.getParentSection();
-        if (!parentCls.getItems(spt.getParentSection(), clsItem.getClass()).contains(clsItem))
-        {
-            throw new IllegalArgumentException("clsItem=" + clsItem + " not found in parent section items. section=" + section + ", spt=" + spt);
-        }
+
         Position pos = clsItem.getPosition();
-        int relBar = pos.getBar() - section.getPosition().getBar();
+        int relBar = pos.getBar() - parentSection.getPosition().getBar();
         Position res = new Position(spt.getStartBarIndex() + relBar, pos.getBeat());
         return res;
     }
@@ -1096,19 +1043,31 @@ public class SongStructureImpl implements SongStructure, Serializable
     // -------------------------------------------------------------------------------------------
     // Private methods
     // -------------------------------------------------------------------------------------------
-
     /**
-     * Make sure all possible AdaptedRhythms are generated if this is a multi-time signature song.
+     * Ensure that all required AdaptedRhythms are generated when the song uses multiple time signatures.
      */
     private void generateAllAdaptedRhythms()
     {
         RhythmDatabase rdb = RhythmDatabase.getDefault();
-        Set<TimeSignature> timeSignatures = getUniqueRhythms(false, true) // Include AdaptedRhythms to get all time signatures
-                .stream()
-                .map(r -> r.getTimeSignature())
-                .collect(Collectors.toSet());
+        Set<TimeSignature> timeSignatures;
+        List<Rhythm> uniqueRhythms;
 
-        for (Rhythm r : getUniqueRhythms(true, false))         // No adapted rhythms
+
+        lock.readLock().lock();
+        try
+        {
+            timeSignatures = getUniqueRhythms(false, true) // Include AdaptedRhythms to get all time signatures
+                    .stream()
+                    .map(r -> r.getTimeSignature())
+                    .collect(Collectors.toSet());
+            uniqueRhythms = getUniqueRhythms(true, false);  // Exclude AdaptedRhythms
+        } finally
+        {
+            lock.readLock().unlock();
+        }
+
+
+        for (Rhythm r : uniqueRhythms)         // No adapted rhythms
         {
             for (TimeSignature ts : timeSignatures)
             {
@@ -1132,6 +1091,7 @@ public class SongStructureImpl implements SongStructure, Serializable
     {
         LOGGER.log(Level.FINE, "addSongPartInternal() -- spt={0}", spt);
         Objects.requireNonNull(spt);
+        Preconditions.checkArgument(spt.getParentSection() != null, "spt=%s", spt);
         Preconditions.checkArgument(spt instanceof SongPartImpl, "spt=%s class=%s", spt, spt.getClass());
         Preconditions.checkArgument(!songParts.contains(spt), "spt=%s", spt);
         Preconditions.checkState(lock.isWriteLockedByCurrentThread(), "write lock required");
@@ -1177,13 +1137,16 @@ public class SongStructureImpl implements SongStructure, Serializable
         {
             throw new IllegalArgumentException("Can not remove absent SongPart: this=" + this + " spt=" + spt + " songParts=" + songParts);
         }
+        ((SongPartImpl) spt).setContainer(null);
         updateStartBarIndexes();
+
+
     }
 
 
     private int getSptLastBarIndex(int sptIndex)
     {
-        Preconditions.checkElementIndex(0, songParts.size(), "sptIndex");
+        Preconditions.checkElementIndex(sptIndex, songParts.size(), "sptIndex");
         SongPart spt = songParts.get(sptIndex);
         return spt.getStartBarIndex() + spt.getNbBars() - 1;
     }
@@ -1279,10 +1242,6 @@ public class SongStructureImpl implements SongStructure, Serializable
             results = operation.get();
             assert results != null;
 
-            if (results.undoableEdit() != null)
-            {
-                fireUndoableEditHappened(results.undoableEdit());
-            }
             if (results.sgsChangeEvent() != null)
             {
                 fireSynchronizedNonVetoableChangeEvent(results.sgsChangeEvent());
@@ -1292,9 +1251,14 @@ public class SongStructureImpl implements SongStructure, Serializable
             lock.writeLock().unlock();
         }
 
+        assert results != null;   // If null a runtime exception must have been thrown before
         if (results.sgsChangeEvent() != null)
         {
             fireNonVetoableChangeEvent(results.sgsChangeEvent());
+        }
+        if (results.undoableEdit() != null)
+        {
+            fireUndoableEditHappened(results.undoableEdit());
         }
 
         @SuppressWarnings("unchecked")
@@ -1321,10 +1285,6 @@ public class SongStructureImpl implements SongStructure, Serializable
             results = operation.get();
             assert results != null;
 
-            if (results.undoableEdit() != null)
-            {
-                fireUndoableEditHappened(results.undoableEdit());
-            }
             if (results.sgsChangeEvent() != null)
             {
                 fireSynchronizedNonVetoableChangeEvent(results.sgsChangeEvent());
@@ -1334,10 +1294,16 @@ public class SongStructureImpl implements SongStructure, Serializable
             lock.writeLock().unlock();
         }
 
+        assert results != null;   // If null a runtime exception must have been thrown before
         if (results.sgsChangeEvent() != null)
         {
             fireNonVetoableChangeEvent(results.sgsChangeEvent());
         }
+        if (results.undoableEdit() != null)
+        {
+            fireUndoableEditHappened(results.undoableEdit());
+        }
+
 
         @SuppressWarnings("unchecked")
         R returnValue = (R) results.returnValue();
@@ -1434,7 +1400,7 @@ public class SongStructureImpl implements SongStructure, Serializable
      * Need to restore each item's container. Allow to be independent of future chordleadsheet internal data structure changes.
      * <p>
      * spVERSION 2 (JJazzLab 4.1.0) introduces several aliases to get rid of hard-coded qualified class names (XStreamConfig class introduction).<br>
-     * spVERSION 3 spKeepUpdated no used anymore
+     * spVERSION 3 spKeepUpdated is no longer used
      */
     private static class SerializationProxy implements Serializable
     {

@@ -119,10 +119,7 @@ public class AppendSpt extends AbstractAction
 
             // Choose rhythm
             Rhythm r = sgs.getRecommendedRhythm(parentSection.getData().getTimeSignature(), startBarIndex);
-
-
-            int nbBars = cls.getBarRange(parentSection).size();
-            SongPart newSpt = sgs.createSongPart(r, parentSection.getData().getName(), startBarIndex, nbBars, parentSection, true);
+            SongPart newSpt = sgs.createSongPart(r, parentSection.getData().getName(), startBarIndex, parentSection, true);
 
 
             JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(sgs);

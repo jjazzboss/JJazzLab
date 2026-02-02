@@ -61,7 +61,7 @@ import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.jjazz.songstructure.api.event.SptAddedEvent;
-import org.jjazz.songstructure.api.event.SptReplacedEvent;
+import org.jjazz.songstructure.api.event.SptRhythmChanged;
 import org.openide.util.Exceptions;
 
 /**
@@ -151,7 +151,7 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
 
         switch (evt)
         {
-            case SptReplacedEvent sre ->
+            case SptRhythmChanged sre ->
             {
                 processRhythmChanged(sre);
             }
@@ -409,7 +409,7 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
 
         if (authorizeOnly)
         {
-            var event = new SptReplacedEvent(songStructure, oldSpts, newSpts);
+            var event = new SptRhythmChanged(songStructure, oldSpts, newSpts);
             songStructure.testChangeEventForVeto(event);          // throws UnsupportedEditException
         } else
         {
@@ -456,7 +456,7 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
 
         if (authorizeOnly)
         {
-            var event = new SptReplacedEvent(songStructure, oldSpts, oldSpts);
+            var event = new SptRhythmChanged(songStructure, oldSpts, oldSpts);
             songStructure.testChangeEventForVeto(event);          // Possible exception here     
         } else
         {
@@ -482,7 +482,7 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
      *
      * @param sre
      */
-    private void processRhythmChanged(SptReplacedEvent sre)
+    private void processRhythmChanged(SptRhythmChanged sre)
     {
         Set<CLI_Section> processedSections = new HashSet<>();
 
@@ -605,7 +605,6 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
                 r,
                 newSection.getData().getName(),
                 sptBarIndex,
-                newSectionSize,
                 newSection,
                 true);
         return spt;

@@ -34,14 +34,14 @@ import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythm.api.RhythmVoice;
 
 /**
- * An adapted rhythm for {@link RhythmMocks}.
+ * An adapted rhythm for {@link RhythmMock}.
  */
-public class AdaptedRhythmMocks implements AdaptedRhythm
+public class AdaptedRhythmMock implements AdaptedRhythm
 {
-    private final RhythmMocks sourceRhythm;
+    private final RhythmMock sourceRhythm;
     private final TimeSignature timeSignature;
 
-    public AdaptedRhythmMocks(RhythmMocks r, TimeSignature ts)
+    public AdaptedRhythmMock(RhythmMock r, TimeSignature ts)
     {
         if (r.getTimeSignature().equals(ts))
         {

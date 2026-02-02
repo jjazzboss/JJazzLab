@@ -79,7 +79,7 @@ import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.jjazz.songstructure.api.event.SptAddedEvent;
 import org.jjazz.songstructure.api.event.SptRemovedEvent;
-import org.jjazz.songstructure.api.event.SptReplacedEvent;
+import org.jjazz.songstructure.api.event.SptRhythmChanged;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongCreationException;
 import org.jjazz.songstructure.api.SongStructure;
@@ -1509,10 +1509,10 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
                     mixRhythms.remove(r);
                 }
             }
-        } else if (e instanceof SptReplacedEvent)
+        } else if (e instanceof SptRhythmChanged)
         {
 
-            SptReplacedEvent e2 = (SptReplacedEvent) e;
+            SptRhythmChanged e2 = (SptRhythmChanged) e;
             List<SongPart> oldSpts = e2.getSongParts();
             List<SongPart> newSpts = e2.getNewSpts();
 
@@ -2068,7 +2068,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
             spts = song.getSongStructure().getSongParts();
             spts.addAll(sae.getSongParts());
 
-        } else if (e instanceof SptReplacedEvent sre)
+        } else if (e instanceof SptRhythmChanged sre)
         {
             List<SongPart> oldSpts = sre.getSongParts();
             List<SongPart> newSpts = sre.getNewSpts();

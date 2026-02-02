@@ -49,7 +49,8 @@ import org.jjazz.utilities.api.ResUtil;
         })
 public class RemoveSpt extends SS_ContextAction
 {
-        public static final KeyStroke KEYSTROKE = getGenericControlKeyStroke(KeyEvent.VK_C);
+
+    public static final KeyStroke KEYSTROKE = getGenericControlKeyStroke(KeyEvent.VK_C);
 
     @Override
     protected void configureAction()
@@ -64,17 +65,10 @@ public class RemoveSpt extends SS_ContextAction
     {
         SongStructure sgs = selection.getModel();
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(sgs);
-        um.startCEdit(getActionName());;
-        try
-        {
-            sgs.removeSongParts(selection.getSelectedSongParts());
-        } catch (UnsupportedEditException ex)
-        {
-            String msg = ResUtil.getString(getClass(), "ERR_CantRemoveSongParts");
-            msg += "\n" + ex.getLocalizedMessage();
-            um.abortCEdit(getActionName(), msg);
-            return;
-        }
+        um.startCEdit(getActionName());
+
+        sgs.removeSongParts(selection.getSelectedSongParts());
+
         um.endCEdit(getActionName());
     }
 

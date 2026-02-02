@@ -119,15 +119,9 @@ public final class TesAllRhythmsGenerateSequence implements ActionListener
                     continue;
                 }
                 var oldSpts = sgs.getSongParts();
-                var newSpts = new ArrayList<SongPart>();
-                for (SongPart spt : oldSpts)
-                {
-                    SongPart newSpt = spt.getCopy(r, spt.getStartBarIndex(), spt.getNbBars(), spt.getParentSection());
-                    newSpts.add(newSpt);
-                }
                 try
                 {
-                    sgs.replaceSongParts(oldSpts, newSpts);
+                    sgs.setSongPartsRhythm(oldSpts, r);
 
                     // Build the sequence
                     try

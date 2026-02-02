@@ -679,7 +679,7 @@ public class CompositeMusicGenerator implements MusicGenerator
             // Need to change the SongStructure, create a getCopy context
             res = new SongContext(context, br).deepClone(false, true);   // setMidiMixSong=true because MidiMix must update itself when we will later replace the rhythm
 
-            
+
             SongStructure sgsCopy = res.getSong().getSongStructure();
             var spts = toOrderedSongPartList(mapSptRpVariationValue.keySet());
 
@@ -688,12 +688,10 @@ public class CompositeMusicGenerator implements MusicGenerator
             var oldSpts = spts.stream()
                     .map(spt -> sgsCopy.getSongPart(spt.getStartBarIndex()))
                     .toList();
-            var newSpts = oldSpts.stream()
-                    .map(spt -> spt.getCopy(delegateRhythm, spt.getStartBarIndex(), spt.getNbBars(), spt.getParentSection()))
-                    .toList();
+            List<SongPart> newSpts;
             try
             {
-                sgsCopy.replaceSongParts(oldSpts, newSpts);     // exception possible if not enough Midi channel
+                newSpts = sgsCopy.setSongPartsRhythm(oldSpts, delegateRhythm);     // exception possible if not enough Midi channel
             } catch (UnsupportedEditException ex)
             {
                 LOGGER.log(Level.WARNING, "createDelegateContext() Can not use delegate rhythm. context={0}, baseRhythm={1}, delegateRhythm={2}. ex={3}",
@@ -705,6 +703,7 @@ public class CompositeMusicGenerator implements MusicGenerator
                 throw new MusicGenerationException(msg);
             }
 
+            
             // Possibly update rpVariationValue of some SongParts
             if (delegateRhythmRpVariation != null)
             {

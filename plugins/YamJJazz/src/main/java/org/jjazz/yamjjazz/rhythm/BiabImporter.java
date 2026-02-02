@@ -151,14 +151,9 @@ public class BiabImporter implements SongImporter
         // Replace rhythm on all SongParts
         SongStructure ss = song.getSongStructure();
         var oldSpts = ss.getSongParts();
-        var newSpts = new ArrayList<SongPart>();
-        for (SongPart spt : ss.getSongParts())
-        {
-            newSpts.add(spt.getCopy(r, spt.getStartBarIndex(), spt.getNbBars(), spt.getParentSection()));
-        }
         try
         {
-            ss.replaceSongParts(oldSpts, newSpts);
+            ss.setSongPartsRhythm(oldSpts, r);
         } catch (UnsupportedEditException ex)
         {
             // Should never be here, it's not a multi rhythm

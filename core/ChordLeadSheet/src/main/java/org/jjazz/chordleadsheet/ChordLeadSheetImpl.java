@@ -1691,10 +1691,6 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             results = operation.get();
             assert results != null;
 
-            if (results.undoableEdit() != null)
-            {
-                fireUndoableEditHappened(results.undoableEdit());
-            }
             if (results.clsChangeEvent() != null)
             {
                 fireSynchronizedNonVetoableChangeEvent(results.clsChangeEvent());
@@ -1704,9 +1700,14 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             lock.writeLock().unlock();
         }
 
+        assert results != null;   // If null a runtime exception must have been thrown before
         if (results.clsChangeEvent() != null)
         {
             fireNonVetoableChangeEvent(results.clsChangeEvent());
+        }
+        if (results.undoableEdit() != null)
+        {
+            fireUndoableEditHappened(results.undoableEdit());
         }
 
         @SuppressWarnings("unchecked")
@@ -1733,10 +1734,6 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             results = operation.get();           // may throw E
             assert results != null;
 
-            if (results.undoableEdit() != null)
-            {
-                fireUndoableEditHappened(results.undoableEdit());
-            }
             if (results.clsChangeEvent() != null)
             {
                 fireSynchronizedNonVetoableChangeEvent(results.clsChangeEvent());
@@ -1746,9 +1743,14 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             lock.writeLock().unlock();
         }
 
+        assert results != null;   // If null a runtime exception must have been thrown before
         if (results.clsChangeEvent() != null)
         {
             fireNonVetoableChangeEvent(results.clsChangeEvent());
+        }
+        if (results.undoableEdit() != null)
+        {
+            fireUndoableEditHappened(results.undoableEdit());
         }
 
         @SuppressWarnings("unchecked")

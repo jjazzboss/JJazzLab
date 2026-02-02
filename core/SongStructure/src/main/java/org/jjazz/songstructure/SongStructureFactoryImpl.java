@@ -24,6 +24,7 @@ package org.jjazz.songstructure;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.TimeSignature;
@@ -40,7 +41,7 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 
 @ServiceProvider(service = SongStructureFactory.class)
-public class SongStructureFactoryImpl extends SongStructureFactory
+public class SongStructureFactoryImpl implements SongStructureFactory
 {
 
     static private SongStructureFactoryImpl INSTANCE;
@@ -61,10 +62,7 @@ public class SongStructureFactoryImpl extends SongStructureFactory
     @Override
     public SongStructure createSgs(ChordLeadSheet cls) throws UnsupportedEditException
     {
-        if (cls == null)
-        {
-            throw new IllegalArgumentException("cls=" + cls);   
-        }
+        Objects.requireNonNull(cls);
 
         SongStructureImpl sgs = new SongStructureImpl(cls);
 
@@ -94,7 +92,6 @@ public class SongStructureFactoryImpl extends SongStructureFactory
                     r,
                     section.getData().getName(),
                     sptBarIndex,
-                    cls.getBarRange(section).size(),
                     section,
                     false);
             newSpts.add(spt);
@@ -106,41 +103,4 @@ public class SongStructureFactoryImpl extends SongStructureFactory
         return sgs;
     }
 
-    @Override
-    public SongStructure createSimpleSgs()
-    {
-        SongStructureImpl sgs = new SongStructureImpl();
-        RhythmDatabase rdb = RhythmDatabase.getDefault();
-        Rhythm r = null;
-        RhythmInfo ri = null;
-        try
-        {
-            ri = rdb.getDefaultRhythm(TimeSignature.FOUR_FOUR);
-            r = rdb.getRhythmInstance(ri);
-        } catch (UnavailableRhythmException ex)
-        {
-            // Might happen if file deleted
-            LOGGER.log(Level.WARNING, "createSimpleSgs() Can''t get rhythm instance for {0}. Using stub rhythm instead. ex={1}", new Object[]{ri.name(),
-                ex.getMessage()});   
-            r = rdb.getDefaultStubRhythmInstance(TimeSignature.FOUR_FOUR);  // non null
-        }
-        assert r != null;   
-        SongPart spt = sgs.createSongPart(r, "Name", 0, 8, null, false);
-        try
-        {
-            sgs.addSongParts(Arrays.asList(spt));
-        } catch (UnsupportedEditException ex)
-        {
-            // This should not happen for a simple SGS.
-            throw new IllegalStateException("Unexpected 'UnsupportedEditException'.", ex);   
-        }
-        return sgs;
-    }
-
-    @Override
-    public SongStructure createEmptySgs()
-    {
-        SongStructureImpl sgs = new SongStructureImpl();
-        return sgs;
-    }
 }
