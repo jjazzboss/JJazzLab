@@ -859,8 +859,6 @@ public class SongStructureImplTest
         final AtomicInteger mutationCount = new AtomicInteger(0);
         final AtomicReference<Throwable> readerException = new AtomicReference<>();
         final AtomicReference<Throwable> writerException = new AtomicReference<>();
-        final Rhythm r44 = spt0.getRhythm();
-        final Rhythm r34 = spt1.getRhythm();
 
         // Thread 1: Repeatedly calls getDeepCopy (read operations)
         Thread readerThread = new Thread(() -> 
