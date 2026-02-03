@@ -24,6 +24,7 @@
  */
 package org.jjazz.importers.musicxml;
 
+import com.google.common.base.Preconditions;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.beans.PropertyChangeListener;
@@ -40,7 +41,7 @@ import org.jjazz.utilities.api.StringProperties;
 record NavItem(NavigationMark mark, String value, List<Integer> timeOnly)
         {
 
-    public NavItem  
+    public NavItem
     {
         Objects.requireNonNull(mark);
         Objects.requireNonNull(value);
@@ -51,6 +52,7 @@ record NavItem(NavigationMark mark, String value, List<Integer> timeOnly)
 
 public class CLI_NavigationItem implements ChordLeadSheetItem<NavItem>, WritableItem<NavItem>
 {
+
     public static final int POSITION_ORDER_CODA_SEGNO = -900;
     public static final int POSITION_ORDER_FINE = 2200;
     public static final int POSITION_ORDER_DS_DC_TOCODA = 2300;
@@ -107,6 +109,21 @@ public class CLI_NavigationItem implements ChordLeadSheetItem<NavItem>, Writable
         return new StringProperties();
     }
 
+   @Override
+    public int compareToSamePosition(ChordLeadSheetItem<?> other)
+    {
+        Objects.requireNonNull(other);
+        Preconditions.checkArgument(other instanceof CLI_NavigationItem && !equals(other), "this=%s other=%s", other);
+        Preconditions.checkArgument(getPosition().equals(other.getPosition()) && getPositionOrder() == other.getPositionOrder(), "this=%s other=%s", other);
+        
+        CLI_NavigationItem otherCliNav = (CLI_NavigationItem) other;
+        NavItem d1 = getData();
+        NavItem d2 = otherCliNav.getData();
+
+        var res = d1.toString().compareTo(d2.toString());
+        return res;
+    }
+
     @Override
     public void addPropertyChangeListener(PropertyChangeListener listener)
     {
@@ -160,13 +177,18 @@ public class CLI_NavigationItem implements ChordLeadSheetItem<NavItem>, Writable
     {
         var res = switch (data.mark())
         {
-            case CODA, SEGNO -> POSITION_ORDER_CODA_SEGNO;
-            case TOCODA, DALSEGNO, DALSEGNO_ALCODA, DALSEGNO_ALFINE, DACAPO, DACAPO_ALCODA, DACAPO_ALFINE -> POSITION_ORDER_DS_DC_TOCODA;
-            case FINE -> POSITION_ORDER_FINE;
-            default -> throw new AssertionError(data.mark().name());            
+            case CODA, SEGNO ->
+                POSITION_ORDER_CODA_SEGNO;
+            case TOCODA, DALSEGNO, DALSEGNO_ALCODA, DALSEGNO_ALFINE, DACAPO, DACAPO_ALCODA, DACAPO_ALFINE ->
+                POSITION_ORDER_DS_DC_TOCODA;
+            case FINE ->
+                POSITION_ORDER_FINE;
+            default -> throw new AssertionError(data.mark().name());
         };
-        
+
         return res;
-            
+
     }
+
+
 }

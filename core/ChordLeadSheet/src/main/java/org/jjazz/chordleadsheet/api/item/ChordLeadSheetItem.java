@@ -28,7 +28,6 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.util.Objects;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.harmony.api.Position;
@@ -39,9 +38,11 @@ import org.jjazz.utilities.api.StringProperties;
  * <p>
  * PropertyChangeEvents are fired when an attribute is modified.
  * <p>
- * This is a mutable class and subclasses should define equals() and hashCode(), preferably reusing the static helper method ChordLeadSheetItem.equals() static
- * method. If you want to use ChordLeadSheetItems as Map keys you should use an IdentityHashMap, unless you are sure ChordLeadSheetItems won't mutate. Same for
- * a Set, you should use Guava Sets.newIdentityHashSet().
+ * This is a mutable class. Subclasses must define equals() and hashCode() using the static helper method ChordLeadSheetItem.equals() which is consistent with
+ * the generic compareTo().
+ * <p>
+ * If you want to use ChordLeadSheetItems as Map keys you should use an IdentityHashMap, unless you are sure ChordLeadSheetItems won't mutate. Same for a Set,
+ * you should use Guava Sets.newIdentityHashSet().
  *
  * @param <T>
  */
@@ -61,7 +62,6 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
      */
     public static String PROP_ITEM_POSITION = "ItemPosition";
     static final Logger LOGGER = Logger.getLogger(ChordLeadSheetItem.class.getSimpleName());
-
 
     /**
      * Get the ChordLeadSheet this object belongs to.
@@ -120,14 +120,11 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
      */
     StringProperties getClientProperties();
 
-
     /**
-     * Default implementation compares items only using position then positionOrder if required.
-     * <p>
+     * Generic implementation consistent with {@link #equals(org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem, java.lang.Object).
      *
      * @param other
-     * @return 0 only if this.equals(other), so that comparison is consistent with equals().
-     * @see #getPositionOrder()
+     * @return @see #compareToSamePosition(org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem)
      */
     @Override
     default int compareTo(ChordLeadSheetItem<?> other)
@@ -143,17 +140,28 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
             res = Integer.compare(getPositionOrder(), other.getPositionOrder());
             if (res == 0)
             {
-                // e.g. for non-isBarSingleItem() item like CLI_ChordSymbol
-                res = Long.compare(System.identityHashCode(this), System.identityHashCode(other));
-                LOGGER.log(Level.FINE, "compareTo() Using hashcode to compare this={0} and other={1} -> res={2}", new Object[]
-                {
-                    this, other, res
-                });
+                // same position, same position order => both items should be instance of the same ChordLeadSheetItem subclass
+                res = compareToSamePosition(other);
             }
         }
-        assert res != 0;        // For consistency with equals(), important because ChordLeadSheetItems are used in order-based collections
+        assert res != 0;        // For consistency with equals(), VERY important because ChordLeadSheetItems are used in order-based collections such as TreeSet
         return res;
     }
+
+    /**
+     * Compare this ChordLeadSheetItem with another ChordLeadSheetItem having the same position and same positionOrder.
+     * <p>
+     * This method is called by ChordLeadSheetItem.compareTo() when the 2 items meet the following criteria: <br>
+     * - this.equals(other)==false<br>
+     * - same position<br>
+     * - same positionOrder<br>
+     * <p>
+     *
+     * @param other
+     * @return
+     * @see #compareTo(org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem)
+     */
+    int compareToSamePosition(ChordLeadSheetItem<?> other);
 
     void addPropertyChangeListener(PropertyChangeListener listener);
 
@@ -349,6 +357,12 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
 
         @Override
         public StringProperties getClientProperties()
+        {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
+
+        @Override
+        public int compareToSamePosition(ChordLeadSheetItem<?> other)
         {
             throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
         }

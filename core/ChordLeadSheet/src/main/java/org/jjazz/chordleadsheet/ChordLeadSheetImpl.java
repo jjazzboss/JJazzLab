@@ -67,7 +67,7 @@ import org.openide.util.lookup.ServiceProvider;
 /**
  * ChordLeadSheet implementation.
  * <p>
- * This implementation is thread-safe: <br>
+ * This implementation is thread-safe in a scenario with 1 writing thread and several reading threads : <br>
  * - Reads and writes are serialized using ReentrantReadWriteLock.<br>
  * - Item implementations cannot be modified by API clients (WritableItem interface is module-private).<br>
  * <p>
@@ -275,26 +275,24 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
         Supplier<OperationResults> operation = () -> 
         {
-            if (items.contains(item))
+            final ChordLeadSheet oldContainer = item.getContainer();
+            final Position oldPos = item.getPosition();
+            int barIndex = oldPos.getBar();
+            Preconditions.checkArgument(barIndex < getSizeInBars(), "oldPos=%s size=%s", oldPos, size);
+            final Position newAdjustedPos = oldPos.getAdjusted(getSection(barIndex).getData().getTimeSignature());
+
+
+            // Can't add two items at the same location
+            if (items.contains(item.getCopy(null, newAdjustedPos)))
             {
                 LOGGER.log(Level.FINE, "addItem() item already present. item={0}", item);
                 return new OperationResults(null, null, Boolean.FALSE);
             }
 
-            final Position oldPos = item.getPosition();
-            int barIndex = oldPos.getBar();
-            if (barIndex >= getSizeInBars())
-            {
-                throw new IllegalArgumentException("item=" + item + " size=" + getSizeInBars());
-            }
-
-
-            final ChordLeadSheet oldContainer = item.getContainer();
-
 
             // Update model
             final WritableItem<?> wItem = (WritableItem<?>) item;
-            final Position newAdjustedPos = oldPos.getAdjusted(getSection(barIndex).getData().getTimeSignature());
+
             wItem.setPosition(newAdjustedPos);
             addItemChecked(wItem);
 
@@ -389,14 +387,13 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
             final TimeSignature newTs = cliSection.getData().getTimeSignature();
             final List<ItemMoved> adjustments = new ArrayList<>();
-            final List<ChordLeadSheetItem> adjustedItems = new ArrayList<>();
             if (newTs.getNbNaturalBeats() < oldTs.getNbNaturalBeats())
             {
                 var iitems = getItems(cliSection, ChordLeadSheetItem.class, cli -> !newTs.checkBeat(cli.getPosition().getBeat()));
                 adjustments.addAll(adjustItemsToTimeSignature(oldTs, newTs, iitems));
-                adjustedItems.addAll(adjustments.stream().map(ItemMoved::item).toList());
             }
-
+            final List<ChordLeadSheetItem> adjustedItems = adjustments.stream().map(ItemMoved::item).toList();
+            
 
             // Create events
             UndoableEdit edit = new SimpleEdit("Add Section " + wSection)
@@ -557,8 +554,10 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
         Supplier<OperationResults> operation = () -> 
         {
+            // Preconditions and simple cases
             Preconditions.checkArgument(newBarIndex < size, "newBarIndex=%s size=%s", newBarIndex, size);
             Preconditions.checkArgument(items.contains(cliSection), "cliSection=%s items=%s", cliSection, items);
+
 
             final int oldBarIndex = cliSection.getPosition().getBar();
             if (newBarIndex == oldBarIndex)
@@ -566,8 +565,9 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 return new OperationResults(null, null, null);
             }
 
-            CLI_Section sectionAtNewPos = getSection(newBarIndex);
-            if (sectionAtNewPos.getPosition().getBar() == newBarIndex)
+            CLI_Section newPosOldSection = getSection(newBarIndex);
+            var newPosOldTs = newPosOldSection.getData().getTimeSignature();
+            if (newPosOldSection.getPosition().getBar() == newBarIndex)
             {
                 throw new IllegalArgumentException("There is already a section at destination bar " + newBarIndex);
             }
@@ -577,19 +577,22 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             changeItemPositionChecked(cliSection, new Position(newBarIndex));
 
 
-            final Set<CLI_Section> impactedSections = new HashSet<>();
-            impactedSections.add(cliSection);
-            impactedSections.add(getSection(oldBarIndex));      // might be also cliSection, hence the Set
+            // Adjust items impacted by possible time signature change
+            CLI_Section oldPosNewSection = getSection(oldBarIndex);
+            var oldPosNewTs = oldPosNewSection.getData().getTimeSignature();
+            var ts = cliSection.getData().getTimeSignature();
             final List<ItemMoved> adjustments = new ArrayList<>();
-            final List<ChordLeadSheetItem> adjustedItems = new ArrayList<>();
-            for (var cliSect : impactedSections)
+            if (ts.getNbNaturalBeats() < newPosOldTs.getNbNaturalBeats())
             {
-                var newTs = cliSect.getData().getTimeSignature();
-                var oldTs = getSection(cliSect.getPosition().getBar() - 1).getData().getTimeSignature();
-                var iitems = getItems(cliSect, ChordLeadSheetItem.class, cli -> !newTs.checkBeat(cli.getPosition().getBeat()));
-                adjustments.addAll(adjustItemsToTimeSignature(oldTs, newTs, iitems));
-                adjustedItems.addAll(adjustments.stream().map(ItemMoved::item).toList());
+                var iitems = getItems(cliSection, ChordLeadSheetItem.class, cli -> !ts.checkBeat(cli.getPosition().getBeat()));
+                adjustments.addAll(adjustItemsToTimeSignature(newPosOldTs, ts, iitems));
             }
+            if (oldPosNewTs.getNbNaturalBeats() < ts.getNbNaturalBeats())
+            {
+                var iitems = getItems(oldPosNewSection, ChordLeadSheetItem.class, cli -> !oldPosNewTs.checkBeat(cli.getPosition().getBeat()));
+                adjustments.addAll(adjustItemsToTimeSignature(ts, oldPosNewTs, iitems));
+            }
+            final List<ChordLeadSheetItem> adjustedItems = adjustments.stream().map(ItemMoved::item).toList();
 
 
             // Events
@@ -1106,6 +1109,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         Preconditions.checkNotNull(cliSection);
         Preconditions.checkNotNull(name);
         Preconditions.checkArgument(cliSection instanceof WritableItem, "cliSection=%s", cliSection);
+        // Preconditions.checkArgument(cliSection.getContainer() == this, "cliSection=%s", cliSection);
 
         if (cliSection.getData().getName().equals(name))
         {
@@ -1198,6 +1202,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
             final Section newData = new Section(oldData.getName(), ts);
 
+            
             // Fire vetoable event (don't need moved items yet)
             var vetoEvent = new SectionChangedEvent(ChordLeadSheetImpl.this, cliSection, oldData, newData, Collections.emptyList());
             fireSynchronizedVetoableChangeEvent(new ClsVetoableChangeEvent(this, vetoEvent));       // throws UnsupportedEditException
@@ -1205,19 +1210,15 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
             // First adjust items if required
             final List<ItemMoved> adjustments;
-            final List<ChordLeadSheetItem<?>> adjustedItems;
             if (ts.getNbNaturalBeats() < oldData.getTimeSignature().getNbNaturalBeats())
             {
                 var iitems = getItems(cliSection, ChordLeadSheetItem.class, cli -> !ts.checkBeat(cli.getPosition().getBeat()));
                 adjustments = adjustItemsToTimeSignature(oldData.getTimeSignature(), ts, iitems);
-                adjustedItems = adjustments.stream()
-                        .map(ItemMoved::item)
-                        .toList();
             } else
             {
                 adjustments = Collections.emptyList();
-                adjustedItems = Collections.emptyList();
             }
+            final List<ChordLeadSheetItem> adjustedItems = adjustments.stream().map(ItemMoved::item).toList();
 
 
             // Update section
@@ -1800,7 +1801,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     /**
      * Helper class to store a moved item.
      */
-    private record ItemMoved(ChordLeadSheetItem<?> item, Position oldPos, Position newPos)
+    private record ItemMoved(ChordLeadSheetItem item, Position oldPos, Position newPos)
             {
 
         ItemMoved

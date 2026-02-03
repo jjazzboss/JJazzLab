@@ -24,10 +24,12 @@
  */
 package org.jjazz.importers.musicxml;
 
+import com.google.common.base.Preconditions;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
+import java.util.Objects;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.chordleadsheet.api.item.WritableItem;
@@ -69,6 +71,21 @@ public class CLI_Repeat implements ChordLeadSheetItem<Repeat>, WritableItem<Repe
     public ChordLeadSheet getContainer()
     {
         return container;
+    }
+
+    @Override
+    public int compareToSamePosition(ChordLeadSheetItem<?> other)
+    {
+        Objects.requireNonNull(other);
+        Preconditions.checkArgument(other instanceof CLI_Repeat && !equals(other), "this=%s other=%s", other);
+        Preconditions.checkArgument(getPosition().equals(other.getPosition()) && getPositionOrder() == other.getPositionOrder(), "this=%s other=%s", other);
+        
+        CLI_Repeat otherRepeat = (CLI_Repeat) other;
+        Repeat d1 = getData();
+        Repeat d2 = otherRepeat.getData();
+
+        var res = d1.toString().compareTo(d2.toString());
+        return res;
     }
 
     @Override

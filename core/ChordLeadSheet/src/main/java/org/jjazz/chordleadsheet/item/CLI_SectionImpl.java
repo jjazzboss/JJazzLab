@@ -22,6 +22,7 @@
  */
 package org.jjazz.chordleadsheet.item;
 
+import com.google.common.base.Preconditions;
 import org.jjazz.chordleadsheet.api.item.WritableItem;
 import com.thoughtworks.xstream.XStream;
 import java.awt.datatransfer.DataFlavor;
@@ -31,14 +32,17 @@ import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.chordleadsheet.api.Section;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
+import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.utilities.api.StringProperties;
 import org.jjazz.xstream.spi.XStreamConfigurator;
@@ -101,6 +105,24 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
             container = cls;
             pcs.firePropertyChange(PROP_CONTAINER, old, container);
         }
+    }
+
+    /**
+     * Provide a consistent way to order CLI_Sections.
+     */
+    @Override
+    public int compareToSamePosition(ChordLeadSheetItem<?> other)
+    {
+        Objects.requireNonNull(other);
+        Preconditions.checkArgument(other instanceof CLI_Section && !equals(other), "this=%s other=%s", other);
+        Preconditions.checkArgument(getPosition().equals(other.getPosition()) && getPositionOrder() == other.getPositionOrder(), "this=%s other=%s", other);
+
+        CLI_Section otherSection = (CLI_Section) other;
+        Section s1 = getData();
+        Section s2 = otherSection.getData();
+
+        var res = s1.toString().compareTo(s2.toString());
+        return res;
     }
 
     @Override

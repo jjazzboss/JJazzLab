@@ -129,12 +129,12 @@ public interface CLI_ChordSymbol extends ChordLeadSheetItem<ExtChordSymbol>
             newPos.setFromString(s.substring(openIndex, closeIndex + 1), defaultPos.getBar(), true);
 
         }
-        
-        
+
+
         String csStr = s.substring(0, openIndex);
         ExtChordSymbol ecs = ExtChordSymbol.get(csStr);
 
-        
+
         // Check scale       
         StandardScaleInstance stdScaleInstance = null;
         if (scaleName != null && !scaleName.isBlank())
@@ -567,6 +567,12 @@ public interface CLI_ChordSymbol extends ChordLeadSheetItem<ExtChordSymbol>
 
         @Override
         public StringProperties getClientProperties()
+        {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
+
+        @Override
+        public int compareToSamePosition(ChordLeadSheetItem<?> other)
         {
             throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
         }

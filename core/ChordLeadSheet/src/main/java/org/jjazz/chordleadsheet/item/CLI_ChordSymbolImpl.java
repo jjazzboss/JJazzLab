@@ -22,6 +22,7 @@
  */
 package org.jjazz.chordleadsheet.item;
 
+import com.google.common.base.Preconditions;
 import org.jjazz.chordleadsheet.api.item.WritableItem;
 import com.thoughtworks.xstream.XStream;
 import java.awt.datatransfer.DataFlavor;
@@ -32,6 +33,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.event.SwingPropertyChangeSupport;
@@ -174,6 +176,24 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
         CLI_ChordSymbolImpl cli = new CLI_ChordSymbolImpl(newData == null ? data : newData, (newPos != null) ? newPos : position);
         cli.getClientProperties().set(clientProperties);
         return cli;
+    }
+
+    /**
+     * Provide a consistent way to order CLI_ChordSymbols.
+     */
+    @Override
+    public int compareToSamePosition(ChordLeadSheetItem<?> other)
+    {
+        Objects.requireNonNull(other);
+        Preconditions.checkArgument(other instanceof CLI_ChordSymbol && !equals(other), "this=%s other=%s", other);
+        Preconditions.checkArgument(getPosition().equals(other.getPosition()) && getPositionOrder() == other.getPositionOrder(), "this=%s other=%s", other);
+
+        CLI_ChordSymbol otherCliCs = (CLI_ChordSymbol) other;
+        ExtChordSymbol ecs = getData();
+        ExtChordSymbol otherEcs = otherCliCs.getData();
+
+        var res = ecs.toDebugString().compareTo(otherEcs.toDebugString());
+        return res;
     }
 
     @Override

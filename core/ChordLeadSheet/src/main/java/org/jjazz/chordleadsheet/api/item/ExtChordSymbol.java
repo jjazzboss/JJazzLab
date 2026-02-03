@@ -109,7 +109,7 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
         Objects.requireNonNull(rInfo);
         Preconditions.checkArgument((altChordSymbol == null && altFilter == null)
                 || (altChordSymbol != null && altFilter != null), "altChordSymbol=%s altFilter=%s", altChordSymbol, altFilter);
-        
+
         renderingInfo = rInfo;
         this.altChordSymbol = altChordSymbol;
         this.altFilter = altFilter;
@@ -196,7 +196,7 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
     {
         Preconditions.checkArgument((altChordSymbol == null && altFilter == null)
                 || (altChordSymbol != null && altFilter != null), "altChordSymbol=%s altFilter=%s", altChordSymbol, altFilter);
-        
+
         cs = cs != null ? cs : this;
         rInfo = rInfo != null ? rInfo : getRenderingInfo();
         altChordSymbol = altChordSymbol != null ? altChordSymbol : getAlternateChordSymbol();
@@ -207,11 +207,13 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
     @Override
     public int hashCode()
     {
-        int hash = super.hashCode();
-        hash = 17 * hash + Objects.hashCode(this.renderingInfo);
-        hash = 17 * hash + Objects.hashCode(this.altChordSymbol);
+        int hash = 3;
+        hash = 23 * hash + Objects.hashCode(this.renderingInfo);
+        hash = 23 * hash + Objects.hashCode(this.altChordSymbol);
+        hash = 23 * hash + Objects.hashCode(this.altFilter);
         return hash;
     }
+
 
     @Override
     public boolean equals(Object obj)
@@ -224,7 +226,7 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
         {
             return false;
         }
-        if (getClass() != obj.getClass())
+        if (!this.getClass().equals(obj.getClass()))
         {
             return false;
         }
@@ -335,6 +337,11 @@ public class ExtChordSymbol extends ChordSymbol implements Serializable
     public ChordRenderingInfo getRenderingInfo()
     {
         return renderingInfo;
+    }
+
+    public String toDebugString()
+    {
+        return getName() + " " + renderingInfo.toString() + " " + String.valueOf(altChordSymbol) + " " + String.valueOf(altFilter);
     }
 
     /**

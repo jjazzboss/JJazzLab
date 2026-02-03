@@ -70,6 +70,12 @@ public class IP_ChordSymbol implements CLI_ChordSymbol
     }
 
     @Override
+    public int compareToSamePosition(ChordLeadSheetItem<?> other)
+    {
+        throw new UnsupportedOperationException("Not needed"); 
+    }
+
+    @Override
     public ChordLeadSheetItem<ExtChordSymbol> getCopy(ExtChordSymbol newData, Position newPos)
     {
         return cli.getCopy(newData, newPos);
@@ -171,4 +177,6 @@ public class IP_ChordSymbol implements CLI_ChordSymbol
             throw new UnsupportedFlavorException(fl);
         }
     }
+
+
 }

@@ -83,6 +83,12 @@ public class AltExtChordSymbol extends ExtChordSymbol
         return aecs;
     }
 
+    @Override
+    public String toString()
+    {
+        return getName();
+    }
+
     /**
      * This enables XStream instance configuration even for private classes or classes from non-public packages of Netbeans modules.
      */

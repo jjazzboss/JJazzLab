@@ -25,7 +25,10 @@
 package org.jjazz.chordleadsheet;
 
 import java.text.ParseException;
+import java.util.List;
 import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.ClsChangeListener;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
@@ -290,18 +293,15 @@ public class ChordLeadSheetImplTest
     public void testAddCloneItemSamePosition()
     {
         System.out.println("=== testAddCloneItemSamePosition()");
-        System.out.println("cls1=" + cls1.toDebugString());
         var cli = cls1.getItems(1, 1, CLI_ChordSymbol.class).get(0);
         var cliClone = cli.getCopy(null, null);
         assertFalse(cls1.addItem(cliClone));
 
         var cliNC = cli.getCopy(new NCExtChordSymbol(), null);
         assertTrue(cls1.addItem(cliNC));
-        var cliNC2 = cliNC.getCopy(cliNC.getData().getTransposedChordSymbol(1, Note.Accidental.FLAT), null); // transposing NC chord should return the same instance
-        System.out.println("cliN1.equals(cliNC2)=" + cliNC.equals(cliNC2));
-        boolean b = cls1.addItem(cliNC2);
-        System.out.println("b=" + b + "   => cls1=" + cls1.toDebugString());
-        assertFalse(b);
+
+        var cliNC2 = cliNC.getCopy(cliNC.getData().getTransposedChordSymbol(1, Note.Accidental.FLAT), null);    // builds an equal NCExtChordSymbol
+        assertFalse(cls1.addItem(cliNC2));
     }
 
     // FIX: this test previously missed @Test and never ran.
@@ -500,11 +500,23 @@ public class ChordLeadSheetImplTest
     @Test
     public void testMoveSection2()
     {
-        System.out.println("=== testMoveSection2 moved section does not cross other sections");
+        System.out.println("=== testMoveSection2 moved section backwards, does not cross other sections");
         CLI_Section cliSection0 = cls1.getSection(2);
         cls1.moveSection(cliSection0, 1);
         assertEquals(new Position(1, 2), cls1.getItems(1, 1, CLI_ChordSymbol.class).get(1).getPosition());
         assertEquals(1, cls1.getSection(1).getPosition().getBar());
+    }
+
+    @Test
+    public void testMoveSection2bis()
+    {
+        System.out.println("=== testMoveSection2bis moved section forward, does not cross other sections");
+        assertEquals(2, cls1.getBarRange(cls1.getSection(0)).size());
+        CLI_Section cliSection = cls1.getSection(2);
+        cls1.moveSection(cliSection, 3);
+        assertSame(cliSection, cls1.getSection(3));        
+        assertEquals(0, cls1.getSection(2).getPosition().getBar());        
+        assertEquals(3, cls1.getBarRange(cls1.getSection(0)).size());
     }
 
     @Test
@@ -516,6 +528,7 @@ public class ChordLeadSheetImplTest
         assertEquals(new Position(7, 2), cls1.getItems(7, 7, ChordLeadSheetItem.class, cli -> true).get(0).getPosition());
         assertSame(cliSection0, cls1.getSection(1));
     }
+
 
     @Test(expected = IllegalArgumentException.class)
     public void testMoveFirstSection()
@@ -908,6 +921,175 @@ public class ChordLeadSheetImplTest
             cls1.removeClsChangeListener(listener);
         }
     }
+
+
+    // =========================================================================================================
+    // CONCURRENCY TESTS
+    // =========================================================================================================
+    @Test(timeout = 50000) // 5 second timeout to detect deadlocks
+    public void testConcurrentDeepCopyWhileMutating() throws InterruptedException
+    {
+        System.out.println("=== testConcurrentDeepCopyWhileMutating");
+        final int DEEP_COPY_ITERATIONS = 2000;
+        final int MUTATION_ITERATIONS = DEEP_COPY_ITERATIONS / 2;
+        final AtomicInteger deepCopyCount = new AtomicInteger(0);
+        final AtomicInteger mutationCount = new AtomicInteger(0);
+        final AtomicReference<Throwable> readerException = new AtomicReference<>();
+        final AtomicReference<Throwable> writerException = new AtomicReference<>();
+
+        // Thread 1: Repeatedly calls getDeepCopy (read operations)
+        Thread readerThread = new Thread(() -> 
+        {
+            try
+            {
+                for (int i = 0; i < DEEP_COPY_ITERATIONS; i++)
+                {
+                    ChordLeadSheet copy = cls1.getDeepCopy();
+                    assertNotNull("Deep copy should not be null", copy);
+                    assertTrue(copy.getSizeInBars() > 0);
+                    deepCopyCount.incrementAndGet();
+
+                    // Also test read operations
+                    if (i % 10 == 0)
+                    {
+                        List<CLI_ChordSymbol> items = cls1.getItems(CLI_ChordSymbol.class);
+                        assertNotNull(items);
+                        assertTrue(cls1.getSizeInBars() > 0);
+                    }
+
+                    // Small yield to encourage interleaving
+                    if (i % 100 == 0)
+                    {
+                        Thread.yield();
+                    }
+                }
+            } catch (Throwable t)
+            {
+                readerException.set(t);
+                t.printStackTrace();
+            }
+        }, "DeepCopy-Reader-Thread");
+
+
+        // Thread 2: Performs various mutations
+        Thread writerThread = new Thread(() -> 
+        {
+            try
+            {
+                for (int i = 0; i < MUTATION_ITERATIONS; i++)
+                {
+                    try
+                    {
+                        // Cycle through different mutation operations
+                        switch (i % 6)
+                        {
+                            case 0 ->
+                            {
+                                // Add a chord symbol
+                                cls1.addItem(cliChordSymbolG_b6_0);
+                                mutationCount.incrementAndGet();
+                            }
+
+                            case 1 ->
+                            {
+                                // Remove a chord symbol
+                                cls1.removeItem(cliChordSymbolG_b6_0);
+                                mutationCount.incrementAndGet();
+                            }
+
+                            case 2 ->
+                            {
+                                // Move a chord symbol
+                                var item = cls1.getItems(0, 0, CLI_ChordSymbol.class).get(0);
+                                assert item.getData().getName().equals("Dm7");
+                                var pos = item.getPosition();
+                                var newPos = pos.setBeat(pos.isFirstBarBeat() ? 0.5f : 0f);
+                                cls1.moveItem(item, newPos);
+                                mutationCount.incrementAndGet();
+                            }
+
+                            case 3 ->
+                            {
+                                // Move a section
+                                var item = cls1.getItems(CLI_Section.class).get(1);
+                                int bar = item.getPosition().getBar();
+                                var newBar = bar == 2 ? 3 : 2;
+                                cls1.moveSection(item, newBar);
+                                mutationCount.incrementAndGet();
+                            }
+
+                            case 4 ->
+                            {
+                                // Change timesignature
+                                var item = cls1.getSection(0);
+                                var ts = item.getData().getTimeSignature();
+                                var newTs = ts == TimeSignature.FOUR_FOUR ? TimeSignature.FIVE_FOUR : TimeSignature.FOUR_FOUR;
+                                cls1.setSectionTimeSignature(item, newTs);
+                                mutationCount.incrementAndGet();
+                            }
+
+                            case 5 ->
+                            {
+                                // Change size
+                                var size = cls1.getSizeInBars();
+                                var newSize = size == 8 ? 12 : 8;
+                                cls1.setSizeInBars(newSize);
+                                mutationCount.incrementAndGet();
+                            }
+                        }
+
+                        // Small yield to encourage interleaving
+                        if (i % 50 == 0)
+                        {
+                            Thread.yield();
+                        }
+
+                    } catch (UnsupportedEditException ex)
+                    {
+                        // Expected in some cases, just continue
+                    }
+                }
+            } catch (Throwable t)
+            {
+                writerException.set(t);
+                t.printStackTrace();
+            }
+        }, "Mutation-Writer-Thread");
+
+        // Start both threads
+        readerThread.start();
+        writerThread.start();
+
+        // Wait for both to complete
+        readerThread.join();
+        writerThread.join();
+
+        // Check for exceptions
+        if (readerException.get() != null)
+        {
+            fail("Reader thread failed: " + readerException.get().getMessage());
+        }
+        if (writerException.get() != null)
+        {
+            fail("Writer thread failed: " + writerException.get().getMessage());
+        }
+
+        // Verify both threads made progress
+        assertTrue("Deep copy should have been called multiple times", deepCopyCount.get() > DEEP_COPY_ITERATIONS * 0.9);
+        assertTrue("Mutations should have been performed multiple times", mutationCount.get() > MUTATION_ITERATIONS * 0.9);
+
+        // Verify ChordLeadSheet is still in valid state
+        assertTrue(cls1.getItems(CLI_ChordSymbol.class).size() > 4);
+        assertTrue(cls1.getSizeInBars() >= 0);
+
+        System.out.println("Concurrency test completed successfully:");
+        System.out.println("  Deep copies: " + deepCopyCount.get());
+        System.out.println("  Mutations: " + mutationCount.get());
+        System.out.println("  Final song size: " + cls1.getSizeInBars() + " bars");
+        System.out.println("  Final chord items count: " + cls1.getItems(CLI_ChordSymbol.class).size());
+
+    }
+
 
     // Undo --------------------------------------------------
     private void undoAll()

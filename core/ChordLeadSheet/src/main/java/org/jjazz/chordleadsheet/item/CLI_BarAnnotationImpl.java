@@ -32,6 +32,7 @@ import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.logging.Logger;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
@@ -97,6 +98,22 @@ public class CLI_BarAnnotationImpl implements CLI_BarAnnotation, WritableItem<St
             container = cls;
             pcs.firePropertyChange(PROP_CONTAINER, old, container);
         }
+    }
+
+    /**
+     * Provide a consistent way to order CLI_BarAnnotation.
+     */
+    @Override
+    public int compareToSamePosition(ChordLeadSheetItem<?> other)
+    {
+        Objects.requireNonNull(other);
+        Preconditions.checkArgument(other instanceof CLI_BarAnnotation && !equals(other), "this=%s other=%s", other);
+        Preconditions.checkArgument(getPosition().equals(other.getPosition()) && getPositionOrder() == other.getPositionOrder(), "this=%s other=%s", other);
+
+        CLI_BarAnnotation otherBarAnnotation = (CLI_BarAnnotation) other;
+        var res = getData().compareTo(otherBarAnnotation.getData());
+
+        return res;
     }
 
     @Override

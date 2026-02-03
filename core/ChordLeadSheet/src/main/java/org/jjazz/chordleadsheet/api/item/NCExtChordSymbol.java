@@ -118,6 +118,12 @@ public class NCExtChordSymbol extends ExtChordSymbol implements Serializable
     }
 
     @Override
+    public String toDebugString()
+    {
+        return "NCExtChordSymbol[" + getRenderingInfo() + "," + String.valueOf(getAlternateChordSymbol()) + "," + String.valueOf(getAlternateFilter()) + "]";
+    }
+
+    @Override
     public void dump()
     {
         System.out.print("NC-ChordSymbol");

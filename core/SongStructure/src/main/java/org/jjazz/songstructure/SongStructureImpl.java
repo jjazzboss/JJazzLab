@@ -86,8 +86,8 @@ import org.openide.util.lookup.ServiceProvider;
 /**
  * SongStructure implementation.
  * <p>
- * Implementation is thread-safe and uses the same concurrency design as ChordLeadSheet. If available the parent ChordLeadSheet lock is reused (it is also used
- * by the enclosing Song).
+ * Implementation uses the same concurrency design as ChordLeadSheet: it is thread-safe in a scenario with 1 writing thread and several reading threads. If
+ * available the parent ChordLeadSheet lock is reused (it is also used by the enclosing Song).
  */
 public class SongStructureImpl implements SongStructure, Serializable
 {
@@ -625,7 +625,7 @@ public class SongStructureImpl implements SongStructure, Serializable
         List<SongPart> res = performAPImethodThrowing(operation);
 
         generateAllAdaptedRhythms();
-        
+
         return res;
     }
 

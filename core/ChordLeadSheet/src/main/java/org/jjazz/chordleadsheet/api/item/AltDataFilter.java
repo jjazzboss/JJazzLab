@@ -170,6 +170,12 @@ public class AltDataFilter implements Serializable
     }
 
 
+    @Override
+    public String toString()
+    {
+        return "[values=" + values + ",random=" + String.valueOf(random) + "]";
+    }
+
     /**
      * This enables XStream instance configuration even for private classes or classes from non-public packages of Netbeans modules.
      */

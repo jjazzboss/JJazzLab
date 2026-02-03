@@ -218,4 +218,11 @@ public class CLI_Ending implements ChordLeadSheetItem<Ending>, WritableItem<Endi
         this.container = cls;
     }
 
+    @Override
+    public int compareToSamePosition(
+            ChordLeadSheetItem<?> other)
+    {
+        throw new UnsupportedOperationException("Not supported yet."); 
+    }
+
 }
