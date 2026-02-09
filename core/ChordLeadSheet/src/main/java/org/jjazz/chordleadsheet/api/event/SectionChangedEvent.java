@@ -58,7 +58,7 @@ public class SectionChangedEvent extends ClsChangeEvent
         Preconditions.checkArgument(!oldData.equals(newData), "oldData=%s", oldData);
         this.oldData = oldData;
         this.newData = newData;
-        this.adjustedItems = adjustedItems;
+        this.adjustedItems = List.copyOf(adjustedItems);
     }
 
     public List<ChordLeadSheetItem> getAdjustedItems()

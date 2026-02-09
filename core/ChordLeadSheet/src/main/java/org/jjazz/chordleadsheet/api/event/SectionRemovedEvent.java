@@ -50,7 +50,7 @@ public class SectionRemovedEvent extends ClsChangeEvent
         super(src, cliSection);
         Objects.requireNonNull(adjustedItems);
         Preconditions.checkArgument(cliSection.getPosition().getBar() > 0, "cliSection=%s", cliSection);
-        this.adjustedItems = adjustedItems;
+        this.adjustedItems = List.copyOf(adjustedItems);
         var pos = cliSection.getPosition();
         this.previousBarSection = src.getSection(pos.getBar() - 1);
     }

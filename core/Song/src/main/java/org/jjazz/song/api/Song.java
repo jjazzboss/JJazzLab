@@ -179,7 +179,7 @@ public class Song implements Serializable, PropertyChangeListener
      * <p>
      *
      * @param name
-     * @param sgs          sgs.getParentChordLeadSheet() must be non-null
+     * @param sgs          
      * @param noClsSgsLink If true SongStructure and ChordLeadSheet are not linked (to be used only in special cases, Song might end up in an inconsistent
      *                     state)
      */
@@ -187,7 +187,6 @@ public class Song implements Serializable, PropertyChangeListener
     {
         Preconditions.checkArgument(name != null && !name.isBlank(), "name=%s", name);
         Objects.requireNonNull(sgs);
-        Objects.requireNonNull(sgs.getParentChordLeadSheet());
 
         setName(name);
         chordLeadSheet = sgs.getParentChordLeadSheet();

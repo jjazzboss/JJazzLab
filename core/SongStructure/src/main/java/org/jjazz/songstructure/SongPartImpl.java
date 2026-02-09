@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 import com.thoughtworks.xstream.XStream;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
+import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.InvalidObjectException;
@@ -51,6 +52,7 @@ import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.utilities.api.IntRange;
 import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.utilities.api.StringProperties;
 import org.jjazz.xstream.spi.XStreamConfigurator;
@@ -64,8 +66,8 @@ import org.openide.util.lookup.ServiceProvider;
 /**
  * SongPart implementation.
  * <p>
- * This is a mutable class. Within a Song, SongPart mutating methods can only be called via the enclosing SongStructure methods which manage synchronization.
- * For read operations the implementation reuses the SongStructure lock if available.
+ * This is a mutable class. SongPart mutating methods can only be called via the enclosing SongStructure methods which manage synchronization. For read
+ * operations the implementation reuses the SongStructure lock.
  */
 public class SongPartImpl implements SongPart, Serializable
 {
@@ -74,7 +76,7 @@ public class SongPartImpl implements SongPart, Serializable
     /**
      * The rhythm of this part.
      */
-    private final Rhythm rhythm;
+    private Rhythm rhythm;
     /**
      * Starts at this bar index.
      */
@@ -87,11 +89,10 @@ public class SongPartImpl implements SongPart, Serializable
      * The length in bars.
      */
     private int nbBars;
-    private ReentrantReadWriteLock lock;
     /**
      * Parent section.
      */
-    private final CLI_Section parentSection;
+    private CLI_Section parentSection;
     private final StringProperties clientProperties;
     /**
      * The value associated to each RhythmParameter.
@@ -109,41 +110,60 @@ public class SongPartImpl implements SongPart, Serializable
 
 
     /**
-     * Create a SongPartImpl with default value for each of the rhythm's RhythmParameters.
+     * Constructor for deserialization only.
      * <p>
-     * Name is set to parentSection's name if parentSection not null.
+     * Container will be set by enclosing SongStructure deserialization.
      *
-     * @param r
+     * @param r             Cannot be null
      * @param startBarIndex
      * @param nbBars
-     * @param parentSection If not null must be part of sgs
+     * @param parentSection Cannot be null
      */
-    public SongPartImpl(Rhythm r, int startBarIndex, int nbBars, CLI_Section parentSection)
+    private SongPartImpl(Rhythm r, int startBarIndex, int nbBars, CLI_Section parentSection)
     {
-        if (r == null || startBarIndex < 0 || nbBars < 1)
-        {
-            throw new IllegalArgumentException(
-                    "r=" + r + " startBarIndex=" + startBarIndex + " nbBars=" + nbBars + " parentSection=" + parentSection);
-        }
+        Objects.requireNonNull(r);
+        Objects.requireNonNull(parentSection);
+        Preconditions.checkArgument(startBarIndex >= 0 && nbBars >= 1, "startBarIndex=%s nbBars=%s", startBarIndex, nbBars);
+
         this.rhythm = r;
         this.startBarIndex = startBarIndex;
         this.nbBars = nbBars;
-        this.name = parentSection == null ? NO_NAME : parentSection.getData().getName();
         this.parentSection = parentSection;
         this.clientProperties = new StringProperties(this);
-        this.lock = new ReentrantReadWriteLock();       // stub
-
-
-        // Associate a default value to each RhythmParameter                    
-        for (RhythmParameter<?> rp : r.getRhythmParameters())
-        {
-            var rpValue = rp.getDefaultValue();
-            mapRpValue.putValue(rp, rpValue);
-        }
     }
 
     /**
-     * Use identify hash code because SongParts can be used as Map keys.
+     * Create a SongPartImpl with default value for each of the rhythm's RhythmParameters.
+     * <p>
+     * Name is set to parentSection's name.
+     *
+     * @param container     Cannot be null
+     * @param r             Cannot be null
+     * @param startBarIndex
+     * @param nbBars
+     * @param parentSection Cannot be null
+     */
+    public SongPartImpl(SongStructure container, Rhythm r, int startBarIndex, int nbBars, CLI_Section parentSection)
+    {
+        Objects.requireNonNull(container);
+        Objects.requireNonNull(r);
+        Objects.requireNonNull(parentSection);
+        Preconditions.checkArgument(startBarIndex >= 0 && nbBars >= 1, "startBarIndex=%s nbBars=%s", startBarIndex, nbBars);
+
+        this.container = container;
+        this.rhythm = r;
+        this.startBarIndex = startBarIndex;
+        this.nbBars = nbBars;
+        this.name = parentSection.getData().getName();
+        this.parentSection = parentSection;
+        this.clientProperties = new StringProperties(this);
+
+        resetRPvalues();
+    }
+
+
+    /**
+     * Use identify hash code because SongParts are used as Map keys in SongStructure API.
      * <p>
      *
      * @return
@@ -155,7 +175,7 @@ public class SongPartImpl implements SongPart, Serializable
     }
 
     /**
-     * Use identity equality because SongParts can be used as Map keys.
+     * Use identity equality because SongParts are used as Map keys in SongStructure API.
      *
      * @param obj
      * @return
@@ -168,18 +188,31 @@ public class SongPartImpl implements SongPart, Serializable
     }
 
 
+    public void firePropertyChangEvent(PropertyChangeEvent event)
+    {
+        pcs.firePropertyChange(event);
+    }
+
     @Override
     public String getName()
     {
-        return name;
+        getLock().readLock().lock();
+        try
+        {
+            return name;
+        } finally
+        {
+            getLock().readLock().unlock();
+        }
     }
 
     /**
      * Can only be called by SongStructure.
      *
      * @param name
+     * @return
      */
-    public void setName(String name)
+    public PropertyChangeEvent setName(String name)
     {
         Objects.requireNonNull(name);
         Preconditions.checkArgument(!name.isBlank());
@@ -187,7 +220,7 @@ public class SongPartImpl implements SongPart, Serializable
         String oldName = this.name;
         this.name = name;
 
-        pcs.firePropertyChange(PROP_NAME, oldName, name);
+        return new PropertyChangeEvent(this, PROP_NAME, oldName, name);
     }
 
     @Override
@@ -203,23 +236,17 @@ public class SongPartImpl implements SongPart, Serializable
      */
     public void setContainer(SongStructure sgs)
     {
+        Objects.requireNonNull(sgs);
         container = sgs;
-        this.lock = container != null ? container.getLock() : new ReentrantReadWriteLock(); // Use stub if container is null
     }
 
-    /**
-     * Get the value of a RhythmParameter
-     *
-     * @param rp
-     * @return
-     */
     @Override
     public <T> T getRPValue(RhythmParameter<T> rp)
     {
         Objects.requireNonNull(rp);
         Preconditions.checkArgument(rhythm.getRhythmParameters().contains(rp), "this=%s rhythm=%s rp=%s", this, rhythm, rp);
 
-        lock.readLock().lock();
+        getLock().readLock().lock();
         try
         {
             @SuppressWarnings("unchecked")
@@ -228,7 +255,7 @@ public class SongPartImpl implements SongPart, Serializable
             return value;
         } finally
         {
-            lock.readLock().unlock();
+            getLock().readLock().unlock();
         }
     }
 
@@ -242,8 +269,9 @@ public class SongPartImpl implements SongPart, Serializable
      * @param <T>
      * @param rp
      * @param newValue Must be a valid value for rp
+     * @return
      */
-    public <T> void setRPValue(RhythmParameter<T> rp, T newValue)
+    public <T> PropertyChangeEvent setRPValue(RhythmParameter<T> rp, T newValue)
     {
         Objects.requireNonNull(rp);
         Objects.requireNonNull(newValue);
@@ -256,44 +284,141 @@ public class SongPartImpl implements SongPart, Serializable
         assert oldValue != null : "rpValueProfileMap=" + mapRpValue + " rp=" + rp + " value=" + newValue;
         if (oldValue.equals(newValue))
         {
-            return;
+            return getVoidPropertyChangeEvent();
         }
 
         mapRpValue.putValue(rp, newValue);
-        pcs.firePropertyChange(PROP_RP_VALUE, rp, newValue);
+        return new PropertyChangeEvent(this, PROP_RP_VALUE, rp, newValue);
     }
 
     @Override
     public Rhythm getRhythm()
     {
-        return rhythm;
+        getLock().readLock().lock();
+        try
+        {
+            return rhythm;
+        } finally
+        {
+            getLock().readLock().unlock();
+        }
+    }
+
+    /**
+     * Set the rhythm, and optionally the parent section.
+     * <p>
+     * Can only be called by SongStructure.
+     *
+     * @param r
+     * @param newParentSection If not null set also the parent section
+     * @return An event with oldValue=newRhythm, newValue=newParentSection
+     */
+    public PropertyChangeEvent setRhythm(Rhythm r, CLI_Section newParentSection)
+    {
+        Objects.requireNonNull(r);
+        Preconditions.checkArgument(newParentSection == null || newParentSection.getContainer() != null, "newParentSection=%s", newParentSection);
+        Preconditions.checkArgument(newParentSection == null || nbBars == newParentSection.getContainer().getBarRange(newParentSection).size(),
+                "this=%s newParentSection=%s", this, newParentSection);
+
+
+        if (rhythm == r && (newParentSection == null || newParentSection == parentSection))
+        {
+            return getVoidPropertyChangeEvent();
+        }
+
+        var oldParentSection = parentSection;
+        var oldRhythm = rhythm;
+        var saveMapRvValues = mapRpValue.clone();
+
+
+        rhythm = r;
+        parentSection = newParentSection == null ? parentSection : newParentSection;
+        resetRPvalues();
+
+
+        // Update the values for compatible RhythmParameters
+        for (RhythmParameter<?> newRp : rhythm.getRhythmParameters())
+        {
+            RhythmParameter crp = RhythmParameter.findFirstCompatibleRp(oldRhythm.getRhythmParameters(), newRp);
+            if (crp != null)
+            {
+                Object crpValue = saveMapRvValues.getValue(crp);
+                Object newRpValue = newRp.convertValue(crp, crpValue);
+                if (newRpValue != null)
+                {
+                    mapRpValue.putValue(newRp, newRpValue);
+                } else
+                {
+                    LOGGER.log(Level.WARNING,
+                            "clone() Can''t transpose value crpValue={0} to newRp={1} (newRhythm={2}), despite newRp being compatible with crp={3} from oldRhythm={4}",
+                            new Object[]
+                            {
+                                crpValue,
+                                newRp.getId(), rhythm.getName(), crp.getId(), oldRhythm.getName()
+                            });
+                }
+            }
+        }
+
+        return new PropertyChangeEvent(this, PROP_RHYTHM_PARENT_SECTION, rhythm, newParentSection);
     }
 
     /**
      * Can only be called by SongStructure.
      *
      * @param barIndex
+     * @return
      */
-    public void setStartBarIndex(int barIndex)
+    public PropertyChangeEvent setStartBarIndex(int barIndex)
     {
         Preconditions.checkArgument(barIndex >= 0, "barIndex=%s", barIndex);
 
         int old = startBarIndex;
         startBarIndex = barIndex;
 
-        pcs.firePropertyChange(SongPart.PROP_START_BAR_INDEX, old, barIndex);
+        return new PropertyChangeEvent(this, PROP_START_BAR_INDEX, old, barIndex);
     }
 
     @Override
     public int getStartBarIndex()
     {
-        lock.readLock().lock();
+        getLock().readLock().lock();
         try
         {
             return startBarIndex;
         } finally
         {
-            lock.readLock().unlock();
+            getLock().readLock().unlock();
+        }
+    }
+
+    /**
+     * Can only be called by SongStructure.
+     *
+     * @param n
+     * @return
+     */
+    public PropertyChangeEvent setNbBars(int n)
+    {
+        Preconditions.checkArgument(n >= 1, "n=%s", n);
+
+        int old;
+        old = nbBars;
+        nbBars = n;
+
+        return new PropertyChangeEvent(this, PROP_NB_BARS, old, n);
+    }
+
+    @Override
+    public int getNbBars()
+    {
+        getLock().readLock().lock();
+        try
+        {
+            return nbBars;
+        } finally
+        {
+            getLock().readLock().unlock();
         }
     }
 
@@ -307,54 +432,54 @@ public class SongPartImpl implements SongPart, Serializable
         Preconditions.checkArgument(newStartBarIndex >= 0, "newStartBarIndex=%s", newStartBarIndex);
         Preconditions.checkArgument(newNbBars > 0, "newNbBars=%s", newNbBars);
 
-        Rhythm newRhythm = (r == null) ? getRhythm() : r;
+        Rhythm newRhythm = r == null ? getRhythm() : r;
+        CLI_Section newCliSection = cliSection == null ? getParentSection() : cliSection;
+        Preconditions.checkArgument(newCliSection.getData().getTimeSignature().equals(newRhythm.getTimeSignature()),
+                "newRhythm=%s cliSection=%s", newRhythm, cliSection);
 
-        // Check that time signature match
-        if (cliSection != null && !cliSection.getData().getTimeSignature().equals(newRhythm.getTimeSignature()))
+
+        SongPartImpl newSpt = new SongPartImpl(container, newRhythm, newStartBarIndex, newNbBars, newCliSection);
+
+
+        getLock().readLock().lock();
+        try
         {
-            throw new IllegalArgumentException("r=" + r + " newRhythm=" + newRhythm + " cliSection=" + cliSection);
-        }
+            newSpt.setName(name);
+            newSpt.setContainer(container);
 
-        SongPartImpl newSpt = new SongPartImpl(newRhythm, newStartBarIndex, newNbBars, cliSection);
-        newSpt.setName(name);
-        newSpt.setContainer(container);
-
-
-        if (newRhythm == getRhythm())
-        {
-            lock.readLock().lock();
-            try
+            if (newRhythm == getRhythm())
             {
                 newSpt.mapRpValue = mapRpValue.clone();
-            } finally
+
+            } else
             {
-                lock.readLock().unlock();
-            }
-        } else
-        {
-            // Update the values for compatible RhythmParameters
-            for (RhythmParameter<?> newRp : newRhythm.getRhythmParameters())
-            {
-                RhythmParameter crp = RhythmParameter.findFirstCompatibleRp(getRhythm().getRhythmParameters(), newRp);
-                if (crp != null)
+                // Update the values for compatible RhythmParameters
+                for (RhythmParameter<?> newRp : newRhythm.getRhythmParameters())
                 {
-                    Object crpValue = getRPValue(crp);
-                    Object newRpValue = newRp.convertValue(crp, crpValue);
-                    if (newRpValue != null)
+                    RhythmParameter crp = RhythmParameter.findFirstCompatibleRp(getRhythm().getRhythmParameters(), newRp);
+                    if (crp != null)
                     {
-                        newSpt.mapRpValue.putValue(newRp, newRpValue);
-                    } else
-                    {
-                        LOGGER.log(Level.WARNING,
-                                "clone() Can''t transpose value crpValue={0} to newRp={1} (newRhythm={2}), despite newRp being compatible with crp={3} (rhythm={4})",
-                                new Object[]
-                                {
-                                    crpValue,
-                                    newRp.getId(), newRhythm.getName(), crp.getId(), rhythm.getName()
-                                });
+                        Object crpValue = getRPValue(crp);
+                        Object newRpValue = newRp.convertValue(crp, crpValue);
+                        if (newRpValue != null)
+                        {
+                            newSpt.mapRpValue.putValue(newRp, newRpValue);
+                        } else
+                        {
+                            LOGGER.log(Level.WARNING,
+                                    "clone() Can''t transpose value crpValue={0} to newRp={1} (newRhythm={2}), despite newRp being compatible with crp={3} (rhythm={4})",
+                                    new Object[]
+                                    {
+                                        crpValue,
+                                        newRp.getId(), newRhythm.getName(), crp.getId(), rhythm.getName()
+                                    });
+                        }
                     }
                 }
             }
+        } finally
+        {
+            getLock().readLock().unlock();
         }
 
         newSpt.getClientProperties().set(clientProperties);
@@ -362,39 +487,18 @@ public class SongPartImpl implements SongPart, Serializable
         return newSpt;
     }
 
-    /**
-     * Can only be called by SongStructure.
-     *
-     * @param n
-     */
-    public void setNbBars(int n)
-    {
-        Preconditions.checkArgument(n >= 1, "n=%s", n);
-
-        int old;
-        old = nbBars;
-        nbBars = n;
-
-        pcs.firePropertyChange(PROP_NB_BARS, old, n);
-    }
-
-    @Override
-    public int getNbBars()
-    {
-        lock.readLock().lock();
-        try
-        {
-            return nbBars;
-        } finally
-        {
-            lock.readLock().unlock();
-        }
-    }
 
     @Override
     public CLI_Section getParentSection()
     {
-        return parentSection;
+        getLock().readLock().lock();
+        try
+        {
+            return parentSection;
+        } finally
+        {
+            getLock().readLock().unlock();
+        }
     }
 
     @Override
@@ -404,20 +508,83 @@ public class SongPartImpl implements SongPart, Serializable
     }
 
     @Override
+    public IntRange getBarRange()
+    {
+        getLock().readLock().lock();
+        try
+        {
+            return new IntRange(startBarIndex, startBarIndex + nbBars - 1);
+        } finally
+        {
+            getLock().readLock().unlock();
+        }
+    }
+
+    @Override
+    public boolean isEqual(SongPart spt)
+    {
+        getLock().readLock().lock();
+        try
+        {
+            boolean b = false;
+            if (startBarIndex == spt.getStartBarIndex()
+                    && nbBars == spt.getNbBars()
+                    && name.equals(spt.getName())
+                    && rhythm == spt.getRhythm()
+                    && parentSection.equals(spt.getParentSection()))
+            {
+                b = rhythm.getRhythmParameters().stream()
+                        .allMatch(rp -> mapRpValue.getValue(rp).equals(spt.getRPValue(rp)));
+            }
+            return b;
+        } finally
+        {
+            getLock().readLock().unlock();
+        }
+    }
+
+    @Override
     public String toString()
     {
-        return name + getBarRange() + "-" + rhythm.getName();
+        getLock().readLock().lock();
+        try
+        {
+            return name + getBarRange() + "-" + rhythm.getName();
+        } finally
+        {
+            getLock().readLock().unlock();
+        }
+    }
+
+    @Override
+    public String toShortString()
+    {
+        getLock().readLock().lock();
+        try
+        {
+            return "[" + name + ", " + startBarIndex + "]";
+        } finally
+        {
+            getLock().readLock().unlock();
+        }
     }
 
     public String toDumpString()
     {
-        StringBuilder sb = new StringBuilder();
-        sb.append(toString()).append("\n");
-        for (RhythmParameter<?> rp : rhythm.getRhythmParameters())
+        getLock().readLock().lock();
+        try
         {
-            sb.append("  ").append(rp).append(":").append(this.mapRpValue.getValue(rp)).append("\n");
+            StringBuilder sb = new StringBuilder();
+            sb.append(toString()).append("\n");
+            for (RhythmParameter<?> rp : rhythm.getRhythmParameters())
+            {
+                sb.append("  ").append(rp).append(":").append(mapRpValue.getValue(rp)).append("\n");
+            }
+            return sb.toString();
+        } finally
+        {
+            getLock().readLock().unlock();
         }
-        return sb.toString();
     }
 
     @Override
@@ -473,6 +640,39 @@ public class SongPartImpl implements SongPart, Serializable
     // -------------------------------------------------------------------------------------------
     // Private methods
     // -------------------------------------------------------------------------------------------
+
+    private ReentrantReadWriteLock getLock()
+    {
+        return container.getLock();
+    }
+
+    /**
+     * Reset all current rhythm parameters values to default.
+     */
+    private void resetRPvalues()
+    {
+        mapRpValue.clear();
+        for (RhythmParameter<?> rp : rhythm.getRhythmParameters())
+        {
+            var rpValue = rp.getDefaultValue();
+            mapRpValue.putValue(rp, rpValue);
+        }
+    }
+
+    /**
+     * Get an event which will never be fired.
+     *
+     * @return
+     */
+    private PropertyChangeEvent getVoidPropertyChangeEvent()
+    {
+        return new PropertyChangeEvent(this, "a", true, true);
+    }
+
+    // -------------------------------------------------------------------------------------------
+    // Inner classes
+    // -------------------------------------------------------------------------------------------
+
     /**
      * This enables XStream instance configuration even for private classes or classes from non-public packages of Netbeans modules.
      */

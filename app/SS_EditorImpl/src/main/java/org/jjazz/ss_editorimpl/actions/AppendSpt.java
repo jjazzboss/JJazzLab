@@ -89,10 +89,6 @@ public class AppendSpt extends AbstractAction
         SongStructure sgs = tc.getEditor().getModel();
         List<SongPart> spts = sgs.getSongParts();
         ChordLeadSheet cls = sgs.getParentChordLeadSheet();
-        if (cls == null)
-        {
-            throw new IllegalStateException("sgs=" + sgs);
-        }
 
 
         // Show dialog

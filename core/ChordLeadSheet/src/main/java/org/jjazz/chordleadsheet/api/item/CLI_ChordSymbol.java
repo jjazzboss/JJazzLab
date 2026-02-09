@@ -31,6 +31,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.harmony.api.Position;
@@ -501,6 +502,12 @@ public interface CLI_ChordSymbol extends ChordLeadSheetItem<ExtChordSymbol>
 
         @Override
         public ChordLeadSheet getContainer()
+        {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
+
+        @Override
+        public ReentrantReadWriteLock getLock()
         {
             throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
         }

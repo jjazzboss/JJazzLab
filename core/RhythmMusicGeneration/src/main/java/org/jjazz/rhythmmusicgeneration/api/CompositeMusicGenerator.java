@@ -685,13 +685,12 @@ public class CompositeMusicGenerator implements MusicGenerator
 
 
             // Replace base rhythm by delegateRhythm               
-            var oldSpts = spts.stream()
+            var sptsCopy = spts.stream()
                     .map(spt -> sgsCopy.getSongPart(spt.getStartBarIndex()))
                     .toList();
-            List<SongPart> newSpts;
             try
             {
-                newSpts = sgsCopy.setSongPartsRhythm(oldSpts, delegateRhythm);     // exception possible if not enough Midi channel
+                sgsCopy.setSongPartsRhythm(sptsCopy, delegateRhythm, null);     // exception possible if not enough Midi channel
             } catch (UnsupportedEditException ex)
             {
                 LOGGER.log(Level.WARNING, "createDelegateContext() Can not use delegate rhythm. context={0}, baseRhythm={1}, delegateRhythm={2}. ex={3}",
@@ -707,10 +706,10 @@ public class CompositeMusicGenerator implements MusicGenerator
             // Possibly update rpVariationValue of some SongParts
             if (delegateRhythmRpVariation != null)
             {
-                for (int i = 0; i < newSpts.size(); i++)
+                for (int i = 0; i < sptsCopy.size(); i++)
                 {
-                    var newSpt = newSpts.get(i);
-                    var rpVariationValue = newSpt.getRPValue(delegateRhythmRpVariation);
+                    var sptCopy = sptsCopy.get(i);
+                    var rpVariationValue = sptCopy.getRPValue(delegateRhythmRpVariation);
                     var mapSpt = spts.get(i);
                     var destVariationValue = mapSptRpVariationValue.get(mapSpt);
                     if (!rpVariationValue.equals(destVariationValue))
@@ -718,9 +717,9 @@ public class CompositeMusicGenerator implements MusicGenerator
                         LOGGER.log(LogLevel, "createDelegateContext() targetSpt={0}: setting delegate variation value to {1}",
                                 new Object[]
                                 {
-                                    newSpt, destVariationValue
+                                    sptCopy, destVariationValue
                                 });
-                        sgsCopy.setRhythmParameterValue(newSpt, delegateRhythmRpVariation, destVariationValue);
+                        sgsCopy.setRhythmParameterValue(sptCopy, delegateRhythmRpVariation, destVariationValue);
                     }
                 }
             }

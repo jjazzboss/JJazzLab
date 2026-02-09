@@ -242,11 +242,9 @@ public class XmlImporter implements SongImporter
                 });
                 return;
             }
-            SongPart newSpt;
             try
             {
-                var sptList = sgs.setSongPartsRhythm(List.of(oldSpt), r);       // throws UnsupportedEditException
-                newSpt = sptList.get(0);
+                sgs.setSongPartsRhythm(List.of(oldSpt), r, null);       // throws UnsupportedEditException
             } catch (UnsupportedEditException ex)
             {
                 Exceptions.printStackTrace(ex);
@@ -260,23 +258,23 @@ public class XmlImporter implements SongImporter
             {
                 if (i % 4 == 0)
                 {
-                    sgs.setRhythmParameterValue(newSpt, rpVariation, "Main A-1");
+                    sgs.setRhythmParameterValue(oldSpt, rpVariation, "Main A-1");
                 } else if (i % 3 == 0)
                 {
-                    sgs.setRhythmParameterValue(newSpt, rpVariation, "Main D-1");
+                    sgs.setRhythmParameterValue(oldSpt, rpVariation, "Main D-1");
                 } else if (i % 2 == 0)
                 {
-                    sgs.setRhythmParameterValue(newSpt, rpVariation, "Main C-1");
+                    sgs.setRhythmParameterValue(oldSpt, rpVariation, "Main C-1");
                 } else
                 {
-                    sgs.setRhythmParameterValue(newSpt, rpVariation, "Main B-1");
+                    sgs.setRhythmParameterValue(oldSpt, rpVariation, "Main B-1");
                 }
             }
 
             RP_SYS_Fill rpFill = RP_SYS_Fill.getFillRp(yjr0);
-            if (rpFill != null && newSpt.getNbBars() > 3)
+            if (rpFill != null && oldSpt.getNbBars() > 3)
             {
-                sgs.setRhythmParameterValue(newSpt, rpFill, "always");
+                sgs.setRhythmParameterValue(oldSpt, rpFill, "always");
             }
         }
 

@@ -22,10 +22,12 @@
  */
 package org.jjazz.songstructure.api;
 
+import com.google.common.base.Preconditions;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Predicate;
 import javax.swing.event.UndoableEditListener;
@@ -313,12 +315,22 @@ public interface SongStructure
      * @return A position within spt range
      * @throws IllegalArgumentException If clsItem does not belong to spt's parent Section.
      */
-    Position getSptItemPosition(SongPart spt, ChordLeadSheetItem<?> clsItem);
+    default Position getSptItemPosition(SongPart spt, ChordLeadSheetItem<?> clsItem)
+    {
+        Objects.requireNonNull(spt);
+        CLI_Section parentSection = spt.getParentSection();
+        Preconditions.checkArgument(getParentChordLeadSheet().getItems(parentSection, clsItem.getClass()).contains(clsItem), "spt=%s, clsItem=%s", spt, clsItem);
+
+        Position pos = clsItem.getPosition();
+        int relBar = pos.getBar() - parentSection.getPosition().getBar();
+        Position res = new Position(spt.getStartBarIndex() + relBar, pos.getBeat());
+        return res;
+    }
 
     /**
      * Add a list of SongParts.
      * <p>
-     * Each SongPart must have a parent section set and a valid startBarIndex, either:<br>
+     * Each SongPart must have a valid startBarIndex, either:<br>
      * - equals to the startBarIndex of an existing SongPart <br>
      * - equals to getSizeInBars() (append SongPart) <br>
      * The startBarIndex of the trailing SongParts is shifted accordingly. The SongParts container will be set to this object.
@@ -333,7 +345,7 @@ public interface SongStructure
     /**
      * Remove some SongParts.
      * <p>
-     * The startBarIndex of the trailing SongParts are updated. The SongParts container will be set to null.
+     * The startBarIndex of the trailing SongParts are updated.
      *
      * @param spts A List of SongParts.
      */
@@ -359,17 +371,21 @@ public interface SongStructure
     void testChangeEventForVeto(SgsChangeEvent event) throws UnsupportedEditException;
 
     /**
-     * Set the rhythm for the specified SongParts.
+     * Set the rhythm, and optionally the parent section, for the specified SongParts.
      * <p>
-     * Note that method does not modify the spts SongParts, they are replaced by clones using rhythm r.
+     * <p>
+     * If parentSection parameter is non-null then each SongPart using a default name (i.e the name of the previous parent section) will be set to
+     * parentSection's name.
      *
      * @param spts
-     * @param r    New rhythm to use
-     * @return The new cloned SongParts with rhythm r
+     * @param r             New rhythm to use. Cannot be null.
+     * @param parentSection If null, parentSection is unchanged. If not null, parentSection must match the new rhythm time signature, have a container defined,
+     *                      and have the same bar size as the SongParts.
      * @throws UnsupportedEditException Exception is thrown before any change is done. See testChangeEventForVeto().
      * @see #testChangeEventForVeto(org.jjazz.songstructure.api.event.SgsChangeEvent)
      */
-    List<SongPart> setSongPartsRhythm(List<SongPart> spts, Rhythm r) throws UnsupportedEditException;
+    void setSongPartsRhythm(List<SongPart> spts, Rhythm r, CLI_Section parentSection) throws UnsupportedEditException;
+
 
     /**
      * Change the name of one or more SongParts.
@@ -426,8 +442,10 @@ public interface SongStructure
     /**
      * Add a (non-synchronized) listener for this object.
      * <p>
-     * General-purpose listeners (e.g. for updating UI ) should use this method. If you want to receive VetoableSgsChangeEvents, use addSgsChangeSyncListener()
-     * instead.
+     * General-purpose listeners (e.g. for updating UI ) should use this method. Because non-synchronized listeners are called outside lock, listeners should
+     * rely on event's embedded data rather than on the model itself (which could theoretically be modified by another thread).
+     * <p>
+     * If you want to receive VetoableSgsChangeEvents, use addSgsChangeSyncListener() instead.
      *
      * @param l
      * @see #addSgsChangeSyncListener(org.jjazz.songstructure.api.SgsChangeListener)
@@ -438,7 +456,9 @@ public interface SongStructure
      * Add a synchronized listener for this object.
      * <p>
      * Listener will be called while the write lock is held, so listener must keep processing simple and in the current thread. VetoableSgsChangeEvents are only
-     * sent to synchronized listeners. General purpose listeners should use addSgsChangeListener() instead.
+     * sent to synchronized listeners.
+     * <p>
+     * General purpose listeners should use addSgsChangeListener() instead.
      *
      * @param l
      * @see #addSgsChangeListener(org.jjazz.songstructure.api.SgsChangeListener)

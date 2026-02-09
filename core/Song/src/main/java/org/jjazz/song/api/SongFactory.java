@@ -208,8 +208,8 @@ public class SongFactory implements PropertyChangeListener
      *
      * @param name
      * @param sgs          sgs.getParentChordLeadSheet() must be non null
-     * @param noClsSgsLink If true, there will be no automatic update between the ChordLeadSheet and the SongStructure. To be used with care only for special purposes (e.g. unit tests), as
-     *                     the Song might be in an inconsistent state.
+     * @param noClsSgsLink If true, there will be no automatic update between the ChordLeadSheet and the SongStructure. To be used with care only for special
+     *                     purposes (e.g. unit tests), as the Song might be in an inconsistent state.
      * @return
      * @throws UnsupportedEditException Can happen if too many timesignature changes resulting in not enough Midi channels for the various rhythms.
      */
@@ -217,10 +217,7 @@ public class SongFactory implements PropertyChangeListener
     {
         Objects.requireNonNull(name);
         Objects.requireNonNull(sgs);
-        if (name.isEmpty() || sgs.getParentChordLeadSheet() == null)
-        {
-            throw new IllegalArgumentException("name=" + name + " sgs=" + sgs + " sgs.getParentChordLeadSheet()=" + sgs.getParentChordLeadSheet());
-        }
+        Preconditions.checkArgument(!name.isBlank(), "name=%s", name);
         Song song = new Song(name, sgs, noClsSgsLink);
         registerSong(song);
         return song;
@@ -294,7 +291,7 @@ public class SongFactory implements PropertyChangeListener
      *
      * @param song
      * @param noClsSgsLink If true, updating the chord leadsheet will not update the song structure
-     * @param register If true register the created song
+     * @param register     If true register the created song
      * @return
      */
     @SuppressWarnings(
@@ -303,7 +300,7 @@ public class SongFactory implements PropertyChangeListener
             })
     public Song getCopy(Song song, boolean noClsSgsLink, boolean register)
     {
-       Song res = song.getDeepCopy(noClsSgsLink);
+        Song res = song.getDeepCopy(noClsSgsLink);
         if (register)
         {
             registerSong(res);

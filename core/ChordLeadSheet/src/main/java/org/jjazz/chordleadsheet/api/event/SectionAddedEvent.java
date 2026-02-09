@@ -55,7 +55,7 @@ public class SectionAddedEvent extends ClsChangeEvent
         Preconditions.checkArgument(replacedCliSection == null || replacedCliSection.getPosition().getBar() == bar,
                 "cliSection=%s replacedCliSection=%s", cliSection, replacedCliSection);
         this.sameBarReplacedCliSection = replacedCliSection;
-        this.adjustedItems = adjustedItems;
+        this.adjustedItems = List.copyOf(adjustedItems);
         this.previousBarSection = bar == 0 ? null : src.getSection(bar - 1);
     }
 

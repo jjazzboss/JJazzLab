@@ -22,15 +22,34 @@
  */
 package org.jjazz.chordleadsheet.api.item;
 
+import java.beans.PropertyChangeEvent;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.harmony.api.Position;
 
+/**
+ * Mutating methods of a ChordLeadSheetItem.
+ * <p>
+ * These methods must be only called by the enclosing ChordLeadSheet methods which manage global synchronization (write lock).
+ *
+ * @param <T>
+ * @see org.jjazz.chordleadsheet.api.ChordLeadSheet
+ */
 public interface WritableItem<T> extends ChordLeadSheetItem<T>
 {
 
-    public void setPosition(Position pos);
+    /**
+     *
+     * @param pos
+     * @return The event to be fired by caller.
+     */
+    PropertyChangeEvent setPosition(Position pos);
 
-    public void setData(T data);
+    /**
+     *
+     * @param data
+     * @return The event to be fired by caller.
+     */
+    PropertyChangeEvent setData(T data);
 
     /**
      * Set an optional container for this item.
@@ -39,6 +58,16 @@ public interface WritableItem<T> extends ChordLeadSheetItem<T>
      * not have a name clash, ...).
      *
      * @param cls Can be null.
+     * @return The event to be fired by caller.
      */
-    public void setContainer(ChordLeadSheet cls);
+    PropertyChangeEvent setContainer(ChordLeadSheet cls);
+
+    /**
+     * Fire event to the listeners.
+     *
+     * @param event
+     */
+    void firePropertyChangEvent(PropertyChangeEvent event);
+
+
 }

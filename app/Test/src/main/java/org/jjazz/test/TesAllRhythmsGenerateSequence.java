@@ -121,7 +121,7 @@ public final class TesAllRhythmsGenerateSequence implements ActionListener
                 var oldSpts = sgs.getSongParts();
                 try
                 {
-                    sgs.setSongPartsRhythm(oldSpts, r);
+                    sgs.setSongPartsRhythm(oldSpts, r, null);
 
                     // Build the sequence
                     try

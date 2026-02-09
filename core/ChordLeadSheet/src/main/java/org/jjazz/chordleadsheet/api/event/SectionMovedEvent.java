@@ -47,7 +47,7 @@ public class SectionMovedEvent extends ClsChangeEvent
                 "item=%s oldBar=%s newBar=%s", item, oldBar, newBar);
         this.oldBar = oldBar;
         this.newBar = newBar;
-        this.adjustedItems = adjustedItems;
+        this.adjustedItems = List.copyOf(adjustedItems);
     }
 
     public List<ChordLeadSheetItem> getAdjustedItems()

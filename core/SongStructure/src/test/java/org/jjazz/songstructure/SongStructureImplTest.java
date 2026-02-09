@@ -27,8 +27,6 @@ package org.jjazz.songstructure;
 import java.text.ParseException;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.ChordLeadSheetFactory;
 import org.jjazz.chordleadsheet.api.Section;
@@ -61,6 +59,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
+import org.junit.Rule;
+import org.junit.rules.TestName;
 import org.openide.util.Exceptions;
 
 public class SongStructureImplTest
@@ -78,6 +78,8 @@ public class SongStructureImplTest
     SongPart spt1, spt2;
     JJazzUndoManager undoManager;
 
+    @Rule
+    public TestName testName = new TestName();
 
     @BeforeClass
     public static void setUpClass() throws Exception
@@ -102,6 +104,7 @@ public class SongStructureImplTest
         // bar 4: SectionB 3/4
         // bar 8: SectionC 4/4
         cls = ChordLeadSheetFactory.getDefault().createEmptyLeadSheet("SectionA", TimeSignature.FOUR_FOUR, 16, "C7");
+        var lock = cls.getLock();
         cs1 = cls.getItems(CLI_ChordSymbol.class).get(0); // C7 at bar 0 beat 0
         sectionA_44 = cls.getSection(0);
         sectionB_34 = (CLI_Section) sectionA_44.getCopy(new Section("SectionB", TimeSignature.THREE_FOUR), new Position(4));
@@ -110,7 +113,6 @@ public class SongStructureImplTest
         cls.addSection(sectionC_44);
         cs2 = (CLI_ChordSymbol) cs1.getCopy(ExtChordSymbol.get("Dm"), sectionB_34.getPosition().getMoved(1, 1));    // Dm at bar 5, beat 1
         cls.addItem(cs2);
-
 
         // Build a SongStructure from chordleadsheet => create 3 song parts, one per section
         sgs = SongStructureFactory.getDefault().createSgs(cls);
@@ -164,7 +166,7 @@ public class SongStructureImplTest
         boolean b = equals(sgs, u_sgs);
         if (!b)
         {
-            System.out.println("==== MISMATCH AFTER UNDO SEQUENCE:");
+            System.out.println("==== MISMATCH AFTER UNDO SEQUENCE for " + this.testName.getMethodName() + "()");
             System.out.println("sgs after Undo=" + sgs);
             System.out.println("u_sgs after Undo=" + u_sgs);
             assertTrue(b);
@@ -185,7 +187,7 @@ public class SongStructureImplTest
     // -----------------------------------------------------------------------------------------
 
     @Test
-    public void testContainerSetAndClearedOnRemoveAndUndoRedo()
+    public void testContainerSetOnAdd() throws UnsupportedEditException
     {
         // Initial containers
         assertSame(sgs, spt0.getContainer());
@@ -193,22 +195,15 @@ public class SongStructureImplTest
         assertSame(sgs, spt2.getContainer());
 
         sgs.removeSongParts(List.of(spt0));
-        assertNull("Removed SongPart container must be cleared", spt0.getContainer());
-        assertSame("Remaining SongPart must keep container", sgs, spt1.getContainer());
+        assertSame("Removed song part must keep its container", sgs, spt0.getContainer());
         assertSame("Remaining SongPart must keep container", sgs, spt2.getContainer());
 
-        // Undo should restore part and container
-        undoManager.endCEdit(UNDO_EDIT);
-        assertTrue(undoManager.canUndo());
-        undoManager.undo();
-        assertSame(spt0, sgs.getSongPart(0));
-        assertSame("Undo must restore container", sgs, spt0.getContainer());
+        var sgs2 = sgs.getDeepCopy(sgs.getParentChordLeadSheet());
+        sgs2.addSongParts(List.of(spt0));
 
-        // Redo should remove it again and clear container again
-        assertTrue(undoManager.canRedo());
-        undoManager.redo();
-        assertSame(spt1, sgs.getSongPart(0)); // because first part removed, bar0 belongs to spt1 now
-        assertNull("Redo must clear container again", spt0.getContainer());
+        assertSame("Add to new SongStructure must update container", sgs2, spt0.getContainer());
+        assertSame(spt0, sgs2.getSongPart(0));
+
     }
 
     @Test
@@ -278,17 +273,6 @@ public class SongStructureImplTest
         assertEquals(IntRange.EMPTY_RANGE, empty.getBarRange());
         assertEquals(FloatRange.EMPTY_FLOAT_RANGE, empty.toBeatRange(null));
         assertNull(empty.getSongPart(0));
-    }
-
-    @Test
-    public void testSetSongPartsRhythmReplacesWithClones() throws UnsupportedEditException
-    {
-        SongPart original = spt0;
-        List<SongPart> spts = sgs.setSongPartsRhythm(List.of(spt0), r44bis);
-
-        assertNotSame("Should return clones, not modify originals", original, spts.get(0));
-        assertSame(r44bis, spts.get(0).getRhythm());
-        assertSame("New clone should have container set", sgs, spts.get(0).getContainer());
     }
 
     @Test
@@ -367,7 +351,7 @@ public class SongStructureImplTest
         assertSame(spt0, sgs.getSongPart(0));
         assertSame(sgs, spt0.getContainer());
     }
-// Add the following 7 @Test methods to SongStructureImplTest
+
 
     @Test
     public void testRemoveMultipleSongPartsInOneCall()
@@ -384,10 +368,10 @@ public class SongStructureImplTest
         assertEquals(0, spt1.getStartBarIndex());
         assertSame(spt1, sgs.getSongPart(0));
 
-        // Containers cleared for removed parts
-        assertNull(spt0.getContainer());
-        assertNull(spt2.getContainer());
+        // Containers are not cleared for removed parts
+        assertSame(sgs, spt0.getContainer());
         assertSame(sgs, spt1.getContainer());
+        assertSame(sgs, spt2.getContainer());
     }
 
     @Test
@@ -558,24 +542,6 @@ public class SongStructureImplTest
         }
     }
 
-    @Test
-    public void testAddSongPartsParentSectionNull()
-    {
-        SongPart sptNew = spt0.getCopy(null, 0, 4, sectionA_44);
-        SongPart bad = new SongPartImpl(spt0.getRhythm(), 4, 4, null);
-        try
-        {
-            sgs.addSongParts(List.of(sptNew, bad));
-            fail("Expected IllegalArgumentException for SongPart with parentSection==null");
-        } catch (IllegalArgumentException expected)
-        {
-            undoManager.endCEdit(UNDO_EDIT);    // inconsistent state, don't try to undo anything in tearDown
-            // ok
-        } catch (UnsupportedEditException ex)
-        {
-            fail("Unexpected UnsupportedEditException: " + ex.getMessage());
-        }
-    }
 
     @Test
     public void testResizeUndoRedoRestoresSizesAndIndexes()

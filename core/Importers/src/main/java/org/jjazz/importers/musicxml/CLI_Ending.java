@@ -26,9 +26,11 @@ package org.jjazz.importers.musicxml;
 
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
+import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
@@ -78,6 +80,12 @@ public class CLI_Ending implements ChordLeadSheetItem<Ending>, WritableItem<Endi
     public ChordLeadSheet getContainer()
     {
         return container;
+    }
+
+    @Override
+    public ReentrantReadWriteLock getLock()
+    {
+        return container == null ? null : container.getLock();
     }
 
     @Override
@@ -152,7 +160,7 @@ public class CLI_Ending implements ChordLeadSheetItem<Ending>, WritableItem<Endi
     }
 
     @Override
-    public ChordLeadSheetItem<Ending> getCopy(Ending newData,Position newPos)
+    public ChordLeadSheetItem<Ending> getCopy(Ending newData, Position newPos)
     {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
@@ -201,28 +209,40 @@ public class CLI_Ending implements ChordLeadSheetItem<Ending>, WritableItem<Endi
     }
 
     @Override
-    public void setPosition(Position pos)
+    public void firePropertyChangEvent(PropertyChangeEvent event)
     {
+        // Nothing
+    }
+
+    @Override
+    public PropertyChangeEvent setPosition(Position pos)
+    {
+        var old = this.position;
         this.position = pos;
+        return new PropertyChangeEvent(this, PROP_ITEM_POSITION, old, pos);
     }
 
     @Override
-    public void setData(Ending data)
+    public PropertyChangeEvent setData(Ending data)
     {
+        var old = this.data;
         this.data = data;
+        return new PropertyChangeEvent(this, PROP_ITEM_DATA, old, data);
     }
 
     @Override
-    public void setContainer(ChordLeadSheet cls)
+    public PropertyChangeEvent setContainer(ChordLeadSheet cls)
     {
+        var old = this.container;
         this.container = cls;
+        return new PropertyChangeEvent(this, PROP_CONTAINER, old, cls);
     }
 
     @Override
     public int compareToSamePosition(
             ChordLeadSheetItem<?> other)
     {
-        throw new UnsupportedOperationException("Not supported yet."); 
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
 }

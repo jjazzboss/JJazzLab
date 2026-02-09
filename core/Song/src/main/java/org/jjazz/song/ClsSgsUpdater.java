@@ -204,13 +204,14 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
 //----------------------------------------------------------------------------------------------------  
     private void processSectionMoved(SectionMovedEvent evt)
     {
+        assert !evt.isUndo() : "evt=" + evt;
         var cliSection = evt.getCLI_Section();
         int newBarIndex = cliSection.getPosition().getBar();
         assert newBarIndex > 0 : "cliSection=" + cliSection;
 
 
-        CLI_Section newBarPrevSection = evt.getNewBarPrevSection();
-        CLI_Section oldBarNewSection = evt.getOldBarNewSection();
+        CLI_Section newBarPrevSection = chordLeadSheet.getSection(newBarIndex - 1);
+        CLI_Section oldBarNewSection = chordLeadSheet.getSection(evt.getOldBar());
         Map<SongPart, Integer> mapSptSize = new HashMap<>();
 
         if (oldBarNewSection == newBarPrevSection || oldBarNewSection == cliSection)
@@ -313,7 +314,7 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
             } else
             {
                 var r = songStructure.getRecommendedRhythm(section.getTimeSignature(), 0);
-                newSpt = songStructure.createSongPart(r, section.getName(), 0, nbBars, cliSection, true);
+                newSpt = songStructure.createSongPart(r, section.getName(), 0, cliSection, true);
             }
             try
             {
@@ -390,32 +391,35 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
             return;
         }
 
-        // Create the replacing SongParts
-        List<SongPart> newSpts = new ArrayList<>();
-        List<SongPart> toBeRenamedSpts = new ArrayList<>();
-        for (var oldSpt : oldSpts)
-        {
-            var r = songStructure.getRecommendedRhythm(newSection.getData().getTimeSignature(), oldSpt.getStartBarIndex());
-            var newSpt = oldSpt.getCopy(r, oldSpt.getStartBarIndex(), oldSpt.getNbBars(), newSection);
-            newSpts.add(newSpt);
 
-            // Rename unless SongPart name has been modified by user
-            if (oldSpt.getName().equalsIgnoreCase(oldSection.getData().getName()))
-            {
-                toBeRenamedSpts.add(newSpt);
-            }
-        }
+        var oldName = oldSection.getData().getName();
+        var oldTs = oldSection.getData().getTimeSignature();
+        var newName = newSection.getData().getName();
+        var newTs = newSection.getData().getTimeSignature();
+        Rhythm newRhythm = newTs.equals(oldTs) ? null : songStructure.getRecommendedRhythm(newTs, oldSpts.get(0).getStartBarIndex());
 
 
         if (authorizeOnly)
         {
-            var event = new SptRhythmChanged(songStructure, oldSpts, newSpts);
-            songStructure.testChangeEventForVeto(event);          // throws UnsupportedEditException
-        } else
-        {
-            songStructure.replaceSongParts(oldSpts, newSpts);        // throws UnsupportedEditException
-            songStructure.setSongPartsName(toBeRenamedSpts, newSection.getData().getName());
+            if (newRhythm != null)
+            {
+                List<SongPart> newSpts = oldSpts.stream()
+                        .map(spt -> spt.getCopy(newRhythm, spt.getStartBarIndex(), spt.getNbBars(), newSection))
+                        .toList();
+                var event = new SptRhythmChanged(songStructure, newRhythm, oldSpts, newSpts);
+                songStructure.testChangeEventForVeto(event);          // throws UnsupportedEditException
+            }
+            return;
         }
+
+
+        // Update SongStructure
+        var newSpts = songStructure.setSongPartsRhythm(oldSpts, newRhythm);        // throws UnsupportedEditException
+        List<SongPart> toBeRenamedSpts = newSpts.stream()
+                .filter(spt -> spt.getName().equalsIgnoreCase(oldName))
+                .toList();
+        songStructure.setSongPartsName(toBeRenamedSpts, newName);
+
     }
 
     private void processSectionTimeSignatureChanged(SectionChangedEvent evt, boolean authorizeOnly) throws UnsupportedEditException
@@ -480,17 +484,18 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
     /**
      * Update ChordLeadSheet off-beat chord symbols position if a SongPart's rhythm switches between ternary and binary feel.
      *
-     * @param sre
+     * @param evt
      */
-    private void processRhythmChanged(SptRhythmChanged sre)
+    private void processRhythmChanged(SptRhythmChanged evt)
     {
+        assert !evt.isUndo() : "evt=" + evt;
         Set<CLI_Section> processedSections = new HashSet<>();
 
 
-        for (int i = 0; i < sre.getSongParts().size(); i++)
+        for (int i = 0; i < evt.getSongParts().size(); i++)
         {
-            var oldSpt = sre.getSongParts().get(i);
-            var newSpt = sre.getNewSpts().get(i);
+            var oldSpt = evt.getSongParts().get(i);
+            var newSpt = evt.getNewSpts().get(i);
             var cliSection = oldSpt.getParentSection();
 
             if (processedSections.contains(cliSection))

@@ -197,7 +197,7 @@ public final class TestMusicGenerationOnSongFiles implements ActionListener
             var oldSpts = sgs.getSongParts().stream()
                     .filter(spt -> spt.getRhythm() != rhythm && spt.getRhythm().getTimeSignature() == rhythm.getTimeSignature())
                     .toList();
-            sgs.setSongPartsRhythm(oldSpts, rhythm);
+            sgs.setSongPartsRhythm(oldSpts, rhythm, null);
 
 
             var rhythmSpts = sgs.getSongParts(spt -> spt.getRhythm() == rhythm);

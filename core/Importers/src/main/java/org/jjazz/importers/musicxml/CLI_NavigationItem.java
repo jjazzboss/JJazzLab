@@ -27,12 +27,17 @@ package org.jjazz.importers.musicxml;
 import com.google.common.base.Preconditions;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
+import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
+import static org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem.PROP_CONTAINER;
+import static org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem.PROP_ITEM_DATA;
+import static org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem.PROP_ITEM_POSITION;
 import org.jjazz.chordleadsheet.api.item.WritableItem;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.utilities.api.StringProperties;
@@ -74,6 +79,12 @@ public class CLI_NavigationItem implements ChordLeadSheetItem<NavItem>, Writable
     }
 
     @Override
+    public ReentrantReadWriteLock getLock()
+    {
+        return container == null ? null : container.getLock();
+    }
+
+    @Override
     public NavItem getData()
     {
         return data;
@@ -109,13 +120,13 @@ public class CLI_NavigationItem implements ChordLeadSheetItem<NavItem>, Writable
         return new StringProperties();
     }
 
-   @Override
+    @Override
     public int compareToSamePosition(ChordLeadSheetItem<?> other)
     {
         Objects.requireNonNull(other);
         Preconditions.checkArgument(other instanceof CLI_NavigationItem && !equals(other), "this=%s other=%s", other);
         Preconditions.checkArgument(getPosition().equals(other.getPosition()) && getPositionOrder() == other.getPositionOrder(), "this=%s other=%s", other);
-        
+
         CLI_NavigationItem otherCliNav = (CLI_NavigationItem) other;
         NavItem d1 = getData();
         NavItem d2 = otherCliNav.getData();
@@ -155,21 +166,33 @@ public class CLI_NavigationItem implements ChordLeadSheetItem<NavItem>, Writable
     }
 
     @Override
-    public void setPosition(Position pos)
+    public void firePropertyChangEvent(PropertyChangeEvent event)
     {
+        // Nothing
+    }
+
+    @Override
+    public PropertyChangeEvent setPosition(Position pos)
+    {
+        var old = this.position;
         this.position = pos;
+        return new PropertyChangeEvent(this, PROP_ITEM_POSITION, old, pos);
     }
 
     @Override
-    public void setData(NavItem data)
+    public PropertyChangeEvent setData(NavItem data)
     {
+        var old = this.data;
         this.data = data;
+        return new PropertyChangeEvent(this, PROP_ITEM_DATA, old, data);
     }
 
     @Override
-    public void setContainer(ChordLeadSheet cls)
+    public PropertyChangeEvent setContainer(ChordLeadSheet cls)
     {
+        var old = this.container;
         this.container = cls;
+        return new PropertyChangeEvent(this, PROP_CONTAINER, old, cls);
     }
 
     @Override

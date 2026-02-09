@@ -22,21 +22,22 @@
  */
 package org.jjazz.chordleadsheet.item;
 
-import com.google.common.base.Preconditions;
 import org.jjazz.chordleadsheet.api.item.WritableItem;
+import com.google.common.base.Preconditions;
 import com.thoughtworks.xstream.XStream;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
+import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
@@ -71,11 +72,11 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
      * Need to be transient otherwise this introduces circularities in the objects graph that prevent ChordLeadSheetImpl's proxy serialization to work. This
      * field must be restored by its container at deserialization.
      */
-    private transient ChordLeadSheet container = null;
+    private volatile transient ChordLeadSheet container = null;
     /**
      * The listeners for changes in this ChordLeadSheetItem.
      */
-    private transient SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private final transient PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(CLI_ChordSymbolImpl.class.getSimpleName());
 
     /**
@@ -98,40 +99,83 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
     }
 
     @Override
-    final synchronized public void setContainer(ChordLeadSheet cls)
+    public int getPositionOrder()
     {
+        return POSITION_ORDER;
+    }
+
+    @Override
+    final public PropertyChangeEvent setContainer(ChordLeadSheet cls)
+    {
+        var res = CLI_SectionImpl.getVoidEvent(this);
         if (cls != container)
         {
             ChordLeadSheet old = container;
             container = cls;
-            pcs.firePropertyChange(PROP_CONTAINER, old, container);
+            res = new PropertyChangeEvent(this, PROP_CONTAINER, old, container);
+        }
+        return res;
+    }
+
+    @Override
+    public ReentrantReadWriteLock getLock()
+    {
+        return container == null ? null : container.getLock();
+    }
+
+    @Override
+    public final Position getPosition()
+    {
+        readLock_lock();
+        try
+        {
+            return new Position(position);
+        } finally
+        {
+            readLock_unlock();
         }
     }
 
-    /**
-     * Set the position of this item.
-     *
-     * @param p
-     */
     @Override
-    public synchronized final void setPosition(Position p)
+    public final PropertyChangeEvent setPosition(Position p)
     {
-        if (position == null)
-        {
-            throw new NullPointerException("p=" + p);
-        }
+        Objects.requireNonNull(p);
+        var res = CLI_SectionImpl.getVoidEvent(this);
         if (!position.equals(p))
         {
             Position oldPos = position;
             position = new Position(p);
-            pcs.firePropertyChange(PROP_ITEM_POSITION, oldPos, position);
+            res = new PropertyChangeEvent(this, PROP_ITEM_POSITION, oldPos, position);
+        }
+        return res;
+    }
+
+
+    @Override
+    public ExtChordSymbol getData()
+    {
+        readLock_lock();
+        try
+        {
+            return data;
+        } finally
+        {
+            readLock_unlock();
         }
     }
 
     @Override
-    public int getPositionOrder()
+    public PropertyChangeEvent setData(ExtChordSymbol ecs)
     {
-        return POSITION_ORDER;
+        Objects.requireNonNull(ecs);
+        var res = CLI_SectionImpl.getVoidEvent(this);
+        if (!ecs.equals(data))
+        {
+            ExtChordSymbol oldData = data;
+            data = ecs;
+            res = new PropertyChangeEvent(this, PROP_ITEM_DATA, oldData, data);
+        }
+        return res;
     }
 
     @Override
@@ -147,35 +191,18 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
     }
 
     @Override
-    public synchronized ExtChordSymbol getData()
+    public CLI_ChordSymbol getCopy(ExtChordSymbol newData, Position newPos)
     {
-        return data;
-    }
-
-    @Override
-    public synchronized void setData(ExtChordSymbol ecs)
-    {
-        Objects.requireNonNull(ecs);
-        if (!ecs.equals(data))
+        readLock_lock();
+        try
         {
-            ExtChordSymbol oldData = data;
-            data = ecs;
-            pcs.firePropertyChange(PROP_ITEM_DATA, oldData, data);
+            CLI_ChordSymbolImpl cli = new CLI_ChordSymbolImpl(newData == null ? data : newData, (newPos != null) ? newPos : position);
+            cli.getClientProperties().set(clientProperties);
+            return cli;
+        } finally
+        {
+            readLock_unlock();
         }
-    }
-
-    /**
-     * Note that client properties are also copied.
-     *
-     * @param newPos
-     * @return
-     */
-    @Override
-    public synchronized CLI_ChordSymbol getCopy(ExtChordSymbol newData, Position newPos)
-    {
-        CLI_ChordSymbolImpl cli = new CLI_ChordSymbolImpl(newData == null ? data : newData, (newPos != null) ? newPos : position);
-        cli.getClientProperties().set(clientProperties);
-        return cli;
     }
 
     /**
@@ -185,15 +212,22 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
     public int compareToSamePosition(ChordLeadSheetItem<?> other)
     {
         Objects.requireNonNull(other);
-        Preconditions.checkArgument(other instanceof CLI_ChordSymbol && !equals(other), "this=%s other=%s", other);
-        Preconditions.checkArgument(getPosition().equals(other.getPosition()) && getPositionOrder() == other.getPositionOrder(), "this=%s other=%s", other);
 
-        CLI_ChordSymbol otherCliCs = (CLI_ChordSymbol) other;
-        ExtChordSymbol ecs = getData();
-        ExtChordSymbol otherEcs = otherCliCs.getData();
+        readLock_lock();
+        try
+        {
+            Preconditions.checkArgument(other instanceof CLI_ChordSymbol && !equals(other), "this=%s other=%s", other);
+            Preconditions.checkArgument(position.equals(other.getPosition()) && getPositionOrder() == other.getPositionOrder(), "this=%s other=%s", other);
 
-        var res = ecs.toDebugString().compareTo(otherEcs.toDebugString());
-        return res;
+            CLI_ChordSymbol otherCliCs = (CLI_ChordSymbol) other;
+            ExtChordSymbol otherEcs = otherCliCs.getData();
+
+            var res = data.toDebugString().compareTo(otherEcs.toDebugString());
+            return res;
+        } finally
+        {
+            readLock_unlock();
+        }
     }
 
     @Override
@@ -211,24 +245,34 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
     @Override
     public String toString()
     {
-        return "" + getData() + getPosition();
-    }
-
-    /**
-     * Get the position of this item.
-     *
-     * @return
-     */
-    @Override
-    public synchronized final Position getPosition()
-    {
-        return new Position(position);
+        readLock_lock();
+        try
+        {
+            return "" + getData() + getPosition();
+        } finally
+        {
+            readLock_unlock();
+        }
     }
 
     @Override
-    public synchronized final ChordLeadSheet getContainer()
+    public void firePropertyChangEvent(PropertyChangeEvent event)
     {
-        return container;
+        pcs.firePropertyChange(event);
+    }
+
+
+    @Override
+    public final ChordLeadSheet getContainer()
+    {
+        readLock_lock();
+        try
+        {
+            return container;
+        } finally
+        {
+            readLock_unlock();
+        }
     }
 
     @Override
@@ -289,6 +333,7 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
             throw new UnsupportedFlavorException(fl);
         }
     }
+
 
     /**
      * This enables XStream instance configuration even for private classes or classes from non-public packages of Netbeans modules.

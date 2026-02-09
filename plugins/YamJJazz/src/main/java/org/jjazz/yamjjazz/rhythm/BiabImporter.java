@@ -153,7 +153,7 @@ public class BiabImporter implements SongImporter
         var oldSpts = ss.getSongParts();
         try
         {
-            ss.setSongPartsRhythm(oldSpts, r);
+            ss.setSongPartsRhythm(oldSpts, r, null);
         } catch (UnsupportedEditException ex)
         {
             // Should never be here, it's not a multi rhythm

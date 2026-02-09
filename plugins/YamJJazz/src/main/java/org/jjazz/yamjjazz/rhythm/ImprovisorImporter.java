@@ -115,11 +115,9 @@ public class ImprovisorImporter implements SongImporter
         }
 
         // Assign the new rhythm
-        SongPart newSpt;
         try
         {
-            var sptList = ss.setSongPartsRhythm(List.of(spt0), r);       // throws UnsupportedEditException
-            newSpt = sptList.get(0);
+            ss.setSongPartsRhythm(List.of(spt0), r, null);       // throws UnsupportedEditException
         } catch (UnsupportedEditException ex)
         {
             Exceptions.printStackTrace(ex);
@@ -134,28 +132,28 @@ public class ImprovisorImporter implements SongImporter
         RP_SYS_Marker rpMarker = RP_SYS_Marker.getMarkerRp(r);
 
         // Modify SongPart 0
-        ss.setRhythmParameterValue(newSpt, rpVariation, "Main A-1");
-        ss.setRhythmParameterValue(newSpt, rpFill, "always");
-        ss.setRhythmParameterValue(newSpt, rpMarker, "theme");
+        ss.setRhythmParameterValue(spt0, rpVariation, "Main A-1");
+        ss.setRhythmParameterValue(spt0, rpFill, "always");
+        ss.setRhythmParameterValue(spt0, rpMarker, "theme");
 
         if (spts.size() == 1)
         {
             // There is only one SongPart, add more
             // Add SongPart 1
-            SongPart spt1 = appendSptCopy(newSpt);
+            SongPart spt1 = appendSptCopy(spt0);
             ss.setRhythmParameterValue(spt1, rpVariation, "Main B-1");
             ss.setRhythmParameterValue(spt1, rpFill, "always");
             ss.setRhythmParameterValue(spt1, rpMarker, "solo");
 
             // Add SongPart 2
-            SongPart spt2 = appendSptCopy(newSpt);
+            SongPart spt2 = appendSptCopy(spt0);
             ss.setRhythmParameterValue(spt2, rpVariation, "Main D-1");
             ss.setRhythmParameterValue(spt2, rpIntensity, Integer.valueOf(3));
             ss.setRhythmParameterValue(spt2, rpFill, "always");
             ss.setRhythmParameterValue(spt2, rpMarker, "solo");
 
             // Add SongPart 3
-            SongPart spt3 = appendSptCopy(newSpt);
+            SongPart spt3 = appendSptCopy(spt0);
             ss.setRhythmParameterValue(spt3, rpVariation, "Main C-1");
             ss.setRhythmParameterValue(spt3, rpFill, "break");
             ss.setRhythmParameterValue(spt3, rpMarker, "theme");
@@ -169,28 +167,28 @@ public class ImprovisorImporter implements SongImporter
                 SongPart oldSpt = spts.get(i);
                 try
                 {
-                    ss.setSongPartsRhythm(Arrays.asList(oldSpt), r);
+                    ss.setSongPartsRhythm(Arrays.asList(oldSpt), r, null);
                 } catch (UnsupportedEditException ex)
                 {
                     Exceptions.printStackTrace(ex);
                 }
                 if (i % 4 == 0)
                 {
-                    ss.setRhythmParameterValue(newSpt, rpVariation, "Main A-1");
+                    ss.setRhythmParameterValue(spt0, rpVariation, "Main A-1");
                 } else if (i % 3 == 0)
                 {
-                    ss.setRhythmParameterValue(newSpt, rpVariation, "Main D-1");
+                    ss.setRhythmParameterValue(spt0, rpVariation, "Main D-1");
                 } else if (i % 2 == 0)
                 {
-                    ss.setRhythmParameterValue(newSpt, rpVariation, "Main C-1");
+                    ss.setRhythmParameterValue(spt0, rpVariation, "Main C-1");
                 } else
                 {
-                    ss.setRhythmParameterValue(newSpt, rpVariation, "Main B-1");
+                    ss.setRhythmParameterValue(spt0, rpVariation, "Main B-1");
                 }
                 if (i == spts.size() - 1)
                 {
                     // Last SongPart
-                    ss.setRhythmParameterValue(newSpt, rpFill, "always");
+                    ss.setRhythmParameterValue(spt0, rpFill, "always");
                 }
             }
         }

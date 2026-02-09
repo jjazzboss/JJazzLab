@@ -25,10 +25,11 @@ package org.jjazz.chordleadsheet.api.item;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
+import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.util.Objects;
-import java.util.logging.Logger;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.utilities.api.StringProperties;
@@ -36,16 +37,16 @@ import org.jjazz.utilities.api.StringProperties;
 /**
  * Items which belong to a ChordLeadSheet.
  * <p>
- * PropertyChangeEvents are fired when an attribute is modified.
  * <p>
  * This is a mutable class. Subclasses must define equals() and hashCode() using the static helper method ChordLeadSheetItem.equals() which is consistent with
- * the generic compareTo().
+ * the generic compareTo(). If you want to use ChordLeadSheetItems as Map keys you should use an IdentityHashMap, unless you are sure ChordLeadSheetItems won't
+ * mutate. Same for a Set, you should use Guava Sets.newIdentityHashSet().
  * <p>
- * If you want to use ChordLeadSheetItems as Map keys you should use an IdentityHashMap, unless you are sure ChordLeadSheetItems won't mutate. Same for a Set,
- * you should use Guava Sets.newIdentityHashSet().
+ * Implementations must use getLock() for read operations.
  *
  * @param <T>
  */
+
 public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLeadSheetItem<?>>
 {
 
@@ -61,7 +62,6 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
      * oldValue=old position, newValue=new position.
      */
     public static String PROP_ITEM_POSITION = "ItemPosition";
-    static final Logger LOGGER = Logger.getLogger(ChordLeadSheetItem.class.getSimpleName());
 
     /**
      * Get the ChordLeadSheet this object belongs to.
@@ -69,6 +69,13 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
      * @return Can be null.
      */
     ChordLeadSheet getContainer();
+
+    /**
+     * The container's lock.
+     *
+     * @return Can be null if no container set.
+     */
+    ReentrantReadWriteLock getLock();
 
 
     /**
@@ -130,22 +137,30 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
     default int compareTo(ChordLeadSheetItem<?> other)
     {
         Objects.requireNonNull(other);
-        if (this.equals(other))
+
+        readLock_lock();
+        try
         {
-            return 0;
-        }
-        int res = getPosition().compareTo(other.getPosition());
-        if (res == 0)
-        {
-            res = Integer.compare(getPositionOrder(), other.getPositionOrder());
+            if (this.equals(other))
+            {
+                return 0;
+            }
+            int res = getPosition().compareTo(other.getPosition());
             if (res == 0)
             {
-                // same position, same position order => both items should be instance of the same ChordLeadSheetItem subclass
-                res = compareToSamePosition(other);
+                res = Integer.compare(getPositionOrder(), other.getPositionOrder());
+                if (res == 0)
+                {
+                    // same position, same position order => both items should be instance of the same ChordLeadSheetItem subclass
+                    res = compareToSamePosition(other);
+                }
             }
+            assert res != 0;        // For consistency with equals(), VERY important because ChordLeadSheetItems are used in order-based collections such as TreeSet
+            return res;
+        } finally
+        {
+            readLock_unlock();
         }
-        assert res != 0;        // For consistency with equals(), VERY important because ChordLeadSheetItems are used in order-based collections such as TreeSet
-        return res;
     }
 
     /**
@@ -170,34 +185,75 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
     /**
      * Generic equals method relying only on data and position.
      * <p>
-     * @param item1 Can not be null
+     *
+     * @param item Cannot be null
      * @param o
      * @return
      */
-    static public boolean equals(ChordLeadSheetItem<?> item1, Object o)
+    static public boolean equals(ChordLeadSheetItem<?> item, Object o)
     {
-        Objects.requireNonNull(item1);
-        if (o == null || item1.getClass() != o.getClass())
+        Objects.requireNonNull(item);
+        if (o == null || item.getClass() != o.getClass())
         {
             return false;
         }
-        var item2 = (ChordLeadSheetItem<?>) o;
-        return item1.getData().equals(item2.getData())
-                && item1.getPosition().equals(item2.getPosition());
+
+        var cli = (ChordLeadSheetItem<?>) o;
+        cli.readLock_lock();
+        try
+        {
+            return item.getData().equals(cli.getData()) && item.getPosition().equals(cli.getPosition());
+        } finally
+        {
+            cli.readLock_unlock();
+        }
     }
 
     /**
      * Generic hashCode method relying on data and position.
-     *
+     * <p>
      * @param item
      * @return
      */
     static public int hashCode(ChordLeadSheetItem<?> item)
     {
-        int hash = 7;
-        hash = 37 * hash + item.getPosition().hashCode();
-        hash = 37 * hash + item.getData().hashCode();
-        return hash;
+        Objects.requireNonNull(item);
+
+        item.readLock_lock();
+        try
+        {
+            int hash = 7;
+            hash = 37 * hash + item.getPosition().hashCode();
+            hash = 37 * hash + item.getData().hashCode();
+            return hash;
+        } finally
+        {
+            item.readLock_unlock();
+        }
+    }
+
+    /**
+     * Helper method to read lock only if getLock() returns a non-null value.
+     */
+    default void readLock_lock()
+    {
+        var lock = getLock();
+        if (lock != null)
+        {
+            lock.readLock().lock();
+        }
+    }
+
+    /**
+     * Helper method to read unlock only if getLock() returns a non-null value.
+     */
+    default void readLock_unlock()
+    {
+        var lock = getLock();
+        if (lock != null)
+        {
+            lock.readLock().unlock();
+        }
     }
 
     /**
@@ -254,10 +310,11 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
         return new DefaultComparableItem(new Position(bar), true, true);
     }
 
+   
+
     // ==================================================================================================
     // Inner classes
     // ==================================================================================================
-
     static class DefaultComparableItem implements ChordLeadSheetItem<Object>
     {
 
@@ -293,6 +350,12 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
         public ChordLeadSheet getContainer()
         {
             throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
+
+        @Override
+        public ReentrantReadWriteLock getLock()
+        {
+            return null;
         }
 
         @Override

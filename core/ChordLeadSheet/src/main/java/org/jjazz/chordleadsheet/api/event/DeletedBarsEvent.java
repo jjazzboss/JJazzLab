@@ -23,6 +23,8 @@
 package org.jjazz.chordleadsheet.api.event;
 
 import com.google.common.base.Preconditions;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
@@ -54,8 +56,8 @@ public class DeletedBarsEvent extends ClsChangeEvent
         Preconditions.checkArgument(barFrom <= barTo, "barFrom=%s barTo=%s", barFrom, barTo);
         this.barFrom = barFrom;
         this.barTo = barTo;
-        this.shiftedItems = shiftedItems;
-        this.adjustedItems = adjustedItems;
+        this.shiftedItems = List.copyOf(shiftedItems);
+        this.adjustedItems = List.copyOf(adjustedItems);
         this.initSectionRemoved = removedItems.stream().anyMatch(cli -> cli instanceof CLI_Section && cli.getPosition().getBar() == 0);
     }
 

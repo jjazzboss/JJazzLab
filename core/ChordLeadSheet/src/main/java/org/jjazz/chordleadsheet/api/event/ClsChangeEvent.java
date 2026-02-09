@@ -42,14 +42,14 @@ public abstract class ClsChangeEvent
     /**
      * The ChordLeadSheet items which were impacted
      */
-    protected List<ChordLeadSheetItem> items;
+    protected final List<ChordLeadSheetItem> items;
 
 
     private boolean isUndo, isRedo;
 
 
     protected ClsChangeEvent(ChordLeadSheet src)
-    {   
+    {
         this(src, new ArrayList<>());
     }
 
@@ -71,17 +71,9 @@ public abstract class ClsChangeEvent
         Objects.requireNonNull(src);
         Objects.requireNonNull(items);
         this.source = src;
-        this.items = new ArrayList<>(items);
-        Collections.sort(this.items);
-    }
-
-    public void addItem(ChordLeadSheetItem<?> item)
-    {
-        if (!items.contains(item))
-        {
-            items.add(item);
-            Collections.sort(items);
-        }
+        var tmp = new ArrayList<>(items);
+        Collections.sort(tmp);
+        this.items = Collections.unmodifiableList(tmp);
     }
 
     /**

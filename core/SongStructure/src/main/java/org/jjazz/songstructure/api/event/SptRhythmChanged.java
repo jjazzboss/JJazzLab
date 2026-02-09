@@ -22,32 +22,36 @@
  */
 package org.jjazz.songstructure.api.event;
 
-import com.google.common.base.Preconditions;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 
 /**
- * A SongPart has been replaced by its clone but with a different rhythm.
+ * SongParts got their rhythm changed, possibly their parent section too.
  * <p>
  * getSongParts() will return oldSpts.
  */
 public class SptRhythmChanged extends SgsChangeEvent
 {
 
-    private final ArrayList<SongPart> newSpts = new ArrayList<>();
+    private final List<SongPart> newSpts;
     private final Rhythm rhythm;
 
-    public SptRhythmChanged(SongStructure src, Rhythm r, List<SongPart> oldSpts, List<SongPart> newSpts)
+    /**
+     *
+     * @param src
+     * @param r             The new rhythm
+     * @param oldSptsCopies A copy of each SongPart from newSpts before their rhythm was changed (possibly parentSection too)
+     * @param newSpts       The changed SongParts
+     */
+    public SptRhythmChanged(SongStructure src, Rhythm r, List<SongPart> oldSptsCopies, List<SongPart> newSpts)
     {
-        super(src, oldSpts);
-        Preconditions.checkArgument(newSpts.stream().allMatch(spt -> spt.getRhythm() == r), "r=%s newSpts=%s", newSpts);
-
+        super(src, oldSptsCopies);
+        Objects.requireNonNull(newSpts);
         this.rhythm = r;
-        this.newSpts.addAll(newSpts);
-        SgsChangeEvent.sortSongParts(this.newSpts);
+        this.newSpts = sortSongParts(newSpts);
     }
 
     public Rhythm getNewRhythm()
@@ -57,7 +61,7 @@ public class SptRhythmChanged extends SgsChangeEvent
 
 
     /**
-     * @return The replacing SongParts, ordered by startBarIndex (like oldSpts but with the new rhythm)
+     * @return The updated SongParts, ordered by startBarIndex
      */
     public List<SongPart> getNewSpts()
     {

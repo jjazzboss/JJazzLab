@@ -116,13 +116,12 @@ public final class TestAllRhythms implements ActionListener
                 RhythmParameter<?> rp0 = r.getRhythmParameters().get(0);
                 try
                 {
-                    List<SongPart> newSpts = sgs.setSongPartsRhythm(Arrays.asList(spt), r);     // throws UnsupportedEditException
-                    var newSpt = newSpts.get(0);
+                    sgs.setSongPartsRhythm(List.of(spt), r, null);     // throws UnsupportedEditException                    
                     if (rp0.getDisplayName().equals("Style part") && ((RP_State) rp0).getPossibleValues().contains("Main A"))
                     {
                         @SuppressWarnings("unchecked")
                         RhythmParameter<String> rpString = (RhythmParameter<String>) rp0;
-                        sgs.setRhythmParameterValue(newSpt, rpString, "Main A");
+                        sgs.setRhythmParameterValue(spt, rpString, "Main A");
                     }
                     try
                     {

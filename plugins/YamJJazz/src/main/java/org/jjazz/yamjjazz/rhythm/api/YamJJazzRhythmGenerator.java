@@ -161,7 +161,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
 
         // The final result to fill in
         List<ChordSeqPhrases> chordSeqPhrases = getAllPhrasesAllChordSequences();
-                
+
         // Robustness check
         assert !chordSeqPhrases.isEmpty();
         for (var csp : chordSeqPhrases)
@@ -1016,8 +1016,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
 
                 // Add a special "fill" section on last bar
                 int fillSectionBar = section.getPosition().getBar() + sectionSize - 1;
-                CLI_Section fillSection = CLI_Factory.getDefault().createSection(fillSectionName, section.getData().getTimeSignature(),
-                        fillSectionBar, null);
+                CLI_Section fillSection = CLI_Factory.getDefault().createSection(fillSectionName, section.getData().getTimeSignature(), fillSectionBar, null);
                 cls.addSection(fillSection);
 
 

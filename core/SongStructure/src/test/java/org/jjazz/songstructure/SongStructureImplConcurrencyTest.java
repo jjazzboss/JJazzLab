@@ -253,7 +253,7 @@ public class SongStructureImplConcurrencyTest
                                 {
                                     SongPart spt = spts.get(1);
                                     var newRhythm = spt.getRhythm() == r34 ? r34bis : r34;
-                                    sgs.setSongPartsRhythm(List.of(spt), newRhythm);
+                                    sgs.setSongPartsRhythm(List.of(spt), newRhythm, null);
                                     mutationCount.incrementAndGet();
                                 }
                             }

@@ -76,10 +76,6 @@ public class InsertSpt extends SS_ContextAction
         List<SongPart> spts = sgs.getSongParts();
         ChordLeadSheet cls = null;
         cls = sgs.getParentChordLeadSheet();
-        if (cls == null)
-        {
-            throw new IllegalStateException("sgs=" + sgs);
-        }
 
 
         // Show dialog

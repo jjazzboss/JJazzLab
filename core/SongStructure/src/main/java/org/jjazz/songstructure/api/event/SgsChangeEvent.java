@@ -42,7 +42,7 @@ public class SgsChangeEvent
     /**
      * Ordered list.
      */
-    private final ArrayList<SongPart> songParts;
+    private final List<SongPart> songParts;
     private boolean isUndo;
     private boolean isRedo;
 
@@ -65,10 +65,8 @@ public class SgsChangeEvent
     {
         Objects.requireNonNull(src);
         Objects.requireNonNull(spts);
-        this.songParts = new ArrayList<>();
+        songParts = sortSongParts(spts);
         source = src;
-        songParts.addAll(spts);
-        sortSongParts(songParts);
     }
 
     /**
@@ -136,9 +134,16 @@ public class SgsChangeEvent
         return isUndo || isRedo;
     }
 
-    public static void sortSongParts(List<SongPart> spts)
+    /**
+     * Return a sorted unmodifiable list.
+     *
+     * @param spts
+     * @return
+     */
+    static public List<SongPart> sortSongParts(Collection<SongPart> spts)
     {
-        Collections.sort(spts, new Comparator<SongPart>()
+        List<SongPart> res = new ArrayList<>(spts);
+        Collections.sort(res, new Comparator<SongPart>()
         {
             @Override
             public int compare(SongPart spt1, SongPart spt2)
@@ -147,5 +152,6 @@ public class SgsChangeEvent
             }
         }
         );
+        return Collections.unmodifiableList(res);
     }
 }

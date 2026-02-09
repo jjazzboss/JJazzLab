@@ -184,28 +184,17 @@ public class SongPartCopyBuffer
         }
 
         ChordLeadSheet targetCls = targetSgs.getParentChordLeadSheet();
-        if (targetCls == null)
+
+        // Retrieve only a spt if we can find the same parentSection or an equivalent with same nam & timesignature.
+        for (SongPart spt : sptBuffer)
         {
-            // Special case: songStructure has no parent chordleadsheet (should not happen in normal operation)
-            for (SongPart spt : sptBuffer)
+            CLI_Section parentSection = spt.getParentSection();
+            TimeSignature parentSectionTs = spt.getParentSection().getData().getTimeSignature();
+            CLI_Section newParentSection = targetCls.getSection(parentSection.getData().getName());
+            if (newParentSection != null && newParentSection.getData().getTimeSignature().equals(parentSectionTs))
             {
-                // don't change the rhythm and set parent section to null
-                spts.add(spt.getCopy(null, spt.getStartBarIndex() - barShift, spt.getNbBars(), null));
-            }
-        } else
-        {
-            // Normal case
-            // Retrieve only a spt if we can find the same parentSection or an equivalent with same nam & timesignature.
-            for (SongPart spt : sptBuffer)
-            {
-                CLI_Section parentSection = spt.getParentSection();
-                TimeSignature parentSectionTs = spt.getParentSection().getData().getTimeSignature();
-                CLI_Section newParentSection = targetCls.getSection(parentSection.getData().getName());
-                if (newParentSection != null && newParentSection.getData().getTimeSignature().equals(parentSectionTs))
-                {
-                    int nbBars = targetCls.getBarRange(newParentSection).size();
-                    spts.add(spt.getCopy(null, spt.getStartBarIndex() - barShift, nbBars, newParentSection));
-                }
+                int nbBars = targetCls.getBarRange(newParentSection).size();
+                spts.add(spt.getCopy(null, spt.getStartBarIndex() - barShift, nbBars, newParentSection));
             }
         }
         return spts;
