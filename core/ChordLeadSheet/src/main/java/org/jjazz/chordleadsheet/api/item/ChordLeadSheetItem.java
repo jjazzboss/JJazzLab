@@ -25,11 +25,11 @@ package org.jjazz.chordleadsheet.api.item;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
-import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Supplier;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.utilities.api.StringProperties;
@@ -138,8 +138,7 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
     {
         Objects.requireNonNull(other);
 
-        readLock_lock();
-        try
+        return performReadAPImethod(() -> 
         {
             if (this.equals(other))
             {
@@ -157,10 +156,7 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
             }
             assert res != 0;        // For consistency with equals(), VERY important because ChordLeadSheetItems are used in order-based collections such as TreeSet
             return res;
-        } finally
-        {
-            readLock_unlock();
-        }
+        });
     }
 
     /**
@@ -199,14 +195,7 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
         }
 
         var cli = (ChordLeadSheetItem<?>) o;
-        cli.readLock_lock();
-        try
-        {
-            return item.getData().equals(cli.getData()) && item.getPosition().equals(cli.getPosition());
-        } finally
-        {
-            cli.readLock_unlock();
-        }
+        return item.performReadAPImethod(() -> item.getData().equals(cli.getData()) && item.getPosition().equals(cli.getPosition()));
     }
 
     /**
@@ -218,39 +207,34 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
     static public int hashCode(ChordLeadSheetItem<?> item)
     {
         Objects.requireNonNull(item);
-
-        item.readLock_lock();
-        try
+        return item.performReadAPImethod(() -> 
         {
             int hash = 7;
             hash = 37 * hash + item.getPosition().hashCode();
             hash = 37 * hash + item.getData().hashCode();
             return hash;
+        });
+    }
+
+    /**
+     * Execute a read operation using the read lock if available.
+     *
+     * @param <T>
+     * @param operation
+     * @return
+     */
+    default <T> T performReadAPImethod(Supplier<T> operation)
+    {
+        var lock = getLock();
+        if (lock == null)
+        {
+            return operation.get();
+        }
+        lock.readLock().lock();
+        try
+        {
+            return operation.get();
         } finally
-        {
-            item.readLock_unlock();
-        }
-    }
-
-    /**
-     * Helper method to read lock only if getLock() returns a non-null value.
-     */
-    default void readLock_lock()
-    {
-        var lock = getLock();
-        if (lock != null)
-        {
-            lock.readLock().lock();
-        }
-    }
-
-    /**
-     * Helper method to read unlock only if getLock() returns a non-null value.
-     */
-    default void readLock_unlock()
-    {
-        var lock = getLock();
-        if (lock != null)
         {
             lock.readLock().unlock();
         }
@@ -310,7 +294,6 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
         return new DefaultComparableItem(new Position(bar), true, true);
     }
 
-   
 
     // ==================================================================================================
     // Inner classes

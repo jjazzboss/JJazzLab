@@ -29,7 +29,8 @@ import org.jjazz.harmony.api.Position;
 /**
  * Mutating methods of a ChordLeadSheetItem.
  * <p>
- * These methods must be only called by the enclosing ChordLeadSheet methods which manage global synchronization (write lock).
+ * These methods should be *ONLY* called by the enclosing ChordLeadSheet methods which manage global synchronization. It means that WritableItem methods
+ * implementations do not have to use lock. The interface is made public only to enable creation of custom ChordLeadSheetItem subclasses.
  *
  * @param <T>
  * @see org.jjazz.chordleadsheet.api.ChordLeadSheet
@@ -63,7 +64,7 @@ public interface WritableItem<T> extends ChordLeadSheetItem<T>
     PropertyChangeEvent setContainer(ChordLeadSheet cls);
 
     /**
-     * Fire event to the listeners.
+     * Fire an event to the ChordLeadSheetItem listeners.
      *
      * @param event
      */

@@ -180,15 +180,15 @@ public class SongMetaEvents implements ClsChangeListener, SgsChangeListener, Pro
         assert e.getSource() == song;
         switch (e.getPropertyName())
         {
-            case Song.PROP_VETOABLE_USER_PHRASE ->
+            case Song.PROP_VETOABLE_ADD_USER_PHRASE ->
             {
                 String addedOrRemovedPhraseName = e.getOldValue() == null ? e.getNewValue().toString() : e.getOldValue().toString();
-                fireMusicalContentChanged(Song.PROP_VETOABLE_USER_PHRASE, addedOrRemovedPhraseName);
+                fireMusicalContentChanged(Song.PROP_VETOABLE_ADD_USER_PHRASE, addedOrRemovedPhraseName);
             }
-            case Song.PROP_VETOABLE_USER_PHRASE_CONTENT ->
+            case Song.PROP_USER_PHRASE_CONTENT ->
             {
                 String phraseName = e.getNewValue().toString();
-                fireMusicalContentChanged(Song.PROP_VETOABLE_USER_PHRASE_CONTENT, phraseName);
+                fireMusicalContentChanged(Song.PROP_USER_PHRASE_CONTENT, phraseName);
             }
             default ->
             {

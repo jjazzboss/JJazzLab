@@ -36,6 +36,7 @@ import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
@@ -124,16 +125,15 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
     }
 
     @Override
+    public String toString()
+    {
+        return performReadAPImethod(() -> "" + getData() + getPosition());
+    }
+
+    @Override
     public final Position getPosition()
     {
-        readLock_lock();
-        try
-        {
-            return new Position(position);
-        } finally
-        {
-            readLock_unlock();
-        }
+        return performReadAPImethod(() -> new Position(position));
     }
 
     @Override
@@ -154,14 +154,7 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
     @Override
     public ExtChordSymbol getData()
     {
-        readLock_lock();
-        try
-        {
-            return data;
-        } finally
-        {
-            readLock_unlock();
-        }
+        return performReadAPImethod(() -> data);
     }
 
     @Override
@@ -193,16 +186,12 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
     @Override
     public CLI_ChordSymbol getCopy(ExtChordSymbol newData, Position newPos)
     {
-        readLock_lock();
-        try
+        return performReadAPImethod(() -> 
         {
             CLI_ChordSymbolImpl cli = new CLI_ChordSymbolImpl(newData == null ? data : newData, (newPos != null) ? newPos : position);
             cli.getClientProperties().set(clientProperties);
             return cli;
-        } finally
-        {
-            readLock_unlock();
-        }
+        });
     }
 
     /**
@@ -213,8 +202,7 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
     {
         Objects.requireNonNull(other);
 
-        readLock_lock();
-        try
+        return performReadAPImethod(() -> 
         {
             Preconditions.checkArgument(other instanceof CLI_ChordSymbol && !equals(other), "this=%s other=%s", other);
             Preconditions.checkArgument(position.equals(other.getPosition()) && getPositionOrder() == other.getPositionOrder(), "this=%s other=%s", other);
@@ -224,10 +212,7 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
 
             var res = data.toDebugString().compareTo(otherEcs.toDebugString());
             return res;
-        } finally
-        {
-            readLock_unlock();
-        }
+        });
     }
 
     @Override
@@ -243,19 +228,6 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
     }
 
     @Override
-    public String toString()
-    {
-        readLock_lock();
-        try
-        {
-            return "" + getData() + getPosition();
-        } finally
-        {
-            readLock_unlock();
-        }
-    }
-
-    @Override
     public void firePropertyChangEvent(PropertyChangeEvent event)
     {
         pcs.firePropertyChange(event);
@@ -265,14 +237,7 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
     @Override
     public final ChordLeadSheet getContainer()
     {
-        readLock_lock();
-        try
-        {
-            return container;
-        } finally
-        {
-            readLock_unlock();
-        }
+        return performReadAPImethod(() -> container);
     }
 
     @Override
@@ -335,6 +300,12 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
     }
 
 
+    // ================================================================================================================
+    // Private methods
+    // ================================================================================================================
+    // ================================================================================================================
+    // Inner classes
+    // ================================================================================================================
     /**
      * This enables XStream instance configuration even for private classes or classes from non-public packages of Netbeans modules.
      */

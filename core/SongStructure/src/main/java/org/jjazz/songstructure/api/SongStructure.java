@@ -51,7 +51,7 @@ import org.jjazz.utilities.api.IntRange;
  * - The SongStructure reuses the parent ChordLeadSheet read-write lock (and the enclosing Song as well).<br>
  * - Synchronized listeners are invoked while holding the write lock (typically for ClsSgsUpdater); non-synchronized listeners are invoked after the lock is
  * released.<br>
- * - Each mutating API method fires one SgsChangeEvent subclass at the end of the operation.<br>
+ * - Each mutating API method fires, at the end of the operation, one SgsChangeEvent, one undoable edit, and possibly some SongPart property change events.<br>
  * - Mutating API methods that throw UnsupportedEditException also fire a SgsVetoableChangeEvent to synchronized listeners before starting the operation.<br>
  * <p>
  */

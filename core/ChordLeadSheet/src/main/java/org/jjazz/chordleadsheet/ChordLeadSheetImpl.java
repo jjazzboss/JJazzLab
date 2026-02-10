@@ -67,8 +67,8 @@ import org.openide.util.lookup.ServiceProvider;
  * ChordLeadSheet implementation.
  * <p>
  * This implementation is thread-safe in a scenario with 1 writing thread and several reading threads : <br>
- * - Reads and writes are serialized using ReentrantReadWriteLock.<br>
- * - Item implementations cannot be modified by API clients (WritableItem interface is module-private).<br>
+ * - Reads and writes are serialized using ReentrantReadWriteLock, including for ChordLeadSheetItems changes.<br>
+ * - Item implementations (normally) cannot be modified by API clients.<br>
  * <p>
  * Synchronous listeners (which are invoked while holding the write lock) must follow the documented non-blocking contract.
  */
@@ -132,17 +132,13 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     @Override
     public ChordLeadSheetImpl getDeepCopy()
     {
-        ChordLeadSheetImpl clsCopy = null;
 
-        lock.readLock().lock();
-
-        try
+        var res = performReadAPImethod(() -> 
         {
             var initSection = getSection(0);
             assert initSection != null;
 
-            clsCopy = new ChordLeadSheetImpl(initSection.getData().getName(), initSection.getData().getTimeSignature(), size);
-
+            var clsCopy = new ChordLeadSheetImpl(initSection.getData().getName(), initSection.getData().getTimeSignature(), size);
 
             for (var item : getItems())
             {
@@ -168,12 +164,12 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                     clsCopy.addItem(itemCopy);
                 }
             }
-        } finally
-        {
-            lock.readLock().unlock();
-        }
 
-        return clsCopy;
+            return clsCopy;
+        });
+
+        
+        return res;
     }
 
     @Override
@@ -251,14 +247,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     @Override
     public int getSizeInBars()
     {
-        lock.readLock().lock();
-        try
-        {
-            return size;
-        } finally
-        {
-            lock.readLock().unlock();
-        }
+        return performReadAPImethod(() -> size);
     }
 
     @Override
@@ -1325,14 +1314,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     @Override
     public List<ChordLeadSheetItem> getItems()
     {
-        lock.readLock().lock();
-        try
-        {
-            return List.copyOf(items);
-        } finally
-        {
-            lock.readLock().unlock();
-        }
+        return performReadAPImethod(() -> List.copyOf(items));
     }
 
     @Override
@@ -1349,10 +1331,8 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         Preconditions.checkNotNull(tester);
         Preconditions.checkNotNull(itemClass);
 
-        T res = null;
 
-        lock.readLock().lock();
-        try
+        var res = performReadAPImethod(() -> 
         {
             var tailSet = items.tailSet(cli, false);
             for (var item : tailSet)
@@ -1362,16 +1342,12 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                     T itemT = (T) item;
                     if (tester.test(itemT))
                     {
-                        res = itemT;
-                        break;
+                        return itemT;
                     }
                 }
             }
-        } finally
-        {
-            lock.readLock().unlock();
-        }
-
+            return null;
+        });
 
         return res;
     }
@@ -1389,10 +1365,8 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         Preconditions.checkNotNull(cli);
         Preconditions.checkNotNull(tester);
         Preconditions.checkNotNull(itemClass);
-        T res = null;
 
-        lock.readLock().lock();
-        try
+        var res = performReadAPImethod(() -> 
         {
             var headSet = items.headSet(cli, false);
             var it = headSet.descendingIterator();
@@ -1404,15 +1378,12 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                     T itemT = (T) item;
                     if (tester.test(itemT))
                     {
-                        res = itemT;
-                        break;
+                        return itemT;
                     }
                 }
             }
-        } finally
-        {
-            lock.readLock().unlock();
-        }
+            return null;
+        });
 
         return res;
     }
@@ -1427,10 +1398,8 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         Preconditions.checkNotNull(tester);
         Preconditions.checkNotNull(itemClass);
 
-        List<T> res;
 
-        lock.readLock().lock();
-        try
+        var res = performReadAPImethod(() -> 
         {
             var rangeItems = items.subSet(
                     ChordLeadSheetItem.createItemFrom(posFrom, inclusiveFrom),
@@ -1438,15 +1407,12 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                     ChordLeadSheetItem.createItemTo(posTo, inclusiveTo),
                     false);
 
-            res = rangeItems.stream()
+            return rangeItems.stream()
                     .filter(item -> itemClass.isAssignableFrom(item.getClass()))
                     .map(cli -> (T) cli)
                     .filter(tester)
                     .toList();
-        } finally
-        {
-            lock.readLock().unlock();
-        }
+        });
 
         return res;
     }
@@ -1832,6 +1798,17 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         return returnValue;
     }
 
+    private <T> T performReadAPImethod(Supplier<T> operation)
+    {
+        getLock().readLock().lock();
+        try
+        {
+            return operation.get();
+        } finally
+        {
+            getLock().readLock().unlock();
+        }
+    }
 
     // ==========================================================================================================================
     // Inner classes

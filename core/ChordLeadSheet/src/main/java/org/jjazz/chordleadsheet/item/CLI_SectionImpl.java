@@ -96,14 +96,7 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
     @Override
     public final ChordLeadSheet getContainer()
     {
-        readLock_lock();
-        try
-        {
-            return container;
-        } finally
-        {
-            readLock_unlock();
-        }
+        return performReadAPImethod(() -> container);
     }
 
     @Override
@@ -132,10 +125,9 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
     public int compareToSamePosition(ChordLeadSheetItem<?> other)
     {
         Objects.requireNonNull(other);
-
-        readLock_lock();
-        try
+        return performReadAPImethod(() -> 
         {
+
             Preconditions.checkArgument(other instanceof CLI_Section && !equals(other), "this=%s other=%s", other);
             Preconditions.checkArgument(position.equals(other.getPosition()) && getPositionOrder() == other.getPositionOrder(), "this=%s other=%s", other);
 
@@ -144,10 +136,7 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
 
             var res = data.toString().compareTo(s.toString());
             return res;
-        } finally
-        {
-            readLock_unlock();
-        }
+        });
     }
 
     @Override
@@ -159,14 +148,7 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
     @Override
     public Section getData()
     {
-        readLock_lock();
-        try
-        {
-            return data.clone();
-        } finally
-        {
-            readLock_unlock();
-        }
+        return performReadAPImethod(() -> data);
     }
 
     @Override
@@ -198,35 +180,27 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
     @Override
     public CLI_Section getCopy(Section newData, Position newPos)
     {
-        readLock_lock();
-        try
+        return performReadAPImethod(() -> 
         {
             int barIndex = (newPos != null) ? newPos.getBar() : position.getBar();
-            newData = newData == null ? data : newData;
-            CLI_SectionImpl cli = new CLI_SectionImpl(newData.getName(), newData.getTimeSignature(), barIndex);
+            var newData2 = newData == null ? data : newData;
+            CLI_SectionImpl cli = new CLI_SectionImpl(newData2.getName(), newData2.getTimeSignature(), barIndex);
             cli.getClientProperties().set(clientProperties);
             return cli;
-        } finally
-        {
-            readLock_unlock();
-        }
+        });
     }
 
     @Override
     public CLI_Section getCopy(Position newPos, ChordLeadSheet cls)
     {
-        readLock_lock();
-        try
+        return performReadAPImethod(() -> 
         {
             int barIndex = (newPos != null) ? newPos.getBar() : position.getBar();
             var name = CLI_Section.createSectionName(getData().getName(), cls);   // Make sure name is unique in cls
             CLI_SectionImpl cli = new CLI_SectionImpl(name, data.getTimeSignature(), barIndex);
             cli.getClientProperties().set(clientProperties);
             return cli;
-        } finally
-        {
-            readLock_unlock();
-        }
+        });
     }
 
     @Override
@@ -241,30 +215,16 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
         return ChordLeadSheetItem.hashCode(this);
     }
 
-    @Override
+       @Override
     public String toString()
     {
-        readLock_lock();
-        try
-        {
-            return "" + getData() + getPosition();
-        } finally
-        {
-            readLock_unlock();
-        }
+        return performReadAPImethod(() -> "" + getData() + getPosition());
     }
 
     @Override
     public final Position getPosition()
     {
-        readLock_lock();
-        try
-        {
-            return new Position(position);
-        } finally
-        {
-            readLock_unlock();
-        }
+        return performReadAPImethod(() -> new Position(position));
     }
 
     @Override

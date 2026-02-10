@@ -41,7 +41,8 @@ import org.jjazz.utilities.api.IntRange;
  * - The first bar must always contain a section <br>
  * - 2 sections can't have the same name<br>
  * - All ChordLeadSheetItems belonging to a chord leadsheet must be unique (2 ChordLeadSheetItems can not be equal)<br>
- * - Each mutating API method fires one ClsChangeEvent subclass at the end of the operation.<br>
+ * - Each mutating API method fires, at the end of the operation, one ClsChangeEvent subclass, one undoable edit, and possibly some ChordLeadSheetItem property
+ * change events.<br>
  * - Mutating API method which throws UnsupportedEditException also fires, before starting the operation, a ClsVetoableChangeEvent to the synchronized
  * listeners.<br>
  */

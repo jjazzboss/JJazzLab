@@ -359,7 +359,7 @@ public class SongEditorManagerImpl implements SongEditorManager, PropertyChangeL
         {
             if (evt.getSource() == song)
             {
-                if (evt.getPropertyName().equals(Song.PROP_VETOABLE_USER_PHRASE))
+                if (evt.getPropertyName().equals(Song.PROP_VETOABLE_ADD_USER_PHRASE))
                 {
                     // Close the editor if our phrase is removed
                     if (evt.getOldValue() instanceof String && evt.getNewValue() instanceof Phrase p && p == userPhrase)

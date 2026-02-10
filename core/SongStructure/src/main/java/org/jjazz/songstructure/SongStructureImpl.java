@@ -85,8 +85,8 @@ import org.openide.util.lookup.ServiceProvider;
 /**
  * SongStructure implementation.
  * <p>
- * Implementation uses the same concurrency design as ChordLeadSheet: it is thread-safe in a scenario with 1 writing thread and several reading threads. If
- * available the parent ChordLeadSheet lock is reused (it is also used by the enclosing Song).
+ * Implementation uses the same concurrency design as ChordLeadSheet: it is thread-safe in a scenario with 1 writing thread and several reading threads.
+ * SongStructureImpl, SongPartImpl and Songs all reuse ChordLeadSheet lock.
  */
 public class SongStructureImpl implements SongStructure, Serializable
 {
@@ -116,11 +116,6 @@ public class SongStructureImpl implements SongStructure, Serializable
     private static final Logger LOGGER = Logger.getLogger(SongStructureImpl.class.getSimpleName());
 
 
-    public SongStructureImpl()
-    {
-        this(null);
-    }
-
     /**
      *
      * @param cls The parent chordleadsheet
@@ -143,8 +138,7 @@ public class SongStructureImpl implements SongStructure, Serializable
         var newParent = newParentCls == null ? parentCls : newParentCls;
         SongStructureImpl res = new SongStructureImpl(newParent);
 
-        lock.readLock().lock();
-        try
+        performReadAPImethod(() -> 
         {
             var newSpts = getSongParts().stream()
                     .map(spt -> 
@@ -157,11 +151,8 @@ public class SongStructureImpl implements SongStructure, Serializable
 
             res.songParts.addAll(newSpts);
             res.mapTsLastRhythm = new HashMap<>(mapTsLastRhythm);
-
-        } finally
-        {
-            lock.readLock().unlock();
-        }
+            return null;
+        });
 
         return res;
     }
@@ -179,34 +170,19 @@ public class SongStructureImpl implements SongStructure, Serializable
     @Override
     public List<SongPart> getSongParts()
     {
-        lock.readLock().lock();
-        try
-        {
-            return new ArrayList<>(songParts);
-        } finally
-        {
-            lock.readLock().unlock();
-        }
+        return performReadAPImethod(() -> new ArrayList<>(songParts));
     }
 
     @Override
     public int getSizeInBars()
     {
-        lock.readLock().lock();
-        try
-        {
-            return songParts.isEmpty() ? 0 : getSptLastBarIndex(songParts.size() - 1) + 1;
-        } finally
-        {
-            lock.readLock().unlock();
-        }
+        return performReadAPImethod(() -> songParts.isEmpty() ? 0 : getSptLastBarIndex(songParts.size() - 1) + 1);
     }
 
     @Override
     public FloatRange toBeatRange(IntRange rg)
     {
-        lock.readLock().lock();
-        try
+        return performReadAPImethod(() -> 
         {
             if (getSizeInBars() == 0)
             {
@@ -214,10 +190,8 @@ public class SongStructureImpl implements SongStructure, Serializable
             }
 
             IntRange songRange = new IntRange(0, getSizeInBars() - 1);
-            if (rg == null)
-            {
-                rg = songRange;
-            } else if (!songRange.contains(rg))
+            IntRange rg2 = rg == null ? songRange : rg;
+            if (!songRange.contains(rg2))
             {
                 return FloatRange.EMPTY_FLOAT_RANGE;
             }
@@ -227,7 +201,7 @@ public class SongStructureImpl implements SongStructure, Serializable
             for (SongPart spt : songParts)
             {
                 TimeSignature ts = spt.getRhythm().getTimeSignature();
-                IntRange ir = rg.getIntersection(spt.getBarRange());
+                IntRange ir = rg2.getIntersection(spt.getBarRange());
                 if (ir.isEmpty())
                 {
                     continue;
@@ -242,10 +216,7 @@ public class SongStructureImpl implements SongStructure, Serializable
                 }
             }
             return new FloatRange(startPos, endPos);
-        } finally
-        {
-            lock.readLock().unlock();
-        }
+        });
     }
 
     @Override
@@ -860,19 +831,7 @@ public class SongStructureImpl implements SongStructure, Serializable
     @Override
     public Rhythm getLastUsedRhythm(TimeSignature ts)
     {
-        lock.readLock().lock();
-        try
-        {
-            Rhythm r = mapTsLastRhythm.get(ts);
-            LOGGER.log(Level.FINE, "getLastUsedRhythm() ts={0} result r={1}", new Object[]
-            {
-                ts, r
-            });
-            return r;
-        } finally
-        {
-            lock.readLock().unlock();
-        }
+        return performReadAPImethod(() -> mapTsLastRhythm.get(ts));
     }
 
 
@@ -892,7 +851,6 @@ public class SongStructureImpl implements SongStructure, Serializable
         RhythmDatabase rdb = RhythmDatabase.getDefault();
         Rhythm r = null;
         SongPart refSpt = null;
-
 
         lock.readLock().lock();
         try
@@ -949,8 +907,7 @@ public class SongStructureImpl implements SongStructure, Serializable
     @Override
     public SongPart getSongPart(int absoluteBarIndex)
     {
-        lock.readLock().lock();
-        try
+        return performReadAPImethod(() -> 
         {
             int abi = absoluteBarIndex;
             for (SongPart spt : songParts)
@@ -961,30 +918,19 @@ public class SongStructureImpl implements SongStructure, Serializable
                 }
             }
             return null;
-        } finally
-        {
-            lock.readLock().unlock();
-        }
+        });
     }
 
     @Override
     public List<SongPart> getSongParts(Predicate<SongPart> tester)
     {
-        lock.readLock().lock();
-        try
-        {
-            return songParts.stream().filter(tester).toList();
-        } finally
-        {
-            lock.readLock().unlock();
-        }
+        return performReadAPImethod(() -> songParts.stream().filter(tester).toList());
     }
 
     @Override
     public Position toPosition(float posInBeats)
     {
-        lock.readLock().lock();
-        try
+        return performReadAPImethod(() -> 
         {
             for (SongPart spt : songParts)
             {
@@ -1000,17 +946,13 @@ public class SongStructureImpl implements SongStructure, Serializable
                 }
             }
             return null;
-        } finally
-        {
-            lock.readLock().unlock();
-        }
+        });
     }
 
     @Override
     public float toPositionInNaturalBeats(int barIndex)
     {
-        lock.readLock().lock();
-        try
+        return performReadAPImethod(() -> 
         {
             int size = getSizeInBars();
             Preconditions.checkArgument(barIndex >= 0 && barIndex <= size, "barIndex=%s size=%s", barIndex, size);
@@ -1038,10 +980,7 @@ public class SongStructureImpl implements SongStructure, Serializable
                 }
             }
             return posInBeats;
-        } finally
-        {
-            lock.readLock().unlock();
-        }
+        });
     }
 
     @Override
@@ -1345,7 +1284,7 @@ public class SongStructureImpl implements SongStructure, Serializable
         lock.writeLock().lock();
         try
         {
-            results = operation.get();
+            results = operation.get();  // throws E
             assert results != null;
 
             if (results.sgsChangeEvent() != null)
@@ -1380,6 +1319,17 @@ public class SongStructureImpl implements SongStructure, Serializable
         return returnValue;
     }
 
+    private <T> T performReadAPImethod(Supplier<T> operation)
+    {
+        getLock().readLock().lock();
+        try
+        {
+            return operation.get();
+        } finally
+        {
+            getLock().readLock().unlock();
+        }
+    }
 
     // ==============================================================================================================
     // Inner classes

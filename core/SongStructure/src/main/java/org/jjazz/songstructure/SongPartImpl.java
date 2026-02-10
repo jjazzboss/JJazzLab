@@ -38,6 +38,7 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.TimeSignature;
@@ -196,14 +197,7 @@ public class SongPartImpl implements SongPart, Serializable
     @Override
     public String getName()
     {
-        getLock().readLock().lock();
-        try
-        {
-            return name;
-        } finally
-        {
-            getLock().readLock().unlock();
-        }
+        return performReadAPImethod(() -> name);
     }
 
     /**
@@ -244,19 +238,15 @@ public class SongPartImpl implements SongPart, Serializable
     public <T> T getRPValue(RhythmParameter<T> rp)
     {
         Objects.requireNonNull(rp);
-        Preconditions.checkArgument(rhythm.getRhythmParameters().contains(rp), "this=%s rhythm=%s rp=%s", this, rhythm, rp);
 
-        getLock().readLock().lock();
-        try
+        return performReadAPImethod(() -> 
         {
+            Preconditions.checkArgument(rhythm.getRhythmParameters().contains(rp), "this=%s rhythm=%s rp=%s", this, rhythm, rp);
             @SuppressWarnings("unchecked")
             T value = (T) mapRpValue.getValue(rp);
             assert value != null : "rp=" + rp + " mapRpValue=" + mapRpValue;
             return value;
-        } finally
-        {
-            getLock().readLock().unlock();
-        }
+        });
     }
 
     /**
@@ -294,14 +284,7 @@ public class SongPartImpl implements SongPart, Serializable
     @Override
     public Rhythm getRhythm()
     {
-        getLock().readLock().lock();
-        try
-        {
-            return rhythm;
-        } finally
-        {
-            getLock().readLock().unlock();
-        }
+        return performReadAPImethod(() -> rhythm);
     }
 
     /**
@@ -382,14 +365,7 @@ public class SongPartImpl implements SongPart, Serializable
     @Override
     public int getStartBarIndex()
     {
-        getLock().readLock().lock();
-        try
-        {
-            return startBarIndex;
-        } finally
-        {
-            getLock().readLock().unlock();
-        }
+        return performReadAPImethod(() -> startBarIndex);
     }
 
     /**
@@ -412,14 +388,7 @@ public class SongPartImpl implements SongPart, Serializable
     @Override
     public int getNbBars()
     {
-        getLock().readLock().lock();
-        try
-        {
-            return nbBars;
-        } finally
-        {
-            getLock().readLock().unlock();
-        }
+        return performReadAPImethod(() -> nbBars);
     }
 
     @Override
@@ -438,11 +407,10 @@ public class SongPartImpl implements SongPart, Serializable
                 "newRhythm=%s cliSection=%s", newRhythm, cliSection);
 
 
-        SongPartImpl newSpt = new SongPartImpl(container, newRhythm, newStartBarIndex, newNbBars, newCliSection);
+        final SongPartImpl newSpt = new SongPartImpl(container, newRhythm, newStartBarIndex, newNbBars, newCliSection);
 
 
-        getLock().readLock().lock();
-        try
+        performReadAPImethod(() -> 
         {
             newSpt.setName(name);
             newSpt.setContainer(container);
@@ -477,10 +445,9 @@ public class SongPartImpl implements SongPart, Serializable
                     }
                 }
             }
-        } finally
-        {
-            getLock().readLock().unlock();
-        }
+            return null;
+        });
+
 
         newSpt.getClientProperties().set(clientProperties);
 
@@ -491,14 +458,7 @@ public class SongPartImpl implements SongPart, Serializable
     @Override
     public CLI_Section getParentSection()
     {
-        getLock().readLock().lock();
-        try
-        {
-            return parentSection;
-        } finally
-        {
-            getLock().readLock().unlock();
-        }
+        return performReadAPImethod(() -> parentSection);
     }
 
     @Override
@@ -510,21 +470,13 @@ public class SongPartImpl implements SongPart, Serializable
     @Override
     public IntRange getBarRange()
     {
-        getLock().readLock().lock();
-        try
-        {
-            return new IntRange(startBarIndex, startBarIndex + nbBars - 1);
-        } finally
-        {
-            getLock().readLock().unlock();
-        }
+        return performReadAPImethod(() -> new IntRange(startBarIndex, startBarIndex + nbBars - 1));
     }
 
     @Override
     public boolean isEqual(SongPart spt)
     {
-        getLock().readLock().lock();
-        try
+        return performReadAPImethod(() -> 
         {
             boolean b = false;
             if (startBarIndex == spt.getStartBarIndex()
@@ -537,42 +489,25 @@ public class SongPartImpl implements SongPart, Serializable
                         .allMatch(rp -> mapRpValue.getValue(rp).equals(spt.getRPValue(rp)));
             }
             return b;
-        } finally
-        {
-            getLock().readLock().unlock();
-        }
+        });
+
     }
 
     @Override
     public String toString()
     {
-        getLock().readLock().lock();
-        try
-        {
-            return name + getBarRange() + "-" + rhythm.getName();
-        } finally
-        {
-            getLock().readLock().unlock();
-        }
+        return performReadAPImethod(() -> name + getBarRange() + "-" + rhythm.getName());
     }
 
     @Override
     public String toShortString()
     {
-        getLock().readLock().lock();
-        try
-        {
-            return "[" + name + ", " + startBarIndex + "]";
-        } finally
-        {
-            getLock().readLock().unlock();
-        }
+        return performReadAPImethod(() -> "[" + name + ", " + startBarIndex + "]");
     }
 
     public String toDumpString()
     {
-        getLock().readLock().lock();
-        try
+        return performReadAPImethod(() -> 
         {
             StringBuilder sb = new StringBuilder();
             sb.append(toString()).append("\n");
@@ -581,10 +516,7 @@ public class SongPartImpl implements SongPart, Serializable
                 sb.append("  ").append(rp).append(":").append(mapRpValue.getValue(rp)).append("\n");
             }
             return sb.toString();
-        } finally
-        {
-            getLock().readLock().unlock();
-        }
+        });
     }
 
     @Override
@@ -640,6 +572,17 @@ public class SongPartImpl implements SongPart, Serializable
     // -------------------------------------------------------------------------------------------
     // Private methods
     // -------------------------------------------------------------------------------------------
+    private <T> T performReadAPImethod(Supplier<T> operation)
+    {
+        getLock().readLock().lock();
+        try
+        {
+            return operation.get();
+        } finally
+        {
+            getLock().readLock().unlock();
+        }
+    }
 
     private ReentrantReadWriteLock getLock()
     {

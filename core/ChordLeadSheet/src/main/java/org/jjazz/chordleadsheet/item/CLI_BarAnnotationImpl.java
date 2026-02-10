@@ -101,14 +101,7 @@ public class CLI_BarAnnotationImpl implements CLI_BarAnnotation, WritableItem<St
     @Override
     public final ChordLeadSheet getContainer()
     {
-        readLock_lock();
-        try
-        {
-            return container;
-        } finally
-        {
-            readLock_unlock();
-        }
+        return performReadAPImethod(() -> container);
     }
 
     @Override
@@ -131,8 +124,8 @@ public class CLI_BarAnnotationImpl implements CLI_BarAnnotation, WritableItem<St
     public int compareToSamePosition(ChordLeadSheetItem<?> other)
     {
         Objects.requireNonNull(other);
-        readLock_lock();
-        try
+
+        return performReadAPImethod(() -> 
         {
             Preconditions.checkArgument(other instanceof CLI_BarAnnotation && !equals(other), "this=%s other=%s", other);
             Preconditions.checkArgument(position.equals(other.getPosition()) && getPositionOrder() == other.getPositionOrder(), "this=%s other=%s", other);
@@ -141,10 +134,7 @@ public class CLI_BarAnnotationImpl implements CLI_BarAnnotation, WritableItem<St
             var res = data.compareTo(otherBarAnnotation.getData());
 
             return res;
-        } finally
-        {
-            readLock_unlock();
-        }
+        });
     }
 
     @Override
@@ -156,14 +146,7 @@ public class CLI_BarAnnotationImpl implements CLI_BarAnnotation, WritableItem<St
     @Override
     public String getData()
     {
-        readLock_lock();
-        try
-        {
-            return data;
-        } finally
-        {
-            readLock_unlock();
-        }
+        return performReadAPImethod(() -> data);
     }
 
     @Override
@@ -189,17 +172,13 @@ public class CLI_BarAnnotationImpl implements CLI_BarAnnotation, WritableItem<St
     @Override
     public CLI_BarAnnotation getCopy(String newData, Position newPos)
     {
-        readLock_lock();
-        try
+        return performReadAPImethod(() -> 
         {
             int barIndex = (newPos != null) ? newPos.getBar() : position.getBar();
             CLI_BarAnnotationImpl cli = new CLI_BarAnnotationImpl(newData == null ? data : newData, barIndex);
             cli.getClientProperties().set(clientProperties);
             return cli;
-        } finally
-        {
-            readLock_unlock();
-        }
+        });
     }
 
     @Override
@@ -217,27 +196,13 @@ public class CLI_BarAnnotationImpl implements CLI_BarAnnotation, WritableItem<St
     @Override
     public String toString()
     {
-        readLock_lock();
-        try
-        {
-            return "" + getData() + getPosition();
-        } finally
-        {
-            readLock_unlock();
-        }
+        return performReadAPImethod(() -> "" + getData() + getPosition());
     }
 
     @Override
     public final Position getPosition()
     {
-        readLock_lock();
-        try
-        {
-            return new Position(position);
-        } finally
-        {
-            readLock_unlock();
-        }
+        return performReadAPImethod(() -> new Position(position));
     }
 
     @Override
