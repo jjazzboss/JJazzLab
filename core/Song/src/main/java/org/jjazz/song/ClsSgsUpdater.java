@@ -61,7 +61,7 @@ import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.jjazz.songstructure.api.event.SptAddedEvent;
-import org.jjazz.songstructure.api.event.SptRhythmChanged;
+import org.jjazz.songstructure.api.event.SptRhythmChangedEvent;
 import org.openide.util.Exceptions;
 
 /**
@@ -151,7 +151,7 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
 
         switch (evt)
         {
-            case SptRhythmChanged sre ->
+            case SptRhythmChangedEvent sre ->
             {
                 processRhythmChanged(sre);
             }
@@ -406,7 +406,7 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
                 List<SongPart> newSpts = oldSpts.stream()
                         .map(spt -> spt.getCopy(newRhythm, spt.getStartBarIndex(), spt.getNbBars(), newSection))
                         .toList();
-                var event = new SptRhythmChanged(songStructure, newRhythm, oldSpts, newSpts);
+                var event = new SptRhythmChangedEvent(songStructure, newRhythm, oldSpts, newSpts);
                 songStructure.testChangeEventForVeto(event);          // throws UnsupportedEditException
             }
             return;
@@ -414,8 +414,8 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
 
 
         // Update SongStructure
-        var newSpts = songStructure.setSongPartsRhythm(oldSpts, newRhythm);        // throws UnsupportedEditException
-        List<SongPart> toBeRenamedSpts = newSpts.stream()
+        songStructure.setSongPartsRhythm(oldSpts, newRhythm, newSection);        // throws UnsupportedEditException
+        List<SongPart> toBeRenamedSpts = oldSpts.stream()
                 .filter(spt -> spt.getName().equalsIgnoreCase(oldName))
                 .toList();
         songStructure.setSongPartsName(toBeRenamedSpts, newName);
@@ -437,9 +437,16 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
             return;
         }
 
-
         // Get the new rhythm to use
         Rhythm newRhythm = songStructure.getRecommendedRhythm(newTs, oldSpts.get(0).getStartBarIndex());
+
+
+        if (authorizeOnly)
+        {
+            // We can not create newSpts because we don't have yet the updated section (possibly with a time signature change)
+            var event = new SptRhythmChangedEvent(songStructure, newRhythm, oldSpts, oldSpts);
+            songStructure.testChangeEventForVeto(event);          // Possible exception here   
+        }
 
 
         ArrayList<SongPart> newSpts = new ArrayList<>();
@@ -460,8 +467,7 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
 
         if (authorizeOnly)
         {
-            var event = new SptRhythmChanged(songStructure, oldSpts, oldSpts);
-            songStructure.testChangeEventForVeto(event);          // Possible exception here     
+
         } else
         {
             songStructure.replaceSongParts(oldSpts, newSpts);         // Possible exception here     
@@ -486,7 +492,7 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
      *
      * @param evt
      */
-    private void processRhythmChanged(SptRhythmChanged evt)
+    private void processRhythmChanged(SptRhythmChangedEvent evt)
     {
         assert !evt.isUndo() : "evt=" + evt;
         Set<CLI_Section> processedSections = new HashSet<>();
@@ -494,8 +500,8 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
 
         for (int i = 0; i < evt.getSongParts().size(); i++)
         {
-            var oldSpt = evt.getSongParts().get(i);
-            var newSpt = evt.getNewSpts().get(i);
+            var oldSpt = evt.getOldSptsCopies().get(i);
+            var newSpt = evt.getSongParts().get(i);
             var cliSection = oldSpt.getParentSection();
 
             if (processedSections.contains(cliSection))

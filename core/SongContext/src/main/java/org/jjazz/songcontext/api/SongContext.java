@@ -130,6 +130,7 @@ public class SongContext
      */
     public SongContext deepClone(boolean registerSong, boolean setMidiMixSong)
     {
+        use shared read lock MidiMix + song
         SongFactory sf = SongFactory.getInstance();
         Song songCopy = sf.getCopy(song, false, registerSong);
         MidiMix mixCopy = midiMix.getDeepCopy();

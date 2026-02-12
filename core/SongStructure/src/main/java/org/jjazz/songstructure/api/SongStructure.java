@@ -197,7 +197,7 @@ public interface SongStructure
      * Use default rhythm parameters values, unless reusePrevParamValues is true and there is a previous song part.
      *
      * @param r
-     * @param name                 The name of the created SongPart.
+     * @param name                 The name of the created SongPart. If null reuse the name of the parentSection.
      * @param startBarIndex
      * @param parentSection        Cannot be null. Time signature must match r.
      * @param reusePrevParamValues

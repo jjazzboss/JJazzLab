@@ -63,7 +63,7 @@ import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.jjazz.songstructure.api.event.SptAddedEvent;
 import org.jjazz.songstructure.api.event.SptRemovedEvent;
 import org.jjazz.songstructure.api.event.SptRenamedEvent;
-import org.jjazz.songstructure.api.event.SptRhythmChanged;
+import org.jjazz.songstructure.api.event.SptRhythmChangedEvent;
 import org.jjazz.songstructure.api.event.SptResizedEvent;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
@@ -534,7 +534,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
                         nextBarBox.setModelBarIndex(1);
                     }
                     updateAnnotation();    // text might be impacted if using # lines
-                } else if (e instanceof SptRhythmChanged re)
+                } else if (e instanceof SptRhythmChangedEvent re)
                 {
                     // Nothing
                 } else if (e instanceof SptResizedEvent sre)

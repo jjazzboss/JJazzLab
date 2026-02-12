@@ -31,27 +31,31 @@ import org.jjazz.songstructure.api.SongPart;
 /**
  * SongParts got their rhythm changed, possibly their parent section too.
  * <p>
- * getSongParts() will return oldSpts.
+ * getSongParts() will return the updated SongParts (newSpts).
  */
-public class SptRhythmChanged extends SgsChangeEvent
+public class SptRhythmChangedEvent extends SgsChangeEvent
 {
 
-    private final List<SongPart> newSpts;
+    private final List<SongPart> oldSptsCopies;
     private final Rhythm rhythm;
 
     /**
+     * Create the event.
+     * <p>
+     * Note: when this event is used to be passed to SongStructure.testChangeEventForVeto(SgsChangeEvent event), olsSptCopies and newSpts will be the SongParts
+     * to be modified.
      *
      * @param src
      * @param r             The new rhythm
-     * @param oldSptsCopies A copy of each SongPart from newSpts before their rhythm was changed (possibly parentSection too)
-     * @param newSpts       The changed SongParts
+     * @param oldSptsCopies A copy of each SongPart before their rhythm was changed (possibly parentSection too)
+     * @param newSpts       The updated SongParts
      */
-    public SptRhythmChanged(SongStructure src, Rhythm r, List<SongPart> oldSptsCopies, List<SongPart> newSpts)
+    public SptRhythmChangedEvent(SongStructure src, Rhythm r, List<SongPart> oldSptsCopies, List<SongPart> newSpts)
     {
-        super(src, oldSptsCopies);
+        super(src, newSpts);
         Objects.requireNonNull(newSpts);
         this.rhythm = r;
-        this.newSpts = sortSongParts(newSpts);
+        this.oldSptsCopies = sortSongParts(oldSptsCopies);
     }
 
     public Rhythm getNewRhythm()
@@ -61,10 +65,10 @@ public class SptRhythmChanged extends SgsChangeEvent
 
 
     /**
-     * @return The updated SongParts, ordered by startBarIndex
+     * @return Copies of the updated SongParts before their rhythm was updated.
      */
-    public List<SongPart> getNewSpts()
+    public List<SongPart> getOldSptsCopies()
     {
-        return newSpts;
+        return oldSptsCopies;
     }
 }

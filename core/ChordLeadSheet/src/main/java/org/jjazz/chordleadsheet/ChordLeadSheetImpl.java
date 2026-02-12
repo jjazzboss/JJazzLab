@@ -210,7 +210,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 public void undoBody()
                 {
                     LOGGER.log(Level.FINER, "setSizeInBars.undoBody() newSize={0}", newSize);
-                    performAPImethod(() -> 
+                    performWriteAPImethod(() -> 
                     {
                         size = oldSize;
                         itemsToRemove.forEach(item -> addItemChecked(item));
@@ -225,7 +225,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 public void redoBody()
                 {
                     LOGGER.log(Level.FINER, "setSizeInBars.redoBody() newSize={0}", newSize);
-                    performAPImethod(() -> 
+                    performWriteAPImethod(() -> 
                     {
                         itemsToRemove.forEach(item -> removeItemChecked(item));
                         size = newSize;
@@ -241,7 +241,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             return new OperationResults(event, edit, null, null);
         };
 
-        performAPImethod(operation);
+        performWriteAPImethod(operation);
     }
 
     @Override
@@ -293,7 +293,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 public void undoBody()
                 {
                     LOGGER.log(Level.FINER, "addItem.undoBody() item={0}", item);
-                    performAPImethod(() -> 
+                    performWriteAPImethod(() -> 
                     {
                         List<PropertyChangeEvent> cliEvents2 = new ArrayList<>();
                         removeItemChecked(wItem);
@@ -311,7 +311,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 public void redoBody()
                 {
                     LOGGER.log(Level.FINER, "addItem.redoBody() item={0}", item);
-                    performAPImethod(() -> 
+                    performWriteAPImethod(() -> 
                     {
                         List<PropertyChangeEvent> cliEvents2 = new ArrayList<>();
                         cliEvents2.add(wItem.setPosition(newAdjustedPos));
@@ -328,7 +328,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             return new OperationResults(event, edit, cliEvents, Boolean.TRUE);
         };
 
-        Boolean b = performAPImethod(operation);
+        Boolean b = performWriteAPImethod(operation);
         return b;
     }
 
@@ -398,7 +398,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 public void undoBody()
                 {
                     LOGGER.log(Level.FINER, "addSection.undoBody() section={0}", wSection);
-                    performAPImethod(() -> 
+                    performWriteAPImethod(() -> 
                     {
                         List<PropertyChangeEvent> cliEvents2 = new ArrayList<>();
                         for (var adjustment : adjustments.reversed())
@@ -424,7 +424,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 public void redoBody()
                 {
                     LOGGER.log(Level.FINER, "addSection.redoBody() section={0}", wSection);
-                    performAPImethod(() -> 
+                    performWriteAPImethod(() -> 
                     {
                         List<PropertyChangeEvent> cliEvents2 = new ArrayList<>();
                         if (isReplace)
@@ -451,7 +451,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         };
 
 
-        performAPImethodThrowing(operation);            // throws UnsupportedEditException
+        performWriteAPImethodThrowing(operation);            // throws UnsupportedEditException
 
     }
 
@@ -501,7 +501,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 public void undoBody()
                 {
                     LOGGER.log(Level.FINER, "removeSection.undoBody() section={0}", cliSection);
-                    performAPImethod(() -> 
+                    performWriteAPImethod(() -> 
                     {
                         List<PropertyChangeEvent> cliEvents2 = new ArrayList<>();
 
@@ -522,7 +522,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 public void redoBody()
                 {
                     LOGGER.log(Level.FINER, "removeSection.redoBody() section={0}", cliSection);
-                    performAPImethod(() -> 
+                    performWriteAPImethod(() -> 
                     {
                         List<PropertyChangeEvent> cliEvents2 = new ArrayList<>();
 
@@ -544,7 +544,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             return new OperationResults(event, edit, cliEvents, null);
         };
 
-        performAPImethod(operation);
+        performWriteAPImethod(operation);
     }
 
     @Override
@@ -610,7 +610,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 public void undoBody()
                 {
                     LOGGER.log(Level.FINER, "moveSection.undoBody() section={0}", cliSection);
-                    performAPImethod(() -> 
+                    performWriteAPImethod(() -> 
                     {
                         List<PropertyChangeEvent> cliEvents2 = new ArrayList<>();
 
@@ -631,7 +631,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 public void redoBody()
                 {
                     LOGGER.log(Level.FINER, "moveSection.redoBody() section={0}", cliSection);
-                    performAPImethod(() -> 
+                    performWriteAPImethod(() -> 
                     {
                         List<PropertyChangeEvent> cliEvents2 = new ArrayList<>();
 
@@ -653,7 +653,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             return new OperationResults(event, edit, cliEvents, null);
         };
 
-        performAPImethod(operation);
+        performWriteAPImethod(operation);
     }
 
     @Override
@@ -684,7 +684,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 public void undoBody()
                 {
                     LOGGER.log(Level.FINER, "removeItem.undoBody() item={0}", item);
-                    performAPImethod(() -> 
+                    performWriteAPImethod(() -> 
                     {
                         PropertyChangeEvent itemEvent2 = addItemChecked(item);
 
@@ -698,7 +698,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 public void redoBody()
                 {
                     LOGGER.log(Level.FINER, "removeItem.redoBody() item={0}", item);
-                    performAPImethod(() -> 
+                    performWriteAPImethod(() -> 
                     {
                         PropertyChangeEvent itemEvent2 = removeItemChecked(item);
 
@@ -713,7 +713,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             return new OperationResults(event, edit, List.of(itemEvent), Boolean.TRUE);
         };
 
-        Boolean b = performAPImethod(operation);
+        Boolean b = performWriteAPImethod(operation);
         return b;
     }
 
@@ -755,7 +755,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                         item, oldPos,
                         newAdjustedPos
                     });
-                    performAPImethod(() -> 
+                    performWriteAPImethod(() -> 
                     {
                         PropertyChangeEvent itemEvent2 = changeItemPositionChecked(item, oldPos);
                         var event = new ItemMovedEvent(ChordLeadSheetImpl.this, item, oldPos, newAdjustedPos);
@@ -773,7 +773,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                         item, oldPos,
                         newAdjustedPos
                     });
-                    performAPImethod(() -> 
+                    performWriteAPImethod(() -> 
                     {
                         PropertyChangeEvent itemEvent2 = changeItemPositionChecked(item, newAdjustedPos);
                         var event = new ItemMovedEvent(ChordLeadSheetImpl.this, item, oldPos, newAdjustedPos);
@@ -788,7 +788,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             return new OperationResults(event, edit, List.of(itemEvent), Boolean.TRUE);
         };
 
-        Boolean b = performAPImethod(operation);
+        Boolean b = performWriteAPImethod(operation);
         return b;
     }
 
@@ -826,7 +826,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                     {
                         item, oldData, newData
                     });
-                    performAPImethod(() -> 
+                    performWriteAPImethod(() -> 
                     {
                         final PropertyChangeEvent itemEvent2 = changeItemDataChecked(item, oldData);
 
@@ -843,7 +843,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                     {
                         item, oldData, newData
                     });
-                    performAPImethod(() -> 
+                    performWriteAPImethod(() -> 
                     {
                         final PropertyChangeEvent itemEvent2 = changeItemDataChecked(item, newData);
 
@@ -858,7 +858,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             return new OperationResults(event, edit, List.of(itemEvent), Boolean.TRUE);
         };
 
-        boolean b = performAPImethod(operation);
+        boolean b = performWriteAPImethod(operation);
         return b;
     }
 
@@ -928,7 +928,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 public void undoBody()
                 {
                     LOGGER.log(Level.FINER, "insertBars.undoBody() nbBars={0}", nbBars);
-                    performAPImethod(() -> 
+                    performWriteAPImethod(() -> 
                     {
                         final List<PropertyChangeEvent> cliEvents2 = new ArrayList<>();
 
@@ -954,7 +954,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 public void redoBody()
                 {
                     LOGGER.log(Level.FINER, "insertBars.redoBody() nbBars={0}", nbBars);
-                    performAPImethod(() -> 
+                    performWriteAPImethod(() -> 
                     {
                         final List<PropertyChangeEvent> cliEvents2 = new ArrayList<>();
 
@@ -982,7 +982,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             return new OperationResults(event, edit, cliEvents, null);
         };
 
-        performAPImethod(operation);
+        performWriteAPImethod(operation);
     }
 
     @Override
@@ -1065,7 +1065,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 public void undoBody()
                 {
                     LOGGER.log(Level.FINER, "deleteBars.undoBody() nbBars={0}", nbBars);
-                    performAPImethod(() -> 
+                    performWriteAPImethod(() -> 
                     {
                         final List<PropertyChangeEvent> cliEvents2 = new ArrayList<>();
                         size = oldSize;
@@ -1096,7 +1096,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 public void redoBody()
                 {
                     LOGGER.log(Level.FINER, "deleteBars.redoBody() nbBars={0}", nbBars);
-                    performAPImethod(() -> 
+                    performWriteAPImethod(() -> 
                     {
                         final List<PropertyChangeEvent> cliEvents2 = new ArrayList<>();
 
@@ -1128,7 +1128,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             return new OperationResults(event, edit, cliEvents, null);
         };
 
-        performAPImethod(operation);
+        performWriteAPImethod(operation);
     }
 
     @Override
@@ -1173,7 +1173,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                         cliSection, oldData,
                         newData
                     });
-                    performAPImethod(() -> 
+                    performWriteAPImethod(() -> 
                     {
                         PropertyChangeEvent itemEvent2 = changeItemDataChecked(cliSection, oldData);
 
@@ -1191,7 +1191,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                         cliSection, oldData,
                         newData
                     });
-                    performAPImethod(() -> 
+                    performWriteAPImethod(() -> 
                     {
                         PropertyChangeEvent itemEvent2 = changeItemDataChecked(cliSection, newData);
 
@@ -1206,7 +1206,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             return new OperationResults(event, edit, List.of(itemEvent), null);
         };
 
-        performAPImethod(operation);
+        performWriteAPImethod(operation);
     }
 
     @Override
@@ -1264,7 +1264,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 public void undoBody()
                 {
                     LOGGER.log(Level.FINER, "setSectionTimeSignature.undoBody() cliSection={0}", cliSection);
-                    performAPImethod(() -> 
+                    performWriteAPImethod(() -> 
                     {
                         final List<PropertyChangeEvent> cliEvents2 = new ArrayList<>();
 
@@ -1285,7 +1285,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 public void redoBody()
                 {
                     LOGGER.log(Level.FINER, "setSectionTimeSignature.redoBody() cliSection={0}", cliSection);
-                    performAPImethod(() -> 
+                    performWriteAPImethod(() -> 
                     {
                         final List<PropertyChangeEvent> cliEvents2 = new ArrayList<>();
 
@@ -1307,7 +1307,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             return new OperationResults(event, edit, cliEvents, null);
         };
 
-        performAPImethodThrowing(operation);         // throws UnsupportedEditException
+        performWriteAPImethodThrowing(operation);         // throws UnsupportedEditException
 
     }
 
@@ -1656,7 +1656,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
      *
      * @param event Can not be a ClsVetoableChangeEvent
      */
-    private void fireNonVetoableChangeEvent(ClsChangeEvent event)
+    private void fireChangeEvent(ClsChangeEvent event)
     {
         Preconditions.checkArgument(event != null && !(event instanceof ClsVetoableChangeEvent), "event=%s", event);
 
@@ -1679,7 +1679,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
      *
      * @param event
      */
-    private void fireSynchronizedNonVetoableChangeEvent(ClsChangeEvent event)
+    private void fireSynchronizedChangeEvent(ClsChangeEvent event)
     {
         Preconditions.checkArgument(event != null && !(event instanceof ClsVetoableChangeEvent), "event=%s", event);
 
@@ -1713,7 +1713,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
      * @param operation Updates the model and returns the events
      * @return The returnValue from OperationResults. Can be null.
      */
-    private <R> R performAPImethod(Supplier<OperationResults> operation)
+    private <R> R performWriteAPImethod(Supplier<OperationResults> operation)
     {
         OperationResults results = null;
 
@@ -1725,7 +1725,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
             if (results.clsChangeEvent() != null)
             {
-                fireSynchronizedNonVetoableChangeEvent(results.clsChangeEvent());
+                fireSynchronizedChangeEvent(results.clsChangeEvent());
             }
         } finally
         {
@@ -1735,7 +1735,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         assert results != null;   // If null a runtime exception must have been thrown before
         if (results.clsChangeEvent() != null)
         {
-            fireNonVetoableChangeEvent(results.clsChangeEvent());
+            fireChangeEvent(results.clsChangeEvent());
         }
         if (results.cliEvents() != null)
         {
@@ -1760,7 +1760,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
      * @param <E>
      * @throws E
      */
-    private <R, E extends Exception> R performAPImethodThrowing(ThrowingSupplier<OperationResults, E> operation) throws E
+    private <R, E extends Exception> R performWriteAPImethodThrowing(ThrowingSupplier<OperationResults, E> operation) throws E
     {
         OperationResults results;
 
@@ -1772,7 +1772,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
             if (results.clsChangeEvent() != null)
             {
-                fireSynchronizedNonVetoableChangeEvent(results.clsChangeEvent());
+                fireSynchronizedChangeEvent(results.clsChangeEvent());
             }
         } finally
         {
@@ -1782,7 +1782,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         assert results != null;   // If null a runtime exception must have been thrown before
         if (results.clsChangeEvent() != null)
         {
-            fireNonVetoableChangeEvent(results.clsChangeEvent());
+            fireChangeEvent(results.clsChangeEvent());
         }
         if (results.cliEvents() != null)
         {

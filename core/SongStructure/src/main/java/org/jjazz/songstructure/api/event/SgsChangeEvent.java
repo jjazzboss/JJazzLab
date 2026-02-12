@@ -48,12 +48,12 @@ public class SgsChangeEvent
 
     public SgsChangeEvent(SongStructure src)
     {
-        this(src, new ArrayList<SongPart>());
+        this(src, Collections.emptyList());
     }
 
     public SgsChangeEvent(SongStructure src, SongPart spt)
     {
-        this(src, Arrays.asList(spt));
+        this(src, List.of(spt));
     }
 
     /**

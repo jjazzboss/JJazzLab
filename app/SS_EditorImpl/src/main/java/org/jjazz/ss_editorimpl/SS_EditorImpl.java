@@ -62,7 +62,7 @@ import org.jjazz.songstructure.api.event.RpValueChangedEvent;
 import org.jjazz.songstructure.api.event.SptAddedEvent;
 import org.jjazz.songstructure.api.event.SptRemovedEvent;
 import org.jjazz.songstructure.api.event.SptRenamedEvent;
-import org.jjazz.songstructure.api.event.SptRhythmChanged;
+import org.jjazz.songstructure.api.event.SptRhythmChangedEvent;
 import org.jjazz.songstructure.api.event.SptResizedEvent;
 import org.jjazz.ss_editor.sptviewer.api.SptViewer;
 import org.jjazz.ss_editor.sptviewer.spi.SptViewerFactory;
@@ -752,9 +752,9 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
                 e, e.getSongParts()
             });
 
-            if (e instanceof SptRemovedEvent)
+            if (e instanceof SptRemovedEvent sre)
             {
-                for (SongPart spt : e.getSongParts())
+                for (SongPart spt : sre.getSongParts())
                 {
                     SptViewer rpe = getSptViewer(spt);
                     if (rpe != null)
@@ -766,9 +766,9 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
                 panel_SongParts.repaint();     // Needed if removed Spt was the last one
                 updateSptsVisibleRhythmAndTimeSignature();
                 updateSptMultiSelectMode();
-            } else if (e instanceof SptAddedEvent)
+            } else if (e instanceof SptAddedEvent sae)
             {
-                for (SongPart spt : e.getSongParts())
+                for (SongPart spt : sae.getSongParts())
                 {
                     addSptViewer(spt);
                 }
@@ -779,10 +779,10 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
                         .map(spt -> spt.getRhythm())
                         .toList());
 
-            } else if (e instanceof SptRhythmChanged re)
+            } else if (e instanceof SptRhythmChangedEvent srce)
             {
-                List<SongPart> oldSpts = re.getSongParts();
-                List<SongPart> newSpts = re.getNewSpts();
+                List<SongPart> oldSpts = srce.getOldSptsCopies();
+                List<SongPart> newSpts = srce.getSongParts();
                 LOGGER.log(Level.FINE, "SS_EditorImpl.songStructureChanged() SptReplacedEvent  newSpts={0}", newSpts);
 
 

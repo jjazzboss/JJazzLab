@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.SwingUtilities;
 import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.improvisionsupport.PlayRestScenario.DenseSparseValue;
@@ -105,7 +106,7 @@ public class ImproSupport implements PropertyChangeListener
         {
             return;
         }
-        
+
         setDirty(false);
 
         PlayRestScenario prs;
@@ -173,7 +174,7 @@ public class ImproSupport implements PropertyChangeListener
         showImproSupportBarRenderer(enabled, chordPositionsHidden);
         if (this.enabled)
         {
-            startListeners();            
+            startListeners();
             generate();
         } else
         {
@@ -198,9 +199,14 @@ public class ImproSupport implements PropertyChangeListener
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        if (evt.getSource() == songMetaEvents && evt.getPropertyName().equals(SongMetaEvents.PROP_SONG_STRUCTURE))
+        if (evt.getSource() == songMetaEvents)
         {
-            songStructurallyChanged();
+            assert evt.getPropertyName().equals(SongMetaEvents.PROP_SIZE_IN_BEATS) : "evt=" + evt;
+            SwingUtilities.invokeLater(() -> 
+            {
+                setDirty(true);
+                getBarRenderers().forEach(br -> br.setSongBarIndex(-1));
+            });
         }
 
     }
@@ -309,35 +315,30 @@ public class ImproSupport implements PropertyChangeListener
         }
     }
 
-    private synchronized void setDirty(boolean b)
+    private void setDirty(boolean b)
     {
         dirty = b;
     }
 
+    private boolean isDirty()
+    {
+        return dirty;
+    }
+
     private void startListeners()
     {
-        songMetaEvents.addPropertyChangeListener(SongMetaEvents.PROP_SONG_STRUCTURE, this);
+        songMetaEvents.addPropertyChangeListener(SongMetaEvents.PROP_SIZE_IN_BEATS, this);
         MusicController.getInstance().addPlaybackListener(playbackListener);
         MusicController.getInstance().addPropertyChangeListener(this);
     }
 
     private void stopListeners()
     {
-        songMetaEvents.removePropertyChangeListener(SongMetaEvents.PROP_SONG_STRUCTURE, this);
+        songMetaEvents.removePropertyChangeListener(SongMetaEvents.PROP_SIZE_IN_BEATS, this);
         MusicController.getInstance().removePlaybackListener(playbackListener);
         MusicController.getInstance().removePropertyChangeListener(this);
     }
 
-    private synchronized boolean isDirty()
-    {
-        return dirty;
-    }
-
-    private void songStructurallyChanged()
-    {
-        setDirty(true);
-        getBarRenderers().forEach(br -> br.setSongBarIndex(-1));
-    }
 
     /**
      * Update the songBarIndexes of all BarRenderers depending on the current playback position.

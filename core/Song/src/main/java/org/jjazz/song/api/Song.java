@@ -80,7 +80,6 @@ import org.jjazz.xstream.api.XStreamInstancesManager;
 import org.jjazz.xstream.spi.XStreamConfigurator;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
-import org.openide.util.Exceptions;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
@@ -113,8 +112,8 @@ public class Song implements Serializable, PropertyChangeListener
     /**
      * This vetoable property change event is fired before adding a new user phrase.
      * <p>
-     * For example this can be vetoed by the MidiMix listener if there is no more Midi channel available. Note that for this property only listeners will be called
-     * while Song write lock is held, so it must return quickly and remain in the same thread to avoid deadlocks.
+     * For example this can be vetoed by the MidiMix listener if there is no more Midi channel available. Note that for this property only listeners will be
+     * called while Song write lock is held, so it must return quickly and remain in the same thread to avoid deadlocks.
      *
      * @see #addVetoableChangeListener(java.beans.VetoableChangeListener)
      */
@@ -160,9 +159,8 @@ public class Song implements Serializable, PropertyChangeListener
     private final StringProperties clientProperties = new StringProperties(this);
     private final transient ClsSgsUpdater clsSgsUpdater;
     private transient File file;
-    private transient boolean saveNeeded = false;
-    private boolean closed;
-    private SongMetaEvents songMetaEvents;
+    private volatile transient boolean saveNeeded = false;
+    private volatile boolean closed;
     protected transient CopyOnWriteArrayList<UndoableEditListener> undoListeners = new CopyOnWriteArrayList<>();
     private final transient PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private final transient VetoableChangeSupport vcs = new VetoableChangeSupport(this);
@@ -207,8 +205,8 @@ public class Song implements Serializable, PropertyChangeListener
 
 
         // Mark song as modified if cls/sgs change, or if client properties are changed
-        songMetaEvents = SongMetaEvents.getInstance(this);
-        songMetaEvents.addPropertyChangeListener(SongMetaEvents.PROP_CLS_SGS_API_CHANGE_COMPLETE, this);
+        chordLeadSheet.addClsChangeListener(e -> fireIsModified());
+        songStructure.addSgsChangeListener(e -> fireIsModified());
         clientProperties.addPropertyChangeListener(e -> fireIsModified());
     }
 
@@ -255,7 +253,7 @@ public class Song implements Serializable, PropertyChangeListener
                 @Override
                 public void undoBody()
                 {
-                    performAPImethod(() -> 
+                    performWriteAPImethod(() -> 
                     {
                         mapUserPhrases = oldMap;
 
@@ -267,7 +265,7 @@ public class Song implements Serializable, PropertyChangeListener
                 @Override
                 public void redoBody()
                 {
-                    performAPImethod(() -> 
+                    performWriteAPImethod(() -> 
                     {
                         mapUserPhrases = newMap;
 
@@ -281,7 +279,7 @@ public class Song implements Serializable, PropertyChangeListener
             return new OperationResults(event, edit, null);
         };
 
-        performAPImethod(operation);
+        performWriteAPImethod(operation);
     }
 
     /**
@@ -313,7 +311,6 @@ public class Song implements Serializable, PropertyChangeListener
         }
 
         // Listen to the phrase changes in order to update the modified status of the song
-        p.addPropertyChangeListener(this);
         ThrowingSupplier<OperationResults, PropertyVetoException> operation = () -> 
         {
             if (getUserPhrase(name) == null)
@@ -325,7 +322,7 @@ public class Song implements Serializable, PropertyChangeListener
             }
         };
 
-        performAPImethodThrowing(operation);    // throws PropertyVetoException
+        performWriteAPImethodThrowing(operation);    // throws PropertyVetoException
     }
 
     /**
@@ -362,7 +359,7 @@ public class Song implements Serializable, PropertyChangeListener
                 @Override
                 public void undoBody()
                 {
-                    performAPImethod(() -> 
+                    performWriteAPImethod(() -> 
                     {
                         mapUserPhrases = oldMap;
                         p.addPropertyChangeListener(Song.this);
@@ -375,7 +372,7 @@ public class Song implements Serializable, PropertyChangeListener
                 @Override
                 public void redoBody()
                 {
-                    performAPImethod(() -> 
+                    performWriteAPImethod(() -> 
                     {
                         mapUserPhrases = newMap;
                         p.removePropertyChangeListener(Song.this);
@@ -391,7 +388,7 @@ public class Song implements Serializable, PropertyChangeListener
 
         };
 
-        Phrase p = performAPImethod(operation);
+        Phrase p = performWriteAPImethod(operation);
         return p;
     }
 
@@ -402,14 +399,7 @@ public class Song implements Serializable, PropertyChangeListener
      */
     public Set<String> getUserPhraseNames()
     {
-        getLock().readLock().lock();
-        try
-        {
-            return new HashSet<>(mapUserPhrases.keySet());
-        } finally
-        {
-            getLock().readLock().unlock();
-        }
+        return performReadAPImethod(() -> new HashSet<>(mapUserPhrases.keySet()));
     }
 
     /**
@@ -479,7 +469,7 @@ public class Song implements Serializable, PropertyChangeListener
     {
         Preconditions.checkArgument(TempoRange.checkTempo(newTempo), "newTempo=%s", newTempo);
 
-        performAPImethod(() -> 
+        performWriteAPImethod(() -> 
         {
             int oldTempo = tempo;
             tempo = newTempo;
@@ -500,7 +490,7 @@ public class Song implements Serializable, PropertyChangeListener
     {
         Objects.requireNonNull(newTags);
 
-        performAPImethod(() -> 
+        performWriteAPImethod(() -> 
         {
             final ArrayList<String> oldTags = new ArrayList<>(tags);
             final ArrayList<String> newTagsLowerCase = new ArrayList<>();
@@ -545,7 +535,7 @@ public class Song implements Serializable, PropertyChangeListener
         Objects.requireNonNull(newName);
         Preconditions.checkArgument(!newName.isBlank(), "newName=%s", newName);
 
-        performAPImethod(() -> 
+        performWriteAPImethod(() -> 
         {
             final String oldName = name;
             name = newName;
@@ -556,27 +546,28 @@ public class Song implements Serializable, PropertyChangeListener
     }
 
     /**
-     * To be called to cleanup the song when song will not be used anymore.
+     * Mark song instance as closed, it should not be used anymore.
      * <p>
-     * Fire a PROP_CLOSED property change event.
+     * Fires a PROP_CLOSED property change event.
      *
      * @param releaseRhythmResources True if the method should also call releaseResources() for each used rhythm.
      */
     public void close(boolean releaseRhythmResources)
     {
+        closed = true;
+
         var phrases = performReadAPImethod(() -> 
         {
-            closed = true;
             return new ArrayList<>(mapUserPhrases.values());
         });
         for (var p : phrases)
         {
             p.removePropertyChangeListener(this);
         }
+        clientProperties.removePropertyChangeListener(this);
 
         pcs.firePropertyChange(PROP_CLOSED, false, true);
 
-        songMetaEvents.removePropertyChangeListener(SongMetaEvents.PROP_CLS_SGS_API_CHANGE_COMPLETE, this);
         if (releaseRhythmResources)
         {
             for (Rhythm r : songStructure.getUniqueRhythms(false, false))
@@ -592,7 +583,7 @@ public class Song implements Serializable, PropertyChangeListener
      */
     public boolean isClosed()
     {
-        return performReadAPImethod(() -> closed);
+        return closed;
     }
 
     /**
@@ -608,24 +599,22 @@ public class Song implements Serializable, PropertyChangeListener
     /**
      * Set the comments.
      * <p>
-     * Fire the PROP_COMMENTS change event.
+     * Fires the PROP_COMMENTS change event.
      *
      * @param newComments
      */
     public void setComments(final String newComments)
     {
-        if (newComments == null)
-        {
-            throw new IllegalArgumentException("newComments=" + newComments);
-        }
-        if (!newComments.equals(comments))
+        Objects.requireNonNull(newComments);
+
+        performWriteAPImethod(() -> 
         {
             final String oldComments = comments;
             comments = newComments;
 
-            pcs.firePropertyChange(PROP_COMMENTS, oldComments, newComments);
-            fireIsModified();
-        }
+            var event = new PropertyChangeEvent(this, PROP_COMMENTS, oldComments, newComments);
+            return new OperationResults(event, null, null);
+        });
     }
 
     /**
@@ -758,12 +747,12 @@ public class Song implements Serializable, PropertyChangeListener
             file = songFile;
         }
 
-        getLock().readLock().lock();
         try (FileOutputStream fos = new FileOutputStream(songFile))
         {
             XStream xstream = XStreamInstancesManager.getInstance().getSaveSongInstance();
             Writer w = new BufferedWriter(new OutputStreamWriter(fos, "UTF-8"));        // Needed to support special/accented chars
-            xstream.toXML(this, w);
+            Song songCopy = getDeepCopy(true);          // capture a clean copy
+            xstream.toXML(songCopy, w);
             if (!isCopy)
             {
                 setName(Song.removeSongExtension(songFile.getName()));
@@ -784,9 +773,7 @@ public class Song implements Serializable, PropertyChangeListener
             }
             // Translate into an IOException to be handled by the Netbeans framework 
             throw new IOException("XStream XML marshalling error", e);
-        } finally
-        {
-            getLock().readLock().unlock();
+
         }
     }
 
@@ -912,28 +899,16 @@ public class Song implements Serializable, PropertyChangeListener
             e.getSource().getClass(), e.getPropertyName(), e.getNewValue()
         });
 
-
         if (e.getSource() instanceof Phrase p)
         {
-            // Listen to User phrases changes 
+            // Listen to our user phrases changes to fire a PROP_USER_PHRASE_CONTENT event
             if (!Phrase.isAdjustingEvent(e.getPropertyName()))
             {
                 String phraseName = getPhraseName(p);
                 assert phraseName != null;
-                try
-                {
-                    vcs.fireVetoableChange(PROP_USER_PHRASE_CONTENT, null, phraseName);
-                } catch (PropertyVetoException ex)
-                {
-                    // Should never happen
-                    Exceptions.printStackTrace(ex);
-                }
+                fireChangeEvent(new PropertyChangeEvent(this, PROP_USER_PHRASE_CONTENT, null, phraseName));
                 fireIsModified();
             }
-        } else if (e.getSource() == songMetaEvents)
-        {
-            assert e.getPropertyName().equals(SongMetaEvents.PROP_CLS_SGS_API_CHANGE_COMPLETE);
-            fireIsModified();
         }
     }
 
@@ -950,28 +925,32 @@ public class Song implements Serializable, PropertyChangeListener
      */
     protected Song getDeepCopy(boolean noClsSgsLink)
     {
-        var cls = chordLeadSheet.getDeepCopy();
-        var sgs = songStructure.getDeepCopy(cls);
-        Song res = new Song(name, sgs, noClsSgsLink);
-        res.comments = comments;
-        res.tempo = tempo;
-        res.tags = tags;
+        return performReadAPImethod(() -> 
+        {
+            var cls = chordLeadSheet.getDeepCopy();
+            var sgs = songStructure.getDeepCopy(cls);
+            Song res = new Song(name, sgs, noClsSgsLink);
+            res.comments = comments;
+            res.tempo = tempo;
+            res.tags = tags;
 
 
-        // Clone user phrases
-        mapUserPhrases.keySet().stream()
-                .forEach(name -> 
-                {
-                    var p = mapUserPhrases.get(name);
-                    var pNew = p.clone();
-                    res.mapUserPhrases.put(name, pNew);
-                });
+            // Clone user phrases
+            mapUserPhrases.keySet().stream()
+                    .forEach(pName -> 
+                    {
+                        var p = mapUserPhrases.get(pName);
+                        var pNew = p.clone();
+                        res.mapUserPhrases.put(pName, pNew);
+                    });
 
 
-        // Copy client properties
-        res.getClientProperties().set(getClientProperties());
+            // Copy client properties
+            res.getClientProperties().set(getClientProperties());
 
-        return res;
+            return res;
+        });
+
     }
 
     private <T> T performReadAPImethod(Supplier<T> operation)
@@ -993,7 +972,7 @@ public class Song implements Serializable, PropertyChangeListener
      * @param operation Updates the model and returns the events
      * @return The returnValue from OperationResults. Can be null.
      */
-    private <R> R performAPImethod(Supplier<OperationResults> operation)
+    private <R> R performWriteAPImethod(Supplier<OperationResults> operation)
     {
         OperationResults results = null;
 
@@ -1010,7 +989,7 @@ public class Song implements Serializable, PropertyChangeListener
         assert results != null;   // If null a runtime exception must have been thrown before
         if (results.propertyChangeEvent() != null)
         {
-            fireNonVetoableChangeEvent(results.propertyChangeEvent());
+            fireChangeEvent(results.propertyChangeEvent());
             fireIsModified();
         }
         if (results.undoableEdit() != null)
@@ -1032,7 +1011,7 @@ public class Song implements Serializable, PropertyChangeListener
      * @param <E>
      * @throws E
      */
-    private <R, E extends Exception> R performAPImethodThrowing(ThrowingSupplier<OperationResults, E> operation) throws E
+    private <R, E extends Exception> R performWriteAPImethodThrowing(ThrowingSupplier<OperationResults, E> operation) throws E
     {
         OperationResults results = null;
 
@@ -1049,7 +1028,7 @@ public class Song implements Serializable, PropertyChangeListener
         assert results != null;   // If null a runtime exception must have been thrown before
         if (results.propertyChangeEvent() != null)
         {
-            fireNonVetoableChangeEvent(results.propertyChangeEvent());
+            fireChangeEvent(results.propertyChangeEvent());
             fireIsModified();
         }
         if (results.undoableEdit() != null)
@@ -1067,7 +1046,12 @@ public class Song implements Serializable, PropertyChangeListener
         vcs.fireVetoableChange(new PropertyChangeEvent(this, propName, oldValue, newValue));
     }
 
-    private void fireNonVetoableChangeEvent(PropertyChangeEvent e)
+    /**
+     * Fire a non-vetoable change event.
+     *
+     * @param e
+     */
+    private void fireChangeEvent(PropertyChangeEvent e)
     {
         Objects.requireNonNull(e);
         pcs.firePropertyChange(e);
@@ -1079,7 +1063,7 @@ public class Song implements Serializable, PropertyChangeListener
     private void fireIsModified()
     {
         saveNeeded = true;
-        fireNonVetoableChangeEvent(new PropertyChangeEvent(this, PROP_MODIFIED_OR_SAVED_OR_RESET, false, true));
+        fireChangeEvent(new PropertyChangeEvent(this, PROP_MODIFIED_OR_SAVED_OR_RESET, false, true));
     }
 
     /**
@@ -1088,7 +1072,7 @@ public class Song implements Serializable, PropertyChangeListener
     private void fireSaved()
     {
         saveNeeded = false;
-        fireNonVetoableChangeEvent(new PropertyChangeEvent(this, PROP_MODIFIED_OR_SAVED_OR_RESET, true, false));
+        fireChangeEvent(new PropertyChangeEvent(this, PROP_MODIFIED_OR_SAVED_OR_RESET, true, false));
     }
 
     private void fireUndoableEditHappened(UndoableEdit edit)
@@ -1128,6 +1112,9 @@ public class Song implements Serializable, PropertyChangeListener
         final var oldMap = new HashMap<>(mapUserPhrases);
         mapUserPhrases.put(name, p);
         final var newMap = new HashMap<>(mapUserPhrases);
+        
+        
+        p.addPropertyChangeListener(this);
 
 
         // Create the undoable event        
@@ -1137,7 +1124,7 @@ public class Song implements Serializable, PropertyChangeListener
             @Override
             public void undoBody()
             {
-                performAPImethod(() -> 
+                performWriteAPImethod(() -> 
                 {
                     mapUserPhrases = oldMap;
                     p.removePropertyChangeListener(Song.this);
@@ -1149,7 +1136,7 @@ public class Song implements Serializable, PropertyChangeListener
             @Override
             public void redoBody()
             {
-                performAPImethod(() -> 
+                performWriteAPImethod(() -> 
                 {
                     mapUserPhrases = newMap;
                     p.addPropertyChangeListener(Song.this);
@@ -1178,8 +1165,12 @@ public class Song implements Serializable, PropertyChangeListener
         final var pOld = mapUserPhrases.put(name, pNew);
         assert pOld != null;
         final var newMap = new HashMap<>(mapUserPhrases);
+        
+        
+        pOld.removePropertyChangeListener(this);
+        pNew.addPropertyChangeListener(this);
 
-
+        
         // Create the undoable event        
         UndoableEdit edit;
         edit = new SimpleEdit("Replace user phrase")
@@ -1187,7 +1178,7 @@ public class Song implements Serializable, PropertyChangeListener
             @Override
             public void undoBody()
             {
-                performAPImethod(() -> 
+                performWriteAPImethod(() -> 
                 {
                     mapUserPhrases = oldMap;
                     pNew.removePropertyChangeListener(Song.this);
@@ -1201,7 +1192,7 @@ public class Song implements Serializable, PropertyChangeListener
             @Override
             public void redoBody()
             {
-                performAPImethod(() -> 
+                performWriteAPImethod(() -> 
                 {
                     mapUserPhrases = newMap;
                     pOld.removePropertyChangeListener(Song.this);
@@ -1213,6 +1204,7 @@ public class Song implements Serializable, PropertyChangeListener
             }
         };
 
+        
         // Ideally, to preserve concurrency, we should also embed pNew in the event, so that a listener does not have to call Song.getUserPhrase() to do the required updates.
         // But risk is minimal as we don't expect several concurrent threads to replace a phrase in the same song.
         var event = new PropertyChangeEvent(Song.this, PROP_USER_PHRASE_CONTENT, pOld, name);

@@ -26,7 +26,7 @@ import com.google.common.base.Preconditions;
 import com.thoughtworks.xstream.XStream;
 import java.beans.PropertyChangeEvent;
 import org.jjazz.songstructure.api.event.RpValueChangedEvent;
-import org.jjazz.songstructure.api.event.SptRhythmChanged;
+import org.jjazz.songstructure.api.event.SptRhythmChangedEvent;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.jjazz.songstructure.api.event.SptResizedEvent;
 import org.jjazz.songstructure.api.event.SptRemovedEvent;
@@ -223,7 +223,6 @@ public class SongStructureImpl implements SongStructure, Serializable
     public SongPart createSongPart(Rhythm r, String name, int startBarIndex, CLI_Section parentSection, boolean reusePrevParamValues)
     {
         Objects.requireNonNull(r);
-        Objects.requireNonNull(name);
         Objects.requireNonNull(parentSection);
         Preconditions.checkArgument(r.getTimeSignature() == parentSection.getData().getTimeSignature(), "r=%s parentSection=%s", r, parentSection);
         Preconditions.checkArgument(startBarIndex >= 0, "name=%s startBarIndex=%s", name, startBarIndex);
@@ -241,7 +240,7 @@ public class SongStructureImpl implements SongStructure, Serializable
             spt = new SongPartImpl(this, r, startBarIndex, nbBars, parentSection);
         }
 
-        spt.setName(name);
+        spt.setName(name == null ? parentSection.getData().getName() : name);
 
         return spt;
     }
@@ -302,7 +301,7 @@ public class SongStructureImpl implements SongStructure, Serializable
                 public void undoBody()
                 {
                     LOGGER.log(Level.FINER, "addSongParts.undoBody() spts={0}", spts);
-                    performAPImethod(() -> 
+                    performWriteAPImethod(() -> 
                     {
                         songParts = new ArrayList<>(oldSongParts);
                         mapTsLastRhythm = new HashMap<>(oldMapTsRhythm);
@@ -322,7 +321,7 @@ public class SongStructureImpl implements SongStructure, Serializable
                 public void redoBody()
                 {
                     LOGGER.log(Level.FINER, "addSongParts.redoBody() spts={0}", spts);
-                    performAPImethod(() -> 
+                    performWriteAPImethod(() -> 
                     {
                         songParts = new ArrayList<>(newSongParts);
                         mapTsLastRhythm = new HashMap<>(newMapTsRhythm);
@@ -342,7 +341,7 @@ public class SongStructureImpl implements SongStructure, Serializable
             return new OperationResults(new SptAddedEvent(this, spts), edit, sptEvents, null);
         };
 
-        performAPImethodThrowing(operation);        // throws UnsupportedEditException
+        performWriteAPImethodThrowing(operation);        // throws UnsupportedEditException
 
 
         // Make sure all AdaptedRhythms for the song’s rhythms are generated in the database so that the user can access them if needed.
@@ -399,7 +398,7 @@ public class SongStructureImpl implements SongStructure, Serializable
                 public void undoBody()
                 {
                     LOGGER.log(Level.FINER, "removeSongParts.undoBody() spts={0}", spts);
-                    performAPImethod(() -> 
+                    performWriteAPImethod(() -> 
                     {
                         songParts = new ArrayList<>(oldSongParts);
                         mapTsLastRhythm = new HashMap<>(oldMapTsRhythm);
@@ -419,7 +418,7 @@ public class SongStructureImpl implements SongStructure, Serializable
                 public void redoBody()
                 {
                     LOGGER.log(Level.FINER, "removeSongParts.redoBody() spts={0}", spts);
-                    performAPImethod(() -> 
+                    performWriteAPImethod(() -> 
                     {
                         songParts = new ArrayList<>(newSongParts);
                         mapTsLastRhythm = new HashMap<>(newMapTsRhythm);
@@ -436,7 +435,7 @@ public class SongStructureImpl implements SongStructure, Serializable
             return new OperationResults(event, edit, sptEvents, null);
         };
 
-        performAPImethod(operation);
+        performWriteAPImethod(operation);
     }
 
 
@@ -503,7 +502,7 @@ public class SongStructureImpl implements SongStructure, Serializable
                 public void undoBody()
                 {
                     LOGGER.log(Level.FINER, "resizeSongParts.undoBody() mapSptSize={0}", mapSptNewSize);
-                    performAPImethod(() -> 
+                    performWriteAPImethod(() -> 
                     {
                         for (SongPart spt : mapSptResizing.keySet())
                         {
@@ -522,7 +521,7 @@ public class SongStructureImpl implements SongStructure, Serializable
                 public void redoBody()
                 {
                     LOGGER.log(Level.FINER, "resizeSongParts.redoBody() mapSptSize={0}", mapSptNewSize);
-                    performAPImethod(() -> 
+                    performWriteAPImethod(() -> 
                     {
                         for (SongPart spt : mapSptResizing.keySet())
                         {
@@ -542,7 +541,7 @@ public class SongStructureImpl implements SongStructure, Serializable
             return new OperationResults(event, edit, sptEventsForUndo, null);
         };
 
-        performAPImethod(operation);
+        performWriteAPImethod(operation);
     }
 
 
@@ -600,7 +599,7 @@ public class SongStructureImpl implements SongStructure, Serializable
 
 
             // Check for possible veto
-            testChangeEventForVeto(new SptRhythmChanged(this, r, sptsOldState, spts));           // throws UnsupportedEditException  
+            testChangeEventForVeto(new SptRhythmChangedEvent(this, r, sptsOldState, spts));           // throws UnsupportedEditException  
 
 
             // Update model
@@ -622,7 +621,7 @@ public class SongStructureImpl implements SongStructure, Serializable
                 {
                     LOGGER.log(Level.FINER, "setSongPartsRhythm.undoBody() songParts={0}", songParts);
 
-                    performAPImethod(() -> 
+                    performWriteAPImethod(() -> 
                     {
                         final List<PropertyChangeEvent> sptEvents2 = new ArrayList<>();
                         for (var spt : spts)
@@ -632,7 +631,7 @@ public class SongStructureImpl implements SongStructure, Serializable
                         }
                         mapTsLastRhythm = new HashMap<>(oldMapTsRhythm);
 
-                        var event = new SptRhythmChanged(SongStructureImpl.this, r, sptsOldState, spts);
+                        var event = new SptRhythmChangedEvent(SongStructureImpl.this, r, sptsOldState, spts);
                         event.setIsUndo();
                         return new OperationResults(event, null, sptEvents2, null);
                     });
@@ -643,7 +642,7 @@ public class SongStructureImpl implements SongStructure, Serializable
                 {
                     LOGGER.log(Level.FINER, "setSongPartsRhythm.redoBody() songParts={0}", songParts);
 
-                    performAPImethod(() -> 
+                    performWriteAPImethod(() -> 
                     {
                         final List<PropertyChangeEvent> sptEvents2 = new ArrayList<>();
                         for (var spt : spts)
@@ -652,18 +651,18 @@ public class SongStructureImpl implements SongStructure, Serializable
                         }
                         mapTsLastRhythm = new HashMap<>(newMapTsRhythm);
 
-                        var event = new SptRhythmChanged(SongStructureImpl.this, r, sptsOldState, spts);
+                        var event = new SptRhythmChangedEvent(SongStructureImpl.this, r, sptsOldState, spts);
                         event.setIsRedo();
                         return new OperationResults(event, null, sptEvents2, null);
                     });
                 }
             };
 
-            var event = new SptRhythmChanged(SongStructureImpl.this, r, sptsOldState, spts);
+            var event = new SptRhythmChangedEvent(SongStructureImpl.this, r, sptsOldState, spts);
             return new OperationResults(event, edit, sptEvents, null);
         };
 
-        performAPImethodThrowing(operation);
+        performWriteAPImethodThrowing(operation);
 
         generateAllAdaptedRhythms();
     }
@@ -709,7 +708,7 @@ public class SongStructureImpl implements SongStructure, Serializable
                     {
                         spts, name
                     });
-                    performAPImethod(() -> 
+                    performWriteAPImethod(() -> 
                     {
                         final List<PropertyChangeEvent> sptEvents2 = new ArrayList<>();
                         for (SongPart spt : mapSptRenaming.keySet())
@@ -731,7 +730,7 @@ public class SongStructureImpl implements SongStructure, Serializable
                     {
                         spts, name
                     });
-                    performAPImethod(() -> 
+                    performWriteAPImethod(() -> 
                     {
                         final List<PropertyChangeEvent> sptEvents2 = new ArrayList<>();
                         for (SongPart spt : mapSptRenaming.keySet())
@@ -751,7 +750,7 @@ public class SongStructureImpl implements SongStructure, Serializable
             return new OperationResults(event, edit, sptEvents, null);
         };
 
-        performAPImethod(operation);
+        performWriteAPImethod(operation);
     }
 
 
@@ -794,7 +793,7 @@ public class SongStructureImpl implements SongStructure, Serializable
                     {
                         spt, rp, newValue
                     });
-                    performAPImethod(() -> 
+                    performWriteAPImethod(() -> 
                     {
                         var spte = wspt.setRPValue(rp, oldValue);
                         var event = new RpValueChangedEvent(SongStructureImpl.this, wspt, rp, oldValue, newValue);
@@ -810,7 +809,7 @@ public class SongStructureImpl implements SongStructure, Serializable
                     {
                         spt, rp, newValue
                     });
-                    performAPImethod(() -> 
+                    performWriteAPImethod(() -> 
                     {
                         var spte = wspt.setRPValue(rp, newValue);
                         var event = new RpValueChangedEvent(SongStructureImpl.this, wspt, rp, oldValue, newValue);
@@ -824,7 +823,7 @@ public class SongStructureImpl implements SongStructure, Serializable
             return new OperationResults(event, edit, List.of(sptEvent), null);
         };
 
-        performAPImethod(operation);
+        performWriteAPImethod(operation);
     }
 
 
@@ -1227,7 +1226,7 @@ public class SongStructureImpl implements SongStructure, Serializable
      * @param operation Updates the model and returns the events
      * @return The returnValue from OperationResults. Can be null.
      */
-    private <R> R performAPImethod(Supplier<OperationResults> operation)
+    private <R> R performWriteAPImethod(Supplier<OperationResults> operation)
     {
         OperationResults results = null;
 
@@ -1277,7 +1276,7 @@ public class SongStructureImpl implements SongStructure, Serializable
      * @param <E>
      * @throws E
      */
-    private <R, E extends Exception> R performAPImethodThrowing(ThrowingSupplier<OperationResults, E> operation) throws E
+    private <R, E extends Exception> R performWriteAPImethodThrowing(ThrowingSupplier<OperationResults, E> operation) throws E
     {
         OperationResults results;
 

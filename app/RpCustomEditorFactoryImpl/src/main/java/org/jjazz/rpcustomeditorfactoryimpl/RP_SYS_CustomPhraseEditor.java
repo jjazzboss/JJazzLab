@@ -58,7 +58,7 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditorDialog<RP_SYS_Custo
     private final RP_SYS_CustomPhrase rp;
     private RP_SYS_CustomPhraseValue rpValue;
     private SongPartContext songPartContext;
-    private CoalescingTaskScheduler coalescingTaskScheduler;
+    private final CoalescingTaskScheduler coalescingTaskScheduler;
     private boolean exitOk;
     private final Map<RhythmVoice, Phrase> mapRvNonCustomizedPhrase = new HashMap<>();
     private static final Logger LOGGER = Logger.getLogger(RP_SYS_CustomPhraseEditor.class.getSimpleName());

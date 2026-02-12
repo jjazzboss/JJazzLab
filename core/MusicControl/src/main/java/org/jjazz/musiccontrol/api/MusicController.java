@@ -81,6 +81,8 @@ import org.jjazz.outputsynth.spi.OutputSynthManager;
 public class MusicController implements PropertyChangeListener, MetaEventListener
 {
 
+    timer sends everything on EDT ! opposite of what doc says...
+    
     /**
      * oldValue=old State, newValue=new State
      */

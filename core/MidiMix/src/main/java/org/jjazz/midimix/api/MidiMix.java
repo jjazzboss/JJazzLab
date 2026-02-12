@@ -49,6 +49,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
@@ -79,7 +80,7 @@ import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.jjazz.songstructure.api.event.SptAddedEvent;
 import org.jjazz.songstructure.api.event.SptRemovedEvent;
-import org.jjazz.songstructure.api.event.SptRhythmChanged;
+import org.jjazz.songstructure.api.event.SptRhythmChangedEvent;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongCreationException;
 import org.jjazz.songstructure.api.SongStructure;
@@ -99,6 +100,7 @@ import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_LOAD;
 import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_SAVE;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
+import org.openide.util.Exceptions;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
@@ -271,6 +273,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         if (song != null)
         {
             song.getSongStructure().removeSgsChangeListener(this);
+            song.removePropertyChangeListener(this);  // User phrase events
             song.removeVetoableChangeListener(this);  // User phrase events
         }
 
@@ -291,6 +294,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
 
             // Register for changes
             song.addVetoableChangeListener(this);
+            song.addPropertyChangeListener(this);
             sgs.addSgsChangeListener(this);
         }
     }
@@ -1203,7 +1207,6 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         return insMixes;
     }
 
-
     /**
      * Add a user phrase channel for the specified phrase name.
      *
@@ -1212,13 +1215,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      */
     public void addUserChannel(String userPhraseName) throws MidiUnavailableException
     {
-        int channel = getUsedChannels().contains(UserRhythmVoice.DEFAULT_USER_PHRASE_CHANNEL) ? findFreeChannel(false)
-                : UserRhythmVoice.DEFAULT_USER_PHRASE_CHANNEL;
-        if (channel == -1)
-        {
-            String msg = ResUtil.getString(getClass(), "ERR_NotEnoughChannels");
-            throw new MidiUnavailableException(msg);
-        }
+        int channel = findFreeUserChannel(false);     // throws MidiUnavailableException
+
 
         Phrase p = song.getUserPhrase(userPhraseName);
         assert p != null : "userPhraseName=" + userPhraseName;
@@ -1474,78 +1472,83 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         List<Rhythm> songRhythms = song.getSongStructure().getUniqueRhythms(true, false);
         List<Rhythm> mixRhythms = getUniqueRhythms();
 
-        if (e instanceof SptAddedEvent sae)
+        switch (e)
         {
-            for (SongPart spt : sae.getSongParts())
+            case SptAddedEvent sae ->
             {
-
-                Rhythm r = getSourceRhythm(spt.getRhythm());
-                if (!mixRhythms.contains(r))
+                for (SongPart spt : sae.getSongParts())
                 {
-                    try
-                    {
-                        // It's a new rhythm in the MidiMix
-                        addRhythm(r);
-                    } catch (MidiUnavailableException ex)
-                    {
-                        // Should not be here since we made a test just above to avoid this
-                        throw new IllegalStateException(
-                                "Unexpected MidiUnavailableException ex=" + ex.getMessage() + " this=" + this + " r=" + r);
-                    }
-                    mixRhythms.add(r);
-                }
-            }
 
-        } else if (e instanceof SptRemovedEvent)
-        {
-            SptRemovedEvent e2 = (SptRemovedEvent) e;
-            for (SongPart spt : e2.getSongParts())
-            {
-                Rhythm r = getSourceRhythm(spt.getRhythm());
-                if (!songRhythms.contains(r) && mixRhythms.contains(r))
-                {
-                    // There is no more such rhythm in the song, we can remove it from the midimix
-                    removeRhythm(r);
-                    mixRhythms.remove(r);
-                }
-            }
-        } else if (e instanceof SptRhythmChanged)
-        {
-
-            SptRhythmChanged e2 = (SptRhythmChanged) e;
-            List<SongPart> oldSpts = e2.getSongParts();
-            List<SongPart> newSpts = e2.getNewSpts();
-
-            // Important : remove rhythm parts before adding (otherwise we could have a "not enough midi channels
-            // available" in the loop).
-            oldSpts.stream()
-                    .map(spt -> getSourceRhythm(spt.getRhythm()))
-                    .filter(r -> !songRhythms.contains(r))
-                    .forEach(r -> 
+                    Rhythm r = getSourceRhythm(spt.getRhythm());
+                    if (!mixRhythms.contains(r))
                     {
-                        // Rhythm is no more present in the song, remove it also from the MidiMix
-                        removeRhythm(r);
-                        mixRhythms.remove(r);
-                    });
-
-            // Add the new rhythms
-            newSpts.stream()
-                    .map(spt -> getSourceRhythm(spt.getRhythm()))
-                    .filter(r -> !mixRhythms.contains(r))
-                    .forEach(r -> 
-                    {
-                        // New song rhythm is not yet in the midimix, add it
                         try
                         {
+                            // It's a new rhythm in the MidiMix
                             addRhythm(r);
                         } catch (MidiUnavailableException ex)
                         {
-                            // Should not be here since we made a test earlier to avoid this
+                            // Should not be here since we made a test just above to avoid this
                             throw new IllegalStateException(
                                     "Unexpected MidiUnavailableException ex=" + ex.getMessage() + " this=" + this + " r=" + r);
                         }
                         mixRhythms.add(r);
-                    });
+                    }
+                }
+
+            }
+            case SptRemovedEvent sre ->
+            {
+                for (SongPart spt : sre.getSongParts())
+                {
+                    Rhythm r = getSourceRhythm(spt.getRhythm());
+                    if (!songRhythms.contains(r) && mixRhythms.contains(r))
+                    {
+                        // There is no more such rhythm in the song, we can remove it from the midimix
+                        removeRhythm(r);
+                        mixRhythms.remove(r);
+                    }
+                }
+            }
+            case SptRhythmChangedEvent srce ->
+            {
+                List<SongPart> oldSpts = srce.getOldSptsCopies();
+                List<SongPart> newSpts = srce.getSongParts();
+
+                // Important : remove rhythm parts before adding (otherwise we could have a "not enough midi channels
+                // available" in the loop).
+                oldSpts.stream()
+                        .map(spt -> getSourceRhythm(spt.getRhythm()))
+                        .filter(r -> !songRhythms.contains(r))
+                        .forEach(r -> 
+                        {
+                            // Rhythm is no more present in the song, remove it also from the MidiMix
+                            removeRhythm(r);
+                            mixRhythms.remove(r);
+                        });
+
+                // Add the new rhythms
+                newSpts.stream()
+                        .map(spt -> getSourceRhythm(spt.getRhythm()))
+                        .filter(r -> !mixRhythms.contains(r))
+                        .forEach(r -> 
+                        {
+                            // New song rhythm is not yet in the midimix, add it
+                            try
+                            {
+                                addRhythm(r);
+                            } catch (MidiUnavailableException ex)
+                            {
+                                // Should not be here since we made a test earlier to avoid this
+                                throw new IllegalStateException(
+                                        "Unexpected MidiUnavailableException ex=" + ex.getMessage() + " this=" + this + " r=" + r);
+                            }
+                            mixRhythms.add(r);
+                        });
+            }
+            default ->
+            {
+            }
         }
     }
 
@@ -1569,50 +1572,19 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
 
         if (e.getSource() == song)
         {
-            switch (e.getPropertyName())
+            if (e.getPropertyName().equals(Song.PROP_VETOABLE_ADD_USER_PHRASE))
             {
-                case Song.PROP_VETOABLE_ADD_USER_PHRASE ->
+                try
                 {
-                    if (e.getNewValue() instanceof String name)
-                    {
-                        // New user phrase added
-                        try
-                        {
-                            addUserChannel(name);
-                        } catch (MidiUnavailableException ex)
-                        {
-                            throw new PropertyVetoException(ex.getMessage(), e);
-                        }
+                    findFreeUserChannel(false);    // throws M
+                } catch (MidiUnavailableException ex)
+                {
+                    throw new PropertyVetoException(ex.getMessage(), e);
+                }
 
-                    } else
-                    {
-                        // User phrase was removed
-                        var name = (String) e.getOldValue();
-                        removeUserChannel(name);
-                    }
-                }
-                case Song.PROP_USER_PHRASE_CONTENT ->
-                {
-                    // User phrase was updated, nothing to do at the MidiMix level
-                }
-                case Song.PROP_PHRASE_NAME ->
-                {
-                    // User phrase was renamed, replace the UserRhythmVoice
-                    String oldName = (String) e.getOldValue();
-                    String newName = (String) e.getNewValue();
-                    UserRhythmVoice oldUrv = getUserRhythmVoice(oldName);
-                    assert oldUrv != null : "oldName=" + oldName;
-                    var kit = oldUrv.getDrumKit();
-                    UserRhythmVoice newUrv = kit != null ? new UserRhythmVoice(newName, oldUrv.getDrumKit())
-                            : new UserRhythmVoice(newName);
-                    replaceRhythmVoice(oldUrv, newUrv);
-
-                }
-                default ->
-                {
-                    // Nothing
-                }
             }
+
+
         }
     }
 
@@ -1736,11 +1708,81 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
                 fireIsMusicGenerationModified(MidiMix.PROP_INSTRUMENT_VELOCITY_SHIFT, insMix);
             }
             fireIsModified();
+
+        } else if (e.getSource() == song)
+        {
+            switch (e.getPropertyName())
+            {
+                case Song.PROP_USER_PHRASE ->
+                {
+                    if (e.getNewValue() instanceof String name)
+                    {
+                        // New user phrase added
+                        try
+                        {
+                            addUserChannel(name);
+                        } catch (MidiUnavailableException ex)
+                        {
+                            // Should never happen : change should have been vetoed by vetoableChange()
+                            LOGGER.log(Level.SEVERE, "propertyChange() e={0} unexpected exception ex={1}", new Object[]
+                            {
+                                e, ex.getMessage()
+                            });
+                            Exceptions.printStackTrace(ex);
+                        }
+
+                    } else
+                    {
+                        // User phrase was removed
+                        var name = (String) e.getOldValue();
+                        removeUserChannel(name);
+                    }
+                }
+                case Song.PROP_USER_PHRASE_CONTENT ->
+                {
+                    // User phrase was updated, nothing to do at the MidiMix level
+                }
+                case Song.PROP_PHRASE_NAME ->
+                {
+                    // User phrase was renamed, replace the UserRhythmVoice
+                    String oldName = (String) e.getOldValue();
+                    String newName = (String) e.getNewValue();
+                    UserRhythmVoice oldUrv = getUserRhythmVoice(oldName);
+                    assert oldUrv != null : "oldName=" + oldName;
+                    var kit = oldUrv.getDrumKit();
+                    UserRhythmVoice newUrv = kit != null ? new UserRhythmVoice(newName, oldUrv.getDrumKit())
+                            : new UserRhythmVoice(newName);
+                    replaceRhythmVoice(oldUrv, newUrv);
+
+                }
+                default ->
+                {
+                    // Nothing
+                }
+            }
         }
     }
+
     //-----------------------------------------------------------------------
     // Private methods
     //-----------------------------------------------------------------------
+    /**
+     * Get a new channel for a user track.
+     *
+     * @param drums
+     * @return
+     * @throws javax.sound.midi.MidiUnavailableException If no more channel available
+     */
+    private int findFreeUserChannel(boolean drums) throws MidiUnavailableException
+    {
+        var res = getUsedChannels().contains(UserRhythmVoice.DEFAULT_USER_PHRASE_CHANNEL) ? findFreeChannel(drums) : UserRhythmVoice.DEFAULT_USER_PHRASE_CHANNEL;
+        if (res == -1)
+        {
+            String msg = ResUtil.getString(getClass(), "ERR_NotEnoughChannels");
+            throw new MidiUnavailableException(msg);
+        }
+        return res;
+    }
 
     /**
      * Perform the InstrumentMix change operation.
@@ -2052,7 +2094,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
 
 
     /**
-     * Check that we don't exceed number of available Midi channels.
+     * Check that we don't exceed the number of available Midi channels.
      *
      * @param e
      * @throws UnsupportedEditException
@@ -2061,21 +2103,20 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
     {
         LOGGER.log(Level.FINE, "testChangeEventForVeto() -- e={0}", e);
 
-        // Build the list of SongPart after the change
-        List<SongPart> spts = null;
+        Set<Rhythm> rhythms = new HashSet<>();
+
         if (e instanceof SptAddedEvent sae)
         {
             spts = song.getSongStructure().getSongParts();
             spts.addAll(sae.getSongParts());
 
-        } else if (e instanceof SptRhythmChanged sre)
+        } else if (e instanceof SptRhythmChangedEvent sre)
         {
-            List<SongPart> oldSpts = sre.getSongParts();
-            List<SongPart> newSpts = sre.getNewSpts();
+            List<SongPart> spts = sre.getSongParts();
 
             spts = song.getSongStructure().getSongParts();
             spts.removeAll(oldSpts);
-            spts.addAll(newSpts);
+            spts.addAll(spts);
         }
 
         if (spts == null)
@@ -2085,7 +2126,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         }
 
         // Number of RhythmVoices has possibly changed
-        HashSet<Rhythm> rhythms = new HashSet<>();
+
         int nbVoices = getUserChannels().size();      // Initialize with user rhythm voices
         for (SongPart spt : spts)
         {

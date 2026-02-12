@@ -393,7 +393,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
                     //
                     // Song property events
                     //                                
-                    case Song.PROP_VETOABLE_ADD_USER_PHRASE ->
+                    case Song.PROP_USER_PHRASE ->
                     {
                         String phraseName = (String) data;
                         if (getSongContext().getSong().getUserPhrase(phraseName) == null)

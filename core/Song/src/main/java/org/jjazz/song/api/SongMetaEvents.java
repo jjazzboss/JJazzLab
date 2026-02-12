@@ -24,64 +24,60 @@
  */
 package org.jjazz.song.api;
 
+import com.google.common.base.Preconditions;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.beans.PropertyVetoException;
-import java.beans.VetoableChangeListener;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
+import java.util.IdentityHashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.chordleadsheet.api.ClsChangeListener;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
-import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
+import org.jjazz.chordleadsheet.api.event.ItemAddedEvent;
+import org.jjazz.chordleadsheet.api.event.ItemChangedEvent;
+import org.jjazz.chordleadsheet.api.event.ItemMovedEvent;
+import org.jjazz.chordleadsheet.api.event.ItemRemovedEvent;
 import org.jjazz.songstructure.api.SgsChangeListener;
-import org.jjazz.songstructure.api.event.SgsActionEvent;
-import static org.jjazz.songstructure.api.event.SgsActionEvent.API_ID.SetRhythmParameterMutableValue;
+import org.jjazz.songstructure.api.event.RpValueChangedEvent;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
+import org.jjazz.songstructure.api.event.SptRenamedEvent;
+import org.jjazz.songstructure.api.event.SptRhythmChangedEvent;
 
 /**
- * A helper class which listens to Song/ChordLeadSheet/SongStructure change events to provide higher-level song change events.
+ * A helper class which listens to Song/ChordLeadSheet/SongStructure change events to provide higher-level property change events.
  * <p>
  */
-public class SongMetaEvents implements ClsChangeListener, SgsChangeListener, PropertyChangeListener, VetoableChangeListener
+public class SongMetaEvents implements ClsChangeListener, SgsChangeListener, PropertyChangeListener
 {
 
-
     /**
-     * Fired when the song modification initiated by a ChordLeadSheet/SongStructure API method is complete.
+     * Fired when the song's ChordLeadSheet or SongStructure has changed.
      * <p>
-     * OldValue=the source ClsActionEvent/SgsActionEvent that initially triggered the change.<br>
-     * NewValue=the optional associated data
+     * OldValue=the source ClsChangeEvent or SgsChangeEvent
      */
-    public static final String PROP_CLS_SGS_API_CHANGE_COMPLETE = "PropClsSgsAPIChangeComplete";
+    public static final String PROP_CLS_SGS_CHANGE = "PropClsSgsChange";
 
     /**
-     * Fired when the "musical content" of the song is modified, i.e. any related music generation process should be updated or restarted.
+     * Fired when the "musical content" of the song is modified, i.e. a new music generation task is needed.
      * <p>
-     * Source changes might contain e.g. chord symbol changes, inserted bars, rhythm parameter value changes -but not a section name change. Because a rhythm
+     * For example source changes can be chord symbol changes, inserted bars, rhythm parameter value changes -but not a section name change. Because a rhythm
      * generation engine might adjust the generated music to the tempo, a song tempo change is considered as a musical content change.<p>
      * <p>
-     * OldValue=the Song property name or the source ClsActionEvent/SgsActionEvent that initially triggered the musical change.<br>
-     * NewValue=the optional associated data
+     * OldValue=the source Song's PropertyChangeEvent or ClsChangeEvent or SgsChangeEvent<br>
      */
-    public static final String PROP_MUSIC_GENERATION = "PropMusicGeneration";
+    public static final String PROP_MUSIC_GENERATION = "PropMusicalContent";
 
     /**
      * Fired when at least one song bar was added/removed/moved, or a time signature was changed.
      * <p>
-     * OldValue=the source ClsActionEvent/SgsActionEvent that initially triggered the change.<br>
-     * NewValue=the optional associated data
+     * OldValue=the source ClsChangeEvent or SgsChangeEvent
      */
-    public static final String PROP_SONG_STRUCTURE = "PropSongStructure";
+    public static final String PROP_SIZE_IN_BEATS = "PropSizeInBeats";
 
-    private static final Map<Song, SongMetaEvents> MAP_SONG_INSTANCE = new HashMap<>();
+
+    private static final Map<Song, SongMetaEvents> MAP_SONG_INSTANCE = new IdentityHashMap<>();
 
     static public SongMetaEvents getInstance(Song song)
     {
@@ -95,8 +91,6 @@ public class SongMetaEvents implements ClsChangeListener, SgsChangeListener, Pro
     }
 
     private final Song song;
-    private ClsSourceActionEvent activeClsSourceActionEvent;
-    private SgsSourceActionEvent activeSgsSourceActionEvent;
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(SongMetaEvents.class.getSimpleName());
 
@@ -104,7 +98,6 @@ public class SongMetaEvents implements ClsChangeListener, SgsChangeListener, Pro
     {
         this.song = song;
         this.song.addPropertyChangeListener(this);
-        this.song.addVetoableChangeListener(this);
         this.song.getChordLeadSheet().addClsChangeListener(this);
         this.song.getSongStructure().addSgsChangeListener(this);
     }
@@ -135,7 +128,7 @@ public class SongMetaEvents implements ClsChangeListener, SgsChangeListener, Pro
     }
 
     //-----------------------------------------------------------------------
-    // PropertiesListener interface
+    // PropertyChangeListener interface
     //-----------------------------------------------------------------------
 
     @Override
@@ -154,9 +147,9 @@ public class SongMetaEvents implements ClsChangeListener, SgsChangeListener, Pro
                 {
                     cleanup();
                 }
-                case Song.PROP_TEMPO ->
+                case Song.PROP_TEMPO, Song.PROP_USER_PHRASE, Song.PROP_USER_PHRASE_CONTENT ->
                 {
-                    fireMusicalContentChanged(Song.PROP_TEMPO, e.getOldValue());
+                    fireMusicalContentChanged(e);
                 }
                 default ->
                 {
@@ -166,299 +159,111 @@ public class SongMetaEvents implements ClsChangeListener, SgsChangeListener, Pro
         }
     }
 
-
-    //-----------------------------------------------------------------------
-    // VetoableChangeListener interface
-    //-----------------------------------------------------------------------
-    @Override
-    public void vetoableChange(PropertyChangeEvent e) throws PropertyVetoException
-    {
-        LOGGER.log(Level.FINE, "vetoableChange() src={0} prop={1} oldValue={2} newValue={3}", new Object[]
-        {
-            e.getSource().getClass(), e.getPropertyName(), e.getOldValue(), e.getNewValue()
-        });
-        assert e.getSource() == song;
-        switch (e.getPropertyName())
-        {
-            case Song.PROP_VETOABLE_ADD_USER_PHRASE ->
-            {
-                String addedOrRemovedPhraseName = e.getOldValue() == null ? e.getNewValue().toString() : e.getOldValue().toString();
-                fireMusicalContentChanged(Song.PROP_VETOABLE_ADD_USER_PHRASE, addedOrRemovedPhraseName);
-            }
-            case Song.PROP_USER_PHRASE_CONTENT ->
-            {
-                String phraseName = e.getNewValue().toString();
-                fireMusicalContentChanged(Song.PROP_USER_PHRASE_CONTENT, phraseName);
-            }
-            default ->
-            {
-                // Nothing
-            }
-        }
-    }
-
     // ====================================================================================
     // ClsChangeListener
     // ====================================================================================    
-
     @Override
     public void chordLeadSheetChanged(ClsChangeEvent event) throws UnsupportedEditException
     {
-
-        if (!(event instanceof ClsActionEvent))
+        // Many ClsChangeEvents will trigger a SongStructure event, we'll catch them in songStructureChanged()
+        // So we focus here only on the events which do not trigger a SongStructure change
+        boolean musicalContentChanged = switch (event)
         {
-            return;
+            case ItemAddedEvent e ->
+                true;
+            case ItemChangedEvent e ->
+                true;
+            case ItemMovedEvent e ->
+                true;
+            case ItemRemovedEvent e ->
+                true;
+            default -> false;
+        };
+
+        fireClsSgsChanged(event);
+        
+        if (musicalContentChanged)
+        {
+            fireMusicalContentChanged(event);
         }
-        var cae = (ClsActionEvent) event;
-
-        if (activeSgsSourceActionEvent != null)
-        {
-            // Save sub-events of the active SgsSourceActionEvent
-            if (cae.isComplete())
-            {
-                activeSgsSourceActionEvent.addClsSubEvent(cae);
-            }
-        } else if (activeClsSourceActionEvent == null)
-        {
-            // No active SourceActionEvent
-            if (!cae.isComplete())
-            {
-                activeClsSourceActionEvent = new ClsSourceActionEvent(cae);
-            }
-        } else if (!cae.isComplete())
-        {
-            throw new IllegalStateException("activeClsSourceActionEvent=" + activeClsSourceActionEvent + " cae=" + cae);
-        } else
-        {
-            // cae is complete, this is the end of our ClsSourceActionEvent
-            assert activeClsSourceActionEvent.getApiId() == cae.getApiId() :
-                    "activeClsSourceActionEvent=" + activeClsSourceActionEvent + " cae=" + cae;
-            fireSongAPIChangeComplete(activeClsSourceActionEvent);
-        }
-
-
     }
 
     // ====================================================================================
     // SgsChangeListener
     // ====================================================================================    
+
     @Override
     public void songStructureChanged(SgsChangeEvent event)
     {
-        if (!(event instanceof SgsActionEvent))
-        {
-            return;
-        }
-        var sae = (SgsActionEvent) event;
+        boolean musicalContentChanged, sizeInBeatsChanged;
 
-        if (activeClsSourceActionEvent != null)
+        switch (event)
         {
-            // Save sub-events of the active ClsSourceActionEvent
-            if (sae.isComplete())
+            case RpValueChangedEvent e ->
             {
-                activeClsSourceActionEvent.addSgsSubEvent(sae);
+                musicalContentChanged = true;
+                sizeInBeatsChanged = false;
             }
-        } else if (activeSgsSourceActionEvent == null)
-        {
-            // No active SourceActionEvent
-            if (!sae.isComplete())
+            case SptRenamedEvent e ->
             {
-                activeSgsSourceActionEvent = new SgsSourceActionEvent(sae);
+                musicalContentChanged = false;
+                sizeInBeatsChanged = false;
             }
-        } else if (!sae.isComplete())
+            case SptRhythmChangedEvent e ->
+            {
+                musicalContentChanged = true;
+                sizeInBeatsChanged = false;
+            }
+            default ->
+            {
+                musicalContentChanged = true;
+                sizeInBeatsChanged = true;
+            }
+        }
+
+        fireClsSgsChanged(event);
+        if (musicalContentChanged)
         {
-            throw new IllegalStateException("activeSgsSourceActionEvent=" + activeSgsSourceActionEvent + " sae=" + sae);
-        } else
+            fireMusicalContentChanged(event);
+        }
+        if (sizeInBeatsChanged)
         {
-            // sae is complete, this is the end of our SgsSourceActionEvent
-            assert activeSgsSourceActionEvent.getApiId() == sae.getApiId() :
-                    "activeSgsSourceActionEvent=" + activeSgsSourceActionEvent + " sae=" + sae;
-            fireSongAPIChangeComplete(activeSgsSourceActionEvent);
+            fireSizeInBeatsChanged(event);
         }
     }
     // ===================================================================================================================
     // Private methods
     // ===================================================================================================================    
 
-    private void fireMusicalContentChanged(Object src, Object data)
+    private void fireClsSgsChanged(Object src)
     {
-        assert src instanceof String || src instanceof ClsSourceActionEvent || src instanceof SgsSourceActionEvent;
-        pcs.firePropertyChange(PROP_MUSIC_GENERATION, src, data);
+        Preconditions.checkArgument(src instanceof ClsChangeEvent || src instanceof SgsChangeEvent, "src=%s", src);
+        pcs.firePropertyChange(PROP_CLS_SGS_CHANGE, src, null);
     }
 
-    private void fireBarBeatSequenceChanged(Object src, Object data)
+    private void fireMusicalContentChanged(Object src)
     {
-        assert src instanceof ClsSourceActionEvent || src instanceof SgsSourceActionEvent;
-        pcs.firePropertyChange(PROP_SONG_STRUCTURE, src, data);
+        Preconditions.checkArgument(src instanceof PropertyChangeEvent || src instanceof ClsChangeEvent || src instanceof SgsChangeEvent, "src=%s", src);
+        pcs.firePropertyChange(PROP_MUSIC_GENERATION, src, null);
     }
 
-    private void fireSongAPIChangeComplete(ClsSourceActionEvent csae)
+    private void fireSizeInBeatsChanged(Object src)
     {
-        Objects.requireNonNull(csae);
-        pcs.firePropertyChange(PROP_CLS_SGS_API_CHANGE_COMPLETE, csae, csae.getData());
-        activeClsSourceActionEvent = null;
-
-
-        // We can fire other events
-        boolean musicalContentChanged = false;
-        boolean barBeatSequenceChanged = false;
-        switch (csae.getApiId())
-        {
-            case SetSectionName ->
-            {
-            }
-            case SetSectionTimeSignature ->
-            {
-                musicalContentChanged = true;
-                barBeatSequenceChanged = true;
-            }
-            case AddSection, RemoveSection ->
-            {
-                musicalContentChanged = !csae.sgsSubEvents.isEmpty();       // Change if SongStructure was impacted
-                barBeatSequenceChanged = musicalContentChanged;
-            }
-            case MoveSection ->
-            {
-                musicalContentChanged = true;
-                barBeatSequenceChanged = true;
-            }
-            case AddItem, RemoveItem, ChangeItem ->
-            {
-                // There is a music change only if a SongPart is impacted
-                ChordLeadSheetItem<?> item = (ChordLeadSheetItem<?>) csae.getData();
-                var cliSection = song.getChordLeadSheet().getSection(item.getPosition().getBar());
-                musicalContentChanged = song.getSongStructure().getSongParts().stream().anyMatch(spt -> spt.getParentSection() == cliSection);
-            }
-            case MoveItem ->
-            {
-                musicalContentChanged = true;
-            }
-            case DeleteBars, InsertBars, SetSizeInBars ->
-            {
-                musicalContentChanged = true;
-                barBeatSequenceChanged = true;
-            }
-            default -> throw new AssertionError(csae.getApiId());
-        }
-
-        if (musicalContentChanged)
-        {
-            fireMusicalContentChanged(csae, csae.getData());
-        }
-
-        if (barBeatSequenceChanged)
-        {
-            fireBarBeatSequenceChanged(csae, csae.getData());
-        }
-
+        Preconditions.checkArgument(src instanceof ClsChangeEvent || src instanceof SgsChangeEvent, "src=%s", src);
+        pcs.firePropertyChange(PROP_SIZE_IN_BEATS, src, null);
     }
 
-    private void fireSongAPIChangeComplete(SgsSourceActionEvent ssae)
-    {
-        Objects.requireNonNull(ssae);
-        pcs.firePropertyChange(PROP_CLS_SGS_API_CHANGE_COMPLETE, ssae, ssae.getData());
-        activeSgsSourceActionEvent = null;
-
-
-        // We can fire other events
-        boolean musicalContentChanged = false;
-        boolean barBeatSequenceChanged = false;
-        switch (ssae.getApiId())
-        {
-            case AddSongParts, RemoveSongParts, ReplaceSongParts, ResizeSongParts ->
-            {
-                musicalContentChanged = true;
-                barBeatSequenceChanged = true;
-            }
-            case SetRhythmParameterValue, SetRhythmParameterMutableValue ->
-            {
-                musicalContentChanged = true;
-            }
-            case setSongPartsName ->
-            {
-            }
-            default -> throw new AssertionError(ssae.getApiId());
-        }
-
-        if (musicalContentChanged)
-        {
-            fireMusicalContentChanged(ssae, ssae.getData());
-        }
-        if (barBeatSequenceChanged)
-        {
-            fireBarBeatSequenceChanged(ssae, ssae.getData());
-        }
-    }
 
     private void cleanup()
     {
         song.removePropertyChangeListener(this);
-        song.removeVetoableChangeListener(this);
         song.getChordLeadSheet().removeClsChangeListener(this);
         song.getSongStructure().removeSgsChangeListener(this);
+        MAP_SONG_INSTANCE.remove(song);
     }
 
     // ========================================================================================================
     // Inner classes
     // ========================================================================================================
 
-    /**
-     * A special ClsActionEvent which stores its related SgsActionEvent sub-events.
-     * <p>
-     * Using a ChordLeadSheet API method will often impact the SongStructure as well, possibly with several sub-changes: e.g. reducing ChordLeadSheet size in
-     * bars might remove and resize SongParts in the SongStructure. This class allows to save most of this information (other possible source is
-     * JJazzUndoManager).
-     */
-    public static class ClsSourceActionEvent extends ClsActionEvent
-    {
-
-        private final List<SgsActionEvent> sgsSubEvents = new ArrayList<>();
-
-        public ClsSourceActionEvent(ClsActionEvent cae)
-        {
-            super(cae.getSource(), cae.getApiId(), cae.getData());
-            cae.getSubEvents().forEach(e -> addSubEvent(e));
-        }
-
-        public void addSgsSubEvent(SgsActionEvent sae)
-        {
-            Objects.requireNonNull(sae);
-            sgsSubEvents.add(sae);
-        }
-
-        public List<SgsActionEvent> getSgsSubEvents()
-        {
-            return Collections.unmodifiableList(sgsSubEvents);
-        }
-    }
-
-    /**
-     * A special SgsActionEvent which stores its related ClsActionEvent sub-events.
-     * <p>
-     * Using a SongStructure API might impact in rare cases the ChordLeadSheet as well, possibly with several sub-changes: e.g. switching to a swing-feel rhythm
-     * in the SongStructure might change the position of chords in the ChordLeadSheet. This class allows to save most of this information (other possible source
-     * is JJazzUndoManager).
-     */
-    public static class SgsSourceActionEvent extends SgsActionEvent
-    {
-
-        private final List<ClsActionEvent> clsSubEvents = new ArrayList<>();
-
-        public SgsSourceActionEvent(SgsActionEvent sae)
-        {
-            super(sae.getSource(), sae.getApiId(), sae.getData());
-            sae.getSubEvents().forEach(e -> addSubEvent(e));
-        }
-
-        public void addClsSubEvent(ClsActionEvent sae)
-        {
-            Objects.requireNonNull(sae);
-            clsSubEvents.add(sae);
-        }
-
-        public List<ClsActionEvent> getClsSubEvents()
-        {
-            return Collections.unmodifiableList(clsSubEvents);
-        }
-    }
 }

@@ -26,7 +26,6 @@ package org.jjazz.utilities.api;
 
 import java.util.List;
 import java.util.StringJoiner;
-import java.util.logging.Level;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

@@ -41,6 +41,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -65,12 +66,13 @@ import org.jjazz.cl_editor.itemrenderer.api.ItemRendererFactory;
 import org.jjazz.rhythm.api.Division;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongMetaEvents;
-import org.jjazz.songstructure.api.event.SgsActionEvent;
+import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.songstructure.api.event.SptRhythmChangedEvent;
 import org.openide.util.Exceptions;
 
 /**
  * A BarRenderer that show position marks with beat graduations in the background.
- * 
+ * <p>
  * TODO: get rid of PrefSizePanel, use StringMetrics() instead.
  */
 public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRenderer, ComponentListener
@@ -399,8 +401,9 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
         {
             showPlaybackPoint, pos
         });
-        Preconditions.checkArgument(!showPlaybackPoint || pos.getBar() == getModelBarIndex(), "showPlaybackPoint=%s pos=%s this=%s", showPlaybackPoint, pos, this);
-        
+        Preconditions.checkArgument(!showPlaybackPoint || pos.getBar() == getModelBarIndex(), "showPlaybackPoint=%s pos=%s this=%s", showPlaybackPoint, pos,
+                this);
+
         if (!showPlaybackPoint)
         {
             playbackPosition = null;
@@ -659,13 +662,13 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
     {
 
         private final SongMetaEvents songMetaEvents;
-        private final Set<BR_ChordPositions> brChordPositions;
+        private final Set<BR_ChordPositions> registeredBR_ChordPositions;
 
         public RhythmDivisionListener(Song song)
         {
-            brChordPositions = new HashSet<>();
+            registeredBR_ChordPositions = new HashSet<>();
             this.songMetaEvents = SongMetaEvents.getInstance(song);
-            this.songMetaEvents.addPropertyChangeListener(SongMetaEvents.PROP_CLS_SGS_API_CHANGE_COMPLETE, this);
+            this.songMetaEvents.addPropertyChangeListener(SongMetaEvents.PROP_CLS_SGS_CHANGE, this);
         }
 
         /**
@@ -676,18 +679,18 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
         public void register(BR_ChordPositions br)
         {
             Objects.requireNonNull(br);
-            brChordPositions.add(br);
+            registeredBR_ChordPositions.add(br);
         }
 
         public void unregister(BR_ChordPositions br)
         {
             Objects.requireNonNull(br);
-            brChordPositions.remove(br);
+            registeredBR_ChordPositions.remove(br);
         }
 
         public void cleanup()
         {
-            songMetaEvents.removePropertyChangeListener(SongMetaEvents.PROP_CLS_SGS_API_CHANGE_COMPLETE, this);
+            songMetaEvents.removePropertyChangeListener(SongMetaEvents.PROP_CLS_SGS_CHANGE, this);
         }
 
         // ---------------------------------------------------------------
@@ -696,28 +699,33 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
         @Override
         public void propertyChange(PropertyChangeEvent evt)
         {
-            // SongMetaEvents.PROP_CLS_SGS_API_CHANGE_COMPLETE
-            if (evt.getOldValue() instanceof SgsActionEvent sae && sae.getApiId() == SgsActionEvent.API_ID.ReplaceSongParts)
+            if (evt.getSource() == songMetaEvents)
             {
-                updateSectionsDivision();
+                assert evt.getPropertyName().equals(SongMetaEvents.PROP_CLS_SGS_CHANGE);
+                if (evt.getOldValue() instanceof SptRhythmChangedEvent srce)
+                {
+                    // Update if a rhythm was changed
+                    updateSectionsDivision(srce.getSongParts());
+                }
             }
         }
 
-        private void updateSectionsDivision()
+        // ---------------------------------------------------------------
+        //  Private methods
+        // ---------------------------------------------------------------
+        private void updateSectionsDivision(List<SongPart> spts)
         {
-            var song = songMetaEvents.getSong();
-
             Set<CLI_Section> processed = new HashSet<>();
-            for (var spt : song.getSongStructure().getSongParts())
+            for (var spt : spts)
             {
                 var d = spt.getRhythm().getFeatures().division();
-                var cliSection = spt.getParentSection();
-                if (!processed.contains(cliSection))
+                var parentSection = spt.getParentSection();
+                if (!processed.contains(parentSection))
                 {
-                    processed.add(cliSection);
-                    var brSection = song.getChordLeadSheet().getBarRange(cliSection);
-                    brChordPositions.stream()
-                            .filter(br -> brSection.contains(br.getModelBarIndex()))
+                    processed.add(parentSection);
+                    var brParentSection = parentSection.getContainer().getBarRange(parentSection);
+                    registeredBR_ChordPositions.stream()
+                            .filter(br -> brParentSection.contains(br.getModelBarIndex()))
                             .forEach(br -> br.setDivision(d));
                 }
             }

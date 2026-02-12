@@ -350,16 +350,18 @@ public class SongEditorManagerImpl implements SongEditorManager, PropertyChangeL
         preTc.setModelForUserPhrase(userPhrase, initialChannel, keyMap);
 
 
-        // Prepare listeners to:
+        // Prepare a listener to:
         // - Stop listening when editor is destroyed or its model is changed  
         // - Update title if phrase name or channel is changed
         // - Remove PianoRollEditor if user phrase is removed
         var editor = preTc.getEditor();
-        VetoableChangeListener vcl = evt -> 
+        DrumKit.KeyMap keyMap2 = keyMap;
+        PropertyChangeListener listener = evt -> 
         {
+            // LOGGER.severe("editUserPhrase.propertyChange() e=" + Utilities.toDebugString(evt));
             if (evt.getSource() == song)
             {
-                if (evt.getPropertyName().equals(Song.PROP_VETOABLE_ADD_USER_PHRASE))
+                if (evt.getPropertyName().equals(Song.PROP_USER_PHRASE))
                 {
                     // Close the editor if our phrase is removed
                     if (evt.getOldValue() instanceof String && evt.getNewValue() instanceof Phrase p && p == userPhrase)
@@ -367,59 +369,49 @@ public class SongEditorManagerImpl implements SongEditorManager, PropertyChangeL
                         preTc.close();
                     }
                 }
-            }
-        };
-        DrumKit.KeyMap keyMap2 = keyMap;
-        PropertyChangeListener pcl = new PropertyChangeListener()
-        {
-            @Override
-            public void propertyChange(PropertyChangeEvent evt)
+            } else if (evt.getSource() == editor)
             {
-                // LOGGER.severe("editUserPhrase.propertyChange() e=" + Utilities.toDebugString(evt));
-                if (evt.getSource() == editor)
+                switch (evt.getPropertyName())
                 {
-                    switch (evt.getPropertyName())
+                    case PianoRollEditor.PROP_MODEL_PHRASE, PianoRollEditor.PROP_EDITOR_ALIVE ->
                     {
-                        case PianoRollEditor.PROP_MODEL_PHRASE, PianoRollEditor.PROP_EDITOR_ALIVE ->
-                        {
-                            editor.removePropertyChangeListener(this);
-                            midiMix.removePropertyChangeListener(this);
-                            song.removeVetoableChangeListener(vcl);
-                        }
+                        editor.removePropertyChangeListener(this);
+                        midiMix.removePropertyChangeListener(this);
+                        song.removePropertyChangeListener(this);
                     }
-                } else if (evt.getSource() == midiMix)
+                }
+            } else if (evt.getSource() == midiMix)
+            {
+                if (evt.getPropertyName().equals(MidiMix.PROP_RHYTHM_VOICE))
                 {
-                    if (evt.getPropertyName().equals(MidiMix.PROP_RHYTHM_VOICE))
+                    // Used for UserRhythmVoice name change
+                    var newRv = (RhythmVoice) evt.getNewValue();
+                    var newRvName = newRv.getName();
+                    if (newRv instanceof UserRhythmVoice && song.getUserPhrase(newRvName) == userPhrase)
                     {
-                        // Used for UserRhythmVoice name change
-                        var newRv = (RhythmVoice) evt.getNewValue();
-                        var newRvName = newRv.getName();
-                        if (newRv instanceof UserRhythmVoice && song.getUserPhrase(newRvName) == userPhrase)
-                        {
-                            int channel = midiMix.getChannel(newRv);                // Normally unchanged
-                            preTc.setTitle(buildPrEditorUserTrackTitle(newRvName, channel));
-                        }
+                        int channel = midiMix.getChannel(newRv);                // Normally unchanged
+                        preTc.setTitle(buildPrEditorUserTrackTitle(newRvName, channel));
+                    }
 
-                    } else if (evt.getPropertyName().equals(MidiMix.PROP_RHYTHM_VOICE_CHANNEL))
+                } else if (evt.getPropertyName().equals(MidiMix.PROP_RHYTHM_VOICE_CHANNEL))
+                {
+                    // Used to change channel of a RhythmVoice
+                    int newChannel = (int) evt.getNewValue();
+                    var rv = midiMix.getRhythmVoice(newChannel);
+                    var rvName = rv.getName();
+                    if (rv instanceof UserRhythmVoice && song.getUserPhrase(rvName) == userPhrase)
                     {
-                        // Used to change channel of a RhythmVoice
-                        int newChannel = (int) evt.getNewValue();
-                        var rv = midiMix.getRhythmVoice(newChannel);
-                        var rvName = rv.getName();
-                        if (rv instanceof UserRhythmVoice && song.getUserPhrase(rvName) == userPhrase)
-                        {
-                            preTc.setModelForUserPhrase(userPhrase, newChannel, keyMap2);
-                            preTc.setTitle(buildPrEditorUserTrackTitle(rvName, newChannel));
-                        }
+                        preTc.setModelForUserPhrase(userPhrase, newChannel, keyMap2);
+                        preTc.setTitle(buildPrEditorUserTrackTitle(rvName, newChannel));
                     }
                 }
             }
         };
 
 
-        editor.addPropertyChangeListener(pcl);
-        midiMix.addPropertyChangeListener(pcl);
-        song.addVetoableChangeListener(vcl);
+        editor.addPropertyChangeListener(listener);
+        midiMix.addPropertyChangeListener(listener);
+        song.addPropertyChangeListener(listener);
 
 
         preTc.requestActive();

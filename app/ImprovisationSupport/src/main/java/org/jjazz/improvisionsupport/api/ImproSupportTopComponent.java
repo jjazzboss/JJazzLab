@@ -24,11 +24,9 @@ package org.jjazz.improvisionsupport.api;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.IdentityHashMap;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import org.jjazz.activesong.spi.ActiveSongManager;
@@ -65,7 +63,7 @@ import org.openide.windows.WindowManager;
 public final class ImproSupportTopComponent extends TopComponent implements PropertyChangeListener
 {
 
-    private final Map<Integer, ImproSupport> mapSongImproSupport = new HashMap<>();
+    private final Map<Song, ImproSupport> mapSongImproSupport = new IdentityHashMap<>();
     private final ImproSupportPanel improSupportPanel;
     private static final Logger LOGGER = Logger.getLogger(ImproSupportTopComponent.class.getName());
 
@@ -157,11 +155,11 @@ public final class ImproSupportTopComponent extends TopComponent implements Prop
     {
         song.removePropertyChangeListener(this);
         BR_ImproSupport.removeBR_ImproSupportInstances(song);
-        var improSupport = mapSongImproSupport.get(System.identityHashCode(song));
+        var improSupport = mapSongImproSupport.get(song);
         if (improSupport != null)
         {
             improSupport.cleanup();
-            mapSongImproSupport.remove(System.identityHashCode(song));
+            mapSongImproSupport.remove(song);
         }
     }
 
@@ -175,11 +173,11 @@ public final class ImproSupportTopComponent extends TopComponent implements Prop
             if (clTc != null)
             {
                 var clEditor = clTc.getEditor();
-                improSupport = mapSongImproSupport.get(System.identityHashCode(sg));
+                improSupport = mapSongImproSupport.get((sg));
                 if (improSupport == null)
                 {
                     improSupport = new ImproSupport(clEditor);
-                    mapSongImproSupport.put(System.identityHashCode(sg), improSupport);
+                    mapSongImproSupport.put(sg, improSupport);
                     sg.addPropertyChangeListener(this);
                 }
             }

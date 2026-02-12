@@ -144,7 +144,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 
         // Listen to edited phrase bounds changes
         songMetaEvents = SongMetaEvents.getInstance(song);
-        songMetaEvents.addPropertyChangeListener(SongMetaEvents.PROP_SONG_STRUCTURE, this);
+        songMetaEvents.addPropertyChangeListener(SongMetaEvents.PROP_SIZE_IN_BEATS, this);
 
 
         refreshToolbarTitle();
@@ -391,7 +391,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
     {
         LOGGER.fine("componentClosed() -- ");
         song.removePropertyChangeListener(this);
-        songMetaEvents.removePropertyChangeListener(SongMetaEvents.PROP_SONG_STRUCTURE, this);
+        songMetaEvents.removePropertyChangeListener(SongMetaEvents.PROP_SIZE_IN_BEATS, this);
         sidePanel.cleanup();
         editor.cleanup();
         toolbarPanel.cleanup();

@@ -26,7 +26,6 @@ import org.jjazz.musiccontrol.api.MusicGenerationQueue;
 import com.google.common.base.Preconditions;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.event.ChangeEvent;
@@ -52,15 +51,15 @@ public class SongMusicBuilderTask implements ChangeListener, PropertyChangeListe
     /**
      * @see SongMusicGenerationListener
      */
-    public static final int PRE_CHANGE_EVENT_DELAY_MS = 200;
+    public static final int PRE_CHANGE_EVENT_DELAY_MS = 100;
     /**
      * @see MusicGenerationQueue
      */
-    public static final int PRE_UPDATE_BUFFER_TIME_MS = 500;
+    public static final int PRE_UPDATE_BUFFER_TIME_MS = 200;
     /**
      * @see MusicGenerationQueue
      */
-    public static final int POST_UPDATE_SLEEP_TIME_MS = 500;
+    public static final int POST_UPDATE_SLEEP_TIME_MS = 200;
 
 
     private Result lastResult;
@@ -70,7 +69,6 @@ public class SongMusicBuilderTask implements ChangeListener, PropertyChangeListe
     private final MidiMix midiMix;
     private final int preUpdateBufferTimeMs;
     private final int postUpdateSleepTimeMs;
-    private final Set<Object> ignoredSongChangeSourceEvents;
     private final ChangeSupport cs = new ChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(SongMusicBuilderTask.class.getSimpleName());
 
@@ -80,11 +78,10 @@ public class SongMusicBuilderTask implements ChangeListener, PropertyChangeListe
      *
      * @param song
      * @param midiMix
-     * @param ignoredSongChangeSourceEvents Specify song changes which should not trigger a new music generation. See {@link SongMusicGenerationListener#setBlackList(java.util.Set)}
      */
-    public SongMusicBuilderTask(Song song, MidiMix midiMix, Set<Object> ignoredSongChangeSourceEvents)
+    public SongMusicBuilderTask(Song song, MidiMix midiMix)
     {
-        this(song, midiMix, ignoredSongChangeSourceEvents, PRE_UPDATE_BUFFER_TIME_MS, POST_UPDATE_SLEEP_TIME_MS);
+        this(song, midiMix, PRE_UPDATE_BUFFER_TIME_MS, POST_UPDATE_SLEEP_TIME_MS);
     }
 
     /**
@@ -92,21 +89,18 @@ public class SongMusicBuilderTask implements ChangeListener, PropertyChangeListe
      *
      * @param song
      * @param midiMix
-     * @param ignoredSongChangeSourceEvents Specify song changes which should not trigger a new music generation. See {@link SongMusicGenerationListener#setBlackList(java.util.Set)}
      *
      * @param preUpdateBufferTimeMs
      * @param postUpdateSleepTimeMs         @see MusicGenerationQueue#getPreUpdateBufferTimeMs() @see MusicGenerationQueue#getPostUpdateSleepTimeMs()
      */
-    public SongMusicBuilderTask(Song song, MidiMix midiMix, Set<Object> ignoredSongChangeSourceEvents, int preUpdateBufferTimeMs, int postUpdateSleepTimeMs)
+    public SongMusicBuilderTask(Song song, MidiMix midiMix,  int preUpdateBufferTimeMs, int postUpdateSleepTimeMs)
     {
         Preconditions.checkNotNull(song);
         Preconditions.checkNotNull(midiMix);
-        Preconditions.checkNotNull(ignoredSongChangeSourceEvents);
         this.song = song;
         this.midiMix = midiMix;
         this.preUpdateBufferTimeMs = preUpdateBufferTimeMs;
         this.postUpdateSleepTimeMs = postUpdateSleepTimeMs;
-        this.ignoredSongChangeSourceEvents = ignoredSongChangeSourceEvents;
     }
 
     public Song getSong()
@@ -138,7 +132,6 @@ public class SongMusicBuilderTask implements ChangeListener, PropertyChangeListe
             musicGenerationQueue.start();
 
             songMusicGenerationListener = new SongMusicGenerationListener(song, midiMix, PRE_CHANGE_EVENT_DELAY_MS);
-            songMusicGenerationListener.setBlackList(ignoredSongChangeSourceEvents);
             songMusicGenerationListener.addPropertyChangeListener(this);
 
             // Force the 1st generation

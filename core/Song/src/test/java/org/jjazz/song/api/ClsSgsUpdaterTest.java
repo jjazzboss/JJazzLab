@@ -64,8 +64,7 @@ public class ClsSgsUpdaterTest
     SongStructure sgs;
     SongStructure u_sgs;
     static DefaultRhythmDatabase rdb;
-    SongPartImpl spt0;
-    SongPartImpl spt1, spt2, spt3, spt4;
+    SongPart spt0, spt1, spt2, spt3, spt4;
     SongPart u_spt0;
     SongPart u_spt1, u_spt2, u_spt3, u_spt4;
     JJazzUndoManager undoManager;
@@ -126,7 +125,7 @@ public class ClsSgsUpdaterTest
             song = SongFactory.getInstance().createSong("testSong", cls1);
             sgs = song.getSongStructure();
             Rhythm r34 = sgs.getSongParts().get(1).getRhythm();
-            spt0 = new SongPartImpl(r34, 8, 3, section2);
+            spt0 = sgs.createSongPart(r34, null, 8, section2, true);
             sgs.addSongParts(List.of(spt0));
 
 
@@ -342,7 +341,6 @@ public class ClsSgsUpdaterTest
 
         // Change rhythm, should impact off-beat chords position
         var spt = sgs.getSongParts().get(2);
-        var newSpt = changeRhythm(spt, rTernary);
 
         assertEquals(1.66666f, chord1.getPosition().getBeat(), 0.001f);
         assertEquals(3.66666f, chord2.getPosition().getBeat(), 0.001f);
@@ -357,7 +355,7 @@ public class ClsSgsUpdaterTest
         assertEquals(1.75f, chord1.getPosition().getBeat(), 0);
         assertEquals(3.5f, chord2.getPosition().getBeat(), 0);
         cls1.moveItem(chord2, new Position(5, 1.5f));
-        sgs.replaceSongParts(List.of(spt), List.of(newSpt));    // throws UnsupportedEditException
+        sgs.setSongPartsRhythm(List.of(spt), rBinary, null);    // throws UnsupportedEditException
         assertEquals(1.75f, chord1.getPosition().getBeat(), 0.001f);        // Could not be moved
         assertEquals(1.66666f, chord2.getPosition().getBeat(), 0.001f);
 
@@ -378,7 +376,7 @@ public class ClsSgsUpdaterTest
 
         // Use waltz swing for the existing 3/4 section, so that changing section3 to 3/4 will reuse the same rhythm
         var spt = sgs.getSongParts().get(1);
-        changeRhythm(spt, rWaltzSwing);
+        sgs.setSongPartsRhythm(List.of(spt), rWaltzSwing, null);
 
 
         var chord1 = cls1.getBarFirstItem(5, CLI_ChordSymbol.class, cli -> true);   // bar 5 beat 0.75
@@ -539,17 +537,6 @@ public class ClsSgsUpdaterTest
                 .orElseThrow();
         var r = rdb.getRhythmInstance(rInfo);        // throws UnavailableRhythmException
         return r;
-    }
-
-    public SongPart changeRhythm(SongPart spt, Rhythm r) throws UnsupportedEditException
-    {
-        if (spt.getRhythm() == r)
-        {
-            return spt;
-        }
-        var newSpt = spt.getCopy(r, spt.getStartBarIndex(), spt.getNbBars(), spt.getParentSection());
-        sgs.replaceSongParts(List.of(spt), List.of(newSpt));    // throws UnsupportedEditException
-        return newSpt;
     }
 
 }
