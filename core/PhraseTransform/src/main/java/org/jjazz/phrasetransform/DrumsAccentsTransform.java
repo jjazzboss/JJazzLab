@@ -37,7 +37,7 @@ import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.phrasetransform.api.PhraseTransform;
 import org.jjazz.phrasetransform.api.PhraseTransforms;
 import org.jjazz.phrasetransform.api.PtProperties;
-import org.jjazz.songcontext.api.SongPartContext;
+import org.jjazz.song.api.SongPartContext;
 import org.jjazz.uiutilities.api.UIUtilities;
 import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.phrasetransform.spi.PtPropertyEditorFactory;

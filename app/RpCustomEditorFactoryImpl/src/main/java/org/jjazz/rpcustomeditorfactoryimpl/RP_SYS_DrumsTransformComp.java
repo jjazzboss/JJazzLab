@@ -67,8 +67,8 @@ import static org.jjazz.rpcustomeditorfactoryimpl.RP_SYS_CustomPhraseEditor.PHRA
 import org.jjazz.rpcustomeditorfactoryimpl.api.RealTimeRpEditorDialog;
 import org.jjazz.rpcustomeditorfactoryimpl.api.RealTimeRpEditorComponent;
 import static org.jjazz.rpcustomeditorfactoryimpl.api.RealTimeRpEditorComponent.PROP_EDITED_RP_VALUE;
-import org.jjazz.songcontext.api.SongContext;
-import org.jjazz.songcontext.api.SongPartContext;
+import org.jjazz.song.api.SongContext;
+import org.jjazz.song.api.SongPartContext;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.flatcomponents.api.FlatIntegerKnob;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;

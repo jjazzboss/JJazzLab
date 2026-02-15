@@ -47,7 +47,7 @@ import static org.jjazz.rhythm.api.RhythmVoice.Type.PHRASE1;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
 import org.jjazz.rpcustomeditorfactoryimpl.api.RealTimeRpEditorComponent;
 import static org.jjazz.rpcustomeditorfactoryimpl.api.RealTimeRpEditorComponent.PROP_EDITED_RP_VALUE;
-import org.jjazz.songcontext.api.SongPartContext;
+import org.jjazz.song.api.SongPartContext;
 import org.jjazz.rhythmmusicgeneration.api.RP_SYS_OverrideTracks;
 import org.jjazz.rhythmmusicgeneration.api.RP_SYS_OverrideTracksValue;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;

@@ -58,7 +58,7 @@ import org.jjazz.rhythm.api.RhythmVoiceDelegate;
 import org.jjazz.rhythmmusicgeneration.api.SongChordSequence;
 import org.jjazz.phrase.api.Grid;
 import org.jjazz.phrase.api.NoteEvent;
-import org.jjazz.songcontext.api.SongContext;
+import org.jjazz.song.api.SongContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.Song;
 import org.jjazz.phrase.api.Phrase;

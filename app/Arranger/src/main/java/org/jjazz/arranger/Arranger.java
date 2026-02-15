@@ -37,7 +37,6 @@ import org.jjazz.harmony.api.ChordSymbol;
 import org.jjazz.harmony.spi.ChordTypeDatabase;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
@@ -51,13 +50,12 @@ import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
-import org.jjazz.songcontext.api.SongContext;
+import org.jjazz.song.api.SongContext;
 import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.event.RpValueChangedEvent;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
-import org.openide.util.Exceptions;
 
 /**
  * Do the arranger thing for a specific song part.

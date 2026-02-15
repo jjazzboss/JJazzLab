@@ -33,7 +33,7 @@ import org.jjazz.midi.api.DrumKit.Subset;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.SizedPhrase;
-import org.jjazz.songcontext.api.SongPartContext;
+import org.jjazz.song.api.SongPartContext;
 
 /**
  * Change velocity of drums notes.

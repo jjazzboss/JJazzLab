@@ -50,7 +50,7 @@ import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.Phrases;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.songcontext.api.SongContext;
+import org.jjazz.song.api.SongContext;
 import org.jjazz.utilities.api.IntRange;
 
 /**

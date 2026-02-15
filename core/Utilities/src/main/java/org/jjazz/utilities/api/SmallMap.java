@@ -26,7 +26,7 @@ import java.io.Serializable;
 import java.util.*;
 
 /**
- * A silly but fast map for small maps, based on simple ArrayLists and iterative search.
+ * A silly but fast map for very small maps, based on simple ArrayLists and iterative search.
  *
  * @param <K>
  * @param <V>
@@ -37,8 +37,8 @@ public class SmallMap<K, V> implements Serializable
 
     private static final long serialVersionUID = 7816259002201L;
     private final int VERSION = 1;
-    protected ArrayList<K> keys = new ArrayList<>();
-    protected ArrayList<V> values = new ArrayList<>();
+    protected List<K> keys = new ArrayList<>();
+    protected List<V> values = new ArrayList<>();
 
     /**
      * Create an empty SillyMap.
@@ -86,6 +86,40 @@ public class SmallMap<K, V> implements Serializable
     {
         return values;
     }
+
+    @Override
+    public int hashCode()
+    {
+        int hash = 7;
+        hash = 97 * hash + Objects.hashCode(this.keys);
+        hash = 97 * hash + Objects.hashCode(this.values);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (this == obj)
+        {
+            return true;
+        }
+        if (obj == null)
+        {
+            return false;
+        }
+        if (getClass() != obj.getClass())
+        {
+            return false;
+        }
+        final SmallMap<?, ?> other = (SmallMap<?, ?>) obj;
+        if (!Objects.equals(this.keys, other.keys))
+        {
+            return false;
+        }
+        return Objects.equals(this.values, other.values);
+    }
+    
+    
 
     /**
      * Store value associated to key, replacing existing value if key already present in the map.

@@ -173,7 +173,7 @@ public class CLI_Repeat implements ChordLeadSheetItem<Repeat>, WritableItem<Repe
     }
 
     @Override
-    public void firePropertyChangEvent(PropertyChangeEvent event)
+    public void firePropertyChangeEvent(PropertyChangeEvent event)
     {
         // Nothing
     }

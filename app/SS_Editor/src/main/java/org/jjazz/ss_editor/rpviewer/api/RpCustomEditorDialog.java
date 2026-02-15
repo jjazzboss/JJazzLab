@@ -24,7 +24,7 @@ package org.jjazz.ss_editor.rpviewer.api;
 
 import javax.swing.JDialog;
 import org.jjazz.rhythm.api.RhythmParameter;
-import org.jjazz.songcontext.api.SongPartContext;
+import org.jjazz.song.api.SongPartContext;
 import org.openide.windows.WindowManager;
 
 /**

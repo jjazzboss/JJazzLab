@@ -30,7 +30,7 @@ import java.util.StringJoiner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.phrase.api.SizedPhrase;
-import org.jjazz.songcontext.api.SongPartContext;
+import org.jjazz.song.api.SongPartContext;
 
 /**
  * A chain of PhraseTransforms.

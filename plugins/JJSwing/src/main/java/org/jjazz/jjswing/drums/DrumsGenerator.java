@@ -13,7 +13,7 @@ import org.jjazz.jjswing.api.DrumsStyle;
 import org.jjazz.phrase.api.Grid;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.api.SongChordSequence;
-import org.jjazz.songcontext.api.SongContext;
+import org.jjazz.song.api.SongContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.jjswing.api.RP_DrumsStyle;

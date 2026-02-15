@@ -39,7 +39,7 @@ import org.jjazz.musiccontrol.api.playbacksession.UpdateProviderSongSession;
 import org.jjazz.outputsynth.api.FixMidiMix;
 import org.jjazz.pianoroll.api.PianoRollEditorTopComponent;
 import org.jjazz.rhythm.api.MusicGenerationException;
-import org.jjazz.songcontext.api.SongContext;
+import org.jjazz.song.api.SongContext;
 import org.jjazz.utilities.api.IntRange;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;

@@ -30,7 +30,7 @@ import java.awt.Dimension;
 import java.text.ParseException;
 import javax.swing.Icon;
 import org.jjazz.phrase.api.SizedPhrase;
-import org.jjazz.songcontext.api.SongPartContext;
+import org.jjazz.song.api.SongPartContext;
 
 /**
  * An object which can transform a phrase into another one.

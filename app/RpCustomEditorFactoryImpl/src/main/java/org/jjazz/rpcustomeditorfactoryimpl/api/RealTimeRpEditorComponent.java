@@ -24,7 +24,7 @@ package org.jjazz.rpcustomeditorfactoryimpl.api;
 
 import javax.swing.JComponent;
 import org.jjazz.rhythm.api.RhythmParameter;
-import org.jjazz.songcontext.api.SongPartContext;
+import org.jjazz.song.api.SongPartContext;
 
 /**
  * A JComponent to be used as a RhythmParameter value editor by the RealTimeRpEditorDialog.

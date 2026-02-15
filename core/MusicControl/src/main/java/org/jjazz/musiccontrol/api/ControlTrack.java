@@ -37,7 +37,7 @@ import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
 import org.jjazz.rhythm.api.UserErrorGenerationException;
 import org.jjazz.rhythmmusicgeneration.api.SongChordSequence;
-import org.jjazz.songcontext.api.SongContext;
+import org.jjazz.song.api.SongContext;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.utilities.api.IntRange;
 import org.openide.util.Exceptions;

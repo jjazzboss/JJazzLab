@@ -28,7 +28,7 @@ import org.jjazz.midi.api.Instrument;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.songcontext.api.SongPartContext;
+import org.jjazz.song.api.SongPartContext;
 
 /**
  * Various helper methods about PhraseTransforms.

@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Objects;
 import org.jjazz.musiccontrol.api.SongMusicGenerationListener;
 import org.jjazz.rhythm.api.MusicGenerationException;
-import org.jjazz.songcontext.api.SongContext;
+import org.jjazz.song.api.SongContext;
 
 /**
  * A BaseSongSession which becomes dirty as soon as the SongContext has changed musically.

@@ -227,7 +227,7 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
 
             // We remove and re-add
             songStructure.removeSongParts(getSongParts(cliSection));
-            SongPart spt = createSptAfterSection(cliSection, chordLeadSheet.getBarRange(cliSection).size(), newBarPrevSection);
+            SongPart spt = createSptAfterSection(cliSection, newBarPrevSection);
             try
             {
                 songStructure.addSongParts(List.of(spt));
@@ -359,13 +359,13 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
 
         if (authorizeOnly)
         {
-            SongPart spt = createSptAfterSection(cliSection, getVirtualSectionSize(bar), prevSection);
+            SongPart spt = createSptAfterSection(cliSection, prevSection);
             var event = new SptAddedEvent(songStructure, List.of(spt));
             songStructure.testChangeEventForVeto(event);          // throws UnsupportedEditException
             return;
         } else
         {
-            SongPart spt = createSptAfterSection(cliSection, chordLeadSheet.getBarRange(cliSection).size(), prevSection);
+            SongPart spt = createSptAfterSection(cliSection, prevSection);
             songStructure.addSongParts(Arrays.asList(spt));        // throws UnsupportedEditException
         }
 
@@ -576,11 +576,10 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
      * If prevSection is null, locate the new SongPart at first position.
      *
      * @param newSection
-     * @param newSectionSize Size in bars
      * @param prevSection    The section before cliSection. Can be null.
      * @return The created SongPart, ready to be added to the SongStructure.
      */
-    private SongPart createSptAfterSection(CLI_Section newSection, int newSectionSize, CLI_Section prevSection)
+    private SongPart createSptAfterSection(CLI_Section newSection, CLI_Section prevSection)
     {
         int sptBarIndex;
         if (prevSection == null)
@@ -619,19 +618,6 @@ public class ClsSgsUpdater implements ClsChangeListener, SgsChangeListener
                 newSection,
                 true);
         return spt;
-    }
-
-
-    /**
-     * Get the size of a section at sectionBar which is possibly not yet inserted in the parentChordLeadSheet.
-     *
-     * @param sectionBar
-     * @return
-     */
-    private int getVirtualSectionSize(int sectionBar)
-    {
-        CLI_Section curSection = chordLeadSheet.getSection(sectionBar);
-        return chordLeadSheet.getBarRange(curSection).to - sectionBar + 1;
     }
 
     private CLI_Section getLastSection()

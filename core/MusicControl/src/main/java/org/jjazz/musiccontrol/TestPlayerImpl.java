@@ -37,7 +37,7 @@ import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.Phrases;
-import org.jjazz.songcontext.api.SongContext;
+import org.jjazz.song.api.SongContext;
 import org.jjazz.testplayerservice.spi.TestPlayer;
 import org.jjazz.utilities.api.IntRange;
 import org.openide.util.Exceptions;

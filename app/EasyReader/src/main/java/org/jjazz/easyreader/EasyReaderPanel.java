@@ -43,12 +43,9 @@ import org.jjazz.chordleadsheet.api.ClsChangeListener;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
 import org.jjazz.chordleadsheet.api.event.ItemAddedEvent;
-import org.jjazz.chordleadsheet.api.event.ItemBarShiftedEvent;
 import org.jjazz.chordleadsheet.api.event.ItemChangedEvent;
 import org.jjazz.chordleadsheet.api.event.ItemMovedEvent;
 import org.jjazz.chordleadsheet.api.event.ItemRemovedEvent;
-import org.jjazz.chordleadsheet.api.event.SectionMovedEvent;
-import org.jjazz.chordleadsheet.api.event.SizeChangedEvent;
 import org.jjazz.chordleadsheet.api.item.CLI_BarAnnotation;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
@@ -383,118 +380,109 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         // Model changes can be generated outside the EDT
         Runnable run = () -> 
         {
-            // Save focus state
-            if (event instanceof SizeChangedEvent e)
+            switch (event)
             {
-                // Nothing to do here
-
-            } else if (event instanceof ItemAddedEvent e)
-            {
-                for (var item : e.getItems())
+                case ItemAddedEvent e ->
                 {
-                    int itemBar = item.getPosition().getBar();
-                    if (barBox.getModelBarIndex() == itemBar)
+                    for (var item : e.getItems())
                     {
-                        barBox.addItem(item);
+                        int itemBar = item.getPosition().getBar();
+                        if (barBox.getModelBarIndex() == itemBar)
+                        {
+                            barBox.addItem(item);
 
-                    } else if (nextBarBox.getModelBarIndex() == itemBar)
-                    {
-                        nextBarBox.addItem(item);
+                        } else if (nextBarBox.getModelBarIndex() == itemBar)
+                        {
+                            nextBarBox.addItem(item);
+                        }
+                        if (item instanceof CLI_BarAnnotation && itemBar == clsPosition.getBar())
+                        {
+                            updateAnnotation();
+                        }
                     }
-//                    for (ItemRenderer ir : renderers)
-//                    {
-//                        if (ir instanceof IR_DisplayTransposable transposableItem)
-//                        {
-//                            transposableItem.setDisplayTransposition(getDisplayTransposition());
-//                        }
-//                    }
-                    if (item instanceof CLI_BarAnnotation && itemBar == clsPosition.getBar())
+                }
+                case ItemRemovedEvent e ->
+                {
+                    for (var item : e.getItems())
+                    {
+                        int itemBar = item.getPosition().getBar();
+                        if (barBox.getModelBarIndex() == itemBar)
+                        {
+                            barBox.removeItem(item);
+                        } else if (nextBarBox.getModelBarIndex() == itemBar)
+                        {
+                            nextBarBox.removeItem(item);
+                        }
+                        if (item instanceof CLI_BarAnnotation && itemBar == clsPosition.getBar())
+                        {
+                            updateAnnotation();
+                        }
+                    }
+                }
+                case ItemChangedEvent e ->
+                {
+                    // If chord symbol, catched directly by the ItemRenderer
+                    var item = e.getItem();
+                    if (item instanceof CLI_Section cliSection)
+                    {
+                        // Handle section time signature changes. This will disable our listener but we still need to update the UI                    
+                        if (barBox.getSection() == cliSection)
+                        {
+                            barBox.setSection(cliSection);
+                        }
+                        if (nextBarBox.getSection() == cliSection)
+                        {
+                            nextBarBox.setSection(cliSection);
+                        }
+                    } else if (item instanceof CLI_BarAnnotation cliBa && cliBa.getPosition().getBar() == clsPosition.getBar())
                     {
                         updateAnnotation();
                     }
                 }
-
-            } else if (event instanceof ItemRemovedEvent e)
-            {
-                for (var item : e.getItems())
+                case ItemMovedEvent e ->
                 {
-                    int itemBar = item.getPosition().getBar();
-                    if (barBox.getModelBarIndex() == itemBar)
+                    // A moved ChordSymbol or other, but NOT a section
+                    var item = e.getItem();
+                    int modelBarIndex = item.getPosition().getBar();
+                    int oldModelBarIndex = e.getOldPosition().getBar();
+                    if (modelBarIndex == oldModelBarIndex)
                     {
-                        barBox.removeItem(item);
-                    } else if (nextBarBox.getModelBarIndex() == itemBar)
+                        if (barBox.getModelBarIndex() == modelBarIndex)
+                        {
+                            barBox.moveItem(item);
+                        } else if (nextBarBox.getModelBarIndex() == modelBarIndex)
+                        {
+                            nextBarBox.moveItem(item);
+                        }
+                    } else
                     {
-                        nextBarBox.removeItem(item);
-                    }
-                    if (item instanceof CLI_BarAnnotation && itemBar == clsPosition.getBar())
-                    {
-                        updateAnnotation();
+                        // Remove on one bar 
+                        if (barBox.getModelBarIndex() == oldModelBarIndex)
+                        {
+                            barBox.removeItem(item);
+                        } else if (nextBarBox.getModelBarIndex() == oldModelBarIndex)
+                        {
+                            nextBarBox.removeItem(item);
+                        }
+
+                        // Then add on another bar
+                        if (barBox.getModelBarIndex() == modelBarIndex)
+                        {
+                            barBox.addItem(item);
+                        } else if (nextBarBox.getModelBarIndex() == modelBarIndex)
+                        {
+                            nextBarBox.addItem(item);
+                        }
+
                     }
                 }
-            } else if (event instanceof ItemChangedEvent e)
-            {
-                // If chord symbol, catched directly by the ItemRenderer
-                var item = e.getItem();
-                if (item instanceof CLI_Section cliSection)
+                default ->
                 {
-                    // Handle section time signature changes. This will disable our listener but we still need to update the UI                    
-                    if (barBox.getSection() == cliSection)
-                    {
-                        barBox.setSection(cliSection);
-                    }
-                    if (nextBarBox.getSection() == cliSection)
-                    {
-                        nextBarBox.setSection(cliSection);
-                    }
-                } else if (item instanceof CLI_BarAnnotation cliBa && cliBa.getPosition().getBar() == clsPosition.getBar())
-                {
-                    updateAnnotation();
+                    // Nothing
+                    // SectionMovedEvent will be handled by SongStructureListener, PlaybackListener will get disabled
                 }
-            } else if (event instanceof ItemMovedEvent e)
-            {
-                // A moved ChordSymbol or other, but NOT a section
-                var item = e.getItem();
-                int modelBarIndex = item.getPosition().getBar();
-                int oldModelBarIndex = e.getOldPosition().getBar();
-                if (modelBarIndex == oldModelBarIndex)
-                {
-                    if (barBox.getModelBarIndex() == modelBarIndex)
-                    {
-                        barBox.moveItem(item);
-                    } else if (nextBarBox.getModelBarIndex() == modelBarIndex)
-                    {
-                        nextBarBox.moveItem(item);
-                    }
-                } else
-                {
-                    // Remove on one bar 
-                    if (barBox.getModelBarIndex() == oldModelBarIndex)
-                    {
-                        barBox.removeItem(item);
-                    } else if (nextBarBox.getModelBarIndex() == oldModelBarIndex)
-                    {
-                        nextBarBox.removeItem(item);
-                    }
-
-                    // Then add on another bar
-                    if (barBox.getModelBarIndex() == modelBarIndex)
-                    {
-                        barBox.addItem(item);
-                    } else if (nextBarBox.getModelBarIndex() == modelBarIndex)
-                    {
-                        nextBarBox.addItem(item);
-                    }
-
-                }
-            } else if (event instanceof SectionMovedEvent e)
-            {
-                // Handled via song structure listener
-                // PlaybackListener will get disabled
-
-            } else if (event instanceof ItemBarShiftedEvent e)
-            {
-                // No need to handle
             }
+
         };
         org.jjazz.uiutilities.api.UIUtilities.invokeLaterIfNeeded(run);
     }
@@ -506,7 +494,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
     public void songStructureChanged(final SgsChangeEvent e)
     {
         // Model changes can be generated outside the EDT
-        Runnable run = new Runnable() 
+        Runnable run = new Runnable()
         {
             @Override
             public void run()
@@ -871,19 +859,18 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
     private void updateEnabledState()
     {
         var playbackSession = MusicController.getInstance().getPlaybackSession();
-        boolean b = song != null && playbackSession!=null && isAccepted(playbackSession);
+        boolean b = song != null && playbackSession != null && isAccepted(playbackSession);
         LOGGER.log(Level.FINE, "updateEnabledState() b={0} song={1} playbackSession={1}", new Object[]
         {
             b, song, playbackSession
         });
         setEnabled(b);
     }
-    
+
 
     // =================================================================================================
     // Inner classes
     // =================================================================================================
-
     /**
      * Layout the 2 BarBoxes so that they share the available width and keep their preferred height.
      * <p>

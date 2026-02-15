@@ -53,7 +53,7 @@ import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.musiccontrol.api.playbacksession.EndOfPlaybackActionProvider;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrol.api.playbacksession.SongContextProvider;
-import org.jjazz.songcontext.api.SongContext;
+import org.jjazz.song.api.SongContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythmmusicgeneration.api.SongChordSequence;
 import org.jjazz.songstructure.api.SongPart;
@@ -81,8 +81,6 @@ import org.jjazz.outputsynth.spi.OutputSynthManager;
 public class MusicController implements PropertyChangeListener, MetaEventListener
 {
 
-    timer sends everything on EDT ! opposite of what doc says...
-    
     /**
      * oldValue=old State, newValue=new State
      */

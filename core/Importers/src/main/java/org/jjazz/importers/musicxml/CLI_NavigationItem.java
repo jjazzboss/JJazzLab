@@ -166,7 +166,7 @@ public class CLI_NavigationItem implements ChordLeadSheetItem<NavItem>, Writable
     }
 
     @Override
-    public void firePropertyChangEvent(PropertyChangeEvent event)
+    public void firePropertyChangeEvent(PropertyChangeEvent event)
     {
         // Nothing
     }

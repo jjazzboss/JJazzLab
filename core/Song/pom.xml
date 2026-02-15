@@ -23,8 +23,15 @@
                 <artifactId>nbm-maven-plugin</artifactId>
                 <configuration>
                     <publicPackages>
+                        <publicPackage>org.jjazz.chordleadsheet.api</publicPackage>
+                        <publicPackage>org.jjazz.chordleadsheet.api.event</publicPackage>
+                        <publicPackage>org.jjazz.chordleadsheet.api.item</publicPackage>
+                        <publicPackage>org.jjazz.midimix.api</publicPackage>
+                        <publicPackage>org.jjazz.midimix.spi</publicPackage>
                         <publicPackage>org.jjazz.song.api</publicPackage>
                         <publicPackage>org.jjazz.song.spi</publicPackage>
+                        <publicPackage>org.jjazz.songstructure.api</publicPackage>
+                        <publicPackage>org.jjazz.songstructure.api.event</publicPackage>
                     </publicPackages>
                 </configuration>
                 <extensions>true</extensions>

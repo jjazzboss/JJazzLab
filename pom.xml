@@ -257,14 +257,12 @@
         
     </profiles>          
     <modules>
-        <module>core/ChordLeadSheet</module>
         <module>core/EmbeddedSynth</module> 
         <module>core/FlatComponents</module> 		              
         <module>core/Harmony</module>
         <module>core/Humanizer</module>		
         <module>core/Importers</module>
         <module>core/Midi</module>
-        <module>core/MidiMix</module>
         <module>core/MusicControl</module>
         <module>core/OutputSynth</module>
         <module>core/Phrase</module>
@@ -276,8 +274,6 @@
         <module>core/RhythmStubs</module>
         <module>core/RhythmTestMocks</module>
         <module>core/Song</module>
-        <module>core/SongContext</module>
-        <module>core/SongStructure</module>
         <module>core/TestPlayerService</module>
         <module>core/UIUtilities</module>		
         <module>core/UndoManager</module>		

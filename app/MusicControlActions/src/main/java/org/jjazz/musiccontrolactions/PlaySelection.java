@@ -38,7 +38,7 @@ import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.playbacksession.UpdateProviderSongSession;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
-import org.jjazz.songcontext.api.SongContext;
+import org.jjazz.song.api.SongContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.Song;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;

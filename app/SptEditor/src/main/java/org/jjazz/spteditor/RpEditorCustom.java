@@ -36,7 +36,7 @@ import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.song.api.Song;
-import org.jjazz.songcontext.api.SongPartContext;
+import org.jjazz.song.api.SongPartContext;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.spteditor.api.RpEditor;
 import org.jjazz.utilities.api.ResUtil;

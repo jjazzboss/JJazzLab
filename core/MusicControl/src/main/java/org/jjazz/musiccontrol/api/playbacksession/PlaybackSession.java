@@ -26,7 +26,7 @@ import java.beans.PropertyChangeListener;
 import java.util.HashMap;
 import javax.sound.midi.Sequence;
 import org.jjazz.rhythm.api.MusicGenerationException;
-import org.jjazz.songcontext.api.SongContext;
+import org.jjazz.song.api.SongContext;
 import org.jjazz.utilities.api.IntRange;
 
 /**

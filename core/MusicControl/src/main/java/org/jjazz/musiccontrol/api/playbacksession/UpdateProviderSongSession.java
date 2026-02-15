@@ -46,7 +46,7 @@ import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_TempoFactor;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongMetaEvents.ClsSourceActionEvent;
 import org.jjazz.song.api.SongMetaEvents.SgsSourceActionEvent;
-import org.jjazz.songcontext.api.SongContext;
+import org.jjazz.song.api.SongContext;
 import static org.jjazz.songstructure.api.event.SgsActionEvent.API_ID.AddSongParts;
 import static org.jjazz.songstructure.api.event.SgsActionEvent.API_ID.RemoveSongParts;
 import static org.jjazz.songstructure.api.event.SgsActionEvent.API_ID.ReplaceSongParts;

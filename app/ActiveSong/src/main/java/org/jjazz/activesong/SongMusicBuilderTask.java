@@ -34,7 +34,7 @@ import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.musiccontrol.api.MusicGenerationQueue.Result;
 import org.jjazz.musiccontrol.api.SongMusicGenerationListener;
 import org.jjazz.song.api.Song;
-import org.jjazz.songcontext.api.SongContext;
+import org.jjazz.song.api.SongContext;
 import org.openide.util.ChangeSupport;
 
 /**

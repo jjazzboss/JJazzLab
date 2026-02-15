@@ -40,7 +40,7 @@ import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession.Context;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
 import org.jjazz.musiccontrol.spi.ActiveSongBackgroundMusicBuilder;
 import org.jjazz.song.api.Song;
-import org.jjazz.songcontext.api.SongContext;
+import org.jjazz.song.api.SongContext;
 import org.openide.util.ChangeSupport;
 import org.openide.util.lookup.ServiceProvider;
 
@@ -282,7 +282,7 @@ public class ActiveSongBackgroundMusicBuilderImpl implements PropertyChangeListe
             {
                 assert activeSong != null;
                 assert activeMidiMix != null;
-                songMusicBuilderTask = new SongMusicBuilderTask(activeSong, activeMidiMix, new HashSet<>());
+                songMusicBuilderTask = new SongMusicBuilderTask(activeSong, activeMidiMix);
                 songMusicBuilderTask.addChangeListener(this);
                 songMusicBuilderTask.start();
             }

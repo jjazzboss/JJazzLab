@@ -27,7 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import org.jjazz.phrase.api.SizedPhrase;
 import org.jjazz.phrasetransform.PhraseTransformManagerImpl;
-import org.jjazz.songcontext.api.SongPartContext;
+import org.jjazz.song.api.SongPartContext;
 import org.openide.util.Lookup;
 
 /**

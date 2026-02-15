@@ -22,7 +22,7 @@
  */
 package org.jjazz.rhythmmusicgeneration.spi;
 
-import org.jjazz.songcontext.api.SongContext;
+import org.jjazz.song.api.SongContext;
 import java.util.Map;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythm.api.MusicGenerationException;

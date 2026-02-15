@@ -209,7 +209,7 @@ public class CLI_Ending implements ChordLeadSheetItem<Ending>, WritableItem<Endi
     }
 
     @Override
-    public void firePropertyChangEvent(PropertyChangeEvent event)
+    public void firePropertyChangeEvent(PropertyChangeEvent event)
     {
         // Nothing
     }
