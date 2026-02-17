@@ -58,16 +58,6 @@
         </dependency>  
         <dependency> 
             <groupId>org.jjazzlab.core</groupId> 
-            <artifactId>songcontext</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.jjazzlab.core</groupId> 
-            <artifactId>songstructure</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.jjazzlab.core</groupId> 
             <artifactId>flatcomponents</artifactId> 
             <version>${project.version}</version>  
         </dependency>  

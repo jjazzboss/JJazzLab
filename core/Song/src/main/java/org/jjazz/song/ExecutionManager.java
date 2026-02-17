@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
+import java.util.logging.Logger;
 import org.jjazz.chordleadsheet.ChordLeadSheetImpl;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
@@ -61,6 +62,7 @@ public class ExecutionManager
     private final Song song;
     private MidiMix midiMix;
     private final SongInternalUpdater songInternalUpdater;
+    private static final Logger LOGGER = Logger.getLogger(ExecutionManager.class.getSimpleName());
 
     public ExecutionManager(Song song)
     {

@@ -24,6 +24,7 @@
  */
 package org.jjazz.song;
 
+import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -32,6 +33,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.jjazz.chordleadsheet.ChordLeadSheetImpl;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
@@ -58,12 +62,13 @@ import org.jjazz.songstructure.SongStructureImpl;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.jjazz.songstructure.api.event.SptAddedEvent;
+import org.jjazz.songstructure.api.event.SptRemovedEvent;
 import org.jjazz.songstructure.api.event.SptRhythmChangedEvent;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.util.Exceptions;
 
 /**
- * Manage the impact of ChordLeadSheet or SongStructure changes to other Song internal components.
+ * Manage the impact of a Song internal component (Song, ChordLeadSheet, SongStructure, MidiMix) to other Song internal components.
  * <p>
  * For example, a ChordLeadSheet time signature change might require an update of a SongPart rhythm, which will impact the MidiMix, and possibly some chord
  * symbols position back in the ChordLeadSheet if rhythm division has changed.
@@ -77,12 +82,43 @@ class SongInternalUpdater
     private final Song song;
     private final SongStructureImpl songStructure;
     private final ChordLeadSheetImpl chordLeadSheet;
+    private static final Logger LOGGER = Logger.getLogger(SongInternalUpdater.class.getSimpleName());
 
     public SongInternalUpdater(Song sg)
     {
         this.song = sg;
         this.songStructure = (SongStructureImpl) sg.getSongStructure();
         this.chordLeadSheet = (ChordLeadSheetImpl) sg.getChordLeadSheet();
+    }
+
+
+    /**
+     * Check if a PropertyChangeEvent is authorized.
+     *
+     * @param event
+     * @throws UnsupportedEditException If change is not authorized
+     */
+    public void preCheckChange(PropertyChangeEvent event) throws UnsupportedEditException
+    {
+        Objects.requireNonNull(event);
+        if (event.getSource() == song)
+        {
+            switch (event.getPropertyName())
+            {
+                case Song.PROP_VETOABLE_ADD_USER_PHRASE ->
+                {
+                    var midiMix = MidiMixManager.getDefault().findExistingMix(song);
+                    if (midiMix.getUnusedChannels()==0)
+                    {
+                        throw new UnsupportedEditException
+                    }
+                }
+                default ->
+                {
+                    // Nothing
+                }
+            }
+        }
     }
 
     /**
@@ -176,11 +212,15 @@ class SongInternalUpdater
 
     private List<Operation> getNextOperations(ClsChangeEvent srcEvent)
     {
-        List<Operation> res = null;
         if (srcEvent.isUndoOrRedo())
         {
+            // IMPORTANT : Each Song component generates his own undoableEdits,
+            // so we must not forward changes if undo/redo in progress, otherwise 
+            // the "undo/redo" restore operations will be performed twice
             return Collections.emptyList();
         }
+
+        List<Operation> res = null;
         try
         {
             switch (srcEvent)
@@ -250,22 +290,32 @@ class SongInternalUpdater
 
     private List<Operation> getNextOperations(SgsChangeEvent srcEvent)
     {
-        List<Operation> res;
+
         if (srcEvent.isUndoOrRedo())
         {
+            // IMPORTANT : Each Song component generates his own undoableEdits,
+            // so we must not forward changes if undo/redo in progress, otherwise 
+            // the "undo/redo" restore operations will be performed twice            
             return Collections.emptyList();
         }
+
+
+        List<Operation> res;
         try
         {
             switch (srcEvent)
             {
-                case SptAddedEvent sae ->
+                case SptAddedEvent e ->
                 {
-                    res = getNextSptAdded(sae, false);
+                    res = getNextSptAdded(e, false);
                 }
-                case SptRhythmChangedEvent srce ->
+                case SptRemovedEvent e ->
                 {
-                    res = getNextSptRhythmChanged(srce, false);
+                    res = getNextSptRemoved(e);
+                }
+                case SptRhythmChangedEvent e ->
+                {
+                    res = getNextSptRhythmChanged(e, false);
                 }
                 default ->
                 {
@@ -617,9 +667,10 @@ class SongInternalUpdater
     }
 
     /**
-     * Bars were inserted.
+     * Some bars were inserted.
      * <p>
      * - Possibly resize SongParts<br>
+     * - Possibly create an init SongPart if insertion from bar 0<br>
      *
      * @param evt
      * @return
@@ -628,35 +679,38 @@ class SongInternalUpdater
     {
         List<Operation> res = new ArrayList<>();
 
-        // Section before the insertion is resized
-        Map<SongPart, Integer> mapSptSize = new HashMap<>();
         if (evt.getBarFrom() > 0)
         {
+            // Section before the insertion is resized, resize impacted SongParts
             var cliSection = chordLeadSheet.getSection(evt.getBarFrom() - 1);
-            fillMapSptSize(mapSptSize, cliSection);
-            songStructure.resizeSongParts(mapSptSize);
+            var mapSptSize = getMapSptSize(cliSection);
+            res.add(songStructure.resizeSongPartsOperation(mapSptSize));
+
         } else
         {
-            // Insertion from init bar, a new init section was created
+            // Insertion from bar 0, create an init section for the new initi section
             var cliSection = chordLeadSheet.getSection(0);
             var section = cliSection.getData();
             var nbBars = chordLeadSheet.getBarRange(cliSection).size();
-            var spt = songStructure.getSongPart(0);
+            var spt0 = songStructure.getSongPart(0);
             SongPart newSpt;
-            if (spt != null)
+            if (spt0 != null)
             {
-                newSpt = spt.getCopy(null, 0, nbBars, cliSection);
+                // Copy from existing
+                newSpt = spt0.getCopy(null, 0, nbBars, cliSection);
             } else
             {
+                // Empty SongStructure, create from scratch
                 var r = songStructure.getRecommendedRhythm(section.getTimeSignature(), 0);
                 newSpt = songStructure.createSongPart(r, section.getName(), 0, cliSection, true);
             }
             try
             {
-                songStructure.addSongParts(List.of(newSpt));
+                res.add(songStructure.addSongPartsOperation(List.of(newSpt)));
             } catch (UnsupportedEditException ex)
             {
                 // Should never happen since we use a rhythm already in use
+                LOGGER.log(Level.SEVERE, "getNextInsertedBars() Unexpected UnsupportedEditException={0}", ex.getMessage());
                 Exceptions.printStackTrace(ex);
             }
         }
@@ -665,7 +719,7 @@ class SongInternalUpdater
     }
 
     /**
-     * New SongPart added.
+     * Some SongParts were added.
      * <p>
      * - If new rhythm, update MidiMix and possibly chord symbols position if rhythm division has changed<br>
      *
@@ -702,6 +756,36 @@ class SongInternalUpdater
 
         // Possibly update ChordLeadSheetItems position
         res.addAll(adjustChordLeadSheetItemsPosition(spts));
+
+        return res;
+    }
+
+    /**
+     * Some SongPart were removed.
+     * <p>
+     * - Possibly update MidiMix if a rhythm becomes unused<br>
+     *
+     * @param evt
+     * @return
+     */
+    private List<Operation> getNextSptRemoved(SptRemovedEvent evt)
+    {
+        MidiMix midiMix = MidiMixManager.getDefault().findExistingMix(song);
+        var songRhythms = song.getSongStructure().getUniqueRhythms(true, false);
+
+
+        List<Operation> res = new ArrayList<>();
+
+
+        // Get rhythms from removed SongParts which are not used anymore in the song
+        Set<Rhythm> rhythmsToBeRemoved = evt.getRhythms(true).stream()
+                .filter(r -> !songRhythms.contains(r))
+                .collect(Collectors.toSet());
+
+        for (var r : rhythmsToBeRemoved)
+        {
+            res.add(midiMix.removeRhythmOperation(r));
+        }
 
         return res;
     }
@@ -811,7 +895,7 @@ class SongInternalUpdater
             nbVoices += getSourceRhythm(r).getRhythmVoices().size();
         }
 
-        if (nbVoices > NB_AVAILABLE_CHANNELS)
+        if (nbVoices > MidiMix.NB_AVAILABLE_CHANNELS)
         {
             throw new UnsupportedEditException(ResUtil.getString(getClass(), "ERR_NotEnoughChannels"));
         }

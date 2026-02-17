@@ -33,16 +33,6 @@
         </dependency>  
         <dependency> 
             <groupId>org.jjazzlab.core</groupId> 
-            <artifactId>chordleadsheet</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.jjazzlab.core</groupId> 
-            <artifactId>songstructure</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>          
-        <dependency> 
-            <groupId>org.jjazzlab.core</groupId> 
             <artifactId>rhythmmusicgeneration</artifactId> 
             <version>${project.version}</version>  
         </dependency>          

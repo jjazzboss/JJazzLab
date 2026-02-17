@@ -28,7 +28,6 @@ import com.thoughtworks.xstream.XStreamException;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyVetoException;
-import java.beans.VetoableChangeListener;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -84,9 +83,7 @@ import org.jjazz.songstructure.api.event.SptRhythmChangedEvent;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongCreationException;
 import org.jjazz.songstructure.api.SongStructure;
-import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.songstructure.api.event.SgsVetoableChangeEvent;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.undomanager.api.SimpleEdit;
@@ -107,67 +104,14 @@ import org.openide.util.lookup.ServiceProvider;
  * A set of up to 16 InstrumentMixes, 1 per Midi channel with 1 RhythmVoice associated.
  * <p>
  * The object manages the solo functionality between the InstrumentMixes.<p>
- * A Song can be associated to the MidiMix so that InstrumentMixes are kept up to date with song's songStructure and user phrase changes.<p>
  * If MidiMix is modified the corresponding property change event is fired (e.g. PROP_INSTRUMENT_MUTE) then the PROP_MODIFIED_OR_SAVED_OR_RESET change event is
  * also fired.
  * <p>
  */
-
-public class MidiMix implements SgsChangeListener, PropertyChangeListener, VetoableChangeListener, Serializable
+public class MidiMix implements PropertyChangeListener, Serializable, MidiMixInt
 {
 
     public static final String MIX_FILE_EXTENSION = "mix";
-    /**
-     * Added, replaced or removed InstrumentMix.
-     * <p>
-     * OldValue=the old InstrumentMix (null if new InstrumentMix added), newValue=channel
-     */
-    public static final String PROP_CHANNEL_INSTRUMENT_MIX = "ChannelInstrumentMix";
-    /**
-     * oldValue=channel, newValue=true/false.
-     */
-    public static final String PROP_CHANNEL_DRUMS_REROUTED = "ChannelDrumsRerouted";
-    /**
-     * oldValue=InstumentMix, newValue=mute boolean state.
-     */
-    public static final String PROP_INSTRUMENT_MUTE = "InstrumentMute";
-    /**
-     * A drums instrument has changed with different keymap.
-     * <p>
-     * oldValue=channel, newValue=old keymap (may be null)
-     */
-    public static final String PROP_DRUMS_INSTRUMENT_KEYMAP = "DrumsInstrumentKeyMap";
-    /**
-     * oldValue=InstumentMix, newValue=transposition value.
-     */
-    public static final String PROP_INSTRUMENT_TRANSPOSITION = "InstrumentTransposition";
-    /**
-     * oldValue=InstumentMix, newValue=velocity shift value.
-     */
-    public static final String PROP_INSTRUMENT_VELOCITY_SHIFT = "InstrumentVelocityShift";
-    /**
-     * A RhythmVoice has replaced another one, e.g. this is used to change the name of a user track.
-     * <p>
-     * oldValue=old RhythmVoice, newValue=new RhythmVoice
-     */
-    public static final String PROP_RHYTHM_VOICE = "RhythmVoice";
-    /**
-     * The channel of a RhythmVoice has been changed by user.
-     * <p>
-     * oldValue=old channel, newValue=new channel
-     */
-    public static final String PROP_RHYTHM_VOICE_CHANNEL = "RhythmVoiceChannel";
-    /**
-     * This property changes when the MidiMix is modified (false-&gt;true) or saved (true-&gt;false).
-     */
-    public static final String PROP_MODIFIED_OR_SAVED = "PROP_MIDIMIX_MODIFIED_OR_SAVED";
-    /**
-     * Fired each time a MidiMix parameter which impacts music generation is modified, like instrument transposition.
-     * <p>
-     * OldValue=the property name that triggers the musical change, newValue=optional associated data.<p>
-     * Use PROP_MODIFIED_OR_SAVED to get notified of any MidiMix change, including non-musical ones like track mute change, etc.
-     */
-    public static final String PROP_MUSIC_GENERATION = "MidiMixMusicContent";
     public static final int NB_AVAILABLE_CHANNELS = MidiConst.CHANNEL_MAX - MidiConst.CHANNEL_MIN + 1;
 
     /**
@@ -227,7 +171,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      *
      * @return
      */
-    public synchronized MidiMix getDeepCopy()
+    @Override
+    public MidiMix getDeepCopy()
     {
         MidiMix mm = new MidiMix();
         mm.song = song;
@@ -264,6 +209,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * @param sg Can be null.
      * @throws IllegalArgumentException If checkConsistency(sg, false) fails.
      */
+    @Override
     public final void setSong(Song sg)
     {
         if (song == sg)
@@ -272,9 +218,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         }
         if (song != null)
         {
-            song.getSongStructure().removeSgsChangeListener(this);
             song.removePropertyChangeListener(this);  // User phrase events
-            song.removeVetoableChangeListener(this);  // User phrase events
         }
 
         this.song = sg;
@@ -293,9 +237,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
             }
 
             // Register for changes
-            song.addVetoableChangeListener(this);
             song.addPropertyChangeListener(this);
-            sgs.addSgsChangeListener(this);
         }
     }
 
@@ -309,6 +251,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * @throws org.jjazz.song.api.SongCreationException If an inconsistency is detected
      *
      */
+    @Override
     public void checkConsistency(Song sg, boolean fullCheck) throws SongCreationException
     {
         List<RhythmVoice> sgRvs = sg.getSongStructure().getUniqueRhythmVoices(true, false);
@@ -368,6 +311,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
 
     }
 
+    @Override
     public Song getSong()
     {
         return song;
@@ -379,7 +323,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      *
      * @return
      */
-    public synchronized List<Integer> getUserChannels()
+    @Override
+    public List<Integer> getUserChannels()
     {
         List<Integer> res = new ArrayList<>();
         for (int i = MidiConst.CHANNEL_MIN; i <= MidiConst.CHANNEL_MAX; i++)
@@ -397,7 +342,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      *
      * @return
      */
-    public synchronized List<UserRhythmVoice> getUserRhythmVoices()
+    @Override
+    public List<UserRhythmVoice> getUserRhythmVoices()
     {
         List<UserRhythmVoice> res = new ArrayList<>();
         for (int i = MidiConst.CHANNEL_MIN; i <= MidiConst.CHANNEL_MAX; i++)
@@ -416,6 +362,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * @param name
      * @return Null if not found
      */
+    @Override
     public UserRhythmVoice getUserRhythmVoice(String name)
     {
         return getUserRhythmVoices().stream()
@@ -436,6 +383,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * @param insMix  Can be null if rvKey is also null.
      * @throws IllegalArgumentException if insMix is already part of this MidiMix for a different channel, or if rvKey is a RhythmVoiceDelegate.
      */
+    @Override
     public void setInstrumentMix(int channel, RhythmVoice rvKey, InstrumentMix insMix)
     {
         if (!MidiConst.checkMidiChannel(channel) || (rvKey instanceof RhythmVoiceDelegate) || (rvKey == null && insMix != null) || (rvKey != null && insMix == null))
@@ -487,6 +435,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * @param oldRv Must be a RhythmVoice used by this MidiMix.
      * @param newRv Must not be already used by this MidiMix.
      */
+    @Override
     public void replaceRhythmVoice(RhythmVoice oldRv, RhythmVoice newRv)
     {
         int channel = getChannel(oldRv);
@@ -495,10 +444,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
 
 
         // Change state
-        synchronized (this)
-        {
-            rhythmVoices[channel] = newRv;
-        }
+        rhythmVoices[channel] = newRv;
 
 
         // Prepare the undoable edit
@@ -507,10 +453,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
             @Override
             public void undoBody()
             {
-                synchronized (MidiMix.this)
-                {
-                    rhythmVoices[channel] = oldRv;
-                }
+                rhythmVoices[channel] = oldRv;
 
                 LOGGER.log(Level.FINER, "replaceRhythmVoice().undoBody oldRv={0} newRv={1}", new Object[]
                 {
@@ -525,10 +468,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
             @Override
             public void redoBody()
             {
-                synchronized (MidiMix.this)
-                {
                     rhythmVoices[channel] = newRv;
-                }
 
                 LOGGER.log(Level.FINER, "replaceRhythmVoice().redoBody oldRv={0} newRv={1}", new Object[]
                 {
@@ -555,6 +495,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * @param rv         Must be a RhythmVoice used by this MidiMix.
      * @param newChannel Must be a free channel
      */
+    @Override
     public void setRhythmVoiceChannel(RhythmVoice rv, int newChannel)
     {
         int oldChannel = getChannel(rv);
@@ -615,7 +556,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * @param channel A valid midi channel number
      * @return The InstrumentMix assigned to the specified Midi channel, or null if no InstrumentMix for this channel.
      */
-    public synchronized InstrumentMix getInstrumentMix(int channel)
+    @Override
+    public InstrumentMix getInstrumentMix(int channel)
     {
         if (!MidiConst.checkMidiChannel(channel))
         {
@@ -630,7 +572,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * @param rv If it's a RhythmVoiceDelegate, return the channel associated to its source RhythmVoice.
      * @return The InstrumentMix associated to rv. Null if no InstrumentMix found.
      */
-    public synchronized InstrumentMix getInstrumentMix(RhythmVoice rv)
+    @Override
+    public InstrumentMix getInstrumentMix(RhythmVoice rv)
     {
         if (rv == null)
         {
@@ -651,7 +594,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * @param im
      * @return -1 if InstrumentMix not found.
      */
-    public synchronized int getChannel(InstrumentMix im)
+    @Override
+    public int getChannel(InstrumentMix im)
     {
         return Arrays.asList(instrumentMixes).indexOf(im);
     }
@@ -661,7 +605,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * @param im
      * @return null if InstrumentMix not found.
      */
-    public synchronized RhythmVoice geRhythmVoice(InstrumentMix im)
+    @Override
+    public RhythmVoice geRhythmVoice(InstrumentMix im)
     {
         int index = getChannel(im);
         return index == -1 ? null : rhythmVoices[index];
@@ -674,7 +619,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * @param channel
      * @return The RhythmVoice key corresponding to specified channel. Can be null.
      */
-    public synchronized RhythmVoice getRhythmVoice(int channel)
+    @Override
+    public RhythmVoice getRhythmVoice(int channel)
     {
         if (!MidiConst.checkMidiChannel(channel))
         {
@@ -689,7 +635,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * @param rvKey If it's a RhythmVoiceDelegate, return the channel associated to its source RhythmVoice.
      * @return -1 if key not found.
      */
-    public synchronized int getChannel(RhythmVoice rvKey)
+    @Override
+    public int getChannel(RhythmVoice rvKey)
     {
         if (rvKey == null)
         {
@@ -707,7 +654,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      *
      * @return The list of Midi channel numbers for which a non-null InstrumentMix is assigned.
      */
-    public synchronized List<Integer> getUsedChannels()
+    @Override
+    public List<Integer> getUsedChannels()
     {
         ArrayList<Integer> channels = new ArrayList<>();
         for (int i = MidiConst.CHANNEL_MIN; i <= MidiConst.CHANNEL_MAX; i++)
@@ -726,7 +674,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * @param r If null return all used channels. If r is an AdaptedRhythm, returns the channels from it source rhythm.
      * @return The list of Midi channel numbers for rhythm r and for which a non-null InstrumentMix is assigned.
      */
-    public synchronized List<Integer> getUsedChannels(Rhythm r)
+    @Override
+    public List<Integer> getUsedChannels(Rhythm r)
     {
         if (r == null)
         {
@@ -748,7 +697,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
     /**
      * @return The list of Midi channel numbers for which no InstrumentMix is assigned.
      */
-    public synchronized List<Integer> getUnusedChannels()
+    @Override
+    public List<Integer> getUnusedChannels()
     {
         ArrayList<Integer> channels = new ArrayList<>();
         for (int i = MidiConst.CHANNEL_MIN; i <= MidiConst.CHANNEL_MAX; i++)
@@ -768,7 +718,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      *
      * @return
      */
-    public synchronized List<RhythmVoice> getRhythmVoices()
+    @Override
+    public List<RhythmVoice> getRhythmVoices()
     {
         ArrayList<RhythmVoice> res = new ArrayList<>();
         for (RhythmVoice rvKey : rhythmVoices)
@@ -786,7 +737,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      *
      * @return Note that returned list is not ordered. Can be empty.
      */
-    public synchronized List<Integer> getDrumsReroutedChannels()
+    @Override
+    public List<Integer> getDrumsReroutedChannels()
     {
         return new ArrayList<>(drumsReroutedChannels.keySet());
     }
@@ -799,6 +751,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * @param b
      * @param channel
      */
+    @Override
     public void setDrumsReroutedChannel(boolean b, int channel)
     {
         LOGGER.log(Level.FINE, "setDrumsReroutedChannel() -- b={0} channel={1}", new Object[]
@@ -818,8 +771,6 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
 
 
         InstrumentMix insMix = instrumentMixes[channel];
-        synchronized (this)
-        {
             if (b)
             {
                 // Save state
@@ -847,7 +798,6 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
                 insMix.getSettings().setPanoramicEnabled(saveMixData.getSettings().isPanoramicEnabled());
                 insMix.getSettings().setVolumeEnabled(saveMixData.getSettings().isVolumeEnabled());
             }
-        }
 
         pcs.firePropertyChange(PROP_CHANNEL_DRUMS_REROUTED, channel, b);
         fireIsMusicGenerationModified(PROP_CHANNEL_DRUMS_REROUTED, channel);
@@ -866,6 +816,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * @param mapChannelNewIns Optional channel instruments to be used for the exercise. Ignored if null. See OutputSynth.getNeedFixInstruments().
      * @return Can be empty
      */
+    @Override
     public List<Integer> getChannelsNeedingDrumsRerouting(HashMap<Integer, Instrument> mapChannelNewIns)
     {
         List<Integer> res = new ArrayList<>();
@@ -904,54 +855,6 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
     }
 
     /**
-     * Check that we won't exceed the number of available Midi channels if applying the specified event.
-     *
-     * @param e
-     * @throws UnsupportedEditException
-     */
-    public void testChangeEventForVeto(SgsChangeEvent e) throws UnsupportedEditException
-    {
-        LOGGER.log(Level.FINE, "testChangeEventForVeto() -- e={0}", e);
-
-        Set<Rhythm> uniqueRhythms = new HashSet<>();
-        var allSpts = song.getSongStructure().getSongParts();
-        switch (e)
-        {
-            case SptAddedEvent sae ->
-            {
-                allSpts.forEach(spt -> uniqueRhythms.add(getSourceRhythm(spt)));
-                sae.getSongParts().forEach(spt -> uniqueRhythms.add(getSourceRhythm(spt)));
-            }
-            case SptRhythmChangedEvent sre ->
-            {
-                List<SongPart> spts = sre.getSongParts();
-                allSpts.stream()
-                        .filter(spt -> !spts.contains(spt))
-                        .forEach(spt -> uniqueRhythms.add(getSourceRhythm(spt)));
-                uniqueRhythms.add(sre.getNewRhythm());
-            }
-            default ->
-            {
-                // No impact on the nb of used Midi channels 
-                return;
-            }
-        }
-
-
-        int nbVoices = getUserChannels().size();      // Initialize with user rhythm voices
-        for (var r : uniqueRhythms)
-        {
-            nbVoices += r.getRhythmVoices().size();
-        }
-
-        if (nbVoices > NB_AVAILABLE_CHANNELS)
-        {
-            throw new UnsupportedEditException(ResUtil.getString(getClass(), "ERR_NotEnoughChannels"));
-        }
-
-    }
-
-    /**
      * Return a free channel to be used in this MidiMix.
      * <p>
      * Try to keep channels in one section above the drums channel reserved to Drums. If not enough channels extend to channel below the drums channel.
@@ -959,6 +862,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * @param findDrumsChannel If true try to use CHANNEL_DRUMS if it is available.
      * @return -1 if no channel found
      */
+    @Override
     public int findFreeChannel(boolean findDrumsChannel)
     {
         List<Integer> usedChannels = getUsedChannels();
@@ -996,6 +900,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * @param r      If non null, copy fromMm instrumentMixes only if they belong to rhythm r (if r is an AdaptedRhythm, use its source rhythm).
      * @throws MidiUnavailableException If not enough channels available to accommodate mm instruments.
      */
+    @Override
     public final void addInstrumentMixes(MidiMix fromMm, Rhythm r) throws MidiUnavailableException
     {
         LOGGER.log(Level.FINE, "copyInstrumentMixes() -- rvKeys={0} fromMm.rvKeys={1}", new Object[]
@@ -1032,11 +937,13 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      *
      * @return Null if not set.
      */
+    @Override
     public File getFile()
     {
         return file;
     }
 
+    @Override
     public void setFile(File f)
     {
         file = f;
@@ -1053,6 +960,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      *
      * @param mm
      */
+    @Override
     public void importInstrumentMixes(MidiMix mm)
     {
         if (mm == null)
@@ -1126,6 +1034,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
     /**
      * @return True if MidiMix has some unsaved changes.
      */
+    @Override
     public boolean needSave()
     {
         return needSave;
@@ -1138,6 +1047,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * @param isCopy
      * @return False if a problem occured
      */
+    @Override
     public boolean saveToFileNotify(File f, boolean isCopy)
     {
         if (f == null)
@@ -1184,6 +1094,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * @param isCopy Indicate that we save a copy, ie perform the file save but nothing else (eg no PROP_MODIFIED_OR_SAVED state change)
      * @throws java.io.IOException
      */
+    @Override
     public void saveToFile(File f, boolean isCopy) throws IOException
     {
         if (f == null)
@@ -1233,7 +1144,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      *
      * @return A 16 items list, one instrumentMix per channel (some items can be null)
      */
-    public synchronized List<InstrumentMix> getInstrumentMixesPerChannel()
+    @Override
+    public List<InstrumentMix> getInstrumentMixesPerChannel()
     {
         return Arrays.asList(instrumentMixes);
     }
@@ -1243,7 +1155,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      *
      * @return Can be an empty list.
      */
-    public synchronized List<InstrumentMix> getInstrumentMixes()
+    @Override
+    public List<InstrumentMix> getInstrumentMixes()
     {
         ArrayList<InstrumentMix> insMixes = new ArrayList<>();
         for (InstrumentMix im : instrumentMixes)
@@ -1262,6 +1175,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * @param userPhraseName
      * @throws MidiUnavailableException
      */
+    @Override
     public void addUserChannel(String userPhraseName) throws MidiUnavailableException
     {
         int channel = findFreeUserChannel(false);     // throws MidiUnavailableException
@@ -1321,6 +1235,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * <p>
      * Midi messages are sent to the default JJazzLab Midi OUT device.
      */
+    @Override
     public void sendAllMidiMixMessages()
     {
         LOGGER.fine("sendAllMidiMixMessages()");
@@ -1337,6 +1252,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * <p>
      * Midi messages are sent to the default JJazzLab Midi OUT device.
      */
+    @Override
     public void sendAllMidiVolumeMessages()
     {
         LOGGER.fine("sendAllMidiVolumeMessages()");
@@ -1348,6 +1264,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         }
     }
 
+    @Override
     public void addUndoableEditListener(UndoableEditListener l)
     {
         if (l == null)
@@ -1358,6 +1275,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         undoListeners.add(l);
     }
 
+    @Override
     public void removeUndoableEditListener(UndoableEditListener l)
     {
         if (l == null)
@@ -1367,21 +1285,25 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         undoListeners.remove(l);
     }
 
+    @Override
     public void addPropertyChangeListener(PropertyChangeListener l)
     {
         pcs.addPropertyChangeListener(l);
     }
 
+    @Override
     public void removePropertyChangeListener(PropertyChangeListener l)
     {
         pcs.removePropertyChangeListener(l);
     }
 
+    @Override
     public void addPropertyChangeListener(String propertyName, PropertyChangeListener l)
     {
         pcs.addPropertyChangeListener(propertyName, l);
     }
 
+    @Override
     public void removePropertyChangeListener(String propertyName, PropertyChangeListener l)
     {
         pcs.removePropertyChangeListener(propertyName, l);
@@ -1497,6 +1419,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      *
      * @return
      */
+    @Override
     public Set<Rhythm> getUniqueRhythms()
     {
         Set<Rhythm> result = new HashSet<>();
@@ -1510,115 +1433,6 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         return result;
     }
 
-    //-----------------------------------------------------------------------
-    // Implementation of the SgsChangeListener interface
-    //-----------------------------------------------------------------------
-
-    @Override
-    public void songStructureChanged(SgsChangeEvent e) throws UnsupportedEditException
-    {
-        LOGGER.log(Level.FINE, "songStructureChanged() -- e={0}", e);
-
-
-        JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(song);
-        if (um != null && um.isUndoRedoInProgress())
-        {
-            // IMPORTANT : MidiMix generates his own undoableEdits
-            // so we must not listen to SongStructure changes if undo/redo in progress, otherwise 
-            // the "undo/redo" restore operations will be performed twice !
-            return;
-        }
-
-        if (e instanceof SgsVetoableChangeEvent svce)
-        {
-            testChangeEventForVeto(svce.getChangeEvent());
-            return;
-        }
-
-
-        // Used to check if rhythm is really gone in case of multi-rhythm songs
-        List<Rhythm> songRhythms = song.getSongStructure().getUniqueRhythms(true, false);
-        List<Rhythm> mixRhythms = getUniqueRhythms();
-
-        switch (e)
-        {
-            case SptAddedEvent sae ->
-            {
-                for (SongPart spt : sae.getSongParts())
-                {
-
-                    Rhythm r = getSourceRhythm(spt);
-                    if (!mixRhythms.contains(r))
-                    {
-                        try
-                        {
-                            // It's a new rhythm in the MidiMix
-                            addRhythm(r);
-                        } catch (MidiUnavailableException ex)
-                        {
-                            // Should not be here since we made a test just above to avoid this
-                            throw new IllegalStateException(
-                                    "Unexpected MidiUnavailableException ex=" + ex.getMessage() + " this=" + this + " r=" + r);
-                        }
-                        mixRhythms.add(r);
-                    }
-                }
-
-            }
-            case SptRemovedEvent sre ->
-            {
-                for (SongPart spt : sre.getSongParts())
-                {
-                    Rhythm r = getSourceRhythm(spt);
-                    if (!songRhythms.contains(r) && mixRhythms.contains(r))
-                    {
-                        // There is no more such rhythm in the song, we can remove it from the midimix
-                        removeRhythm(r);
-                        mixRhythms.remove(r);
-                    }
-                }
-            }
-            case SptRhythmChangedEvent srce ->
-            {
-                List<SongPart> oldSpts = srce.getOldSptsCopies();
-                List<SongPart> newSpts = srce.getSongParts();
-
-                // Important : remove rhythm parts before adding (otherwise we could have a "not enough midi channels
-                // available" in the loop).
-                oldSpts.stream()
-                        .map(spt -> getSourceRhythm(spt))
-                        .filter(r -> !songRhythms.contains(r))
-                        .forEach(r -> 
-                        {
-                            // Rhythm is no more present in the song, remove it also from the MidiMix
-                            removeRhythm(r);
-                            mixRhythms.remove(r);
-                        });
-
-                // Add the new rhythms
-                newSpts.stream()
-                        .map(spt -> getSourceRhythm(spt))
-                        .filter(r -> !mixRhythms.contains(r))
-                        .forEach(r -> 
-                        {
-                            // New song rhythm is not yet in the midimix, add it
-                            try
-                            {
-                                addRhythm(r);
-                            } catch (MidiUnavailableException ex)
-                            {
-                                // Should not be here since we made a test earlier to avoid this
-                                throw new IllegalStateException(
-                                        "Unexpected MidiUnavailableException ex=" + ex.getMessage() + " this=" + this + " r=" + r);
-                            }
-                            mixRhythms.add(r);
-                        });
-            }
-            default ->
-            {
-            }
-        }
-    }
 
     //-----------------------------------------------------------------------
     // Implementation of the VetoableChangeListener interface
@@ -1892,9 +1706,8 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
             insMix.addPropertyChangeListener(this);
             insMix.getSettings().addPropertyChangeListener(this);
         }
-
         // Update our internal state
-        synchronized (this)
+        (this)
         {
             instrumentMixes[channel] = insMix;
             rhythmVoices[channel] = rvKey;
@@ -1906,7 +1719,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
             @Override
             public void undoBody()
             {
-                synchronized (MidiMix.this)
+                (MidiMix.this)
                 {
                     instrumentMixes[channel] = oldInsMix;
                     rhythmVoices[channel] = oldRvKey;
@@ -1941,7 +1754,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
             @Override
             public void redoBody()
             {
-                synchronized (MidiMix.this)
+                (MidiMix.this)
                 {
                     instrumentMixes[channel] = insMix;
                     rhythmVoices[channel] = rvKey;
@@ -2214,7 +2027,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
      * @param oldChannel
      * @param newChannel
      */
-    private synchronized void swapChannels(int oldChannel, int newChannel)
+    private void swapChannels(int oldChannel, int newChannel)
     {
         rhythmVoices[newChannel] = rhythmVoices[oldChannel];
         rhythmVoices[oldChannel] = null;

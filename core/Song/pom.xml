@@ -57,12 +57,12 @@
         </dependency>
         <dependency>
             <groupId>org.jjazzlab.core</groupId>
-            <artifactId>chordleadsheet</artifactId>
+            <artifactId>phrase</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.jjazzlab.core</groupId>
-            <artifactId>phrase</artifactId>
+            <artifactId>midi</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -78,11 +78,6 @@
         <dependency>
             <groupId>org.jjazzlab.core</groupId>
             <artifactId>rhythmdatabase</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jjazzlab.core</groupId>
-            <artifactId>songstructure</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -147,4 +142,4 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-  </project>
+</project>

@@ -72,7 +72,6 @@ import org.jjazz.song.WriteOperationResults;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.songstructure.api.event.SgsVetoableChangeEvent;
 import org.jjazz.songstructure.api.event.SptRenamedEvent.Renaming;
 import org.jjazz.songstructure.api.event.SptResizedEvent.Resizing;
 import org.jjazz.utilities.api.FloatRange;
@@ -1101,8 +1100,6 @@ public class SongStructureImpl implements SongStructure, Serializable
     public void fireChangeEvent(SgsChangeEvent event)
     {
         Objects.requireNonNull(event);
-        Preconditions.checkArgument(!(event instanceof SgsVetoableChangeEvent), "event=%s", event);
-
         for (SgsChangeListener l : listeners)
         {
             try

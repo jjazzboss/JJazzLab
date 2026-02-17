@@ -84,14 +84,14 @@ public interface SongStructure
                 continue;
             }
 
-            if (r instanceof AdaptedRhythm)
+            if (r instanceof AdaptedRhythm ar)
             {
                 if (!excludeAdaptedRhythms)
                 {
                     res.add(spt.getRhythm());
                 }
 
-                var sr = ((AdaptedRhythm) r).getSourceRhythm();
+                var sr = ar.getSourceRhythm();
                 if (!excludeImplicitSourceRhythms && !allRhythms.contains(sr) && !res.contains(sr))
                 {
                     res.add(sr);

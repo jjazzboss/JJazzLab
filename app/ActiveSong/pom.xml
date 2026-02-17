@@ -29,19 +29,9 @@
     <dependencies>  
         <dependency> 
             <groupId>org.jjazzlab.core</groupId> 
-            <artifactId>midimix</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.jjazzlab.core</groupId> 
             <artifactId>midi</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
-        <dependency> 
-            <groupId>org.jjazzlab.core</groupId> 
-            <artifactId>songcontext</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>          
         <dependency> 
             <groupId>org.jjazzlab.core</groupId> 
             <artifactId>outputsynth</artifactId> 
@@ -52,11 +42,6 @@
             <artifactId>rhythm</artifactId> 
             <version>${project.version}</version>  
         </dependency>   
-        <dependency>
-            <groupId>org.jjazzlab.core</groupId>
-            <artifactId>chordleadsheet</artifactId>
-            <version>${project.version}</version>
-        </dependency>        
         <dependency>
             <groupId>org.jjazzlab.core</groupId>
             <artifactId>phrase</artifactId>

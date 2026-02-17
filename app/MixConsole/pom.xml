@@ -69,11 +69,6 @@
         </dependency>  
         <dependency> 
             <groupId>org.jjazzlab.core</groupId> 
-            <artifactId>midimix</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.jjazzlab.core</groupId> 
             <artifactId>musiccontrol</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
@@ -108,11 +103,6 @@
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
-            <groupId>org.jjazzlab.core</groupId> 
-            <artifactId>songcontext</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
             <groupId>org.jjazzlab.app</groupId> 
             <artifactId>songeditormanager</artifactId> 
             <version>${project.version}</version>  
@@ -120,11 +110,6 @@
         <dependency> 
             <groupId>org.jjazzlab.app</groupId> 
             <artifactId>pianoroll</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.jjazzlab.core</groupId> 
-            <artifactId>songstructure</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 

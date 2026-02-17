@@ -45,16 +45,6 @@
         </dependency>      
         <dependency> 
             <groupId>org.jjazzlab.core</groupId> 
-            <artifactId>songstructure</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>    
-        <dependency> 
-            <groupId>org.jjazzlab.core</groupId> 
-            <artifactId>songcontext</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>      
-        <dependency> 
-            <groupId>org.jjazzlab.core</groupId> 
             <artifactId>outputsynth</artifactId> 
             <version>${project.version}</version>  
         </dependency>              
@@ -63,16 +53,6 @@
             <artifactId>midi</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
-        <dependency> 
-            <groupId>org.jjazzlab.core</groupId> 
-            <artifactId>chordleadsheet</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>       
-        <dependency> 
-            <groupId>org.jjazzlab.core</groupId> 
-            <artifactId>midimix</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>              
         <dependency> 
             <groupId>org.jjazzlab.app</groupId> 
             <artifactId>activesong</artifactId> 

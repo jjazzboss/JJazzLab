@@ -48,16 +48,10 @@
             <groupId>org.jjazzlab.core</groupId>
             <artifactId>guava</artifactId>
             <version>${project.version}</version>
-            
         </dependency>  
         <dependency> 
             <groupId>org.jjazzlab.core</groupId> 
             <artifactId>harmony</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.jjazzlab.core</groupId> 
-            <artifactId>chordleadsheet</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
@@ -73,11 +67,6 @@
         <dependency> 
             <groupId>org.jjazzlab.core</groupId> 
             <artifactId>song</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.jjazzlab.core</groupId> 
-            <artifactId>songstructure</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
