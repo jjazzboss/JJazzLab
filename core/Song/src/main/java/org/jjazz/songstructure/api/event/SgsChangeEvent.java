@@ -28,8 +28,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+import org.jjazz.rhythm.api.AdaptedRhythm;
+import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 
@@ -136,6 +141,20 @@ public class SgsChangeEvent
     public boolean isUndoOrRedo()
     {
         return isUndo || isRedo;
+    }
+
+    /**
+     * The unique rhythms used by the SongParts.
+     *
+     * @param excludeAdaptedRhythms If true and an AdaptedRhythm is found, return its source rhythm instead
+     * @return
+     */
+    public Set<Rhythm> getRhythms(boolean excludeAdaptedRhythms)
+    {
+        return songParts.stream()
+                .map(spt -> spt.getRhythm())
+                .map(r -> excludeAdaptedRhythms ? (r instanceof AdaptedRhythm ar ? ar.getSourceRhythm() : r) : r)
+                .collect(Collectors.toSet());
     }
 
     /**

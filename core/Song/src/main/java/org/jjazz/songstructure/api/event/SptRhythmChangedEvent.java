@@ -29,9 +29,11 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 
 /**
- * SongParts got their rhythm changed, possibly their parent section too.
+ * SongParts got their rhythm and/or parent section changed.
  * <p>
  * getSongParts() will return the updated SongParts (newSpts).
+ * <p>
+ * Note: when this event is used to precheck the change, olsSptCopies and newSpts will both be the SongParts to be modified.
  */
 public class SptRhythmChangedEvent extends SgsChangeEvent
 {
@@ -42,14 +44,12 @@ public class SptRhythmChangedEvent extends SgsChangeEvent
     /**
      * Create the event.
      * <p>
-     * Note: when this event is used to be passed to SongStructure.testChangeEventForVeto(SgsChangeEvent event), olsSptCopies and newSpts will be the SongParts
-     * to be modified.
+     * Note: when this event is used to precheck the change, olsSptCopies and newSpts will both be the SongParts to be modified.
      *
      * @param src
-     * @param r             The new rhythm
+     * @param r             The new rhythm. Can be null if only parent section was changed.
      * @param oldSptsCopies A copy of each SongPart before their rhythm was changed (possibly parentSection too)
      * @param newSpts       The updated SongParts
-     * @see SongStructure#testChangeEventForVeto(org.jjazz.songstructure.api.event.SgsChangeEvent)
      */
     public SptRhythmChangedEvent(SongStructure src, Rhythm r, List<SongPart> oldSptsCopies, List<SongPart> newSpts)
     {
@@ -59,6 +59,10 @@ public class SptRhythmChangedEvent extends SgsChangeEvent
         this.oldSptsCopies = sortSongParts(oldSptsCopies);
     }
 
+    /**
+     *
+     * @return Can be null if only the parent section was changed
+     */
     public Rhythm getNewRhythm()
     {
         return rhythm;
@@ -66,7 +70,7 @@ public class SptRhythmChangedEvent extends SgsChangeEvent
 
 
     /**
-     * @return Copies of the updated SongParts before their rhythm was updated.
+     * @return Copies of the updated SongParts before the rhythm and/or parent section was updated.
      */
     public List<SongPart> getOldSptsCopies()
     {

@@ -162,36 +162,6 @@ public class SongPartImpl implements SongPart, Serializable
     }
 
 
-//    /**
-//     * Use identify hash code because SongParts are used as Map keys in SongStructure API.
-//     * <p>
-//     *
-//     * @return
-//     */
-//    @Override
-//    public int hashCode()
-//    {
-//        return System.identityHashCode(this);
-//    }
-//
-//    @Override
-//    public boolean equals(Object obj)
-//    {
-//              return performReadAPImethod(() -> 
-//        {
-//            boolean b = false;
-//            if (startBarIndex == spt.getStartBarIndex()
-//                    && nbBars == spt.getNbBars()
-//                    && name.equals(spt.getName())
-//                    && rhythm == spt.getRhythm()
-//                    && parentSection.equals(spt.getParentSection()))
-//            {
-//                b = rhythm.getRhythmParameters().stream()
-//                        .allMatch(rp -> mapRpValue.getValue(rp).equals(spt.getRPValue(rp)));
-//            }
-//            return b;
-//        });
-//    }
     @Override
     public int hashCode()
     {
@@ -239,12 +209,7 @@ public class SongPartImpl implements SongPart, Serializable
         {
             return new TmpRecord(other.startBarIndex, other.nbBars, other.name, other.rhythm, other.parentSection, other.mapRpValue, other.container);
         });
-        if (!tmp.equals(tmpOther))
-        {
-            return false;
-        }
-
-        return Objects.equals(this.container, other.container);
+        return tmp.equals(tmpOther);
     }
 
 
@@ -347,34 +312,41 @@ public class SongPartImpl implements SongPart, Serializable
     }
 
     /**
-     * Set the rhythm, and optionally the parent section.
+     * Set the rhythm and the parent section.
      * <p>
      * Can only be called by SongStructure.
      *
-     * @param r
-     * @param newParentSection If not null set also the parent section
+     * @param newRhythm        If null rhythm is unchanged.
+     * @param newParentSection If null parent section is unchanged.
      * @return An event with oldValue=newRhythm, newValue=newParentSection
      */
-    public PropertyChangeEvent setRhythm(Rhythm r, CLI_Section newParentSection)
+    public PropertyChangeEvent setRhythm(Rhythm newRhythm, CLI_Section newParentSection)
     {
-        Objects.requireNonNull(r);
-        Preconditions.checkArgument(newParentSection == null || newParentSection.getContainer() != null, "newParentSection=%s", newParentSection);
-        Preconditions.checkArgument(newParentSection == null || nbBars == newParentSection.getContainer().getBarRange(newParentSection).size(),
+        Preconditions.checkArgument(newParentSection == null
+                || newParentSection.getContainer() != null,
+                "newParentSection=%s", newParentSection);
+        Preconditions.checkArgument(newParentSection == null
+                || nbBars == newParentSection.getContainer().getBarRange(newParentSection).size(),
                 "this=%s newParentSection=%s", this, newParentSection);
+        Preconditions.checkArgument(
+                newParentSection == null
+                || newRhythm == null
+                || newParentSection.getData().getTimeSignature() == newRhythm.getTimeSignature(),
+                "newRhythm=%s newParentSection=%s", newRhythm, newParentSection);
 
-
-        if (rhythm == r && (newParentSection == null || newParentSection == parentSection))
+        if ((newRhythm == null || rhythm == newRhythm) && (newParentSection == null || newParentSection == parentSection))
         {
             return getVoidPropertyChangeEvent();
         }
 
-        var oldParentSection = parentSection;
         var oldRhythm = rhythm;
         var saveMapRvValues = mapRpValue.clone();
 
 
-        rhythm = r;
+        rhythm = newRhythm == null ? rhythm : newRhythm;;
         parentSection = newParentSection == null ? parentSection : newParentSection;
+
+
         resetRPvalues();
 
 

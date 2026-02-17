@@ -33,6 +33,5 @@ package org.jjazz.utilities.api;
 @FunctionalInterface
 public interface ThrowingSupplier<T, E extends Exception>
 {
-
     T get() throws E;
 }

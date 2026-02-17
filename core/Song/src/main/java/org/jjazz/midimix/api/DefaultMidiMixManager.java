@@ -28,6 +28,8 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.IdentityHashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.WeakHashMap;
 import java.util.logging.Level;
@@ -40,7 +42,6 @@ import org.jjazz.midimix.spi.RhythmVoiceInstrumentProvider;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.rhythm.spi.RhythmDirsLocator;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongCreationException;
 import org.jjazz.utilities.api.ResUtil;
@@ -62,10 +63,7 @@ public class DefaultMidiMixManager implements MidiMixManager, PropertyChangeList
         }
         return INSTANCE;
     }
-    /**
-     * Need WeakReferences: we don't want to maintain a strong reference if song is no more used.
-     */
-    private final WeakHashMap<Song, MidiMix> mapSongMix = new WeakHashMap<>();
+    private final Map<Song, MidiMix> mapSongMix = new IdentityHashMap<>();
 
     private static final Logger LOGGER = Logger.getLogger(DefaultMidiMixManager.class.getSimpleName());
 
@@ -275,7 +273,6 @@ public class DefaultMidiMixManager implements MidiMixManager, PropertyChangeList
     {
         if (mapSongMix.get(sg) == null)
         {
-            // Do not register twice !
             sg.addPropertyChangeListener(this);
         }
         mapSongMix.put(sg, mm);

@@ -25,7 +25,6 @@ package org.jjazz.songstructure.api;
 import com.google.common.base.Preconditions;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import java.util.ArrayList;
-import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -48,6 +47,7 @@ import org.jjazz.utilities.api.IntRange;
  */
 public interface SongStructure
 {
+
     /**
      * Return the list of unique rhythms used in this SongStructure.
      * <p>
@@ -162,7 +162,7 @@ public interface SongStructure
         }
         return timeSignatures;
     }
-    
+
     /**
      * The parent ChordLeadSheet.
      * <p>
@@ -341,20 +341,20 @@ public interface SongStructure
     void resizeSongParts(Map<SongPart, Integer> mapSptNewSize);
 
     /**
-     * Set the rhythm, and optionally the parent section, for the specified SongParts.
+     * Set the rhythm and the parent section for the specified SongParts.
      * <p>
      * <p>
-     * If parentSection parameter is non-null then each SongPart using a default name (i.e the name of the previous parent section) will be set to
-     * parentSection's name.
+     * If newParentSection parameter is non-null then each SongPart using a default name (i.e the name of the previous parent section) will be set to
+     * newParentSection's name.
      *
      * @param spts
-     * @param r             New rhythm to use. Cannot be null.
-     * @param parentSection If null, parentSection is unchanged. If not null, parentSection must match the new rhythm time signature, have a container defined,
-     *                      and have the same bar size as the SongParts.
+     * @param newRhythm        If null rhythm will be unchanged.
+     * @param newParentSection If null parentSection is unchanged. If not null, parentSection must match the rhythm time signature, have a container
+     *                         defined, and have the same bar size as the SongParts.
      * @throws UnsupportedEditException Exception is thrown before any change is done. See testChangeEventForVeto().
      * @see #testChangeEventForVeto(org.jjazz.songstructure.api.event.SgsChangeEvent)
      */
-    void setSongPartsRhythm(List<SongPart> spts, Rhythm r, CLI_Section parentSection) throws UnsupportedEditException;
+    void setSongPartsRhythm(List<SongPart> spts, Rhythm newRhythm, CLI_Section newParentSection) throws UnsupportedEditException;
 
 
     /**

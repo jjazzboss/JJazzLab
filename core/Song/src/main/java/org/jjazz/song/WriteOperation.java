@@ -31,7 +31,7 @@ import java.util.function.Supplier;
  *
  * @param <T> The type of the return value provided by the operation.
  */
-public interface WriteOperation<T> extends Supplier<WriteOperationResults<T>>
+public interface WriteOperation<T> extends Supplier<WriteOperationResults<T>>, Operation
 {
    
 }

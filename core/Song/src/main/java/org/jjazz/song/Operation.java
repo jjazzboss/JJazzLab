@@ -24,15 +24,11 @@
  */
 package org.jjazz.song;
 
-import org.jjazz.chordleadsheet.api.UnsupportedEditException;
-import org.jjazz.utilities.api.ThrowingSupplier;
-
 /**
- * A mutating operation which can throw an UnsupportedEditException.
- *
- * @param <T> The type of the return value provided by the operation.
+ * A marker interface for a WriteOperation or a ThrowingWriteOperation.
+ * @param <T>
  */
-public interface ThrowingWriteOperation<T> extends ThrowingSupplier<WriteOperationResults<T>, UnsupportedEditException>, Operation
+public interface Operation<T>
 {
 
 }

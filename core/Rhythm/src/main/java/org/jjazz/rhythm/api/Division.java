@@ -22,6 +22,8 @@
  */
 package org.jjazz.rhythm.api;
 
+import java.util.Objects;
+
 
 /**
  * The rhythm main division.
@@ -47,6 +49,18 @@ public enum Division
     public boolean isBinary()
     {
         return this == BINARY;
+    }
+
+    /**
+     * Check if both divisions are binary or ternary.
+     *
+     * @param other
+     * @return
+     */
+    public boolean isCompatible(Division other)
+    {
+        Objects.requireNonNull(other);
+        return (isBinary() && other.isBinary()) || (isTernary() && other.isTernary());
     }
 
     /**

@@ -1491,6 +1491,25 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         return mm;
     }
 
+    /**
+     * The unique rhythm list used in this MidiMix.
+     * <p>
+     *
+     * @return
+     */
+    public Set<Rhythm> getUniqueRhythms()
+    {
+        Set<Rhythm> result = new HashSet<>();
+        for (RhythmVoice rv : rhythmVoices)
+        {
+            if (rv != null && !(rv instanceof UserRhythmVoice) && !result.contains(rv.getContainer()))
+            {
+                result.add(rv.getContainer());
+            }
+        }
+        return result;
+    }
+
     //-----------------------------------------------------------------------
     // Implementation of the SgsChangeListener interface
     //-----------------------------------------------------------------------
@@ -1625,7 +1644,7 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
             {
                 try
                 {
-                    findFreeUserChannel(false);    // throws M
+                    findFreeUserChannel(false);    // throws MidiUnavailableException
                 } catch (MidiUnavailableException ex)
                 {
                     throw new PropertyVetoException(ex.getMessage(), e);
@@ -2212,24 +2231,6 @@ public class MidiMix implements SgsChangeListener, PropertyChangeListener, Vetoa
         saveMuteConfiguration[oldChannel] = false;
     }
 
-    /**
-     * The unique rhythm list used in this MidiMix.
-     * <p>
-     *
-     * @return
-     */
-    private List<Rhythm> getUniqueRhythms()
-    {
-        ArrayList<Rhythm> result = new ArrayList<>();
-        for (RhythmVoice rv : rhythmVoices)
-        {
-            if (rv != null && !(rv instanceof UserRhythmVoice) && !result.contains(rv.getContainer()))
-            {
-                result.add(rv.getContainer());
-            }
-        }
-        return result;
-    }
 
     private void fireUndoableEditHappened(UndoableEdit edit)
     {

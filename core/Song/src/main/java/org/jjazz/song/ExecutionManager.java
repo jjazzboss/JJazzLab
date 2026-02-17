@@ -151,22 +151,7 @@ public class ExecutionManager
         lock.writeLock().lock();
         try
         {
-            // Execute operation
-            operationResults = throwingOperation.get();        // throws UnsupportedEditException
-            assert operationResults != null;
-            allOperationResults.add(operationResults);
-
-
-            // Possibly update other Song internal components under write lock
-            List<WriteOperation> nextOperations = songInternalUpdater.getNextOperations(operationResults);
-            for (var op : nextOperations)
-            {
-                var results = op.get();         // execute next operation
-                assert results != null;
-                allOperationResults.add(operationResults);
-            }
-
-
+            executeOperationChain(allOperationResults, throwingOperation);    // throws UnsupportedEditException
         } finally
         {
             lock.writeLock().unlock();
@@ -215,6 +200,50 @@ public class ExecutionManager
     public void preCheckChange(SgsChangeEvent event) throws UnsupportedEditException
     {
         songInternalUpdater.preCheckChange(event);
+    }
+
+    // ===============================================================================================================
+    // Private methods
+    // ===============================================================================================================    
+
+    /**
+     * Execute op and its next operations recursively.
+     *
+     * @param cumulativeOpResults Cumulative list containing all operationResults
+     * @param op
+     * @throws org.jjazz.chordleadsheet.api.UnsupportedEditException
+     */
+    private void executeOperationChain(List<WriteOperationResults> cumulativeOpResults, Operation op) throws UnsupportedEditException
+    {
+        var opResults = execute(op);        // throws UnsupportedEditException
+        cumulativeOpResults.add(opResults);
+        List<Operation> nextOperations = songInternalUpdater.getNextOperations(opResults);
+        for (var nextOperation : nextOperations)
+        {
+            executeOperationChain(cumulativeOpResults, nextOperation);
+        }
+    }
+
+    /**
+     * Helper method to run a WriteOperation or a ThrowingWriteOperation.
+     *
+     * @param <T>
+     * @param op
+     * @return
+     * @throws org.jjazz.chordleadsheet.api.UnsupportedEditException
+     */
+    private <T> WriteOperationResults<T> execute(Operation<T> op) throws UnsupportedEditException
+    {
+        if (op instanceof WriteOperation wop)
+        {
+            return ((WriteOperation<T>) wop).get();
+        } else if (op instanceof ThrowingWriteOperation twop)
+        {
+            return ((ThrowingWriteOperation<T>) twop).get();   // throws UnsupportedEditException
+        } else
+        {
+            throw new IllegalArgumentException("op=" + op);
+        }
     }
 
 
