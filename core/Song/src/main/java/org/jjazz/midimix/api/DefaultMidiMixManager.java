@@ -63,14 +63,17 @@ public class DefaultMidiMixManager implements MidiMixManager, PropertyChangeList
         }
         return INSTANCE;
     }
-    private final Map<Song, MidiMix> mapSongMix = new IdentityHashMap<>();
+    private final Map<Song, MidiMix> mapSongMix;
+    private final Map<Rhythm, MidiMix> mapRhythmMix;
 
     private static final Logger LOGGER = Logger.getLogger(DefaultMidiMixManager.class.getSimpleName());
 
 
-    public DefaultMidiMixManager()
+    private DefaultMidiMixManager()
     {
         LOGGER.info("DefaultMidiMixManager() Started");
+        this.mapSongMix = new IdentityHashMap<>();
+        this.mapRhythmMix = new IdentityHashMap<>();
     }
 
 
@@ -154,29 +157,35 @@ public class DefaultMidiMixManager implements MidiMixManager, PropertyChangeList
         Objects.requireNonNull(r);
         LOGGER.log(Level.FINE, "findMix() -- r={0}", r);
 
-        MidiMix mm = null;
-        File mixFile = r instanceof AdaptedRhythm ? null : MidiMix.getRhythmMixFile(r.getName(), r.getFile());
-
-        if (mixFile != null && mixFile.canRead())
-        {
-            try
-            {
-                mm = MidiMix.loadFromFile(mixFile);
-                StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "LoadedRhythmMix", mixFile.getAbsolutePath()));
-            } catch (IOException ex)
-            {
-                LOGGER.log(Level.SEVERE, "findMix(rhythm) Problem reading mix file: {0} : {1}. Creating a new mix instead.", new Object[]
-                {
-                    mixFile.getAbsolutePath(),
-                    ex.getMessage()
-                });
-            }
-        }
+        MidiMix mm = mapRhythmMix.get(r);
         if (mm == null)
         {
-            // No valid mixFile or problem loading rhythm mix file, create a new mix
-            mm = createMix(r);
+            File mixFile = r instanceof AdaptedRhythm ? null : MidiMix.getRhythmMixFile(r.getName(), r.getFile());
+
+            if (mixFile != null && mixFile.canRead())
+            {
+                try
+                {
+                    mm = MidiMix.loadFromFile(mixFile);
+                    StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "LoadedRhythmMix", mixFile.getAbsolutePath()));
+                } catch (IOException ex)
+                {
+                    LOGGER.log(Level.SEVERE, "findMix(rhythm) Problem reading mix file: {0} : {1}. Creating a new mix instead.", new Object[]
+                    {
+                        mixFile.getAbsolutePath(),
+                        ex.getMessage()
+                    });
+                }
+            }
+            if (mm == null)
+            {
+                // No valid mixFile or problem loading rhythm mix file, create a new mix
+                mm = createMix(r);
+            }
+            
+            mapRhythmMix.put(r, mm);
         }
+        
         return mm;
     }
 
@@ -211,7 +220,7 @@ public class DefaultMidiMixManager implements MidiMixManager, PropertyChangeList
         Objects.requireNonNull(r);
         LOGGER.log(Level.FINE, "createMix() -- r={0}", r);
 
-        MidiMix mm = new MidiMix();
+        MidiMix mm = new MidiMix(r);
 
         if (!(r instanceof AdaptedRhythm))
         {
@@ -227,10 +236,11 @@ public class DefaultMidiMixManager implements MidiMixManager, PropertyChangeList
                 {
                     // If 2 rhythm voices have the same preferred channel (strange...)
                     int newChannel = mm.findFreeChannel(rv.isDrums());
-                    LOGGER.log(Level.WARNING, "createMix() 2 RhythmVoices have the same preferredChannel. rv={0} mm={1} channel={2}  => using free channel {3}", new Object[]
-                    {
-                        rv, mm, channel, newChannel
-                    });            
+                    LOGGER.log(Level.WARNING, "createMix() 2 RhythmVoices have the same preferredChannel. rv={0} mm={1} channel={2}  => using free channel {3}",
+                            new Object[]
+                            {
+                                rv, mm, channel, newChannel
+                            });
                     channel = newChannel;
                     if (channel == -1)
                     {
@@ -258,9 +268,9 @@ public class DefaultMidiMixManager implements MidiMixManager, PropertyChangeList
     {
         if (e.getSource() instanceof Song song)
         {
-            assert mapSongMix.get(song) != null : "song=" + song + " mapSongMix=" + mapSongMix;
             if (e.getPropertyName().equals(Song.PROP_CLOSED))
             {
+                assert mapSongMix.containsKey(song) : "song=" + song + " mapSongMix=" + mapSongMix;
                 unregisterSong(song);
             }
         }
@@ -271,16 +281,16 @@ public class DefaultMidiMixManager implements MidiMixManager, PropertyChangeList
     // ==================================================================
     private void registerSong(MidiMix mm, Song sg)
     {
-        if (mapSongMix.get(sg) == null)
+        if (!mapSongMix.containsKey(sg))
         {
-            sg.addPropertyChangeListener(this);
+            sg.addPropertyChangeListener(Song.PROP_CLOSED, this);
         }
         mapSongMix.put(sg, mm);
     }
 
     private void unregisterSong(Song song)
     {
-        song.removePropertyChangeListener(this);
+        song.removePropertyChangeListener(Song.PROP_CLOSED, this);
         mapSongMix.remove(song);
     }
 

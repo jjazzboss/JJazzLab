@@ -124,7 +124,6 @@ public class SongContext
     /**
      * Deep getCopy the SongContext : make a copy of the song and the midimix.
      *
-     * @param registerSong   If true the created song is registered by the SongFactory
      * @param setMidiMixSong If true MidMix.setSong() is called on the created MidiMix with the created Song.
      * @return
      */

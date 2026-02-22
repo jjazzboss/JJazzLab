@@ -31,7 +31,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.beans.PropertyVetoException;
-import java.beans.VetoableChangeListener;
 import java.beans.VetoableChangeSupport;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -56,13 +55,13 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.UndoableEdit;
+import org.jjazz.chordleadsheet.ChordLeadSheetImpl;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
@@ -70,117 +69,51 @@ import org.jjazz.phrase.api.Phrase;
 import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.TempoRange;
-import org.jjazz.song.ClsSgsUpdater;
-import org.jjazz.songstructure.api.SongStructureFactory;
+import org.jjazz.song.ExecutionManager;
+import org.jjazz.song.ThrowingWriteOperation;
+import org.jjazz.song.WriteOperation;
+import org.jjazz.song.WriteOperationResults;
+import org.jjazz.songstructure.SongStructureImpl;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.undomanager.api.SimpleEdit;
 import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.utilities.api.StringProperties;
+import org.jjazz.utilities.api.ThrowingSupplier;
 import org.jjazz.xstream.api.XStreamInstancesManager;
 import org.jjazz.xstream.spi.XStreamConfigurator;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.lookup.ServiceProvider;
 
-/**
- * The song object.
- * <p>
- * Contains a chord leadsheet, a song structure, some parameters, optional user phrases and client properties. Songs can be created using the SongFactory.
- * <p>
- * Implementation uses the same concurrency design as ChordLeadSheet: it is thread-safe in a scenario with 1 writing thread and several reading threads. Song
- * and SongStructure reuse ChordLeadSheet's lock to guarantee global consistency since changes on 1 object might impact the others.
- */
 
-public class Song implements Serializable, PropertyChangeListener
+/**
+ * Song implementation.
+ */
+public class Song implements Serializable, PropertyChangeListener, SongInt
 {
 
     public static final String SONG_EXTENSION = "sng";
-    public static final String PROP_NAME = "PROP_NAME";
-    public static final String PROP_COMMENTS = "PROP_COMMENTS";
-    public static final String PROP_TAGS = "PROP_TAGS";
-    public static final String PROP_TEMPO = "PROP_TEMPO";
-    /**
-     * newValue = new size in bars. OldValue=old size in bars
-     */
-    public static final String PROP_SIZE_IN_BARS = "PROP_SIZE_IN_BARS";
-    /**
-     * Phrase name was changed.
-     * <p>
-     * oldValue=old name, newValue=new name
-     */
-    public static final String PROP_PHRASE_NAME = "PROP_PHRASE_NAME";
-    /**
-     * This vetoable property change event is fired before adding a new user phrase.
-     * <p>
-     * For example this can be vetoed by the MidiMix listener if there is no more Midi channel available. Note that for this property only listeners will be
-     * called while Song write lock is held, so it must return quickly and remain in the same thread to avoid deadlocks.
-     *
-     * @see #addVetoableChangeListener(java.beans.VetoableChangeListener)
-     */
-    public static final String PROP_VETOABLE_ADD_USER_PHRASE = "PROP_VETOABLE_ADD_USER_PHRASE";
-    /**
-     * A user phrase was added or removed.
-     * <p>
-     * If a user phrase is removed: oldValue=name_of_removed_phrase and newValue=removed_phrase.<br>
-     * If a user phrase is added, oldValue=added_phrase and newValue=name_of_new_phrase<br>
-     */
-    public static final String PROP_USER_PHRASE = "PROP_USER_PHRASE";
-
-    /**
-     * A user phrase was modified (some notes changed) or replaced by another one.
-     * <p>
-     * oldValue=old_phrase if phrase was replaced, or null if it was modified<br>
-     * newValue=name_of_phrase
-     */
-    public static final String PROP_USER_PHRASE_CONTENT = "PROP_USER_PHRASE_CONTENT";
-    /**
-     * Fired when the close() method is called.
-     */
-    public static final String PROP_CLOSED = "PROP_CLOSED";
     /**
      * Default song comments.
      */
     public static final String DEFAULT_COMMENTS = ResUtil.getString(Song.class, "EDIT_ME");
-    /**
-     * Fired after the song is modified (oldValue=false, newValue=true), or saved (oldValue=true, newValue=false), or Song.setSaveNeeded(false) is called
-     * (oldValue=null, newValue=false).
-     * <p>
-     * For modification tracking see also ClsChangeEvent/ClsActionEvent, Sgs/ChangeEvent/SgsActionEvent, SongEvents.
-     */
-    public static final String PROP_MODIFIED_OR_SAVED_OR_RESET = "PROP_MODIFIED_OR_SAVED_OR_RESET";
 
-    private SongStructure songStructure;
-    private ChordLeadSheet chordLeadSheet;
+    private final SongStructure songStructure;
+    private final ChordLeadSheet chordLeadSheet;
     private String name;
     private String comments = DEFAULT_COMMENTS;
     private int tempo = 120;
     private List<String> tags = new ArrayList<>();
     private Map<String, Phrase> mapUserPhrases = new HashMap<>();
     private final StringProperties clientProperties = new StringProperties(this);
-    private final transient ClsSgsUpdater clsSgsUpdater;
     private transient File file;
     private volatile transient boolean saveNeeded = false;
     private volatile boolean closed;
+    private transient final ExecutionManager executionManager;
     protected transient CopyOnWriteArrayList<UndoableEditListener> undoListeners = new CopyOnWriteArrayList<>();
     private final transient PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private final transient VetoableChangeSupport vcs = new VetoableChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(Song.class.getSimpleName());
-
-    /**
-     * Create a song object.
-     * <p>
-     * The songStructure will be automatically created from the chordleadsheet, and they will be linked so that updating one can impact the other.
-     * <p>
-     * This is a protected method: use the SongFactory to create song instances.
-     *
-     * @param name A non-empty string.
-     * @param cls
-     * @throws org.jjazz.chordleadsheet.api.UnsupportedEditException
-     */
-    protected Song(String name, ChordLeadSheet cls) throws UnsupportedEditException
-    {
-        this(name, SongStructureFactory.getDefault().createSgs(cls), false);
-    }
 
     /**
      * This is a protected method: use the SongFactory to create song instances.
@@ -188,20 +121,26 @@ public class Song implements Serializable, PropertyChangeListener
      *
      * @param name
      * @param sgs
-     * @param noClsSgsLink If true SongStructure and ChordLeadSheet are not linked (to be used only in special cases, Song might end up in an inconsistent
-     *                     state)
+     * @param disableSongInternalUpdates
      */
-    protected Song(String name, SongStructure sgs, boolean noClsSgsLink)
+    protected Song(String name, SongStructure sgs, boolean disableSongInternalUpdates)
     {
         Preconditions.checkArgument(name != null && !name.isBlank(), "name=%s", name);
         Objects.requireNonNull(sgs);
 
         setName(name);
+
+
         chordLeadSheet = sgs.getParentChordLeadSheet();
+        ((ChordLeadSheetImpl) chordLeadSheet).setSong(this);
         songStructure = sgs;
+        ((SongStructureImpl) songStructure).setSong(this);
 
 
-        clsSgsUpdater = noClsSgsLink ? null : new ClsSgsUpdater(this);
+        // All Song components share the same ExecutionManager instance
+        executionManager = new ExecutionManager(this, disableSongInternalUpdates);
+        ((ChordLeadSheetImpl) chordLeadSheet).setExecutionManager(executionManager);
+        ((SongStructureImpl) songStructure).setExecutionManager(executionManager);
 
 
         // Mark song as modified if cls/sgs change, or if client properties are changed
@@ -210,32 +149,71 @@ public class Song implements Serializable, PropertyChangeListener
         clientProperties.addPropertyChangeListener(e -> fireIsModified());
     }
 
+    public ExecutionManager getExecutionManager()
+    {
+        return executionManager;
+    }
+
+    @Override
     public StringProperties getClientProperties()
     {
         return clientProperties;
     }
 
-    /**
-     * Rename a user phrase.
-     * <p>
-     * Fires a PROP_PHRASE_NAME change event.
-     *
-     * @param name    Must be the name of an existing phrase
-     * @param newName
-     */
+    @Override
+    public Song getDeepCopy(boolean disableSongInternalUpdates)
+    {
+        return executionManager.executeReadOperation(() -> 
+        {
+            var cls = chordLeadSheet.getDeepCopy();
+            var sgs = songStructure.getDeepCopy(cls);
+            Song res = new Song(name, sgs, disableSongInternalUpdates);
+            res.comments = comments;
+            res.tempo = tempo;
+            res.tags = tags;
+
+
+            // Clone user phrases
+            mapUserPhrases.keySet().stream()
+                    .forEach(pName -> 
+                    {
+                        var p = mapUserPhrases.get(pName);
+                        var pNew = p.clone();
+                        res.mapUserPhrases.put(pName, pNew);
+                    });
+
+
+            // Copy client properties
+            res.getClientProperties().set(getClientProperties());
+
+            return res;
+        });
+
+    }
+
+    @Override
     public void renameUserPhrase(final String name, final String newName)
+    {
+        var operation = renameUserPhraseOperation(name, newName);
+        executionManager.executeWriteOperation(operation);
+    }
+
+    public WriteOperation renameUserPhraseOperation(final String name, final String newName)
     {
         Objects.requireNonNull(name);
         Objects.requireNonNull(newName);
         Preconditions.checkArgument(!name.isBlank() && !newName.isBlank(), "name=%s, newName=%s", name, newName);
-        if (name.equals(newName))
-        {
-            return;
-        }
 
-        Supplier<OperationResults> operation = () -> 
+
+        WriteOperation operation = () -> 
         {
-            var p = getUserPhrase(name);
+            if (name.equals(newName))
+            {
+                return WriteOperationResults.of(null);
+            }
+
+
+            var p = mapUserPhrases.get(name);
             Preconditions.checkArgument(p != null, "name=%s mapUserPhrases=%s", name, mapUserPhrases);
 
 
@@ -258,7 +236,7 @@ public class Song implements Serializable, PropertyChangeListener
                         mapUserPhrases = oldMap;
 
                         var event = new PropertyChangeEvent(Song.this, PROP_PHRASE_NAME, newName, name);
-                        return new OperationResults(event, null, null);
+                        return WriteOperationResults.of(event, null);
                     });
                 }
 
@@ -282,23 +260,8 @@ public class Song implements Serializable, PropertyChangeListener
         performWriteAPImethod(operation);
     }
 
-    /**
-     * Set the user phrase for the specified name.
-     * <p>
-     * Fires a PROP_VETOABLE_ADD_USER_PHRASE vetoable change event before performing the change if name is new. After performing the change, fires a
-     * PROP_USER_PHRASE change event if name was new, or a PROP_USER_PHRASE_CONTENT change event if name was existing.
-     * <p>
-     * This song will listen to Phrase p's changes and fire a PROP_MODIFIED_OR_SAVED_OR_RESET change event when a non-adjusting change is made.
-     * <p>
-     * @param name Can't be blank.
-     * @param p    Can't be null. No defensive copy is done, p is directly reused. No control is done on the phrase consistency Vs the song.
-     * @throws PropertyVetoException If a listener vetoed the change (e.g. MidiMix if no more Midi channel available)
-     * @see #PROP_VETOABLE_ADD_USER_PHRASE
-     * @see #PROP_USER_PHRASE
-     * @see #PROP_USER_PHRASE_CONTENT
-     * @see #removeUserPhrase(java.lang.String)
-     */
-    public void setUserPhrase(String name, Phrase p) throws PropertyVetoException
+    @Override
+    public void setUserPhrase(String name, Phrase p) throws UnsupportedEditException
     {
         checkNotNull(name);
         checkNotNull(p);
@@ -334,6 +297,7 @@ public class Song implements Serializable, PropertyChangeListener
      * @return The removed phrase or null
      * @see #PROP_USER_PHRASE
      */
+    @Override
     public Phrase removeUserPhrase(String name)
     {
         Supplier<OperationResults> operation = () -> 
@@ -397,6 +361,7 @@ public class Song implements Serializable, PropertyChangeListener
      *
      * @return Can't be null.
      */
+    @Override
     public Set<String> getUserPhraseNames()
     {
         return performReadAPImethod(() -> new HashSet<>(mapUserPhrases.keySet()));
@@ -412,26 +377,19 @@ public class Song implements Serializable, PropertyChangeListener
      * @return Null if no phrase associated to name. The Phrase channel should be ignored.
      * @see #setUserPhrase(java.lang.String, org.jjazz.phrase.api.Phrase)
      */
+    @Override
     public Phrase getUserPhrase(String name)
     {
         return performReadAPImethod(() -> mapUserPhrases.get(name));
     }
 
-    /**
-     *
-     * @return The lock from the ChordLeadSheet (also used by SongStructure).
-     */
-    public ReentrantReadWriteLock getLock()
-    {
-        return chordLeadSheet.getLock();
-    }
-
-
+    @Override
     public ChordLeadSheet getChordLeadSheet()
     {
         return chordLeadSheet;
     }
 
+    @Override
     public SongStructure getSongStructure()
     {
         return songStructure;
@@ -442,6 +400,7 @@ public class Song implements Serializable, PropertyChangeListener
      *
      * @return
      */
+    @Override
     public int getSize()
     {
         return songStructure.getSizeInBars();
@@ -452,6 +411,7 @@ public class Song implements Serializable, PropertyChangeListener
      *
      * @return
      */
+    @Override
     public int getTempo()
     {
         return performReadAPImethod(() -> tempo);
@@ -465,6 +425,7 @@ public class Song implements Serializable, PropertyChangeListener
      *
      * @param newTempo
      */
+    @Override
     public final void setTempo(final int newTempo)
     {
         Preconditions.checkArgument(TempoRange.checkTempo(newTempo), "newTempo=%s", newTempo);
@@ -486,6 +447,7 @@ public class Song implements Serializable, PropertyChangeListener
      *
      * @param newTags Must not be null but can be an empty list. Tags are space-trimmed and converted to lower case.
      */
+    @Override
     public void setTags(List<String> newTags)
     {
         Objects.requireNonNull(newTags);
@@ -508,6 +470,7 @@ public class Song implements Serializable, PropertyChangeListener
     /**
      * @return List can be empty if not tags. Tags are lowercase.
      */
+    @Override
     public List<String> getTags()
     {
         return performReadAPImethod(() -> new ArrayList<>(tags));
@@ -518,6 +481,7 @@ public class Song implements Serializable, PropertyChangeListener
      *
      * @return
      */
+    @Override
     public String getName()
     {
         return performReadAPImethod(() -> name);
@@ -530,6 +494,7 @@ public class Song implements Serializable, PropertyChangeListener
      *
      * @param newName A non-empty string.
      */
+    @Override
     public final void setName(final String newName)
     {
         Objects.requireNonNull(newName);
@@ -552,6 +517,7 @@ public class Song implements Serializable, PropertyChangeListener
      *
      * @param releaseRhythmResources True if the method should also call releaseResources() for each used rhythm.
      */
+    @Override
     public void close(boolean releaseRhythmResources)
     {
         closed = true;
@@ -581,6 +547,7 @@ public class Song implements Serializable, PropertyChangeListener
      *
      * @return True if close() has been called.
      */
+    @Override
     public boolean isClosed()
     {
         return closed;
@@ -591,6 +558,7 @@ public class Song implements Serializable, PropertyChangeListener
      *
      * @return Can be an empty String.
      */
+    @Override
     public String getComments()
     {
         return performReadAPImethod(() -> comments);
@@ -603,6 +571,7 @@ public class Song implements Serializable, PropertyChangeListener
      *
      * @param newComments
      */
+    @Override
     public void setComments(final String newComments)
     {
         Objects.requireNonNull(newComments);
@@ -622,6 +591,7 @@ public class Song implements Serializable, PropertyChangeListener
      *
      * @return Can be null for example if it's a builtin song or created programmatically.
      */
+    @Override
     public File getFile()
     {
         return file;
@@ -632,10 +602,12 @@ public class Song implements Serializable, PropertyChangeListener
      *
      * @param f Can be null.
      */
+    @Override
     public void setFile(File f)
     {
         file = f;
     }
+
 
     /**
      * Same as SaveToFile but notify user if problem.
@@ -645,6 +617,7 @@ public class Song implements Serializable, PropertyChangeListener
      * @param isCopy
      * @return False if problem
      */
+    @Override
     public boolean saveToFileNotify(File f, boolean isCopy)
     {
         if (f == null)
@@ -685,7 +658,6 @@ public class Song implements Serializable, PropertyChangeListener
      * Song's getFile() will return f. <br>
      * Song's getName() will return f.getName(). <br>
      * <p>
-     * The returned song is registered by the SongFactory instance.
      *
      * @param f
      * @return
@@ -718,9 +690,6 @@ public class Song implements Serializable, PropertyChangeListener
         song.setName(Song.removeSongExtension(f.getName()));
         song.setSaveNeeded(false);
 
-        SongFactory.getInstance().registerSong(song);
-
-
         return song;
     }
 
@@ -734,6 +703,7 @@ public class Song implements Serializable, PropertyChangeListener
      * @throws java.io.IOException
      * @see getFile()
      */
+    @Override
     public void saveToFile(File songFile, boolean isCopy) throws IOException
     {
         if (songFile == null)
@@ -780,6 +750,7 @@ public class Song implements Serializable, PropertyChangeListener
     /**
      * @return True if song has some unsaved changes.
      */
+    @Override
     public boolean isSaveNeeded()
     {
         return saveNeeded;
@@ -792,6 +763,7 @@ public class Song implements Serializable, PropertyChangeListener
      *
      * @param b
      */
+    @Override
     public void setSaveNeeded(boolean b)
     {
         if (b == saveNeeded)
@@ -809,6 +781,7 @@ public class Song implements Serializable, PropertyChangeListener
     }
 
 
+    @Override
     public void addUndoableEditListener(UndoableEditListener l)
     {
         Objects.requireNonNull(l);
@@ -816,6 +789,7 @@ public class Song implements Serializable, PropertyChangeListener
         undoListeners.add(l);
     }
 
+    @Override
     public void removeUndoableEditListener(UndoableEditListener l)
     {
         Objects.requireNonNull(l);
@@ -827,6 +801,7 @@ public class Song implements Serializable, PropertyChangeListener
      *
      * @param l
      */
+    @Override
     public void addPropertyChangeListener(PropertyChangeListener l)
     {
         pcs.addPropertyChangeListener(l);
@@ -838,35 +813,33 @@ public class Song implements Serializable, PropertyChangeListener
      * @param propertyName
      * @param l
      */
+    @Override
     public void addPropertyChangeListener(String propertyName, PropertyChangeListener l)
     {
         pcs.addPropertyChangeListener(propertyName, l);
     }
 
+    @Override
     public void removePropertyChangeListener(PropertyChangeListener l)
     {
         pcs.removePropertyChangeListener(l);
     }
 
+    @Override
     public void removePropertyChangeListener(String propertyName, PropertyChangeListener l)
     {
         pcs.removePropertyChangeListener(propertyName, l);
     }
 
     /**
-     * Listen to vetoable property changes, such as PROP_VETOABLE_ADD_USER_PHRASE.
+     * Fire a non-vetoable change event.
      *
-     * @param listener
-     * @see #PROP_VETOABLE_ADD_USER_PHRASE
+     * @param e
      */
-    public void addVetoableChangeListener(VetoableChangeListener listener)
+    public void fireChangeEvent(PropertyChangeEvent e)
     {
-        vcs.addVetoableChangeListener(listener);
-    }
-
-    public void removeVetoableChangeListener(VetoableChangeListener listener)
-    {
-        vcs.removeVetoableChangeListener(listener);
+        Objects.requireNonNull(e);
+        pcs.firePropertyChange(e);
     }
 
     @Override
@@ -887,6 +860,33 @@ public class Song implements Serializable, PropertyChangeListener
             return str.substring(0, indexExt);
         }
     }
+
+
+    public <R> R performWriteAPImethod(WriteOperation<R> operation)
+    {
+        R res = executionManager.executeWriteOperation(operation);
+        return res;
+    }
+
+    public <R> R performWriteAPImethodThrowing(ThrowingWriteOperation<R> operation) throws UnsupportedEditException
+    {
+        R res = executionManager.executeWriteOperationThrowing(operation);
+        return res;
+    }
+
+    public <R> R performReadAPImethod(Supplier<R> operation)
+    {
+        R res = executionManager.executeReadOperation(operation);
+        return res;
+    }
+
+    public <R, E extends Exception> R performReadAPImethodThrowing(ThrowingSupplier<R, E> operation) throws E
+    {
+        R res = executionManager.executeReadOperationThrowing(operation);
+        return res;
+    }
+    
+    
     //-----------------------------------------------------------------------
     // PropertiesListener interface
     //-----------------------------------------------------------------------
@@ -904,7 +904,7 @@ public class Song implements Serializable, PropertyChangeListener
             // Listen to our user phrases changes to fire a PROP_USER_PHRASE_CONTENT event
             if (!Phrase.isAdjustingEvent(e.getPropertyName()))
             {
-                String phraseName = getPhraseName(p);
+                String phraseName = performReadAPImethod(() -> getPhraseName(p));
                 assert phraseName != null;
                 fireChangeEvent(new PropertyChangeEvent(this, PROP_USER_PHRASE_CONTENT, null, phraseName));
                 fireIsModified();
@@ -915,147 +915,6 @@ public class Song implements Serializable, PropertyChangeListener
     // ----------------------------------------------------------------------------
     // Private methods 
     // ----------------------------------------------------------------------------
-    /**
-     * Get a deep copy of this Song.
-     * <p>
-     * Listeners or file are NOT copied. Returned song is not closed, even if the original song was.
-     *
-     * @param noClsSgsLink If true SongStructure will not get updated for some chord leadsheet changes (eg a new section is added)
-     * @return
-     */
-    protected Song getDeepCopy(boolean noClsSgsLink)
-    {
-        return performReadAPImethod(() -> 
-        {
-            var cls = chordLeadSheet.getDeepCopy();
-            var sgs = songStructure.getDeepCopy(cls);
-            Song res = new Song(name, sgs, noClsSgsLink);
-            res.comments = comments;
-            res.tempo = tempo;
-            res.tags = tags;
-
-
-            // Clone user phrases
-            mapUserPhrases.keySet().stream()
-                    .forEach(pName -> 
-                    {
-                        var p = mapUserPhrases.get(pName);
-                        var pNew = p.clone();
-                        res.mapUserPhrases.put(pName, pNew);
-                    });
-
-
-            // Copy client properties
-            res.getClientProperties().set(getClientProperties());
-
-            return res;
-        });
-
-    }
-
-    private <T> T performReadAPImethod(Supplier<T> operation)
-    {
-        getLock().readLock().lock();
-        try
-        {
-            return operation.get();
-        } finally
-        {
-            getLock().readLock().unlock();
-        }
-    }
-
-    /**
-     * Safely perform a mutating API method, possibly returning a value.
-     *
-     * @param <R>       The type of the return value
-     * @param operation Updates the model and returns the events
-     * @return The returnValue from OperationResults. Can be null.
-     */
-    private <R> R performWriteAPImethod(Supplier<OperationResults> operation)
-    {
-        OperationResults results = null;
-
-        getLock().writeLock().lock();
-        try
-        {
-            results = operation.get();
-            assert results != null;
-        } finally
-        {
-            getLock().writeLock().unlock();
-        }
-
-        assert results != null;   // If null a runtime exception must have been thrown before
-        if (results.propertyChangeEvent() != null)
-        {
-            fireChangeEvent(results.propertyChangeEvent());
-            fireIsModified();
-        }
-        if (results.undoableEdit() != null)
-        {
-            fireUndoableEditHappened(results.undoableEdit());
-        }
-
-        @SuppressWarnings("unchecked")
-        R returnValue = (R) results.returnValue();
-        return returnValue;
-    }
-
-    /**
-     * Safely perform a mutating API method possibly returning a value or throwing an exception
-     *
-     * @param operation Updates the model and returns the events
-     * @return The returnValue from OperationResults. Can be null.
-     * @param <R>
-     * @param <E>
-     * @throws E
-     */
-    private <R, E extends Exception> R performWriteAPImethodThrowing(ThrowingSupplier<OperationResults, E> operation) throws E
-    {
-        OperationResults results = null;
-
-        getLock().writeLock().lock();
-        try
-        {
-            results = operation.get();          // throws E
-            assert results != null;
-        } finally
-        {
-            getLock().writeLock().unlock();
-        }
-
-        assert results != null;   // If null a runtime exception must have been thrown before
-        if (results.propertyChangeEvent() != null)
-        {
-            fireChangeEvent(results.propertyChangeEvent());
-            fireIsModified();
-        }
-        if (results.undoableEdit() != null)
-        {
-            fireUndoableEditHappened(results.undoableEdit());
-        }
-
-        @SuppressWarnings("unchecked")
-        R returnValue = (R) results.returnValue();
-        return returnValue;
-    }
-
-    private void fireVetoableChangeEvent(String propName, Object oldValue, Object newValue) throws PropertyVetoException
-    {
-        vcs.fireVetoableChange(new PropertyChangeEvent(this, propName, oldValue, newValue));
-    }
-
-    /**
-     * Fire a non-vetoable change event.
-     *
-     * @param e
-     */
-    private void fireChangeEvent(PropertyChangeEvent e)
-    {
-        Objects.requireNonNull(e);
-        pcs.firePropertyChange(e);
-    }
 
     /**
      * Fire a PROP_MODIFIED_OR_SAVED_OR_RESET property change event with oldValue=false, newValue=true
@@ -1112,8 +971,8 @@ public class Song implements Serializable, PropertyChangeListener
         final var oldMap = new HashMap<>(mapUserPhrases);
         mapUserPhrases.put(name, p);
         final var newMap = new HashMap<>(mapUserPhrases);
-        
-        
+
+
         p.addPropertyChangeListener(this);
 
 
@@ -1165,12 +1024,12 @@ public class Song implements Serializable, PropertyChangeListener
         final var pOld = mapUserPhrases.put(name, pNew);
         assert pOld != null;
         final var newMap = new HashMap<>(mapUserPhrases);
-        
-        
+
+
         pOld.removePropertyChangeListener(this);
         pNew.addPropertyChangeListener(this);
 
-        
+
         // Create the undoable event        
         UndoableEdit edit;
         edit = new SimpleEdit("Replace user phrase")
@@ -1204,7 +1063,7 @@ public class Song implements Serializable, PropertyChangeListener
             }
         };
 
-        
+
         // Ideally, to preserve concurrency, we should also embed pNew in the event, so that a listener does not have to call Song.getUserPhrase() to do the required updates.
         // But risk is minimal as we don't expect several concurrent threads to replace a phrase in the same song.
         var event = new PropertyChangeEvent(Song.this, PROP_USER_PHRASE_CONTENT, pOld, name);
@@ -1215,20 +1074,6 @@ public class Song implements Serializable, PropertyChangeListener
     // --------------------------------------------------------------------- 
     // Inner classes
     // ---------------------------------------------------------------------
-    /**
-     * Helper class to store the events and return value produced by a mutating API method.
-     */
-    private record OperationResults(PropertyChangeEvent propertyChangeEvent, UndoableEdit undoableEdit, Object returnValue)
-            {
-
-    }
-
-    @FunctionalInterface
-    private interface ThrowingSupplier<T, E extends Exception>
-    {
-
-        T get() throws E;
-    }
 
     @ServiceProvider(service = XStreamConfigurator.class)
     public static class XStreamConfig implements XStreamConfigurator

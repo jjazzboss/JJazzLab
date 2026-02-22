@@ -27,11 +27,26 @@ package org.jjazz.song;
 import java.util.function.Supplier;
 
 /**
- * A mutating operation of a Song internal components.
+ * A mutating operation of a Song internal component.
  *
- * @param <T> The type of the return value provided by the operation.
+ * @param <R> The type of the return value provided by the operation.
  */
-public interface WriteOperation<T> extends Supplier<WriteOperationResults<T>>, Operation
+public interface WriteOperation<R> extends Supplier<WriteOperationResults<R>>, Operation
 {
-   
+
+    /**
+     * Helper method to create a WriteOperation with no events.
+     *
+     * @param <T>       The type of the return value provided by the operation.
+     * @param operation
+     * @return Return value of operation. Can be null.
+     */
+    public static <T> WriteOperation<T> of(Supplier<T> operation)
+    {
+        return () -> 
+        {
+            T res = operation.get();
+            return WriteOperationResults.of(res);
+        };
+    }
 }

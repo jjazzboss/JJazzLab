@@ -30,6 +30,7 @@ import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.harmony.api.Position;
+import org.jjazz.song.api.Song;
 import org.jjazz.utilities.api.IntRange;
 
 /**
@@ -41,6 +42,13 @@ public interface ChordLeadSheet
 {
 
     public static final int MAX_SIZE = 1024;
+
+    /**
+     * Get the optional Song this instance belongs to.
+     *
+     * @return Can be null.
+     */
+    Song getSong();
 
     /**
      * Set the size of the ChordLeadSheet.

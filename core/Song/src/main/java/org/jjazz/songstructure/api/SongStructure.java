@@ -39,6 +39,7 @@ import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.RhythmParameter;
+import org.jjazz.song.api.Song;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
 
@@ -162,6 +163,13 @@ public interface SongStructure
         }
         return timeSignatures;
     }
+
+    /**
+     * Get the optional Song this instance belongs to.
+     *
+     * @return Can be null.
+     */
+    Song getSong();
 
     /**
      * The parent ChordLeadSheet.
@@ -349,8 +357,8 @@ public interface SongStructure
      *
      * @param spts
      * @param newRhythm        If null rhythm will be unchanged.
-     * @param newParentSection If null parentSection is unchanged. If not null, parentSection must match the rhythm time signature, have a container
-     *                         defined, and have the same bar size as the SongParts.
+     * @param newParentSection If null parentSection is unchanged. If not null, parentSection must match the rhythm time signature, have a container defined,
+     *                         and have the same bar size as the SongParts.
      * @throws UnsupportedEditException Exception is thrown before any change is done. See testChangeEventForVeto().
      * @see #testChangeEventForVeto(org.jjazz.songstructure.api.event.SgsChangeEvent)
      */

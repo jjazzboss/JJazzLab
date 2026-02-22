@@ -76,8 +76,9 @@ public interface MidiMixManager
     /**
      * Try to get a MidiMix for the specified Rhythm in the following order:
      * <p>
-     * 1. Load mix from the default rhythm mix file <br>
-     * 2. Create a new mix for r
+     * 1. If the mix for rhythm r already exists, just return it <br>
+     * 2. Load mix from the default rhythm mix file <br>
+     * 3. Create a new mix for r
      * <p>
      *
      * @param r

@@ -101,7 +101,7 @@ public class SaveRhythmDefaultMix extends AbstractAction
         for (Rhythm r : savedRhythms)
         {
             File f = MidiMix.getRhythmMixFile(r.getName(), r.getFile());
-            MidiMix rhythmMix = new MidiMix();
+            MidiMix rhythmMix = new MidiMix(r);
             try
             {
                 rhythmMix.addInstrumentMixes(songMidiMix, r);

@@ -414,6 +414,18 @@ public class InstrumentSettings implements Serializable
         }
     }
 
+    /**
+     * Check if music generation is impacted by switching from oldIs to newIs.
+     *
+     * @param oldIs
+     * @param newIs
+     * @return
+     */
+    static public boolean isMusicGenerationImpacted(InstrumentSettings oldIs, InstrumentSettings newIs)
+    {
+        return oldIs.getTransposition() != newIs.getTransposition() || oldIs.getVelocityShift() != newIs.getVelocityShift();
+    }
+
     public void addPropertyChangeListener(PropertyChangeListener l)
     {
         pcs.addPropertyChangeListener(l);
@@ -436,6 +448,7 @@ public class InstrumentSettings implements Serializable
     @ServiceProvider(service = XStreamConfigurator.class)
     public static class XStreamConfig implements XStreamConfigurator
     {
+
         @Override
         public void configure(XStreamConfigurator.InstanceId instanceId, XStream xstream)
         {
@@ -460,6 +473,7 @@ public class InstrumentSettings implements Serializable
             }
         }
     }
+
     // --------------------------------------------------------------------- 
     // Serialization
     // ---------------------------------------------------------------------
@@ -475,11 +489,12 @@ public class InstrumentSettings implements Serializable
 
     /**
      * Serialization proxy.
-     * 
+     * <p>
      * spVERSION 2 introduces new XStream aliases (see XStreamConfig)
      */
     private static class SerializationProxy implements Serializable
     {
+
         private static final long serialVersionUID = -297226301726L;
         private int spVERSION = 2;      // Do not make final!
         private int spTransposition;

@@ -34,7 +34,6 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.song.api.Song;
 import org.jjazz.mixconsole.api.MixConsole;
 import org.jjazz.mixconsole.api.MixConsoleTopComponent;
-import org.jjazz.rhythm.spi.RhythmDirsLocator;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;

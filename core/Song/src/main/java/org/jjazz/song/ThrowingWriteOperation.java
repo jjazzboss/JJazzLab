@@ -35,4 +35,19 @@ import org.jjazz.utilities.api.ThrowingSupplier;
 public interface ThrowingWriteOperation<T> extends ThrowingSupplier<WriteOperationResults<T>, UnsupportedEditException>, Operation
 {
 
+    /**
+     * Helper method to create a ThrowingWriteOperation with no events.
+     *
+     * @param <T>       The type of the return value provided by the operation.
+     * @param operation
+     * @return Return value of operation. Can be null.
+     */
+    public static <T> ThrowingWriteOperation<T> of(ThrowingSupplier<T, UnsupportedEditException> operation)
+    {
+        return () -> 
+        {
+            T res = operation.get();    // throws UnsupportedEditException
+            return WriteOperationResults.of(res);
+        };
+    }
 }

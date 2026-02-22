@@ -14,4 +14,9 @@
 
 Tests:
 - evaluate all modules impacted by code changes  (+ indirect users)
-- add unit tests when possible
+- add unit tests 
+  - make sure unit tests contain 2-rhythm songs
+  - adaptedsong and not
+  - MidiMix with drumsReroutingChannel
+  - MidiMixUtils
+  -- 

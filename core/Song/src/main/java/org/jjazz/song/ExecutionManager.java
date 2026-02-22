@@ -24,6 +24,7 @@
  */
 package org.jjazz.song;
 
+import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -35,51 +36,56 @@ import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
 import org.jjazz.chordleadsheet.api.item.WritableItem;
 import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.midimix.api.MidiMixImpl;
 import org.jjazz.song.api.Song;
+import org.jjazz.song.api.SongPropertyChangeEvent;
 import org.jjazz.songstructure.SongPartImpl;
 import org.jjazz.songstructure.SongStructureImpl;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
+import org.jjazz.utilities.api.ThrowingSupplier;
 import org.openide.util.Exceptions;
 
 /**
- * Execute Song-related API methods with a safe concurrency design while ensuring global Song data consistency across Song model components: ChordLeadSheet,
- * SongStructure, SongParts, ChordLeadSheetItems, MidiMix.
+ * Execute Song-related API methods with a safe concurrency design while ensuring global Song data consistency across Song model components: Song,
+ * ChordLeadSheet and ChordLeadSheetItems, SongStructure and SongParts, ChordLeadSheetItems, MidiMix.
  * <p>
  * The most common concurrency scenario is a background music generation thread which often calls SongContext/Song.getDeepCopy(), while user is possibly making
  * changes to the song via the UI. In the future we could also have the case of a plugin which updates the current song while user is also modifying it via the
  * UI.
  * <p>
- * Global Song data consistency: a ChordLeadSheet change might impact SongStructure (and MidiMix) and vice-versa. We need to make sure that all these changes
- * (managed by the SongInternalUpdater) are executed under the same write lock, so that getDeepCopy() does not capture an inconsistent state.
+ * Global Song data consistency: a ChordLeadSheet change might impact SongStructure (and MidiMix) and vice-versa. We need to make sure that all these derived
+ * changes (managed by the SongInternalUpdater) are executed under the same write lock, so that getDeepCopy() does not capture an inconsistent state.
  * <p>
- * The ExecutionManager also manages change event firing from the Song components. Objective is that event firing takes place outside of any synchronization
- * lock.
+ * The ExecutionManager fires the change events from the Song components outside of write lock, after the primary and derived changes have been made.
  */
 public class ExecutionManager
 {
 
     private final ReentrantReadWriteLock lock;
-    private final Song song;
     private MidiMix midiMix;
     private final SongInternalUpdater songInternalUpdater;
     private static final Logger LOGGER = Logger.getLogger(ExecutionManager.class.getSimpleName());
 
-    public ExecutionManager(Song song)
+    public ExecutionManager()
     {
-        Objects.requireNonNull(song);
         this.lock = new ReentrantReadWriteLock();
-        this.song = song;
-        this.songInternalUpdater = new SongInternalUpdater(song);
+        this.songInternalUpdater = null;
+    }
+
+    public ExecutionManager(Song song, boolean disableInternalUpdates)
+    {
+        this.lock = new ReentrantReadWriteLock();
+        this.songInternalUpdater = disableInternalUpdates ? null : new SongInternalUpdater(song);
+    }
+
+    public ReentrantReadWriteLock getLock()
+    {
+        return lock;
     }
 
     public MidiMix getMidiMix()
     {
         return this.midiMix;
-    }
-
-    public Song getSong()
-    {
-        return song;
     }
 
     public boolean isWriteLockedByCurrentThread()
@@ -107,45 +113,59 @@ public class ExecutionManager
     }
 
     /**
+     * Execute a read operation under read lock, possibly throwing an exception.
+     *
+     * @param <T>
+     * @param <E>
+     * @param readOperation
+     * @return
+     * @throws E
+     */
+    public <T, E extends Exception> T executeReadOperationThrowing(ThrowingSupplier<T, E> readOperation) throws E
+    {
+        lock.readLock().lock();
+        try
+        {
+            return readOperation.get();     // throws E
+        } finally
+        {
+            lock.readLock().unlock();
+        }
+    }
+
+    /**
      * Safely perform a mutating operation, possibly returning a value.
      * <p>
-     * The operation is responsible to fire its undoable edit if relevant.
+     * The operation and its possible derived operations on Song components are executed under write lock. All change events are fired outside of write lock,
+     * after the changes are complete.
      *
      * @param <R>       The type of the return value
-     * @param operation
+     * @param operation The operation to execute. It is responsible to fire its undoable edit if relevant.
      * @return The returnValue from WriteOperationResults. Can be null.
+     * @see #executeWriteOperationThrowing(org.jjazz.song.ThrowingWriteOperation)
      */
     public <R> R executeWriteOperation(WriteOperation<R> operation)
     {
         Objects.requireNonNull(operation);
-
-        // Wrap operation as a ThrowingWriteOperation in order to reuse executeWriteOperationThrowing()
-        try
-        {
-            var res = executeWriteOperationThrowing(() -> operation.get());
-            return res;
-        } catch (UnsupportedEditException ex)
-        {
-            // Should never happen
-            Exceptions.printStackTrace(ex);
-            throw new IllegalStateException("executeWriteOperation() ex=" + ex);
-        }
-
+        return executeWriteOperations(List.of(operation));
     }
 
     /**
-     * Safely perform a mutating operation which can throw an UnsupportedEditException, possibly returning a value.
-     * <p>
-     * The operation is responsible to fire its undoable edit if relevant.
+     * Same as {@link #executeWriteOperation(org.jjazz.song.WriteOperation)} but for a list of operations.
      *
-     * @param <R>               The type of the return value
-     * @param throwingOperation
-     * @return The returnValue from WriteOperationResults. Can be null.
-     * @throws org.jjazz.chordleadsheet.api.UnsupportedEditException
+     * @param <R>        The type of the return value
+     * @param operations
+     * @return The returnValue from the first operation. Can be null.
      */
-    public <R> R executeWriteOperationThrowing(ThrowingWriteOperation<R> throwingOperation) throws UnsupportedEditException
+    public <R> R executeWriteOperations(List<WriteOperation> operations)
     {
-        Objects.requireNonNull(throwingOperation);
+        Objects.requireNonNull(operations);
+        Preconditions.checkState(!isWriteLockedByCurrentThread(), "Already under writeLock! lock=" + lock.toString());
+
+        if (operations.isEmpty())
+        {
+            return null;
+        }
 
         List<WriteOperationResults> allOperationResults = new ArrayList<>();
         WriteOperationResults<R> operationResults = null;
@@ -153,7 +173,16 @@ public class ExecutionManager
         lock.writeLock().lock();
         try
         {
-            executeOperationChain(allOperationResults, throwingOperation);    // throws UnsupportedEditException
+            operationResults = executeOperationChain(operations.getFirst(), allOperationResults);
+            for (int i = 1; i < operations.size(); i++)
+            {
+                executeOperationChain(operations.get(i), allOperationResults);
+            }
+        } catch (UnsupportedEditException ex)
+        {
+            // Should never happen with WriteOperations
+            Exceptions.printStackTrace(ex);
+            throw new IllegalStateException("executeWriteOperation() ex=" + ex);
         } finally
         {
             lock.writeLock().unlock();
@@ -161,46 +190,75 @@ public class ExecutionManager
 
 
         // Fire the change events outside lock
-        for (var opResult : allOperationResults)
+        fireAllOperationEvents(allOperationResults);
+
+
+        // Return the value from the initial operation
+        R returnValue = (R) operationResults.returnValue();     // Can be null
+        return returnValue;
+    }
+
+    /**
+     * Same as executeWriteOperations() except operation can throw an UnsupportedEditException.
+     *
+     * @param <R>               The type of the return value
+     * @param throwingOperation The operation to execute. It is responsible to fire its undoable edit if relevant.
+     * @return The returnValue from WriteOperationResults. Can be null.
+     * @throws org.jjazz.chordleadsheet.api.UnsupportedEditException
+     * @see #executeWriteOperation(org.jjazz.song.WriteOperation)
+     */
+    public <R> R executeWriteOperationThrowing(ThrowingWriteOperation<R> throwingOperation) throws UnsupportedEditException
+    {
+        Objects.requireNonNull(throwingOperation);
+        Preconditions.checkState(!isWriteLockedByCurrentThread(), "Already under writeLock! lock=" + lock.toString());
+
+        List<WriteOperationResults> allOperationResults = new ArrayList<>();
+        WriteOperationResults<R> operationResults = null;
+
+        lock.writeLock().lock();
+        try
         {
-            if (opResult.clsChangeEvent() instanceof ClsChangeEvent cce)
-            {
-                // The main change event
-                ((ChordLeadSheetImpl) cce.getSource()).fireChangeEvent(cce);
-
-                // Possible associated ChordLeadSheetItem changes
-                for (var propEvent : cce.getItemChanges())
-                {
-                    ((WritableItem) propEvent.getSource()).firePropertyChangeEvent(propEvent);
-                }
-            }
-
-            if (opResult.sgsChangeEvent() instanceof SgsChangeEvent sce)
-            {
-                // The main change event
-                ((SongStructureImpl) sce.getSource()).fireChangeEvent(sce);
-
-                // Possible associated SongPart changes
-                for (var propEvent : sce.getSongPartChanges())
-                {
-                    ((SongPartImpl) propEvent.getSource()).firePropertyChangeEvent(propEvent);
-                }
-            }
+            operationResults = executeOperationChain(throwingOperation, allOperationResults);    // throws UnsupportedEditException
+        } finally
+        {
+            lock.writeLock().unlock();
         }
 
+        fireAllOperationEvents(allOperationResults);
 
         // Return the value from the operation
         R returnValue = (R) operationResults.returnValue();     // Can be null
         return returnValue;
     }
 
+
     public void preCheckChange(ClsChangeEvent event) throws UnsupportedEditException
     {
+        if (songInternalUpdater == null)
+        {
+            // Internal updates disabled
+            return;
+        }
         songInternalUpdater.preCheckChange(event);
     }
 
     public void preCheckChange(SgsChangeEvent event) throws UnsupportedEditException
     {
+        if (songInternalUpdater == null)
+        {
+            // Internal updates disabled
+            return;
+        }
+        songInternalUpdater.preCheckChange(event);
+    }
+
+    public void preCheckChange(SongPropertyChangeEvent event) throws UnsupportedEditException
+    {
+        if (songInternalUpdater == null)
+        {
+            // Internal updates disabled
+            return;
+        }
         songInternalUpdater.preCheckChange(event);
     }
 
@@ -209,21 +267,32 @@ public class ExecutionManager
     // ===============================================================================================================    
 
     /**
-     * Execute op and its next operations recursively.
+     * Execute op then its derived operations recursively.
+     * <p>
+     * Accumulate the operation results in cumulativeOpResults.
      *
      * @param cumulativeOpResults Cumulative list containing all operationResults
-     * @param op
+     * @param operation
+     * @return The return value from executing operation.
      * @throws org.jjazz.chordleadsheet.api.UnsupportedEditException
      */
-    private void executeOperationChain(List<WriteOperationResults> cumulativeOpResults, Operation op) throws UnsupportedEditException
+    private WriteOperationResults executeOperationChain(Operation operation, List<WriteOperationResults> cumulativeOpResults) throws UnsupportedEditException
     {
-        var opResults = execute(op);        // throws UnsupportedEditException
+        // Execute operation
+        var opResults = execute(operation);        // throws UnsupportedEditException                
         cumulativeOpResults.add(opResults);
-        List<Operation> nextOperations = songInternalUpdater.getNextOperations(opResults);
-        for (var nextOperation : nextOperations)
+
+        if (songInternalUpdater != null)
         {
-            executeOperationChain(cumulativeOpResults, nextOperation);
+            // Execute derived operations recursively
+            List<Operation> derivedOperations = songInternalUpdater.getDerivedOperations(opResults);
+            for (var derivedOperation : derivedOperations)
+            {
+                executeOperationChain(derivedOperation, cumulativeOpResults);
+            }
         }
+
+        return opResults;
     }
 
     /**
@@ -236,17 +305,68 @@ public class ExecutionManager
      */
     private <T> WriteOperationResults<T> execute(Operation<T> op) throws UnsupportedEditException
     {
-        if (op instanceof WriteOperation wop)
+        WriteOperationResults results = switch (op)
         {
-            return ((WriteOperation<T>) wop).get();
-        } else if (op instanceof ThrowingWriteOperation twop)
-        {
-            return ((ThrowingWriteOperation<T>) twop).get();   // throws UnsupportedEditException
-        } else
-        {
-            throw new IllegalArgumentException("op=" + op);
-        }
+            case WriteOperation wop ->
+                ((WriteOperation<T>) wop).get();
+            case ThrowingWriteOperation twop ->
+                ((ThrowingWriteOperation<T>) twop).get();   // throws UnsupportedEditException
+            default -> throw new IllegalArgumentException("op=" + op);
+        };
+        return results;
     }
 
+    /**
+     * Fire all the events from the operation results.
+     *
+     * @param opResults
+     */
+    private void fireAllOperationEvents(List<WriteOperationResults> opResults)
+    {
+        for (var opResult : opResults)
+        {
+            if (opResult.clsChangeEvent() instanceof ClsChangeEvent cce)
+            {
+                // The main change event
+                ((ChordLeadSheetImpl) cce.getSource()).fireChangeEvent(cce);
 
+                // Possible associated ChordLeadSheetItem changes
+                for (var propEvent : cce.getItemChanges())
+                {
+                    ((WritableItem) propEvent.getSource()).firePropertyChangeEvent(propEvent);
+                }
+
+            } else if (opResult.sgsChangeEvent() instanceof SgsChangeEvent sce)
+            {
+                // The main change event
+                ((SongStructureImpl) sce.getSource()).fireChangeEvent(sce);
+
+                // Possible associated SongPart changes
+                for (var propEvent : sce.getSongPartChanges())
+                {
+                    ((SongPartImpl) propEvent.getSource()).firePropertyChangeEvent(propEvent);
+                }
+
+            } else if (opResult.pChangeEvent() instanceof SongPropertyChangeEvent spce)
+            {
+                // SongPropertyChangeEvent is used as main event for Song and MidiMix
+                switch (spce.getSource())
+                {
+                    case SongImpl sgImpl ->
+                    {
+                        sgImpl.fireChangeEvent(spce);
+                    }
+                    case MidiMixImpl mmImpl ->
+                    {
+                        mmImpl.firePropertyChangeEvent(spce);
+                    }
+                    default ->
+                    {
+                        throw new IllegalArgumentException("spce=" + spce);
+                    }
+                }
+
+            }
+        }
+    }
 }

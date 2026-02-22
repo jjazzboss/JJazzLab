@@ -23,40 +23,36 @@
 package org.jjazz.song.api;
 
 import com.google.common.base.Preconditions;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyVetoException;
+import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Objects;
-import java.util.Set;
-import java.util.WeakHashMap;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jjazz.chordleadsheet.ChordLeadSheetImpl;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.chordleadsheet.api.ChordLeadSheetFactory;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.songstructure.api.SongStructure;
+import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
+import org.jjazz.harmony.api.Position;
+import org.jjazz.rhythm.api.Rhythm;
+import org.jjazz.rhythmdatabase.api.RhythmDatabase;
+import org.jjazz.rhythmdatabase.api.RhythmInfo;
+import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
+import org.jjazz.songstructure.SongStructureImpl;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.songstructure.api.SongStructureFactory;
-import org.openide.util.Exceptions;
+import org.jjazz.songstructure.api.SongStructure;
 
 /**
- * Manage the creation and the registration of the songs.
+ * Manage the creation of Song and related components.
  * <p>
- * All songs created by this factory are automatically registered. Registered songs are unregistered when song is closed.
  */
-public class SongFactory implements PropertyChangeListener
+public class SongFactory
 {
 
     static private SongFactory INSTANCE;
-    // Use WeakReference to avoid a memory leak if for some reason a closed song was not unregistered. Integer value is not used. 
-    private final WeakHashMap<Song, Integer> songs;
-    /**
-     * Used to make sure we don't have the same name twice.
-     */
-    private static int counter = 1;
 
     private static final Logger LOGGER = Logger.getLogger(SongFactory.class.getSimpleName());
 
@@ -74,105 +70,13 @@ public class SongFactory implements PropertyChangeListener
 
     private SongFactory()
     {
-        songs = new WeakHashMap<>();
     }
 
-    /**
-     *
-     * @return An unmodifiable set of the songs registered by this factory.
-     */
-    public Set<Song> getRegisteredSongs()
-    {
-        return Collections.unmodifiableSet(songs.keySet());
-    }
 
     /**
-     * Register a song if it was not created by this SongFactory.
-     *
-     * @param sg
-     */
-    public void registerSong(Song sg)
-    {
-        Objects.requireNonNull(sg);
-        if (songs.put(sg, 0) == null)
-        {
-            sg.addPropertyChangeListener(this);
-        }
-    }
-
-    /**
-     * Provide a new song name which is not used by any currently opened song.
-     *
-     * @param baseName Can't be blank
-     * @return
-     */
-    public String getNewSongName(String baseName)
-    {
-        Objects.requireNonNull(baseName);
-        Preconditions.checkArgument(!baseName.isBlank(), "baseName=%s", baseName);
-        String name = baseName + counter;
-        while (!isSongNameUsed(name))
-        {
-            counter++;
-            name = baseName + counter;
-        }
-        return name;
-    }
-
-    /**
-     * Remove a song from the list returned by getRegisteredSong().
-     *
-     * @param song
-     */
-    public void unregisterSong(Song song)
-    {
-        Objects.requireNonNull(song);
-        songs.remove(song);
-        song.removePropertyChangeListener(this);
-    }
-
-    /**
-     * Find in the created song the first one which uses the specified SongStructure.
-     *
-     * @param sgs
-     * @return
-     */
-    public Song findSong(SongStructure sgs)
-    {
-        Song res = null;
-        for (Song song : songs.keySet())
-        {
-            if (song.getSongStructure() == sgs)
-            {
-                res = song;
-                break;
-            }
-        }
-        return res;
-    }
-
-    /**
-     * Find in the created song the first one which uses the specified ChordLeadSheet.
-     *
-     * @param cls
-     * @return
-     */
-    public Song findSong(ChordLeadSheet cls)
-    {
-        Song res = null;
-        for (Song song : songs.keySet())
-        {
-            if (song.getChordLeadSheet() == cls)
-            {
-                res = song;
-                break;
-            }
-        }
-        return res;
-    }
-
-    /**
-     * Create a Song from the specified chordleadsheet.
+     * Create a Song from the specified ChordLeadSheet.
+     * <p>
+     * The SongStructure is created from the ChordLeadSheet.
      *
      * @param name
      * @param cls
@@ -181,12 +85,11 @@ public class SongFactory implements PropertyChangeListener
      */
     public Song createSong(String name, ChordLeadSheet cls) throws UnsupportedEditException
     {
-        if (name == null || name.isEmpty() || cls == null)
-        {
-            throw new IllegalArgumentException("name=" + name + " cls=" + cls);
-        }
-        Song song = new Song(name, cls);
-        registerSong(song);
+        Objects.requireNonNull(name);
+        Objects.requireNonNull(cls);
+        Preconditions.checkArgument(!name.isBlank());
+        var sgs = createSongStructure(cls);
+        Song song = new Song(name, sgs, false);
         return song;
     }
 
@@ -204,22 +107,21 @@ public class SongFactory implements PropertyChangeListener
     }
 
     /**
-     * Create a Song from a SongStructure and its parent ChordLeadSheet, possibly unlinked.
+     * Create a Song from a SongStructure and its parent ChordLeadSheet.
      *
      * @param name
-     * @param sgs          sgs.getParentChordLeadSheet() must be non null
-     * @param noClsSgsLink If true, there will be no automatic update between the ChordLeadSheet and the SongStructure. To be used with care only for special
-     *                     purposes (e.g. unit tests), as the Song might be in an inconsistent state.
+     * @param sgs                        sgs.getParentChordLeadSheet() must be non null
+     * @param disableSongInternalUpdates If true the returned instance will have internal consistency updates disabled, e.g. changing a section in the
+     *                                   ChordLeadSheet won't impact the SongStructure. For special purposes only, this can lead to inconsistent Song states..
      * @return
      * @throws UnsupportedEditException Can happen if too many timesignature changes resulting in not enough Midi channels for the various rhythms.
      */
-    public Song createSong(String name, SongStructure sgs, boolean noClsSgsLink) throws UnsupportedEditException
+    public Song createSong(String name, SongStructure sgs, boolean disableSongInternalUpdates) throws UnsupportedEditException
     {
         Objects.requireNonNull(name);
         Objects.requireNonNull(sgs);
-        Preconditions.checkArgument(!name.isBlank(), "name=%s", name);
-        Song song = new Song(name, sgs, noClsSgsLink);
-        registerSong(song);
+        Preconditions.checkArgument(!name.isBlank());
+        Song song = new Song(name, sgs, disableSongInternalUpdates);
         return song;
     }
 
@@ -252,12 +154,13 @@ public class SongFactory implements PropertyChangeListener
         Objects.requireNonNull(ts);
         Preconditions.checkArgument(nbBars > 0, "nbBars=%s", nbBars);
 
-        ChordLeadSheetFactory clsf = ChordLeadSheetFactory.getDefault();
-        ChordLeadSheet cls = clsf.createEmptyLeadSheet(initSectionName, ts, nbBars, initialChord);
+
         Song song = null;
         try
         {
-            song = new Song(songName, cls);
+            ChordLeadSheet cls = createEmptyChordLeadSheet(initSectionName, ts, nbBars, initialChord);
+            var sgs = createSongStructure(cls);
+            song = new Song(songName, sgs, false);
         } catch (UnsupportedEditException ex)
         {
             // We should not be here
@@ -266,63 +169,172 @@ public class SongFactory implements PropertyChangeListener
         int tempo = song.getSongStructure().getSongPart(0).getRhythm().getPreferredTempo();
         song.setTempo(tempo);
         song.setSaveNeeded(false);
-        registerSong(song);
         return song;
     }
 
-    public boolean isSongNameUsed(String name)
-    {
-        boolean b = true;
-        for (Song sg : getRegisteredSongs())
-        {
-            if (sg.getName().equals(name))
-            {
-                b = false;
-                break;
-            }
-        }
-        return b;
-    }
 
     /**
-     * Return a deep copy of the specified song.
-     * <p>
-     * Listeners or file are NOT copied. Returned song is not closed, even if the original song was.
+     * Create an empty chord leadsheet with the specified parameters.
      *
-     * @param song
-     * @param noClsSgsLink If true, updating the chord leadsheet will not update the song structure
-     * @param register     If true register the created song
+     * @param sectionName
+     * @param ts
+     * @param size
+     * @param initialChord e.g. "C7". If null no initial chord is added.
      * @return
      */
-    @SuppressWarnings(
-            {
-                "unchecked"
-            })
-    public Song getCopy(Song song, boolean noClsSgsLink, boolean register)
+    public ChordLeadSheet createEmptyChordLeadSheet(String sectionName, TimeSignature ts, int size, String initialChord)
     {
-        Song res = song.getDeepCopy(noClsSgsLink);
-        if (register)
+        ChordLeadSheet cls = new ChordLeadSheetImpl(sectionName, ts, size);
+        CLI_Factory clif = CLI_Factory.getDefault();
+        if (initialChord != null)
         {
-            registerSong(res);
+            try
+            {
+                var ecs = ExtChordSymbol.get(initialChord);
+                cls.addItem(clif.createChordSymbol(ecs, new Position(0)));
+            } catch (ParseException ex)
+            {
+                LOGGER.log(Level.WARNING, "createEmptyChordLeadSheet() Invalid initialChord={0}, ignored", initialChord);
+            }
+
         }
-        return res;
+        return cls;
     }
 
-    // =================================================================================
-    // PropertyChangeListener methods
-    // =================================================================================    
-    @Override
-    public void propertyChange(PropertyChangeEvent e)
+    public ChordLeadSheet createSampleChordLeadSheet12bars(String sectionName, int size)
     {
-        if (e.getSource() instanceof Song sg)
+        if (size < 12)
         {
-            assert songs.keySet().contains(sg) : "song=" + sg + " songs=" + songs.keySet();
-            if (e.getPropertyName().equals(Song.PROP_CLOSED))
+            throw new IllegalArgumentException("size=" + size);
+        }
+        ChordLeadSheet cls = new ChordLeadSheetImpl(sectionName, TimeSignature.FOUR_FOUR, size);
+        CLI_Factory clif = CLI_Factory.getDefault();
+        try
+        {
+            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("Dm7"), 0, 0));
+            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("C-7"), 0, 2f));
+            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("F#7"), 1, 0));
+            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("Bbmaj7#5"), 1, 2));
+            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("A"), 1, 3f));
+            cls.addSection(clif.createSection("Chorus", TimeSignature.THREE_FOUR, 2, null));
+            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("D7b9b5"), 2, 1f));
+            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("FM7#11"), 4, 3f));
+            cls.addSection(clif.createSection("Bridge", TimeSignature.FOUR_FOUR, 5, null));
+            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("Eb7b9#5"), 5, 0.75f));
+            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("Ab7#11"), 6, 0));
+            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("A#"), 6, 4f));
+            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("F7alt"), 6, 1.5f));
+            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("G7#9#5"), 7, 2f));
+            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("G#7dim"), 8, 0f));
+            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("Dbmaj7"), 8, 2));
+            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("Gbmaj7"), 9, 0));
+            cls.addItem(clif.createChordSymbol(ExtChordSymbol.get("G#maj7"), 11, 3f));
+        } catch (ParseException | UnsupportedEditException ex)
+        {
+            String msg = "Error creating sample leadsheet.\n" + ex.getLocalizedMessage();
+            LOGGER.log(Level.WARNING, "createSampleChordLeadSheet12bars() {0}", msg);
+            throw new IllegalStateException(msg);
+        }
+        return cls;
+    }
+
+    public ChordLeadSheet createRamdomChordLeadSheet(String sectionName, TimeSignature ts, int size)
+    {
+        int sectionId = 0;
+        if (size < 1)
+        {
+            throw new IllegalArgumentException("size=" + size);
+        }
+        CLI_Factory clif = CLI_Factory.getDefault();
+        ChordLeadSheet cls = new ChordLeadSheetImpl(sectionName, ts, size);
+        for (int i = 0; i < size; i++)
+        {
+            ExtChordSymbol cs = ExtChordSymbol.createRandomChordSymbol();
+            CLI_ChordSymbol cli = clif.createChordSymbol(cs, i, 0);
+            cls.addItem(cli);
+            if (Math.random() > .8f)
             {
-                unregisterSong(sg);
+                cs = ExtChordSymbol.createRandomChordSymbol();
+                cli = clif.createChordSymbol(cs, i, 2);
+                cls.addItem(cli);
+            }
+            if (i > 0 && Math.random() > .9f)
+            {
+                TimeSignature ts2 = TimeSignature.FOUR_FOUR;
+                if (Math.random() > 0.8f)
+                {
+                    ts2 = TimeSignature.THREE_FOUR;
+                }
+                CLI_Section section = clif.createSection(sectionName + sectionId++, ts2, i, null);
+                try
+                {
+                    cls.addSection(section);
+                } catch (UnsupportedEditException ex)
+                {
+                    // Do nothing, section is not added but it's not a problem as it's a random thing
+                }
             }
         }
+        return cls;
     }
+
+
+    /**
+     * Create a SongStructure with cls as parentChordLeadSheet.
+     * <p>
+     * One SongPart is created for each cls section. <br>
+     *
+     * @param cls
+     * @return
+     * @throws org.jjazz.chordleadsheet.api.UnsupportedEditException
+     */
+    public SongStructure createSongStructure(ChordLeadSheet cls) throws UnsupportedEditException
+    {
+        Objects.requireNonNull(cls);
+
+        SongStructureImpl sgs = new SongStructureImpl(cls);
+
+        var rdb = RhythmDatabase.getDefault();
+
+        var newSpts = new ArrayList<SongPart>();
+        for (var section : cls.getItems(CLI_Section.class))
+        {
+            int sptBarIndex = section.getPosition().getBar();
+
+
+            Rhythm r = null;
+            RhythmInfo ri = null;
+            try
+            {
+                ri = rdb.getDefaultRhythm(section.getData().getTimeSignature());
+                r = rdb.getRhythmInstance(ri);
+            } catch (UnavailableRhythmException ex)
+            {
+                // Might happen if file deleted
+                LOGGER.log(Level.WARNING, "createSgs() Can''t get rhythm instance for {0}. Using stub rhythm instead. ex={1}", new Object[]
+                {
+                    ri.name(),
+                    ex.getMessage()
+                });
+                r = rdb.getDefaultStubRhythmInstance(section.getData().getTimeSignature());  // non null
+            }
+
+            SongPart spt = sgs.createSongPart(
+                    r,
+                    section.getData().getName(),
+                    sptBarIndex,
+                    section,
+                    false);
+            newSpts.add(spt);
+        }
+
+        // Add new song parts in one shot to avoid issue if an AdaptedRhythm is used      
+        sgs.addSongParts(newSpts);      // throws UnsupportedEditException
+
+
+        return sgs;
+    }
+
 
     // =================================================================================
     // Private methods

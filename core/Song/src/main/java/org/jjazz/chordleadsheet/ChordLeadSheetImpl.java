@@ -36,7 +36,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.TreeSet;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -59,6 +58,8 @@ import org.jjazz.song.ExecutionManager;
 import org.jjazz.song.ThrowingWriteOperation;
 import org.jjazz.song.WriteOperation;
 import org.jjazz.song.WriteOperationResults;
+import org.jjazz.song.api.Song;
+import org.jjazz.utilities.api.ThrowingSupplier;
 import org.jjazz.xstream.spi.XStreamConfigurator;
 import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_LOAD;
 import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_SAVE;
@@ -85,6 +86,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
      * The size of the leadsheet in bars.
      */
     private int size;
+    private transient Song song;
     private ExecutionManager executionManager;
     /**
      * The listeners for changes in this LeadSheet.
@@ -95,6 +97,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
      */
     protected final transient CopyOnWriteArrayList<UndoableEditListener> undoListeners;
     private static final Logger LOGGER = Logger.getLogger(ChordLeadSheetImpl.class.getSimpleName());
+
 
     public ChordLeadSheetImpl(String initSection, TimeSignature ts, int size)
     {
@@ -111,7 +114,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         this.undoListeners = new CopyOnWriteArrayList<>();
         this.items = new TreeSet<>();
         this.size = size;
-
+        this.executionManager = new ExecutionManager();
 
         items.add(initSection);
     }
@@ -1539,6 +1542,17 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     }
 
     @Override
+    public Song getSong()
+    {
+        return this.song;
+    }
+
+    public void setSong(Song sg)
+    {
+        this.song = sg;
+    }
+
+    @Override
     public void addUndoableEditListener(UndoableEditListener l)
     {
         Objects.requireNonNull(l);
@@ -1630,6 +1644,34 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         return tmpRecord.equals(tmpRecordOther);
     }
 
+    public <R> R performWriteAPImethod(WriteOperation<R> operation)
+    {
+        R res = executionManager.executeWriteOperation(operation);
+        return res;
+    }
+
+    public <R> R performWriteAPImethodThrowing(ThrowingWriteOperation<R> operation) throws UnsupportedEditException
+    {
+        R res = executionManager.executeWriteOperationThrowing(operation);
+        return res;
+    }
+
+    public <R> R performReadAPImethod(Supplier<R> operation)
+    {
+        R res = executionManager.executeReadOperation(operation);
+        return res;
+    }
+
+    public <R, E extends Exception> R performReadAPImethodThrowing(ThrowingSupplier<R, E> operation) throws E
+    {
+        R res = executionManager.executeReadOperationThrowing(operation);
+        return res;
+    }
+
+    public void preCheckChange(ClsChangeEvent event) throws UnsupportedEditException
+    {
+        executionManager.preCheckChange(event);
+    }
 
     // --------------------------------------------------------------------------------------
     // SongModelComponent interface
@@ -1772,33 +1814,9 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     }
 
 
-    private <R> R performWriteAPImethod(WriteOperation<R> operation)
-    {
-        R res = executionManager.executeWriteOperation(operation);
-        return res;
-    }
-
-    private <R> R performWriteAPImethodThrowing(ThrowingWriteOperation<R> operation) throws UnsupportedEditException
-    {
-        R res = executionManager.executeWriteOperationThrowing(operation);
-        return res;
-    }
-
-    private <R> R performReadAPImethod(Supplier<R> operation)
-    {
-        R res = executionManager.executeReadOperation(operation);
-        return res;
-    }
-
-    private void preCheckChange(ClsChangeEvent event) throws UnsupportedEditException
-    {
-        executionManager.preCheckChange(event);
-    }
-
     // ==========================================================================================================================
     // Inner classes
     // ==========================================================================================================================    
-
     /**
      * Helper class to store a moved item.
      */

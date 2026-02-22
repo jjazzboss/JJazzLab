@@ -44,7 +44,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -69,6 +68,7 @@ import org.jjazz.song.ExecutionManager;
 import org.jjazz.song.ThrowingWriteOperation;
 import org.jjazz.song.WriteOperation;
 import org.jjazz.song.WriteOperationResults;
+import org.jjazz.song.api.Song;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.SongPart;
@@ -76,6 +76,7 @@ import org.jjazz.songstructure.api.event.SptRenamedEvent.Renaming;
 import org.jjazz.songstructure.api.event.SptResizedEvent.Resizing;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
+import org.jjazz.utilities.api.ThrowingSupplier;
 import org.jjazz.xstream.spi.XStreamConfigurator;
 import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_LOAD;
 import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_SAVE;
@@ -104,6 +105,7 @@ public class SongStructureImpl implements SongStructure, Serializable
      * Keep the last Rhythm used for each TimeSignature.
      */
     private transient Map<TimeSignature, Rhythm> mapTsLastRhythm;
+    private transient Song song;
     /**
      * The listeners for changes.
      */
@@ -128,6 +130,7 @@ public class SongStructureImpl implements SongStructure, Serializable
         mapTsLastRhythm = new HashMap<>();
         listeners = new CopyOnWriteArrayList<>();
         undoListeners = new CopyOnWriteArrayList<>();
+        this.executionManager = new ExecutionManager();
     }
 
     public void setExecutionManager(ExecutionManager em)
@@ -1086,10 +1089,22 @@ public class SongStructureImpl implements SongStructure, Serializable
     }
 
     @Override
+    public Song getSong()
+    {
+        return this.song;
+    }
+
+    public void setSong(Song sg)
+    {
+        this.song = sg;
+    }
+
+    @Override
     public String toString()
     {
         return "size=" + getSizeInBars() + " spts=" + songParts;
     }
+
 
     /**
      * Fire a change event to all listeners.
@@ -1143,6 +1158,34 @@ public class SongStructureImpl implements SongStructure, Serializable
         undoListeners.remove(l);
     }
 
+    public <R> R performWriteAPImethod(WriteOperation<R> operation)
+    {
+        R res = executionManager.executeWriteOperation(operation);
+        return res;
+    }
+
+    public <R> R performWriteAPImethodThrowing(ThrowingWriteOperation<R> operation) throws UnsupportedEditException
+    {
+        R res = executionManager.executeWriteOperationThrowing(operation);
+        return res;
+    }
+
+    public <R> R performReadAPImethod(Supplier<R> operation)
+    {
+        R res = executionManager.executeReadOperation(operation);
+        return res;
+    }
+
+    public <R, E extends Exception> R performReadAPImethodThrowing(ThrowingSupplier<R, E> operation) throws E
+    {
+        R res = executionManager.executeReadOperationThrowing(operation);
+        return res;
+    }
+
+    public void preCheckChange(SgsChangeEvent event) throws UnsupportedEditException
+    {
+        executionManager.preCheckChange(event);
+    }
 
     // -------------------------------------------------------------------------------------------
     // Private methods
@@ -1283,29 +1326,6 @@ public class SongStructureImpl implements SongStructure, Serializable
         {
             l.undoableEditHappened(event);
         }
-    }
-
-    private <R> R performWriteAPImethod(WriteOperation<R> operation)
-    {
-        R res = executionManager.executeWriteOperation(operation);
-        return res;
-    }
-
-    private <R> R performWriteAPImethodThrowing(ThrowingWriteOperation<R> operation) throws UnsupportedEditException
-    {
-        R res = executionManager.executeWriteOperationThrowing(operation);
-        return res;
-    }
-
-    private <R> R performReadAPImethod(Supplier<R> operation)
-    {
-        R res = executionManager.executeReadOperation(operation);
-        return res;
-    }
-
-    private void preCheckChange(SgsChangeEvent event) throws UnsupportedEditException
-    {
-        executionManager.preCheckChange(event);
     }
 
 
