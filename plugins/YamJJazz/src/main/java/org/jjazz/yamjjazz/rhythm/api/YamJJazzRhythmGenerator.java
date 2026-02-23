@@ -66,11 +66,11 @@ import org.jjazz.phrase.api.Phrases;
 import org.jjazz.phrase.api.SourcePhrase;
 import org.jjazz.phrase.api.SourcePhraseSet;
 import org.jjazz.rhythmmusicgeneration.api.PhraseUtilities;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Fill;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Intensity;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
+import org.jjazz.rhythmparameters.api.RP_SYS_Fill;
+import org.jjazz.rhythmparameters.api.RP_SYS_Intensity;
+import org.jjazz.rhythmparameters.api.RP_SYS_Variation;
 import org.jjazz.song.api.SongFactory;
 import org.openide.util.Exceptions;
 import org.jjazz.songstructure.api.SongPart;
@@ -141,8 +141,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
         // Prepare a working context which can be modified 
         IntRange contextBarRange = contextOriginal.getBarRange();
         FloatRange contextBeatRange = contextOriginal.getBeatRange();
-        SongFactory sf = SongFactory.getInstance();
-        Song songWork = sf.getCopy(contextOriginal.getSong(), true, false);     // Sgs disconnected from Cls
+        Song songWork = contextOriginal.getSong().getDeepCopy(true);
         this.contextWork = new SongContext(songWork, contextOriginal.getMidiMix(), contextBarRange);
 
 

@@ -41,7 +41,6 @@ import org.jjazz.harmony.spi.ChordTypeDatabase;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.chordleadsheet.api.ChordLeadSheetFactory;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.CLI_Factory;
@@ -52,7 +51,6 @@ import org.jjazz.harmony.api.Position;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
 import org.jjazz.utilities.api.ResUtil;
-import org.openide.util.Exceptions;
 
 /**
  * Improvisor leadsheet file reader.
@@ -201,8 +199,7 @@ public class ImprovisorFileReader
                     if (cls == null)
                     {
                         // Create an empty leadsheet, 1 bar size
-                        ChordLeadSheetFactory clsf = ChordLeadSheetFactory.getDefault();
-                        cls = clsf.createEmptyLeadSheet(String.valueOf(sectionIndex), ts, 1, null);
+                        cls = SongFactory.getInstance().createEmptyChordLeadSheet(String.valueOf(sectionIndex), ts, 1, null);
                     }
                     barIndex = fillInChordLeadSheet(cls, ts, barIndex, line, file, lineCount);
                     // LOGGER.severe("importFromFile() chord line=" + line);

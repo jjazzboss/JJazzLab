@@ -26,6 +26,7 @@ package org.jjazz.midimix.spi;
 
 
 import javax.sound.midi.MidiUnavailableException;
+import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.midimix.api.DefaultMidiMixManager;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.rhythm.api.Rhythm;
@@ -58,9 +59,9 @@ public interface MidiMixManager
      *
      * @param s
      * @return A valid MidiMix usable for the specified song.
-     * @throws javax.sound.midi.MidiUnavailableException
+     * @throws org.jjazz.chordleadsheet.api.UnsupportedEditException If there is not enough available channels to accomodate all song rhythms
      */
-    MidiMix findMix(Song s) throws MidiUnavailableException;
+    MidiMix findMix(Song s) throws UnsupportedEditException;
 
     /**
      * Find a mix which must be existing.
@@ -93,9 +94,9 @@ public interface MidiMixManager
      *
      * @param sg
      * @return
-     * @throws MidiUnavailableException If there is not enough available channels to accomodate song's rhythms, or other errors.
+     * @throws org.jjazz.chordleadsheet.api.UnsupportedEditException If there is not enough available channels to accomodate all song rhythms
      */
-    MidiMix createMix(Song sg) throws MidiUnavailableException;
+    MidiMix createMix(Song sg) throws UnsupportedEditException;
 
     /**
      * Create a MidiMix for the specified rhythm.

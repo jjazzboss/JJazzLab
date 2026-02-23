@@ -41,6 +41,7 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.RhythmInfo;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
+import org.jjazz.song.SongImpl;
 import org.jjazz.songstructure.SongStructureImpl;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
@@ -89,7 +90,7 @@ public class SongFactory
         Objects.requireNonNull(cls);
         Preconditions.checkArgument(!name.isBlank());
         var sgs = createSongStructure(cls);
-        Song song = new Song(name, sgs, false);
+        Song song = new SongImpl(name, sgs, false);
         return song;
     }
 
@@ -121,7 +122,7 @@ public class SongFactory
         Objects.requireNonNull(name);
         Objects.requireNonNull(sgs);
         Preconditions.checkArgument(!name.isBlank());
-        Song song = new Song(name, sgs, disableSongInternalUpdates);
+        Song song = new SongImpl(name, sgs, disableSongInternalUpdates);
         return song;
     }
 
@@ -160,7 +161,7 @@ public class SongFactory
         {
             ChordLeadSheet cls = createEmptyChordLeadSheet(initSectionName, ts, nbBars, initialChord);
             var sgs = createSongStructure(cls);
-            song = new Song(songName, sgs, false);
+            song = new SongImpl(songName, sgs, false);
         } catch (UnsupportedEditException ex)
         {
             // We should not be here

@@ -24,18 +24,30 @@
  */
 package org.jjazz.midimix.api;
 
+import com.google.common.base.Preconditions;
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.XStreamException;
 import java.beans.PropertyChangeListener;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.event.UndoableEditListener;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
+import org.jjazz.rhythm.spi.RhythmDirsLocator;
 import org.jjazz.song.api.Song;
+import org.jjazz.utilities.api.Utilities;
+import org.jjazz.xstream.api.XStreamInstancesManager;
 
 /**
  * A set of up to 16 InstrumentMixes, 1 per Midi channel with 1 RhythmVoice associated.
@@ -102,6 +114,25 @@ public interface MidiMix
      */
     String PROP_RHYTHM_VOICE_CHANNEL = "RhythmVoiceChannel";
 
+    static final Logger LOGGER = Logger.getLogger(MidiMix.class.getSimpleName());
+
+    /**
+     * Add a user channel.
+     * <p>
+     * The channel will be associated to a UserRhythmVoice created from name.
+     *
+     * @param name
+     * @param isDrums
+     * @throws org.jjazz.chordleadsheet.api.UnsupportedEditException If no MIDI channel available or a user channel with that name already exists.
+     */
+    void addUserChannel(String name, boolean isDrums) throws UnsupportedEditException;
+
+    /**
+     * Remove a user channel.
+     *
+     * @param name The name of the UserRhythmVoice
+     */
+    void removeUserChannel(String name);
 
     void addPropertyChangeListener(PropertyChangeListener l);
 
@@ -139,7 +170,7 @@ public interface MidiMix
      * <p>
      * Mutable internal objects are deeply copied, e.g. InstrumentMixes. Not copied: listeners, isSaveNeeded.
      *
-     * @param song The song of the returned instance. If null reuse this song. If not null, caller is responsible to provide a song consistent with this
+     * @param song The song of the returned instance. If null the copy will directly reuse this song. If not null, caller is responsible to provide a song consistent with this
      *             MidiMix.
      * @return
      * @see #checkConsistency(org.jjazz.song.api.Song, boolean)
@@ -359,4 +390,81 @@ public interface MidiMix
      */
     void setRhythmVoice(RhythmVoice oldRv, RhythmVoice newRv);
 
+
+    /**
+     * Get the song mix File object for a specified song file.
+     * <p>
+     * SongMix file will be located in the same directory than songFile.
+     *
+     * @param songFile
+     * @return Return a new file identical to songFile except the extension. If songFile is null returns null.
+     */
+    static public File getSongMixFile(File songFile)
+    {
+        if (songFile == null)
+        {
+            return null;
+        }
+        var res = Utilities.replaceExtension(songFile, MIX_FILE_EXTENSION);
+        return res;
+    }
+
+    /**
+     *
+     * @param f
+     * @return Null if MidiMix could not be created for some reason.
+     * @throws java.io.IOException If problem occured while reading file
+     */
+    public static MidiMix loadFromFile(File f) throws IOException
+    {
+        if (f == null)
+        {
+            throw new IllegalArgumentException("f=" + f);
+        }
+        MidiMix mm = null;
+
+        try (var fis = new FileInputStream(f))
+        {
+            XStream xstream = XStreamInstancesManager.getInstance().getLoadMidiMixInstance();
+            Reader r = new BufferedReader(new InputStreamReader(fis, "UTF-8"));        // Needed to support special/accented chars
+            mm = (MidiMix) xstream.fromXML(r);
+            mm.setFile(f);
+        } catch (XStreamException e)
+        {
+            LOGGER.log(Level.WARNING, "loadFromFile() XStreamException e={0}", e.getMessage());   // Important in order to get the details of the XStream error   
+            throw new IOException("XStream loading error", e);         // Translate into an IOException to be handled by the Netbeans framework 
+        }
+        return mm;
+    }
+
+    /**
+     * Get the expected location of the rhythm mix file.
+     * <p>
+     * If rhythmFile is defined then .mix file is located in the same directory. Otherwise .mix file is located in the default rhythms directory<br>
+     *
+     * @param rhythmName
+     * @param rhythmFile Can not be null but can be the empty path ("")
+     * @return
+     * @see Rhythm#getFile()
+     * @see RhythmDirsLocator#getDefaultRhythmsDirectory()
+     */
+    static public File getRhythmMixFile(String rhythmName, File rhythmFile)
+    {
+        Preconditions.checkNotNull(rhythmName);
+        Preconditions.checkNotNull(rhythmFile);
+        String mixFileName;
+        File dir = rhythmFile.getParentFile();
+        if (dir != null)
+        {
+            // File-based rhythm
+            mixFileName = Utilities.replaceExtension(rhythmFile.getName(), MIX_FILE_EXTENSION);
+        } else
+        {
+            dir = RhythmDirsLocator.getDefault().getDefaultRhythmsDirectory();
+            var rhythmNameNoSpace = rhythmName.replace(" ", "");
+            mixFileName = rhythmNameNoSpace + "." + MIX_FILE_EXTENSION;
+        }
+        File f = new File(dir, mixFileName);
+        return f;
+    }
 }

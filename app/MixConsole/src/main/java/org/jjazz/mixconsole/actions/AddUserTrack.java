@@ -30,6 +30,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
 import org.jjazz.analytics.api.Analytics;
+import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.phrase.api.Phrase;
@@ -129,7 +130,7 @@ public class AddUserTrack extends AbstractAction
         try
         {
             song.setUserPhrase(name, p);
-        } catch (PropertyVetoException ex)
+        } catch (UnsupportedEditException ex)
         {
             String msg = "Impossible to add or update user phrase " + name + ": " + ex.getLocalizedMessage();
             um.abortCEdit(UNDO_TEXT, msg);

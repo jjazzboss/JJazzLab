@@ -44,7 +44,7 @@ import org.jjazz.utilities.api.LongRange;
 /**
  * A Song music generation context.
  * <p>
- * Associates a Song, a MidiMix and a bar range within that song. 
+ * Associates a Song, a MidiMix and a bar range within that song.
  * <p>
  * TODO: make SongContext a record
  */
@@ -124,18 +124,13 @@ public class SongContext
     /**
      * Deep getCopy the SongContext : make a copy of the song and the midimix.
      *
-     * @param setMidiMixSong If true MidMix.setSong() is called on the created MidiMix with the created Song.
+     * @param useSongCopyForMidiMixCopy If true the MidiMix copy is created using the Song copy. If false 
      * @return
      */
-    public SongContext deepClone(boolean registerSong, boolean setMidiMixSong)
+    public SongContext deepClone(boolean registerSong, boolean useSongCopyForMidiMixCopy)
     {
-        SongFactory sf = SongFactory.getInstance();
-        Song songCopy = sf.getCopy(song, false, registerSong);
-        MidiMix mixCopy = midiMix.getDeepCopy();
-        if (setMidiMixSong)
-        {
-            mixCopy.setSong(songCopy);
-        }
+        Song songCopy = song.getDeepCopy(false);
+        MidiMix mixCopy = midiMix.getDeepCopy(useSongCopyForMidiMixCopy ? songCopy:null);
         return new SongContext(songCopy, mixCopy, barRange);
     }
 

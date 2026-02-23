@@ -28,6 +28,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.MenuBar;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -55,6 +56,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.TransferHandler;
 import javax.swing.undo.UndoManager;
 import org.jjazz.activesong.spi.ActiveSongManager;
+import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.JJazzMidiSystem;
@@ -588,7 +590,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         try
         {
             songMidiMix = MidiMixManager.getDefault().findMix(song);
-        } catch (MidiUnavailableException ex)
+        } catch (UnsupportedEditException ex)
         {
             String msg = ResUtil.getString(getClass(), "CTL_NoMidiMixFound", song.getName());
             msg += ".\n" + ex.getLocalizedMessage();

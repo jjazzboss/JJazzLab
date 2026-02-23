@@ -36,13 +36,11 @@ import javax.swing.Action;
 import static javax.swing.Action.NAME;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.chordleadsheet.api.ChordLeadSheetFactory;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.rhythm.api.TempoRange;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_TempoFactor;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongFactory;
 import org.jjazz.songeditormanager.CreatePracticeSongDialog.Config;
@@ -55,6 +53,7 @@ import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.jjazz.cl_editor.api.CL_Selection;
 import org.jjazz.cl_editor.api.SelectedBar;
+import org.jjazz.rhythmparameters.api.RP_SYS_TempoFactor;
 import org.jjazz.songeditormanager.spi.SongEditorManager;
 import org.jjazz.utilities.api.IntRange;
 import org.jjazz.utilities.api.ResUtil;
@@ -337,7 +336,7 @@ public final class CreatePracticeSong extends AbstractAction implements ContextA
     {
         int startBar = selectedBars.get(0).getModelBarIndex();
         CLI_Section oldInitSection = cls.getSection(startBar);
-        ChordLeadSheet newCls = ChordLeadSheetFactory.getDefault().createEmptyLeadSheet(oldInitSection.getData().getName(),
+        ChordLeadSheet newCls = SongFactory.getInstance().createEmptyChordLeadSheet(oldInitSection.getData().getName(),
                 oldInitSection.getData().getTimeSignature(), selectedBars.size(), null);
         CLI_Section newInitSection = newCls.getSection(0);
         newCls.setSectionName(newInitSection, oldInitSection.getData().getName());

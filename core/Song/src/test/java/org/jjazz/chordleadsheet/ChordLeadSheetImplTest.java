@@ -29,7 +29,6 @@ import java.util.TreeSet;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.ClsChangeListener;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
-import org.jjazz.chordleadsheet.api.event.ClsVetoableChangeEvent;
 import org.jjazz.chordleadsheet.api.event.SectionAddedEvent;
 import org.jjazz.chordleadsheet.api.event.SectionChangedEvent;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
@@ -715,50 +714,6 @@ public class ChordLeadSheetImplTest
     }
 
     @Test
-    public void testSetSectionTimeSignatureVetoed_noChangeDone() throws Exception
-    {
-        CLI_Section section0 = cls1.getSection(0);
-        var oldSectionData = section0.getData();
-        TimeSignature oldTs = oldSectionData.getTimeSignature();
-
-        TimeSignature newTs = (oldTs == TimeSignature.THREE_FOUR) ? TimeSignature.FOUR_FOUR : TimeSignature.THREE_FOUR;
-
-        var item = cls1.getItems(1, 1, ChordLeadSheetItem.class, i -> !(i instanceof CLI_Section)).get(0);
-        Position posBefore = item.getPosition();
-
-        ClsChangeListener vetoListener = evt -> 
-        {
-            if (evt instanceof ClsVetoableChangeEvent vetoEvt && vetoEvt.getChangeEvent() instanceof SectionChangedEvent sce)
-            {
-                if (sce.getCLI_Section() == section0
-                        && !sce.getOldSection().getTimeSignature().equals(sce.getNewSection().getTimeSignature()))
-                {
-                    throw new UnsupportedEditException("Veto TS change for unit test");
-                }
-            }
-        };
-
-        cls1.addClsChangeSyncListener(vetoListener);
-        try
-        {
-            try
-            {
-                cls1.setSectionTimeSignature(section0, newTs);
-                fail("Expected UnsupportedEditException");
-            } catch (UnsupportedEditException expected)
-            {
-                // ok
-            }
-
-            assertEquals(oldTs, section0.getData().getTimeSignature());
-            assertEquals(posBefore, item.getPosition());
-        } finally
-        {
-            cls1.removeClsChangeSyncListener(vetoListener);
-        }
-    }
-
-    @Test
     public void testSetSectionNameOK()
     {
         System.out.println("=== setSectionName Yeaaaah section 0");
@@ -789,47 +744,6 @@ public class ChordLeadSheetImplTest
         cls1.setSectionTimeSignature(foreign, TimeSignature.THREE_FOUR);
     }
 
-    // Veto on addSection (typically replaces section at same bar)
-    @Test
-    public void testAddSectionVetoed_noReplacementDone() throws Exception
-    {
-        CLI_Section sectionAt2Before = cls1.getSection(2);
-        assert sectionAt2Before.getPosition().getBar() == 2;
-        var dataBefore = sectionAt2Before.getData();
-
-        CLI_Section candidate = new CLI_SectionImpl("VetoedSection", TimeSignature.FIVE_FOUR, 2);
-
-        ClsChangeListener vetoListener = evt -> 
-        {
-            if (evt instanceof ClsVetoableChangeEvent vetoEvt && vetoEvt.getChangeEvent() instanceof SectionAddedEvent sae)
-            {
-                if (sae.getCLI_Section().getPosition().getBar() == 2)
-                {
-                    throw new UnsupportedEditException("Veto add/replace section at bar 2");
-                }
-            }
-        };
-
-        cls1.addClsChangeSyncListener(vetoListener);
-        try
-        {
-            try
-            {
-                cls1.addSection(candidate);
-                fail("Expected UnsupportedEditException");
-            } catch (UnsupportedEditException expected)
-            {
-                // ok
-            }
-
-            CLI_Section sectionAt2After = cls1.getSection(2);
-            assertSame(sectionAt2Before, sectionAt2After);
-            assertEquals(dataBefore, sectionAt2After.getData());
-        } finally
-        {
-            cls1.removeClsChangeSyncListener(vetoListener);
-        }
-    }
 
     // SetSize() --------------------------------------------------
     @Test

@@ -32,14 +32,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.TreeSet;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.chordleadsheet.api.ChordLeadSheetFactory;
 import org.jjazz.chordleadsheet.api.Section;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.harmony.api.Position;
-import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.importers.api.TextReader;
+import org.jjazz.song.api.SongFactory;
 import org.jjazz.utilities.api.IntRange;
 import org.openide.util.Exceptions;
 
@@ -107,7 +106,7 @@ public class BarsTransferable implements Transferable
     private ChordLeadSheet buildCls()
     {
 
-        var res = ChordLeadSheetFactory.getDefault().createEmptyLeadSheet(data.firstBarSection.getName(), data.firstBarSection.getTimeSignature(),
+        var res = SongFactory.getInstance().createEmptyChordLeadSheet(data.firstBarSection.getName(), data.firstBarSection.getTimeSignature(),
                 data.barRange.size(), null);
 
 

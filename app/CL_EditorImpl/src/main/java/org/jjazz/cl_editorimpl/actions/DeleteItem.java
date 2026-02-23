@@ -31,7 +31,6 @@ import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.KeyStroke;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
 import org.jjazz.chordleadsheet.api.event.SizeChangedEvent;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;

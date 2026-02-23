@@ -29,6 +29,7 @@ import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.AbstractAction;
 import org.jjazz.analytics.api.Analytics;
+import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.spi.MidiMixManager;
@@ -108,7 +109,7 @@ public class SaveAsNewSongTemplate extends AbstractAction
         try
         {
             midiMix = MidiMixManager.getDefault().findMix(song);
-        } catch (MidiUnavailableException ex)
+        } catch (UnsupportedEditException ex)
         {
             LOGGER.log(Level.SEVERE, "getMidiMixSilent() Could not retrieve MidiMix for song {0} - ex={1}", new Object[]
             {

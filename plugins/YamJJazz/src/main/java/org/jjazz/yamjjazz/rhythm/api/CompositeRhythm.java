@@ -47,13 +47,7 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmFeatures;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhrase;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Fill;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Intensity;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Marker;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_TempoFactor;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
-import org.jjazz.rhythmmusicgeneration.api.RP_SYS_Mute;
+import org.jjazz.rhythmparameters.api.*;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 
 /**

@@ -48,19 +48,15 @@ import org.jjazz.chordleadsheet.api.event.SectionRemovedEvent;
 import org.jjazz.chordleadsheet.api.event.SizeChangedEvent;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.midi.api.DrumKit;
-import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.InstrumentMix;
-import org.jjazz.midi.api.InstrumentSettings;
-import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.synths.GM1Instrument;
 import org.jjazz.midi.api.synths.GMSynth;
 import org.jjazz.midi.api.synths.InstrumentFamily;
+import org.jjazz.midimix.MidiMixImpl;
 import org.jjazz.midimix.api.MidiMix;
-import org.jjazz.midimix.api.MidiMixImpl;
+import org.jjazz.midimix.api.MidiMixUtils;
 import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.midimix.spi.MidiMixManager;
-import org.jjazz.midimix.spi.RhythmVoiceInstrumentProvider;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.quantizer.api.Quantization;
 import org.jjazz.quantizer.api.Quantizer;
@@ -79,7 +75,6 @@ import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.jjazz.songstructure.api.event.SptAddedEvent;
 import org.jjazz.songstructure.api.event.SptRemovedEvent;
 import org.jjazz.songstructure.api.event.SptRhythmChangedEvent;
-import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.utilities.api.Utilities;
 import org.openide.util.Exceptions;
 
@@ -89,7 +84,8 @@ import org.openide.util.Exceptions;
  * For example, a ChordLeadSheet time signature change might require an update of a SongPart rhythm, which will impact the MidiMix, and possibly some chord
  * symbols position back in the ChordLeadSheet if rhythm division has changed.
  * <p>
- * SongInternalUpdater also allows to pre-check an operation: e.g. a time signature change should be vetoed if it ends up adding a new rhythm in a MidiMix with not enough MIDI channels.
+ * SongInternalUpdater also allows to pre-check an operation: e.g. a time signature change should be vetoed if it ends up adding a new rhythm in a MidiMix with
+ * not enough MIDI channels.
  */
 class SongInternalUpdater
 {
@@ -589,7 +585,8 @@ class SongInternalUpdater
      * <p>
      * - Remove the corresponding SongParts<br>
      * - Resize the SongParts for the previous section which got bigger<br>
-     * - Possibly adjust the position of the (new) last chord symbols of the previous section (if the rhythm division of the corresponding song part has changed)<br>
+     * - Possibly adjust the position of the (new) last chord symbols of the previous section (if the rhythm division of the corresponding song part has
+     * changed)<br>
      *
      * @param evt
      * @return
@@ -963,20 +960,13 @@ class SongInternalUpdater
      */
     private List<Operation> getDerivedRemoveUserPhrase(String name)
     {
-        List<Operation> res = new ArrayList<>();
-
-        var urv = getMidiMix().getUserRhythmVoice(name);
-        assert urv != null;
-        int channel = getMidiMix().getChannel(urv);
-        Operation operation = getMidiMix().setInstrumentMixOperation(channel, null, null);
-
-        return List.of(operation);
+        return List.of(getMidiMix().removeUserChannelOperation(name));
     }
 
     /**
      * A new user phrase was added to the song.
      * <p>
-     * - Add a user channel to the MidiMix, possibly with drums-rerouting activated<br>
+     * - Add a user channel to the MidiMix<br>
      *
      * @param name
      * @param isDrums  True if it's a new drums phrase
@@ -986,58 +976,21 @@ class SongInternalUpdater
      */
     private List<Operation> getDerivedAddUserPhrase(String name, boolean isDrums, boolean preCheck) throws UnsupportedEditException
     {
-        List<Operation> res = new ArrayList<>();
-
-        int channel = findFreeUserChannel(isDrums);     // throws UnsupportedEditException if no channel available
         if (preCheck)
         {
+            if (getMidiMix().getUnusedChannels().isEmpty())
+            {
+                MidiMixUtils.throwNotEnoughMidiChannelException();      //  throws UnsupportedEditException
+            }
+            if (getMidiMix().getUserRhythmVoice(name) != null)
+            {
+                MidiMixUtils.throwSameNameUserChannelException(name);    //  throws UnsupportedEditException
+            }
             return Collections.emptyList();
         }
 
-        // Update the MidiMix
-        RhythmVoiceInstrumentProvider insProvider = RhythmVoiceInstrumentProvider.getProvider();
-        UserRhythmVoice urv;
-        Instrument ins;
+        return List.of(getMidiMix().addUserChannelOperation(name, isDrums));
 
-        if (!isDrums)
-        {
-            // Directly use a RhythmVoiceInstrumentProvider to get the melodic instrument
-            urv = new UserRhythmVoice(name);
-            ins = insProvider.findInstrument(urv);
-        } else
-        {
-            // Try to reuse the same drums instrument than in the current song
-            var rvDrums = getMidiMix().getRhythmVoice(MidiConst.CHANNEL_DRUMS);
-            if (rvDrums == null)
-            {
-                // Unusual, but there might be another drums channel
-                rvDrums = getMidiMix().getRhythmVoices().stream()
-                        .filter(rv -> rv.isDrums())
-                        .findAny()
-                        .orElse(null);
-            }
-            if (rvDrums != null)
-            {
-                ins = getMidiMix().getInstrumentMix(rvDrums).getInstrument();
-                DrumKit kit = ins.getDrumKit();     // Might be null if ins is the VoidInstrument from the GM bank
-                urv = new UserRhythmVoice(name, kit != null ? kit : new DrumKit());
-            } else
-            {
-                urv = new UserRhythmVoice(name, new DrumKit());
-                ins = insProvider.findInstrument(urv);
-            }
-        }
-
-        var insMix = new InstrumentMix(ins, new InstrumentSettings());
-        res.add(getMidiMix().setInstrumentMixOperation(channel, urv, insMix));
-
-        if (isDrums && ins == GMSynth.getInstance().getVoidInstrument() && channel != MidiConst.CHANNEL_DRUMS)
-        {
-            // Special case, better to activate drums rerouting
-            res.add(getMidiMix().setDrumsReroutedChannelOperation(true, channel));
-        }
-
-        return res;
     }
 
 
@@ -1055,7 +1008,7 @@ class SongInternalUpdater
         UserRhythmVoice oldUrv = getMidiMix().getUserRhythmVoice(oldName);
         assert oldUrv != null : "oldName=" + oldName;
         var kit = oldUrv.getDrumKit();
-        
+
         UserRhythmVoice newUrv = kit != null ? new UserRhythmVoice(newName, kit) : new UserRhythmVoice(newName);
         Operation operation = getMidiMix().replaceRhythmVoiceOperation(oldUrv, newUrv);
         return List.of(operation);
@@ -1083,7 +1036,7 @@ class SongInternalUpdater
 
         if (nbVoices > MidiMix.NB_AVAILABLE_CHANNELS)
         {
-            throw new UnsupportedEditException(ResUtil.getString(MidiMixImpl.class, "ERR_NotEnoughChannels"));
+
         }
     }
 
@@ -1254,25 +1207,6 @@ class SongInternalUpdater
     }
 
     /**
-     * Get a new MidiMix channel for a user track.
-     *
-     * @param drums
-     * @return
-     * @throws org.jjazz.chordleadsheet.api.UnsupportedEditException If nore more channel available
-     */
-    private int findFreeUserChannel(boolean drums) throws UnsupportedEditException
-    {
-        var res = getMidiMix().getUsedChannels().contains(UserRhythmVoice.DEFAULT_USER_PHRASE_CHANNEL) ? getMidiMix().findFreeChannel(drums)
-                : UserRhythmVoice.DEFAULT_USER_PHRASE_CHANNEL;
-        if (res == -1)
-        {
-            String msg = ResUtil.getString(MidiMix.class, "ERR_NotEnoughChannels");
-            throw new UnsupportedEditException(msg);
-        }
-        return res;
-    }
-
-    /**
      * Remove r from the MidiMix.
      *
      * @param r
@@ -1333,7 +1267,8 @@ class SongInternalUpdater
             RhythmVoice rvNewRhythm = mmNewRhythm.getRhythmVoice(channelNewRhythm);
             if (!(rvNewRhythm instanceof UserRhythmVoice))
             {
-                int channelDest = getMidiMix().getUsedChannels().contains(channelNewRhythm) ? getMidiMix().findFreeChannel(rvNewRhythm.isDrums()) : channelNewRhythm;
+                int channelDest = getMidiMix().getUsedChannels().contains(channelNewRhythm) ? getMidiMix().findFreeChannel(rvNewRhythm.isDrums())
+                        : channelNewRhythm;
                 assert channelDest != -1;
                 InstrumentMix insMixSrc = mmNewRhythm.getInstrumentMix(channelNewRhythm);
                 res.add(getMidiMix().setInstrumentMixOperation(channelDest, rvNewRhythm, new InstrumentMix(insMixSrc)));

@@ -27,8 +27,8 @@ package org.jjazz.songstructure;
 import java.text.ParseException;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.chordleadsheet.api.ChordLeadSheetFactory;
 import org.jjazz.chordleadsheet.api.Section;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
@@ -42,11 +42,11 @@ import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
 import org.jjazz.rhythmdatabase.api.DefaultRhythmDatabase;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
+import org.jjazz.song.ExecutionManager;
+import org.jjazz.song.api.SongFactory;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
-import org.jjazz.songstructure.api.SongStructureFactory;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
-import org.jjazz.songstructure.api.event.SgsVetoableChangeEvent;
 import org.jjazz.songstructure.api.event.SptAddedEvent;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
@@ -103,8 +103,7 @@ public class SongStructureImplTest
         // bar 0: SectionA 4/4
         // bar 4: SectionB 3/4
         // bar 8: SectionC 4/4
-        cls = ChordLeadSheetFactory.getDefault().createEmptyLeadSheet("SectionA", TimeSignature.FOUR_FOUR, 16, "C7");
-        var lock = cls.getLock();
+        cls = SongFactory.getInstance().createEmptyChordLeadSheet("SectionA", TimeSignature.FOUR_FOUR, 16, "C7");
         cs1 = cls.getItems(CLI_ChordSymbol.class).get(0); // C7 at bar 0 beat 0
         sectionA_44 = cls.getSection(0);
         sectionB_34 = (CLI_Section) sectionA_44.getCopy(new Section("SectionB", TimeSignature.THREE_FOUR), new Position(4));
@@ -115,7 +114,7 @@ public class SongStructureImplTest
         cls.addItem(cs2);
 
         // Build a SongStructure from chordleadsheet => create 3 song parts, one per section
-        sgs = SongStructureFactory.getDefault().createSgs(cls);
+        sgs = SongFactory.getInstance().createSongStructure(cls);
         sgs.addUndoableEditListener(undoManager);
         JJazzUndoManagerFinder.getDefault().put(sgs, undoManager);
 
@@ -163,7 +162,7 @@ public class SongStructureImplTest
         redoAll();
         undoAll();
 
-        boolean b = equals(sgs, u_sgs);
+        boolean b = sgs.equals(u_sgs);
         if (!b)
         {
             System.out.println("==== MISMATCH AFTER UNDO SEQUENCE for " + this.testName.getMethodName() + "()");
@@ -321,39 +320,6 @@ public class SongStructureImplTest
     }
 
     @Test
-    public void testVetoPreventsAddAndDoesNotChangeState()
-    {
-        // Add a sync listener that vetoes add
-        sgs.addSgsChangeSyncListener((SgsChangeEvent e) -> 
-        {
-            if (e instanceof SgsVetoableChangeEvent ve && ve.getChangeEvent() instanceof SptAddedEvent)
-            {
-                throw new UnsupportedEditException("vetoed SptAddedEvent");
-            }
-        });
-
-        int sizeBefore = sgs.getSizeInBars();
-        List<SongPart> partsBefore = sgs.getSongParts();
-
-        try
-        {
-            var newSpt = spt0.getCopy(null, 0, spt0.getNbBars(), spt0.getParentSection());
-            sgs.addSongParts(List.of(newSpt));
-            fail("Expected veto to throw UnsupportedEditException");
-        } catch (UnsupportedEditException expected)
-        {
-            // ok
-        }
-
-        // Ensure no change
-        assertEquals(sizeBefore, sgs.getSizeInBars());
-        assertEquals(partsBefore, sgs.getSongParts());
-        assertSame(spt0, sgs.getSongPart(0));
-        assertSame(sgs, spt0.getContainer());
-    }
-
-
-    @Test
     public void testRemoveMultipleSongPartsInOneCall()
     {
         // Remove first and last song part in one call => only middle remains
@@ -417,41 +383,6 @@ public class SongStructureImplTest
         assertNull("barIndex == size should return null", sgs.getSongPart(sgs.getSizeInBars()));
         assertSame("Last bar should return last part", spt2, sgs.getSongPart(sgs.getSizeInBars() - 1));
     }
-
-    @Test
-    public void testVetoDoesNotRecordUndoableEdit()
-    {
-        // End the compound edit so we can check undo stack cleanly for this test
-        undoManager.endCEdit(UNDO_EDIT);
-
-        // Add a sync listener that vetoes add
-        sgs.addSgsChangeSyncListener((SgsChangeEvent e) -> 
-        {
-            if (e instanceof SgsVetoableChangeEvent ve && ve.getChangeEvent() instanceof SptAddedEvent)
-            {
-                throw new UnsupportedEditException("vetoed SptAddedEvent");
-            }
-        });
-
-        int sizeBefore = sgs.getSizeInBars();
-
-        try
-        {
-            var newSpt = spt0.getCopy(null, 0, spt0.getNbBars(), spt0.getParentSection());
-            sgs.addSongParts(List.of(newSpt));
-            fail("Expected veto to throw UnsupportedEditException");
-        } catch (UnsupportedEditException expected)
-        {
-            // ok
-        }
-
-        // Ensure no change
-        assertEquals(sizeBefore, sgs.getSizeInBars());
-
-        // Ensure no undoable edit has been recorded by the vetoed operation
-        assertFalse("Vetoed operation must not create undoable edit", undoManager.canUndo());
-    }
-
 
     @Test
     public void testAddSongPartAppendAtEnd()
@@ -688,27 +619,8 @@ public class SongStructureImplTest
         assertFalse(fourFourParts.contains(spt1));
     }
 
-
     @Test
-    public void testSynchronizedListenerCalledWhileLockHeld()
-    {
-        final boolean[] lockHeldDuringCallback =
-        {
-            false
-        };
-
-        sgs.addSgsChangeSyncListener((SgsChangeEvent e) -> 
-        {
-            // Check if write lock is held
-            lockHeldDuringCallback[0] = sgs.getLock().isWriteLockedByCurrentThread();
-        });
-
-        sgs.removeSongParts(List.of(spt0));
-        assertTrue("Sync listener should be called while write lock held", lockHeldDuringCallback[0]);
-    }
-
-    @Test
-    public void testNonSynchronizedListenerCalledAfterLockReleased()
+    public void testListenerCalledAfterLockReleased()
     {
         final boolean[] lockHeldDuringCallback =
         {
@@ -717,7 +629,7 @@ public class SongStructureImplTest
 
         sgs.addSgsChangeListener((SgsChangeEvent e) -> 
         {
-            lockHeldDuringCallback[0] = sgs.getLock().isWriteLockedByCurrentThread();
+            lockHeldDuringCallback[0] = getLock().isWriteLockedByCurrentThread();
         });
 
         sgs.removeSongParts(List.of(spt0));
@@ -731,13 +643,11 @@ public class SongStructureImplTest
 
         // Verify initial equality
         int copySize = sgsCopy.getSizeInBars();
-        assertTrue(equals(sgsCopy, sgs));
+        assertEquals(sgs, sgsCopy);
 
-        // Modify original
+        // Modify original, copy should be unaffected
         sgs.removeSongParts(List.of(spt0));
-
-        // Copy should be unaffected
-        assertFalse(equals(sgsCopy, sgs));
+        assertNotEquals(sgs, sgsCopy);
         assertEquals(copySize, sgsCopy.getSizeInBars());
     }
 
@@ -753,7 +663,7 @@ public class SongStructureImplTest
         for (int i = 0; i < origParts.size(); i++)
         {
             assertNotSame("SongParts should be distinct objects", origParts.get(i), copyParts.get(i));
-            assertTrue("SongParts should be equal in content", origParts.get(i).isEqual(copyParts.get(i)));
+            assertTrue("SongParts should be equal in content", origParts.get(i).equals(copyParts.get(i)));
         }
     }
 
@@ -815,23 +725,6 @@ public class SongStructureImplTest
     // =========================================================================================================
     // Helper methods
     // =========================================================================================================
-    private boolean equals(SongStructure sgs1, SongStructure sgs2)
-    {
-        var spts1 = sgs1.getSongParts();
-        var spts2 = sgs2.getSongParts();
-        if (spts1.size() != spts2.size())
-        {
-            return false;
-        }
-        for (int i = 0; i < spts1.size(); i++)
-        {
-            if (!spts1.get(i).isEqual(spts2.get(i)))
-            {
-                return false;
-            }
-        }
-        return true;
-    }
 
     private void redoAll()
     {
@@ -847,5 +740,16 @@ public class SongStructureImplTest
         {
             undoManager.undo();
         }
+    }
+
+
+    private ExecutionManager getExecutionManager()
+    {
+        return ((SongStructureImpl) sgs).getExecutionManager();
+    }
+
+    private ReentrantReadWriteLock getLock()
+    {
+        return getExecutionManager().getLock();
     }
 }

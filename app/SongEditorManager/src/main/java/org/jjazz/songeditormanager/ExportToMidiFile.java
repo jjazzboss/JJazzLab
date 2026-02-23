@@ -29,6 +29,7 @@ import javax.sound.midi.MidiUnavailableException;
 import javax.swing.AbstractAction;
 import javax.swing.JFileChooser;
 import org.jjazz.analytics.api.Analytics;
+import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.musiccontrol.api.SongMidiExporter;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.song.api.Song;
@@ -122,7 +123,7 @@ public class ExportToMidiFile extends AbstractAction
         try
         {
             midiMix = MidiMixManager.getDefault().findMix(song);
-        } catch (MidiUnavailableException ex)
+        } catch (UnsupportedEditException ex)
         {
             // Should never happen
             Exceptions.printStackTrace(ex);

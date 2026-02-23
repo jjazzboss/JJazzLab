@@ -265,10 +265,10 @@
         <module>core/Midi</module>
         <module>core/MusicControl</module>
         <module>core/OutputSynth</module>
-        <module>core/Phrase</module>
         <module>core/PhraseTransform</module>
         <module>core/Quantizer</module>
         <module>core/Rhythm</module>
+        <module>core/RhythmParameters</module>
         <module>core/RhythmDatabase</module>
         <module>core/RhythmMusicGeneration</module>
         <module>core/RhythmStubs</module>

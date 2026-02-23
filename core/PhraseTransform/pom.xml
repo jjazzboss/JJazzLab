@@ -46,11 +46,6 @@
         </dependency>  
         <dependency> 
             <groupId>org.jjazzlab.core</groupId> 
-            <artifactId>phrase</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
-        <dependency> 
-            <groupId>org.jjazzlab.core</groupId> 
             <artifactId>quantizer</artifactId> 
             <version>${project.version}</version>  
         </dependency>  

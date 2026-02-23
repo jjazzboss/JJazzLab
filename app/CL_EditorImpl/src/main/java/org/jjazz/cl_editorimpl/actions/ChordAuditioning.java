@@ -32,6 +32,7 @@ import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.KeyStroke;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.cl_editor.api.CL_ContextAction;
 import org.jjazz.cl_editor.api.CL_Editor;
@@ -113,7 +114,7 @@ public final class ChordAuditioning extends CL_ContextAction
         try
         {
             mm = MidiMixManager.getDefault().findMix(song);
-        } catch (MidiUnavailableException ex)
+        } catch (UnsupportedEditException ex)
         {
             LOGGER.log(Level.WARNING, "findChannel() Unexpected error while getting MidiMix. ex={0}", ex.getMessage());
             return 0;

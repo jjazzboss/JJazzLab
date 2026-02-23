@@ -145,10 +145,9 @@ public class SongUtilities
      * "original_section_nameSECTION_COPY_DELIMITER_CHARnumber", eg "chorus#1".
      *
      * @param song
-     * @param register If true register the created song
      * @return
      */
-    static public Song getLinearizedSong(Song song, boolean register)
+    static public Song getLinearizedSong(Song song)
     {
         if (song == null)
         {
@@ -161,7 +160,7 @@ public class SongUtilities
         if (ss.getSongParts().isEmpty())
         {
             // Special case
-            return SongFactory.getInstance().getCopy(song, false, register);
+            return song.getDeepCopy(false);
         }
 
 
@@ -169,8 +168,7 @@ public class SongUtilities
         var newSong = SongFactory.getInstance().createEmptySong(song.getName(), ss.getSizeInBars(), "A", TimeSignature.FOUR_FOUR, null);
         var newCls = newSong.getChordLeadSheet();
         var resSs = newSong.getSongStructure();
-        // Remove all SongParts
-        resSs.removeSongParts(resSs.getSongParts());
+        resSs.removeSongParts(resSs.getSongParts());        // Remove all SongParts
 
 
         // The created song parts
@@ -255,10 +253,6 @@ public class SongUtilities
         newSong.getClientProperties().set(song.getClientProperties());
 
 
-        if (register)
-        {
-            SongFactory.getInstance().registerSong(newSong);
-        }
         return newSong;
     }
 
@@ -280,7 +274,7 @@ public class SongUtilities
         }
 
         // Create a full copy to preserve links between SongParts and Sections
-        Song resSong = SongFactory.getInstance().getCopy(song, false, register);
+        Song resSong = song.getDeepCopy(false);
         ChordLeadSheet resCls = resSong.getChordLeadSheet();
 
 

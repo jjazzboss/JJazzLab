@@ -22,6 +22,9 @@
  */
 package org.jjazz.rhythmmusicgeneration.api;
 
+import org.jjazz.rhythmparameters.api.RP_SYS_OverrideTracksValue;
+import org.jjazz.rhythmparameters.api.RP_SYS_Mute;
+import org.jjazz.rhythmparameters.api.RP_SYS_OverrideTracks;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.SetMultimap;

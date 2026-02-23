@@ -202,7 +202,7 @@ public class ExportToAudio extends AbstractAction
             {
                 if (!midiMix.getInstrumentMix(channel).isMute())
                 {
-                    var newMidiMix = midiMix.getDeepCopy();
+                    var newMidiMix = midiMix.getDeepCopy(null);
                     for (int newChannel : newMidiMix.getUsedChannels())
                     {
                         newMidiMix.getInstrumentMix(newChannel).setMute(newChannel != channel);

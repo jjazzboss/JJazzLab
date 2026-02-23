@@ -26,19 +26,17 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.sound.midi.MidiUnavailableException;
 import javax.swing.AbstractAction;
 import static javax.swing.Action.NAME;
 import static javax.swing.Action.SHORT_DESCRIPTION;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.midimix.api.MidiMixUtils;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.song.api.Song;
 import org.jjazz.mixconsole.api.MixConsole;
 import org.jjazz.mixconsole.api.MixConsoleTopComponent;
-import org.jjazz.rhythm.spi.RhythmDirsLocator;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -55,7 +53,6 @@ import org.openide.awt.StatusDisplayer;
         })
 public class SaveRhythmDefaultMix extends AbstractAction
 {
-
     private final String undoText = ResUtil.getString(getClass(), "CTL_SaveRhythmDefaultMix");
     private static final Logger LOGGER = Logger.getLogger(SaveRhythmDefaultMix.class.getSimpleName());
 
@@ -80,7 +77,7 @@ public class SaveRhythmDefaultMix extends AbstractAction
         List<Rhythm> songRhythms = song.getSongStructure().getUniqueRhythms(true, false);
         if (songRhythms.isEmpty())
         {
-            // Can happen is songstructure is empty
+            // Can happen if songstructure is empty
             return;
         }
         Rhythm rhythm = mixConsole.getVisibleRhythm();
@@ -101,14 +98,7 @@ public class SaveRhythmDefaultMix extends AbstractAction
         for (Rhythm r : savedRhythms)
         {
             File f = MidiMix.getRhythmMixFile(r.getName(), r.getFile());
-            MidiMix rhythmMix = new MidiMix(r);
-            try
-            {
-                rhythmMix.addInstrumentMixes(songMidiMix, r);
-            } catch (MidiUnavailableException ex)
-            {
-                LOGGER.log(Level.SEVERE, "MidiMix(MidiMix, Rhythm unexpected exception!", ex);   
-            }
+            var rhythmMix = MidiMixUtils.getRhythmMix(songMidiMix, r);
             if (rhythmMix.saveToFileNotify(f, true))
             {
                 savedFiles += f.getAbsolutePath() + " ";

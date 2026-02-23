@@ -79,12 +79,6 @@ public class CLI_Repeat implements ChordLeadSheetItem<Repeat>, WritableItem<Repe
     }
 
     @Override
-    public ReentrantReadWriteLock getLock()
-    {
-        return container == null ? null : container.getLock();
-    }
-
-    @Override
     public int compareToSamePosition(ChordLeadSheetItem<?> other)
     {
         Objects.requireNonNull(other);

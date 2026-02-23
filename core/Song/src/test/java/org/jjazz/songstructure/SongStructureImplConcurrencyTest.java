@@ -28,8 +28,8 @@ import java.text.ParseException;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.chordleadsheet.api.ChordLeadSheetFactory;
 import org.jjazz.chordleadsheet.api.Section;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
@@ -42,11 +42,11 @@ import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
 import org.jjazz.rhythmdatabase.api.DefaultRhythmDatabase;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
+import org.jjazz.song.ExecutionManager;
+import org.jjazz.song.api.SongFactory;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
-import org.jjazz.songstructure.api.SongStructureFactory;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
-import org.jjazz.songstructure.api.event.SgsVetoableChangeEvent;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.junit.After;
@@ -96,7 +96,7 @@ public class SongStructureImplConcurrencyTest
         // bar 0: SectionA 4/4
         // bar 4: SectionB 3/4
         // bar 8: SectionC 4/4
-        cls = ChordLeadSheetFactory.getDefault().createEmptyLeadSheet("SectionA", TimeSignature.FOUR_FOUR, 16, "C7");
+        cls = SongFactory.getInstance().createEmptyChordLeadSheet("SectionA", TimeSignature.FOUR_FOUR, 16, "C7");
         cs1 = cls.getItems(CLI_ChordSymbol.class).get(0); // C7 at bar 0 beat 0
         sectionA_44 = cls.getSection(0);
         sectionB_34 = (CLI_Section) sectionA_44.getCopy(new Section("SectionB", TimeSignature.THREE_FOUR), new Position(4));
@@ -108,7 +108,7 @@ public class SongStructureImplConcurrencyTest
 
 
         // Build a SongStructure from chordleadsheet => create 3 song parts, one per section
-        sgs = SongStructureFactory.getDefault().createSgs(cls);
+        sgs = SongFactory.getInstance().createSongStructure(cls);
         sgs.addUndoableEditListener(undoManager);
         JJazzUndoManagerFinder.getDefault().put(sgs, undoManager);
 
@@ -156,7 +156,7 @@ public class SongStructureImplConcurrencyTest
         redoAll();
         undoAll();
 
-        boolean b = equals(sgs, u_sgs);
+        boolean b = sgs.equals(u_sgs);
         if (!b)
         {
             System.out.println("==== MISMATCH AFTER UNDO SEQUENCE:");
@@ -476,27 +476,15 @@ public class SongStructureImplConcurrencyTest
     public void testConcurrentListenerNotifications() throws InterruptedException
     {
         final int ITERATIONS = 200;
-        final AtomicInteger syncListenerCount = new AtomicInteger(0);
         final AtomicInteger listenerCount = new AtomicInteger(0);
         final AtomicInteger mutationCount = new AtomicInteger(0);
         final List<Throwable> exceptions = new java.util.concurrent.CopyOnWriteArrayList<>();
-
-        // Add listeners
-        sgs.addSgsChangeSyncListener((SgsChangeEvent e) -> 
-        {
-            if (!(e instanceof SgsVetoableChangeEvent))
-            {
-                syncListenerCount.incrementAndGet();
-            }
-            // Verify lock is held
-            assertTrue("Sync listener must be called with write lock", sgs.getLock().isWriteLockedByCurrentThread());
-        });
 
         sgs.addSgsChangeListener((SgsChangeEvent e) -> 
         {
             listenerCount.incrementAndGet();
             // Verify lock is NOT held
-            assertFalse("listener must be called without write lock", sgs.getLock().isWriteLockedByCurrentThread());
+            assertFalse("listener must be called without write lock", getLock().isWriteLockedByCurrentThread());
         });
 
         // Mutating thread
@@ -562,12 +550,10 @@ public class SongStructureImplConcurrencyTest
         }
 
         // Both listener types should have been called for each mutation
-        assertEquals("Sync listener should be called for each mutation", mutationCount.get(), syncListenerCount.get());
         assertEquals("Listener should be called for each mutation", mutationCount.get(), listenerCount.get());
 
         System.out.println("Listener concurrency test completed successfully:");
         System.out.println("  Mutations: " + mutationCount.get());
-        System.out.println("  Sync notifications: " + syncListenerCount.get());
         System.out.println("  Async notifications: " + listenerCount.get());
 
         undoManager.endCEdit(UNDO_EDIT);
@@ -577,22 +563,15 @@ public class SongStructureImplConcurrencyTest
     // =========================================================================================================
     // Helper methods
     // =========================================================================================================
-    private boolean equals(SongStructure sgs1, SongStructure sgs2)
+
+    private ExecutionManager getExecutionManager()
     {
-        var spts1 = sgs1.getSongParts();
-        var spts2 = sgs2.getSongParts();
-        if (spts1.size() != spts2.size())
-        {
-            return false;
-        }
-        for (int i = 0; i < spts1.size(); i++)
-        {
-            if (!spts1.get(i).isEqual(spts2.get(i)))
-            {
-                return false;
-            }
-        }
-        return true;
+        return ((SongStructureImpl) sgs).getExecutionManager();
+    }
+
+    private ReentrantReadWriteLock getLock()
+    {
+        return getExecutionManager().getLock();
     }
 
     private void redoAll()

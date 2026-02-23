@@ -26,7 +26,6 @@ import com.google.common.base.Preconditions;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.beans.VetoableChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -37,6 +36,7 @@ import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.SwingUtilities;
 import org.jjazz.activesong.spi.ActiveSongManager;
+import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midimix.api.MidiMix;
@@ -47,14 +47,10 @@ import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.pianoroll.api.PianoRollEditorTopComponent;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhrase;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhraseValue;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongCreationException;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
-import org.jjazz.midi.api.Instrument;
-import org.jjazz.midi.api.synths.GMSynth;
 import org.jjazz.song.spi.SongImporter;
 import org.jjazz.songeditormanager.spi.SongEditorManager;
 import org.jjazz.ss_editor.api.SS_EditorTopComponent;
@@ -68,6 +64,8 @@ import org.openide.windows.Mode;
 import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
 import org.jjazz.outputsynth.spi.OutputSynthManager;
+import org.jjazz.rhythmparameters.api.RP_SYS_CustomPhrase;
+import org.jjazz.rhythmparameters.api.RP_SYS_CustomPhraseValue;
 import org.jjazz.songeditormanager.api.StartupShutdownSongManager;
 import org.jjazz.songmemoviewer.api.SongMemoTopComponent;
 
@@ -137,16 +135,7 @@ public class SongEditorManagerImpl implements SongEditorManager, PropertyChangeL
 
 
         // Retrieve MidiMix
-        MidiMix midiMix;
-        try
-        {
-            midiMix = MidiMixManager.getDefault().findMix(song);
-        } catch (MidiUnavailableException ex)
-        {
-            // Should never be there
-            Exceptions.printStackTrace(ex);
-            return;
-        }
+        MidiMix midiMix = MidiMixManager.getDefault().findExistingMix(song);
 
 
         Runnable openEditorsTask = () -> 
@@ -279,15 +268,8 @@ public class SongEditorManagerImpl implements SongEditorManager, PropertyChangeL
 
         // Read song from file
         // Fix the MidiMix if needed
-        try
-        {
-            var mm = MidiMixManager.getDefault().findMix(song);
-            OutputSynthManager.getDefault().getDefaultOutputSynth().fixInstruments(mm, true);
-        } catch (MidiUnavailableException ex)
-        {
-            Exceptions.printStackTrace(ex);
-        }
-
+        var mm = MidiMixManager.getDefault().findExistingMix(song);
+        OutputSynthManager.getDefault().getDefaultOutputSynth().fixInstruments(mm, true);
 
         // Update last song directory
         if (updateLastSongDirectory)
@@ -763,7 +745,7 @@ public class SongEditorManagerImpl implements SongEditorManager, PropertyChangeL
             try
             {
                 mm = MidiMixManager.getDefault().findMix(song);
-            } catch (MidiUnavailableException ex)
+            } catch (UnsupportedEditException ex)
             {
                 LOGGER.log(Level.WARNING, "activateSong() Could not find MidiMix for song {0}.\n{1}", new Object[]
                 {

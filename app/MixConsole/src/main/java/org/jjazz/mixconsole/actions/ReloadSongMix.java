@@ -29,6 +29,7 @@ import javax.swing.AbstractAction;
 import static javax.swing.Action.NAME;
 import static javax.swing.Action.SHORT_DESCRIPTION;
 import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.midimix.api.MidiMixUtils;
 import org.jjazz.song.api.Song;
 import org.jjazz.mixconsole.api.MixConsole;
 import org.jjazz.mixconsole.api.MixConsoleTopComponent;
@@ -77,7 +78,7 @@ public class ReloadSongMix extends AbstractAction
             MidiMix mm = ImportMix.loadMixFile(songMixFile);
             if (mm != null)
             {
-                songMidiMix.importInstrumentMixes(mm);
+                MidiMixUtils.importInstrumentMixes(songMidiMix, mm);
                 StatusDisplayer.getDefault().setStatusText("Reloaded song mix: " + songMixFile.getAbsolutePath());
             }
         }

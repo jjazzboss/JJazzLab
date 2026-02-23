@@ -70,7 +70,7 @@ public class LinearizeSong implements ActionListener
             prefs.putBoolean(PREF_SHOW_TIP, false);
         }
 
-        Song newSong = SongUtilities.getLinearizedSong(song, true);
+        Song newSong = SongUtilities.getLinearizedSong(song);
         newSong.setName(song.getName() + "-linearized");
         SongEditorManager.getDefault().showSong(newSong, true, false);     // This will post a task on the EDT to display the song        
         Analytics.logEvent("Linearize song");

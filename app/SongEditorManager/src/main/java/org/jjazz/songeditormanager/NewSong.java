@@ -28,6 +28,7 @@ import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
+import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.midimix.api.MidiMix;
@@ -54,7 +55,7 @@ import org.openide.awt.ActionRegistration;
         })
 public final class NewSong implements ActionListener
 {
-
+    private static int counter = 1;
     private static final Logger LOGGER = Logger.getLogger(NewSong.class.getSimpleName());
 
     @Override
@@ -77,7 +78,8 @@ public final class NewSong implements ActionListener
     {
         SongFactory sf = SongFactory.getInstance();
         Song song = null;
-        String name = sf.getNewSongName("NewSong");
+        String name = "NewSong" + counter;
+        counter++;
 
 
         File songTemplateFile = getNewSongTemplateSongFile();
@@ -93,14 +95,14 @@ public final class NewSong implements ActionListener
                 // Need to do this because we'll reset the song's file after, so SongEditorManager will not be able anymore
                 // to retrieve a MidiMix from the template file.
                 MidiMixManager mmm = MidiMixManager.getDefault();
-                MidiMix mm = mmm.findMix(song);       // Possible MidiUnavailableException here
+                MidiMix mm = mmm.findMix(song);       // Possible UnsupportedEditException here
                 mm.setFile(null);  // Do like it was created from scratch
 
 
                 song.setFile(null);    // Do like it was created from scratch. Must be done AFTER mmm.findMix(song)
                 song.setName(name);
 
-            } catch (SongCreationException | MidiUnavailableException ex)
+            } catch (SongCreationException | UnsupportedEditException ex)
             {
                 song = null; // Because non null if it's a MidiUnavailableException
                 String msg = ResUtil.getString(NewSong.class, "ERR_CantCreateSongFromTemplate", songTemplateFile.getAbsolutePath());

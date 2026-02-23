@@ -252,7 +252,6 @@ public final class ImportSong implements ActionListener
             {
                 // Ok we got the new song show it !
                 song.setFile(null);     // Make sure song is not associated with the import file
-                SongFactory.getInstance().registerSong(song);
 
                 boolean last = (f == songFiles.get(songFiles.size() - 1));
                 SongEditorManager.getDefault().showSong(song, last, true);

@@ -341,11 +341,6 @@
         </dependency>  
         <dependency> 
             <groupId>org.jjazzlab.core</groupId> 
-            <artifactId>phrase</artifactId> 
-            <version>${project.version}</version> 
-        </dependency>  
-        <dependency> 
-            <groupId>org.jjazzlab.core</groupId> 
             <artifactId>phrasetransform</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
@@ -377,6 +372,11 @@
         <dependency> 
             <groupId>org.jjazzlab.core</groupId> 
             <artifactId>harmony</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>  
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>rhythmparameters</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 

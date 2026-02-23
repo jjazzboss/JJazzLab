@@ -25,6 +25,7 @@
 package org.jjazz.midimix.api;
 
 import com.google.common.base.Preconditions;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -37,12 +38,12 @@ import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.synths.GMSynth;
+import org.jjazz.midimix.MidiMixImpl;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.song.ExecutionManager;
-import org.jjazz.song.Operation;
-import org.jjazz.song.ThrowingWriteOperation;
+import org.jjazz.song.SongImpl;
 import org.jjazz.song.WriteOperation;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongCreationException;
@@ -51,7 +52,6 @@ import org.jjazz.utilities.api.ResUtil;
 /**
  * MidiMix helper methods.
  */
-
 public class MidiMixUtils
 {
 
@@ -74,7 +74,7 @@ public class MidiMixUtils
     {
         Objects.requireNonNull(midiMix);
 
-        return ((MidiMixImpl)midiMix).performReadAPImethod(() -> 
+        return ((MidiMixImpl) midiMix).performReadAPImethod(() -> 
         {
             List<Integer> res = new ArrayList<>();
 
@@ -127,7 +127,7 @@ public class MidiMixUtils
         Objects.requireNonNull(midiMix);
         Objects.requireNonNull(song);
 
-        ((MidiMixImpl)midiMix).performReadAPImethodThrowing(() -> 
+        ((MidiMixImpl) midiMix).performReadAPImethodThrowing(() -> 
         {
             List<RhythmVoice> sgRvs = song.getSongStructure().getUniqueRhythmVoices(true, false);
             for (Integer channel : midiMix.getUsedChannels())
@@ -220,8 +220,8 @@ public class MidiMixUtils
 
         ExecutionManager executionManager = ((SongImpl) midiMixDest.getSong()).getExecutionManager();
 
-        
-        List<WriteOperation> operations = ((MidiMixImpl)midiMixDest).performReadAPImethodThrowing(() -> 
+
+        List<WriteOperation> operations = ((MidiMixImpl) midiMixDest).performReadAPImethodThrowing(() -> 
         {
             // Find the matching voices except the user phrase channels
             List<RhythmVoice> rvsDest = midiMixDest.getRhythmVoices();
@@ -264,7 +264,7 @@ public class MidiMixUtils
                 InstrumentMix insMixSrc = midiMixSrc.getInstrumentMix(rvSrc);
                 RhythmVoice rvDest = mapSrcDestMatchingVoices.get(rvSrc);
                 int channel = midiMixDest.getChannel(rvDest);
-                res.add(((MidiMixImpl)midiMixDest).setInstrumentMixOperation(channel, rvDest, new InstrumentMix(insMixSrc)));
+                res.add(((MidiMixImpl) midiMixDest).setInstrumentMixOperation(channel, rvDest, new InstrumentMix(insMixSrc)));
             }
 
 
@@ -275,7 +275,7 @@ public class MidiMixUtils
                 if (urvDest != null)
                 {
                     InstrumentMix insMixSrc = midiMixSrc.getInstrumentMix(userRvSrc);
-                    res.add(((MidiMixImpl)midiMixDest).setInstrumentMixOperation(midiMixDest.getChannel(urvDest), urvDest, new InstrumentMix(insMixSrc)));
+                    res.add(((MidiMixImpl) midiMixDest).setInstrumentMixOperation(midiMixDest.getChannel(urvDest), urvDest, new InstrumentMix(insMixSrc)));
                 }
             }
 
@@ -284,6 +284,7 @@ public class MidiMixUtils
 
         executionManager.executeWriteOperations(operations);
     }
+
 
     /**
      * Add RhythmVoices and InstrumentMixes copies from midiMixSrc to midiMixDest.
@@ -307,7 +308,7 @@ public class MidiMixUtils
         ExecutionManager executionManager = ((SongImpl) midiMixDest.getSong()).getExecutionManager();
 
 
-        List<WriteOperation> operations = ((MidiMixImpl)midiMixDest).performReadAPImethodThrowing(() -> 
+        List<WriteOperation> operations = ((MidiMixImpl) midiMixDest).performReadAPImethodThrowing(() -> 
         {
             List<Integer> usedChannelsSrc = (r == null) ? midiMixSrc.getUsedChannels() : midiMixSrc.getUsedChannels(r);
             if (midiMixDest.getUnusedChannels().size() < usedChannelsSrc.size())
@@ -325,7 +326,7 @@ public class MidiMixUtils
                     int channelDest = midiMixDest.getUsedChannels().contains(channelSrc) ? midiMixDest.findFreeChannel(rvSrc.isDrums()) : channelSrc;
                     assert channelDest != -1;
                     InstrumentMix insMixSrc = midiMixSrc.getInstrumentMix(channelSrc);
-                    res.add(((MidiMixImpl)midiMixDest).setInstrumentMixOperation(channelDest, rvSrc, new InstrumentMix(insMixSrc)));
+                    res.add(((MidiMixImpl) midiMixDest).setInstrumentMixOperation(channelDest, rvSrc, new InstrumentMix(insMixSrc)));
                 }
             }
             return res;
@@ -337,5 +338,40 @@ public class MidiMixUtils
         LOGGER.log(Level.FINE, "addInstrumentMixes()     exit : midiMixDest={0}", midiMixDest);
     }
 
+
+    /**
+     * Build a rhythm MidiMix from a song MidiMix.
+     *
+     * @param songMidiMix
+     * @param r
+     * @return
+     */
+    static public MidiMix getRhythmMix(MidiMix songMidiMix, Rhythm r)
+    {
+        Objects.requireNonNull(songMidiMix);
+        Objects.requireNonNull(r);
+        Preconditions.checkArgument(songMidiMix.getUniqueRhythms().contains(r), "r=%s songMidiMix=%s", r, songMidiMix);
+
+        MidiMix res = new MidiMixImpl(null);
+        try
+        {
+            MidiMixUtils.addInstrumentMixes(res, songMidiMix, r);
+        } catch (UnsupportedEditException ex)
+        {
+            // Should never happen 
+            throw new IllegalStateException("arg");
+        }
+        return res;
+    }
+
+    static public void throwNotEnoughMidiChannelException() throws UnsupportedEditException
+    {
+        throw new UnsupportedEditException(ResUtil.getString(MidiMixImpl.class, "ERR_NotEnoughChannels"));
+    }
+
+    static public void throwSameNameUserChannelException(String name) throws UnsupportedEditException
+    {
+        throw new UnsupportedEditException(ResUtil.getString(MidiMixImpl.class, "ERR_SameNameUserChannel", name));
+    }
 
 }

@@ -31,13 +31,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.TreeSet;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.chordleadsheet.api.ChordLeadSheetFactory;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.importers.api.TextReader;
+import org.jjazz.song.api.SongFactory;
 import org.openide.util.Exceptions;
 
 /**
@@ -104,7 +104,7 @@ public class ItemsTransferable implements Transferable
         var cls = cli0.getContainer();
         TimeSignature ts0 = cls == null ? TimeSignature.FOUR_FOUR : cls.getSection(bar0).getData().getTimeSignature();
 
-        var res = ChordLeadSheetFactory.getDefault().createEmptyLeadSheet("A", ts0, lastBar - bar0 + 1, null);
+        var res = SongFactory.getInstance().createEmptyChordLeadSheet("A", ts0, lastBar - bar0 + 1, null);
         for (var item : data.getItemsCopy(0))
         {
             if (item instanceof CLI_Section sectionItem)

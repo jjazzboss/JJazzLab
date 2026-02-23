@@ -41,7 +41,6 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythmdatabase.api.DefaultRhythmDatabase;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
-import org.jjazz.songstructure.SongPartImpl;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.junit.*;
@@ -49,7 +48,6 @@ import static org.junit.Assert.*;
 import org.openide.util.Exceptions;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.songstructure.api.SongStructureFactory;
 import org.jjazz.utilities.api.Utilities;
 
 public class ClsSgsUpdaterTest
@@ -130,7 +128,7 @@ public class ClsSgsUpdaterTest
 
 
             // Copy for undo/redo test
-            u_sgs = SongStructureFactory.getDefault().createSgs(cls1);
+            u_sgs = SongFactory.getInstance().createSongStructure(cls1);
             u_spt0 = spt0.getCopy(null, spt0.getStartBarIndex(), spt0.getNbBars(), spt0.getParentSection());
             u_sgs.addSongParts(List.of(u_spt0));
         } catch (ParseException ex)
@@ -173,10 +171,9 @@ public class ClsSgsUpdaterTest
         {
             System.out.println("\nu_sgs=" + u_sgs);
             System.out.println("sgs after Undo ALL =" + sgs);
-
         }
-        assertEquals(u_cls1, cls1);
-        assertTrue(isEqual(sgs, u_sgs));
+        assertTrue(b1);
+        assertTrue(b2);
     }
 
     @Test
@@ -232,7 +229,7 @@ public class ClsSgsUpdaterTest
         assertEquals(2, sgs.getSongParts().get(4).getNbBars());
         System.out.println("\n== Test testAddAndRemove removeSection");
         assertEquals(10, sgs.getSizeInBars());
-            cls1.removeSection(section2);
+        cls1.removeSection(section2);
         System.out.println(" sgs after=" + sgs);
         assertEquals(8, sgs.getSizeInBars());
         assertEquals(3, sgs.getSongParts().size());
@@ -246,7 +243,7 @@ public class ClsSgsUpdaterTest
     {
         System.out.println("\n============ testAdd2");
         assertTrue(sgs.getSizeInBars() == 11);
-            sgs.removeSongParts(List.of(sgs.getSongParts().get(1)));
+        sgs.removeSongParts(List.of(sgs.getSongParts().get(1)));
         System.out.println(" sgs after(1)=" + sgs);
         try
         {
@@ -266,7 +263,7 @@ public class ClsSgsUpdaterTest
     {
         System.out.println("\n============ testAdd3 after absent section");
         assertTrue(sgs.getSizeInBars() == 11);
-            sgs.removeSongParts(List.of(sgs.getSongParts().get(2)));
+        sgs.removeSongParts(List.of(sgs.getSongParts().get(2)));
         System.out.println(" sgs after(1)=" + sgs);
         try
         {
@@ -399,7 +396,7 @@ public class ClsSgsUpdaterTest
     public void testMoveSection()
     {
         System.out.println("\n============ testMoveSection");
-            cls1.moveSection(section2, 1);
+        cls1.moveSection(section2, 1);
         System.out.println(" sgs after=" + sgs);
         assertTrue(sgs.getSongParts().get(1).getStartBarIndex() == 1);
         assertTrue(sgs.getSongParts().get(1).getNbBars() == 4);
@@ -410,7 +407,7 @@ public class ClsSgsUpdaterTest
     public void testMoveSectionBig()
     {
         System.out.println("\n============ testMoveSectionBig");
-            cls1.moveSection(section2, 6);
+        cls1.moveSection(section2, 6);
         System.out.println(" sgs after=" + sgs);
         assertTrue(sgs.getSongParts().size() == 3);
         assertTrue(sgs.getSongParts().get(2).getStartBarIndex() == 6);
@@ -421,7 +418,7 @@ public class ClsSgsUpdaterTest
     public void testResize()
     {
         System.out.println("\n============ TestResize");
-            cls1.setSizeInBars(10);
+        cls1.setSizeInBars(10);
         System.out.println(" sgs after=" + sgs);
         assertTrue(sgs.getSizeInBars() == 13);
         assertTrue(sgs.getSongParts().get(2).getNbBars() == 5);
@@ -432,7 +429,7 @@ public class ClsSgsUpdaterTest
     public void testRemoveSection()
     {
         System.out.println("\n============ Test testRemoveOneSection");
-            cls1.removeSection(section2);
+        cls1.removeSection(section2);
         System.out.println(" sgs after=" + sgs);
         assertTrue(sgs.getSongParts().size() == 2);
         assertTrue(sgs.getSongParts().get(0).getNbBars() == 5);
@@ -444,7 +441,7 @@ public class ClsSgsUpdaterTest
     public void testRemoveBars()
     {
         System.out.println("\n============ testRemoveBars");
-            cls1.deleteBars(4, 5);
+        cls1.deleteBars(4, 5);
         System.out.println(" cls1 after=" + cls1.toDebugString());
         System.out.println(" sgs after=" + sgs);
         assertTrue(sgs.getSizeInBars() == 10);
@@ -488,29 +485,11 @@ public class ClsSgsUpdaterTest
             Exceptions.printStackTrace(ex);
         }
         assertTrue(sgs.getSongParts().size() == 5);
-            cls1.deleteBars(6, 7);
+        cls1.deleteBars(6, 7);
         System.out.println(" cls1 after=" + cls1.toDebugString());
         System.out.println(" sgs after=" + sgs);
         assertTrue(sgs.getSongParts().size() == 4);
         assertTrue(sgs.getSongParts().get(2).getNbBars() == 1);
-    }
-
-    private boolean isEqual(SongStructure sgs1, SongStructure sgs2)
-    {
-        var spts1 = sgs1.getSongParts();
-        var spts2 = sgs2.getSongParts();
-        if (spts1.size() != spts2.size())
-        {
-            return false;
-        }
-        for (int i = 0; i < spts1.size(); i++)
-        {
-            if (!spts1.get(i).isEqual(spts2.get(i)))
-            {
-                return false;
-            }
-        }
-        return true;
     }
 
     private void redoAll()

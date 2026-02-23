@@ -37,10 +37,14 @@
             <artifactId>org-netbeans-api-annotations-common</artifactId>
             <version>${netbeans.version}</version>
         </dependency>
-        
         <dependency>
             <groupId>org.jjazzlab.core</groupId>
             <artifactId>rhythm</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jjazzlab.core</groupId>
+            <artifactId>rhythmparameters</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

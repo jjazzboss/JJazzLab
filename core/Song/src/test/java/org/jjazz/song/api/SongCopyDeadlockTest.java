@@ -27,7 +27,6 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.chordleadsheet.api.ChordLeadSheetFactory;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
 import org.jjazz.rhythmdatabase.api.DefaultRhythmDatabase;
@@ -76,7 +75,7 @@ public class SongCopyDeadlockTest
     {
         LOGGER.log(Level.INFO, "testDeadlock1() --");
 
-        ChordLeadSheet cls = ChordLeadSheetFactory.getDefault().createEmptyLeadSheet("A", TimeSignature.FOUR_FOUR, 4, "C7");
+        ChordLeadSheet cls = SongFactory.getInstance().createEmptyChordLeadSheet("A", TimeSignature.FOUR_FOUR, 4, "C7");
         Song song = SongFactory.getInstance().createSong("TestSong", cls);
 
         int TIME_OUT_SEC = 5;

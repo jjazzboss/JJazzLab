@@ -32,7 +32,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.chordleadsheet.api.ChordLeadSheetFactory;
 import org.jjazz.chordleadsheet.api.Section;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
@@ -77,7 +76,7 @@ public class SongBuilder implements MusicXmlParserListener
     public SongBuilder()
     {
         // clsWork is just used to store all parsed items, actual song creation will be done after
-        clsWork = ChordLeadSheetFactory.getDefault().createEmptyLeadSheet("A", TimeSignature.FOUR_FOUR, ChordLeadSheet.MAX_SIZE, null);
+        clsWork = SongFactory.getInstance().createEmptyChordLeadSheet("A", TimeSignature.FOUR_FOUR, ChordLeadSheet.MAX_SIZE, null);
     }
 
     /**

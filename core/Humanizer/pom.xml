@@ -38,12 +38,12 @@
         </dependency>  
         <dependency> 
             <groupId>org.jjazzlab.core</groupId> 
-            <artifactId>harmony</artifactId> 
+            <artifactId>song</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
             <groupId>org.jjazzlab.core</groupId> 
-            <artifactId>phrase</artifactId> 
+            <artifactId>harmony</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 

@@ -79,12 +79,6 @@ public class CLI_NavigationItem implements ChordLeadSheetItem<NavItem>, Writable
     }
 
     @Override
-    public ReentrantReadWriteLock getLock()
-    {
-        return container == null ? null : container.getLock();
-    }
-
-    @Override
     public NavItem getData()
     {
         return data;

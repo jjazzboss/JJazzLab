@@ -28,12 +28,12 @@
         </dependency>
         <dependency>
             <groupId>org.jjazzlab.core</groupId>
-            <artifactId>quantizer</artifactId>
+            <artifactId>rhythmparameters</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.jjazzlab.core</groupId>
-            <artifactId>phrase</artifactId>
+            <artifactId>quantizer</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

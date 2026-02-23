@@ -365,7 +365,7 @@ public class TextReader
 
         // Create the song object from the collected data
         String sName = "A";
-        ChordLeadSheet cls = ChordLeadSheetFactory.getDefault().createEmptyLeadSheet(sName, ts0, barIndex, null);
+        ChordLeadSheet cls = SongFactory.getInstance().createEmptyChordLeadSheet(sName, ts0, barIndex, null);
         SongFactory sf = SongFactory.getInstance();
         Song song = null;
         try

@@ -83,12 +83,6 @@ public class CLI_Ending implements ChordLeadSheetItem<Ending>, WritableItem<Endi
     }
 
     @Override
-    public ReentrantReadWriteLock getLock()
-    {
-        return container == null ? null : container.getLock();
-    }
-
-    @Override
     public int getPositionOrder()
     {
         return isStartType() ? POSITION_ORDER_START : POSITION_ORDER_END;

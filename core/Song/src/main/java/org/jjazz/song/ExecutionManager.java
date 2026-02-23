@@ -36,7 +36,7 @@ import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
 import org.jjazz.chordleadsheet.api.item.WritableItem;
 import org.jjazz.midimix.api.MidiMix;
-import org.jjazz.midimix.api.MidiMixImpl;
+import org.jjazz.midimix.MidiMixImpl;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongPropertyChangeEvent;
 import org.jjazz.songstructure.SongPartImpl;
