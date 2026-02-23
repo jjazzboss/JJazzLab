@@ -84,13 +84,12 @@ import org.jjazz.utilities.api.Utilities;
 import org.openide.util.Exceptions;
 
 /**
- * Manage the derived changes after a primary change on a Song component.
+ * Manage the derived changes after a primary change on a Song component (Song, ChordLeadSheet, SongStructure).
  * <p>
  * For example, a ChordLeadSheet time signature change might require an update of a SongPart rhythm, which will impact the MidiMix, and possibly some chord
  * symbols position back in the ChordLeadSheet if rhythm division has changed.
  * <p>
- * SongInternalUpdater also allows to pre-check an operation: e.g. a time signature change could be vetoed by SongStructure/MidiMix because the new rhythm would
- * need too many Midi channels.
+ * SongInternalUpdater also allows to pre-check an operation: e.g. a time signature change should be vetoed if it ends up adding a new rhythm in a MidiMix with not enough MIDI channels.
  */
 class SongInternalUpdater
 {
@@ -201,7 +200,7 @@ class SongInternalUpdater
     }
 
     /**
-     * Provide the WriteOperations required on other Song components following the source change event.
+     * Provide the WriteOperations (or ThrowingWriteOperations) required on other Song components following the source change event.
      * <p>
      *
      * @param results
@@ -410,10 +409,10 @@ class SongInternalUpdater
     }
 
     /**
-     * Section added to an empty bar.
+     * A section was added to an empty bar.
      * <p>
-     * - Create the corresponding SongPart with possibly a new rhythm<br>
-     * - Adjust the size of SongParts using previous section<br>
+     * - Insert a new SongPart for the added section<br>
+     * - Reduce the size of the SongPart(s) whose parent section is the previous shortened section<br>
      *
      * @param evt
      * @param preCheck
@@ -434,7 +433,7 @@ class SongInternalUpdater
 
         if (preCheck)
         {
-            getDerivedSptAdded(event, true);       // Only risk is a new rhythm with not enough available MIDI channels
+            getDerivedSptAdded(event, true);       //  // throws UnsupportedEditException
             return null;
         }
 
@@ -456,9 +455,9 @@ class SongInternalUpdater
 
 
     /**
-     * A section was replaced by a new one in the same bar.
+     * A section was replaced by a new one (same bar).
      * <p>
-     * - Update parent section, name and rhythm of impacted SongParts<br>
+     * - Update the parent section and possibly rename the impacted SongParts<br>
      *
      * @param oldSection
      * @param newSection
@@ -492,12 +491,12 @@ class SongInternalUpdater
         }
 
 
-        // Update SongParts rhyhtm and parentSection
+        // Update SongParts rhythm and parentSection
         List<Operation> res = new ArrayList<>();
         res.add(songStructure.setSongPartsRhythmOperation(oldSpts, newRhythm, newSection));
 
 
-        // Update SongParts name
+        // Update SongPart name only if it was not customized by user
         List<SongPart> toBeRenamedSpts = oldSpts.stream()
                 .filter(spt -> spt.getName().equalsIgnoreCase(oldName))
                 .toList();
@@ -552,7 +551,7 @@ class SongInternalUpdater
     /**
      * A section name was changed.
      * <p>
-     * - Update impacted SongParts name if relevant<br>
+     * - Update impacted SongPart(s) name only if it was not customized by user<br>
      *
      * @param sce
      * @return
@@ -574,7 +573,7 @@ class SongInternalUpdater
         List<Operation> res = new ArrayList<>();
 
 
-        // Update name of an impacted SongPart only if not customized by user
+        // Update SongPart name only if not customized by user
         List<SongPart> sptsToBeRenamed = getSongParts(cliSection).stream()
                 .filter(spt -> spt.getName().equalsIgnoreCase(oldName))
                 .toList();
@@ -586,11 +585,11 @@ class SongInternalUpdater
     }
 
     /**
-     * Section was removed.
+     * A section was removed.
      * <p>
-     * - Remove the corresponding SongPart<br>
-     * - Resize the SongParts for the previous section<br>
-     * - Possibly adjust chord symbols position if rhythm division has changed<br>
+     * - Remove the corresponding SongParts<br>
+     * - Resize the SongParts for the previous section which got bigger<br>
+     * - Possibly adjust the position of the (new) last chord symbols of the previous section (if the rhythm division of the corresponding song part has changed)<br>
      *
      * @param evt
      * @return
@@ -607,17 +606,17 @@ class SongInternalUpdater
         List<Operation> res = new ArrayList<>();
 
 
-        // Remove the new SongPart
+        // Remove the impacted SongParts
         var spts = getSongParts(cliSection);
         res.add(songStructure.removeSongPartsOperation(spts));
 
 
-        // Resize of SongParts linked to previous section
+        // Resize the SongParts linked to previous section
         var mapSptSize = getMapSptSize(prevSection);
         res.add(songStructure.resizeSongPartsOperation(mapSptSize));
 
 
-        // Possibly update ChordLeadSheetItems position of prevSection
+        // Update the position of the (new) ChordLeadSheetItems of prevSection  -might do nothing if no rhythm division change
         var prevSectionSpts = getSongParts(prevSection);
         if (!prevSectionSpts.isEmpty())
         {
@@ -628,9 +627,9 @@ class SongInternalUpdater
     }
 
     /**
-     * Section was moved.
+     * A section was moved.
      * <p>
-     * - Resize the impacted SongParts<br>
+     * - Resize the SongParts for the previous sections before/after the move<br>
      * - Possibly adjust chord symbols position if rhythm division has changed<br>
      *
      * @param evt
@@ -676,7 +675,7 @@ class SongInternalUpdater
 
         }
 
-        // Possibly update ChordLeadSheetItems position of impacted sections
+        // Possibly update the position of ChordLeadSheetItems, if a rhythm division has changed
         var spts = getSongParts(cliSection);
         if (!spts.isEmpty())
         {
@@ -694,7 +693,7 @@ class SongInternalUpdater
     /**
      * Some bars were deleted.
      * <p>
-     * - Possibly remove and resize SongParts<br>
+     * - Remove and possibly resize SongParts<br>
      * - Possibly adjust chord symbols position if rhythm division has changed<br>
      *
      * @param evt
@@ -715,6 +714,7 @@ class SongInternalUpdater
         // Section before the deleted bars might have changed
         if (evt.getBarFrom() > 0)
         {
+            // Resize song parts for previous section
             var mapSptSize = getMapSptSize(chordLeadSheet.getSection(evt.getBarFrom() - 1));
             songStructure.resizeSongParts(mapSptSize);
         } else if (evt.isInitSectionRemoved())
@@ -728,7 +728,7 @@ class SongInternalUpdater
         }
 
 
-        // Possibly update ChordLeadSheetItems position of the impacted section
+        // Possibly adjust the position of ChordLeadSheetItems because of a rhythm division change
         if (!removedSections.isEmpty() && (chordLeadSheet.getSizeInBars() - 1) > evt.getBarFrom())
         {
             var cliSection = chordLeadSheet.getSection(evt.getBarFrom());
@@ -746,7 +746,7 @@ class SongInternalUpdater
      * Some bars were inserted.
      * <p>
      * - Possibly resize SongParts<br>
-     * - Possibly create an init SongPart if insertion from bar 0<br>
+     * - Create an init SongPart if insertion from bar 0<br>
      *
      * @param evt
      * @return
@@ -797,7 +797,8 @@ class SongInternalUpdater
     /**
      * Some SongParts were added.
      * <p>
-     * - If new rhythm, update MidiMix and possibly chord symbols position if rhythm division has changed<br>
+     * - if new rhythm update MidiMix<br>
+     * - possibly adjust chord symbols position if rhythm division has changed<br>
      *
      * @param sae
      * @param preCheck
@@ -806,7 +807,7 @@ class SongInternalUpdater
      */
     private List<Operation> getDerivedSptAdded(SptAddedEvent sae, boolean preCheck) throws UnsupportedEditException
     {
-        var uniqueRhythms = getMidiMix().getUniqueRhythms();
+        Set<Rhythm> uniqueRhythms = getMidiMix().getUniqueRhythms();
         var spts = sae.getSongParts();
 
 
@@ -814,7 +815,7 @@ class SongInternalUpdater
         {
             spts.forEach(spt -> uniqueRhythms.add(spt.getRhythm()));
             checkForMidiChannelUnavailableError(uniqueRhythms);     // throws UnsupportedEditException
-            return null;
+            return Collections.emptyList();
         }
 
         List<Operation> res = new ArrayList<>();
@@ -825,11 +826,11 @@ class SongInternalUpdater
         {
             if (!uniqueRhythms.contains(r))
             {
-                res.addAll(addRhythm(r));
+                res.addAll(addRhythmToMidiMix(r));
             }
         }
 
-        // Possibly update ChordLeadSheetItems position
+        // Possibly update ChordLeadSheetItems position if rhythm division has changed
         res.addAll(adjustChordLeadSheetItemsPosition(spts));
 
         return res;
@@ -858,7 +859,7 @@ class SongInternalUpdater
 
         for (var r : rhythmsToBeRemoved)
         {
-            res.addAll(removeRhythm(r));
+            res.addAll(removeRhythmFromMidiMix(r));
         }
 
         return res;
@@ -905,7 +906,7 @@ class SongInternalUpdater
         {
             if (!uniqueRhythms.contains(r))
             {
-                res.addAll(addRhythm(r));
+                res.addAll(addRhythmToMidiMix(r));
             }
         }
 
@@ -930,8 +931,8 @@ class SongInternalUpdater
         List<Operation> res = new ArrayList<>();
         if (!evt.isGrowing())
         {
-            // Remove song parts
-            java.util.List<CLI_Section> removedSections = evt.getItems(CLI_Section.class);
+            // Size got smaller, possibly remove song parts
+            List<CLI_Section> removedSections = evt.getItems(CLI_Section.class);
             List<SongPart> toBeRemovedSpts = new ArrayList<>();
             for (CLI_Section cliSection : removedSections)
             {
@@ -953,7 +954,7 @@ class SongInternalUpdater
 
 
     /**
-     * A user phrase was removed.
+     * A user phrase was removed from the song.
      * <p>
      * - Remove user channel from MidiMix.
      *
@@ -967,16 +968,15 @@ class SongInternalUpdater
         var urv = getMidiMix().getUserRhythmVoice(name);
         assert urv != null;
         int channel = getMidiMix().getChannel(urv);
+        Operation operation = getMidiMix().setInstrumentMixOperation(channel, null, null);
 
-        res.add(getMidiMix().setInstrumentMixOperation(channel, null, null));
-
-        return res;
+        return List.of(operation);
     }
 
     /**
      * A new user phrase was added to the song.
      * <p>
-     * - Add a user channel to the MidiMix.
+     * - Add a user channel to the MidiMix, possibly with drums-rerouting activated<br>
      *
      * @param name
      * @param isDrums  True if it's a new drums phrase
@@ -988,7 +988,7 @@ class SongInternalUpdater
     {
         List<Operation> res = new ArrayList<>();
 
-        int channel = findFreeUserChannel(isDrums);     // throws UnsupportedEditException
+        int channel = findFreeUserChannel(isDrums);     // throws UnsupportedEditException if no channel available
         if (preCheck)
         {
             return Collections.emptyList();
@@ -1044,7 +1044,7 @@ class SongInternalUpdater
     /**
      * A user phrase name was changed.
      * <p>
-     * - Change UserRhythmVoice in the MidiMix.
+     * - Replace UserRhythmVoice in the MidiMix.
      *
      * @param oldName
      * @param newName
@@ -1055,9 +1055,10 @@ class SongInternalUpdater
         UserRhythmVoice oldUrv = getMidiMix().getUserRhythmVoice(oldName);
         assert oldUrv != null : "oldName=" + oldName;
         var kit = oldUrv.getDrumKit();
-        UserRhythmVoice newUrv = kit != null ? new UserRhythmVoice(newName, oldUrv.getDrumKit()) : new UserRhythmVoice(newName);
-        var res = getMidiMix().replaceRhythmVoiceOperation(oldUrv, newUrv);
-        return List.of(res);
+        
+        UserRhythmVoice newUrv = kit != null ? new UserRhythmVoice(newName, kit) : new UserRhythmVoice(newName);
+        Operation operation = getMidiMix().replaceRhythmVoiceOperation(oldUrv, newUrv);
+        return List.of(operation);
     }
 
 
@@ -1082,7 +1083,7 @@ class SongInternalUpdater
 
         if (nbVoices > MidiMix.NB_AVAILABLE_CHANNELS)
         {
-            throw new UnsupportedEditException(ResUtil.getString(getClass(), "ERR_NotEnoughChannels"));
+            throw new UnsupportedEditException(ResUtil.getString(MidiMixImpl.class, "ERR_NotEnoughChannels"));
         }
     }
 
@@ -1176,7 +1177,7 @@ class SongInternalUpdater
 
 
     /**
-     * Adjust position of ChordLeadSheetItems which do not match the rhythm division.
+     * Apply adjustChordLeadSheetItemsPosition(CLI_Section cliSection, Rhythm rhythm) for each parent section of the specified SongParts.
      *
      * @param spts Provide the parent sections to inspect
      * @return
@@ -1201,7 +1202,9 @@ class SongInternalUpdater
     }
 
     /**
-     * Adjust position of ChordLeadSheetItems which do not match the rhythm division.
+     * Adjust position of ChordLeadSheetItems which do not match the reference rhythm division.
+     * <p>
+     * The reference rhythm is the rhythm of the first SongPart whose cliSection is the parent section.
      *
      * @param cliSection Adjust items of this section
      * @param rhythm
@@ -1275,7 +1278,7 @@ class SongInternalUpdater
      * @param r
      * @return
      */
-    private List<Operation> removeRhythm(Rhythm r)
+    private List<Operation> removeRhythmFromMidiMix(Rhythm r)
     {
         var rvs = getMidiMix().getRhythmVoices();
 
@@ -1296,7 +1299,7 @@ class SongInternalUpdater
      * @return
      * @see #adaptInstrumentMixes(org.jjazz.midimix.api.MidiMix, org.jjazz.midimix.api.MidiMix, org.jjazz.rhythm.api.Rhythm)
      */
-    private List<Operation> addRhythm(Rhythm newRhythm)
+    private List<Operation> addRhythmToMidiMix(Rhythm newRhythm)
     {
         Preconditions.checkArgument(newRhythm != null && !(newRhythm instanceof AdaptedRhythm), "r=%s", newRhythm);
 
