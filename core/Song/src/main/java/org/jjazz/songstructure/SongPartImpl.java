@@ -314,7 +314,7 @@ public class SongPartImpl implements SongPart, Serializable
     /**
      * Set the rhythm and the parent section.
      * <p>
-     * Can only be called by SongStructure.
+     * Can only be called by SongStructure. SongPart name is unchanged.
      *
      * @param newRhythm        If null rhythm is unchanged.
      * @param newParentSection If null parent section is unchanged.
