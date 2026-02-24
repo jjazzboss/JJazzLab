@@ -90,7 +90,7 @@ public class RemoveRhythmChange extends SS_ContextAction implements HideIfDisabl
         um.startCEdit(getActionName());
         try
         {
-            sgs.setSongPartsRhythm(sptsToBeUpdated, prevRhythm);
+            sgs.setSongPartsRhythm(sptsToBeUpdated, prevRhythm, null);
         } catch (UnsupportedEditException ex)
         {
             // We possibly removed 1 rhythm, can't be here

@@ -71,9 +71,6 @@ import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhrase;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhraseValue;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_TempoFactor;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.song.api.SongPartContext;
 import org.netbeans.api.progress.BaseProgressUtils;
@@ -84,11 +81,14 @@ import org.jjazz.utilities.api.IntRange;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.util.Exceptions;
 import org.jjazz.outputsynth.spi.OutputSynthManager;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Fill;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
 import org.jjazz.rhythmmusicgeneration.api.CompositeMusicGenerator.DelegateUnit;
 import org.jjazz.rhythmmusicgeneration.spi.ConfigurableMusicGeneratorProvider;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGeneratorProvider;
+import org.jjazz.rhythmparameters.api.RP_SYS_CustomPhrase;
+import org.jjazz.rhythmparameters.api.RP_SYS_CustomPhraseValue;
+import org.jjazz.rhythmparameters.api.RP_SYS_Fill;
+import org.jjazz.rhythmparameters.api.RP_SYS_TempoFactor;
+import org.jjazz.rhythmparameters.api.RP_SYS_Variation;
 import org.jjazz.song.api.Song;
 
 /**

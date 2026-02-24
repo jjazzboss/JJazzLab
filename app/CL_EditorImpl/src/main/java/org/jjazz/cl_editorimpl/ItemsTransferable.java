@@ -37,7 +37,7 @@ import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.importers.api.TextReader;
-import org.jjazz.song.api.SongFactory;
+import org.jjazz.song.spi.SongFactory;
 import org.openide.util.Exceptions;
 
 /**
@@ -104,7 +104,7 @@ public class ItemsTransferable implements Transferable
         var cls = cli0.getContainer();
         TimeSignature ts0 = cls == null ? TimeSignature.FOUR_FOUR : cls.getSection(bar0).getData().getTimeSignature();
 
-        var res = SongFactory.getInstance().createEmptyChordLeadSheet("A", ts0, lastBar - bar0 + 1, null);
+        var res = SongFactory.getDefault().createEmptyChordLeadSheet("A", ts0, lastBar - bar0 + 1, null);
         for (var item : data.getItemsCopy(0))
         {
             if (item instanceof CLI_Section sectionItem)

@@ -54,7 +54,7 @@ import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.song.api.Song;
-import org.jjazz.song.api.SongFactory;
+import org.jjazz.song.spi.SongFactory;
 import org.jjazz.song.api.SongContext;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
@@ -256,7 +256,7 @@ public class RhythmPreviewerImpl implements RhythmPreviewer
     private Song buildPreviewSong(Song song, SongPart spt, Rhythm r, Map<RhythmParameter<?>, Object> rpValues) throws UnsupportedEditException
     {
         // Get a copy
-        var sf = SongFactory.getInstance();
+        var sf = SongFactory.getDefault();
         Song newSong = sf.getCopy(song, true, false);
 
         SongStructure newSs = newSong.getSongStructure();

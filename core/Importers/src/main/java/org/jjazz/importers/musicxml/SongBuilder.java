@@ -35,7 +35,7 @@ import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.Section;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.chordleadsheet.api.item.CLI_Factory;
+import org.jjazz.chordleadsheet.spi.item.CLI_Factory;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
@@ -54,7 +54,7 @@ import static org.jjazz.importers.musicxml.NavigationMark.SEGNO;
 import static org.jjazz.importers.musicxml.NavigationMark.TOCODA;
 import org.jjazz.rhythm.api.TempoRange;
 import org.jjazz.song.api.Song;
-import org.jjazz.song.api.SongFactory;
+import org.jjazz.song.spi.SongFactory;
 import org.jjazz.utilities.api.Utilities;
 import org.openide.util.Exceptions;
 
@@ -76,7 +76,7 @@ public class SongBuilder implements MusicXmlParserListener
     public SongBuilder()
     {
         // clsWork is just used to store all parsed items, actual song creation will be done after
-        clsWork = SongFactory.getInstance().createEmptyChordLeadSheet("A", TimeSignature.FOUR_FOUR, ChordLeadSheet.MAX_SIZE, null);
+        clsWork = SongFactory.getDefault().createEmptyChordLeadSheet("A", TimeSignature.FOUR_FOUR, ChordLeadSheet.MAX_SIZE, null);
     }
 
     /**
@@ -411,7 +411,7 @@ public class SongBuilder implements MusicXmlParserListener
     private Song createSong(List<List<Integer>> barListsOrdered, List<CLI_Section> sectionsOrdered)
     {
         var ts0 = sectionsOrdered.get(0).getData().getTimeSignature();
-        var sg = SongFactory.getInstance().createEmptySong("MusicXML-import", 4, "A", ts0, null);
+        var sg = SongFactory.getDefault().createEmptySong("MusicXML-import", 4, "A", ts0, null);
         var cls = sg.getChordLeadSheet();
         try
         {

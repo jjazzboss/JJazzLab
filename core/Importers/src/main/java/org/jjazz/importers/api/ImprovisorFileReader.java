@@ -43,13 +43,13 @@ import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.chordleadsheet.api.item.CLI_Factory;
+import org.jjazz.chordleadsheet.spi.item.CLI_Factory;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.song.api.Song;
-import org.jjazz.song.api.SongFactory;
+import org.jjazz.song.spi.SongFactory;
 import org.jjazz.utilities.api.ResUtil;
 
 /**
@@ -199,7 +199,7 @@ public class ImprovisorFileReader
                     if (cls == null)
                     {
                         // Create an empty leadsheet, 1 bar size
-                        cls = SongFactory.getInstance().createEmptyChordLeadSheet(String.valueOf(sectionIndex), ts, 1, null);
+                        cls = SongFactory.getDefault().createEmptyChordLeadSheet(String.valueOf(sectionIndex), ts, 1, null);
                     }
                     barIndex = fillInChordLeadSheet(cls, ts, barIndex, line, file, lineCount);
                     // LOGGER.severe("importFromFile() chord line=" + line);
@@ -211,7 +211,7 @@ public class ImprovisorFileReader
         } // End try // End try
 
         // Create the song object from the collected data
-        SongFactory sf = SongFactory.getInstance();
+        SongFactory sf = SongFactory.getDefault();
         Song song = null;
         try
         {

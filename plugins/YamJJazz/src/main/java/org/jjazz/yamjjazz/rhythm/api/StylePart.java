@@ -30,8 +30,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.midi.api.MidiConst;
-import org.jjazz.phrase.api.SourcePhrase;
-import org.jjazz.phrase.api.SourcePhraseSet;
+import org.jjazz.rhythmmusicgeneration.api.SourcePhrase;
+import org.jjazz.rhythmmusicgeneration.api.SourcePhraseSet;
 
 /**
  * Data representing a Style Part, e.g. MAIN_A.

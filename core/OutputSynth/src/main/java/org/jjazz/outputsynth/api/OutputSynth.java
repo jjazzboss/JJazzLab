@@ -43,6 +43,7 @@ import org.jjazz.midi.api.synths.GMSynth;
 import org.jjazz.midi.api.synths.StandardInstrumentConverter;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.UserRhythmVoice;
+import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.rhythm.api.RhythmVoice;
 
 /**
@@ -330,7 +331,7 @@ public class OutputSynth
         // Reroute drums channels
         if (fixDrumsRerouting)
         {
-            List<Integer> reroutableChannels = mm.getChannelsNeedingDrumsRerouting(mapNewInstruments);
+            List<Integer> reroutableChannels = MidiMixManager.getDefault().getChannelsNeedingDrumsRerouting(mm, mapNewInstruments);
             LOGGER.log(Level.FINE, "fixInstruments()    reroutableChannels={0}", reroutableChannels);
             for (int ch : reroutableChannels)
             {

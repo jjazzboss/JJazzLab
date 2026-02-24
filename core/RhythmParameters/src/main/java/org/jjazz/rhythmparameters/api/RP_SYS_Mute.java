@@ -22,6 +22,7 @@
  */
 package org.jjazz.rhythmparameters.api;
 
+import org.jjazz.rhythm.api.RP_StringSet;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;

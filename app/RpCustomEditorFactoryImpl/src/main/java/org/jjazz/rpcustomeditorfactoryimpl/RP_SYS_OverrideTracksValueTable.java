@@ -45,7 +45,7 @@ import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
-import org.jjazz.rhythmmusicgeneration.api.RP_SYS_OverrideTracksValue;
+import org.jjazz.rhythmparameters.api.RP_SYS_OverrideTracksValue;
 import org.jjazz.utilities.api.ResUtil;
 
 /**

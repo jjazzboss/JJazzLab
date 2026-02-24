@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Objects;
 import javax.sound.midi.MidiUnavailableException;
 import static javax.swing.Action.NAME;
+import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.rhythm.api.RhythmParameter;
@@ -96,7 +97,7 @@ public final class EditRpWithCustomEditor extends SS_ContextAction
             try
             {
                 mm = MidiMixManager.getDefault().findMix(song);
-            } catch (MidiUnavailableException ex)
+            } catch (UnsupportedEditException ex)
             {
                 // Should never happen 
                 Exceptions.printStackTrace(ex);

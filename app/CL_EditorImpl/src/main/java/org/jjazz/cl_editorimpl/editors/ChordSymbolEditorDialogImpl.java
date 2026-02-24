@@ -48,7 +48,7 @@ import org.jjazz.harmony.api.StandardScaleInstance;
 import org.jjazz.chordleadsheet.api.item.AltDataFilter;
 import org.jjazz.chordleadsheet.api.item.AltExtChordSymbol;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.chordleadsheet.api.item.CLI_Factory;
+import org.jjazz.chordleadsheet.spi.item.CLI_Factory;
 import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;

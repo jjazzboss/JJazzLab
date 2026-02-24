@@ -27,7 +27,6 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.sound.midi.MidiUnavailableException;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.harmony.api.TimeSignature;
@@ -35,7 +34,7 @@ import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongCreationException;
-import org.jjazz.song.api.SongFactory;
+import org.jjazz.song.spi.SongFactory;
 import org.jjazz.songeditormanager.spi.SongEditorManager;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
@@ -76,7 +75,7 @@ public final class NewSong implements ActionListener
      */
     static public Song createSongFromTemplate()
     {
-        SongFactory sf = SongFactory.getInstance();
+        SongFactory sf = SongFactory.getDefault();
         Song song = null;
         String name = "NewSong" + counter;
         counter++;
@@ -87,7 +86,7 @@ public final class NewSong implements ActionListener
         {
             try
             {
-                song = Song.loadFromFile(songTemplateFile);    // Possible SongCreationException here
+                song = SongFactory.getDefault().loadFromFile(songTemplateFile);    // Possible SongCreationException here
 
 
                 // SongEditorManager will create the MidiMix, using the associated template file or

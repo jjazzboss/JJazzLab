@@ -43,7 +43,7 @@ import org.jjazz.rhythmdatabase.api.RhythmInfo;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.rhythmselectiondialog.spi.RhythmPreviewer;
 import org.jjazz.song.api.Song;
-import org.jjazz.song.api.SongFactory;
+import org.jjazz.song.spi.SongFactory;
 import org.jjazz.ss_editor.api.SS_Selection;
 import org.jjazz.rhythmselectiondialog.api.RhythmSelectionDialog;
 import org.jjazz.rhythmselectiondialog.spi.RhythmSelectionDialogProvider;
@@ -134,7 +134,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
         List<SongPart> selSpts = new ArrayList<>(selectedSpts);               // Copy to avoid concurrent modifications
         SongPart selSpt0 = selSpts.get(0);
         SongStructure sgs = selSpt0.getContainer();
-        Song song = SongFactory.getInstance().findSong(sgs);
+        Song song = SongFactory.getDefault().findSong(sgs);
         List<SongPart> allSpts = new ArrayList<>(sgs.getSongParts());       // Copy to avoid concurrent modifications
 
 
@@ -264,7 +264,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
         // Perform the rhythm change
         try
         {
-            sgs.setSongPartsRhythm(sptsToBeUpdated, newRhythm);
+            sgs.setSongPartsRhythm(sptsToBeUpdated, newRhythm, null);
         } catch (UnsupportedEditException ex)
         {
             String msg = undoText + ": " + newRhythm.getName() + ".\n" + ex.getLocalizedMessage();

@@ -30,7 +30,7 @@ import static javax.swing.Action.NAME;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.chordleadsheet.api.item.CLI_Factory;
+import org.jjazz.chordleadsheet.spi.item.CLI_Factory;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.cl_editor.api.CL_ContextAction;
 import static org.jjazz.cl_editor.api.CL_ContextAction.LISTENING_TARGETS;

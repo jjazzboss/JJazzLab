@@ -22,6 +22,7 @@
  */
 package org.jjazz.rhythmparameters.api;
 
+import org.jjazz.rhythm.api.RP_Integer;
 import com.google.common.base.Preconditions;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.utilities.api.ResUtil;

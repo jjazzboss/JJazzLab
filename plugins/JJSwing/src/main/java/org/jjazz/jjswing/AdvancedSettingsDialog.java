@@ -28,7 +28,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JDialog;
 import org.jjazz.jjswing.bass.BassGeneratorSettings;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Marker;
+import org.jjazz.rhythmparameters.api.RP_SYS_Marker;
 import org.jjazz.song.api.Song;
 import org.jjazz.uiutilities.api.UIUtilities;
 import org.openide.util.Utilities;

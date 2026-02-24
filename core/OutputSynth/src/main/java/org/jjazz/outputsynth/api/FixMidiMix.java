@@ -26,12 +26,14 @@ import java.awt.GraphicsEnvironment;
 import org.jjazz.outputsynth.FixMidiMixDialog;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.outputsynth.FixMidiMixDialog.FixChoice;
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.outputsynth.spi.OutputSynthManager;
 
 /**
@@ -76,8 +78,8 @@ public class FixMidiMix
             showFixMidiMixDialog
         });
 
-        HashMap<Integer, Instrument> mapNewInstruments = outputSynth.getNeedFixInstruments(midiMix);
-        List<Integer> reroutableChannels = midiMix.getChannelsNeedingDrumsRerouting(mapNewInstruments);
+        Map<Integer, Instrument> mapNewInstruments = outputSynth.getNeedFixInstruments(midiMix);
+        List<Integer> reroutableChannels = MidiMixManager.getDefault().getChannelsNeedingDrumsRerouting(midiMix, mapNewInstruments);
 
         if (mapNewInstruments.isEmpty() && reroutableChannels.isEmpty())
         {

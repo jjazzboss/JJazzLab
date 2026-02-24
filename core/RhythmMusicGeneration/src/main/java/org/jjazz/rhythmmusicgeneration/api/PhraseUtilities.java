@@ -42,8 +42,7 @@ import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import static org.jjazz.phrase.api.Phrase.PARENT_NOTE;
 import org.jjazz.phrase.api.Phrases;
-import org.jjazz.phrase.api.SourcePhrase;
-import org.jjazz.phrase.api.SourcePhrase.ChordMode;
+import org.jjazz.rhythmmusicgeneration.api.SourcePhrase.ChordMode;
 import static org.jjazz.utilities.api.Utilities.heapPermutation;
 
 /**
@@ -85,7 +84,7 @@ public class PhraseUtilities
         }
 
         int rootPitchDelta = Note.getNormalizedRelPitch(
-                ecsDest.getRootNote().getRelativePitch() - pSrc.getSourceChordSymbol().getRootNote().getRelativePitch());
+        ecsDest.getRootNote().getRelativePitch() - pSrc.getSourceChordSymbol().getRootNote().getRelativePitch());
         ExtChordSymbol ecsSrc = pSrc.getSourceChordSymbol();
 
 
@@ -238,8 +237,7 @@ public class PhraseUtilities
      *
      * @param pSrc    The source phrase
      * @param ecsDest The destination extended chord symbol.
-     * @return A new phrase with destination notes.
-     * TODO Optimize!!
+     * @return A new phrase with destination notes. TODO Optimize!!
      */
     static public Phrase fitChordPhrase2ChordSymbol(SourcePhrase pSrc, ExtChordSymbol ecsDest)
     {

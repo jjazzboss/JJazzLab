@@ -42,7 +42,7 @@ import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.rhythm.api.TempoRange;
 import org.jjazz.song.api.Song;
-import org.jjazz.song.api.SongFactory;
+import org.jjazz.song.spi.SongFactory;
 import org.jjazz.songeditormanager.CreatePracticeSongDialog.Config;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
@@ -285,7 +285,7 @@ public final class CreatePracticeSong extends AbstractAction implements ContextA
         SongStructure sgs = song.getSongStructure();
 
 
-        Song newSong = SongFactory.getInstance().createSong(getPracticeSongName(song.getName()), newCls);
+        Song newSong = SongFactory.getDefault().createSong(getPracticeSongName(song.getName()), newCls);
 
 
         // Clear the new SongStructure
@@ -336,7 +336,7 @@ public final class CreatePracticeSong extends AbstractAction implements ContextA
     {
         int startBar = selectedBars.get(0).getModelBarIndex();
         CLI_Section oldInitSection = cls.getSection(startBar);
-        ChordLeadSheet newCls = SongFactory.getInstance().createEmptyChordLeadSheet(oldInitSection.getData().getName(),
+        ChordLeadSheet newCls = SongFactory.getDefault().createEmptyChordLeadSheet(oldInitSection.getData().getName(),
                 oldInitSection.getData().getTimeSignature(), selectedBars.size(), null);
         CLI_Section newInitSection = newCls.getSection(0);
         newCls.setSectionName(newInitSection, oldInitSection.getData().getName());

@@ -38,11 +38,11 @@ import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.ChordLeadSheetFactory;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.chordleadsheet.api.item.CLI_Factory;
+import org.jjazz.chordleadsheet.spi.item.CLI_Factory;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.song.api.Song;
-import org.jjazz.song.api.SongFactory;
+import org.jjazz.song.spi.SongFactory;
 
 /**
  * Read chord symbols from a multi-line text.
@@ -125,7 +125,7 @@ public class TextReader
      */
     public Song readSong()
     {
-        String title = SongFactory.getInstance().getNewSongName("NewSongText");
+        String title = SongFactory.getDefault().getNewSongName("NewSongText");
         int tempoBPM = 120;
         TimeSignature ts0 = TimeSignature.FOUR_FOUR;
         TimeSignature timeSignature = ts0;
@@ -365,8 +365,8 @@ public class TextReader
 
         // Create the song object from the collected data
         String sName = "A";
-        ChordLeadSheet cls = SongFactory.getInstance().createEmptyChordLeadSheet(sName, ts0, barIndex, null);
-        SongFactory sf = SongFactory.getInstance();
+        ChordLeadSheet cls = SongFactory.getDefault().createEmptyChordLeadSheet(sName, ts0, barIndex, null);
+        SongFactory sf = SongFactory.getDefault();
         Song song = null;
         try
         {

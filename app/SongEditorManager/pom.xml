@@ -68,6 +68,11 @@
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>phrase</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
+        <dependency> 
             <groupId>org.jjazzlab.app</groupId> 
             <artifactId>pianoroll</artifactId> 
             <version>${project.version}</version>  

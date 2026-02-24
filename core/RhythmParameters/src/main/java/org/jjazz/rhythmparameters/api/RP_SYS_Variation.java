@@ -22,6 +22,7 @@
  */
 package org.jjazz.rhythmparameters.api;
 
+import org.jjazz.rhythm.api.RP_State;
 import java.util.Objects;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.utilities.api.ResUtil;

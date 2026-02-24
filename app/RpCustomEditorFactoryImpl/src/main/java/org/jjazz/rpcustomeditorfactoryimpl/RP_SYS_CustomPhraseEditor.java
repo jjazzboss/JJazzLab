@@ -14,6 +14,7 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.SwingUtilities;
+import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.spi.MidiMixManager;
@@ -25,9 +26,9 @@ import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhrase;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhraseValue;
+import org.jjazz.rhythmparameters.api.RP_SYS_CustomPhrase;
+import org.jjazz.rhythmparameters.api.RP_SYS_CustomPhraseValue;
+import org.jjazz.rhythmparameters.api.RP_SYS_Variation;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongPartContext;
 import org.jjazz.songeditormanager.spi.SongEditorManager;
@@ -312,7 +313,7 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditorDialog<RP_SYS_Custo
         try
         {
             midiMix = MidiMixManager.getDefault().findMix(song);
-        } catch (MidiUnavailableException ex)
+        } catch (UnsupportedEditException ex)
         {
             // Should never happen
             Exceptions.printStackTrace(ex);

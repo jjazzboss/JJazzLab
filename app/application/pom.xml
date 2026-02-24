@@ -346,6 +346,11 @@
         </dependency>  
         <dependency> 
             <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>phrase</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>  
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
             <artifactId>testplayerservice</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
@@ -367,6 +372,11 @@
         <dependency> 
             <groupId>org.jjazzlab.core</groupId> 
             <artifactId>rhythmmusicgeneration</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>          
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>rhythmmusicgenerationspi</artifactId> 
             <version>${project.version}</version> 
         </dependency>          
         <dependency> 
@@ -402,6 +412,11 @@
         <dependency> 
             <groupId>org.jjazzlab.core</groupId> 
             <artifactId>song</artifactId> 
+            <version>${project.version}</version> 
+        </dependency>          
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>songimpl</artifactId> 
             <version>${project.version}</version> 
         </dependency>          
         <dependency> 

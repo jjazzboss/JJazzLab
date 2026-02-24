@@ -32,8 +32,8 @@ import org.jjazz.phrase.api.NoteEvent;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.midi.api.parser.MidiParserListenerAdapter;
-import org.jjazz.phrase.api.SourcePhrase;
-import org.jjazz.phrase.api.SourcePhraseSet;
+import org.jjazz.rhythmmusicgeneration.api.SourcePhrase;
+import org.jjazz.rhythmmusicgeneration.api.SourcePhraseSet;
 
 /**
  * MidiParserListener to retrieve music phrases from a Midi extension file with

@@ -32,8 +32,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.midi.api.parser.MidiParserListenerAdapter;
-import org.jjazz.phrase.api.SourcePhrase;
-import org.jjazz.phrase.api.SourcePhraseSet;
+import org.jjazz.rhythmmusicgeneration.api.SourcePhrase;
+import org.jjazz.rhythmmusicgeneration.api.SourcePhraseSet;
 
 /**
  * MidiParserListener to retrieve the music data of the style parts in a standard Yamaha style file.

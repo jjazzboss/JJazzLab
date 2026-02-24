@@ -26,7 +26,7 @@ import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythm;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
-import org.jjazz.phrase.api.SourcePhraseSet;
+import org.jjazz.rhythmmusicgeneration.api.SourcePhraseSet;
 import org.jjazz.yamjjazz.rhythm.api.StylePart;
 import org.jjazz.songstructure.api.SongStructure;
 

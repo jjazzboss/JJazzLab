@@ -257,23 +257,27 @@
         
     </profiles>          
     <modules>
+        <module>model/Harmony</module>
+        <module>model/Midi</module>
+        <module>model/Phrase</module>
+        <module>model/Rhythm</module>        
+        <module>model/Song</module>
+        <module>model/SongImpl</module>
+                
         <module>core/EmbeddedSynth</module> 
         <module>core/FlatComponents</module> 		              
-        <module>core/Harmony</module>
         <module>core/Humanizer</module>		
         <module>core/Importers</module>
-        <module>core/Midi</module>
         <module>core/MusicControl</module>
         <module>core/OutputSynth</module>
         <module>core/PhraseTransform</module>
         <module>core/Quantizer</module>
-        <module>core/Rhythm</module>
         <module>core/RhythmParameters</module>
         <module>core/RhythmDatabase</module>
         <module>core/RhythmMusicGeneration</module>
+        <module>core/RhythmMusicGenerationSPI</module>
         <module>core/RhythmStubs</module>
         <module>core/RhythmTestMocks</module>
-        <module>core/Song</module>
         <module>core/TestPlayerService</module>
         <module>core/UIUtilities</module>		
         <module>core/UndoManager</module>		

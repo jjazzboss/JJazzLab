@@ -33,7 +33,7 @@ import java.util.function.Predicate;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.chordleadsheet.api.item.CLI_Factory;
+import org.jjazz.chordleadsheet.spi.item.CLI_Factory;
 import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;

@@ -25,7 +25,7 @@ package org.jjazz.songeditormanager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import org.jjazz.song.api.Song;
-import org.jjazz.song.api.SongFactory;
+import org.jjazz.song.spi.SongFactory;
 import org.jjazz.songeditormanager.spi.SongEditorManager;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;

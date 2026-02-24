@@ -40,7 +40,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.chordleadsheet.api.ClsUtilities;
 import org.jjazz.song.api.Song;
-import org.jjazz.song.api.SongFactory;
+import org.jjazz.song.spi.SongFactory;
 import org.jjazz.song.api.SongCreationException;
 import org.jjazz.song.spi.SongImporter;
 import org.jjazz.songeditormanager.spi.SongEditorManager;

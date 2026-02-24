@@ -30,7 +30,7 @@ import javax.swing.AbstractAction;
 import static javax.swing.Action.NAME;
 import static javax.swing.Action.SHORT_DESCRIPTION;
 import org.jjazz.midimix.api.MidiMix;
-import org.jjazz.midimix.api.MidiMixUtils;
+import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.song.api.Song;
 import org.jjazz.mixconsole.api.MixConsole;
@@ -107,7 +107,7 @@ public class LoadDefaultRhythmMix extends AbstractAction
             MidiMix rMix = ImportMix.loadMixFile(f);
             if (rMix != null)
             {
-                MidiMixUtils.importInstrumentMixes(songMidiMix, rMix);
+                MidiMixManager.getDefault().importInstrumentMixes(songMidiMix, rMix);
                 loadedFiles += f.getAbsolutePath() + " ";
             }
         }

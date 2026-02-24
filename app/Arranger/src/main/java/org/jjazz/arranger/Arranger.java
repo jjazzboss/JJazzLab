@@ -38,9 +38,9 @@ import org.jjazz.harmony.spi.ChordTypeDatabase;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.chordleadsheet.api.item.CLI_Factory;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
+import org.jjazz.chordleadsheet.spi.item.CLI_Factory;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrol.api.playbacksession.SessionConfig;
@@ -49,7 +49,6 @@ import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSessionOnePlay;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.song.api.Song;
-import org.jjazz.song.api.SongFactory;
 import org.jjazz.song.api.SongContext;
 import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.SongPart;
@@ -315,7 +314,7 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
         });
 
         // Get a work copy
-        Song songWork = SongFactory.getInstance().getCopy(sgContext.getSong(), false, false);
+        Song songWork = sgContext.getSong().getDeepCopy(false);
         songWork.setName(ARRANGER_WORK_SONG_NAME);
         var sgsWork = songWork.getSongStructure();
         var spts = sgsWork.getSongParts();

@@ -33,7 +33,7 @@ import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.chordleadsheet.api.item.CLI_Factory;
+import org.jjazz.chordleadsheet.spi.item.CLI_Factory;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo.Feature;
@@ -44,7 +44,7 @@ import org.jjazz.rhythm.api.Division;
 import org.jjazz.rhythm.api.Genre;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.song.api.Song;
-import org.jjazz.song.api.SongFactory;
+import org.jjazz.song.spi.SongFactory;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
 import org.openide.util.Exceptions;
@@ -127,7 +127,7 @@ public class SongBuilder
 
         // Create the initial song
         reader.title = reader.title.isBlank() ? "Title" : reader.title;
-        Song song = SongFactory.getInstance().createEmptySong(reader.title, clsSize, "A", TimeSignature.FOUR_FOUR, "C");
+        Song song = SongFactory.getDefault().createEmptySong(reader.title, clsSize, "A", TimeSignature.FOUR_FOUR, "C");
         song.setTempo(reader.tempo);
         song.setComments("Imported from file " + reader.file.getName());
         ChordLeadSheet cls = song.getChordLeadSheet();

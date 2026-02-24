@@ -32,7 +32,7 @@ import static javax.swing.Action.NAME;
 import static javax.swing.Action.SHORT_DESCRIPTION;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.midimix.api.MidiMix;
-import org.jjazz.midimix.api.MidiMixUtils;
+import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.song.api.Song;
 import org.jjazz.mixconsole.api.MixConsole;
@@ -98,7 +98,7 @@ public class SaveRhythmDefaultMix extends AbstractAction
         for (Rhythm r : savedRhythms)
         {
             File f = MidiMix.getRhythmMixFile(r.getName(), r.getFile());
-            var rhythmMix = MidiMixUtils.getRhythmMix(songMidiMix, r);
+            var rhythmMix = MidiMixManager.getDefault().getRhythmMix(songMidiMix, r);
             if (rhythmMix.saveToFileNotify(f, true))
             {
                 savedFiles += f.getAbsolutePath() + " ";

@@ -43,7 +43,7 @@ import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.song.api.Song;
-import org.jjazz.song.api.SongFactory;
+import org.jjazz.song.spi.SongFactory;
 import org.jjazz.song.api.SongPartContext;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
@@ -170,7 +170,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditorDialog<E> implement
         checkArgument(sptContext.getSongParts().size() == 1, "sptContext=%s, rp=%s, rpValue=%s", sptContext, rp, rpValue);
 
         // Get a song copy which uses the edited RP value        
-        Song songCopy = SongFactory.getInstance().getCopy(sptContext.getSong(), false, false);
+        Song songCopy = sptContext.getSong().getDeepCopy(false);
         SongStructure ss = songCopy.getSongStructure();
         ChordLeadSheet cls = songCopy.getChordLeadSheet();
         SongPart spt = ss.getSongPart(sptContext.getBarRange().from);

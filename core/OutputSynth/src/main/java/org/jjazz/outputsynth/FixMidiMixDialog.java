@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.midimix.api.MidiMix;
@@ -78,7 +79,7 @@ public class FixMidiMixDialog extends javax.swing.JDialog
      * @param reroutedChannels
      * @param midiMix
      */
-    public void preset(HashMap<Integer, Instrument> mapChannelNewIns, List<Integer> reroutedChannels, MidiMix midiMix)
+    public void preset(Map<Integer, Instrument> mapChannelNewIns, List<Integer> reroutedChannels, MidiMix midiMix)
     {
         if (mapChannelNewIns == null || reroutedChannels == null || midiMix == null)
         {

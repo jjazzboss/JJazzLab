@@ -79,6 +79,12 @@ public class CLI_Repeat implements ChordLeadSheetItem<Repeat>, WritableItem<Repe
     }
 
     @Override
+    public int compareTo(ChordLeadSheetItem<?> other)
+    {
+        return compareToDefault(other);
+    }
+
+    @Override
     public int compareToSamePosition(ChordLeadSheetItem<?> other)
     {
         Objects.requireNonNull(other);

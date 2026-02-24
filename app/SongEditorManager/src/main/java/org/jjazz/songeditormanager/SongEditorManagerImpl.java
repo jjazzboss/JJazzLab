@@ -66,6 +66,7 @@ import org.openide.windows.WindowManager;
 import org.jjazz.outputsynth.spi.OutputSynthManager;
 import org.jjazz.rhythmparameters.api.RP_SYS_CustomPhrase;
 import org.jjazz.rhythmparameters.api.RP_SYS_CustomPhraseValue;
+import org.jjazz.song.spi.SongFactory;
 import org.jjazz.songeditormanager.api.StartupShutdownSongManager;
 import org.jjazz.songmemoviewer.api.SongMemoTopComponent;
 
@@ -245,7 +246,7 @@ public class SongEditorManagerImpl implements SongEditorManager, PropertyChangeL
         String ext = Utilities.getExtension(f.getName());
         if (ext.equalsIgnoreCase("sng"))
         {
-            song = Song.loadFromFile(f);       // throws SongCreationException
+            song = SongFactory.getDefault().loadFromFile(f);       // throws SongCreationException
 
         } else
         {
