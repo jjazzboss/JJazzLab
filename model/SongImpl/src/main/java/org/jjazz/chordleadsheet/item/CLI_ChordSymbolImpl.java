@@ -42,6 +42,8 @@ import org.jjazz.chordleadsheet.ChordLeadSheetImpl;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
+import static org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem.equalsThreadUnsafe;
+import static org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem.hashCodeThreadUnsafe;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.utilities.api.StringProperties;
@@ -189,10 +191,10 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
         });
     }
 
-    @Override
+   @Override
     public int compareTo(ChordLeadSheetItem<?> o)
     {
-        return CLI_Utils.compareTo(this, o);
+        return performReadAPImethod(() -> compareToThreadUnsafe(o));
     }
 
     /**
@@ -216,16 +218,16 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
         });
     }
 
-    @Override
+     @Override
     public boolean equals(Object o)
     {
-        return CLI_Utils.equals(this, o);
+        return performReadAPImethod(() -> equalsThreadUnsafe(this, o));
     }
 
     @Override
     public int hashCode()
     {
-        return CLI_Utils.hashCode(this);
+        return performReadAPImethod(() -> hashCodeThreadUnsafe(this));
     }
 
     @Override

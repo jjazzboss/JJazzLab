@@ -46,7 +46,7 @@ import org.jjazz.phrase.api.Phrases;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.rhythmparameters.api.RP_SYS_Variation;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_Variation;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.song.api.SongContext;
 import org.jjazz.songstructure.api.SongPart;

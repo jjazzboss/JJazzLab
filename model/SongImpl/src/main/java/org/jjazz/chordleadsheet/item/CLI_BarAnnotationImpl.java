@@ -43,6 +43,8 @@ import org.jjazz.chordleadsheet.api.item.CLI_BarAnnotation;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import static org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem.PROP_ITEM_DATA;
 import static org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem.PROP_ITEM_POSITION;
+import static org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem.equalsThreadUnsafe;
+import static org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem.hashCodeThreadUnsafe;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.utilities.api.StringProperties;
 import org.jjazz.xstream.spi.XStreamConfigurator;
@@ -115,7 +117,7 @@ public class CLI_BarAnnotationImpl implements CLI_BarAnnotation, WritableItem<St
     @Override
     public int compareTo(ChordLeadSheetItem<?> o)
     {
-        return CLI_Utils.compareTo(this, o);
+        return performReadAPImethod(() -> compareToThreadUnsafe(o));
     }
 
     /**
@@ -185,13 +187,13 @@ public class CLI_BarAnnotationImpl implements CLI_BarAnnotation, WritableItem<St
     @Override
     public boolean equals(Object o)
     {
-        return CLI_Utils.equals(this, o);
+        return performReadAPImethod(() -> equalsThreadUnsafe(this, o));
     }
 
     @Override
     public int hashCode()
     {
-        return CLI_Utils.hashCode(this);
+        return performReadAPImethod(() -> hashCodeThreadUnsafe(this));
     }
 
     @Override

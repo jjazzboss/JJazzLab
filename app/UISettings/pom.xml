@@ -36,11 +36,6 @@
             <artifactId>filedirectorymanager</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
-        <dependency> 
-            <groupId>org.jjazzlab.core</groupId> 
-            <artifactId>rhythm</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>          
 <!--        <dependency> 
             <groupId>org.netbeans.api</groupId> 
             <artifactId>org-netbeans-libs-flatlaf</artifactId> 

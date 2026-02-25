@@ -35,7 +35,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.chordleadsheet.api.ChordLeadSheetFactory;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.spi.item.CLI_Factory;
@@ -88,6 +87,7 @@ public class TextReader
 {
 
     static private final String TEXT_DATASOURCE = "TextBuffer";
+    static private int counter = 1;
     private final List<String> lines = new ArrayList<>();
     private final String dataSource;  // used for error messages
     private final Pattern pTitle = Pattern.compile("^\\s*title\\s*=\\s*(\\S.+)", Pattern.CASE_INSENSITIVE);
@@ -125,7 +125,8 @@ public class TextReader
      */
     public Song readSong()
     {
-        String title = SongFactory.getDefault().getNewSongName("NewSongText");
+        String title = "NewSongText" + counter;
+        counter++;
         int tempoBPM = 120;
         TimeSignature ts0 = TimeSignature.FOUR_FOUR;
         TimeSignature timeSignature = ts0;
@@ -432,7 +433,7 @@ public class TextReader
         Preconditions.checkNotNull(cls);
         Preconditions.checkArgument(nbBarsPerLine > 0);
         StringBuilder sb = new StringBuilder();
-        TimeSignature ts = showInitialTimeSignature ? null: cls.getSection(0).getData().getTimeSignature();
+        TimeSignature ts = showInitialTimeSignature ? null : cls.getSection(0).getData().getTimeSignature();
 
         for (int bar = 0; bar < cls.getSizeInBars(); bar++)
         {

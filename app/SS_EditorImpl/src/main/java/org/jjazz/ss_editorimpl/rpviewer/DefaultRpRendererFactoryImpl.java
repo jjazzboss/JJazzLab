@@ -26,7 +26,7 @@ import java.util.function.Supplier;
 import org.jjazz.ss_editor.rpviewer.api.StringRpRenderer;
 import org.jjazz.ss_editor.rpviewer.api.MeterRpRenderer;
 import java.util.logging.Logger;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_TempoFactor;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_TempoFactor;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythm.api.RP_Integer;
 import org.jjazz.rhythm.api.RP_StringSet;

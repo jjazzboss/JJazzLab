@@ -36,8 +36,8 @@ import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 /**
  * The base class for ItemRenderers.
  * <p>
- * Subclasses should typically implement the paintComponent() function to render the item. The class listens to the item model's changes and call the
- * modelChanged() and/or modelMoved() functions that should be implemented by subclasses.
+ * This class listens to the item model's changes and call the modelChanged() and/or modelMoved() methods to be implemented by subclasses. Subclasses will
+ * typically implement the paintComponent() function to render the item.
  */
 public abstract class ItemRenderer extends JPanel implements PropertyChangeListener, FocusListener
 {
@@ -80,9 +80,9 @@ public abstract class ItemRenderer extends JPanel implements PropertyChangeListe
         Objects.requireNonNull(irType);
         this.irType = irType;
         this.modelItem = item;
-        modelItem.addPropertyChangeListener(this);        
+        modelItem.addPropertyChangeListener(this);
 
-        
+
         // Disable focus keys on ItemRenderer : must be managed at a higher level
         setFocusTraversalKeysEnabled(false);
         // Register focus events

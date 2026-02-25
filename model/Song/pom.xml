@@ -78,16 +78,6 @@
         </dependency>
         <dependency>
             <groupId>org.jjazzlab.core</groupId>
-            <artifactId>rhythmdatabase</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jjazzlab.core</groupId>
-            <artifactId>undomanager</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jjazzlab.core</groupId>
             <artifactId>utilities</artifactId>
             <version>${project.version}</version>
         </dependency>

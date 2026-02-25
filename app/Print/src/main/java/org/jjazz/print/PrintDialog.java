@@ -170,7 +170,7 @@ public class PrintDialog extends javax.swing.JDialog implements ChangeListener
 
         if (cb_developLeadSheet.isSelected())
         {
-            res = SongUtilities.getLinearizedSong(res, false);
+            res = SongUtilities.getLinearizedSong(res);
         }
 
 

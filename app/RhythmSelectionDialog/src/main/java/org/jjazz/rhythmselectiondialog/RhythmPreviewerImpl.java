@@ -54,7 +54,6 @@ import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.song.api.Song;
-import org.jjazz.song.spi.SongFactory;
 import org.jjazz.song.api.SongContext;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
@@ -122,7 +121,7 @@ public class RhythmPreviewerImpl implements RhythmPreviewer
         try
         {
             mm = previouslyActivatedSong == null ? null : MidiMixManager.getDefault().findMix(previouslyActivatedSong);
-        } catch (MidiUnavailableException ex)
+        } catch (UnsupportedEditException ex)
         {
             LOGGER.log(Level.SEVERE, "cleanup() ex={0}", ex.getMessage());
             Exceptions.printStackTrace(ex);
@@ -227,7 +226,7 @@ public class RhythmPreviewerImpl implements RhythmPreviewer
             OutputSynth outputSynth = OutputSynthManager.getDefault().getDefaultOutputSynth();
             outputSynth.fixInstruments(mm, true);
             sgContext = new SongContext(song, mm);
-        } catch (UnsupportedEditException | MidiUnavailableException ex)
+        } catch (UnsupportedEditException ex)
         {
             LOGGER.log(Level.WARNING, "buildSongContext() r={0} ex={1}", new Object[]
             {
@@ -256,8 +255,7 @@ public class RhythmPreviewerImpl implements RhythmPreviewer
     private Song buildPreviewSong(Song song, SongPart spt, Rhythm r, Map<RhythmParameter<?>, Object> rpValues) throws UnsupportedEditException
     {
         // Get a copy
-        var sf = SongFactory.getDefault();
-        Song newSong = sf.getCopy(song, true, false);
+        Song newSong = song.getDeepCopy(true);
 
         SongStructure newSs = newSong.getSongStructure();
         ChordLeadSheet newCls = newSong.getChordLeadSheet();

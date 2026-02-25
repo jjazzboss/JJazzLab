@@ -58,7 +58,7 @@ import org.jjazz.instrumentcomponents.keyboard.api.KeyboardComponent;
 import org.jjazz.instrumentcomponents.keyboard.api.KeyboardComponent.Orientation;
 import org.jjazz.instrumentcomponents.keyboard.api.KeyboardRange;
 import org.jjazz.outputsynth.api.FixMidiMix;
-import org.jjazz.rhythmparameters.api.RP_SYS_Variation;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_Variation;
 import org.jjazz.ss_editor.api.SS_Editor;
 import org.jjazz.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.ss_editor.api.SS_Selection;

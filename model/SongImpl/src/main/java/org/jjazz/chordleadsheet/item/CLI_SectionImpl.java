@@ -45,6 +45,8 @@ import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import static org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem.PROP_CONTAINER;
+import static org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem.equalsThreadUnsafe;
+import static org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem.hashCodeThreadUnsafe;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.utilities.api.StringProperties;
 import org.jjazz.xstream.spi.XStreamConfigurator;
@@ -116,7 +118,7 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
     @Override
     public int compareTo(ChordLeadSheetItem<?> o)
     {
-        return CLI_Utils.compareTo(this, o);
+        return performReadAPImethod(() -> compareToThreadUnsafe(o));
     }
 
     /**
@@ -207,13 +209,13 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
     @Override
     public boolean equals(Object o)
     {
-        return CLI_Utils.equals(this, o);
+        return performReadAPImethod(() -> equalsThreadUnsafe(this, o));
     }
 
     @Override
     public int hashCode()
     {
-        return CLI_Utils.hashCode(this);
+        return performReadAPImethod(() -> hashCodeThreadUnsafe(this));
     }
 
     @Override

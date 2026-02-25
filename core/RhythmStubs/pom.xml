@@ -51,6 +51,16 @@
         </dependency>
         <dependency>
             <groupId>org.jjazzlab.core</groupId>
+            <artifactId>rhythmmusicgenerationspi</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>rhythmparametersimpl</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>          
+        <dependency>
+            <groupId>org.jjazzlab.core</groupId>
             <artifactId>utilities</artifactId>
             <version>${project.version}</version>
         </dependency>

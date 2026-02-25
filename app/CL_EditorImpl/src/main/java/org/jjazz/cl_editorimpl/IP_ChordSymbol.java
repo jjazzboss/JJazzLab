@@ -69,6 +69,13 @@ public class IP_ChordSymbol implements CLI_ChordSymbol
         return cli.getContainer();
     }
 
+    
+    @Override
+    public int compareTo(ChordLeadSheetItem<?> other)
+    {
+        return compareToThreadUnsafe(other);
+    }
+    
     @Override
     public int compareToSamePosition(ChordLeadSheetItem<?> other)
     {

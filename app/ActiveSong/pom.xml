@@ -34,6 +34,11 @@
         </dependency>  
         <dependency> 
             <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>phrase</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
             <artifactId>outputsynth</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
@@ -57,11 +62,6 @@
             <artifactId>musiccontrol</artifactId> 
             <version>${project.version}</version>  
         </dependency>     
-        <dependency> 
-            <groupId>org.jjazzlab.core</groupId> 
-            <artifactId>rhythmmusicgeneration</artifactId> 
-            <version>${project.version}</version>  
-        </dependency>  
         <dependency> 
             <groupId>org.jjazzlab.core</groupId> 
             <artifactId>song</artifactId> 

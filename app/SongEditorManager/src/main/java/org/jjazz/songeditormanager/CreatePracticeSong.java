@@ -53,7 +53,7 @@ import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.jjazz.cl_editor.api.CL_Selection;
 import org.jjazz.cl_editor.api.SelectedBar;
-import org.jjazz.rhythmparameters.api.RP_SYS_TempoFactor;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_TempoFactor;
 import org.jjazz.songeditormanager.spi.SongEditorManager;
 import org.jjazz.utilities.api.IntRange;
 import org.jjazz.utilities.api.ResUtil;

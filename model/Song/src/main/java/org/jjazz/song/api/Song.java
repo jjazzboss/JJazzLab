@@ -44,8 +44,7 @@ import org.jjazz.utilities.api.StringProperties;
  * Contains a chord leadsheet, a song structure, a few parameters (name, tempo, etc.), optional user phrases and client properties. Song, ChordLeadSheet and
  * SongStructure instances can be created using the SongFactory.
  * <p>
- * Song components and the related MidiMix all use the same ExecutionManager instance to ensure thread-safety. A SongInternalUpdater instance is responsible to
- * consistently propagate changes between Song components.
+ * When updated Song fires SongPropertyChangeEvents.
  */
 public interface Song
 {

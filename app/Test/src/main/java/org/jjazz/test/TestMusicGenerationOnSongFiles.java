@@ -46,6 +46,7 @@ import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongCreationException;
+import org.jjazz.song.spi.SongFactory;
 import org.netbeans.api.progress.BaseProgressUtils;
 import org.openide.util.Exceptions;
 import org.jjazz.songstructure.api.SongStructure;
@@ -130,7 +131,7 @@ public final class TestMusicGenerationOnSongFiles implements ActionListener
 
                 try
                 {
-                    Song song = Song.loadFromFile(songFile);
+                    Song song = SongFactory.getDefault().loadFromFile(songFile);
 
                     if (UPDATE_SONGS)
                     {
@@ -170,7 +171,7 @@ public final class TestMusicGenerationOnSongFiles implements ActionListener
                         seqBuilder.buildMapRvPhrase(true);
                     }
 
-                } catch (MidiUnavailableException | IOException | MusicGenerationException | SongCreationException | UnsupportedEditException ex)
+                } catch (IOException | MusicGenerationException | SongCreationException | UnsupportedEditException ex)
                 {
                     LOGGER.log(Level.SEVERE, "  !!! EXCEPTION ex={0}", ex.getMessage());
                     // Exceptions.printStackTrace(ex);

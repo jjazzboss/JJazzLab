@@ -576,7 +576,7 @@ public interface CLI_ChordSymbol extends ChordLeadSheetItem<ExtChordSymbol>
         @Override
         public int compareTo(ChordLeadSheetItem<?> other)
         {
-            return compareToDefault(other);
+            return compareToThreadUnsafe(other);
         }
         
         @Override

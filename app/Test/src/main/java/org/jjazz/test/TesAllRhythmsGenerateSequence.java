@@ -87,8 +87,8 @@ public final class TesAllRhythmsGenerateSequence implements ActionListener
             song = s;
             try
             {
-                midiMix = MidiMixManager.getDefault().findMix(song);      // Can raise MidiUnavailableException         
-            } catch (MidiUnavailableException ex)
+                midiMix = MidiMixManager.getDefault().findMix(song);      // throws UnsupportedEditException
+            } catch (UnsupportedEditException ex)
             {
                 Exceptions.printStackTrace(ex);
             }

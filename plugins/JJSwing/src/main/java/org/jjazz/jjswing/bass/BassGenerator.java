@@ -34,9 +34,9 @@ import org.jjazz.rhythm.api.Division;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
 import org.jjazz.rhythm.api.UserErrorGenerationException;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Fill;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Intensity;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_Fill;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_Intensity;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_Variation;
 import org.jjazz.rhythmmusicgeneration.api.AccentProcessor;
 import org.jjazz.rhythmmusicgeneration.api.AnticipatedChordProcessor;
 import org.jjazz.rhythmmusicgeneration.api.ChordSequence;
@@ -298,7 +298,7 @@ public class BassGenerator implements MusicGenerator
 
         // Prepare a working context because we'll use a modified song copy 
         SongFactory sf = SongFactory.getDefault();
-        Song songWork = sf.getCopy(sgContextOrig.getSong(), true, false);
+        Song songWork = sgContextOrig.getSong().getDeepCopy(true);
         SongContext contextWork = new SongContext(songWork, sgContextOrig.getMidiMix(), sgContextOrig.getBarRange());
         preprocessBassStyleAutoValue(contextWork);     // Update SongStructure to replace auto BassStyle values by standard BassStyle values
 

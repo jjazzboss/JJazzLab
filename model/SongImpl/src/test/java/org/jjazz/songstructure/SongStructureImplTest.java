@@ -41,7 +41,7 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythmdatabase.api.DefaultRhythmDatabase;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
-import org.jjazz.rhythmparameters.api.RP_SYS_Variation;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_Variation;
 import org.jjazz.song.ExecutionManager;
 import org.jjazz.song.spi.SongFactory;
 import org.jjazz.songstructure.api.SongPart;

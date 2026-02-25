@@ -33,7 +33,7 @@ import org.jjazz.song.api.SongMetaEvents;
 import org.jjazz.utilities.api.CoalescingTaskScheduler;
 
 /**
- * Notify listeners via the PROP_MUSIC_GENERATION_COMBINED change event when a Song or its MidiMix or PlaybackSettings have changed in a way that impacts the
+ * Notify listeners via the PROP_MUSIC_GENERATION_COMBINED change event when a Song component or PlaybackSettings have changed in a way that impacts the
  * music generation for that song.
  * <p>
  * Relies on SongMetaEvents.PROP_MUSIC_GENERATION, MidiMix.PROP_MUSIC_GENERATION and PlaybackSettings.PROP_MUSIC_GENERATION.
@@ -47,7 +47,7 @@ public class SongMusicGenerationListener implements PropertyChangeListener
     /**
      * Song or MidiMix or PlaybackSettings have changed in a way that impacts music generation.
      * <p>
-     * oldValue = the source change event. It can be a ClsChangeEvent, a SgsChangeEvent or a Song/MidiMix/PlaybackSettings property change event.<br>
+     * oldValue = the source change event. It can be a ClsChangeEvent, a SgsChangeEvent, a SongPropertyChangeEvent, or MidiMix/PlaybackSettings property change event.<br>
      * newValue = optional data associated to the source change event.
      */
     public static final String PROP_MUSIC_GENERATION_COMBINED = "PropMusicGenerationCombined";

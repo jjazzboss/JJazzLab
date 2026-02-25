@@ -32,6 +32,7 @@ import java.util.logging.Logger;
 import javax.sound.midi.MidiUnavailableException;
 import javax.swing.JButton;
 import javax.swing.SwingUtilities;
+import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.rhythm.api.RhythmParameter;
@@ -120,7 +121,7 @@ public class RpEditorCustom extends RpEditorComponent
         try
         {
             mm = MidiMixManager.getDefault().findMix(songModel);
-        } catch (MidiUnavailableException ex)
+        } catch (UnsupportedEditException ex)
         {
             // Should never happen 
             Exceptions.printStackTrace(ex);

@@ -386,7 +386,7 @@
         </dependency>  
         <dependency> 
             <groupId>org.jjazzlab.core</groupId> 
-            <artifactId>rhythmparameters</artifactId> 
+            <artifactId>rhythmparametersimpl</artifactId> 
             <version>${project.version}</version> 
         </dependency>  
         <dependency> 

@@ -272,12 +272,12 @@
         <module>core/OutputSynth</module>
         <module>core/PhraseTransform</module>
         <module>core/Quantizer</module>
-        <module>core/RhythmParameters</module>
         <module>core/RhythmDatabase</module>
         <module>core/RhythmMusicGeneration</module>
         <module>core/RhythmMusicGenerationSPI</module>
+        <module>core/RhythmParametersImpl</module>
         <module>core/RhythmStubs</module>
-        <module>core/RhythmTestMocks</module>
+        <module>core/TestMocks</module>        
         <module>core/TestPlayerService</module>
         <module>core/UIUtilities</module>		
         <module>core/UndoManager</module>		
@@ -324,6 +324,7 @@
         <module>plugins/FluidSynthEmbeddedSynth</module>        
         <module>plugins/JJSwing</module>
         <module>plugins/YamJJazz</module>
+
     </modules>    
     
 </project>

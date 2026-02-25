@@ -94,7 +94,7 @@
         </dependency>  
         <dependency> 
             <groupId>org.jjazzlab.core</groupId> 
-            <artifactId>rhythmparameters</artifactId> 
+            <artifactId>rhythmparametersimpl</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
@@ -105,6 +105,11 @@
         <dependency> 
             <groupId>org.jjazzlab.core</groupId> 
             <artifactId>rhythmmusicgeneration</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>  
+        <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>rhythmmusicgenerationspi</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 

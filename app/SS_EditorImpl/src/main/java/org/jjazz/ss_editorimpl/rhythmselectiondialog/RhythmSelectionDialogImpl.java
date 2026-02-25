@@ -64,7 +64,7 @@ import org.jjazz.rhythmdatabaseimpl.api.FavoriteRhythmProvider;
 import org.jjazz.rhythmselectiondialog.spi.RhythmPreviewer;
 import org.jjazz.rhythmdatabaseimpl.api.AddRhythmsAction;
 import org.jjazz.rhythmdatabaseimpl.api.DeleteRhythmFile;
-import org.jjazz.rhythmparameters.api.RP_SYS_Variation;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_Variation;
 import org.jjazz.rhythmselectiondialog.api.RhythmSelectionDialog;
 import org.jjazz.rhythmselectiondialog.api.ui.RhythmJTable;
 import org.jjazz.rhythmselectiondialog.api.ui.RhythmProviderJList;

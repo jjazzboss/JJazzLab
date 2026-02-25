@@ -74,6 +74,7 @@ import org.jjazz.utilities.api.StringProperties;
 import org.jjazz.utilities.api.ThrowingSupplier;
 import org.jjazz.xstream.api.XStreamInstancesManager;
 import org.jjazz.xstream.spi.XStreamConfigurator;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_LOAD;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.lookup.ServiceProvider;
@@ -81,9 +82,13 @@ import org.openide.util.lookup.ServiceProvider;
 
 /**
  * Song implementation.
+ * <p>
+ * Song components and the related MidiMix all use the same ExecutionManager instance to ensure thread-safety. A SongInternalUpdater instance is responsible to
+ * consistently propagate changes between Song components.
  */
 public class SongImpl implements Serializable, PropertyChangeListener, Song
 {
+
     private final SongStructure songStructure;
     private final ChordLeadSheet chordLeadSheet;
     private String name;
@@ -1046,6 +1051,15 @@ public class SongImpl implements Serializable, PropertyChangeListener, Song
             {
                 case SONG_LOAD, SONG_SAVE ->
                 {
+                    if (instanceId.equals(MIDIMIX_LOAD))
+                    {
+                        // From 5.1.1 : introduced Song interface API (org.jjazz.song.api) + SongImpl (org.jjazz.song)
+                        // From 4.1.0: <Song resolves-to="SongSP" spName="BugAm" spTempo="95">
+                        // Before 4.1.0: <Song resolves-to="org.jjazz.song.api.Song$SerializationProxy">
+                        xstream.alias("org.jjazz.song.api.Song$SerializationProxy", SongImpl.SerializationProxy.class);
+                    }
+
+                    // From 4.1.0
                     xstream.alias("Song", SongImpl.class);
                     xstream.alias("SongSP", SongImpl.SerializationProxy.class);
                     xstream.useAttributeFor(SerializationProxy.class, "spName");

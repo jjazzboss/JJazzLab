@@ -134,7 +134,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
         List<SongPart> selSpts = new ArrayList<>(selectedSpts);               // Copy to avoid concurrent modifications
         SongPart selSpt0 = selSpts.get(0);
         SongStructure sgs = selSpt0.getContainer();
-        Song song = SongFactory.getDefault().findSong(sgs);
+        Song song = sgs.getSong();
         List<SongPart> allSpts = new ArrayList<>(sgs.getSongParts());       // Copy to avoid concurrent modifications
 
 

@@ -47,7 +47,7 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmFeatures;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.rhythmparameters.api.*;
+import org.jjazz.rhythmparametersimpl.api.*;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 
 /**

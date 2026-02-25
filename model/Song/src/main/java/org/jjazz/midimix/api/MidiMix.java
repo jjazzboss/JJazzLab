@@ -53,8 +53,8 @@ import org.jjazz.xstream.api.XStreamInstancesManager;
  * A set of up to 16 InstrumentMixes, 1 per Midi channel with 1 RhythmVoice associated.
  * <p>
  * The object manages the solo functionality between the InstrumentMixes.<p>
- * If MidiMix is modified the corresponding property change event is fired (e.g. PROP_INSTRUMENT_MUTE) then the PROP_MODIFIED_OR_SAVED_OR_RESET change event is
- * also fired.
+ * If MidiMix is modified the corresponding PropertyChangeEvent is fired (e.g. PROP_INSTRUMENT_MUTE), then the PROP_MODIFIED_OR_SAVED_OR_RESET change event is
+ * also fired, and possibly PROP_MUSIC_GENERATION.
  * <p>
  */
 public interface MidiMix
@@ -97,7 +97,7 @@ public interface MidiMix
     /**
      * Fired each time a MidiMix parameter which impacts music generation is modified, like instrument transposition.
      * <p>
-     * OldValue=the property name that triggers the musical change, newValue=optional associated data.<p>
+     * OldValue=the source PropertyChangeEvent that triggers the musical change<p>
      * Use PROP_MODIFIED_OR_SAVED to get notified of any MidiMix change, including non-musical ones like track mute change, etc.
      */
     String PROP_MUSIC_GENERATION = "MidiMixMusicContent";
@@ -170,8 +170,8 @@ public interface MidiMix
      * <p>
      * Mutable internal objects are deeply copied, e.g. InstrumentMixes. Not copied: listeners, isSaveNeeded.
      *
-     * @param song The song of the returned instance. If null the copy will directly reuse this song. If not null, caller is responsible to provide a song consistent with this
-     *             MidiMix.
+     * @param song The song of the returned instance. If null the copy will directly reuse this song. If not null, caller is responsible to provide a song
+     *             consistent with this MidiMix.
      * @return
      * @see #checkConsistency(org.jjazz.song.api.Song, boolean)
      */

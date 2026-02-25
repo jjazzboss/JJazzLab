@@ -31,7 +31,7 @@ import javax.swing.BorderFactory;
 import javax.swing.border.Border;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.chordinspector.spi.ChordViewer;
-import org.jjazz.chordleadsheet.api.item.CLI_Factory;
+import org.jjazz.chordleadsheet.spi.item.CLI_Factory;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.cl_editor.itemrenderer.api.IR_ChordSymbolSettings;
 import org.jjazz.cl_editor.itemrenderer.api.IR_ChordSymbolSettingsAdapter;

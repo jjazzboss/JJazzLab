@@ -22,9 +22,9 @@
  */
 package org.jjazz.rhythmmusicgeneration.api;
 
-import org.jjazz.rhythmparameters.api.RP_SYS_OverrideTracksValue;
-import org.jjazz.rhythmparameters.api.RP_SYS_Mute;
-import org.jjazz.rhythmparameters.api.RP_SYS_OverrideTracks;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_OverrideTracksValue;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_Mute;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_OverrideTracks;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.SetMultimap;
@@ -84,11 +84,11 @@ import org.jjazz.outputsynth.spi.OutputSynthManager;
 import org.jjazz.rhythmmusicgeneration.api.CompositeMusicGenerator.DelegateUnit;
 import org.jjazz.rhythmmusicgeneration.spi.ConfigurableMusicGeneratorProvider;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGeneratorProvider;
-import org.jjazz.rhythmparameters.api.RP_SYS_CustomPhrase;
-import org.jjazz.rhythmparameters.api.RP_SYS_CustomPhraseValue;
-import org.jjazz.rhythmparameters.api.RP_SYS_Fill;
-import org.jjazz.rhythmparameters.api.RP_SYS_TempoFactor;
-import org.jjazz.rhythmparameters.api.RP_SYS_Variation;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_CustomPhrase;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_CustomPhraseValue;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_Fill;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_TempoFactor;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_Variation;
 import org.jjazz.song.api.Song;
 
 /**

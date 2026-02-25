@@ -39,7 +39,7 @@ import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.chordleadsheet.api.item.VoidAltExtChordSymbol;
 import org.jjazz.rhythm.api.UserErrorGenerationException;
-import org.jjazz.rhythmparameters.api.RP_SYS_Marker;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_Marker;
 import org.jjazz.song.api.Song;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.utilities.api.FloatRange;

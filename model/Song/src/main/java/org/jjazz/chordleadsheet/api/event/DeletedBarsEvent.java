@@ -40,22 +40,18 @@ public class DeletedBarsEvent extends ClsChangeEvent
     private final int barFrom;
     private final int barTo;
     private final List<ChordLeadSheetItem> shiftedItems;
-    private final List<ChordLeadSheetItem> adjustedItems; // Items moved due to TimeSignature adjustment
     private final boolean initSectionRemoved;
 
     public DeletedBarsEvent(ChordLeadSheet src, int barFrom, int barTo,
             List<ChordLeadSheetItem> removedItems,
-            List<ChordLeadSheetItem> shiftedItems,
-            List<ChordLeadSheetItem> adjustedItems)
+            List<ChordLeadSheetItem> shiftedItems)
     {
         super(src, removedItems);
         Objects.requireNonNull(shiftedItems);
-        Objects.requireNonNull(adjustedItems);
         Preconditions.checkArgument(barFrom <= barTo, "barFrom=%s barTo=%s", barFrom, barTo);
         this.barFrom = barFrom;
         this.barTo = barTo;
         this.shiftedItems = List.copyOf(shiftedItems);
-        this.adjustedItems = List.copyOf(adjustedItems);
         this.initSectionRemoved = removedItems.stream().anyMatch(cli -> cli instanceof CLI_Section && cli.getPosition().getBar() == 0);
     }
 
@@ -81,22 +77,14 @@ public class DeletedBarsEvent extends ClsChangeEvent
 
     /**
      * The items after the deletion which were shifted.
+     * <p>
+     * Note that some items beat position might have been adjusted because of a time signature change.
      *
      * @return
      */
     public List<ChordLeadSheetItem> getShiftedItems()
     {
         return shiftedItems;
-    }
-
-    /**
-     * The items moved (within their bar) due to a TimeSignature change.
-     *
-     * @return
-     */
-    public List<ChordLeadSheetItem> getAdjustedItems()
-    {
-        return adjustedItems;
     }
 
     public int getNbDeletedBars()
@@ -112,7 +100,7 @@ public class DeletedBarsEvent extends ClsChangeEvent
 
     public String toDebugString()
     {
-        return "DeletedBarsEvent[barFrom=" + barFrom + " barTo=" + barTo + "removedItems=" + getItems() + " shiftedItems=" + shiftedItems + " adjustedItems=" + adjustedItems + "]";
+        return "DeletedBarsEvent[barFrom=" + barFrom + " barTo=" + barTo + "removedItems=" + getItems() + " shiftedItems=" + shiftedItems + "]";
     }
 
 

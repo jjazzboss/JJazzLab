@@ -1119,6 +1119,20 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             final var itemsToShift = getItems(barIndexTo + 1, Integer.MAX_VALUE, ChordLeadSheetItem.class, cli -> true);      // empty if noBarsAfterCut
 
 
+            // Find the possible shifted items requiring an additional beat position adjustment because of a time signature change
+            List<ChordLeadSheetItem> itemsToAdjust = new ArrayList<>();
+            final CLI_Section prevSectionBeforeCut = barIndexFrom == 0 ? null : getSection(barIndexFrom - 1);
+            if (prevSectionBeforeCut != null && oldSectionAfter != null && oldSectionAfter.getPosition().getBar() > (barIndexTo + 1)
+                    && prevSectionBeforeCut.getData().getTimeSignature().getNbNaturalBeats() < oldSectionAfter.getData().getTimeSignature().getNbNaturalBeats())
+            {
+                var oldSectionAfterItems = getItems(oldSectionAfter, ChordLeadSheetItem.class);
+                itemsToShift.stream()
+                        .filter(item -> oldSectionAfterItems.contains(item))
+                        .filter(item -> !prevSectionBeforeCut.getData().getTimeSignature().checkBeat(item.getPosition().getBeat()))
+                        .forEach(item -> itemsToAdjust.add(item));
+            }
+
+
             // Update model
             final List<PropertyChangeEvent> cliEvents = new ArrayList<>();
             for (var item : itemsToRemove)
@@ -1126,29 +1140,19 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 cliEvents.add(removeItemChecked(item));
             }
 
+
+            // Shift items, with possible beat adjustment
             for (var item : itemsToShift)
             {
                 Position oldPos = item.getPosition();
                 Position newPos = oldPos.getMoved(-nbBars, 0);
-                cliEvents.add(changeItemPositionChecked(item, newPos));
-            }
-
-            // We may have to adjust some items if time signature has changed
-            final List<ItemMoved> adjustments = new ArrayList<>();
-            final List<ChordLeadSheetItem> itemsToAdjust = new ArrayList<>();
-            if (!noBarsAfterCut)
-            {
-                assert oldSectionAfter != null;
-                var oldTsAfter = oldSectionAfter.getData().getTimeSignature();
-                CLI_Section newSectionAfter = getSection(barIndexFrom);
-                TimeSignature newTsAfter = newSectionAfter.getData().getTimeSignature();
-                if (newTsAfter.getNbNaturalBeats() < oldTsAfter.getNbNaturalBeats())
+                if (itemsToAdjust.contains(item))
                 {
-                    var iitems = getItems(newSectionAfter, ChordLeadSheetItem.class, cli -> itemsToShift.contains(cli));
-                    adjustments.addAll(adjustItemsToTimeSignature(oldTsAfter, newTsAfter, iitems));
-                    itemsToAdjust.addAll(adjustments.stream().map(ItemMoved::item).toList());
-                    adjustments.forEach(im -> cliEvents.add(im.getPositionChangedEvent()));
+                    newPos = getAdjustedBeatToTimeSignature(oldSectionAfter.getData().getTimeSignature(),
+                            prevSectionBeforeCut.getData().getTimeSignature(),
+                            item);
                 }
+                cliEvents.add(changeItemPositionChecked(item, newPos));
             }
 
             size = newSize;
@@ -1166,11 +1170,6 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                         final List<PropertyChangeEvent> cliEvents2 = new ArrayList<>();
                         size = oldSize;
 
-                        for (var adjustment : adjustments.reversed())
-                        {
-                            cliEvents2.add(changeItemPositionChecked(adjustment.item(), adjustment.oldPos()));
-                        }
-
                         for (var item : itemsToShift.reversed())
                         {
                             Position newPos = item.getPosition().getMoved(nbBars, 0);
@@ -1182,7 +1181,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                             cliEvents2.add(addItemChecked(item));
                         }
 
-                        var event = new DeletedBarsEvent(ChordLeadSheetImpl.this, barIndexFrom, barIndexTo, itemsToRemove, itemsToShift, itemsToAdjust);
+                        var event = new DeletedBarsEvent(ChordLeadSheetImpl.this, barIndexFrom, barIndexTo, itemsToRemove, itemsToShift);
                         event.setIsUndo();
                         event.addItemChanges(cliEvents2);
                         return WriteOperationResults.of(event, null);
@@ -1208,13 +1207,8 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                             cliEvents2.add(changeItemPositionChecked(item, newPos));
                         }
 
-                        for (var adjustment : adjustments)
-                        {
-                            cliEvents2.add(changeItemPositionChecked(adjustment.item(), adjustment.newPos()));
-                        }
-
                         size = newSize;
-                        var event = new DeletedBarsEvent(ChordLeadSheetImpl.this, barIndexFrom, barIndexTo, itemsToRemove, itemsToShift, itemsToAdjust);
+                        var event = new DeletedBarsEvent(ChordLeadSheetImpl.this, barIndexFrom, barIndexTo, itemsToRemove, itemsToShift);
                         event.setIsRedo();
                         event.addItemChanges(cliEvents2);
                         return WriteOperationResults.of(event, null);
@@ -1225,7 +1219,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
             fireUndoableEdit(edit);
 
-            var event = new DeletedBarsEvent(ChordLeadSheetImpl.this, barIndexFrom, barIndexTo, itemsToRemove, itemsToShift, itemsToAdjust);
+            var event = new DeletedBarsEvent(ChordLeadSheetImpl.this, barIndexFrom, barIndexTo, itemsToRemove, itemsToShift);
             event.addItemChanges(cliEvents);
             return WriteOperationResults.of(event, null);
 
@@ -1727,22 +1721,41 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             if (!newPos.equals(oldPos))
             {
                 // Make sure we don't have a collision
-                while (items.contains(item.getCopy(null, newPos)))
-                {
-                    float newBeat = (float) (Math.floor((newPos.getBeat() - 0.00001f) / 0.25f) * 0.25f);     // nearest 0.25 multiple below
-                    if (newBeat < 0)
-                    {
-                        // It can happen theoretically, but it would mean user fully packed the bar with many identical chords, which makes no sense
-                        throw new IllegalStateException("oldTs=" + oldTs + " newTs=" + newTs + " item=" + item + " newBeat=" + newBeat + " iitems=" + items);
-                    }
-                    newPos.setBeat(newBeat);
-                }
-
+                newPos = getAdjustedBeatToTimeSignature(oldTs, newTs, item);
                 changeItemPositionChecked(item, newPos);
                 res.add(new ItemMoved(item, oldPos, newPos));
             }
         }
         return res;
+    }
+
+    /**
+     * Get the adjusted position of item to newTs, while avoiding collisions with an equal() item.
+     *
+     * @param oldTs
+     * @param newTs
+     * @param item
+     * @return
+     */
+    private Position getAdjustedBeatToTimeSignature(TimeSignature oldTs, TimeSignature newTs, ChordLeadSheetItem<?> item)
+    {
+        Position oldPos = item.getPosition();
+        Position newPos = oldPos.getConverted(oldTs, newTs);
+        if (!newPos.equals(oldPos))
+        {
+            // Make sure we don't have a collision
+            while (items.contains(item.getCopy(null, newPos)))
+            {
+                float newBeat = (float) (Math.floor((newPos.getBeat() - 0.00001f) / 0.25f) * 0.25f);     // nearest 0.25 multiple below
+                if (newBeat < 0)
+                {
+                    // It can happen theoretically, but it would mean user fully packed the bar with many identical chords, which makes no sense
+                    throw new IllegalStateException("oldTs=" + oldTs + " newTs=" + newTs + " item=" + item + " newBeat=" + newBeat + " iitems=" + items);
+                }
+                newPos.setBeat(newBeat);
+            }
+        }
+        return newPos;
     }
 
     /**

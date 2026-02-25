@@ -13,7 +13,7 @@
     <packaging>nbm</packaging>
 
     <properties>
-        <!--<jjazzlab.surefire.skipTests>false</jjazzlab.surefire.skipTests>-->
+        <jjazzlab.surefire.skipTests>true</jjazzlab.surefire.skipTests>
     </properties>
 
     <build>
@@ -111,9 +111,18 @@
             <artifactId>xstream</artifactId>
             <version>${project.version}</version>
         </dependency>
+        
+        <!--  Test dependencies  -->
+        
         <dependency>
             <groupId>org.jjazzlab.core</groupId>
-            <artifactId>rhythmtestmocks</artifactId>
+            <artifactId>rhythmparametersimpl</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>        
+        <dependency>
+            <groupId>org.jjazzlab.core</groupId>
+            <artifactId>testmocks</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>

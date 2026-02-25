@@ -31,7 +31,7 @@ import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 /**
  * Size was changed.
  * <p>
- * getItems() return the possible removed items.
+ * getItems() return the possibly removed items.
  */
 public class SizeChangedEvent extends ClsChangeEvent
 {

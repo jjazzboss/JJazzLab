@@ -62,10 +62,12 @@ public class SongMetaEvents implements ClsChangeListener, SgsChangeListener, Pro
     /**
      * Fired when the "musical content" of the song is modified, i.e. a new music generation task is needed.
      * <p>
-     * For example source changes can be chord symbol changes, inserted bars, rhythm parameter value changes -but not a section name change. Because a rhythm
-     * generation engine might adjust the generated music to the tempo, a song tempo change is considered as a musical content change.<p>
+     * For example source changes can be chord symbol changes, inserted bars, rhythm parameter value changes -but not a section name change. For ClsChangeEvents
+     * which normally generate a SgsChange (e.g. SectionAddedEvent -&gt; SptAddedEvent), the PROP_MUSIC_GENERATION event is fired only for the
+     * SgsChangeEvent.<p>
+     * Because a rhythm generation engine might adjust the generated music to the tempo, a song tempo change is considered as a musical content change.<p>
      * <p>
-     * OldValue=the source Song's PropertyChangeEvent or ClsChangeEvent or SgsChangeEvent<br>
+     * OldValue=the source SongPropertyChangeEvent or ClsChangeEvent or SgsChangeEvent<br>
      */
     public static final String PROP_MUSIC_GENERATION = "PropMusicalContent";
 
@@ -177,11 +179,12 @@ public class SongMetaEvents implements ClsChangeListener, SgsChangeListener, Pro
                 true;
             case ItemRemovedEvent e ->
                 true;
-            default -> false;
+            default ->
+                false;
         };
 
         fireClsSgsChanged(event);
-        
+
         if (musicalContentChanged)
         {
             fireMusicalContentChanged(event);

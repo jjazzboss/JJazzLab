@@ -30,6 +30,11 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
+import org.jjazz.chordleadsheet.api.event.ItemAddedEvent;
+import org.jjazz.chordleadsheet.api.event.ItemChangedEvent;
+import org.jjazz.chordleadsheet.api.event.ItemMovedEvent;
+import org.jjazz.chordleadsheet.api.event.ItemRemovedEvent;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.UserRhythmVoice;
@@ -42,9 +47,17 @@ import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession.Update;
 import static org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession.UpdateProvider.PROP_UPDATE_PROVISION_ENABLED;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.UserErrorGenerationException;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_TempoFactor;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_TempoFactor;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongContext;
+import org.jjazz.song.api.SongPropertyChangeEvent;
+import org.jjazz.songstructure.api.event.RpValueChangedEvent;
+import org.jjazz.songstructure.api.event.SgsChangeEvent;
+import org.jjazz.songstructure.api.event.SptAddedEvent;
+import org.jjazz.songstructure.api.event.SptRemovedEvent;
+import org.jjazz.songstructure.api.event.SptRenamedEvent;
+import org.jjazz.songstructure.api.event.SptResizedEvent;
+import org.jjazz.songstructure.api.event.SptRhythmChangedEvent;
 import org.openide.awt.StatusDisplayer;
 import org.openide.util.*;
 
@@ -293,39 +306,56 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
 
         switch (sourceEvent)
         {
-            case ClsSourceActionEvent csae ->
+            case ClsChangeEvent cce ->
             {
-                switch (csae.getApiId())
+                switch (cce)
                 {
-                    case SetSizeInBars, AddSection, RemoveSection, MoveSection, InsertBars, DeleteBars, SetSectionTimeSignature ->
-                    {
-                        doDisableUpdates = true;
-                    }
-                    case AddItem, RemoveItem, MoveItem, ChangeItem ->
+                    case ItemAddedEvent evt ->
                     {
                         doUpdate = true;
                     }
-                    case SetSectionName ->
+                    case ItemRemovedEvent evt ->
                     {
-                        // Nothing
+                        doUpdate = true;
+                    }
+                    case ItemChangedEvent evt ->
+                    {
+                        doUpdate = true;
+                    }
+                    case ItemMovedEvent evt ->
+                    {
+                        doUpdate = true;
                     }
                     default ->
                     {
-                        throw new IllegalArgumentException("cae=" + csae);
+                        // Nothing: other ClsChangEvents will usually trigger SgsChangeEvents, see SongMetaEvents.PROP_MUSIC_GENERATION
                     }
                 }
             }
-            case SgsSourceActionEvent ssae ->
+
+            case SgsChangeEvent sce ->
             {
-                switch (ssae.getApiId())
+                switch (sce)
                 {
-                    case AddSongParts, RemoveSongParts, ResizeSongParts, ReplaceSongParts ->
+                    case SptAddedEvent evt ->
                     {
                         doDisableUpdates = true;
                     }
-                    case SetRhythmParameterValue, SetRhythmParameterMutableValue ->
+                    case SptRemovedEvent evt ->
                     {
-                        if (data instanceof RP_SYS_TempoFactor)
+                        doDisableUpdates = true;
+                    }
+                    case SptResizedEvent evt ->
+                    {
+                        doDisableUpdates = true;
+                    }
+                    case SptRhythmChangedEvent evt ->
+                    {
+                        doDisableUpdates = true;
+                    }
+                    case RpValueChangedEvent evt ->
+                    {
+                        if (evt.getRhythmParameter() instanceof RP_SYS_TempoFactor)
                         {
                             // UpdatableSongSession can't update this in realtime                      
                             dirty = true;
@@ -334,58 +364,23 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
                             doUpdate = true;
                         }
                     }
-                    case setSongPartsName ->
+                    case SptRenamedEvent evt ->
                     {
                         // Nothing
                     }
                     default ->
                     {
-                        throw new IllegalArgumentException("sae=" + ssae);
+                        throw new IllegalArgumentException("sce=" + sce);
                     }
                 }
             }
-            case String s ->
+
+
+            case SongPropertyChangeEvent spce ->
             {
-                switch (s)
+                var propName = spce.getPropertyName();
+                switch (propName)
                 {
-                    //
-                    // MidiMix source events
-                    //                
-                    case MidiMix.PROP_RHYTHM_VOICE_CHANNEL, MidiMix.PROP_RHYTHM_VOICE ->
-                    {
-                        doDisableUpdates = true;
-                    }
-                    case MidiMix.PROP_CHANNEL_INSTRUMENT_MIX ->
-                    {
-                        if (data instanceof UserRhythmVoice)
-                        {
-                            // We can accept user channel removal                    
-                            doUpdate = true;
-                        } else
-                        {
-                            doDisableUpdates = true;
-                        }
-                    }
-                    case MidiMix.PROP_CHANNEL_DRUMS_REROUTED, MidiMix.PROP_DRUMS_INSTRUMENT_KEYMAP, MidiMix.PROP_INSTRUMENT_TRANSPOSITION, MidiMix.PROP_INSTRUMENT_VELOCITY_SHIFT ->
-                    {
-                        doUpdate = true;
-                    }
-
-                    //
-                    // PlaybackSettings source events
-                    //       
-                    case PlaybackSettings.PROP_CLICK_PITCH_HIGH, PlaybackSettings.PROP_CLICK_PITCH_LOW, PlaybackSettings.PROP_CLICK_PREFERRED_CHANNEL, PlaybackSettings.PROP_CLICK_VELOCITY_HIGH, PlaybackSettings.PROP_CLICK_VELOCITY_LOW, PlaybackSettings.PROP_CLICK_PRECOUNT_MODE, PlaybackSettings.PROP_CLICK_PRECOUNT_ENABLED ->
-                    {
-                        dirty = true;
-                    }
-                    case PlaybackSettings.PROP_PLAYBACK_CLICK_ENABLED ->
-                    {
-                        doUpdate = true;
-                    }
-
-                    //
-                    // Song property events
-                    //                                
                     case Song.PROP_USER_PHRASE ->
                     {
                         String phraseName = (String) data;
@@ -405,23 +400,64 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
                     }
                     default ->
                     {
-                        throw new IllegalArgumentException("s=" + s);
+                        throw new IllegalArgumentException("propName=" + propName);
                     }
                 }
             }
-            default ->
+
+
+            case PropertyChangeEvent pce ->             // must be AFTER case SongPropertyChangeEvent
             {
-                throw new IllegalArgumentException("sourceEvent=" + sourceEvent);
+
+                if (pce.getSource() == getSongContext().getMidiMix())
+                {
+                    switch (pce.getPropertyName())
+                    {
+                        case MidiMix.PROP_RHYTHM_VOICE_CHANNEL, MidiMix.PROP_RHYTHM_VOICE ->
+                        {
+                            doDisableUpdates = true;
+                        }
+                        case MidiMix.PROP_CHANNEL_INSTRUMENT_MIX ->
+                        {
+                            if (data instanceof UserRhythmVoice)
+                            {
+                                // We can accept user channel removal                    
+                                doUpdate = true;
+                            } else
+                            {
+                                doDisableUpdates = true;
+                            }
+                        }
+                        case MidiMix.PROP_CHANNEL_DRUMS_REROUTED, MidiMix.PROP_DRUMS_INSTRUMENT_KEYMAP, MidiMix.PROP_INSTRUMENT_TRANSPOSITION, MidiMix.PROP_INSTRUMENT_VELOCITY_SHIFT ->
+                        {
+                            doUpdate = true;
+                        }
+                    }
+                    
+                } else if (e.getSource() == PlaybackSettings.getInstance())
+                {
+                    switch (pce.getPropertyName())
+                    {
+                        case PlaybackSettings.PROP_CLICK_PITCH_HIGH, PlaybackSettings.PROP_CLICK_PITCH_LOW, PlaybackSettings.PROP_CLICK_PREFERRED_CHANNEL, PlaybackSettings.PROP_CLICK_VELOCITY_HIGH, PlaybackSettings.PROP_CLICK_VELOCITY_LOW, PlaybackSettings.PROP_CLICK_PRECOUNT_MODE, PlaybackSettings.PROP_CLICK_PRECOUNT_ENABLED ->
+                        {
+                            dirty = true;
+                        }
+                        case PlaybackSettings.PROP_PLAYBACK_CLICK_ENABLED ->
+                        {
+                            doUpdate = true;
+                        }
+                    }
+                }
             }
+            
+            default -> throw new IllegalStateException("Unexpected value: " + sourceEvent);
         }
 
 
-        LOGGER.log(Level.FINE,
-                "propertyChange() output: dirty={0} doUpdate={1} doDisableUpdates={2}", new Object[]
-                {
-                    dirty, doUpdate, doDisableUpdates
-                }
-        );
+        LOGGER.log(Level.FINE, "propertyChange() output: dirty={0} doUpdate={1} doDisableUpdates={2}", new Object[]
+        {
+            dirty, doUpdate, doDisableUpdates
+        });
 
 
         if (doDisableUpdates)

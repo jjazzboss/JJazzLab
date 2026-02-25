@@ -46,6 +46,11 @@
             <version>${project.version}</version>  
         </dependency>  
         <dependency> 
+            <groupId>org.jjazzlab.core</groupId> 
+            <artifactId>rhythmparametersimpl</artifactId> 
+            <version>${project.version}</version>  
+        </dependency>          
+        <dependency> 
             <groupId>org.jjazzlab.core</groupId>
             <artifactId>guava</artifactId>
             <version>${project.version}</version>

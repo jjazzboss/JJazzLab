@@ -8,8 +8,7 @@
  *  JJazzLab is free software: you can redistribute it and/or modify
  *  it under the terms of the Lesser GNU General Public License (LGPLv3) 
  *  as published by the Free Software Foundation, either version 3 of the License, 
- *  or (at your option) any later version.
- *
+ *  or (at your option) any later version. *
  *  JJazzLab is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -1044,18 +1043,18 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
                 PropertyChangeEvent evt = null;
                 if (oldInsMix != null && newInsMix != null && InstrumentSettings.isMusicGenerationImpacted(oldInsMix.getSettings(), newInsMix.getSettings()))
                 {
-                    evt = new SongPropertyChangeEvent(this, PROP_MUSIC_GENERATION, PROP_CHANNEL_INSTRUMENT_MIX, oldInsMix);
+                    evt = new PropertyChangeEvent(this, PROP_MUSIC_GENERATION, PROP_CHANNEL_INSTRUMENT_MIX, oldInsMix);
                 }
                 yield evt;
             }
             case PROP_DRUMS_INSTRUMENT_KEYMAP ->
-                new SongPropertyChangeEvent(this, PROP_MUSIC_GENERATION, PROP_DRUMS_INSTRUMENT_KEYMAP, null);
+                new PropertyChangeEvent(this, PROP_MUSIC_GENERATION, PROP_DRUMS_INSTRUMENT_KEYMAP, null);
             case PROP_INSTRUMENT_TRANSPOSITION ->
-                new SongPropertyChangeEvent(this, PROP_MUSIC_GENERATION, PROP_INSTRUMENT_TRANSPOSITION, ((InstrumentSettings) event.getSource()).getContainer());  // InstrumentMix
+                new PropertyChangeEvent(this, PROP_MUSIC_GENERATION, PROP_INSTRUMENT_TRANSPOSITION, ((InstrumentSettings) event.getSource()).getContainer());  // InstrumentMix
             case PROP_INSTRUMENT_VELOCITY_SHIFT ->
-                new SongPropertyChangeEvent(this, PROP_MUSIC_GENERATION, PROP_INSTRUMENT_VELOCITY_SHIFT, ((InstrumentSettings) event.getSource()).getContainer());  // InstrumentMix
+                new PropertyChangeEvent(this, PROP_MUSIC_GENERATION, PROP_INSTRUMENT_VELOCITY_SHIFT, ((InstrumentSettings) event.getSource()).getContainer());  // InstrumentMix
             case PROP_CHANNEL_DRUMS_REROUTED ->
-                new SongPropertyChangeEvent(this, PROP_MUSIC_GENERATION, PROP_CHANNEL_DRUMS_REROUTED, (Integer) event.getOldValue());    // channel
+                new PropertyChangeEvent(this, PROP_MUSIC_GENERATION, PROP_CHANNEL_DRUMS_REROUTED, (Integer) event.getOldValue());    // channel
             default ->
                 null;
         };

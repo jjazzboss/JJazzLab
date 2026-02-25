@@ -35,6 +35,7 @@ import javax.swing.Action;
 import javax.swing.ImageIcon;
 import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.analytics.api.Analytics;
+import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.musiccontrol.api.MusicController;
@@ -56,6 +57,7 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
+import org.openide.util.Exceptions;
 import org.openide.util.HelpCtx;
 import org.openide.util.Lookup;
 import org.openide.util.LookupEvent;
@@ -162,7 +164,7 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
                     UpdatableSongSession session = null;
                     try
                     {
-                        MidiMix midiMix = MidiMixManager.getDefault().findMix(currentSong);      // Can raise MidiUnavailableException
+                        MidiMix midiMix = MidiMixManager.getDefault().findMix(currentSong);      // Can raise U
                         SongContext context = new SongContext(currentSong, midiMix);
 
                         new FixMissingSectionStartChord(context).autofix();
@@ -184,7 +186,7 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
                         var mapParams = Analytics.buildMap("Bar Range", context.getBarRange().toString(), "Rhythms", Analytics.toStrList(context.getUniqueRhythms()));
                         Analytics.logEvent("Play", mapParams);
 
-                    } catch (MusicGenerationException | MidiUnavailableException ex)
+                    } catch (MusicGenerationException | UnsupportedEditException ex)
                     {
                         if (session != null)
                         {

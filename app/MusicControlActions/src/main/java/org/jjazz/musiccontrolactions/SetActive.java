@@ -31,6 +31,7 @@ import javax.sound.midi.MidiUnavailableException;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
 import org.jjazz.activesong.spi.ActiveSongManager;
+import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.song.api.Song;
@@ -109,7 +110,7 @@ public class SetActive extends BooleanStateAction implements PropertyChangeListe
             try
             {
                 currentMidiMix = MidiMixManager.getDefault().findMix(currentSong);
-            } catch (MidiUnavailableException ex)
+            } catch (UnsupportedEditException ex)
             {
                 // We should never be here
                 throw new IllegalStateException("Unexpected MidiUnavailableException", ex);

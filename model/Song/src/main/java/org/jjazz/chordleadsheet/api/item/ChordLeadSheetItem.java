@@ -135,12 +135,17 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
     void removePropertyChangeListener(PropertyChangeListener listener);
 
     /**
-     * Subclasses which do not have to care about thread-safety can call this helper method to implement compareTo().
+     * A compareTo() thread-unsafe implementation which is consistent with
+     * {@link #equalsThreadUnsafe(org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem, java.lang.Object)}.
+     * <p>
+     * Relies on {@link #compareToSamePosition(org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem).
+     * .<p>
+     * If thread-safety is required, subclass compareTo() implementation should call this method under a read lock.
      *
      * @param other
      * @return
      */
-    default int compareToDefault(ChordLeadSheetItem<?> other)
+    default int compareToThreadUnsafe(ChordLeadSheetItem<?> other)
     {
         Objects.requireNonNull(other);
 
@@ -160,6 +165,45 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
         }
         assert res != 0;        // For consistency with equals(), VERY important because ChordLeadSheetItems are used in order-based collections such as TreeSet
         return res;
+    }
+
+    /**
+     * A thread-unsafe equals() helper implementation consistent with {@link #compareToThreadUnsafe(org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem)}.
+     * <p>
+     * If thread-safety is required, subclass equals() implementation should call this method under a read lock.
+     *
+     * @param item Cannot be null
+     * @param o
+     * @return
+     */
+    static public boolean equalsThreadUnsafe(ChordLeadSheetItem<?> item, Object o)
+    {
+        Objects.requireNonNull(item);
+        if (o == null || item.getClass() != o.getClass())
+        {
+            return false;
+        }
+
+        var cli = (ChordLeadSheetItem<?>) o;
+        return item.getData().equals(cli.getData()) && item.getPosition().equals(cli.getPosition());
+    }
+
+    /**
+     * A thread-unsafe hashCode() helper implementation consistent with
+     * {@link #equalsThreadUnsafe(org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem, java.lang.Object)}.
+     * <p>
+     * If thread-safety is required, subclass equals() implementation should call this method under a read lock.
+     *
+     * @param item
+     * @return
+     */
+    static public int hashCodeThreadUnsafe(ChordLeadSheetItem<?> item)
+    {
+        Objects.requireNonNull(item);
+        int hash = 7;
+        hash = 37 * hash + item.getPosition().hashCode();
+        hash = 37 * hash + item.getData().hashCode();
+        return hash;
     }
 
     /**
@@ -326,7 +370,7 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
         @Override
         public int compareTo(ChordLeadSheetItem<?> other)
         {
-           return compareToDefault(other);
+            return compareToThreadUnsafe(other);
         }
 
         @Override

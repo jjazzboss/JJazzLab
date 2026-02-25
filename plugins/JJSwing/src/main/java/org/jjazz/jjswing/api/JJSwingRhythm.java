@@ -69,11 +69,14 @@ import org.jjazz.rhythmmusicgeneration.api.CompositeMusicGenerator;
 import org.jjazz.rhythmmusicgeneration.api.CompositeMusicGenerator.DelegateUnit;
 import org.jjazz.yamjjazz.rhythm.api.YamJJazzRhythmGenerator;
 import org.jjazz.rhythmmusicgeneration.api.CompositeMusicGenerator.RvToDelegateUnitMapper;
-import org.jjazz.rhythmparameters.api.RP_SYS_CustomPhrase;
-import org.jjazz.rhythmparameters.api.RP_SYS_Fill;
-import org.jjazz.rhythmparameters.api.RP_SYS_Intensity;
-import org.jjazz.rhythmparameters.api.RP_SYS_Mute;
-import org.jjazz.rhythmparameters.api.RP_SYS_Variation;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_CustomPhrase;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_Fill;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_Intensity;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_Marker;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_Mute;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_OverrideTracks;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_TempoFactor;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_Variation;
 
 /**
  * An advanced swing rhythm which uses a specific generator for the bass (walking, etc.).

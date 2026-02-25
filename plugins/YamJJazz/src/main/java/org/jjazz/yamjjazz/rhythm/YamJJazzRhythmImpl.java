@@ -50,7 +50,7 @@ import org.jjazz.rhythm.api.RhythmFeatures;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.TempoRange;
-import org.jjazz.rhythmparameters.api.*;
+import org.jjazz.rhythmparametersimpl.api.*;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.yamjjazz.rhythm.api.AccType;
 import org.jjazz.yamjjazz.FormatNotSupportedException;

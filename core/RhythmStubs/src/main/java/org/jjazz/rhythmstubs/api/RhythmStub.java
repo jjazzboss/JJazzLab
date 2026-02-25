@@ -38,11 +38,11 @@ import org.jjazz.midi.api.synths.GMSynth;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmFeatures;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythmmusicgeneration.api.DummyGenerator;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGeneratorProvider;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_Variation;
 
 /**
  * A rhythm stub whatever the time signature.

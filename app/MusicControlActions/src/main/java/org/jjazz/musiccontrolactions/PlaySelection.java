@@ -32,6 +32,7 @@ import javax.swing.Action;
 import javax.swing.KeyStroke;
 import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.spi.MidiMixManager;
@@ -176,7 +177,7 @@ public class PlaySelection extends AbstractAction
         UpdatableSongSession session = null;
         try
         {
-            MidiMix midiMix = MidiMixManager.getDefault().findMix(song);      // Can raise MidiUnavailableException
+            MidiMix midiMix = MidiMixManager.getDefault().findMix(song);      // Can raise UnsupportedEditException
             SongContext context = new SongContext(song, midiMix, rg);
             
             new FixMissingSectionStartChord(context).autofix();
@@ -187,7 +188,7 @@ public class PlaySelection extends AbstractAction
             mc.setPlaybackSession(session, false);      // Can raise MusicGenerationException
             mc.play(rg.from);
 
-        } catch (MusicGenerationException | MidiUnavailableException ex)
+        } catch (MusicGenerationException | UnsupportedEditException ex)
         {
             if (session != null)
             {

@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.chordleadsheet.api.item.CLI_Factory;
+import org.jjazz.chordleadsheet.spi.item.CLI_Factory;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.harmony.api.ChordType;
 import org.jjazz.harmony.api.ChordType.DegreeIndex;
