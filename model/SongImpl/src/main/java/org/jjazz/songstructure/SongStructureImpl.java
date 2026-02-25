@@ -749,10 +749,10 @@ public class SongStructureImpl implements SongStructure, Serializable
 
     }
 
-
     @Override
     public void setSongPartsName(List<SongPart> spts, final String name)
     {
+        performWriteAPImethod(setSongPartsNameOperation(spts, name));
     }
 
     public WriteOperation setSongPartsNameOperation(List<SongPart> spts, final String name)

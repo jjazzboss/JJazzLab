@@ -29,8 +29,6 @@ import java.util.TreeSet;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.ClsChangeListener;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
-import org.jjazz.chordleadsheet.api.event.SectionAddedEvent;
-import org.jjazz.chordleadsheet.api.event.SectionChangedEvent;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
@@ -42,12 +40,12 @@ import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.undomanager.api.JJazzUndoManager;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 import org.openide.util.Exceptions;
 
 public class ChordLeadSheetImplTest
@@ -68,20 +66,20 @@ public class ChordLeadSheetImplTest
     {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception
     {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() throws Exception
     {
     }
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
-        // System.out.println("setUp()");
+        System.out.println("setUp()");
         undoManager = new JJazzUndoManager();
 
         cls1 = new ChordLeadSheetImpl("Section1", TimeSignature.FOUR_FOUR, 8);
@@ -124,7 +122,7 @@ public class ChordLeadSheetImplTest
         }
     }
 
-    @After
+    @AfterEach
     public void tearDown()
     {
         if (undoManager.getCurrentCEditName() == null)
@@ -161,7 +159,6 @@ public class ChordLeadSheetImplTest
         }
     }
 
-    // getItems() --------------------------------------------------
     @Test
     public void testChordLeadSheetItemCreate()
     {
@@ -264,7 +261,6 @@ public class ChordLeadSheetImplTest
 
     }
 
-    // AddItem() --------------------------------------------------
     @Test
     public void testAddItem()
     {
@@ -300,7 +296,6 @@ public class ChordLeadSheetImplTest
         assertFalse(cls1.addItem(cliNC2));
     }
 
-    // FIX: this test previously missed @Test and never ran.
     @Test
     public void testAddItemOutOfTimeSignature()
     {
@@ -310,18 +305,18 @@ public class ChordLeadSheetImplTest
         assertEquals(2f, cliChordSymbolF_b3_3.getPosition().getBeat(), 0.0001f);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testAddItemOutOfBounds()
     {
         System.out.println("=== addItem ChordSymbol out of bounds");
-        cls1.addItem(cliChordSymbolA_b12_2);
+        assertThrows(IllegalArgumentException.class, () -> cls1.addItem(cliChordSymbolA_b12_2));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testAddItemAsSection()
     {
         System.out.println("=== addItem as Section");
-        cls1.addItem(cliSection34_b3);
+        assertThrows(IllegalArgumentException.class, () -> cls1.addItem(cliSection34_b3));
     }
 
     @Test
@@ -347,7 +342,6 @@ public class ChordLeadSheetImplTest
         assertFalse(cls1.contains(dummy));
     }
 
-    // changeItem() --------------------------------------------------
     @Test
     public void testChangeItem()
     {
@@ -365,7 +359,6 @@ public class ChordLeadSheetImplTest
         assertSame(newData2, cli2.getData());
     }
 
-    // AddSection() --------------------------------------------------
     @Test
     public void testAddSection()
     {
@@ -413,13 +406,12 @@ public class ChordLeadSheetImplTest
         assertEquals(new Position(1, 2), res.get(1).getPosition());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testAddSectionOutOfBounds() throws Exception
     {
-        cls1.addSection(new CLI_SectionImpl("TooFar", TimeSignature.FOUR_FOUR, cls1.getSizeInBars()));
+        assertThrows(IllegalArgumentException.class, () -> cls1.addSection(new CLI_SectionImpl("TooFar", TimeSignature.FOUR_FOUR, cls1.getSizeInBars())));
     }
 
-    // RemoveSection() --------------------------------------------------
     @Test
     public void testRemoveSection()
     {
@@ -438,14 +430,13 @@ public class ChordLeadSheetImplTest
         assertEquals(new Position(7, 2), cls1.getItems(cls1.getSection("Section2"), ChordLeadSheetItem.class).get(3).getPosition());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testRemoveSectionBar0Forbidden()
     {
         CLI_Section section0 = cls1.getSection(0);
-        cls1.removeSection(section0);       // exception
+        assertThrows(IllegalArgumentException.class, () -> cls1.removeSection(section0));
     }
 
-    // MoveItem() --------------------------------------------------
     @Test
     public void testMoveItem()
     {
@@ -469,28 +460,27 @@ public class ChordLeadSheetImplTest
         assertEquals(new Position(2, 2), cli.getPosition());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testMoveItemRejectsSection()
     {
         CLI_Section section2 = cls1.getSection("Section2");
-        cls1.moveItem(section2, new Position(3));
+        assertThrows(IllegalArgumentException.class, () -> cls1.moveItem(section2, new Position(3)));
     }
 
-    // MoveSection() --------------------------------------------------
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testMoveSection0()
     {
         System.out.println("=== testMoveSection0 move init section");
         CLI_Section cliSection0 = cls1.getSection(0);
-        cls1.moveSection(cliSection0, 3);
+        assertThrows(IllegalArgumentException.class, () -> cls1.moveSection(cliSection0, 3));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testMoveSection1()
     {
         System.out.println("=== testMoveSection1 move section on another");
         CLI_Section cliSection0 = cls1.getSection(5);
-        cls1.moveSection(cliSection0, 2);
+        assertThrows(IllegalArgumentException.class, () -> cls1.moveSection(cliSection0, 2));
     }
 
     @Test
@@ -526,15 +516,14 @@ public class ChordLeadSheetImplTest
     }
 
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testMoveFirstSection()
     {
         System.out.println("=== moveSection bar 0");
         CLI_Section section0 = cls1.getSection(0);
-        cls1.moveSection(section0, 2);
+        assertThrows(IllegalArgumentException.class, () -> cls1.moveSection(section0, 2));
     }
 
-    // InsertBars() --------------------------------------------------
     @Test
     public void testInsertBars0()
     {
@@ -588,19 +577,18 @@ public class ChordLeadSheetImplTest
         undoManager.startCEdit(UNDO_EDIT_NAME);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testInsertBarsNegative()
     {
-        cls1.insertBars(-1, 1);
+        assertThrows(IllegalArgumentException.class, () -> cls1.insertBars(-1, 1));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testInsertBarsBeyondSize()
     {
-        cls1.insertBars(cls1.getSizeInBars() + 1, 1);
+        assertThrows(IllegalArgumentException.class, () -> cls1.insertBars(cls1.getSizeInBars() + 1, 1));
     }
 
-    // DeleteBars() --------------------------------------------------
     @Test
     public void testDeleteBarsFromStartUntilEndOfSection()
     {
@@ -655,21 +643,20 @@ public class ChordLeadSheetImplTest
         assertEquals("Section1", cls1.getSection(2).getData().getName());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testDeleteBarsInconsistent()
     {
         System.out.println("=== deleteBars inconsistent range");
-        cls1.deleteBars(5, 2);
+        assertThrows(IllegalArgumentException.class, () -> cls1.deleteBars(5, 2));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testDeleteAllBars()
     {
         System.out.println("=== deleteBars all bars");
-        cls1.deleteBars(0, cls1.getSizeInBars() - 1);
+        assertThrows(IllegalArgumentException.class, () -> cls1.deleteBars(0, cls1.getSizeInBars() - 1));
     }
 
-    // SetSection() --------------------------------------------------
     @Test
     public void testSetTimeSignature()
     {
@@ -722,30 +709,29 @@ public class ChordLeadSheetImplTest
         assertEquals("Yeaaah", cliSection0.getData().getName());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testSetSectionNameAlreadyExist()
     {
         System.out.println("=== setSectionName name already exist");
         CLI_Section cliSection0 = cls1.getSection(0);
-        cls1.setSectionName(cliSection0, "Section3");
+        assertThrows(IllegalArgumentException.class, () -> cls1.setSectionName(cliSection0, "Section3"));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testSetSectionNameForeignSection()
     {
         CLI_Section foreign = new CLI_SectionImpl("Foreign", TimeSignature.FOUR_FOUR, 0);
-        cls1.setSectionName(foreign, "X");
+        assertThrows(IllegalArgumentException.class, () -> cls1.setSectionName(foreign, "X"));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testSetSectionTimeSignatureForeignSection() throws Exception
     {
         CLI_Section foreign = new CLI_SectionImpl("Foreign", TimeSignature.FOUR_FOUR, 0);
-        cls1.setSectionTimeSignature(foreign, TimeSignature.THREE_FOUR);
+        assertThrows(IllegalArgumentException.class, () -> cls1.setSectionTimeSignature(foreign, TimeSignature.THREE_FOUR));
     }
 
 
-    // SetSize() --------------------------------------------------
     @Test
     public void testSetSize()
     {
@@ -755,19 +741,18 @@ public class ChordLeadSheetImplTest
         assertEquals(6, cls1.getItems(ChordLeadSheetItem.class).size());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testSetSizeTooSmall()
     {
-        cls1.setSizeInBars(0);
+        assertThrows(IllegalArgumentException.class, () -> cls1.setSizeInBars(0));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testSetSizeTooLarge()
     {
-        cls1.setSizeInBars(ChordLeadSheet.MAX_SIZE + 1);
+        assertThrows(IllegalArgumentException.class, () -> cls1.setSizeInBars(ChordLeadSheet.MAX_SIZE + 1));
     }
 
-    // Section Retrieval -----------------------------------------
     @Test
     public void testGetSectionOutOfBounds()
     {
@@ -778,10 +763,10 @@ public class ChordLeadSheetImplTest
         assertSame(lastSection, cls1.getSection(size + 10));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testGetSectionNegative()
     {
-        cls1.getSection(-1);
+        assertThrows(IllegalArgumentException.class, () -> cls1.getSection(-1));
     }
 
     @Test
@@ -790,14 +775,13 @@ public class ChordLeadSheetImplTest
         assertNull(cls1.getSection("DoesNotExist"));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testGetBarRangeInvalidSection()
     {
         CLI_Section dummySection = new CLI_SectionImpl("Dummy", TimeSignature.FOUR_FOUR, 0);
-        cls1.getBarRange(dummySection);
+        assertThrows(IllegalArgumentException.class, () -> cls1.getBarRange(dummySection));
     }
 
-    // Integrity --------------------------------------------------
     @Test
     public void testDeepCopyIntegrity()
     {
@@ -826,7 +810,7 @@ public class ChordLeadSheetImplTest
         try
         {
             cls1.addItem(new CLI_ChordSymbolImpl(getChord("C"), new Position(0, 2)));
-            assertTrue("Listener should have been notified", notified[0]);
+            assertTrue(notified[0], "Listener should have been notified");
         } finally
         {
             cls1.removeClsChangeListener(listener);
@@ -836,7 +820,6 @@ public class ChordLeadSheetImplTest
 
 
 
-    // Undo --------------------------------------------------
     private void undoAll()
     {
         while (undoManager.canUndo())

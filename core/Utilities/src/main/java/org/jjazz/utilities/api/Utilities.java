@@ -1156,13 +1156,56 @@ public class Utilities
     }
 
     /**
+     * Get the index of the first element which is equal to value.
+     *
+     * @param <T>
+     * @param value
+     * @param data
+     * @return -1 if not found.
+     */
+    public static <T> int indexOf(T value, T[] data)
+    {
+        for (int i = 0; i < data.length; i++)
+        {
+            if (Objects.equals(data[i], value))
+            {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Get the index of the first element which is value.
+     *
+     * @param <T>
+     * @param value
+     * @param data
+     * @return -1 if not found.
+     */
+    public static <T> int indexOfInstance(T value, T[] data)
+    {
+        for (int i = 0; i < data.length; i++)
+        {
+            if (data[i] == value)
+            {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+
+    /**
      * Finds the first occurrence of the pattern in the text.
      * <p>
      * Use Knuth-Morris-Pratt Algorithm for Pattern Matching.
      *
+     * @param data
+     * @param pattern
      * @return -1 if not found.
      */
-    public static int indexOf(byte[] data, byte[] pattern)
+    public static int indexOfPattern(byte[] data, byte[] pattern)
     {
         if (data.length == 0)
         {

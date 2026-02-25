@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.song.api;
+package org.jjazz.song;
 
 import java.time.Duration;
 import java.util.function.Consumer;
@@ -31,6 +31,7 @@ import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.rhythmdatabase.api.DefaultRhythmDatabase;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmparametersimpl.api.RP_SYS_Variation;
+import org.jjazz.song.api.Song;
 import org.jjazz.song.spi.SongFactory;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
@@ -122,6 +123,7 @@ public class SongCopyDeadlockTest
                     }
                     Thread.sleep((long) (Math.random() * 2));
                 }
+                LOGGER.log(Level.INFO, "songDeepCopyThread finished OK");
             } catch (InterruptedException ex)
             {
                 LOGGER.info(() -> "songDeepCopyThread interrupted ex=" + ex.getMessage());
@@ -145,6 +147,7 @@ public class SongCopyDeadlockTest
                     }
                     Thread.sleep((long) (Math.random() * 2));
                 }
+                LOGGER.log(Level.INFO, "songModifierThread finished OK");
             } catch (InterruptedException ex)
             {
                 LOGGER.info(() -> "songModifierThread interrupted ex=" + ex.getMessage());
@@ -160,7 +163,7 @@ public class SongCopyDeadlockTest
 
         // Wait for both threads to complete with a reasonable timeout
         boolean b1 = songDeepCopyThread.join(Duration.ofSeconds(timeOutSec));       // true if thread completed before timeOutSec
-        boolean b2 = songModifierThread.join(Duration.ofMillis(1));
+        boolean b2 = songModifierThread.join(Duration.ofMillis(10));
         LOGGER.log(Level.INFO, "executeDeadlockScenario() b1={0} b2={1}", new Object[]
         {
             b1, b2

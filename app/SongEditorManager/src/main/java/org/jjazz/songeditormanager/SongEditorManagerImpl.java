@@ -136,7 +136,16 @@ public class SongEditorManagerImpl implements SongEditorManager, PropertyChangeL
 
 
         // Retrieve MidiMix
-        MidiMix midiMix = MidiMixManager.getDefault().findExistingMix(song);
+        MidiMix midiMix;
+        try
+        {
+            midiMix = MidiMixManager.getDefault().findMix(song);
+        } catch (UnsupportedEditException ex)
+        {
+            // Should never be there
+            Exceptions.printStackTrace(ex);
+            return;
+        }
 
 
         Runnable openEditorsTask = () -> 

@@ -38,12 +38,13 @@ import org.jjazz.chordleadsheet.item.CLI_SectionImpl;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.undomanager.api.JJazzUndoManager;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+import static org.junit.jupiter.api.Assertions.*;
 import org.openide.util.Exceptions;
 
 public class ChordLeadSheetImplConcurrencyTest
@@ -64,17 +65,17 @@ public class ChordLeadSheetImplConcurrencyTest
     {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception
     {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() throws Exception
     {
     }
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         // System.out.println("setUp()");
@@ -120,7 +121,7 @@ public class ChordLeadSheetImplConcurrencyTest
         }
     }
 
-    @After
+    @AfterEach
     public void tearDown()
     {
         if (undoManager.getCurrentCEditName() == null)
@@ -141,8 +142,8 @@ public class ChordLeadSheetImplConcurrencyTest
             System.out.println("--");
             System.out.println(cls1.toDebugString());
             System.out.println("");
-            assertTrue(cls1.equals(cls2));
         }
+        assertTrue(b);
 
     }
 
@@ -158,16 +159,17 @@ public class ChordLeadSheetImplConcurrencyTest
     }
 
 
-
     // =========================================================================================================
     // CONCURRENCY TESTS
     // =========================================================================================================
-    @Test(timeout = 50000) // 5 second timeout to detect deadlocks
+    @Test
+    @Timeout(50)
     public void testConcurrentDeepCopyWhileMutating() throws InterruptedException
     {
         System.out.println("=== testConcurrentDeepCopyWhileMutating");
+        System.out.println("BEFORE cls1=" + cls1.toDebugString());
         final int DEEP_COPY_ITERATIONS = 2000;
-        final int MUTATION_ITERATIONS = DEEP_COPY_ITERATIONS / 2;
+        final int MUTATION_ITERATIONS = DEEP_COPY_ITERATIONS - 503;
         final AtomicInteger deepCopyCount = new AtomicInteger(0);
         final AtomicInteger mutationCount = new AtomicInteger(0);
         final AtomicReference<Throwable> readerException = new AtomicReference<>();
@@ -181,7 +183,7 @@ public class ChordLeadSheetImplConcurrencyTest
                 for (int i = 0; i < DEEP_COPY_ITERATIONS; i++)
                 {
                     ChordLeadSheet copy = cls1.getDeepCopy();
-                    assertNotNull("Deep copy should not be null", copy);
+                    assertNotNull(copy, "Deep copy should not be null");
                     assertTrue(copy.getSizeInBars() > 0);
                     deepCopyCount.incrementAndGet();
 
@@ -194,7 +196,7 @@ public class ChordLeadSheetImplConcurrencyTest
                     }
 
                     // Small yield to encourage interleaving
-                    if (i % 100 == 0)
+                    if (i % 80 == 0)
                     {
                         Thread.yield();
                     }
@@ -275,7 +277,7 @@ public class ChordLeadSheetImplConcurrencyTest
                         }
 
                         // Small yield to encourage interleaving
-                        if (i % 50 == 0)
+                        if (i % 40 == 0)
                         {
                             Thread.yield();
                         }
@@ -300,6 +302,8 @@ public class ChordLeadSheetImplConcurrencyTest
         readerThread.join();
         writerThread.join();
 
+        System.out.println("AFTER cls1=" + cls1.toDebugString());
+
         // Check for exceptions
         if (readerException.get() != null)
         {
@@ -311,8 +315,8 @@ public class ChordLeadSheetImplConcurrencyTest
         }
 
         // Verify both threads made progress
-        assertTrue("Deep copy should have been called multiple times", deepCopyCount.get() > DEEP_COPY_ITERATIONS * 0.9);
-        assertTrue("Mutations should have been performed multiple times", mutationCount.get() > MUTATION_ITERATIONS * 0.9);
+        assertTrue(deepCopyCount.get() > DEEP_COPY_ITERATIONS * 0.9, "Deep copy should have been called multiple times");
+        assertTrue(mutationCount.get() > MUTATION_ITERATIONS * 0.9, "Mutations should have been performed multiple times");
 
         // Verify ChordLeadSheet is still in valid state
         assertTrue(cls1.getItems(CLI_ChordSymbol.class).size() > 4);

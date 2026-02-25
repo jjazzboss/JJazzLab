@@ -31,10 +31,10 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test class for CoalescingTaskScheduler.
@@ -46,13 +46,13 @@ public class CoalescingTaskSchedulerTest
     private static final long SHORT_DELAY = 100; // milliseconds
     private static final long TOLERANCE = 50; // timing tolerance
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         scheduler = null;
     }
 
-    @After
+    @AfterEach
     public void tearDown()
     {
         if (scheduler != null)
@@ -77,8 +77,8 @@ public class CoalescingTaskSchedulerTest
 
         boolean completed = latch.await(SHORT_DELAY + TOLERANCE, TimeUnit.MILLISECONDS);
 
-        Assert.assertTrue("Task should have executed", completed);
-        Assert.assertEquals("Task should execute exactly once", 1, counter.get());
+        Assertions.assertTrue(completed, "Task should have executed");
+        Assertions.assertEquals(1, counter.get(), "Task should execute exactly once");
     }
 
     @Test
@@ -102,9 +102,9 @@ public class CoalescingTaskSchedulerTest
 
         boolean completed = latch.await(SHORT_DELAY + TOLERANCE, TimeUnit.MILLISECONDS);
 
-        Assert.assertTrue("Task should have executed", completed);
-        Assert.assertEquals("Only one task should execute", 1, results.size());
-        Assert.assertEquals("Last requested task should execute", "Third", results.get(0));
+        Assertions.assertTrue(completed, "Task should have executed");
+        Assertions.assertEquals(1, results.size(), "Only one task should execute");
+        Assertions.assertEquals("Third", results.get(0), "Last requested task should execute");
     }
 
     @Test
@@ -133,10 +133,10 @@ public class CoalescingTaskSchedulerTest
         boolean completed = latch.await(SHORT_DELAY + TOLERANCE, TimeUnit.MILLISECONDS);
         long elapsed = System.currentTimeMillis() - startTime;
 
-        Assert.assertTrue("Task should have executed", completed);
-        Assert.assertEquals("Only second task should execute", 1, counter.get());
+        Assertions.assertTrue(completed, "Task should have executed");
+        Assertions.assertEquals(1, counter.get(), "Only second task should execute");
         // Should take at least 1.5 * SHORT_DELAY (half delay + full delay)
-        Assert.assertTrue("Delay should have restarted", elapsed >= (SHORT_DELAY * 3 / 2));
+        Assertions.assertTrue(elapsed >= (SHORT_DELAY * 3 / 2), "Delay should have restarted");
     }
 
     @Test
@@ -160,9 +160,9 @@ public class CoalescingTaskSchedulerTest
 
         boolean completed = latch.await(SHORT_DELAY + TOLERANCE, TimeUnit.MILLISECONDS);
 
-        Assert.assertTrue("Task should have executed", completed);
-        Assert.assertEquals("Only one task should execute", 1, results.size());
-        Assert.assertEquals("Last requested task should execute", "Third", results.get(0));
+        Assertions.assertTrue(completed, "Task should have executed");
+        Assertions.assertEquals(1, results.size(), "Only one task should execute");
+        Assertions.assertEquals("Third", results.get(0), "Last requested task should execute");
     }
 
     @Test
@@ -191,10 +191,10 @@ public class CoalescingTaskSchedulerTest
         boolean completed = latch.await(SHORT_DELAY + TOLERANCE, TimeUnit.MILLISECONDS);
         long elapsed = System.currentTimeMillis() - startTime;
 
-        Assert.assertTrue("Task should have executed", completed);
-        Assert.assertEquals("Only second task should execute", 1, counter.get());
+        Assertions.assertTrue(completed, "Task should have executed");
+        Assertions.assertEquals(1, counter.get(), "Only second task should execute");
         // Should take approximately SHORT_DELAY, not 1.5 * SHORT_DELAY
-        Assert.assertTrue("Delay should NOT have restarted", elapsed < (SHORT_DELAY * 3 / 2));
+        Assertions.assertTrue(elapsed < (SHORT_DELAY * 3 / 2), "Delay should NOT have restarted");
     }
 
     @Test
@@ -213,8 +213,8 @@ public class CoalescingTaskSchedulerTest
         // Wait for what would have been execution time
         Thread.sleep(SHORT_DELAY);
 
-        Assert.assertEquals("Task should not execute after cancel", 0, counter.get());
-        Assert.assertFalse("Should have no pending task after cancel", scheduler.hasPendingTask());
+        Assertions.assertEquals(0, counter.get(), "Task should not execute after cancel");
+        Assertions.assertFalse(scheduler.hasPendingTask(), "Should have no pending task after cancel");
     }
 
     @Test
@@ -222,19 +222,19 @@ public class CoalescingTaskSchedulerTest
     {
         scheduler = new CoalescingTaskScheduler(SHORT_DELAY);
 
-        Assert.assertFalse("Should have no pending task initially", scheduler.hasPendingTask());
+        Assertions.assertFalse(scheduler.hasPendingTask(), "Should have no pending task initially");
 
         CountDownLatch latch = new CountDownLatch(1);
         scheduler.request(() -> latch.countDown());
 
-        Assert.assertTrue("Should have pending task after request", scheduler.hasPendingTask());
+        Assertions.assertTrue(scheduler.hasPendingTask(), "Should have pending task after request");
 
         latch.await(SHORT_DELAY + TOLERANCE, TimeUnit.MILLISECONDS);
 
         // Give a bit of time for cleanup
         Thread.sleep(10);
 
-        Assert.assertFalse("Should have no pending task after execution", scheduler.hasPendingTask());
+        Assertions.assertFalse(scheduler.hasPendingTask(), "Should have no pending task after execution");
     }
 
     @Test
@@ -256,9 +256,9 @@ public class CoalescingTaskSchedulerTest
 
         boolean exceptionHandled = exceptionLatch.await(SHORT_DELAY + TOLERANCE, TimeUnit.MILLISECONDS);
 
-        Assert.assertTrue("Exception handler should be called", exceptionHandled);
-        Assert.assertNotNull("Exception should be caught", caughtException.get());
-        Assert.assertEquals("Should catch the thrown exception", "Test exception", caughtException.get().getMessage());
+        Assertions.assertTrue(exceptionHandled, "Exception handler should be called");
+        Assertions.assertNotNull(caughtException.get(), "Exception should be caught");
+        Assertions.assertEquals("Test exception", caughtException.get().getMessage(), "Should catch the thrown exception");
     }
 
     @Test
@@ -287,8 +287,8 @@ public class CoalescingTaskSchedulerTest
 
         boolean completed = latch.await(SHORT_DELAY + TOLERANCE, TimeUnit.MILLISECONDS);
 
-        Assert.assertTrue("Scheduler should still work after exception", completed);
-        Assert.assertEquals("Subsequent task should execute", 1, afterExceptionCounter.get());
+        Assertions.assertTrue(completed, "Scheduler should still work after exception");
+        Assertions.assertEquals(1, afterExceptionCounter.get(), "Subsequent task should execute");
     }
 
 
@@ -316,9 +316,9 @@ public class CoalescingTaskSchedulerTest
 
         boolean completed = latch.await(SHORT_DELAY * 5, TimeUnit.MILLISECONDS);
 
-        Assert.assertTrue("Task should eventually execute", completed);
-        Assert.assertEquals("Should execute only once", 1, executionCount.get());
-        Assert.assertEquals("Should execute last request", "Request-10", lastValue.get());
+        Assertions.assertTrue(completed, "Task should eventually execute");
+        Assertions.assertEquals(1, executionCount.get(), "Should execute only once");
+        Assertions.assertEquals("Request-10", lastValue.get(), "Should execute last request");
     }
 
     @Test
@@ -348,8 +348,8 @@ public class CoalescingTaskSchedulerTest
 
         boolean completed = latch.await(SHORT_DELAY + TOLERANCE, TimeUnit.MILLISECONDS);
 
-        Assert.assertTrue("Both tasks should execute", completed);
-        Assert.assertEquals("Should execute twice (one per window)", 2, executionCount.get());
+        Assertions.assertTrue(completed, "Both tasks should execute");
+        Assertions.assertEquals(2, executionCount.get(), "Should execute twice (one per window)");
     }
 
     @Test
@@ -402,8 +402,8 @@ public class CoalescingTaskSchedulerTest
         // Wait for execution
         boolean completed = executionLatch.await(SHORT_DELAY * 3, TimeUnit.MILLISECONDS);
 
-        Assert.assertTrue("Task should execute", completed);
+        Assertions.assertTrue(completed, "Task should execute");
         // Should execute only once despite many concurrent requests
-        Assert.assertEquals("Should coalesce all requests into one execution", 1, executionCount.get());
+        Assertions.assertEquals(1, executionCount.get(), "Should coalesce all requests into one execution");
     }
 }

@@ -49,13 +49,14 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import org.openide.util.Exceptions;
 
 public class SongStructureImplConcurrencyTest
@@ -74,7 +75,7 @@ public class SongStructureImplConcurrencyTest
     JJazzUndoManager undoManager;
 
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception
     {
         rdb = (DefaultRhythmDatabase) RhythmDatabase.getDefault();
@@ -82,12 +83,12 @@ public class SongStructureImplConcurrencyTest
         System.out.println(rdb.toStatsString());
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() throws Exception
     {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() throws UnsupportedEditException, ParseException
     {
         undoManager = new JJazzUndoManager();
@@ -143,7 +144,7 @@ public class SongStructureImplConcurrencyTest
         undoManager.startCEdit(UNDO_EDIT);
     }
 
-    @After
+    @AfterEach
     public void tearDown()
     {
         if (undoManager.getCurrentCEditName() == null)
@@ -170,7 +171,8 @@ public class SongStructureImplConcurrencyTest
     // CONCURRENCY TESTS
     // =========================================================================================================
 
-    @Test(timeout = 50000) // 5 second timeout to detect deadlocks
+    @Test
+    @Timeout(50)
     public void testConcurrentDeepCopyWhileMutating() throws InterruptedException
     {
         final int DEEP_COPY_ITERATIONS = 2000;
@@ -188,7 +190,7 @@ public class SongStructureImplConcurrencyTest
                 for (int i = 0; i < DEEP_COPY_ITERATIONS; i++)
                 {
                     SongStructure copy = sgs.getDeepCopy(cls);
-                    assertNotNull("Deep copy should not be null", copy);
+                    assertNotNull(copy, "Deep copy should not be null");
                     assertTrue(copy.getSizeInBars() > 0);
                     deepCopyCount.incrementAndGet();
 
@@ -325,8 +327,8 @@ public class SongStructureImplConcurrencyTest
         }
 
         // Verify both threads made progress
-        assertTrue("Deep copy should have been called multiple times", deepCopyCount.get() > DEEP_COPY_ITERATIONS * 0.9);
-        assertTrue("Mutations should have been performed multiple times", mutationCount.get() > MUTATION_ITERATIONS * 0.9);
+        assertTrue(deepCopyCount.get() > DEEP_COPY_ITERATIONS * 0.9, "Deep copy should have been called multiple times");
+        assertTrue(mutationCount.get() > MUTATION_ITERATIONS * 0.9, "Mutations should have been performed multiple times");
 
         // Verify SongStructure is still in valid state
         assertNotNull(sgs.getSongParts());
@@ -341,7 +343,8 @@ public class SongStructureImplConcurrencyTest
     }
 
 
-    @Test(timeout = 5000) // 5 second timeout
+    @Test
+    @Timeout(5)
     public void testConcurrentReadersWithSingleWriter() throws InterruptedException
     {
         final int ITERATIONS = 500;
@@ -459,10 +462,10 @@ public class SongStructureImplConcurrencyTest
         }
 
         // Verify all threads made progress
-        assertTrue("Reader 1 should have completed iterations", reader1Count.get() > 450);
-        assertTrue("Reader 2 should have completed iterations", reader2Count.get() > 450);
-        assertTrue("Reader 3 should have completed iterations", reader3Count.get() > 450);
-        assertTrue("Writer should have completed some mutations", writerCount.get() > 10);
+        assertTrue(reader1Count.get() > 450, "Reader 1 should have completed iterations");
+        assertTrue(reader2Count.get() > 450, "Reader 2 should have completed iterations");
+        assertTrue(reader3Count.get() > 450, "Reader 3 should have completed iterations");
+        assertTrue(writerCount.get() > 10, "Writer should have completed some mutations");
 
         System.out.println("Multiple readers test completed successfully:");
         System.out.println("  Reader 1 (deep copy): " + reader1Count.get());
@@ -472,7 +475,8 @@ public class SongStructureImplConcurrencyTest
 
     }
 
-    @Test(timeout = 10000)
+    @Test
+    @Timeout(10)
     public void testConcurrentListenerNotifications() throws InterruptedException
     {
         final int ITERATIONS = 200;
@@ -484,7 +488,7 @@ public class SongStructureImplConcurrencyTest
         {
             listenerCount.incrementAndGet();
             // Verify lock is NOT held
-            assertFalse("listener must be called without write lock", getLock().isWriteLockedByCurrentThread());
+            assertFalse(getLock().isWriteLockedByCurrentThread(), "listener must be called without write lock");
         });
 
         // Mutating thread
@@ -550,7 +554,7 @@ public class SongStructureImplConcurrencyTest
         }
 
         // Both listener types should have been called for each mutation
-        assertEquals("Listener should be called for each mutation", mutationCount.get(), listenerCount.get());
+        assertEquals(mutationCount.get(), listenerCount.get(), "Listener should be called for each mutation");
 
         System.out.println("Listener concurrency test completed successfully:");
         System.out.println("  Mutations: " + mutationCount.get());

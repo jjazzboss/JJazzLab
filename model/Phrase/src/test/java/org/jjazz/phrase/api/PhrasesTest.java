@@ -33,12 +33,12 @@ import javax.sound.midi.Track;
 import org.jjazz.harmony.api.Chord;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.Utilities;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Test;
-import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  *
@@ -51,23 +51,23 @@ public class PhrasesTest
     {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception
     {
         System.setProperty(NoteEvent.SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT, "(p=%2$.1f d=%3$.1f)");
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() throws Exception
     {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception
     {
     }
 
-    @After
+    @AfterEach
     public void tearDown() throws Exception
     {
     }

@@ -80,6 +80,7 @@ import org.jjazz.song.WriteOperationResults;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongPropertyChangeEvent;
 import org.jjazz.undomanager.api.SimpleEdit;
+import org.jjazz.utilities.api.Utilities;
 import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.utilities.api.ThrowingSupplier;
 import org.jjazz.xstream.api.XStreamInstancesManager;
@@ -598,7 +599,7 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
     @Override
     public InstrumentMix getInstrumentMix(int channel)
     {
-        Preconditions.checkArgument(!MidiConst.checkMidiChannel(channel), "channel=%s", channel);
+        Preconditions.checkArgument(MidiConst.checkMidiChannel(channel), "channel=%s", channel);
         return performReadAPImethod(() -> instrumentMixes[channel]);
     }
 
@@ -612,7 +613,7 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
         var rvKey = rv instanceof RhythmVoiceDelegate rvd ? rvd.getSource() : rv;
         return performReadAPImethod(() -> 
         {
-            int index = List.of(rhythmVoices).indexOf(rvKey);
+            int index = Utilities.indexOfInstance(rvKey, rhythmVoices);
             return index == -1 ? null : instrumentMixes[index];
         });
     }
@@ -621,7 +622,7 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
     @Override
     public int getChannel(InstrumentMix im)
     {
-        return performReadAPImethod(() -> List.of(instrumentMixes).indexOf(im));
+        return performReadAPImethod(() -> Utilities.indexOfInstance(im, instrumentMixes));
     }
 
     @Override
@@ -647,7 +648,7 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
     {
         Objects.requireNonNull(rvKey);
         var rv = rvKey instanceof RhythmVoiceDelegate rvd ? rvd.getSource() : rvKey;
-        return performReadAPImethod(() -> List.of(rhythmVoices).indexOf(rv));
+        return performReadAPImethod(() -> Utilities.indexOfInstance(rv, rhythmVoices));
     }
 
     @Override
@@ -1025,6 +1026,11 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
         return "MidiMix[sg=" + song.getName() + ", ch=" + getUsedChannels() + "]";
     }
 
+    /**
+     * Fire the specified event, then a PROP_MODIFIED_OR_SAVED event (false-&gt;true), then possibly a PROP_MUSIC_GENERATION event.
+     *
+     * @param event
+     */
     public void firePropertyChangeEvent(PropertyChangeEvent event)
     {
         pcs.firePropertyChange(event);
@@ -1034,33 +1040,23 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
 
 
         // Fire a PROP_MUSIC_GENERATION for specific events
-        var musicGenerationEvent = switch (event.getPropertyName())
+        boolean musicChanged = switch (event.getPropertyName())
         {
             case PROP_CHANNEL_INSTRUMENT_MIX ->
             {
                 InstrumentMix oldInsMix = (InstrumentMix) event.getOldValue();
-                InstrumentMix newInsMix = (InstrumentMix) event.getNewValue();
-                PropertyChangeEvent evt = null;
-                if (oldInsMix != null && newInsMix != null && InstrumentSettings.isMusicGenerationImpacted(oldInsMix.getSettings(), newInsMix.getSettings()))
-                {
-                    evt = new PropertyChangeEvent(this, PROP_MUSIC_GENERATION, PROP_CHANNEL_INSTRUMENT_MIX, oldInsMix);
-                }
-                yield evt;
+                InstrumentMix newInsMix = getInstrumentMix((Integer)event.getNewValue());
+                yield (oldInsMix != null && newInsMix != null && InstrumentSettings.isMusicGenerationImpacted(oldInsMix.getSettings(), newInsMix.getSettings()));
             }
-            case PROP_DRUMS_INSTRUMENT_KEYMAP ->
-                new PropertyChangeEvent(this, PROP_MUSIC_GENERATION, PROP_DRUMS_INSTRUMENT_KEYMAP, null);
-            case PROP_INSTRUMENT_TRANSPOSITION ->
-                new PropertyChangeEvent(this, PROP_MUSIC_GENERATION, PROP_INSTRUMENT_TRANSPOSITION, ((InstrumentSettings) event.getSource()).getContainer());  // InstrumentMix
-            case PROP_INSTRUMENT_VELOCITY_SHIFT ->
-                new PropertyChangeEvent(this, PROP_MUSIC_GENERATION, PROP_INSTRUMENT_VELOCITY_SHIFT, ((InstrumentSettings) event.getSource()).getContainer());  // InstrumentMix
-            case PROP_CHANNEL_DRUMS_REROUTED ->
-                new PropertyChangeEvent(this, PROP_MUSIC_GENERATION, PROP_CHANNEL_DRUMS_REROUTED, (Integer) event.getOldValue());    // channel
+            case PROP_DRUMS_INSTRUMENT_KEYMAP, PROP_INSTRUMENT_TRANSPOSITION, PROP_INSTRUMENT_VELOCITY_SHIFT, PROP_CHANNEL_DRUMS_REROUTED ->
+                true;
             default ->
-                null;
+                false;
         };
-        if (musicGenerationEvent != null)
+        if (musicChanged)
         {
-            pcs.firePropertyChange(musicGenerationEvent);
+            var mEvent = new PropertyChangeEvent(this, PROP_MUSIC_GENERATION, event, null);
+            pcs.firePropertyChange(mEvent);
         }
 
     }

@@ -1201,7 +1201,14 @@ class SongInternalUpdater
     {
         if (midiMix == null)
         {
-            midiMix = (MidiMixImpl) MidiMixManager.getDefault().findExistingMix(song);
+            try
+            {
+                midiMix = (MidiMixImpl) MidiMixManager.getDefault().findMix(song);
+            } catch (UnsupportedEditException ex)
+            {
+                // Should never happen
+                Exceptions.printStackTrace(ex);
+            }
         }
         return midiMix;
     }

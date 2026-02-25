@@ -26,12 +26,12 @@ package org.jjazz.utilities.api;
 
 import java.util.List;
 import java.util.StringJoiner;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  *
@@ -44,22 +44,22 @@ public class MatrixGroupsRemoverTest
     {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass()
     {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass()
     {
     }
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
     }
 
-    @After
+    @AfterEach
     public void tearDown()
     {
     }
@@ -92,7 +92,7 @@ public class MatrixGroupsRemoverTest
         List<MatrixGroupsRemover.Group<String>> removalSequence = groupRemover.findRemovalSequence();
 
         // Validate the removal sequence size (2 groups)
-        assertEquals("Expected removal sequence size is 2", 2, removalSequence.size());
+        assertEquals(2, removalSequence.size(), "Expected removal sequence size is 2");
 
         // Validate the groups in the sequence
         // Group 1: (0,0), (0,2), (1,0), (1,2)
@@ -143,7 +143,7 @@ public class MatrixGroupsRemoverTest
         List<MatrixGroupsRemover.Group<String>> removalSequence = groupRemover.findRemovalSequence();
 
         // Validate the removal sequence size (2 groups)
-        assertEquals("Expected removal sequence size is 4", 4, removalSequence.size());
+        assertEquals(4, removalSequence.size(), "Expected removal sequence size is 4");
 
         // Validate the groups in the sequence
         // Group 1: (0,0), (0,2), (1,0), (1,2)
@@ -206,7 +206,7 @@ public class MatrixGroupsRemoverTest
         printRemovalSequence(removalSequence);
 
         // Validate the removal sequence size (2 groups)
-        assertEquals("Expected removal sequence size is 5", 5, removalSequence.size());
+        assertEquals(5, removalSequence.size(), "Expected removal sequence size is 5");
 
         // Validate the groups in the sequence
         MatrixGroupsRemover.Group<String> group1 = removalSequence.get(0);
@@ -254,7 +254,7 @@ public class MatrixGroupsRemoverTest
         List<MatrixGroupsRemover.Group<String>> removalSequence = groupRemover.findRemovalSequence();
 
         // Validate that there are no groups
-        assertTrue("Expected no groups in the removal sequence", removalSequence.isEmpty());
+        assertTrue(removalSequence.isEmpty(), "Expected no groups in the removal sequence");
     }
 
     /**
@@ -285,7 +285,7 @@ public class MatrixGroupsRemoverTest
         List<MatrixGroupsRemover.Group<String>> removalSequence = groupRemover.findRemovalSequence();
 
         // Validate that there are no groups
-        assertTrue("Expected no groups as no group meets the minimum size", removalSequence.isEmpty());
+        assertTrue(removalSequence.isEmpty(), "Expected no groups as no group meets the minimum size");
     }
 
     /**

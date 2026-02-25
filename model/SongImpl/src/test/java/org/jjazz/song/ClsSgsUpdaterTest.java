@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.song.api;
+package org.jjazz.song;
 
 import java.text.ParseException;
 import java.util.List;
@@ -41,11 +41,16 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythmdatabase.api.DefaultRhythmDatabase;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
+import org.jjazz.song.api.Song;
 import org.jjazz.song.spi.SongFactory;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
-import org.junit.*;
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 import org.openide.util.Exceptions;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
@@ -73,7 +78,7 @@ public class ClsSgsUpdaterTest
 
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception
     {
         rdb = (DefaultRhythmDatabase) RhythmDatabase.getDefault();
@@ -81,12 +86,12 @@ public class ClsSgsUpdaterTest
         System.out.println(rdb.toStatsString());
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() throws Exception
     {
     }
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         cls1 = new ChordLeadSheetImpl("Section1", TimeSignature.FOUR_FOUR, 8);
@@ -150,7 +155,7 @@ public class ClsSgsUpdaterTest
         undoManager.startCEdit(UT_EDIT_NAME);
     }
 
-    @After
+    @AfterEach
     public void tearDown()
     {
         if (undoManager.getCurrentCEditName() == null)

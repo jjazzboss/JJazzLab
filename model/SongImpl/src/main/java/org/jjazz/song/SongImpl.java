@@ -119,9 +119,7 @@ public class SongImpl implements Serializable, PropertyChangeListener, Song
         Preconditions.checkArgument(name != null && !name.isBlank(), "name=%s", name);
         Objects.requireNonNull(sgs);
 
-        setName(name);
-
-
+        this.name = name;
         chordLeadSheet = sgs.getParentChordLeadSheet();
         ((ChordLeadSheetImpl) chordLeadSheet).setSong(this);
         songStructure = sgs;

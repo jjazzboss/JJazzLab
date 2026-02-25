@@ -51,15 +51,14 @@ import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 
-import static org.junit.Assert.*;
-import org.junit.Rule;
-import org.junit.rules.TestName;
+import static org.junit.jupiter.api.Assertions.*;
 import org.openide.util.Exceptions;
 
 public class SongStructureImplTest
@@ -76,11 +75,9 @@ public class SongStructureImplTest
     SongPart spt0;
     SongPart spt1, spt2;
     JJazzUndoManager undoManager;
+    private TestInfo testInfo;
 
-    @Rule
-    public TestName testName = new TestName();
-
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception
     {
         rdb = (DefaultRhythmDatabase) RhythmDatabase.getDefault();
@@ -88,14 +85,15 @@ public class SongStructureImplTest
         System.out.println(rdb.toStatsString());
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() throws Exception
     {
     }
 
-    @Before
-    public void setUp() throws UnsupportedEditException, ParseException
+    @BeforeEach
+    public void setUp(TestInfo testInfo) throws UnsupportedEditException, ParseException
     {
+        this.testInfo = testInfo;
         undoManager = new JJazzUndoManager();
 
         // Build a 16 bars chordleadsheet [0-15]
@@ -148,7 +146,7 @@ public class SongStructureImplTest
         undoManager.startCEdit(UNDO_EDIT);
     }
 
-    @After
+    @AfterEach
     public void tearDown()
     {
         if (undoManager.getCurrentCEditName() == null)
@@ -164,7 +162,7 @@ public class SongStructureImplTest
         boolean b = sgs.equals(u_sgs);
         if (!b)
         {
-            System.out.println("==== MISMATCH AFTER UNDO SEQUENCE for " + this.testName.getMethodName() + "()");
+            System.out.println("==== MISMATCH AFTER UNDO SEQUENCE for " + testInfo.getTestMethod().map(java.lang.reflect.Method::getName).orElse("unknown") + "()");
             System.out.println("sgs after Undo=" + sgs);
             System.out.println("u_sgs after Undo=" + u_sgs);
             assertTrue(b);
@@ -193,13 +191,13 @@ public class SongStructureImplTest
         assertSame(sgs, spt2.getContainer());
 
         sgs.removeSongParts(List.of(spt0));
-        assertSame("Removed song part must keep its container", sgs, spt0.getContainer());
-        assertSame("Remaining SongPart must keep container", sgs, spt2.getContainer());
+        assertSame(sgs, spt0.getContainer(), "Removed song part must keep its container");
+        assertSame(sgs, spt2.getContainer(), "Remaining SongPart must keep container");
 
         var sgs2 = sgs.getDeepCopy(sgs.getParentChordLeadSheet());
         sgs2.addSongParts(List.of(spt0));
 
-        assertSame("Add to new SongStructure must update container", sgs2, spt0.getContainer());
+        assertSame(sgs2, spt0.getContainer(), "Add to new SongStructure must update container");
         assertSame(spt0, sgs2.getSongPart(0));
 
     }
@@ -210,7 +208,7 @@ public class SongStructureImplTest
         // Remove sectionB (bars 4..7, 3/4)
         sgs.removeSongParts(List.of(spt1));
 
-        assertEquals("Song size must shrink by removed part length", 12, sgs.getSizeInBars());
+        assertEquals(12, sgs.getSizeInBars(), "Song size must shrink by removed part length");
 
         // spt0 remains at start
         assertSame(spt0, sgs.getSongPart(0));
@@ -315,7 +313,7 @@ public class SongStructureImplTest
     @Test
     public void testGetLastUsedRhythmReturnsNull()
     {
-        assertNull("Never-used time signature should return null", sgs.getLastUsedRhythm(TimeSignature.FIVE_FOUR));
+        assertNull(sgs.getLastUsedRhythm(TimeSignature.FIVE_FOUR), "Never-used time signature should return null");
     }
 
     @Test
@@ -364,7 +362,7 @@ public class SongStructureImplTest
         // 27.9 is still within the 3/4 section (bar 4..7), just before bar 8 boundary at 28
         Position p2 = sgs.toPosition(27.9f);
         assertNotNull(p2);
-        assertTrue("Expected bar < 8 for 27.9 beats", p2.getBar() < 8);
+        assertTrue(p2.getBar() < 8, "Expected bar < 8 for 27.9 beats");
     }
 
     @Test
@@ -378,9 +376,9 @@ public class SongStructureImplTest
     @Test
     public void testGetSongPartBoundaries()
     {
-        assertNull("Negative bar index should return null", sgs.getSongPart(-1));
-        assertNull("barIndex == size should return null", sgs.getSongPart(sgs.getSizeInBars()));
-        assertSame("Last bar should return last part", spt2, sgs.getSongPart(sgs.getSizeInBars() - 1));
+        assertNull(sgs.getSongPart(-1), "Negative bar index should return null");
+        assertNull(sgs.getSongPart(sgs.getSizeInBars()), "barIndex == size should return null");
+        assertSame(spt2, sgs.getSongPart(sgs.getSizeInBars() - 1), "Last bar should return last part");
     }
 
     @Test
@@ -399,8 +397,8 @@ public class SongStructureImplTest
         }
 
         assertEquals(sizeBefore + nbBars, sgs.getSizeInBars());
-        assertSame("Appended part should own the first new bar", newSpt, sgs.getSongPart(sizeBefore));
-        assertSame("Container should be set on add", sgs, newSpt.getContainer());
+        assertSame(newSpt, sgs.getSongPart(sizeBefore), "Appended part should own the first new bar");
+        assertSame(sgs, newSpt.getContainer(), "Container should be set on add");
 
         // Existing parts should keep their boundaries
         assertSame(spt0, sgs.getSongPart(0));
@@ -423,7 +421,7 @@ public class SongStructureImplTest
 
         assertEquals(newSpt.getNbBars() + sizeInBars, sgs.getSizeInBars());
         assertSame(newSpt, sgs.getSongPart(0));
-        assertSame("Old first part should start after inserted part", spt0, sgs.getSongPart(4));
+        assertSame(spt0, sgs.getSongPart(4), "Old first part should start after inserted part");
         assertEquals(4, spt0.getStartBarIndex());
         assertEquals(8, spt1.getStartBarIndex());
         assertEquals(12, spt2.getStartBarIndex());
@@ -581,7 +579,7 @@ public class SongStructureImplTest
     {
         // For a completely unused time signature with no adaptable rhythm
         Rhythm recommended = sgs.getRecommendedRhythm(TimeSignature.TWELVE_EIGHT, sgs.getSizeInBars());
-        assertNotNull("Should always return a non-null rhythm", recommended);
+        assertNotNull(recommended, "Should always return a non-null rhythm");
         assertEquals(TimeSignature.TWELVE_EIGHT, recommended.getTimeSignature());
     }
 
@@ -632,7 +630,7 @@ public class SongStructureImplTest
         });
 
         sgs.removeSongParts(List.of(spt0));
-        assertFalse("Non-sync listener should be called after lock released", lockHeldDuringCallback[0]);
+        assertFalse(lockHeldDuringCallback[0], "Non-sync listener should be called after lock released");
     }
 
     @Test
@@ -661,8 +659,8 @@ public class SongStructureImplTest
 
         for (int i = 0; i < origParts.size(); i++)
         {
-            assertNotSame("SongParts should be distinct objects", origParts.get(i), copyParts.get(i));
-            assertTrue("SongParts should be equal in content", origParts.get(i).equals(copyParts.get(i)));
+            assertNotSame(origParts.get(i), copyParts.get(i), "SongParts should be distinct objects");
+            assertTrue(origParts.get(i).equals(copyParts.get(i)), "SongParts should be equal in content");
         }
     }
 
@@ -683,7 +681,7 @@ public class SongStructureImplTest
         }
 
         List<Rhythm> rhythms = sgs.getUniqueRhythms(true, false);
-        assertFalse("Should not contain AdaptedRhythm", rhythms.contains(adapted));
+        assertFalse(rhythms.contains(adapted), "Should not contain AdaptedRhythm");
     }
 
 
@@ -691,21 +689,21 @@ public class SongStructureImplTest
     public void testToBeatRangeOutOfBounds()
     {
         FloatRange rg = sgs.toBeatRange(new IntRange(20, 25));
-        assertTrue("Out of bounds range should return empty", rg.isEmpty());
+        assertTrue(rg.isEmpty(), "Out of bounds range should return empty");
     }
 
     @Test
     public void testToPositionNegativeBeats()
     {
         Position p = sgs.toPosition(-1f);
-        assertNull("Negative beats should return null", p);
+        assertNull(p, "Negative beats should return null");
     }
 
     @Test
     public void testToClsPositionBeyondEnd()
     {
         Position clsPos = sgs.toClsPosition(new Position(100, 0f));
-        assertNull("Position beyond end should return null", clsPos);
+        assertNull(clsPos, "Position beyond end should return null");
     }
 
     @Test
