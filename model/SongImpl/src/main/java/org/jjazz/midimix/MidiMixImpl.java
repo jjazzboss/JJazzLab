@@ -125,26 +125,43 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
      * The file where MidiMix was saved.
      */
     private transient File file;
-    private final transient SongImpl song;
-    private final ExecutionManager executionManager;
+    private transient SongImpl song;
+    private ExecutionManager executionManager;
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(MidiMixImpl.class.getSimpleName());
 
     /**
-     * Create a MidiMix.
-     *
-     * @param song Can be null
+     * Create an empty MidiMix.
+     * <p>
      */
-    public MidiMixImpl(SongImpl song)
+    public MidiMixImpl()
     {
+        executionManager = new ExecutionManager();
+    }
+
+    public ExecutionManager getExecutionManager()
+    {
+        return executionManager;
+    }
+
+    /**
+     * Associate a song to this MidiMix.
+     * <p>
+     * Song's ExecutionManager will be reused by this instance. Song will be also used to perform some consistency checks when modifying this instance.
+     *
+     * @param song Cannot be null
+     */
+    public void setSong(SongImpl song)
+    {
+        Objects.requireNonNull(song);
         this.song = song;
-        executionManager = song == null ? new ExecutionManager() : song.getExecutionManager();
+        executionManager = song.getExecutionManager();
     }
 
     @Override
     public MidiMix getDeepCopy(Song sg)
     {
-        MidiMixImpl mm = new MidiMixImpl((SongImpl) sg);
+        MidiMixImpl mm = new MidiMixImpl();
 
         performReadAPImethod(() -> 
         {
@@ -1023,7 +1040,7 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
     @Override
     public String toString()
     {
-        return "MidiMix[sg=" + song.getName() + ", ch=" + getUsedChannels() + "]";
+        return "MidiMix[sg=" + (song == null ? "null" : song.getName()) + ", ch=" + getUsedChannels() + "]";
     }
 
     /**
@@ -1045,7 +1062,7 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
             case PROP_CHANNEL_INSTRUMENT_MIX ->
             {
                 InstrumentMix oldInsMix = (InstrumentMix) event.getOldValue();
-                InstrumentMix newInsMix = getInstrumentMix((Integer)event.getNewValue());
+                InstrumentMix newInsMix = getInstrumentMix((Integer) event.getNewValue());
                 yield (oldInsMix != null && newInsMix != null && InstrumentSettings.isMusicGenerationImpacted(oldInsMix.getSettings(), newInsMix.getSettings()));
             }
             case PROP_DRUMS_INSTRUMENT_KEYMAP, PROP_INSTRUMENT_TRANSPOSITION, PROP_INSTRUMENT_VELOCITY_SHIFT, PROP_CHANNEL_DRUMS_REROUTED ->
@@ -1570,7 +1587,7 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
         private SerializationProxy(MidiMixImpl mm)
         {
             // Make a copy because we want to disable drums rerouting in the saved instance
-            MidiMixImpl mmCopy = new MidiMixImpl(null);         // Drums rerouting disabled by default
+            MidiMixImpl mmCopy = new MidiMixImpl();         // Drums rerouting disabled by default
             for (Integer channel : mm.getUsedChannels())
             {
                 RhythmVoice rv = mm.getRhythmVoice(channel);
@@ -1612,7 +1629,7 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
         {
             assert spKeys.length == this.spInsMixes.length :
                     "spKeys=" + Arrays.asList(spKeys) + " spInsMixes=" + Arrays.asList(spInsMixes);
-            MidiMixImpl mm = new MidiMixImpl(null);
+            MidiMixImpl mm = new MidiMixImpl();
             StringBuilder msg = new StringBuilder();
 
 

@@ -56,7 +56,7 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.utilities.api.Utilities;
 
-public class ClsSgsUpdaterTest
+public class SongInternalUpdaterTest
 {
 
     private static final String UT_EDIT_NAME = "UTedit";
@@ -73,7 +73,7 @@ public class ClsSgsUpdaterTest
     SongPart u_spt1, u_spt2, u_spt3, u_spt4;
     JJazzUndoManager undoManager;
 
-    public ClsSgsUpdaterTest()
+    public SongInternalUpdaterTest()
     {
 
     }
@@ -127,6 +127,9 @@ public class ClsSgsUpdaterTest
 
             // Song structure
             song = SongFactory.getDefault().createSong("testSong", cls1);
+            song.addUndoableEditListener(undoManager);
+            JJazzUndoManagerFinder.getDefault().put(song, undoManager);
+
             sgs = song.getSongStructure();
             Rhythm r34 = sgs.getSongParts().get(1).getRhythm();
             spt0 = sgs.createSongPart(r34, null, 8, section2, true);
@@ -148,9 +151,9 @@ public class ClsSgsUpdaterTest
         sgs.addUndoableEditListener(undoManager);
         JJazzUndoManagerFinder.getDefault().put(sgs, undoManager);
 
-        System.out.println("\n ==== SETUP cls1=" + cls1.toDebugString());
-        System.out.println(" ==== SETUP   sgs Before=" + Utilities.toMultilineString(sgs.getSongParts()));
-        System.out.println(" ==== SETUP u_sgs Before=" + Utilities.toMultilineString(u_sgs.getSongParts()));
+//        System.out.println("\n ==== SETUP cls1=" + cls1.toDebugString());
+//        System.out.println(" ==== SETUP   sgs Before=" + Utilities.toMultilineString(sgs.getSongParts()));
+//        System.out.println(" ==== SETUP u_sgs Before=" + Utilities.toMultilineString(u_sgs.getSongParts()));
 
         undoManager.startCEdit(UT_EDIT_NAME);
     }
@@ -170,12 +173,12 @@ public class ClsSgsUpdaterTest
         boolean b2 = sgs.equals(u_sgs);
         if (!b1)
         {
-            System.out.println("\nu_cls1=" + u_cls1.toDebugString());
+            System.out.println("\nUNDO MISMATCH u_cls1=" + u_cls1.toDebugString());
             System.out.println("cls1 after Undo ALL=" + cls1.toDebugString());
         }
         if (!b2)
         {
-            System.out.println("\nu_sgs=" + u_sgs);
+            System.out.println("\nUNDO MISMATCH  u_sgs=" + u_sgs);
             System.out.println("sgs after Undo ALL =" + sgs);
         }
         assertTrue(b1);
@@ -332,19 +335,25 @@ public class ClsSgsUpdaterTest
     {
         System.out.println("\n============ testRhythmDivisionChange");
 
-        var rBinary = sgs.getSongPart(0).getRhythm();
-        assert rBinary.getFeatures().division().isBinary() : "r0=" + rBinary;
+
+//            section3 = new CLI_SectionImpl("Section3", TimeSignature.FOUR_FOUR, 5);
+//            cls1.addSection(section3);
+//            cls1.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("Eb7b9#5"), new Position(5, 0.75f)));
+//            cls1.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("Db"), new Position(7, 3f)));
+        var spt = sgs.getSongPart(5);
+        assertSame(section3, spt.getParentSection());       // Section 4/4 bar 5
+        var rBinary = spt.getRhythm();
+        assertTrue(rBinary.getFeatures().division().isBinary());
         Rhythm rTernary = getRhythm(TimeSignature.FOUR_FOUR, Division.EIGHTH_SHUFFLE);
 
-
         CLI_ChordSymbol chord1 = CLI_Factory.getDefault().createChordSymbol("A", new Position(5, 1.75f)); // throws ParseException
-        CLI_ChordSymbol chord2 = CLI_Factory.getDefault().createChordSymbol("A", new Position(5, 3.5f)); // throws ParseException
+        CLI_ChordSymbol chord2 = CLI_Factory.getDefault().createChordSymbol("A", new Position(5, 3.5f)); // throws ParseException;
+
         cls1.addItem(chord1);
         cls1.addItem(chord2);
 
         // Change rhythm, should impact off-beat chords position
-        var spt = sgs.getSongParts().get(2);
-
+        sgs.setSongPartsRhythm(List.of(spt), rTernary, null);
         assertEquals(1.66666f, chord1.getPosition().getBeat(), 0.001f);
         assertEquals(3.66666f, chord2.getPosition().getBeat(), 0.001f);
 
@@ -352,13 +361,15 @@ public class ClsSgsUpdaterTest
         undoManager.undo();
         undoManager.startCEdit(UT_EDIT_NAME);
 
-        // Retry with both chords ending up at same position : only one should be moved actually
+        // Readd both chords 
         cls1.addItem(chord1);
         cls1.addItem(chord2);
         assertEquals(1.75f, chord1.getPosition().getBeat(), 0);
         assertEquals(3.5f, chord2.getPosition().getBeat(), 0);
+        
+        // Move chord2 so that there should be a collision at 1.6666 after adjustment to ternary
         cls1.moveItem(chord2, new Position(5, 1.5f));
-        sgs.setSongPartsRhythm(List.of(spt), rBinary, null);    // throws UnsupportedEditException
+        sgs.setSongPartsRhythm(List.of(spt), rTernary, null);    // Switch back to ternary
         assertEquals(1.75f, chord1.getPosition().getBeat(), 0.001f);        // Could not be moved
         assertEquals(1.66666f, chord2.getPosition().getBeat(), 0.001f);
 
@@ -413,11 +424,18 @@ public class ClsSgsUpdaterTest
     public void testMoveSectionBig()
     {
         System.out.println("\n============ testMoveSectionBig");
+        var lastChord = cls1.getItems(CLI_ChordSymbol.class).getLast();
+        assertEquals(3, lastChord.getPosition().getBeat());
+
         cls1.moveSection(section2, 6);
         System.out.println(" sgs after=" + sgs);
+        assertEquals(6, section2.getPosition().getBar());
+        assertEquals(2, lastChord.getPosition().getBeat(), "chord symbol was beat 3 in 4/4, now we're in 3/4");
+
         assertTrue(sgs.getSongParts().size() == 3);
-        assertTrue(sgs.getSongParts().get(2).getStartBarIndex() == 6);
-        assertTrue(sgs.getSongParts().get(2).getNbBars() == 2);
+        assertEquals(6, sgs.getSongParts().get(2).getStartBarIndex());
+        assertEquals(2, sgs.getSongParts().get(2).getNbBars());
+
     }
 
     @Test

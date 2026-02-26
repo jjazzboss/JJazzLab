@@ -48,6 +48,7 @@ import org.jjazz.chordleadsheet.api.event.SectionRemovedEvent;
 import org.jjazz.chordleadsheet.api.event.SizeChangedEvent;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.synths.GM1Instrument;
 import org.jjazz.midi.api.synths.GMSynth;
@@ -213,15 +214,15 @@ class SongInternalUpdater
 
         if (results.clsChangeEvent() != null)
         {
-            return getDerivedOperations(results.clsChangeEvent());
+            return getClsDerivedOperations(results.clsChangeEvent());
 
         } else if (results.sgsChangeEvent() != null)
         {
-            return getDerivedOperations(results.sgsChangeEvent());
+            return getSgsDerivedOperations(results.sgsChangeEvent());
 
         } else
         {
-            return getDerivedOperations(results.pChangeEvent());
+            return getSongDerivedOperations(results.pChangeEvent());
         }
     }
 
@@ -229,7 +230,7 @@ class SongInternalUpdater
     // Private methods
     // =============================================================================================================
 
-    private List<Operation> getDerivedOperations(ClsChangeEvent srcEvent)
+    private List<Operation> getClsDerivedOperations(ClsChangeEvent srcEvent)
     {
         if (srcEvent.isUndoOrRedo())
         {
@@ -307,7 +308,7 @@ class SongInternalUpdater
         return res;
     }
 
-    private List<Operation> getDerivedOperations(SgsChangeEvent srcEvent)
+    private List<Operation> getSgsDerivedOperations(SgsChangeEvent srcEvent)
     {
 
         if (srcEvent.isUndoOrRedo())
@@ -351,7 +352,7 @@ class SongInternalUpdater
         return res;
     }
 
-    private List<Operation> getDerivedOperations(SongPropertyChangeEvent srcEvent)
+    private List<Operation> getSongDerivedOperations(SongPropertyChangeEvent srcEvent)
     {
 
         if (srcEvent.isUndoOrRedo())
@@ -424,13 +425,22 @@ class SongInternalUpdater
         assert prevSection != null : "evt=" + evt;
 
 
-        SongPart spt = createSptAfterSection(cliSection, prevSection);
-        SptAddedEvent event = new SptAddedEvent(songStructure, List.of(spt));
-
         if (preCheck)
         {
-            getDerivedSptAdded(event, true);       //  // throws UnsupportedEditException
-            return null;
+            var spts = songStructure.getSongParts();
+            if (!spts.isEmpty())
+            {
+                // The rhythm which should be used for the inserted SongPart
+                var sptBarIndex = getSptInsertionBar(prevSection, cliSection);
+                var newRhythm = songStructure.getRecommendedRhythm(cliSection.getData().getTimeSignature(), sptBarIndex);
+
+                // Collect all the unique rhythms
+                Set<Rhythm> uniqueRhythms = new HashSet<>();
+                uniqueRhythms.add(newRhythm);
+                uniqueRhythms.addAll(songStructure.getUniqueRhythms(true, false));
+                checkForMidiChannelUnavailableError(uniqueRhythms);   // throws UnsupportedEditException
+            }
+            return Collections.emptyList();
         }
 
 
@@ -438,6 +448,7 @@ class SongInternalUpdater
 
 
         // Add the new SongPart
+        SongPart spt = createSptAfterSection(cliSection, prevSection);
         res.add(songStructure.addSongPartsOperation(List.of(spt)));
 
 
@@ -480,10 +491,13 @@ class SongInternalUpdater
         {
             if (newRhythm != null)
             {
-                var event = new SptRhythmChangedEvent(songStructure, newRhythm, oldSpts, oldSpts);
-                getDerivedSptRhythmChanged(event, true);               // throws UnsupportedEditException
+                // Collect all the unique rhythms
+                Set<Rhythm> uniqueRhythms = new HashSet<>();
+                uniqueRhythms.add(newRhythm);
+                uniqueRhythms.addAll(songStructure.getUniqueRhythms(true, false));
+                checkForMidiChannelUnavailableError(uniqueRhythms);   // throws UnsupportedEditException
             }
-            return null;
+            return Collections.emptyList();
         }
 
 
@@ -530,9 +544,9 @@ class SongInternalUpdater
 
         if (preCheck)
         {
-            var event = new SptRhythmChangedEvent(songStructure, newRhythm, spts, spts);
+            var event = new SptRhythmChangedEvent(songStructure, newRhythm, new HashMap<>(), spts);
             getDerivedSptRhythmChanged(event, true);               // throws UnsupportedEditException
-            return null;
+            return Collections.emptyList();
         }
 
 
@@ -653,17 +667,10 @@ class SongInternalUpdater
 
         } else
         {
-            // It's a "big move", which crosses at least another section: remove then re-add
+            // It's a "big move", which crosses at least another section: add new SongPart and remove the old ones
+            SongPart spt = createSptAfterSection(cliSection, newBarPrevSection);    // Must be calculated before any change occurs
+            res.add(songStructure.addSongPartsOperation(List.of(spt)));            
             res.add(songStructure.removeSongPartsOperation(getSongParts(cliSection)));
-            try
-            {
-                SongPart spt = createSptAfterSection(cliSection, newBarPrevSection);
-                res.add(songStructure.addSongPartsOperation(List.of(spt)));
-            } catch (UnsupportedEditException ex)
-            {
-                // Should never happen since we don't introduce new rhythm
-                Exceptions.printStackTrace(ex);
-            }
 
             // Resize impacted SongParts 
             var mapSptSize = getMapSptSize(oldBarNewSection);
@@ -713,7 +720,7 @@ class SongInternalUpdater
         {
             // Resize song parts for previous section
             var mapSptSize = getMapSptSize(chordLeadSheet.getSection(evt.getBarFrom() - 1));
-            songStructure.resizeSongParts(mapSptSize);
+            res.add(songStructure.resizeSongPartsOperation(mapSptSize));
         } else if (evt.isInitSectionRemoved())
         {
             // Init section was replaced by the first shifted section: nothing to resize
@@ -721,7 +728,7 @@ class SongInternalUpdater
         {
             // Init section was resized
             var mapSptSize = getMapSptSize(chordLeadSheet.getSection(0));
-            songStructure.resizeSongParts(mapSptSize);
+            res.add(songStructure.resizeSongPartsOperation(mapSptSize));
         }
 
 
@@ -777,15 +784,7 @@ class SongInternalUpdater
                 var r = songStructure.getRecommendedRhythm(section.getTimeSignature(), 0);
                 newSpt = songStructure.createSongPart(r, section.getName(), 0, cliSection, true);
             }
-            try
-            {
-                res.add(songStructure.addSongPartsOperation(List.of(newSpt)));
-            } catch (UnsupportedEditException ex)
-            {
-                // Should never happen since we use a rhythm already in use
-                LOGGER.log(Level.SEVERE, "getNextInsertedBars() Unexpected UnsupportedEditException={0}", ex.getMessage());
-                Exceptions.printStackTrace(ex);
-            }
+            res.add(songStructure.addSongPartsOperation(List.of(newSpt)));
         }
 
         return res;
@@ -890,7 +889,7 @@ class SongInternalUpdater
                         .forEach(spt -> uniqueRhythms.add(spt.getRhythm()));
                 checkForMidiChannelUnavailableError(uniqueRhythms);      // throws UnsupportedEditException
             }
-            return null;
+            return Collections.emptyList();
         }
 
 
@@ -1098,34 +1097,45 @@ class SongInternalUpdater
      */
     private SongPart createSptAfterSection(CLI_Section newSection, CLI_Section prevSection)
     {
-        int sptBarIndex;
+        int sptBarIndex = getSptInsertionBar(prevSection, newSection);
+        Rhythm r = songStructure.getRecommendedRhythm(newSection.getData().getTimeSignature(), sptBarIndex);
+        SongPart spt = songStructure.createSongPart(r, newSection.getData().getName(), sptBarIndex, newSection, true);
+        return spt;
+    }
+
+    /**
+     * Compute where to insert a new SongPart for newSection.
+     *
+     * @param newSection
+     * @param prevSection The section before cliSection. Can be null.
+     * @return
+     */
+    private int getSptInsertionBar(CLI_Section prevSection, CLI_Section newSection)
+    {
+        int res;
         if (prevSection == null)
         {
-            sptBarIndex = 0;
+            res = 0;
         } else if (getSongParts(prevSection).isEmpty())
         {
             // Append
-            sptBarIndex = songStructure.getSizeInBars();
+            res = songStructure.getSizeInBars();
         } else
         {
             // Locate the new SongPart after the first raw of consecutive SongParts for prevSection
             List<SongPart> prevSpts = getSongParts(prevSection); // can't be empty
-            sptBarIndex = -1;
+            res = -1;
             for (int i = 0; i < prevSpts.size(); i++)
             {
-                sptBarIndex = prevSpts.get(i).getStartBarIndex() + prevSpts.get(i).getNbBars();
-                if (i < prevSpts.size() - 1 && prevSpts.get(i + 1).getStartBarIndex() != sptBarIndex)
+                res = prevSpts.get(i).getStartBarIndex() + prevSpts.get(i).getNbBars();
+                if (i < prevSpts.size() - 1 && prevSpts.get(i + 1).getStartBarIndex() != res)
                 {
                     break;
                 }
             }
-            assert sptBarIndex != - 1 : "prevSpts=" + prevSpts + " prevSection=" + prevSection + " newSection=" + newSection;
+            assert res != - 1 : "prevSpts=" + prevSpts + " prevSection=" + prevSection + " newSection=" + newSection;
         }
-        // Choose rhythm
-        Rhythm r = songStructure.getRecommendedRhythm(newSection.getData().getTimeSignature(), sptBarIndex);
-        // Create the song part
-        SongPart spt = songStructure.createSongPart(r, newSection.getData().getName(), sptBarIndex, newSection, true);
-        return spt;
+        return res;
     }
 
 

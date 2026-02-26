@@ -1140,7 +1140,6 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 cliEvents.add(removeItemChecked(item));
             }
 
-
             // Shift items, with possible beat adjustment
             for (var item : itemsToShift)
             {
@@ -1157,7 +1156,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
             size = newSize;
 
-
+            
             // Create events
             UndoableEdit edit = new SimpleEdit("Delete Bars " + barIndexFrom + "-" + barIndexTo)
             {

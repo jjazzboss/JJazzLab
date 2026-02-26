@@ -305,6 +305,8 @@ public class ExecutionManager
      */
     private <T> WriteOperationResults<T> execute(Operation<T> op) throws UnsupportedEditException
     {
+        Objects.requireNonNull(op);
+        
         WriteOperationResults results = switch (op)
         {
             case WriteOperation wop ->

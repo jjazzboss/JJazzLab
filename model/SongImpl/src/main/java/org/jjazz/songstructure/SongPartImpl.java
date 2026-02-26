@@ -196,10 +196,26 @@ public class SongPartImpl implements SongPart, Serializable
             return false;
         }
         final SongPartImpl other = (SongPartImpl) obj;
+
+
         record TmpRecord(int start, int nbBars, String name, Rhythm rhythm, CLI_Section section, SmallMap<RhythmParameter<?>, Object> map,
                 SongStructure container)
                 {
 
+            @Override
+            public boolean equals(Object obj)
+            {
+                TmpRecord other = (TmpRecord) obj;
+                if (rhythm != other.rhythm || section != other.section || container != container)
+                {
+                    return false;
+                }
+                if (start != other.start || nbBars != other.nbBars || !name.equals(other.name) || !map.equals(other.map))
+                {
+                    return false;
+                }
+                return true;
+            }
         }
         TmpRecord tmp = performReadAPImethod(() -> 
         {
@@ -328,11 +344,14 @@ public class SongPartImpl implements SongPart, Serializable
         Preconditions.checkArgument(newParentSection == null
                 || nbBars == newParentSection.getContainer().getBarRange(newParentSection).size(),
                 "this=%s newParentSection=%s", this, newParentSection);
-        Preconditions.checkArgument(
-                newParentSection == null
-                || newRhythm == null
-                || newParentSection.getData().getTimeSignature() == newRhythm.getTimeSignature(),
-                "newRhythm=%s newParentSection=%s", newRhythm, newParentSection);
+
+        // When undoing a rhythm change caused by a time signature change, setRhythm() will be called with the same parent section 
+        // whose time signature has not been undone yet. So the time signature precondition will fail, but it should not.
+//        Preconditions.checkArgument(
+//                newParentSection == null
+//                || newRhythm == null
+//                || newParentSection.getData().getTimeSignature() == newRhythm.getTimeSignature(),
+//                "this=%s newRhythm=%s newParentSection=%s", this, newRhythm, newParentSection);
 
         if ((newRhythm == null || rhythm == newRhythm) && (newParentSection == null || newParentSection == parentSection))
         {
@@ -427,18 +446,18 @@ public class SongPartImpl implements SongPart, Serializable
             {
                 "unchecked", "rawtypes"
             })
-    public SongPart getCopy(Rhythm r, int newStartBarIndex, int newNbBars, CLI_Section cliSection)
+    public SongPart getCopy(Rhythm r, int newStartBarIndex, int newNbBars, CLI_Section parentSection)
     {
         Preconditions.checkArgument(newStartBarIndex >= 0, "newStartBarIndex=%s", newStartBarIndex);
         Preconditions.checkArgument(newNbBars > 0, "newNbBars=%s", newNbBars);
 
         Rhythm newRhythm = r == null ? getRhythm() : r;
-        CLI_Section newCliSection = cliSection == null ? getParentSection() : cliSection;
-        Preconditions.checkArgument(newCliSection.getData().getTimeSignature().equals(newRhythm.getTimeSignature()),
-                "newRhythm=%s cliSection=%s", newRhythm, cliSection);
+        CLI_Section newParentSection = parentSection == null ? getParentSection() : parentSection;
+        Preconditions.checkArgument(newParentSection.getData().getTimeSignature().equals(newRhythm.getTimeSignature()),
+                "newRhythm=%s newParentSection=%s", newRhythm, parentSection);
 
 
-        final SongPartImpl newSpt = new SongPartImpl(container, newRhythm, newStartBarIndex, newNbBars, newCliSection);
+        final SongPartImpl newSpt = new SongPartImpl(container, newRhythm, newStartBarIndex, newNbBars, newParentSection);
 
 
         performReadAPImethod(() -> 

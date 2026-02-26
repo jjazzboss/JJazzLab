@@ -288,7 +288,7 @@ public class SongStructureImpl implements SongStructure, Serializable
         performWriteAPImethodThrowing(addSongPartsOperation(spts));
     }
 
-    public ThrowingWriteOperation addSongPartsOperation(final List<SongPart> spts) throws UnsupportedEditException
+    public ThrowingWriteOperation addSongPartsOperation(final List<SongPart> spts)
     {
         Objects.requireNonNull(spts);
 
@@ -623,7 +623,7 @@ public class SongStructureImpl implements SongStructure, Serializable
         performWriteAPImethodThrowing(setSongPartsRhythmOperation(spts, newRhythm, newParentSection));  // throws UnsupportedEditException
     }
 
-    public ThrowingWriteOperation setSongPartsRhythmOperation(final List<SongPart> spts, final Rhythm newRhythm, final CLI_Section newParentSection) throws UnsupportedEditException
+    public ThrowingWriteOperation setSongPartsRhythmOperation(final List<SongPart> spts, final Rhythm newRhythm, final CLI_Section newParentSection)
     {
         Objects.requireNonNull(spts);
         Preconditions.checkArgument(newParentSection == null
@@ -655,20 +655,21 @@ public class SongStructureImpl implements SongStructure, Serializable
             }
 
 
-            // Save the SongParts state before the update
-            final Map<SongPart, SongPart> mapSptOldState = new IdentityHashMap<>();
-            final List<SongPart> sptsOldState = new ArrayList<>();
+            // Save SongParts data
+            final Map<SongPart, SptRhythmChangedEvent.OldData> mapSptOldData = new IdentityHashMap<>();
+            final Map<SongPart, SptRhythmChangedEvent.OldData> mapSptNewData = new IdentityHashMap<>();
             for (var spt : spts)
             {
-                var sptCopy = spt.getCopy(spt.getRhythm(), spt.getStartBarIndex(), spt.getNbBars(), spt.getParentSection());
-                mapSptOldState.put(spt, sptCopy);
-                sptsOldState.add(sptCopy);
+                var oldData = new SptRhythmChangedEvent.OldData(spt.getRhythm(), spt.getParentSection());
+                mapSptOldData.put(spt, oldData);
+                var newData = new SptRhythmChangedEvent.OldData(newRhythm, newParentSection);
+                mapSptNewData.put(spt, newData);
             }
             final Map<TimeSignature, Rhythm> oldMapTsRhythm = new HashMap<>(mapTsLastRhythm);
 
 
             // Check for possible veto
-            var preCheckEvent = new SptRhythmChangedEvent(this, newRhythm, sptsOldState, spts);
+            var preCheckEvent = new SptRhythmChangedEvent(this, newRhythm, mapSptOldData, spts);
             preCheckChange(preCheckEvent);        // throws UnsupportedEditException
 
 
@@ -699,12 +700,12 @@ public class SongStructureImpl implements SongStructure, Serializable
                         final List<PropertyChangeEvent> sptEvents2 = new ArrayList<>();
                         for (var spt : spts)
                         {
-                            SongPart sptOldState = mapSptOldState.get(spt);
-                            sptEvents2.add(((SongPartImpl) spt).setRhythm(sptOldState.getRhythm(), sptOldState.getParentSection()));
+                            var oldData = mapSptOldData.get(spt);
+                            sptEvents2.add(((SongPartImpl) spt).setRhythm(oldData.rhythm(), oldData.parentSection()));
                         }
                         mapTsLastRhythm = new HashMap<>(oldMapTsRhythm);
 
-                        var event = new SptRhythmChangedEvent(SongStructureImpl.this, newRhythm, sptsOldState, spts);
+                        var event = new SptRhythmChangedEvent(SongStructureImpl.this, newRhythm, mapSptNewData, spts);
                         event.setIsUndo();
                         event.addSongPartChanges(sptEvents2);
                         return WriteOperationResults.of(event, null);
@@ -721,11 +722,12 @@ public class SongStructureImpl implements SongStructure, Serializable
                         final List<PropertyChangeEvent> sptEvents2 = new ArrayList<>();
                         for (var spt : spts)
                         {
-                            sptEvents2.add(((SongPartImpl) spt).setRhythm(newRhythm, newParentSection));
+                            var newData = mapSptNewData.get(spt);
+                            sptEvents2.add(((SongPartImpl) spt).setRhythm(newData.rhythm(), newData.parentSection()));
                         }
                         mapTsLastRhythm = new HashMap<>(newMapTsRhythm);
 
-                        var event = new SptRhythmChangedEvent(SongStructureImpl.this, newRhythm, sptsOldState, spts);
+                        var event = new SptRhythmChangedEvent(SongStructureImpl.this, newRhythm, mapSptOldData, spts);
                         event.setIsRedo();
                         event.addSongPartChanges(sptEvents2);
                         return WriteOperationResults.of(event, null);
@@ -736,7 +738,7 @@ public class SongStructureImpl implements SongStructure, Serializable
             fireUndoableEditHappened(edit);
 
 
-            var event = new SptRhythmChangedEvent(SongStructureImpl.this, newRhythm, sptsOldState, spts);
+            var event = new SptRhythmChangedEvent(SongStructureImpl.this, newRhythm, mapSptOldData, spts);
             event.addSongPartChanges(sptEvents);
 
             // Make sure all AdaptedRhythms for the song’s rhythms are generated in the database so that the user can access them if needed.            
@@ -1239,7 +1241,6 @@ public class SongStructureImpl implements SongStructure, Serializable
     {
         LOGGER.log(Level.FINE, "addSongPartInternal() -- spt={0}", spt);
         Objects.requireNonNull(spt);
-        Preconditions.checkArgument(spt.getParentSection() != null, "spt=%s", spt);
         Preconditions.checkArgument(spt instanceof SongPartImpl, "spt=%s class=%s", spt, spt.getClass());
         Preconditions.checkArgument(!songParts.contains(spt), "spt=%s", spt);
         Preconditions.checkState(executionManager.isWriteLockedByCurrentThread(), "write lock required");

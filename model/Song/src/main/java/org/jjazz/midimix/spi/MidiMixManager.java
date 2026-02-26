@@ -37,7 +37,7 @@ import org.openide.util.Lookup;
 
 /**
  * A service provider to obtain MidiMix instances and perform some MidiMix updates.
- * 
+ * <p>
  */
 public interface MidiMixManager
 {
@@ -112,8 +112,8 @@ public interface MidiMixManager
      * @return A MidiMix associated to this rhythm. Rhythm voices are used as keys for InstrumentMixes.
      */
     MidiMix createMix(Rhythm r);
-    
-        /**
+
+    /**
      * Get the midiMix channels which need drums rerouting.
      * <p>
      * A channel needs rerouting if all the following conditions are met:<br>
@@ -126,22 +126,7 @@ public interface MidiMixManager
      * @param mapChannelNewIns Optional channel instruments to be used for the exercise. Ignored if null. See OutputSynth.getNeedFixInstruments().
      * @return Can be empty
      */
-     List<Integer> getChannelsNeedingDrumsRerouting(MidiMix midiMix, Map<Integer, Instrument> mapChannelNewIns);
-
-
-    /**
-     * Check if midiMix is consistent with song.
-     * <p>
-     * Check that all RhythmVoices of this MidiMix belong to song rhythms. Check user tracks consistency between midiMix and song.
-     *
-     * @param midiMix
-     * @param song
-     * @param fullCheck If true also check that all song RhythmVoices are used in this MidiMix.
-     * @throws org.jjazz.song.api.SongCreationException If an inconsistency is detected
-     */
-    void checkConsistency(MidiMix midiMix, Song song, boolean fullCheck) throws SongCreationException;
-   
-
+    List<Integer> getChannelsNeedingDrumsRerouting(MidiMix midiMix, Map<Integer, Instrument> mapChannelNewIns);
 
     /**
      * Import InstrumentMixes from mmSrc to mmDest.
@@ -155,19 +140,6 @@ public interface MidiMixManager
      * @param midiMixSrc
      */
     void importInstrumentMixes(MidiMix midiMixDest, MidiMix midiMixSrc);
-
-
-    /**
-     * Add RhythmVoices and InstrumentMixes copies from midiMixSrc to midiMixDest.
-     * <p>
-     *
-     * @param midiMixDest
-     * @param midiMixSrc
-     * @param r           If non null, copy midiMixSrc instrumentMixes only if they belong to rhythm r (if r is an AdaptedRhythm, use its source rhythm).
-     * @throws org.jjazz.chordleadsheet.api.UnsupportedEditException If not enough channels available to accommodate mm instruments.
-     */
-    void addInstrumentMixes(MidiMix midiMixDest, MidiMix midiMixSrc, Rhythm r) throws UnsupportedEditException;
-
 
     /**
      * Build a rhythm MidiMix from a song MidiMix.

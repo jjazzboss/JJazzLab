@@ -54,7 +54,6 @@ import org.jjazz.song.ExecutionManager;
 import org.jjazz.song.SongImpl;
 import org.jjazz.song.WriteOperation;
 import org.jjazz.song.api.Song;
-import org.jjazz.song.api.SongCreationException;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.StatusDisplayer;
 import org.openide.util.lookup.ServiceProvider;
@@ -62,7 +61,7 @@ import org.openide.util.lookup.ServiceProvider;
 /**
  * Default implementation.
  */
-@ServiceProvider(service=MidiMixManager.class)
+@ServiceProvider(service = MidiMixManager.class)
 public class MidiMixManagerImpl implements MidiMixManager, PropertyChangeListener
 {
 
@@ -115,10 +114,9 @@ public class MidiMixManagerImpl implements MidiMixManager, PropertyChangeListene
                 {
                     try
                     {
-                        // Robustness : check that mm is still valid (files might have been changed independently)
+                        // Robustness - file may have been corrupted
                         checkConsistency(mm, s, true);
-
-                    } catch (SongCreationException ex)
+                    } catch (UnsupportedEditException ex)
                     {
                         LOGGER.log(Level.WARNING, "findMix(Song) song mix file: {0} not consistent with song, ignored. ex={1}", new Object[]
                         {
@@ -178,41 +176,61 @@ public class MidiMixManagerImpl implements MidiMixManager, PropertyChangeListene
                         ex.getMessage()
                     });
                 }
+
+                if (mm != null)
+                {
+                    try
+                    {
+                        // Robustness - file may have been corrupted
+                        checkConsistency(mm, r);
+                    } catch (UnsupportedEditException ex)
+                    {
+                        LOGGER.log(Level.WARNING, "findMix(rhythm) file: {0} not consistent with rhythm, ignored. ex={1}", new Object[]
+                        {
+                            mixFile.getAbsolutePath(),
+                            ex.getMessage()
+                        });
+                        mm = null;
+                    }
+                }
+
+
             }
             if (mm == null)
             {
                 // No valid mixFile or problem loading rhythm mix file, create a new mix
                 mm = createMix(r);
             }
-            
+
             mapRhythmMix.put(r, mm);
         }
-        
+
         return mm;
     }
 
     @Override
     public MidiMix createMix(Song sg) throws UnsupportedEditException
     {
-        Objects.requireNonNull(sg);
-        
+        Preconditions.checkArgument(sg instanceof SongImpl);
+
         LOGGER.log(Level.FINE, "createMix() -- sg={0}", sg);
-        MidiMixImpl mm = new MidiMixImpl((SongImpl) sg);
 
-
+        MidiMixImpl mm = new MidiMixImpl();
         for (Rhythm r : sg.getSongStructure().getUniqueRhythms(true, false))
         {
             MidiMix rMm = findMix(r);
-            addInstrumentMixes(mm, rMm, r);
+            addInstrumentMixes(mm, rMm, null);
         }
 
         for (String userPhraseName : sg.getUserPhraseNames())
-        {            
+        {
             mm.addUserChannel(userPhraseName, sg.getUserPhrase(userPhraseName).isDrums());
         }
 
-
+        checkConsistency(mm, sg, true);
+        mm.setSong((SongImpl) sg);
         registerSong(mm, sg);
+
         return mm;
 
     }
@@ -223,13 +241,11 @@ public class MidiMixManagerImpl implements MidiMixManager, PropertyChangeListene
         Objects.requireNonNull(r);
         LOGGER.log(Level.FINE, "createMix() -- r={0}", r);
 
-        MidiMix mm = new MidiMixImpl(null);
-
+        MidiMix mm = new MidiMixImpl();
         if (!(r instanceof AdaptedRhythm))
         {
             for (RhythmVoice rv : r.getRhythmVoices())
             {
-
                 RhythmVoiceInstrumentProvider p = RhythmVoiceInstrumentProvider.getProvider();
                 Instrument ins = p.findInstrument(rv);
                 assert ins != null : "rv=" + rv;
@@ -262,21 +278,8 @@ public class MidiMixManagerImpl implements MidiMixManager, PropertyChangeListene
 
         return mm;
     }
-    
-    
-      /**
-     * Get the midiMix channels which need drums rerouting.
-     * <p>
-     * A channel needs rerouting if all the following conditions are met:<br>
-     * 0/ InsMix at MidiConst.CHANNEL_DRUMS has its instrument Midi message enabled <br>
-     * 1/ channel != MidiConst.CHANNEL_DRUMS <br>
-     * 2/ rv.isDrums() == true and rerouting is not already enabled <br>
-     * 3/ instrument (or new instrument if one is provided in the mapChannelNewIns parameter) is the VoidInstrument<br>
-     *
-     * @param midiMix
-     * @param mapChannelNewIns Optional channel instruments to be used for the exercise. Ignored if null. See OutputSynth.getNeedFixInstruments().
-     * @return Can be empty
-     */
+
+
     @Override
     public List<Integer> getChannelsNeedingDrumsRerouting(MidiMix midiMix, Map<Integer, Instrument> mapChannelNewIns)
     {
@@ -319,89 +322,6 @@ public class MidiMixManagerImpl implements MidiMixManager, PropertyChangeListene
         });
     }
 
-
-    /**
-     * Check if midiMix is consistent with song.
-     * <p>
-     * Check that all RhythmVoices of this MidiMix belong to song rhythms. Check user tracks consistency between midiMix and song.
-     *
-     * @param midiMix
-     * @param song
-     * @param fullCheck If true also check that all song RhythmVoices are used in this MidiMix.
-     * @throws org.jjazz.song.api.SongCreationException If an inconsistency is detected
-     */
-    @Override
-    public void checkConsistency(MidiMix midiMix, Song song, boolean fullCheck) throws SongCreationException
-    {
-        Objects.requireNonNull(midiMix);
-        Objects.requireNonNull(song);
-
-        ((MidiMixImpl) midiMix).performReadAPImethodThrowing(() -> 
-        {
-            List<RhythmVoice> sgRvs = song.getSongStructure().getUniqueRhythmVoices(true, false);
-            for (Integer channel : midiMix.getUsedChannels())
-            {
-                RhythmVoice rv = midiMix.getRhythmVoice(channel);
-                if (rv instanceof UserRhythmVoice)
-                {
-                    // Check that we have the corresponding phrase in the song
-                    Phrase p = song.getUserPhrase(rv.getName());
-                    if (p == null)
-                    {
-                        String msg = "missing user phrase with name=" + rv.getName();
-                        LOGGER.log(Level.WARNING, "checkConsistency() song={0} inconsistency found: {1}", new Object[]
-                        {
-                            song.getName(), msg
-                        });
-                        throw new SongCreationException(msg);
-                    }
-                } else if (!sgRvs.contains(rv))
-                {
-                    String msg = "MidMix rv=" + rv + " not found in song";
-                    LOGGER.log(Level.WARNING, "checkConsistency() song={0} inconsistency found: {1}", new Object[]
-                    {
-                        song.getName(), msg
-                    });
-                    throw new SongCreationException(msg);
-                }
-            }
-
-
-            if (fullCheck)
-            {
-                for (RhythmVoice rv : sgRvs)
-                {
-                    if (midiMix.getChannel(rv) == -1)
-                    {
-                        String msg = "song rv=" + rv + " not found in MidiMix " + midiMix.toString();
-                        LOGGER.log(Level.WARNING, "checkConsistency() song={0} inconsistency found: {1}", new Object[]
-                        {
-                            song.getName(), msg
-                        });
-                        throw new SongCreationException(msg);
-                    }
-                }
-
-                var rvs = midiMix.getRhythmVoices();
-                for (String userPhraseName : song.getUserPhraseNames())
-                {
-                    if (!rvs.stream().anyMatch(rv -> rv.getName().equals(userPhraseName)))
-                    {
-                        String msg = "missing RhythmVoice for song user phrase " + userPhraseName;
-                        LOGGER.log(Level.WARNING, "checkConsistency() song={0} inconsistency found: {1}", new Object[]
-                        {
-                            song.getName(), msg
-                        });
-                        throw new SongCreationException(msg);
-                    }
-                }
-            }
-            
-            return null;
-        });
-    }
-
-
     /**
      * Import InstrumentMixes from mmSrc to mmDest.
      * <p>
@@ -416,7 +336,7 @@ public class MidiMixManagerImpl implements MidiMixManager, PropertyChangeListene
     @Override
     public void importInstrumentMixes(MidiMix midiMixDest, MidiMix midiMixSrc)
     {
-        Objects.requireNonNull(midiMixDest);
+        Preconditions.checkArgument(midiMixDest instanceof MidiMixImpl, "midiMixDest=%s", midiMixDest);
         Objects.requireNonNull(midiMixSrc);
 
         LOGGER.log(Level.FINE, "importInstrumentMixes() -- midiMixDest={0} midiMixSrc={1}", new Object[]
@@ -430,7 +350,7 @@ public class MidiMixManagerImpl implements MidiMixManager, PropertyChangeListene
         var userRvsSrc = midiMixSrc.getUserRhythmVoices();
 
 
-        ExecutionManager executionManager = ((SongImpl) midiMixDest.getSong()).getExecutionManager();
+        ExecutionManager executionManager = ((MidiMixImpl) midiMixDest).getExecutionManager();
 
 
         List<WriteOperation> operations = ((MidiMixImpl) midiMixDest).performReadAPImethodThrowing(() -> 
@@ -499,60 +419,6 @@ public class MidiMixManagerImpl implements MidiMixManager, PropertyChangeListene
 
 
     /**
-     * Add RhythmVoices and InstrumentMixes copies from midiMixSrc to midiMixDest.
-     * <p>
-     *
-     * @param midiMixDest
-     * @param midiMixSrc
-     * @param r           If non null, copy midiMixSrc instrumentMixes only if they belong to rhythm r (if r is an AdaptedRhythm, use its source rhythm).
-     * @throws org.jjazz.chordleadsheet.api.UnsupportedEditException If not enough channels available to accommodate mm instruments.
-     */
-    @Override
-    public void addInstrumentMixes(MidiMix midiMixDest, MidiMix midiMixSrc, Rhythm r) throws UnsupportedEditException
-    {
-        Objects.requireNonNull(midiMixDest);
-        Objects.requireNonNull(midiMixSrc);
-
-        LOGGER.log(Level.FINE, "addInstrumentMixes() -- midiMixDest={0} midiMixSrc={1} r={2}", new Object[]
-        {
-            midiMixDest, midiMixSrc, r
-        });
-
-        ExecutionManager executionManager = ((SongImpl) midiMixDest.getSong()).getExecutionManager();
-
-
-        List<WriteOperation> operations = ((MidiMixImpl) midiMixDest).performReadAPImethodThrowing(() -> 
-        {
-            List<Integer> usedChannelsSrc = (r == null) ? midiMixSrc.getUsedChannels() : midiMixSrc.getUsedChannels(r);
-            if (midiMixDest.getUnusedChannels().size() < usedChannelsSrc.size())
-            {
-                throw new UnsupportedEditException(ResUtil.getString(MidiMix.class, "ERR_NotEnoughChannels"));
-            }
-
-
-            List<WriteOperation> res = new ArrayList<>();
-            for (Integer channelSrc : usedChannelsSrc)
-            {
-                RhythmVoice rvSrc = midiMixSrc.getRhythmVoice(channelSrc);
-                if (!(rvSrc instanceof UserRhythmVoice))
-                {
-                    int channelDest = midiMixDest.getUsedChannels().contains(channelSrc) ? midiMixDest.findFreeChannel(rvSrc.isDrums()) : channelSrc;
-                    assert channelDest != -1;
-                    InstrumentMix insMixSrc = midiMixSrc.getInstrumentMix(channelSrc);
-                    res.add(((MidiMixImpl) midiMixDest).setInstrumentMixOperation(channelDest, rvSrc, new InstrumentMix(insMixSrc)));
-                }
-            }
-            return res;
-        });
-
-
-        executionManager.executeWriteOperations(operations);
-
-        LOGGER.log(Level.FINE, "addInstrumentMixes()     exit : midiMixDest={0}", midiMixDest);
-    }
-
-
-    /**
      * Build a rhythm MidiMix from a song MidiMix.
      *
      * @param songMidiMix
@@ -566,36 +432,22 @@ public class MidiMixManagerImpl implements MidiMixManager, PropertyChangeListene
         Objects.requireNonNull(r);
         Preconditions.checkArgument(songMidiMix.getUniqueRhythms().contains(r), "r=%s songMidiMix=%s", r, songMidiMix);
 
-        MidiMix res = new MidiMixImpl(null);
+        MidiMix mmRhythm = new MidiMixImpl();
         try
         {
-            addInstrumentMixes(res, songMidiMix, r);
+            addInstrumentMixes(mmRhythm, songMidiMix, r);
         } catch (UnsupportedEditException ex)
         {
             // Should never happen 
-            throw new IllegalStateException("arg");
+            throw new IllegalStateException("songMidiMix=" + songMidiMix + " r=" + r);
         }
-        return res;
+        return mmRhythm;
     }
 
-    
-    static public void throwNotEnoughMidiChannelException() throws UnsupportedEditException
-    {
-        throw new UnsupportedEditException(ResUtil.getString(MidiMixImpl.class, "ERR_NotEnoughChannels"));
-    }
 
-    static public void throwSameNameUserChannelException(String name) throws UnsupportedEditException
-    {
-        throw new UnsupportedEditException(ResUtil.getString(MidiMixImpl.class, "ERR_SameNameUserChannel", name));
-    }
-
-    
-    
-    
-
-// =================================================================================
-// PropertyChangeListener methods
-// =================================================================================    
+    // =================================================================================
+    // PropertyChangeListener methods
+    // =================================================================================    
     @Override
     public void propertyChange(PropertyChangeEvent e)
     {
@@ -608,6 +460,17 @@ public class MidiMixManagerImpl implements MidiMixManager, PropertyChangeListene
             }
         }
     }
+
+    static public void throwNotEnoughMidiChannelException() throws UnsupportedEditException
+    {
+        throw new UnsupportedEditException(ResUtil.getString(MidiMixImpl.class, "ERR_NotEnoughChannels"));
+    }
+
+    static public void throwSameNameUserChannelException(String name) throws UnsupportedEditException
+    {
+        throw new UnsupportedEditException(ResUtil.getString(MidiMixImpl.class, "ERR_SameNameUserChannel", name));
+    }
+
 
     // ==================================================================
     // Private functions
@@ -627,4 +490,155 @@ public class MidiMixManagerImpl implements MidiMixManager, PropertyChangeListene
         mapSongMix.remove(song);
     }
 
+    /**
+     * Add RhythmVoices and InstrumentMixes copies from midiMixSrc to midiMixDest.
+     * <p>
+     * Method is not thread-safe and should be used only for creating a new MidiMix instance.
+     *
+     * @param midiMixDest
+     * @param midiMixSrc
+     * @param r           If non null, copy midiMixSrc instrumentMixes only if they belong to rhythm r (if r is an AdaptedRhythm, use its source rhythm).
+     * @throws org.jjazz.chordleadsheet.api.UnsupportedEditException If not enough channels available to accommodate mm instruments.
+     */
+    private void addInstrumentMixes(MidiMix midiMixDest, MidiMix midiMixSrc, Rhythm r) throws UnsupportedEditException
+    {
+        Objects.requireNonNull(midiMixDest);
+        Objects.requireNonNull(midiMixSrc);
+
+        LOGGER.log(Level.FINE, "addInstrumentMixes() -- midiMixDest={0} midiMixSrc={1} r={2}", new Object[]
+        {
+            midiMixDest, midiMixSrc, r
+        });
+
+        List<Integer> usedChannelsSrc = (r == null) ? midiMixSrc.getUsedChannels() : midiMixSrc.getUsedChannels(r);
+        if (midiMixDest.getUnusedChannels().size() < usedChannelsSrc.size())
+        {
+            throw new UnsupportedEditException(ResUtil.getString(MidiMix.class, "ERR_NotEnoughChannels"));
+        }
+
+        for (Integer channelSrc : usedChannelsSrc)
+        {
+            RhythmVoice rvSrc = midiMixSrc.getRhythmVoice(channelSrc);
+            if (!(rvSrc instanceof UserRhythmVoice))
+            {
+                int channelDest = midiMixDest.getUsedChannels().contains(channelSrc) ? midiMixDest.findFreeChannel(rvSrc.isDrums()) : channelSrc;
+                assert channelDest != -1;
+                InstrumentMix insMixSrc = midiMixSrc.getInstrumentMix(channelSrc);
+                midiMixDest.setInstrumentMix(channelDest, rvSrc, new InstrumentMix(insMixSrc));
+            }
+        }
+
+        LOGGER.log(Level.FINE, "addInstrumentMixes()     exit : midiMixDest={0}", midiMixDest);
+    }
+
+    /**
+     * Check if midiMix is consistent with song.
+     * <p>
+     * Check that all RhythmVoices of this MidiMix belong to song rhythms. Check user tracks consistency between midiMix and song.
+     *
+     * @param midiMix
+     * @param song
+     * @param fullCheck If true also check that all song RhythmVoices are used in this MidiMix.
+     * @throws org.jjazz.chordleadsheet.api.UnsupportedEditException If an inconsistency is detected
+     */
+    private void checkConsistency(MidiMix midiMix, Song song, boolean fullCheck) throws UnsupportedEditException
+    {
+        Objects.requireNonNull(midiMix);
+        Objects.requireNonNull(song);
+
+        List<RhythmVoice> sgRvs = song.getSongStructure().getUniqueRhythmVoices(true, false);
+        for (Integer channel : midiMix.getUsedChannels())
+        {
+            RhythmVoice rv = midiMix.getRhythmVoice(channel);
+            if (rv instanceof UserRhythmVoice)
+            {
+                // Check that we have the corresponding phrase in the song
+                Phrase p = song.getUserPhrase(rv.getName());
+                if (p == null)
+                {
+                    String msg = "missing user phrase with name=" + rv.getName();
+                    LOGGER.log(Level.WARNING, "checkConsistency() song={0} inconsistency found: {1}", new Object[]
+                    {
+                        song.getName(), msg
+                    });
+                    throw new UnsupportedEditException(msg);
+                }
+            } else if (!sgRvs.contains(rv))
+            {
+                String msg = "MidMix rv=" + rv + " not found in song";
+                LOGGER.log(Level.WARNING, "checkConsistency() song={0} inconsistency found: {1}", new Object[]
+                {
+                    song.getName(), msg
+                });
+                throw new UnsupportedEditException(msg);
+            }
+        }
+
+
+        if (fullCheck)
+        {
+            for (RhythmVoice rv : sgRvs)
+            {
+                if (midiMix.getChannel(rv) == -1)
+                {
+                    String msg = "song rv=" + rv + " not found in MidiMix " + midiMix;
+                    LOGGER.log(Level.WARNING, "checkConsistency() song={0} inconsistency found: {1}", new Object[]
+                    {
+                        song.getName(), msg
+                    });
+                    throw new UnsupportedEditException(msg);
+                }
+            }
+
+            var rvs = midiMix.getRhythmVoices();
+            for (String userPhraseName : song.getUserPhraseNames())
+            {
+                if (!rvs.stream().anyMatch(rv -> rv.getName().equals(userPhraseName)))
+                {
+                    String msg = "missing RhythmVoice for song user phrase " + userPhraseName;
+                    LOGGER.log(Level.WARNING, "checkConsistency() song={0} inconsistency found: {1}", new Object[]
+                    {
+                        song.getName(), msg
+                    });
+                    throw new UnsupportedEditException(msg);
+                }
+            }
+        }
+
+    }
+
+    /**
+     * Check if midiMix is consistent with rhythm.
+     * <p>
+     * Check that all RhythmVoices of this MidiMix belong to rhythm, and vice-versa.
+     *
+     * @param midiMix
+     * @param r
+     * @throws org.jjazz.chordleadsheet.api.UnsupportedEditException If an inconsistency is detected
+     */
+    private void checkConsistency(MidiMix midiMix, Rhythm r) throws UnsupportedEditException
+    {
+        Objects.requireNonNull(midiMix);
+        Objects.requireNonNull(r);
+
+        var rRvs = r.getRhythmVoices();
+        var mmRvs = midiMix.getRhythmVoices();
+
+        for (RhythmVoice rv : rRvs)
+        {
+            if (!mmRvs.contains(rv))
+            {
+                String msg = "checkConsistency() Missing RhythmVoice " + rv + " in midiMix. mmRvs=" + mmRvs;
+                throw new UnsupportedEditException(msg);
+            }
+        }
+        for (RhythmVoice rv : mmRvs)
+        {
+            if (!rRvs.contains(rv))
+            {
+                String msg = "checkConsistency() RhythmVoice " + rv + " not part of rhythm=" + r.getName() + " found in midiMix. mmRvs=" + mmRvs;
+                throw new UnsupportedEditException(msg);
+            }
+        }
+    }
 }
