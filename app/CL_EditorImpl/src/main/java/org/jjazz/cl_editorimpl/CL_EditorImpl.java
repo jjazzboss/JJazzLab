@@ -986,29 +986,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         {
             case SizeChangedEvent e ->
             {
-                int newSize = e.getNewSize();
-                int oldSize = e.getOldSize();
-
-                // Remove items if required
-                for (var item : e.getItems())
-                {
-                    int barIndex = item.getPosition().getBar();
-                    removeItem(barIndex, item, false);
-                }
-
-                // Create or delete BarBoxes as appropriate
-                setNbBarBoxes(computeNbBarBoxes(NB_EXTRA_LINES, newSize));
-
-                // Refresh bars impacted by the resize
-                int minLastBar = Math.min(oldSize - 1, newSize - 1);
-                int maxLastBar = Math.max(oldSize - 1, newSize - 1);
-                maxLastBar = Math.min(maxLastBar, getNbBarBoxes() - 1);
-                for (int i = minLastBar + 1; i <= maxLastBar; i++)
-                {
-                    int bar = (i < newSize) ? i : -1;
-                    BarBox bb = getBarBox(i);
-                    bb.setModelBarIndex(bar);
-                }
+                handleSizeChanged(e);
             }
 
             case DeletedBarsEvent e ->
@@ -1045,11 +1023,11 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             {
                 int nbBars = e.getNbBars();
                 var shiftedItems = e.getItems();
-                
+
                 // Remove and re-add
                 for (var item : shiftedItems.reversed())
                 {
-                                    // Start from the end, so moved item remain in same section automatically                
+                    // Start from the end, so moved item remain in same section automatically                
                     int barIndex = item.getPosition().getBar();
                     boolean selected = isSelected(item);
                     removeItem(barIndex - nbBars, item, true);
@@ -1182,6 +1160,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         }
     }
 
+
     // ---------------------------------------------------------------
     // Implements Scrollable interface
     // ---------------------------------------------------------------
@@ -1235,9 +1214,62 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     {
         return false;
     }
+
     // ----------------------------------------------------------------------------------
     // Private functions
     // ----------------------------------------------------------------------------------
+
+    private void handleSizeChanged(SizeChangedEvent e)
+    {
+        int newSize = e.isUndo() ? e.getOldSize() : e.getNewSize();
+        int oldSize = e.isUndo() ? e.getNewSize() : e.getOldSize();
+
+        if (!e.isUndo())
+        {
+            // Remove items if required
+            for (var item : e.getItems())
+            {
+                int barIndex = item.getPosition().getBar();
+                removeItem(barIndex, item, false);
+            }
+
+            // Create or delete BarBoxes as appropriate
+            setNbBarBoxes(computeNbBarBoxes(NB_EXTRA_LINES, newSize));
+
+            // Refresh bars impacted by the resize
+            int minLastBar = Math.min(oldSize - 1, newSize - 1);
+            int maxLastBar = Math.max(oldSize - 1, newSize - 1);
+            maxLastBar = Math.min(maxLastBar, getNbBarBoxes() - 1);
+            for (int i = minLastBar + 1; i <= maxLastBar; i++)
+            {
+                int bar = (i < newSize) ? i : -1;
+                BarBox bb = getBarBox(i);
+                bb.setModelBarIndex(bar);
+            }
+        } else
+        {
+            // Create or delete BarBoxes as appropriate
+            setNbBarBoxes(computeNbBarBoxes(NB_EXTRA_LINES, newSize));
+
+            // Refresh bars impacted by the resize
+            int minLastBar = Math.min(oldSize - 1, newSize - 1);
+            int maxLastBar = Math.max(oldSize - 1, newSize - 1);
+            maxLastBar = Math.min(maxLastBar, getNbBarBoxes() - 1);
+            for (int i = minLastBar + 1; i <= maxLastBar; i++)
+            {
+                int bar = (i < newSize) ? i : -1;
+                BarBox bb = getBarBox(i);
+                bb.setModelBarIndex(bar);
+            }
+
+            // Add items if required
+            for (var item : e.getItems())
+            {
+                int barIndex = item.getPosition().getBar();
+                addItem(barIndex, item);
+            }
+        }
+    }
 
     /**
      * Must be used with care: selection MUST be uptodate with the current lookup state.
