@@ -67,7 +67,7 @@ public interface SongStructure
      */
     default List<Rhythm> getUniqueRhythms(boolean excludeAdaptedRhythms, boolean excludeImplicitSourceRhythms)
     {
-        ArrayList<Rhythm> res = new ArrayList<>();
+        List<Rhythm> res = new ArrayList<>();
 
 
         var spts = getSongParts();

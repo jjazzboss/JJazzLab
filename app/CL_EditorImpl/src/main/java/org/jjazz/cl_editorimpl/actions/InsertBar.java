@@ -31,7 +31,8 @@ import static javax.swing.Action.NAME;
 import javax.swing.KeyStroke;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
-import org.jjazz.chordleadsheet.api.event.SizeChangedEvent;
+import org.jjazz.chordleadsheet.api.event.DeletedBarsEvent;
+import org.jjazz.chordleadsheet.api.event.InsertedBarsEvent;
 import org.jjazz.cl_editor.api.CL_ContextAction;
 import static org.jjazz.cl_editor.api.CL_ContextAction.LISTENING_TARGETS;
 import org.jjazz.cl_editor.api.CL_Selection;
@@ -110,7 +111,7 @@ public class InsertBar extends CL_ContextAction
     @Override
     public void chordLeadSheetChanged(ClsChangeEvent event)
     {
-        if (event instanceof SizeChangedEvent)
+        if (event instanceof InsertedBarsEvent || event instanceof DeletedBarsEvent)
         {
             selectionChange(getSelection());
         }

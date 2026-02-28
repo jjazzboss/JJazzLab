@@ -43,7 +43,8 @@ import javax.swing.KeyStroke;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
-import org.jjazz.chordleadsheet.api.event.SizeChangedEvent;
+import org.jjazz.chordleadsheet.api.event.DeletedBarsEvent;
+import org.jjazz.chordleadsheet.api.event.InsertedBarsEvent;
 import org.jjazz.cl_editorimpl.ItemsTransferable;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
@@ -135,7 +136,7 @@ public class Paste extends CL_ContextAction implements FlavorListener
     @Override
     public void chordLeadSheetChanged(ClsChangeEvent event)
     {
-        if (event instanceof SizeChangedEvent)
+        if (event instanceof InsertedBarsEvent || event instanceof DeletedBarsEvent)
         {
             selectionChange(getSelection());
         }

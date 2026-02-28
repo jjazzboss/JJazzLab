@@ -461,16 +461,6 @@ public class MidiMixManagerImpl implements MidiMixManager, PropertyChangeListene
         }
     }
 
-    static public void throwNotEnoughMidiChannelException() throws UnsupportedEditException
-    {
-        throw new UnsupportedEditException(ResUtil.getString(MidiMixImpl.class, "ERR_NotEnoughChannels"));
-    }
-
-    static public void throwSameNameUserChannelException(String name) throws UnsupportedEditException
-    {
-        throw new UnsupportedEditException(ResUtil.getString(MidiMixImpl.class, "ERR_SameNameUserChannel", name));
-    }
-
 
     // ==================================================================
     // Private functions

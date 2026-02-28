@@ -23,21 +23,14 @@
 package org.jjazz.cl_editorimpl.actions;
 
 import java.awt.event.ActionEvent;
-import java.util.EnumSet;
 import java.util.Objects;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.NAME;
 import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JMenu;
 import javax.swing.JMenuItem;
-import org.jjazz.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.chordleadsheet.api.event.ClsChangeEvent;
-import org.jjazz.chordleadsheet.api.event.SizeChangedEvent;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.cl_editor.api.CL_ContextAction;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.api.CL_EditorClientProperties;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;

@@ -51,7 +51,8 @@ public class SharedExecutorServices
     {
         if (executor == null)
         {
-            executor = Executors.newFixedThreadPool(Math.max(2, Runtime.getRuntime().availableProcessors() - 1), getThreadFactory("JL-SharedExecutor", true));
+            int nbThreads = Math.max(2, Runtime.getRuntime().availableProcessors() - 1);
+            executor = Executors.newFixedThreadPool(nbThreads, getThreadFactory("JL-SharedExecutor", true));
         }
         return executor;
     }

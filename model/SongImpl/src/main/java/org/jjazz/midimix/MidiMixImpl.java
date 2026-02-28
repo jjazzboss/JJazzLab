@@ -42,6 +42,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -59,16 +60,21 @@ import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.InstrumentSettings;
 import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.midi.api.MidiConst;
+import org.jjazz.midi.api.synths.GM1Instrument;
 import org.jjazz.midi.api.synths.GMSynth;
+import org.jjazz.midi.api.synths.InstrumentFamily;
 import org.jjazz.midimix.api.MidiMix;
 import static org.jjazz.midimix.api.MidiMix.PROP_CHANNEL_INSTRUMENT_MIX;
 import static org.jjazz.midimix.api.MidiMix.PROP_RHYTHM_VOICE;
 import static org.jjazz.midimix.api.MidiMix.PROP_RHYTHM_VOICE_CHANNEL;
 import org.jjazz.midimix.api.UserRhythmVoice;
+import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.midimix.spi.RhythmVoiceInstrumentProvider;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
+import static org.jjazz.rhythm.api.RhythmVoice.Type.DRUMS;
+import static org.jjazz.rhythm.api.RhythmVoice.Type.PERCUSSION;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
@@ -194,6 +200,222 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
     public Song getSong()
     {
         return song;
+    }
+
+    @Override
+    public void removeRhythm(Rhythm r)
+    {
+        performWriteAPImethod(removeRhythmOperation(r));
+    }
+
+    public WriteOperation removeRhythmOperation(Rhythm r)
+    {
+        Objects.requireNonNull(r);
+        WriteOperation operation = () -> 
+        {
+            if (!getUniqueRhythms().contains(r))
+            {
+                return WriteOperationResults.of(null);
+            }
+
+            // Save data
+            var saveRhythmVoices = rhythmVoices.clone();
+            var saveInstrumentMixes = instrumentMixes.clone();
+
+
+            // Update data
+            List<PropertyChangeEvent> relatedEvents = new ArrayList<>();
+            List<PropertyChangeEvent> relatedEventsUndo = new ArrayList<>();
+            for (int i = MidiConst.CHANNEL_MIN; i <= MidiConst.CHANNEL_MAX; i++)
+            {
+                if (rhythmVoices[i] != null && rhythmVoices[i].getContainer() == r)
+                {
+                    prepareRemove(i);
+                    rhythmVoices[i] = null;
+                    instrumentMixes[i] = null;
+                    relatedEvents.add(new PropertyChangeEvent(this, PROP_CHANNEL_INSTRUMENT_MIX, saveInstrumentMixes[i], i));
+                    relatedEventsUndo.add(new PropertyChangeEvent(this, PROP_CHANNEL_INSTRUMENT_MIX, null, i));
+                }
+            }
+
+
+            // Prepare the undoable edit
+            UndoableEdit edit = new SimpleEdit("Remove rhythm from MidiMix")
+            {
+                @Override
+                public void undoBody()
+                {
+                    performWriteAPImethod(() -> 
+                    {
+                        for (int i = MidiConst.CHANNEL_MIN; i <= MidiConst.CHANNEL_MAX; i++)
+                        {
+                            if (saveRhythmVoices[i] != null && saveRhythmVoices[i].getContainer() == r)
+                            {
+                                prepareAdd(saveInstrumentMixes[i]);
+                                rhythmVoices[i] = saveRhythmVoices[i];
+                                instrumentMixes[i] = saveInstrumentMixes[i];
+                            }
+                        }
+
+                        var event = buildDummySongEvent();
+                        event.setIsUndo();
+                        event.addRelatedPropertyChanges(relatedEventsUndo);
+                        return WriteOperationResults.of(event, null);
+                    });
+                }
+
+                @Override
+                public void redoBody()
+                {
+                    performWriteAPImethod(() -> 
+                    {
+                        for (int i = MidiConst.CHANNEL_MIN; i <= MidiConst.CHANNEL_MAX; i++)
+                        {
+                            if (rhythmVoices[i] != null && rhythmVoices[i].getContainer() == r)
+                            {
+                                prepareRemove(i);
+                                rhythmVoices[i] = null;
+                                instrumentMixes[i] = null;
+                            }
+                        }
+
+
+                        var event = buildDummySongEvent();
+                        event.setIsRedo();
+                        event.addRelatedPropertyChanges(relatedEvents);
+                        return WriteOperationResults.of(event, null);
+                    });
+                }
+            };
+
+
+            fireUndoableEditHappened(edit);
+
+
+            var event = buildDummySongEvent();
+            event.addRelatedPropertyChanges(relatedEvents);
+            return WriteOperationResults.of(event, null);
+        };
+
+        return operation;
+    }
+
+    @Override
+    public void addRhythm(Rhythm r) throws UnsupportedEditException
+    {
+        performWriteAPImethodThrowing(addRhythmOperation(r));
+    }
+
+    public ThrowingWriteOperation addRhythmOperation(Rhythm r)
+    {
+        Objects.requireNonNull(r);
+        ThrowingWriteOperation operation = () -> 
+        {
+            if (getUniqueRhythms().contains(r))
+            {
+                return WriteOperationResults.of(null);
+            }
+
+            var rRvs = r.getRhythmVoices();
+            if (getUnusedChannels().size() < rRvs.size())
+            {
+                throwNotEnoughMidiChannelException();       // throws UnsupportedEditException
+            }
+
+
+            // Prepare data
+            MidiMixImpl mmRhythm = (MidiMixImpl) MidiMixManager.getDefault().findMix(r);
+            if (!getUniqueRhythms().isEmpty())
+            {
+                // Adapt mmRhythm to sound like the InstrumentMixes of r0           
+                Rhythm r0 = getUniqueRhythms().iterator().next();
+                mmRhythm.adaptInstrumentMixes(this, r0);
+            }
+
+
+            // Update state
+            List<PropertyChangeEvent> relatedEvents = new ArrayList<>();
+            List<PropertyChangeEvent> relatedEventsUndo = new ArrayList<>();
+
+            for (Integer channelRhythm : mmRhythm.getUsedChannels())
+            {
+                RhythmVoice rvRhythm = mmRhythm.getRhythmVoice(channelRhythm);
+                assert !(rvRhythm instanceof UserRhythmVoice);
+                int channel = getUsedChannels().contains(channelRhythm) ? findFreeChannel(rvRhythm.isDrums()) : channelRhythm;
+                assert channel != -1;
+                InstrumentMix insMixRhythm = mmRhythm.getInstrumentMix(channelRhythm);
+
+                prepareAdd(insMixRhythm);
+                rhythmVoices[channel] = rvRhythm;
+                instrumentMixes[channel] = insMixRhythm;
+                relatedEvents.add(new PropertyChangeEvent(this, PROP_CHANNEL_INSTRUMENT_MIX, null, channel));
+                relatedEventsUndo.add(new PropertyChangeEvent(this, PROP_CHANNEL_INSTRUMENT_MIX, insMixRhythm, channel));
+            }
+
+            // Save new state
+            var saveNewRhythmVoices = rhythmVoices.clone();
+            var saveNewInstrumentMixes = instrumentMixes.clone();
+
+
+            // Prepare the undoable edit
+            UndoableEdit edit = new SimpleEdit("Remove rhythm from MidiMix")
+            {
+                @Override
+                public void undoBody()
+                {
+                    performWriteAPImethod(() -> 
+                    {
+                        for (int i = MidiConst.CHANNEL_MIN; i <= MidiConst.CHANNEL_MAX; i++)
+                        {
+                            if (rhythmVoices[i] != null && rhythmVoices[i].getContainer() == r)
+                            {
+                                prepareRemove(i);
+                                rhythmVoices[i] = null;
+                                instrumentMixes[i] = null;
+                            }
+                        }
+
+                        var event = buildDummySongEvent();
+                        event.setIsUndo();
+                        event.addRelatedPropertyChanges(relatedEventsUndo);
+                        return WriteOperationResults.of(event, null);
+                    });
+                }
+
+                @Override
+                public void redoBody()
+                {
+                    performWriteAPImethod(() -> 
+                    {
+                        for (int i = MidiConst.CHANNEL_MIN; i <= MidiConst.CHANNEL_MAX; i++)
+                        {
+                            if (saveNewRhythmVoices[i] != null && saveNewRhythmVoices[i].getContainer() == r)
+                            {
+                                prepareAdd(saveNewInstrumentMixes[i]);
+                                rhythmVoices[i] = saveNewRhythmVoices[i];
+                                instrumentMixes[i] = saveNewInstrumentMixes[i];
+                            }
+                        }
+
+
+                        var event = buildDummySongEvent();
+                        event.setIsRedo();
+                        event.addRelatedPropertyChanges(relatedEvents);
+                        return WriteOperationResults.of(event, null);
+                    });
+                }
+            };
+
+
+            fireUndoableEditHappened(edit);
+
+
+            var event = buildDummySongEvent();
+            event.addRelatedPropertyChanges(relatedEvents);
+            return WriteOperationResults.of(event, null);
+        };
+        
+        return operation;
     }
 
     @Override
@@ -368,11 +590,11 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
                 if (!(rvKey instanceof UserRhythmVoice) && !song.getSongStructure().getUniqueRhythmVoices(true, false).contains(rvKey))
                 {
                     throw new IllegalArgumentException(
-                            "channel=" + channel + " rvKey=" + rvKey + " insMix=" + insMix + ". rvKey does not belong to any of the song's rhythms.");
+                            "setInstrumentMixOperation() channel=" + channel + " rvKey=" + rvKey + " insMix=" + insMix + ". rvKey does not belong to any of the song's rhythms.");
                 }
                 if ((rvKey instanceof UserRhythmVoice) && !song.getUserPhraseNames().contains(rvKey.getName()))
                 {
-                    throw new IllegalArgumentException("channel=" + channel + " rvKey=" + rvKey
+                    throw new IllegalArgumentException("setInstrumentMixOperation() channel=" + channel + " rvKey=" + rvKey
                             + " insMix=" + insMix + " rvKey.getName()=" + rvKey.getName()
                             + " song=" + song.getName() + ". Song does not have a user phrase with the specified name");  // NOI18N
                 }
@@ -384,7 +606,7 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
                 if (ch != -1 && ch != channel)
                 {
                     throw new IllegalArgumentException(
-                            "channel=" + channel + " rvKey=" + rvKey + " im=" + insMix + ". im is already present in MidiMix at channel " + ch);
+                            "setInstrumentMixOperation() channel=" + channel + " rvKey=" + rvKey + " im=" + insMix + ". im is already present in MidiMix at channel " + ch);
                 }
             }
 
@@ -475,8 +697,8 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
         WriteOperation operation = () -> 
         {
             int channel = getChannel(oldRv);
-            Preconditions.checkArgument(channel != -1, "oldRv=%s", oldRv);
-            Preconditions.checkArgument(getChannel(newRv) == -1, "newRv=%s", newRv);
+            Preconditions.checkArgument(channel != -1, "replaceRhythmVoiceOperation() oldRv=%s", oldRv);
+            Preconditions.checkArgument(getChannel(newRv) == -1, "replaceRhythmVoiceOperation() newRv=%s", newRv);
 
             LOGGER.log(Level.FINE, "replaceRhythmVoiceOperation() oldRv={0} newRv={1}", new Object[]
             {
@@ -548,8 +770,8 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
         WriteOperation operation = () -> 
         {
             int oldChannel = getChannel(rv);
-            Preconditions.checkArgument(oldChannel != -1, "rv=%s", rv);
-            Preconditions.checkArgument(getRhythmVoice(newChannel) == null, "newChannel=%s this=", newChannel, this);
+            Preconditions.checkArgument(oldChannel != -1, "setRhythmVoiceChannelOperation() rv=%s", rv);
+            Preconditions.checkArgument(getRhythmVoice(newChannel) == null, "setRhythmVoiceChannelOperation() newChannel=%s this=", newChannel, this);
 
 
             LOGGER.log(Level.FINE, "setRhythmVoiceChannelOperation() rv={0} newChannel={1}", new Object[]
@@ -1100,6 +1322,15 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
         return sb.toString();
     }
 
+    static public void throwNotEnoughMidiChannelException() throws UnsupportedEditException
+    {
+        throw new UnsupportedEditException(ResUtil.getString(MidiMixImpl.class, "ERR_NotEnoughChannels"));
+    }
+
+    static public void throwSameNameUserChannelException(String name) throws UnsupportedEditException
+    {
+        throw new UnsupportedEditException(ResUtil.getString(MidiMixImpl.class, "ERR_SameNameUserChannel", name));
+    }
 
     private <R> R performWriteAPImethod(WriteOperation<R> operation)
     {
@@ -1323,7 +1554,7 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
      */
     private InstrumentMix prepareRemove(int channel)
     {
-        Preconditions.checkState(executionManager.isWriteLockedByCurrentThread(), "write lock required");
+        Preconditions.checkState(executionManager.isWriteLockedByCurrentThread(), "prepareRemove() write lock required");
         var oldInsMix = instrumentMixes[channel];
         if (oldInsMix != null)
         {
@@ -1343,7 +1574,7 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
      */
     private void prepareAdd(InstrumentMix insMix)
     {
-        Preconditions.checkState(executionManager.isWriteLockedByCurrentThread(), "write lock required");
+        Preconditions.checkState(executionManager.isWriteLockedByCurrentThread(), "prepareAdd() write lock required");
         if (insMix != null)
         {
             // insMix.setMute(false);       // Don't change
@@ -1419,10 +1650,149 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
                 : UserRhythmVoice.DEFAULT_USER_PHRASE_CHANNEL;
         if (res == -1)
         {
-            String msg = ResUtil.getString(MidiMix.class, "ERR_NotEnoughChannels");
-            throw new UnsupportedEditException(msg);
+            throwNotEnoughMidiChannelException();
         }
         return res;
+    }
+
+
+    /**
+     * Adapt our InstrumentMixes to "sound" like the InstrumentMixes of rSrc in midiMixSrc.
+     *
+     * @param midiMixSrc
+     * @param rSrc
+     */
+    private void adaptInstrumentMixes(MidiMix midiMixSrc, Rhythm rSrc)
+    {
+        LOGGER.log(Level.FINE, "adaptInstrumentMixes() midiMixSrc={0} rSrc={1}", new Object[]
+        {
+            midiMixSrc, rSrc
+        });
+
+        Map<String, InstrumentMix> mapKeyMix = new HashMap<>();
+        Map<InstrumentFamily, InstrumentMix> mapFamilyMix = new HashMap<>();
+        InstrumentMix rSrcInsMixDrums = null;
+        InstrumentMix rSrcInsMixPerc = null;
+
+        // First try to match InstrumentMixes using "key" = "3 first char of Rv.getName() + GM1 family"
+        for (int channelSrc : midiMixSrc.getUsedChannels(rSrc))
+        {
+            // Build the keys from rSrc
+            RhythmVoice rvSrc = midiMixSrc.getRhythmVoice(channelSrc);
+            InstrumentMix insMixSrc = midiMixSrc.getInstrumentMix(channelSrc);
+            if (rvSrc.isDrums())
+            {
+                // Special case, use the 2 special variables for Drums or Percussion                
+                if (midiMixSrc.getDrumsReroutedChannels().contains(channelSrc))
+                {
+                    // If channel is rerouted, re-enable the disabled parameters
+                    insMixSrc = new InstrumentMix(insMixSrc);
+                    insMixSrc.setInstrumentEnabled(true);
+                    insMixSrc.getSettings().setChorusEnabled(true);
+                    insMixSrc.getSettings().setReverbEnabled(true);
+                    insMixSrc.getSettings().setPanoramicEnabled(true);
+                    insMixSrc.getSettings().setVolumeEnabled(true);
+                }
+                if (rvSrc.getType().equals(RhythmVoice.Type.DRUMS))
+                {
+                    rSrcInsMixDrums = insMixSrc;
+                } else
+                {
+                    rSrcInsMixPerc = insMixSrc;
+                }
+
+            } else
+            {
+                GM1Instrument insGM1 = insMixSrc.getInstrument().getSubstitute();  // Might be null            
+                InstrumentFamily family = insGM1 != null ? insGM1.getFamily() : null;
+                String mapKey = Utilities.truncate(rvSrc.getName().toLowerCase(), 3) + "-" + ((family != null) ? family.name() : "");
+                if (mapKeyMix.get(mapKey) == null)
+                {
+                    mapKeyMix.put(mapKey, insMixSrc);  // If several instruments have the same Type, save only the first one
+                }
+                if (family != null && mapFamilyMix.get(family) == null)
+                {
+                    mapFamilyMix.put(family, insMixSrc);       // If several instruments have the same family, save only the first one
+                }
+            }
+        }
+
+        // Try to convert using the keys
+        HashSet<Integer> doneChannels = new HashSet<>();
+        for (int channel : getUsedChannels())
+        {
+            RhythmVoice rv = getRhythmVoice(channel);
+            InstrumentMix insMix = getInstrumentMix(channel);
+            InstrumentMix insMixSrc;
+
+            switch (rv.getType())
+            {
+                case DRUMS ->
+                    insMixSrc = rSrcInsMixDrums;
+                case PERCUSSION ->
+                    insMixSrc = rSrcInsMixPerc;
+                default ->
+                {
+                    GM1Instrument mmInsGM1 = insMix.getInstrument().getSubstitute();  // Can be null            
+                    InstrumentFamily mmFamily = mmInsGM1 != null ? mmInsGM1.getFamily() : null;
+                    String mapKey = Utilities.truncate(rv.getName().toLowerCase(), 3) + "-" + ((mmFamily != null)
+                            ? mmFamily.name() : "");
+                    insMixSrc = mapKeyMix.get(mapKey);
+                }
+
+            }
+
+            if (insMixSrc != null)
+            {
+                // Copy InstrumentMix data
+                insMix.setInstrument(insMixSrc.getInstrument());
+                insMix.getSettings().set(insMixSrc.getSettings());
+                doneChannels.add(channel);
+                LOGGER.log(Level.FINER, "adaptInstrumentMixes() set (1) channel {0} instrument setting to : {1}", new Object[]
+                {
+                    channel,
+                    insMixSrc.getSettings()
+                });
+            }
+        }
+
+        // Try to convert also the other channels by matching only the instrument family
+        for (int channel : getUsedChannels())
+        {
+            if (doneChannels.contains(channel))
+            {
+                continue;
+            }
+            InstrumentMix insMix = getInstrumentMix(channel);
+            GM1Instrument insGM1 = insMix.getInstrument().getSubstitute();  // Can be null          
+            if (insGM1 == null || insGM1 == GMSynth.getInstance().getVoidInstrument())
+            {
+                continue;
+            }
+            InstrumentFamily mmFamily = insGM1.getFamily();
+            InstrumentMix infMixFamily = mapFamilyMix.get(mmFamily);
+            if (infMixFamily != null)
+            {
+                // Copy InstrumentMix data
+                infMixFamily.setInstrument(infMixFamily.getInstrument());
+                infMixFamily.getSettings().set(infMixFamily.getSettings());
+                LOGGER.log(Level.FINER, "adaptInstrumentMixes() set (2) channel {0} instrument setting to : {1}", new Object[]
+                {
+                    channel,
+                    infMixFamily.getSettings()
+                });
+            }
+        }
+    }
+
+    /**
+     * Get a dummy event which won't be fired.
+     *
+     * @return
+     */
+    private SongPropertyChangeEvent buildDummySongEvent()
+    {
+        return new SongPropertyChangeEvent(this, "DUMMY", Boolean.TRUE, Boolean.TRUE);
     }
 
     /**

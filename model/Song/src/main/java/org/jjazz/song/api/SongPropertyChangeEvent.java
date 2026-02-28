@@ -25,9 +25,12 @@
 package org.jjazz.song.api;
 
 import java.beans.PropertyChangeEvent;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
- * A PropertyChangeEvent which can indicate if event is part of a undo/redo.
+ * A PropertyChangeEvent with additional features: undo/redo indicator and optional associated events.
  */
 public class SongPropertyChangeEvent extends PropertyChangeEvent
 {
@@ -35,11 +38,13 @@ public class SongPropertyChangeEvent extends PropertyChangeEvent
     private static final Boolean UNDO = Boolean.TRUE;
     private static final Boolean REDO = Boolean.FALSE;
     private Boolean undoOrRedoOrNothing;
+    private final List<PropertyChangeEvent> propertyChanges;
 
     public SongPropertyChangeEvent(Object source, String propertyName, Object oldValue, Object newValue)
     {
         super(source, propertyName, oldValue, newValue);
         undoOrRedoOrNothing = null;
+        propertyChanges = new ArrayList<>();
     }
 
     public void setIsUndo()
@@ -65,5 +70,25 @@ public class SongPropertyChangeEvent extends PropertyChangeEvent
     public boolean isUndoOrRedo()
     {
         return undoOrRedoOrNothing != null;
+    }
+
+    /**
+     * Add some related PropertyChangeEvent events to this change.
+     *
+     * @param changes
+     */
+    public void addRelatedPropertyChanges(List<PropertyChangeEvent> changes)
+    {
+        propertyChanges.addAll(changes);
+    }
+
+    /**
+     * Get the related PropertyChangeEvent events.
+     *
+     * @return Can be empty
+     */
+    public List<PropertyChangeEvent> getRelatedPropertyChanges()
+    {
+        return Collections.unmodifiableList(propertyChanges);
     }
 }

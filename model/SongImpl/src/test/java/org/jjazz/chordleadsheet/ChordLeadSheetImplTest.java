@@ -25,6 +25,7 @@
 package org.jjazz.chordleadsheet;
 
 import java.text.ParseException;
+import java.util.Locale;
 import java.util.TreeSet;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.ClsChangeListener;
@@ -40,6 +41,7 @@ import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.undomanager.api.JJazzUndoManager;
+import org.jjazz.utilities.api.Utilities;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,6 +63,13 @@ public class ChordLeadSheetImplTest
     CLI_ChordSymbolImpl cliChordSymbolF_b3_3;
     CLI_ChordSymbolImpl cliChordSymbolG_b6_0;
     CLI_ChordSymbolImpl cliChordSymbolA_b12_2;
+
+
+    static
+    {
+        Utilities.setLoggingFormat(null);
+        Locale.setDefault(Locale.ENGLISH);        
+    }
 
     public ChordLeadSheetImplTest()
     {
@@ -500,8 +509,8 @@ public class ChordLeadSheetImplTest
         assertEquals(2, cls1.getBarRange(cls1.getSection(0)).size());
         CLI_Section cliSection = cls1.getSection(2);
         cls1.moveSection(cliSection, 3);
-        assertSame(cliSection, cls1.getSection(3));        
-        assertEquals(0, cls1.getSection(2).getPosition().getBar());        
+        assertSame(cliSection, cls1.getSection(3));
+        assertEquals(0, cls1.getSection(2).getPosition().getBar());
         assertEquals(3, cls1.getBarRange(cls1.getSection(0)).size());
     }
 
@@ -530,12 +539,17 @@ public class ChordLeadSheetImplTest
         System.out.println("=== insertBars start of leadsheet bar=0  nbBars=3");
         var oldSection0 = cls1.getSection(0);
         cls1.insertBars(0, 3);
-        var newSection0 = cls1.getSection(0);
+
+        assertEquals(11, cls1.getSizeInBars());        
         var newSection3 = cls1.getSection(3);
-        assertEquals(11, cls1.getSizeInBars());
+        assertSame(oldSection0, newSection3);        
+        
+        var newSection0 = cls1.getSection(0);
         assertTrue(newSection0.getData().getName().contains(oldSection0.getData().getName()));
+        assertEquals(newSection0.getData().getTimeSignature(), oldSection0.getData().getTimeSignature());
+        
         assertEquals("Section2", cls1.getSection(5).getData().getName());
-        assertSame(oldSection0, newSection3);
+
     }
 
     @Test
@@ -593,20 +607,22 @@ public class ChordLeadSheetImplTest
     public void testDeleteBarsFromStartUntilEndOfSection()
     {
         System.out.println("=== deleteBars from start until end of section barFrom=0  barTo=1");
+        var section2 = cls1.getSection(2);
         cls1.deleteBars(0, 1);
         assertEquals(6, cls1.getSizeInBars());
         assertEquals(2, cls1.getItems(CLI_Section.class).size());
-        assertEquals("Section2", cls1.getSection(0).getData().getName());
+        assertSame(section2, cls1.getSection(0), "section2 becomes the new init section");
     }
 
     @Test
     public void testDeleteBarsFromStartUntilMiddleOfSection()
     {
         System.out.println("=== deleteBars from start middle of section barFrom=0  barTo=3");
+        var oldCliSection0 = cls1.getSection(0);
         cls1.deleteBars(0, 3);
+        assertEquals(4, cls1.getSizeInBars());        
         CLI_Section cliSection0 = cls1.getSection(0);
-        assertEquals(4, cls1.getSizeInBars());
-        assertEquals("Section1", cliSection0.getData().getName());
+        assertSame(oldCliSection0, cliSection0, "section0 is not removed if no section right after the cut");
         assertEquals(1, cls1.getBarRange(cliSection0).size());
     }
 
@@ -641,6 +657,85 @@ public class ChordLeadSheetImplTest
         cls1.deleteBars(1, 5);
         assertEquals(3, cls1.getSizeInBars());
         assertEquals("Section1", cls1.getSection(2).getData().getName());
+    }
+
+    /**
+     * Deleting bars that include a section header removes the header but leaves surviving items of that section.
+     * Those items now fall under the previous section's (smaller) time signature, so their beats must be adjusted.
+     * <p>
+     * cls1 layout: Section1(4/4)@bar0, Section2(3/4)@bar2, Section3(4/4)@bar5<br>
+     * Db@7:beat3 lives in Section3. Deleting bars 3-5 removes Section3's header (bar 5 ∈ [3,5]);
+     * Db shifts to bar 4 and its beat 3.0 must be adjusted to fit Section2's 3/4.
+     */
+    @Test
+    public void testDeleteBarsAdjustBeatsWhenSectionHeaderDeleted()
+    {
+        System.out.println("=== testDeleteBarsAdjustBeatsWhenSectionHeaderDeleted()");
+        var dbItem = cls1.getItems(7, 7, CLI_ChordSymbol.class).get(0); // Db@7:beat3.0
+        assertEquals(3.0f, dbItem.getPosition().getBeat(), 0.001f);
+
+        cls1.deleteBars(3, 5);
+
+        assertEquals(5, cls1.getSizeInBars());
+        // Db shifted from bar 7 to bar 4 (7 - 3 deleted bars)
+        assertEquals(4, dbItem.getPosition().getBar());
+        // Beat must have been adjusted to fit Section2's 3/4 (beat 3.0 is invalid in 3/4)
+        assertTrue(dbItem.getPosition().getBeat() < 3.0f,
+                "Beat should be adjusted to fit 3/4 time signature, was: " + dbItem.getPosition().getBeat());
+    }
+
+    /**
+     * When the section header survives the deletion (starts at barIndexTo + 1), the header and its items shift
+     * together, so no beat adjustment should be applied.
+     * <p>
+     * cls1 layout: Section3(4/4)@bar5<br>
+     * Deleting bars 3-4 leaves Section3's header at bar 5 = barIndexTo + 1 (outside the deleted range).
+     * Db@7:beat3 shifts to bar 5 and stays under Section3's 4/4 — beat must remain 3.0.
+     */
+    @Test
+    public void testDeleteBarsNoAdjustWhenSectionHeaderNotDeleted()
+    {
+        System.out.println("=== testDeleteBarsNoAdjustWhenSectionHeaderNotDeleted()");
+        var dbItem = cls1.getItems(7, 7, CLI_ChordSymbol.class).get(0); // Db@7:beat3.0
+
+        cls1.deleteBars(3, 4);
+
+        assertEquals(6, cls1.getSizeInBars());
+        // Db shifted from bar 7 to bar 5 (7 - 2 deleted bars)
+        assertEquals(5, dbItem.getPosition().getBar());
+        // Section3 header also shifted to bar 3, still governs Db => beat must stay at 3.0
+        assertEquals(3.0f, dbItem.getPosition().getBeat(), 0.001f,
+                "Beat should NOT be adjusted when section header is not deleted");
+    }
+
+    /**
+     * Undo must restore the original beat; redo must reapply the adjusted beat.
+     */
+    @Test
+    public void testDeleteBarsAdjustBeatsUndoRedo()
+    {
+        System.out.println("=== testDeleteBarsAdjustBeatsUndoRedo()");
+        var dbItem = cls1.getItems(7, 7, CLI_ChordSymbol.class).get(0); // Db@7:beat3.0
+
+        cls1.deleteBars(3, 5);
+
+        float adjustedBeat = dbItem.getPosition().getBeat();
+        assertTrue(adjustedBeat < 3.0f, "Pre-undo: beat should be adjusted");
+
+        undoManager.endCEdit(UNDO_EDIT_NAME);
+        undoManager.undo();
+
+        // After undo: Db restored to bar 7, original beat 3.0
+        assertEquals(7, dbItem.getPosition().getBar(), "After undo: bar should be restored to 7");
+        assertEquals(3.0f, dbItem.getPosition().getBeat(), 0.001f, "After undo: beat should be restored to 3.0");
+
+        undoManager.redo();
+
+        // After redo: Db back at bar 4 with the same adjusted beat
+        assertEquals(4, dbItem.getPosition().getBar(), "After redo: bar should be 4");
+        assertEquals(adjustedBeat, dbItem.getPosition().getBeat(), 0.001f, "After redo: beat should match post-deletion value");
+
+        undoManager.startCEdit(UNDO_EDIT_NAME);
     }
 
     @Test
@@ -733,9 +828,16 @@ public class ChordLeadSheetImplTest
 
 
     @Test
+    public void testInitSectionContainer()
+    {
+        System.out.println("=== testInitSectionContainer()");
+        assertSame(cls1, cls1.getSection(0).getContainer());
+    }
+
+    @Test
     public void testSetSize()
     {
-        System.out.println("=== setSize() new size = 3");
+        System.out.println("=== setSize()");
         cls1.setSizeInBars(3);
         assertEquals(3, cls1.getSizeInBars());
         assertEquals(6, cls1.getItems(ChordLeadSheetItem.class).size());
@@ -816,8 +918,6 @@ public class ChordLeadSheetImplTest
             cls1.removeClsChangeListener(listener);
         }
     }
-
-
 
 
     private void undoAll()

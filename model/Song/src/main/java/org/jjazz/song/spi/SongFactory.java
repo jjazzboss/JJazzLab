@@ -106,13 +106,13 @@ public interface SongFactory
     ChordLeadSheet createRamdomChordLeadSheet(String sectionName, TimeSignature ts, int size);
 
     /**
-     * Create a ChordLeadSheet with a fixed set of sections and chord symbols.
+     * Create a ChordLeadSheet with a fixed set of sections and chord symbols in the first 12 bars.
      *
      * @param sectionName
-     * @param size
+     * @param size        Must be &gt;= 12
      * @return
      */
-    ChordLeadSheet createSampleChordLeadSheet12bars(String sectionName, int size);
+    ChordLeadSheet createSampleChordLeadSheet(String sectionName, int size);
 
     /**
      * Create a Song from the specified ChordLeadSheet.

@@ -40,6 +40,11 @@ import static org.junit.jupiter.api.Assertions.*;
 public class MatrixGroupsRemoverTest
 {
 
+    static
+    {
+        Utilities.setLoggingFormat(null);
+    }
+
     public MatrixGroupsRemoverTest()
     {
     }

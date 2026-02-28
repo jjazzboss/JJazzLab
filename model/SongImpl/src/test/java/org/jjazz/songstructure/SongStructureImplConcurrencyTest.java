@@ -26,6 +26,7 @@ package org.jjazz.songstructure;
 
 import java.text.ParseException;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -41,7 +42,6 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythmdatabase.api.DefaultRhythmDatabase;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
-import org.jjazz.rhythmparametersimpl.api.RP_SYS_Variation;
 import org.jjazz.song.ExecutionManager;
 import org.jjazz.song.spi.SongFactory;
 import org.jjazz.songstructure.api.SongPart;
@@ -49,6 +49,7 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
+import org.jjazz.utilities.api.Utilities;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -74,6 +75,11 @@ public class SongStructureImplConcurrencyTest
     SongPart spt1, spt2;
     JJazzUndoManager undoManager;
 
+    static
+    {
+        Utilities.setLoggingFormat(null);
+        Locale.setDefault(Locale.ENGLISH);
+    }
 
     @BeforeAll
     public static void setUpClass() throws Exception
@@ -218,89 +224,20 @@ public class SongStructureImplConcurrencyTest
         // Thread 2: Performs various mutations
         Thread writerThread = new Thread(() -> 
         {
+            SgsCyclicMutator mutator = new SgsCyclicMutator(sgs);
             try
             {
                 for (int i = 0; i < MUTATION_ITERATIONS; i++)
                 {
-                    try
+                    mutator.mutate();
+                    mutationCount.incrementAndGet();
+
+                    // Small yield to encourage interleaving
+                    if (i % 50 == 0)
                     {
-                        // Cycle through different mutation operations
-                        switch (i % 5)
-                        {
-                            case 0 ->
-                            {
-                                // Add a song part at the end
-                                int sizeBeforeAdd = sgs.getSizeInBars();
-                                SongPart newSpt = sgs.createSongPart(r44, "Concurrent-" + i, sizeBeforeAdd, sectionC_44, true);
-                                sgs.addSongParts(List.of(newSpt));
-                                mutationCount.incrementAndGet();
-                            }
-
-                            case 1 ->
-                            {
-                                // Remove the last song part
-                                List<SongPart> spts = sgs.getSongParts();
-                                if (spts.size() > 1)
-                                {
-                                    sgs.removeSongParts(List.of(spts.getLast()));
-                                    mutationCount.incrementAndGet();
-                                }
-                            }
-
-                            case 2 ->
-                            {
-                                // Replace a middle song part with a different rhythm
-                                List<SongPart> spts = sgs.getSongParts();
-                                if (!spts.isEmpty())
-                                {
-                                    SongPart spt = spts.get(1);
-                                    var newRhythm = spt.getRhythm() == r34 ? r34bis : r34;
-                                    sgs.setSongPartsRhythm(List.of(spt), newRhythm, null);
-                                    mutationCount.incrementAndGet();
-                                }
-                            }
-
-                            case 3 ->
-                            {
-                                // Change song part name
-                                List<SongPart> spts = sgs.getSongParts();
-                                if (!spts.isEmpty())
-                                {
-                                    sgs.setSongPartsName(List.of(spts.get(0)), "Modified-" + i);
-                                    mutationCount.incrementAndGet();
-                                }
-                            }
-
-                            case 4 ->
-                            {
-                                // Change rhythm parameter
-                                List<SongPart> rpParts = sgs.getSongParts();
-                                if (!rpParts.isEmpty())
-                                {
-                                    SongPart spt = rpParts.get(1);
-                                    Rhythm r = spt.getRhythm();
-                                    RP_SYS_Variation rp = RP_SYS_Variation.getVariationRp(r);
-                                    if (rp != null)
-                                    {
-                                        String currentValue = spt.getRPValue(rp);
-                                        String newValue = rp.getNextValue(currentValue);
-                                        sgs.setRhythmParameterValue(spt, rp, newValue);
-                                        mutationCount.incrementAndGet();
-                                    }
-                                }
-                            }
-                        }
-
-                        // Small yield to encourage interleaving
-                        if (i % 50 == 0)
-                        {
-                            Thread.yield();
-                        }
-
-                    } catch (UnsupportedEditException ex)
-                    {
-                        // Expected in some cases, just continue
+                        Thread.yield();
                     }
+
                 }
             } catch (Throwable t)
             {
@@ -567,7 +504,6 @@ public class SongStructureImplConcurrencyTest
     // =========================================================================================================
     // Helper methods
     // =========================================================================================================
-
     private ExecutionManager getExecutionManager()
     {
         return ((SongStructureImpl) sgs).getExecutionManager();

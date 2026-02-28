@@ -26,18 +26,19 @@ package org.jjazz.chordleadsheet;
 
 import java.text.ParseException;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.chordleadsheet.item.CLI_ChordSymbolImpl;
 import org.jjazz.chordleadsheet.item.CLI_SectionImpl;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.undomanager.api.JJazzUndoManager;
+import org.jjazz.utilities.api.Utilities;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -60,6 +61,13 @@ public class ChordLeadSheetImplConcurrencyTest
     CLI_ChordSymbolImpl cliChordSymbolF_b3_3;
     CLI_ChordSymbolImpl cliChordSymbolG_b6_0;
     CLI_ChordSymbolImpl cliChordSymbolA_b12_2;
+
+
+    static
+    {
+        Utilities.setLoggingFormat(null);
+        Locale.setDefault(Locale.ENGLISH);
+    }
 
     public ChordLeadSheetImplConcurrencyTest()
     {
@@ -212,79 +220,17 @@ public class ChordLeadSheetImplConcurrencyTest
         // Thread 2: Performs various mutations
         Thread writerThread = new Thread(() -> 
         {
+            ClsCyclicMutator mutator = new ClsCyclicMutator(cls1);
             try
             {
                 for (int i = 0; i < MUTATION_ITERATIONS; i++)
                 {
-                    try
+                    mutator.mutate();
+                    mutationCount.incrementAndGet();
+                    // Small yield to encourage interleaving
+                    if (i % 40 == 0)
                     {
-                        // Cycle through different mutation operations
-                        switch (i % 6)
-                        {
-                            case 0 ->
-                            {
-                                // Add a chord symbol
-                                cls1.addItem(cliChordSymbolG_b6_0);
-                                mutationCount.incrementAndGet();
-                            }
-
-                            case 1 ->
-                            {
-                                // Remove a chord symbol
-                                cls1.removeItem(cliChordSymbolG_b6_0);
-                                mutationCount.incrementAndGet();
-                            }
-
-                            case 2 ->
-                            {
-                                // Move a chord symbol
-                                var item = cls1.getItems(0, 0, CLI_ChordSymbol.class).get(0);
-                                assert item.getData().getName().equals("Dm7");
-                                var pos = item.getPosition();
-                                var newPos = pos.setBeat(pos.isFirstBarBeat() ? 0.5f : 0f);
-                                cls1.moveItem(item, newPos);
-                                mutationCount.incrementAndGet();
-                            }
-
-                            case 3 ->
-                            {
-                                // Move a section
-                                var item = cls1.getItems(CLI_Section.class).get(1);
-                                int bar = item.getPosition().getBar();
-                                var newBar = bar == 2 ? 3 : 2;
-                                cls1.moveSection(item, newBar);
-                                mutationCount.incrementAndGet();
-                            }
-
-                            case 4 ->
-                            {
-                                // Change timesignature
-                                var item = cls1.getSection(0);
-                                var ts = item.getData().getTimeSignature();
-                                var newTs = ts == TimeSignature.FOUR_FOUR ? TimeSignature.FIVE_FOUR : TimeSignature.FOUR_FOUR;
-                                cls1.setSectionTimeSignature(item, newTs);
-                                mutationCount.incrementAndGet();
-                            }
-
-                            case 5 ->
-                            {
-                                // Change size
-                                var size = cls1.getSizeInBars();
-                                var newSize = size == 8 ? 12 : 8;
-                                cls1.setSizeInBars(newSize);
-                                mutationCount.incrementAndGet();
-                            }
-                        }
-
-                        // Small yield to encourage interleaving
-                        if (i % 40 == 0)
-                        {
-                            Thread.yield();
-                        }
-
-                    } catch (UnsupportedEditException ex)
-                    {
-                        // Expected in some cases, just continue
+                        Thread.yield();
                     }
                 }
             } catch (Throwable t)

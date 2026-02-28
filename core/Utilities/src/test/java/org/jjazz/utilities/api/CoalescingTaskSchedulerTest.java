@@ -46,6 +46,12 @@ public class CoalescingTaskSchedulerTest
     private static final long SHORT_DELAY = 100; // milliseconds
     private static final long TOLERANCE = 50; // timing tolerance
 
+
+    static
+    {
+        Utilities.setLoggingFormat(null);
+    }
+
     @BeforeEach
     public void setUp()
     {

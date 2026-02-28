@@ -59,5 +59,5 @@ public interface SptViewerFactory
         return SptViewerSettings.getDefault();
     }
 
-    SptViewer createSptViewer(Song song, SongPart spt, SptViewerSettings settings, DefaultRpViewerRendererFactory factory);
+    SptViewer createSptViewer(SongPart spt, SptViewerSettings settings, DefaultRpViewerRendererFactory factory);
 }

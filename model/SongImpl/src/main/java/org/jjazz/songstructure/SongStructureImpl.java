@@ -76,6 +76,7 @@ import org.jjazz.songstructure.api.event.SptRenamedEvent.Renaming;
 import org.jjazz.songstructure.api.event.SptResizedEvent.Resizing;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
+import org.jjazz.utilities.api.SharedExecutorServices;
 import org.jjazz.utilities.api.ThrowingSupplier;
 import org.jjazz.xstream.spi.XStreamConfigurator;
 import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_LOAD;
@@ -114,7 +115,7 @@ public class SongStructureImpl implements SongStructure, Serializable
      * The listeners for undoable edits.
      */
     private final transient CopyOnWriteArrayList<UndoableEditListener> undoListeners;
-    private ExecutionManager executionManager;
+    private transient ExecutionManager executionManager;
     private static final Logger LOGGER = Logger.getLogger(SongStructureImpl.class.getSimpleName());
 
 
@@ -160,11 +161,26 @@ public class SongStructureImpl implements SongStructure, Serializable
             return false;
         }
         final SongStructureImpl other = (SongStructureImpl) obj;
-        if (!Objects.equals(this.songParts, other.songParts))
+        if (parentCls != other.parentCls)       // never change, use identify equals
         {
             return false;
         }
-        return Objects.equals(this.parentCls, other.parentCls);
+        var sptsSnapshot = performReadAPImethod(() -> new ArrayList<>(this.songParts));
+        var otherSptsSnapshot = other.performReadAPImethod(() -> new ArrayList<>(other.songParts));
+        return Objects.equals(sptsSnapshot, otherSptsSnapshot);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        int res = performReadAPImethod(() -> 
+        {
+            int hash = 3;
+            hash = 89 * hash + Objects.hashCode(this.songParts);
+            hash = 89 * hash + Objects.hashCode(this.parentCls);
+            return hash;
+        });
+        return res;
     }
 
 
@@ -176,12 +192,12 @@ public class SongStructureImpl implements SongStructure, Serializable
 
         performReadAPImethod(() -> 
         {
-            var newSpts = getSongParts().stream()
+            var newSpts = songParts.stream()
                     .map(spt -> 
                     {
                         CLI_Section oldParentSection = spt.getParentSection();
                         CLI_Section newParentSection = newParent.getSection(oldParentSection.getData().getName());
-                        return spt.getCopy(null, spt.getStartBarIndex(), spt.getNbBars(), newParentSection);
+                        return new SongPartImpl(res, spt.getRhythm(), spt.getStartBarIndex(), spt.getNbBars(), newParentSection);
                     })
                     .toList();
 
@@ -286,23 +302,26 @@ public class SongStructureImpl implements SongStructure, Serializable
     public void addSongParts(List<SongPart> spts) throws UnsupportedEditException
     {
         performWriteAPImethodThrowing(addSongPartsOperation(spts));
+
+        // Make sure all AdaptedRhythms for the song’s rhythms are generated in the database so that the user can access them if needed.
+        generateAllAdaptedRhythms();
     }
 
-    public ThrowingWriteOperation addSongPartsOperation(final List<SongPart> spts)
+    public ThrowingWriteOperation addSongPartsOperation(List<SongPart> spts)
     {
         Objects.requireNonNull(spts);
-
+        final var sptsToAdd = new ArrayList<>(spts);
 
         ThrowingWriteOperation operation = () -> 
         {
-            LOGGER.log(Level.FINE, "addSongPartsOperation() -- spts={0}", spts);
+            LOGGER.log(Level.FINE, "addSongPartsOperation() -- spts={0}", sptsToAdd);
 
-            if (spts.isEmpty())
+            if (sptsToAdd.isEmpty())
             {
                 return WriteOperationResults.of(null);
             }
 
-            var preCheckEvent = new SptAddedEvent(this, spts);
+            var preCheckEvent = new SptAddedEvent(this, sptsToAdd);
             preCheckChange(preCheckEvent);           // throws UnsupportedEditException  
 
 
@@ -310,13 +329,13 @@ public class SongStructureImpl implements SongStructure, Serializable
             final ArrayList<SongPart> oldSongParts = new ArrayList<>(songParts);
             final Map<TimeSignature, Rhythm> oldMapTsRhythm = new HashMap<>(mapTsLastRhythm);
             final Map<SongPart, SongStructure> oldContainers = new IdentityHashMap<>();
-            spts.forEach(spt -> oldContainers.put(spt, spt.getContainer()));
+            sptsToAdd.forEach(spt -> oldContainers.put(spt, spt.getContainer()));
             final Map<SongPart, Integer> mapSptSavedStartBar = new IdentityHashMap<>();
             songParts.forEach(spt -> mapSptSavedStartBar.put(spt, spt.getStartBarIndex()));
 
 
             // Update model
-            spts.forEach(spt -> addSongPartImpl(spt));
+            sptsToAdd.forEach(spt -> addSongPartImpl(spt));
 
 
             // Prepare events for shifted SongParts
@@ -342,18 +361,18 @@ public class SongStructureImpl implements SongStructure, Serializable
                 @Override
                 public void undoBody()
                 {
-                    LOGGER.log(Level.FINER, "addSongParts.undoBody() spts={0}", spts);
+                    LOGGER.log(Level.FINER, "addSongParts.undoBody() spts={0}", sptsToAdd);
                     performWriteAPImethod(() -> 
                     {
                         songParts = new ArrayList<>(oldSongParts);
                         mapTsLastRhythm = new HashMap<>(oldMapTsRhythm);
                         updateStartBarIndexes();
-                        for (SongPart spt : spts)
+                        for (SongPart spt : sptsToAdd)
                         {
                             ((SongPartImpl) spt).setContainer(oldContainers.get(spt));
                         }
 
-                        var event = new SptAddedEvent(SongStructureImpl.this, spts);
+                        var event = new SptAddedEvent(SongStructureImpl.this, sptsToAdd);
                         event.setIsUndo();
                         event.addSongPartChanges(sptEventsForUndo);
                         return WriteOperationResults.of(event, null);
@@ -363,18 +382,18 @@ public class SongStructureImpl implements SongStructure, Serializable
                 @Override
                 public void redoBody()
                 {
-                    LOGGER.log(Level.FINER, "addSongParts.redoBody() spts={0}", spts);
+                    LOGGER.log(Level.FINER, "addSongParts.redoBody() spts={0}", sptsToAdd);
                     performWriteAPImethod(() -> 
                     {
                         songParts = new ArrayList<>(newSongParts);
                         mapTsLastRhythm = new HashMap<>(newMapTsRhythm);
                         updateStartBarIndexes();
-                        for (SongPart spt : spts)
+                        for (SongPart spt : sptsToAdd)
                         {
                             ((SongPartImpl) spt).setContainer(SongStructureImpl.this);
                         }
 
-                        var event = new SptAddedEvent(SongStructureImpl.this, spts);
+                        var event = new SptAddedEvent(SongStructureImpl.this, sptsToAdd);
                         event.setIsRedo();
                         event.addSongPartChanges(sptEvents);
                         return WriteOperationResults.of(event, null);
@@ -385,12 +404,8 @@ public class SongStructureImpl implements SongStructure, Serializable
             fireUndoableEditHappened(edit);
 
 
-            var event = new SptAddedEvent(this, spts);
+            var event = new SptAddedEvent(this, sptsToAdd);
             event.addSongPartChanges(sptEvents);
-
-
-            // Make sure all AdaptedRhythms for the song’s rhythms are generated in the database so that the user can access them if needed.
-            generateAllAdaptedRhythms();
 
 
             return WriteOperationResults.of(event, null);
@@ -409,12 +424,13 @@ public class SongStructureImpl implements SongStructure, Serializable
     {
         Objects.requireNonNull(spts);
 
+        final var sptsToRemove = new ArrayList<>(spts);
 
         WriteOperation operation = () -> 
         {
-            LOGGER.log(Level.FINE, "removeSongPartsOperation() -- spts={0}", spts);
+            LOGGER.log(Level.FINE, "removeSongPartsOperation() -- spts={0}", sptsToRemove);
 
-            if (spts.isEmpty())
+            if (sptsToRemove.isEmpty())
             {
                 return WriteOperationResults.of(null);
             }
@@ -426,7 +442,7 @@ public class SongStructureImpl implements SongStructure, Serializable
 
 
             // Update model
-            spts.forEach(spt -> removeSongPartImpl(spt));
+            sptsToRemove.forEach(spt -> removeSongPartImpl(spt));
 
 
             // Prepare events for shifted SongParts
@@ -454,18 +470,18 @@ public class SongStructureImpl implements SongStructure, Serializable
                 @Override
                 public void undoBody()
                 {
-                    LOGGER.log(Level.FINER, "removeSongParts.undoBody() spts={0}", spts);
+                    LOGGER.log(Level.FINER, "removeSongParts.undoBody() spts={0}", sptsToRemove);
                     performWriteAPImethod(() -> 
                     {
                         songParts = new ArrayList<>(oldSongParts);
                         mapTsLastRhythm = new HashMap<>(oldMapTsRhythm);
-                        for (SongPart spt : spts)
+                        for (SongPart spt : sptsToRemove)
                         {
                             ((SongPartImpl) spt).setContainer(SongStructureImpl.this);
                         }
                         updateStartBarIndexes();
 
-                        var event = new SptRemovedEvent(SongStructureImpl.this, spts);
+                        var event = new SptRemovedEvent(SongStructureImpl.this, sptsToRemove);
                         event.setIsUndo();
                         event.addSongPartChanges(sptEventsForUndo);
                         return WriteOperationResults.of(event, null);
@@ -475,14 +491,14 @@ public class SongStructureImpl implements SongStructure, Serializable
                 @Override
                 public void redoBody()
                 {
-                    LOGGER.log(Level.FINER, "removeSongParts.redoBody() spts={0}", spts);
+                    LOGGER.log(Level.FINER, "removeSongParts.redoBody() spts={0}", sptsToRemove);
                     performWriteAPImethod(() -> 
                     {
                         songParts = new ArrayList<>(newSongParts);
                         mapTsLastRhythm = new HashMap<>(newMapTsRhythm);
                         updateStartBarIndexes();
 
-                        var event = new SptRemovedEvent(SongStructureImpl.this, spts);
+                        var event = new SptRemovedEvent(SongStructureImpl.this, sptsToRemove);
                         event.setIsRedo();
                         event.addSongPartChanges(sptEvents);
                         return WriteOperationResults.of(event, null);
@@ -492,7 +508,7 @@ public class SongStructureImpl implements SongStructure, Serializable
 
             fireUndoableEditHappened(edit);
 
-            var event = new SptRemovedEvent(this, spts);
+            var event = new SptRemovedEvent(this, sptsToRemove);
             event.addSongPartChanges(sptEvents);
             return WriteOperationResults.of(event, null);
         };
@@ -621,6 +637,9 @@ public class SongStructureImpl implements SongStructure, Serializable
     public void setSongPartsRhythm(final List<SongPart> spts, final Rhythm newRhythm, final CLI_Section newParentSection) throws UnsupportedEditException
     {
         performWriteAPImethodThrowing(setSongPartsRhythmOperation(spts, newRhythm, newParentSection));  // throws UnsupportedEditException
+
+        // Make sure all AdaptedRhythms for the song’s rhythms are generated in the database so that the user can access them if needed.            
+        generateAllAdaptedRhythms();
     }
 
     public ThrowingWriteOperation setSongPartsRhythmOperation(final List<SongPart> spts, final Rhythm newRhythm, final CLI_Section newParentSection)
@@ -642,7 +661,7 @@ public class SongStructureImpl implements SongStructure, Serializable
         ThrowingWriteOperation operation = () -> 
         {
             // Preconditions
-            Preconditions.checkArgument(songParts.containsAll(spts), "spts=%s this=%s", spts, this);
+            Preconditions.checkArgument(songParts.containsAll(spts), "setSongPartsRhythmOperation() spts=%s this=%s", spts, this);
 
             LOGGER.log(Level.FINE, "setSongPartsRhythmOperation() -- spts=={0} newRhythm={1} newParentSection={2}", new Object[]
             {
@@ -740,9 +759,6 @@ public class SongStructureImpl implements SongStructure, Serializable
 
             var event = new SptRhythmChangedEvent(SongStructureImpl.this, newRhythm, mapSptOldData, spts);
             event.addSongPartChanges(sptEvents);
-
-            // Make sure all AdaptedRhythms for the song’s rhythms are generated in the database so that the user can access them if needed.            
-            generateAllAdaptedRhythms();
 
             return WriteOperationResults.of(event, null);
         };
@@ -864,8 +880,8 @@ public class SongStructureImpl implements SongStructure, Serializable
 
         WriteOperation operation = () -> 
         {
-            Preconditions.checkArgument(songParts.contains(spt), "spt=%s this=%s", spt, this);
-            Preconditions.checkArgument(spt.getRhythm().getRhythmParameters().contains(rp), "rp=%s spt=%s", rp, spt);
+            Preconditions.checkArgument(songParts.contains(spt), "setRhythmParameterValueOperation() spt=%s this=%s", spt, this);
+            Preconditions.checkArgument(spt.getRhythm().getRhythmParameters().contains(rp), "setRhythmParameterValueOperation() rp=%s spt=%s", rp, spt);
 
             LOGGER.log(Level.FINE, "setRhythmParameterValueOperation() -- spt={0} rp={1} newValue={2}", new Object[]
             {
@@ -1062,7 +1078,7 @@ public class SongStructureImpl implements SongStructure, Serializable
         return performReadAPImethod(() -> 
         {
             int size = getSizeInBars();
-            Preconditions.checkArgument(barIndex >= 0 && barIndex <= size, "barIndex=%s size=%s", barIndex, size);
+            Preconditions.checkArgument(barIndex >= 0 && barIndex <= size, "toPositionInNaturalBeats() barIndex=%s size=%s", barIndex, size);
 
             float posInBeats = 0;
             if (barIndex == getSizeInBars())
@@ -1197,43 +1213,45 @@ public class SongStructureImpl implements SongStructure, Serializable
      */
     private void generateAllAdaptedRhythms()
     {
-        RhythmDatabase rdb = RhythmDatabase.getDefault();
-
-
         record TmpRecord(Set<TimeSignature> tsSet, List<Rhythm> rhythmList)
                 {
 
         }
-        TmpRecord tmp = performReadAPImethod(() -> 
-        {
-            var tsSet = getUniqueRhythms(false, true) // Include AdaptedRhythms to get all time signatures
-                    .stream()
-                    .map(r -> r.getTimeSignature())
-                    .collect(Collectors.toSet());
-            var rList = getUniqueRhythms(true, false);  // Exclude AdaptedRhythms
-            return new TmpRecord(tsSet, rList);
-        });
-        Set<TimeSignature> timeSignatures = tmp.tsSet();
-        List<Rhythm> uniqueRhythms = tmp.rhythmList();
 
-
-        for (Rhythm r : uniqueRhythms)         // No adapted rhythms
+        SharedExecutorServices.getExecutor().submit(() -> 
         {
-            for (TimeSignature ts : timeSignatures)
+            TmpRecord tmp = performReadAPImethod(() -> 
             {
-                if (!ts.equals(r.getTimeSignature()))
+                var tsSet = getUniqueRhythms(false, true) // Include AdaptedRhythms to get all time signatures
+                        .stream()
+                        .map(r -> r.getTimeSignature())
+                        .collect(Collectors.toSet());
+                var rList = getUniqueRhythms(true, false);  // Exclude AdaptedRhythms
+                return new TmpRecord(tsSet, rList);
+            });
+            Set<TimeSignature> timeSignatures = tmp.tsSet();
+            List<Rhythm> uniqueRhythms = tmp.rhythmList();
+
+
+            RhythmDatabase rdb = RhythmDatabase.getDefault();
+            for (Rhythm r : uniqueRhythms)         // No adapted rhythms
+            {
+                for (TimeSignature ts : timeSignatures)
                 {
-                    // Have the adapted rhythm created and made available in the database
-                    if (rdb.getAdaptedRhythmInstance(r, ts) == null)
+                    if (!ts.equals(r.getTimeSignature()))
                     {
-                        LOGGER.log(Level.FINE, "generateAllAdaptedRhythms() no {0}-adapted rhythm for r={1}", new Object[]
+                        // Have the adapted rhythm created and made available in the database
+                        if (rdb.getAdaptedRhythmInstance(r, ts) == null)
                         {
-                            ts, r
-                        });
+                            LOGGER.log(Level.FINE, "generateAllAdaptedRhythms() no {0}-adapted rhythm for r={1}", new Object[]
+                            {
+                                ts, r
+                            });
+                        }
                     }
                 }
             }
-        }
+        });
     }
 
 
@@ -1241,9 +1259,9 @@ public class SongStructureImpl implements SongStructure, Serializable
     {
         LOGGER.log(Level.FINE, "addSongPartInternal() -- spt={0}", spt);
         Objects.requireNonNull(spt);
-        Preconditions.checkArgument(spt instanceof SongPartImpl, "spt=%s class=%s", spt, spt.getClass());
-        Preconditions.checkArgument(!songParts.contains(spt), "spt=%s", spt);
-        Preconditions.checkState(executionManager.isWriteLockedByCurrentThread(), "write lock required");
+        Preconditions.checkArgument(spt instanceof SongPartImpl, "addSongPartImpl() spt=%s class=%s", spt, spt.getClass());
+        Preconditions.checkArgument(!songParts.contains(spt), "addSongPartImpl() spt=%s", spt);
+        Preconditions.checkState(executionManager.isWriteLockedByCurrentThread(), "addSongPartImpl() write lock required");
 
         int barIndex = spt.getStartBarIndex();
         int nbBars = getSizeInBars();
@@ -1278,8 +1296,8 @@ public class SongStructureImpl implements SongStructure, Serializable
     {
         LOGGER.log(Level.FINE, "removeSongPartImpl() -- spt={0}", spt);
         Objects.requireNonNull(spt);
-        Preconditions.checkArgument(spt instanceof SongPartImpl, "spt=%s class=%s", spt, spt.getClass());
-        Preconditions.checkState(executionManager.isWriteLockedByCurrentThread(), "write lock required");
+        Preconditions.checkArgument(spt instanceof SongPartImpl, "removeSongPartImpl() spt=%s class=%s", spt, spt.getClass());
+        Preconditions.checkState(executionManager.isWriteLockedByCurrentThread(), "removeSongPartImpl() write lock required");
 
         if (!songParts.remove(spt))
         {
@@ -1293,7 +1311,7 @@ public class SongStructureImpl implements SongStructure, Serializable
 
     private int getSptLastBarIndex(int sptIndex)
     {
-        Preconditions.checkElementIndex(sptIndex, songParts.size(), "sptIndex");
+        Preconditions.checkElementIndex(sptIndex, songParts.size(), "getSptLastBarIndex()  sptIndex");
         SongPart spt = songParts.get(sptIndex);
         return spt.getStartBarIndex() + spt.getNbBars() - 1;
     }

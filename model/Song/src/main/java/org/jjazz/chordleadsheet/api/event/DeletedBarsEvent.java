@@ -40,11 +40,13 @@ public class DeletedBarsEvent extends ClsChangeEvent
     private final int barFrom;
     private final int barTo;
     private final List<ChordLeadSheetItem> shiftedItems;
+    private final List<ChordLeadSheetItem> adjustedItems;
     private final boolean initSectionRemoved;
 
     public DeletedBarsEvent(ChordLeadSheet src, int barFrom, int barTo,
             List<ChordLeadSheetItem> removedItems,
-            List<ChordLeadSheetItem> shiftedItems)
+            List<ChordLeadSheetItem> shiftedItems,
+            List<ChordLeadSheetItem> adjustedItems)
     {
         super(src, removedItems);
         Objects.requireNonNull(shiftedItems);
@@ -52,6 +54,7 @@ public class DeletedBarsEvent extends ClsChangeEvent
         this.barFrom = barFrom;
         this.barTo = barTo;
         this.shiftedItems = List.copyOf(shiftedItems);
+        this.adjustedItems = List.copyOf(adjustedItems);
         this.initSectionRemoved = removedItems.stream().anyMatch(cli -> cli instanceof CLI_Section && cli.getPosition().getBar() == 0);
     }
 
@@ -80,12 +83,23 @@ public class DeletedBarsEvent extends ClsChangeEvent
      * <p>
      * Note that some items beat position might have been adjusted because of a time signature change.
      *
-     * @return
+     * @return Can be empty
      */
     public List<ChordLeadSheetItem> getShiftedItems()
     {
         return shiftedItems;
     }
+
+    /**
+     * The items whose beat positino was adjusted because of a time signature change.
+     *
+     * @return Can be empty
+     */
+    public List<ChordLeadSheetItem> getAdjustedItems()
+    {
+        return adjustedItems;
+    }
+
 
     public int getNbDeletedBars()
     {

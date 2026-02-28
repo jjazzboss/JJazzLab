@@ -168,13 +168,12 @@ public class SongPartImpl implements SongPart, Serializable
         int res = performReadAPImethod(() -> 
         {
             int hash = 7;
-            hash = 97 * hash + Objects.hashCode(this.rhythm);
+            hash = 97 * hash + System.identityHashCode(this.rhythm);
             hash = 97 * hash + this.startBarIndex;
             hash = 97 * hash + Objects.hashCode(this.name);
             hash = 97 * hash + this.nbBars;
-            hash = 97 * hash + Objects.hashCode(this.parentSection);
+            hash = 97 * hash + System.identityHashCode(this.parentSection);
             hash = 97 * hash + Objects.hashCode(this.mapRpValue);
-            hash = 97 * hash + Objects.hashCode(this.container);
             return hash;
         });
         return res;
@@ -198,15 +197,14 @@ public class SongPartImpl implements SongPart, Serializable
         final SongPartImpl other = (SongPartImpl) obj;
 
 
-        record TmpRecord(int start, int nbBars, String name, Rhythm rhythm, CLI_Section section, SmallMap<RhythmParameter<?>, Object> map,
-                SongStructure container)
+        record TmpRecord(int start, int nbBars, String name, Rhythm rhythm, CLI_Section section, SmallMap<RhythmParameter<?>, Object> map)
                 {
 
             @Override
             public boolean equals(Object obj)
             {
                 TmpRecord other = (TmpRecord) obj;
-                if (rhythm != other.rhythm || section != other.section || container != container)
+                if (rhythm != other.rhythm || section != other.section)
                 {
                     return false;
                 }
@@ -219,11 +217,11 @@ public class SongPartImpl implements SongPart, Serializable
         }
         TmpRecord tmp = performReadAPImethod(() -> 
         {
-            return new TmpRecord(this.startBarIndex, this.nbBars, this.name, this.rhythm, this.parentSection, this.mapRpValue, this.container);
+            return new TmpRecord(this.startBarIndex, this.nbBars, this.name, this.rhythm, this.parentSection, this.mapRpValue);
         });
         TmpRecord tmpOther = other.performReadAPImethod(() -> 
         {
-            return new TmpRecord(other.startBarIndex, other.nbBars, other.name, other.rhythm, other.parentSection, other.mapRpValue, other.container);
+            return new TmpRecord(other.startBarIndex, other.nbBars, other.name, other.rhythm, other.parentSection, other.mapRpValue);
         });
         return tmp.equals(tmpOther);
     }

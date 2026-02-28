@@ -23,7 +23,6 @@
  */
 package org.jjazz.ss_editorimpl.sptviewer;
 
-import org.jjazz.song.api.Song;
 import org.jjazz.ss_editor.sptviewer.api.SptViewer;
 import org.jjazz.ss_editor.sptviewer.spi.SptViewerFactory;
 import org.jjazz.songstructure.api.SongPart;
@@ -36,9 +35,9 @@ public class SptViewerFactoryImpl implements SptViewerFactory
 {
   
     @Override
-    public SptViewer createSptViewer(Song song, SongPart spt, SptViewerSettings settings, DefaultRpViewerRendererFactory factory)
+    public SptViewer createSptViewer(SongPart spt, SptViewerSettings settings, DefaultRpViewerRendererFactory factory)
     {
-        SptViewer sptv = new SptViewerImpl(song, spt, settings, factory);
+        SptViewer sptv = new SptViewerImpl(spt, settings, factory);
         return sptv;
     }
 

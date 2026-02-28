@@ -119,7 +119,7 @@ public interface MidiMix
     /**
      * Add a user channel.
      * <p>
-     * The channel will be associated to a UserRhythmVoice created from name.
+     * The channel will be associated to a UserRhythmVoice created from name. Fires a PROP_CHANNEL_INSTRUMENT_MIX change event and an undoable event.
      *
      * @param name
      * @param isDrums
@@ -129,10 +129,31 @@ public interface MidiMix
 
     /**
      * Remove a user channel.
+     * <p>
+     * Fires a PROP_CHANNEL_INSTRUMENT_MIX change event and an undoable event.
      *
      * @param name The name of the UserRhythmVoice
      */
     void removeUserChannel(String name);
+
+    /**
+     * Add channels for all the RhythmVoices of r.
+     * <p>
+     * Fires a PROP_CHANNEL_INSTRUMENT_MIX change event for each RhythmVoice, and one undoable event.
+     *
+     * @param r
+     * @throws UnsupportedEditException If no enough MIDI channels available
+     */
+    void addRhythm(Rhythm r) throws UnsupportedEditException;
+
+    /**
+     * Remove all the channels of r.
+     * <p>
+     * Fires a PROP_CHANNEL_INSTRUMENT_MIX change event for each RhythmVoice,  and an undoable event.
+     *
+     * @param r
+     */
+    void removeRhythm(Rhythm r);
 
     void addPropertyChangeListener(PropertyChangeListener l);
 

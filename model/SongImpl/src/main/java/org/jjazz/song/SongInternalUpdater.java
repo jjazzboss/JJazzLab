@@ -45,10 +45,8 @@ import org.jjazz.chordleadsheet.api.event.SectionAddedEvent;
 import org.jjazz.chordleadsheet.api.event.SectionChangedEvent;
 import org.jjazz.chordleadsheet.api.event.SectionMovedEvent;
 import org.jjazz.chordleadsheet.api.event.SectionRemovedEvent;
-import org.jjazz.chordleadsheet.api.event.SizeChangedEvent;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.synths.GM1Instrument;
 import org.jjazz.midi.api.synths.GMSynth;
@@ -124,7 +122,7 @@ class SongInternalUpdater
                 {
                     // It's an added phrase
                     String name = (String) event.getNewValue();
-                    getDerivedAddUserPhrase(name, p.isDrums(), true);    // throws UnsupportedEditException
+                    preCheckAddUserPhrase(name);
                 }
             }
             default ->
@@ -150,17 +148,17 @@ class SongInternalUpdater
                 if (e.getSameBarReplacedSection() != null)
                 {
                     // Section replaces another one at same bar
-                    getDerivedSectionReplaced(e.getSameBarReplacedSection(), e.getCLI_Section(), true);      // throws UnsupportedEditException
+                    preCheckSectionReplaced(e.getSameBarReplacedSection(), e.getCLI_Section());
                 } else
                 {
-                    getDerivedSectionAdded(e, true);        // throws UnsupportedEditException
+                    preCheckSectionAdded(e);
                 }
             }
             case SectionChangedEvent e ->
             {
                 if (e.isTimeSignatureChanged())
                 {
-                    getDerivedSectionTimeSignatureChanged(e, true);   // throws UnsupportedEditException
+                    preCheckSectionTimeSignatureChanged(e);
                 }
             }
             default ->
@@ -183,11 +181,11 @@ class SongInternalUpdater
         {
             case SptRhythmChangedEvent srce ->
             {
-                getDerivedSptRhythmChanged(srce, true);
+                preCheckSptRhythmChanged(srce);
             }
             case SptAddedEvent sae ->
             {
-                getDerivedSptAdded(sae, true);
+                preCheckSptAdded(sae);
             }
             default ->
             {
@@ -222,7 +220,17 @@ class SongInternalUpdater
 
         } else
         {
-            return getSongDerivedOperations(results.pChangeEvent());
+            var event = results.pChangeEvent();
+            if (event.getSource() == getMidiMix())
+            {
+                return getMidiMixDerivedOperations(results.pChangeEvent());
+            } else if (event.getSource() == song)
+            {
+                return getSongDerivedOperations(results.pChangeEvent());
+            } else
+            {
+                throw new IllegalStateException("event=" + event);
+            }
         }
     }
 
@@ -241,68 +249,56 @@ class SongInternalUpdater
         }
 
         List<Operation> res = null;
-        try
+        switch (srcEvent)
         {
-            switch (srcEvent)
+            case DeletedBarsEvent e ->
             {
-                case SizeChangedEvent e ->
+                res = getDerivedDeletedBars(e);
+            }
+            case InsertedBarsEvent e ->
+            {
+                res = getDerivedInsertedBars(e);
+            }
+            case SectionAddedEvent e ->
+            {
+                if (e.getSameBarReplacedSection() != null)
                 {
-                    res = getDerivedClsSizeChanged(e);
-                }
-                case DeletedBarsEvent e ->
+                    // Section replaces another one at same bar
+                    res = getDerivedSectionReplaced(e.getSameBarReplacedSection(), e.getCLI_Section());
+                } else
                 {
-                    res = getDerivedDeletedBars(e);
-                }
-                case InsertedBarsEvent e ->
-                {
-                    res = getDerivedInsertedBars(e);
-                }
-                case SectionAddedEvent e ->
-                {
-                    if (e.getSameBarReplacedSection() != null)
-                    {
-                        // Section replaces another one at same bar
-                        res = getDerivedSectionReplaced(e.getSameBarReplacedSection(), e.getCLI_Section(), false);
-                    } else
-                    {
-                        res = getDerivedSectionAdded(e, false);
-                    }
-                }
-                case SectionChangedEvent e ->
-                {
-                    if (e.isNameChanged())
-                    {
-                        res = getDerivedSectionNameChanged(e);
-                    }
-                    if (e.isTimeSignatureChanged())
-                    {
-                        if (res == null)
-                        {
-                            res = getDerivedSectionTimeSignatureChanged(e, false);
-                        } else
-                        {
-                            res.addAll(getDerivedSectionTimeSignatureChanged(e, false));
-                        }
-                    }
-                }
-                case SectionRemovedEvent e ->
-                {
-                    res = getDerivedSectionRemoved(e);
-                }
-                case SectionMovedEvent e ->
-                {
-                    res = getDerivedSectionMoved(e);
-                }
-                default ->
-                {
-                    res = Collections.emptyList();
+                    res = getDerivedSectionAdded(e);
                 }
             }
-        } catch (UnsupportedEditException ex)
-        {
-            // Should never happen : exception should have been caught by a previous call to preCheckChange() 
-            Exceptions.printStackTrace(ex);
-            throw new IllegalStateException("getNextOperations() Unexpected exception: ex=" + ex.getMessage());
+            case SectionChangedEvent e ->
+            {
+                if (e.isNameChanged())
+                {
+                    res = getDerivedSectionNameChanged(e);
+                }
+                if (e.isTimeSignatureChanged())
+                {
+                    if (res == null)
+                    {
+                        res = getDerivedSectionTimeSignatureChanged(e);
+                    } else
+                    {
+                        res.addAll(getDerivedSectionTimeSignatureChanged(e));
+                    }
+                }
+            }
+            case SectionRemovedEvent e ->
+            {
+                res = getDerivedSectionRemoved(e);
+            }
+            case SectionMovedEvent e ->
+            {
+                res = getDerivedSectionMoved(e);
+            }
+            default ->
+            {
+                res = Collections.emptyList();
+            }
         }
 
         return res;
@@ -321,35 +317,32 @@ class SongInternalUpdater
 
 
         List<Operation> res;
-        try
+        switch (srcEvent)
         {
-            switch (srcEvent)
+            case SptAddedEvent e ->
             {
-                case SptAddedEvent e ->
-                {
-                    res = getDerivedSptAdded(e, false);
-                }
-                case SptRemovedEvent e ->
-                {
-                    res = getDerivedSptRemoved(e);
-                }
-                case SptRhythmChangedEvent e ->
-                {
-                    res = getDerivedSptRhythmChanged(e, false);
-                }
-                default ->
-                {
-                    res = Collections.emptyList();
-                }
+                res = getDerivedSptAdded(e);
             }
-        } catch (UnsupportedEditException ex)
-        {
-            // Should never happen : exception should have been caught by a previous call to preCheckChange() 
-            Exceptions.printStackTrace(ex);
-            throw new IllegalStateException("getNextOperations() Unexpected exception: ex=" + ex.getMessage());
+            case SptRemovedEvent e ->
+            {
+                res = getDerivedSptRemoved(e);
+            }
+            case SptRhythmChangedEvent e ->
+            {
+                res = getDerivedSptRhythmChanged(e);
+            }
+            default ->
+            {
+                res = Collections.emptyList();
+            }
         }
 
         return res;
+    }
+
+    private List<Operation> getMidiMixDerivedOperations(SongPropertyChangeEvent srcEvent)
+    {
+        return Collections.emptyList();
     }
 
     private List<Operation> getSongDerivedOperations(SongPropertyChangeEvent srcEvent)
@@ -365,44 +358,64 @@ class SongInternalUpdater
 
 
         List<Operation> res;
-        try
+        switch (srcEvent.getPropertyName())
         {
-            switch (srcEvent.getPropertyName())
+            case Song.PROP_USER_PHRASE ->
             {
-                case Song.PROP_USER_PHRASE ->
+                if (srcEvent.getNewValue() instanceof String name)
                 {
-                    if (srcEvent.getNewValue() instanceof String name)
-                    {
-                        // Added phrase
-                        Phrase p = (Phrase) srcEvent.getOldValue();
-                        res = getDerivedAddUserPhrase(name, p.isDrums(), false);
-                    } else
-                    {
-                        // Removed phrase
-                        String name = (String) srcEvent.getOldValue();
-                        res = getDerivedRemoveUserPhrase(name);
-                    }
-                }
-                case Song.PROP_PHRASE_NAME ->
+                    // Added phrase
+                    Phrase p = (Phrase) srcEvent.getOldValue();
+                    res = getDerivedAddUserPhrase(name, p.isDrums());
+                } else
                 {
-                    String oldName = (String) srcEvent.getOldValue();
-                    String newName = (String) srcEvent.getNewValue();
-                    res = getDerivedRenameUserPhrase(oldName, newName);
-                }
-                default ->
-                {
-                    res = Collections.emptyList();
+                    // Removed phrase
+                    String name = (String) srcEvent.getOldValue();
+                    res = getDerivedRemoveUserPhrase(name);
                 }
             }
-        } catch (UnsupportedEditException ex)
-        {
-            // Should never happen : exception should have been caught by a previous call to preCheckChange() 
-            Exceptions.printStackTrace(ex);
-            throw new IllegalStateException("getNextOperations() Unexpected exception: ex=" + ex.getMessage());
+            case Song.PROP_PHRASE_NAME ->
+            {
+                String oldName = (String) srcEvent.getOldValue();
+                String newName = (String) srcEvent.getNewValue();
+                res = getDerivedRenameUserPhrase(oldName, newName);
+            }
+            default ->
+            {
+                res = Collections.emptyList();
+            }
         }
 
         return res;
 
+    }
+
+    /**
+     * Pre-check if adding a section to an empty bar is authorized.
+     *
+     * @param evt
+     * @throws UnsupportedEditException If not enough MIDI channels
+     */
+    private void preCheckSectionAdded(SectionAddedEvent evt) throws UnsupportedEditException
+    {
+        var cliSection = evt.getCLI_Section();
+        CLI_Section prevSection = evt.getPreviousBarSection();
+        assert cliSection.getPosition().getBar() > 0 : "evt=" + evt;
+        assert prevSection != null : "evt=" + evt;
+
+        var spts = songStructure.getSongParts();
+        if (!spts.isEmpty())
+        {
+            // The rhythm which should be used for the inserted SongPart
+            var sptBarIndex = getSptInsertionBar(prevSection, cliSection);
+            var newRhythm = songStructure.getRecommendedRhythm(cliSection.getData().getTimeSignature(), sptBarIndex);
+
+            // Collect all the unique rhythms
+            Set<Rhythm> uniqueRhythms = new HashSet<>();
+            uniqueRhythms.add(newRhythm);
+            uniqueRhythms.addAll(songStructure.getUniqueRhythms(true, false));
+            checkMidiMixForMidiChannelUnavailableError(uniqueRhythms);   // throws UnsupportedEditException
+        }
     }
 
     /**
@@ -412,54 +425,56 @@ class SongInternalUpdater
      * - Reduce the size of the SongPart(s) whose parent section is the previous shortened section<br>
      *
      * @param evt
-     * @param preCheck
      * @return
-     * @throws UnsupportedEditException
      */
-    private List<Operation> getDerivedSectionAdded(SectionAddedEvent evt, boolean preCheck) throws UnsupportedEditException
+    private List<Operation> getDerivedSectionAdded(SectionAddedEvent evt)
     {
         var cliSection = evt.getCLI_Section();
-        int bar = cliSection.getPosition().getBar();
-        assert bar > 0 : "evt=" + evt;
         CLI_Section prevSection = evt.getPreviousBarSection();
+        assert cliSection.getPosition().getBar() > 0 : "evt=" + evt;
         assert prevSection != null : "evt=" + evt;
 
-
-        if (preCheck)
-        {
-            var spts = songStructure.getSongParts();
-            if (!spts.isEmpty())
-            {
-                // The rhythm which should be used for the inserted SongPart
-                var sptBarIndex = getSptInsertionBar(prevSection, cliSection);
-                var newRhythm = songStructure.getRecommendedRhythm(cliSection.getData().getTimeSignature(), sptBarIndex);
-
-                // Collect all the unique rhythms
-                Set<Rhythm> uniqueRhythms = new HashSet<>();
-                uniqueRhythms.add(newRhythm);
-                uniqueRhythms.addAll(songStructure.getUniqueRhythms(true, false));
-                checkForMidiChannelUnavailableError(uniqueRhythms);   // throws UnsupportedEditException
-            }
-            return Collections.emptyList();
-        }
-
-
         List<Operation> res = new ArrayList<>();
-
 
         // Add the new SongPart
         SongPart spt = createSptAfterSection(cliSection, prevSection);
         res.add(songStructure.addSongPartsOperation(List.of(spt)));
 
-
         // Resize of SongParts linked to previous section
         var mapSptSize = getMapSptSize(prevSection);
         res.add(songStructure.resizeSongPartsOperation(mapSptSize));
 
-
         return res;
     }
 
+
+    /**
+     * Pre-check if replacing a section at the same bar is authorized.
+     *
+     * @param oldSection
+     * @param newSection
+     * @throws UnsupportedEditException If not enough MIDI channels
+     */
+    private void preCheckSectionReplaced(CLI_Section oldSection, CLI_Section newSection) throws UnsupportedEditException
+    {
+        var oldSpts = getSongParts(oldSection);
+        if (oldSpts.isEmpty())
+        {
+            return;
+        }
+
+        var oldTs = oldSection.getData().getTimeSignature();
+        var newTs = newSection.getData().getTimeSignature();
+        Rhythm newRhythm = newTs.equals(oldTs) ? null : songStructure.getRecommendedRhythm(newTs, oldSpts.get(0).getStartBarIndex());
+
+        if (newRhythm != null)
+        {
+            Set<Rhythm> uniqueRhythms = new HashSet<>();
+            uniqueRhythms.add(newRhythm);
+            uniqueRhythms.addAll(songStructure.getUniqueRhythms(true, false));
+            checkMidiMixForMidiChannelUnavailableError(uniqueRhythms);   // throws UnsupportedEditException
+        }
+    }
 
     /**
      * A section was replaced by a new one (same bar).
@@ -468,11 +483,9 @@ class SongInternalUpdater
      *
      * @param oldSection
      * @param newSection
-     * @param preCheck
      * @return
-     * @throws UnsupportedEditException
      */
-    private List<Operation> getDerivedSectionReplaced(CLI_Section oldSection, CLI_Section newSection, boolean preCheck) throws UnsupportedEditException
+    private List<Operation> getDerivedSectionReplaced(CLI_Section oldSection, CLI_Section newSection)
     {
         var oldSpts = getSongParts(oldSection);
         if (oldSpts.isEmpty())
@@ -486,25 +499,8 @@ class SongInternalUpdater
         var newTs = newSection.getData().getTimeSignature();
         Rhythm newRhythm = newTs.equals(oldTs) ? null : songStructure.getRecommendedRhythm(newTs, oldSpts.get(0).getStartBarIndex());
 
-
-        if (preCheck)
-        {
-            if (newRhythm != null)
-            {
-                // Collect all the unique rhythms
-                Set<Rhythm> uniqueRhythms = new HashSet<>();
-                uniqueRhythms.add(newRhythm);
-                uniqueRhythms.addAll(songStructure.getUniqueRhythms(true, false));
-                checkForMidiChannelUnavailableError(uniqueRhythms);   // throws UnsupportedEditException
-            }
-            return Collections.emptyList();
-        }
-
-
-        // Update SongParts rhythm and parentSection
         List<Operation> res = new ArrayList<>();
         res.add(songStructure.setSongPartsRhythmOperation(oldSpts, newRhythm, newSection));
-
 
         // Update SongPart name only if it was not customized by user
         List<SongPart> toBeRenamedSpts = oldSpts.stream()
@@ -512,8 +508,30 @@ class SongInternalUpdater
                 .toList();
         res.add(songStructure.setSongPartsNameOperation(toBeRenamedSpts, newName));
 
-
         return res;
+    }
+
+    /**
+     * Pre-check if a section time signature change is authorized.
+     *
+     * @param sce
+     * @throws UnsupportedEditException If not enough MIDI channels
+     */
+    private void preCheckSectionTimeSignatureChanged(SectionChangedEvent sce) throws UnsupportedEditException
+    {
+        assert sce.isTimeSignatureChanged() : "sce=" + sce;
+
+        var cliSection = sce.getCLI_Section();
+        var spts = getSongParts(cliSection);
+        if (spts.isEmpty())
+        {
+            return;
+        }
+
+        var newTs = sce.getNewSection().getTimeSignature();
+        Rhythm newRhythm = songStructure.getRecommendedRhythm(newTs, spts.getFirst().getStartBarIndex());
+        var event = new SptRhythmChangedEvent(songStructure, newRhythm, new HashMap<>(), spts);
+        preCheckSptRhythmChanged(event);               // throws UnsupportedEditException
     }
 
     /**
@@ -522,14 +540,11 @@ class SongInternalUpdater
      * - Update impacted SongParts rhythm<br>
      *
      * @param sce
-     * @param preCheck
      * @return
-     * @throws UnsupportedEditException
      */
-    private List<Operation> getDerivedSectionTimeSignatureChanged(SectionChangedEvent sce, boolean preCheck) throws UnsupportedEditException
+    private List<Operation> getDerivedSectionTimeSignatureChanged(SectionChangedEvent sce)
     {
         assert sce.isTimeSignatureChanged() : "sce=" + sce;
-
 
         var cliSection = sce.getCLI_Section();
         var spts = getSongParts(cliSection);
@@ -541,21 +556,11 @@ class SongInternalUpdater
         var newTs = sce.getNewSection().getTimeSignature();
         Rhythm newRhythm = songStructure.getRecommendedRhythm(newTs, spts.getFirst().getStartBarIndex());
 
-
-        if (preCheck)
-        {
-            var event = new SptRhythmChangedEvent(songStructure, newRhythm, new HashMap<>(), spts);
-            getDerivedSptRhythmChanged(event, true);               // throws UnsupportedEditException
-            return Collections.emptyList();
-        }
-
-
         // Set rhythm of impacted SongParts
         List<Operation> res = new ArrayList<>();
         res.add(songStructure.setSongPartsRhythmOperation(spts, newRhythm, null));
 
         return res;
-
     }
 
     /**
@@ -584,7 +589,7 @@ class SongInternalUpdater
 
 
         // Update SongPart name only if not customized by user
-        List<SongPart> sptsToBeRenamed = getSongParts(cliSection).stream()
+        List<SongPart> sptsToBeRenamed = spts.stream()
                 .filter(spt -> spt.getName().equalsIgnoreCase(oldName))
                 .toList();
         res.add(songStructure.setSongPartsNameOperation(sptsToBeRenamed, newName));
@@ -656,6 +661,7 @@ class SongInternalUpdater
         CLI_Section newBarPrevSection = chordLeadSheet.getSection(newBarIndex - 1);
         CLI_Section oldBarNewSection = chordLeadSheet.getSection(evt.getOldBar());
         List<Operation> res = new ArrayList<>();
+        Rhythm cliSectionRhythm = null;
 
 
         if (oldBarNewSection == newBarPrevSection || oldBarNewSection == cliSection)
@@ -665,11 +671,17 @@ class SongInternalUpdater
             mapSptSize.putAll(getMapSptSize(newBarPrevSection));
             res.add(songStructure.resizeSongPartsOperation(mapSptSize));
 
+            var cliSectionSpts = getSongParts(cliSection);
+            if (!cliSectionSpts.isEmpty())
+            {
+                cliSectionRhythm = cliSectionSpts.getFirst().getRhythm();
+            }
+
         } else
         {
             // It's a "big move", which crosses at least another section: add new SongPart and remove the old ones
             SongPart spt = createSptAfterSection(cliSection, newBarPrevSection);    // Must be calculated before any change occurs
-            res.add(songStructure.addSongPartsOperation(List.of(spt)));            
+            res.add(songStructure.addSongPartsOperation(List.of(spt)));
             res.add(songStructure.removeSongPartsOperation(getSongParts(cliSection)));
 
             // Resize impacted SongParts 
@@ -677,15 +689,16 @@ class SongInternalUpdater
             mapSptSize.putAll(getMapSptSize(newBarPrevSection));
             res.add(songStructure.resizeSongPartsOperation(mapSptSize));
 
+            // Use the new SongPart's rhythm, not the removed old ones
+            cliSectionRhythm = spt.getRhythm();
         }
 
         // Possibly update the position of ChordLeadSheetItems, if a rhythm division has changed
-        var spts = getSongParts(cliSection);
-        if (!spts.isEmpty())
+        if (cliSectionRhythm != null)
         {
-            res.addAll(adjustChordLeadSheetItemsPosition(cliSection, spts.getFirst().getRhythm()));
+            res.addAll(adjustChordLeadSheetItemsPosition(cliSection, cliSectionRhythm));
         }
-        spts = getSongParts(oldBarNewSection);
+        var spts = getSongParts(oldBarNewSection);
         if (!spts.isEmpty())
         {
             res.addAll(adjustChordLeadSheetItemsPosition(oldBarNewSection, spts.getFirst().getRhythm()));
@@ -768,26 +781,39 @@ class SongInternalUpdater
 
         } else
         {
-            // Insertion from bar 0, create an init section for the new initi section
-            var cliSection = chordLeadSheet.getSection(0);
-            var section = cliSection.getData();
-            var nbBars = chordLeadSheet.getBarRange(cliSection).size();
+            // Insertion from bar 0, create an init section for the new init section
+            var newInitSection = evt.getNewInitSection();
+            var section = newInitSection.getData();
+            var nbBars = chordLeadSheet.getBarRange(newInitSection).size();
             var spt0 = songStructure.getSongPart(0);
             SongPart newSpt;
             if (spt0 != null)
             {
                 // Copy from existing
-                newSpt = spt0.getCopy(null, 0, nbBars, cliSection);
+                newSpt = spt0.getCopy(null, 0, nbBars, newInitSection);
             } else
             {
                 // Empty SongStructure, create from scratch
                 var r = songStructure.getRecommendedRhythm(section.getTimeSignature(), 0);
-                newSpt = songStructure.createSongPart(r, section.getName(), 0, cliSection, true);
+                newSpt = songStructure.createSongPart(r, section.getName(), 0, newInitSection, true);
             }
             res.add(songStructure.addSongPartsOperation(List.of(newSpt)));
         }
 
         return res;
+    }
+
+    /**
+     * Pre-check if adding some SongParts is authorized.
+     *
+     * @param sae
+     * @throws UnsupportedEditException If not enough MIDI channels
+     */
+    private void preCheckSptAdded(SptAddedEvent sae) throws UnsupportedEditException
+    {
+        Set<Rhythm> uniqueRhythms = getMidiMix().getUniqueRhythms();
+        sae.getSongParts().forEach(spt -> uniqueRhythms.add(getSourceRhythm(spt.getRhythm())));
+        checkMidiMixForMidiChannelUnavailableError(uniqueRhythms);     // throws UnsupportedEditException
     }
 
     /**
@@ -797,32 +823,21 @@ class SongInternalUpdater
      * - possibly adjust chord symbols position if rhythm division has changed<br>
      *
      * @param sae
-     * @param preCheck
      * @return
-     * @throws org.jjazz.chordleadsheet.api.UnsupportedEditException
      */
-    private List<Operation> getDerivedSptAdded(SptAddedEvent sae, boolean preCheck) throws UnsupportedEditException
+    private List<Operation> getDerivedSptAdded(SptAddedEvent sae)
     {
         Set<Rhythm> uniqueRhythms = getMidiMix().getUniqueRhythms();
         var spts = sae.getSongParts();
 
-
-        if (preCheck)
-        {
-            spts.forEach(spt -> uniqueRhythms.add(spt.getRhythm()));
-            checkForMidiChannelUnavailableError(uniqueRhythms);     // throws UnsupportedEditException
-            return Collections.emptyList();
-        }
-
         List<Operation> res = new ArrayList<>();
 
-
-        // Possibly update MidiMix 
+        // Possibly update MidiMix
         for (var r : sae.getRhythms(true))
         {
             if (!uniqueRhythms.contains(r))
             {
-                res.addAll(addRhythmToMidiMix(r));
+                res.add(getMidiMix().addRhythmOperation(r));
             }
         }
 
@@ -833,7 +848,7 @@ class SongInternalUpdater
     }
 
     /**
-     * Some SongPart were removed.
+     * Some SongParts were removed.
      * <p>
      * - Possibly update MidiMix if a rhythm becomes unused<br>
      *
@@ -847,107 +862,73 @@ class SongInternalUpdater
 
         List<Operation> res = new ArrayList<>();
 
-
-        // Get rhythms from removed SongParts which are not used anymore in the song
         Set<Rhythm> rhythmsToBeRemoved = evt.getRhythms(true).stream()
                 .filter(r -> !songRhythms.contains(r))
                 .collect(Collectors.toSet());
 
-        for (var r : rhythmsToBeRemoved)
-        {
-            res.addAll(removeRhythmFromMidiMix(r));
-        }
+        rhythmsToBeRemoved.forEach(r -> res.add(getMidiMix().removeRhythmOperation(r)));
 
         return res;
+    }
+
+    /**
+     * Pre-check if changing the rhythm of some SongParts is authorized.
+     *
+     * @param srce
+     * @throws UnsupportedEditException If not enough MIDI channels
+     */
+    private void preCheckSptRhythmChanged(SptRhythmChangedEvent srce) throws UnsupportedEditException
+    {
+        var spts = srce.getSongParts();
+        var newRhythm = srce.getNewRhythm();
+
+        if (newRhythm != null)
+        {
+            // Compute the remaining rhythms after the change
+            Set<Rhythm> uniqueRhythms = new HashSet<>();
+            uniqueRhythms.add(newRhythm);
+            songStructure.getSongParts().stream()
+                    .filter(spt -> !spts.contains(spt))
+                    .forEach(spt -> uniqueRhythms.add(getSourceRhythm(spt.getRhythm())));
+            checkMidiMixForMidiChannelUnavailableError(uniqueRhythms);      // throws UnsupportedEditException
+        }
     }
 
     /**
      * The rhythm of some SongParts has changed.
      * <p>
-     * - Update MidiMix if new rhythm<br>
+     * - Update MidiMix: possibly remove some rhythms and possibly add new rhythm<br>
      * - Update chord symbols position if new rhythm division has changed<br>
      *
      * @param srce
-     * @param preCheck
      * @return
-     * @throws org.jjazz.chordleadsheet.api.UnsupportedEditException
      */
-    private List<Operation> getDerivedSptRhythmChanged(SptRhythmChangedEvent srce, boolean preCheck) throws UnsupportedEditException
+    private List<Operation> getDerivedSptRhythmChanged(SptRhythmChangedEvent srce)
     {
         var spts = srce.getSongParts();
         var newRhythm = srce.getNewRhythm();
 
-        if (preCheck)
-        {
-            if (newRhythm != null)
-            {
-                // Compute the remaining rhythms after the change
-                Set<Rhythm> uniqueRhythms = new HashSet<>();
-                uniqueRhythms.add(newRhythm);
-                songStructure.getSongParts().stream()
-                        .filter(spt -> !spts.contains(spt))
-                        .forEach(spt -> uniqueRhythms.add(spt.getRhythm()));
-                checkForMidiChannelUnavailableError(uniqueRhythms);      // throws UnsupportedEditException
-            }
-            return Collections.emptyList();
-        }
-
-
         List<Operation> res = new ArrayList<>();
 
+        // Remove unused rhythms from MidiMix
+        var midiMixRhythms = getMidiMix().getUniqueRhythms();
+        var songRhythms = songStructure.getUniqueRhythms(true, false);
+        var toBeRemovedRhythms = midiMixRhythms.stream()
+                .filter(r -> !songRhythms.contains(r))
+                .toList();
+        toBeRemovedRhythms.forEach(r -> res.add(getMidiMix().removeRhythmOperation(r)));
 
-        // Possibly update MidiMix 
-        var uniqueRhythms = getMidiMix().getUniqueRhythms();
-        for (var r : srce.getRhythms(true))
+        // Add new rhythm if required
+        if (newRhythm != null && !midiMixRhythms.contains(newRhythm))
         {
-            if (!uniqueRhythms.contains(r))
-            {
-                res.addAll(addRhythmToMidiMix(r));
-            }
+            res.add(getMidiMix().addRhythmOperation(newRhythm));
         }
 
         // Possibly update ChordLeadSheetItems position
         res.addAll(adjustChordLeadSheetItemsPosition(spts));
 
-
         return res;
     }
-
-
-    /**
-     * The cls size has changed.
-     * <p>
-     * - Possibly remove and resize song parts<br>
-     *
-     * @param evt
-     * @return
-     */
-    private List<Operation> getDerivedClsSizeChanged(SizeChangedEvent evt)
-    {
-        List<Operation> res = new ArrayList<>();
-        if (!evt.isGrowing())
-        {
-            // Size got smaller, possibly remove song parts
-            List<CLI_Section> removedSections = evt.getItems(CLI_Section.class);
-            List<SongPart> toBeRemovedSpts = new ArrayList<>();
-            for (CLI_Section cliSection : removedSections)
-            {
-                toBeRemovedSpts.addAll(getSongParts(cliSection));
-            }
-
-            res.add(songStructure.removeSongPartsOperation(toBeRemovedSpts));
-        }
-
-
-        // Possibly resize last section
-        var lastSection = getLastSection();
-        var mapSptSize = getMapSptSize(lastSection);
-        res.add(songStructure.resizeSongPartsOperation(mapSptSize));
-
-
-        return res;
-    }
-
 
     /**
      * A user phrase was removed from the song.
@@ -963,33 +944,35 @@ class SongInternalUpdater
     }
 
     /**
+     * Pre-check if adding a new user phrase is authorized.
+     *
+     * @param name The user phrase name
+     * @throws UnsupportedEditException If no MIDI channel is available or name is already used
+     */
+    private void preCheckAddUserPhrase(String name) throws UnsupportedEditException
+    {
+        if (getMidiMix().getUnusedChannels().isEmpty())
+        {
+            MidiMixImpl.throwNotEnoughMidiChannelException();      //  throws UnsupportedEditException
+        }
+        if (getMidiMix().getUserRhythmVoice(name) != null)
+        {
+            MidiMixImpl.throwSameNameUserChannelException(name);    //  throws UnsupportedEditException
+        }
+    }
+
+    /**
      * A new user phrase was added to the song.
      * <p>
      * - Add a user channel to the MidiMix<br>
      *
      * @param name
-     * @param isDrums  True if it's a new drums phrase
-     * @param preCheck
+     * @param isDrums True if it's a new drums phrase
      * @return
-     * @throws org.jjazz.chordleadsheet.api.UnsupportedEditException
      */
-    private List<Operation> getDerivedAddUserPhrase(String name, boolean isDrums, boolean preCheck) throws UnsupportedEditException
+    private List<Operation> getDerivedAddUserPhrase(String name, boolean isDrums)
     {
-        if (preCheck)
-        {
-            if (getMidiMix().getUnusedChannels().isEmpty())
-            {
-                MidiMixManagerImpl.throwNotEnoughMidiChannelException();      //  throws UnsupportedEditException
-            }
-            if (getMidiMix().getUserRhythmVoice(name) != null)
-            {
-                MidiMixManagerImpl.throwSameNameUserChannelException(name);    //  throws UnsupportedEditException
-            }
-            return Collections.emptyList();
-        }
-
         return List.of(getMidiMix().addUserChannelOperation(name, isDrums));
-
     }
 
 
@@ -1018,12 +1001,12 @@ class SongInternalUpdater
     // Helper methods
     // ========================================================================================================
     /**
-     * Check if MidiMix can accomodate the specified rhythms (in addition to the user tracks).
+     * Check if MidiMix can accomodate the specified rhythms in addition to the user tracks.
      *
      * @param rhythms
      * @throws UnsupportedEditException
      */
-    private void checkForMidiChannelUnavailableError(Set<Rhythm> rhythms) throws UnsupportedEditException
+    private void checkMidiMixForMidiChannelUnavailableError(Set<Rhythm> rhythms) throws UnsupportedEditException
     {
         Objects.requireNonNull(rhythms);
 
@@ -1035,7 +1018,7 @@ class SongInternalUpdater
 
         if (nbVoices > MidiMix.NB_AVAILABLE_CHANNELS)
         {
-
+            MidiMixImpl.throwNotEnoughMidiChannelException();
         }
     }
 
@@ -1167,7 +1150,6 @@ class SongInternalUpdater
     /**
      * Adjust position of ChordLeadSheetItems which do not match the reference rhythm division.
      * <p>
-     * The reference rhythm is the rhythm of the first SongPart whose cliSection is the parent section.
      *
      * @param cliSection Adjust items of this section
      * @param rhythm
@@ -1221,210 +1203,6 @@ class SongInternalUpdater
             }
         }
         return midiMix;
-    }
-
-    /**
-     * Remove r from the MidiMix.
-     *
-     * @param r
-     * @return
-     */
-    private List<Operation> removeRhythmFromMidiMix(Rhythm r)
-    {
-        var rvs = getMidiMix().getRhythmVoices();
-
-        List<Operation> res = rvs.stream()
-                .filter(rv -> rv.getContainer() == r)
-                .map(rv -> (Operation) getMidiMix().setInstrumentMixOperation(getMidiMix().getChannel(rv), null, null))
-                .toList();
-        return res;
-    }
-
-
-    /**
-     * Add a rhythm to the MidiMix.
-     * <p>
-     * Relies on adaptInstrumentMixes() to harmonize InstrumentSettings if there is already a rhythm in the song.
-     *
-     * @param newRhythm
-     * @return
-     * @see #adaptInstrumentMixes(org.jjazz.midimix.api.MidiMix, org.jjazz.midimix.api.MidiMix, org.jjazz.rhythm.api.Rhythm)
-     */
-    private List<Operation> addRhythmToMidiMix(Rhythm newRhythm)
-    {
-        Preconditions.checkArgument(newRhythm != null && !(newRhythm instanceof AdaptedRhythm), "r=%s", newRhythm);
-
-        LOGGER.log(Level.FINE, "addRhythm() r={0}", new Object[]
-        {
-            newRhythm
-        });
-
-        List<Operation> res = new ArrayList();
-
-
-        MidiMix mmNewRhythm = MidiMixManager.getDefault().findMix(newRhythm);
-        if (!getMidiMix().getUniqueRhythms().isEmpty())
-        {
-            // Adapt mm to sound like the InstrumentMixes of r0           
-            Rhythm r0 = getMidiMix().getUniqueRhythms().iterator().next();
-            adaptInstrumentMixes(mmNewRhythm, getMidiMix(), r0);
-        }
-
-        List<Integer> usedChannelsNewRhythm = mmNewRhythm.getUsedChannels();
-        if (getMidiMix().getUnusedChannels().size() < usedChannelsNewRhythm.size())
-        {
-            // Problem should have been caught earlier
-            throw new IllegalStateException("getMidiMix()=" + getMidiMix() + " midiMixRhythm=" + mmNewRhythm);
-        }
-
-        // addInstrumentMixes(getMidiMix(), midiMixRhythm, r);
-
-        for (Integer channelNewRhythm : usedChannelsNewRhythm)
-        {
-            RhythmVoice rvNewRhythm = mmNewRhythm.getRhythmVoice(channelNewRhythm);
-            if (!(rvNewRhythm instanceof UserRhythmVoice))
-            {
-                int channelDest = getMidiMix().getUsedChannels().contains(channelNewRhythm) ? getMidiMix().findFreeChannel(rvNewRhythm.isDrums())
-                        : channelNewRhythm;
-                assert channelDest != -1;
-                InstrumentMix insMixSrc = mmNewRhythm.getInstrumentMix(channelNewRhythm);
-                res.add(getMidiMix().setInstrumentMixOperation(channelDest, rvNewRhythm, new InstrumentMix(insMixSrc)));
-            }
-        }
-
-        return res;
-    }
-
-
-    /**
-     * Adapt the InstrumentMixes of midiMixDest to "sound" like the InstrumentMixes of rSrc in midiMixSrc.
-     *
-     * @param midiMixDest
-     * @param midiMixSrc
-     * @param rSrc
-     */
-    private void adaptInstrumentMixes(MidiMix midiMixDest, MidiMix midiMixSrc, Rhythm rSrc)
-    {
-        LOGGER.log(Level.FINE, "adaptInstrumentMixes() midiMixDest={0} midiMixSrc={1} rSrc={2}", new Object[]
-        {
-            midiMixDest, midiMixSrc, rSrc
-        });
-
-        Map<String, InstrumentMix> mapKeyMix = new HashMap<>();
-        Map<InstrumentFamily, InstrumentMix> mapFamilyMix = new HashMap<>();
-        InstrumentMix rSrcInsMixDrums = null;
-        InstrumentMix rSrcInsMixPerc = null;
-
-        // First try to match InstrumentMixes using "key" = "3 first char of Rv.getName() + GM1 family"
-        for (int channelSrc : midiMixSrc.getUsedChannels(rSrc))
-        {
-            // Build the keys from rSrc
-            RhythmVoice rvSrc = midiMixSrc.getRhythmVoice(channelSrc);
-            InstrumentMix insMixSrc = midiMixSrc.getInstrumentMix(channelSrc);
-            if (rvSrc.isDrums())
-            {
-                // Special case, use the 2 special variables for Drums or Percussion                
-                if (midiMixSrc.getDrumsReroutedChannels().contains(channelSrc))
-                {
-                    // If channel is rerouted, re-enable the disabled parameters
-                    insMixSrc = new InstrumentMix(insMixSrc);
-                    insMixSrc.setInstrumentEnabled(true);
-                    insMixSrc.getSettings().setChorusEnabled(true);
-                    insMixSrc.getSettings().setReverbEnabled(true);
-                    insMixSrc.getSettings().setPanoramicEnabled(true);
-                    insMixSrc.getSettings().setVolumeEnabled(true);
-                }
-                if (rvSrc.getType().equals(RhythmVoice.Type.DRUMS))
-                {
-                    rSrcInsMixDrums = insMixSrc;
-                } else
-                {
-                    rSrcInsMixPerc = insMixSrc;
-                }
-
-            } else
-            {
-                GM1Instrument insGM1 = insMixSrc.getInstrument().getSubstitute();  // Might be null            
-                InstrumentFamily family = insGM1 != null ? insGM1.getFamily() : null;
-                String mapKey = Utilities.truncate(rvSrc.getName().toLowerCase(), 3) + "-" + ((family != null) ? family.name() : "");
-                if (mapKeyMix.get(mapKey) == null)
-                {
-                    mapKeyMix.put(mapKey, insMixSrc);  // If several instruments have the same Type, save only the first one
-                }
-                if (family != null && mapFamilyMix.get(family) == null)
-                {
-                    mapFamilyMix.put(family, insMixSrc);       // If several instruments have the same family, save only the first one
-                }
-            }
-        }
-
-        // Try to convert using the keys
-        HashSet<Integer> doneChannels = new HashSet<>();
-        for (int channelDest : midiMixDest.getUsedChannels())
-        {
-            RhythmVoice rvDesr = midiMixDest.getRhythmVoice(channelDest);
-            InstrumentMix insMixDest = midiMixDest.getInstrumentMix(channelDest);
-            InstrumentMix insMix;
-
-            switch (rvDesr.getType())
-            {
-                case DRUMS ->
-                    insMix = rSrcInsMixDrums;
-                case PERCUSSION ->
-                    insMix = rSrcInsMixPerc;
-                default ->
-                {
-                    GM1Instrument mmInsGM1 = insMixDest.getInstrument().getSubstitute();  // Can be null            
-                    InstrumentFamily mmFamily = mmInsGM1 != null ? mmInsGM1.getFamily() : null;
-                    String mapKey = Utilities.truncate(rvDesr.getName().toLowerCase(), 3) + "-" + ((mmFamily != null)
-                            ? mmFamily.name() : "");
-                    insMix = mapKeyMix.get(mapKey);
-                }
-
-            }
-
-            if (insMix != null)
-            {
-                // Copy InstrumentMix data
-                insMixDest.setInstrument(insMix.getInstrument());
-                insMixDest.getSettings().set(insMix.getSettings());
-                doneChannels.add(channelDest);
-                LOGGER.log(Level.FINER, "adaptInstrumentMixes() set (1) channel {0} instrument setting to : {1}", new Object[]
-                {
-                    channelDest,
-                    insMix.getSettings()
-                });
-            }
-
-        }
-
-        // Try to convert also the other channels by matching only the instrument family
-        for (int channelDest : midiMixDest.getUsedChannels())
-        {
-            if (doneChannels.contains(channelDest))
-            {
-                continue;
-            }
-            InstrumentMix insMixDest = midiMixDest.getInstrumentMix(channelDest);
-            GM1Instrument insGM1Dest = insMixDest.getInstrument().getSubstitute();  // Can be null          
-            if (insGM1Dest == null || insGM1Dest == GMSynth.getInstance().getVoidInstrument())
-            {
-                continue;
-            }
-            InstrumentFamily mmFamily = insGM1Dest.getFamily();
-            InstrumentMix insMix = mapFamilyMix.get(mmFamily);
-            if (insMix != null)
-            {
-                // Copy InstrumentMix data
-                insMixDest.setInstrument(insMix.getInstrument());
-                insMixDest.getSettings().set(insMix.getSettings());
-                LOGGER.log(Level.FINER, "adaptInstrumentMixes() set (2) channel {0} instrument setting to : {1}", new Object[]
-                {
-                    channelDest,
-                    insMix.getSettings()
-                });
-            }
-        }
     }
 
 

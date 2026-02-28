@@ -30,6 +30,7 @@ import java.awt.LayoutManager;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
@@ -46,22 +47,23 @@ import org.jjazz.chordleadsheet.api.event.ItemAddedEvent;
 import org.jjazz.chordleadsheet.api.event.ItemChangedEvent;
 import org.jjazz.chordleadsheet.api.event.ItemMovedEvent;
 import org.jjazz.chordleadsheet.api.event.ItemRemovedEvent;
+import org.jjazz.chordleadsheet.api.event.SectionAddedEvent;
+import org.jjazz.chordleadsheet.api.event.SectionChangedEvent;
+import org.jjazz.chordleadsheet.api.event.SectionRemovedEvent;
 import org.jjazz.chordleadsheet.api.item.CLI_BarAnnotation;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackListener;
 import org.jjazz.song.api.Song;
 import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.songstructure.api.event.RpValueChangedEvent;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.jjazz.songstructure.api.event.SptAddedEvent;
 import org.jjazz.songstructure.api.event.SptRemovedEvent;
 import org.jjazz.songstructure.api.event.SptRenamedEvent;
-import org.jjazz.songstructure.api.event.SptRhythmChangedEvent;
-import org.jjazz.songstructure.api.event.SptResizedEvent;
 import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.cl_editor.barbox.api.BarBox;
@@ -377,180 +379,182 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
     @Override
     public void chordLeadSheetChanged(final ClsChangeEvent event) throws UnsupportedEditException
     {
-        // Model changes can be generated outside the EDT
-        Runnable run = () -> 
+        switch (event)
         {
-            switch (event)
+            case ItemAddedEvent e when !e.isUndo() -> handleAddedItems(e.getItems());
+            case ItemAddedEvent e when e.isUndo() -> handleRemovedItems(e.getItems());
+            case ItemRemovedEvent e when !e.isUndo() -> handleRemovedItems(e.getItems());
+            case ItemRemovedEvent e when e.isUndo() -> handleAddedItems(e.getItems());
+            case SectionAddedEvent e when !e.isUndo() -> handleAddedItems(e.getItems());
+            case SectionAddedEvent e when e.isUndo() -> handleRemovedItems(e.getItems());
+            case SectionRemovedEvent e when !e.isUndo() -> handleRemovedItems(e.getItems());
+            case SectionRemovedEvent e when e.isUndo() -> handleAddedItems(e.getItems());
+            case SectionChangedEvent e -> handleSectionChanged(e);
+            case ItemChangedEvent e when e.getItem() instanceof CLI_BarAnnotation cliBa && cliBa.getPosition().getBar() == clsPosition.getBar() -> updateAnnotation();
+            case ItemMovedEvent e -> handeItemsMoved(e);
+            default ->
             {
-                case ItemAddedEvent e ->
-                {
-                    for (var item : e.getItems())
-                    {
-                        int itemBar = item.getPosition().getBar();
-                        if (barBox.getModelBarIndex() == itemBar)
-                        {
-                            barBox.addItem(item);
-
-                        } else if (nextBarBox.getModelBarIndex() == itemBar)
-                        {
-                            nextBarBox.addItem(item);
-                        }
-                        if (item instanceof CLI_BarAnnotation && itemBar == clsPosition.getBar())
-                        {
-                            updateAnnotation();
-                        }
-                    }
-                }
-                case ItemRemovedEvent e ->
-                {
-                    for (var item : e.getItems())
-                    {
-                        int itemBar = item.getPosition().getBar();
-                        if (barBox.getModelBarIndex() == itemBar)
-                        {
-                            barBox.removeItem(item);
-                        } else if (nextBarBox.getModelBarIndex() == itemBar)
-                        {
-                            nextBarBox.removeItem(item);
-                        }
-                        if (item instanceof CLI_BarAnnotation && itemBar == clsPosition.getBar())
-                        {
-                            updateAnnotation();
-                        }
-                    }
-                }
-                case ItemChangedEvent e ->
-                {
-                    // If chord symbol, catched directly by the ItemRenderer
-                    var item = e.getItem();
-                    if (item instanceof CLI_Section cliSection)
-                    {
-                        // Handle section time signature changes. This will disable our listener but we still need to update the UI                    
-                        if (barBox.getSection() == cliSection)
-                        {
-                            barBox.setSection(cliSection);
-                        }
-                        if (nextBarBox.getSection() == cliSection)
-                        {
-                            nextBarBox.setSection(cliSection);
-                        }
-                    } else if (item instanceof CLI_BarAnnotation cliBa && cliBa.getPosition().getBar() == clsPosition.getBar())
-                    {
-                        updateAnnotation();
-                    }
-                }
-                case ItemMovedEvent e ->
-                {
-                    // A moved ChordSymbol or other, but NOT a section
-                    var item = e.getItem();
-                    int modelBarIndex = item.getPosition().getBar();
-                    int oldModelBarIndex = e.getOldPosition().getBar();
-                    if (modelBarIndex == oldModelBarIndex)
-                    {
-                        if (barBox.getModelBarIndex() == modelBarIndex)
-                        {
-                            barBox.moveItem(item);
-                        } else if (nextBarBox.getModelBarIndex() == modelBarIndex)
-                        {
-                            nextBarBox.moveItem(item);
-                        }
-                    } else
-                    {
-                        // Remove on one bar 
-                        if (barBox.getModelBarIndex() == oldModelBarIndex)
-                        {
-                            barBox.removeItem(item);
-                        } else if (nextBarBox.getModelBarIndex() == oldModelBarIndex)
-                        {
-                            nextBarBox.removeItem(item);
-                        }
-
-                        // Then add on another bar
-                        if (barBox.getModelBarIndex() == modelBarIndex)
-                        {
-                            barBox.addItem(item);
-                        } else if (nextBarBox.getModelBarIndex() == modelBarIndex)
-                        {
-                            nextBarBox.addItem(item);
-                        }
-
-                    }
-                }
-                default ->
-                {
-                    // Nothing
-                    // SectionMovedEvent will be handled by SongStructureListener, PlaybackListener will get disabled
-                }
+                // Nothing
             }
+        }
 
-        };
-        org.jjazz.uiutilities.api.UIUtilities.invokeLaterIfNeeded(run);
     }
     //------------------------------------------------------------------------------
     // SgsChangeListener interface
     //------------------------------------------------------------------------------   
 
+
     @Override
-    public void songStructureChanged(final SgsChangeEvent e)
+    public void songStructureChanged(final SgsChangeEvent event)
     {
-        // Model changes can be generated outside the EDT
-        Runnable run = new Runnable()
+        switch (event)
         {
-            @Override
-            public void run()
+            case SptRemovedEvent e when !e.isUndo() -> handleSptRemoved();
+            case SptRemovedEvent e when e.isUndo() -> handleSptAdded();
+            case SptAddedEvent e when !e.isUndo() -> handleSptAdded();
+            case SptAddedEvent e when e.isUndo() -> handleSptRemoved();
+            case SptRenamedEvent e -> handleSptRenamed(e);
+            default ->
             {
-                if (e instanceof SptRemovedEvent)
-                {
-                    var songSize = song.getSongStructure().getSizeInBars();
-                    if (songSize == 0)
-                    {
-                        barBox.setModelBarIndex(-1);
-                        nextBarBox.setModelBarIndex(-1);
-                    } else if (songSize == 1)
-                    {
-                        nextBarBox.setModelBarIndex(-1);
-                    }
-                    updateAnnotation();    // text might be impacted if using # lines
-                } else if (e instanceof SptAddedEvent)
-                {
-                    if (barBox.getModelBarIndex() == -1)
-                    {
-                        barBox.setModelBarIndex(0);     // 0 because playback must be disabled
-                    }
-                    if (nextBarBox.getModelBarIndex() == -1 && song.getSongStructure().getSizeInBars() > 1)
-                    {
-                        nextBarBox.setModelBarIndex(1);
-                    }
-                    updateAnnotation();    // text might be impacted if using # lines
-                } else if (e instanceof SptRhythmChangedEvent re)
-                {
-                    // Nothing
-                } else if (e instanceof SptResizedEvent sre)
-                {
-                    // Nothing
-                } else if (e instanceof SptRenamedEvent sre)
-                {
-                    if (sre.getSongParts().contains(songPart))
-                    {
-                        lbl_songPart.setText(songPart.getName());
-                    }
-                    if (sre.getSongParts().contains(nextSongPart))
-                    {
-                        lbl_nextSongPart.setText(buildNextSongPartString(nextSongPart));
-                    }
-                    updateAnnotation();    // text might be impacted if using # lines
-                } else if (e instanceof RpValueChangedEvent)
-                {
-                    // Nothing
-                }
+                // nothing
             }
-        };
-        UIUtilities.invokeLaterIfNeeded(run);
+        }
     }
 
     // =================================================================================================
     // Private methods
     // =================================================================================================
+
+    private void handleAddedItems(List<ChordLeadSheetItem> items)
+    {
+        for (var item : items)
+        {
+            int itemBar = item.getPosition().getBar();
+            if (barBox.getModelBarIndex() == itemBar)
+            {
+                barBox.addItem(item);
+
+            } else if (nextBarBox.getModelBarIndex() == itemBar)
+            {
+                nextBarBox.addItem(item);
+            }
+            if (item instanceof CLI_BarAnnotation && itemBar == clsPosition.getBar())
+            {
+                updateAnnotation();
+            }
+        }
+    }
+
+    private void handleRemovedItems(List<ChordLeadSheetItem> items)
+    {
+        for (var item : items)
+        {
+            int itemBar = item.getPosition().getBar();
+            if (barBox.getModelBarIndex() == itemBar)
+            {
+                barBox.removeItem(item);
+            } else if (nextBarBox.getModelBarIndex() == itemBar)
+            {
+                nextBarBox.removeItem(item);
+            }
+            if (item instanceof CLI_BarAnnotation && itemBar == clsPosition.getBar())
+            {
+                updateAnnotation();
+            }
+        }
+    }
+
+    private void handleSectionChanged(SectionChangedEvent e)
+    {
+        var cliSection = e.getCLI_Section();
+        // This will disable our listener but we still need to update the UI                    
+        if (barBox.getSection() == cliSection)
+        {
+            barBox.setSection(cliSection);
+        }
+        if (nextBarBox.getSection() == cliSection)
+        {
+            nextBarBox.setSection(cliSection);
+        }
+    }
+
+    private void handeItemsMoved(ItemMovedEvent e)
+    {
+        var item = e.getItem();
+
+        int modelBarIndex = e.isUndo() ? e.getOldPosition().getBar() : e.getNewPosition().getBar();
+        int oldModelBarIndex = e.isUndo() ? e.getNewPosition().getBar() : e.getOldPosition().getBar();
+
+        if (modelBarIndex == oldModelBarIndex)
+        {
+            if (barBox.getModelBarIndex() == modelBarIndex)
+            {
+                barBox.moveItem(item);
+            } else if (nextBarBox.getModelBarIndex() == modelBarIndex)
+            {
+                nextBarBox.moveItem(item);
+            }
+        } else
+        {
+            // Remove on one bar 
+            if (barBox.getModelBarIndex() == oldModelBarIndex)
+            {
+                barBox.removeItem(item);
+            } else if (nextBarBox.getModelBarIndex() == oldModelBarIndex)
+            {
+                nextBarBox.removeItem(item);
+            }
+
+            // Then add on another bar
+            if (barBox.getModelBarIndex() == modelBarIndex)
+            {
+                barBox.addItem(item);
+            } else if (nextBarBox.getModelBarIndex() == modelBarIndex)
+            {
+                nextBarBox.addItem(item);
+            }
+        }
+    }
+
+    private void handleSptRemoved()
+    {
+        var songSize = song.getSongStructure().getSizeInBars();
+        if (songSize == 0)
+        {
+            barBox.setModelBarIndex(-1);
+            nextBarBox.setModelBarIndex(-1);
+        } else if (songSize == 1)
+        {
+            nextBarBox.setModelBarIndex(-1);
+        }
+        updateAnnotation();    // text might be impacted if using # lines
+    }
+
+    private void handleSptAdded()
+    {
+        if (barBox.getModelBarIndex() == -1)
+        {
+            barBox.setModelBarIndex(0);     // 0 because playback must be disabled
+        }
+        if (nextBarBox.getModelBarIndex() == -1 && song.getSongStructure().getSizeInBars() > 1)
+        {
+            nextBarBox.setModelBarIndex(1);
+        }
+        updateAnnotation();    // text might be impacted if using # lines
+    }
+
+    private void handleSptRenamed(SptRenamedEvent e)
+    {
+        if (e.getSongParts().contains(songPart))
+        {
+            lbl_songPart.setText(songPart.getName());
+        }
+        if (e.getSongParts().contains(nextSongPart))
+        {
+            lbl_nextSongPart.setText(buildNextSongPartString(nextSongPart));
+        }
+        updateAnnotation();    // text might be impacted if using # lines
+    }
 
     private void createBarBoxes(Song sg)
     {

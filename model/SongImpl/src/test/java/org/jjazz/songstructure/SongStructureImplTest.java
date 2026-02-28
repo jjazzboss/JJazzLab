@@ -26,6 +26,7 @@ package org.jjazz.songstructure;
 
 import java.text.ParseException;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
@@ -51,6 +52,7 @@ import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
+import org.jjazz.utilities.api.Utilities;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -76,6 +78,12 @@ public class SongStructureImplTest
     SongPart spt1, spt2;
     JJazzUndoManager undoManager;
     private TestInfo testInfo;
+
+    static
+    {
+        Utilities.setLoggingFormat(null);
+        Locale.setDefault(Locale.ENGLISH);
+    }
 
     @BeforeAll
     public static void setUpClass() throws Exception
@@ -162,7 +170,8 @@ public class SongStructureImplTest
         boolean b = sgs.equals(u_sgs);
         if (!b)
         {
-            System.out.println("==== MISMATCH AFTER UNDO SEQUENCE for " + testInfo.getTestMethod().map(java.lang.reflect.Method::getName).orElse("unknown") + "()");
+            System.out.println(
+                    "==== MISMATCH AFTER UNDO SEQUENCE for " + testInfo.getTestMethod().map(java.lang.reflect.Method::getName).orElse("unknown") + "()");
             System.out.println("sgs after Undo=" + sgs);
             System.out.println("u_sgs after Undo=" + u_sgs);
             assertTrue(b);
@@ -717,6 +726,166 @@ public class SongStructureImplTest
         // Should be ordered by appearance
         assertEquals(TimeSignature.FOUR_FOUR, timeSigs.get(0));
         assertEquals(TimeSignature.THREE_FOUR, timeSigs.get(1));
+    }
+
+    // =========================================================================================================
+    // Gap 1 — setSongPartsRhythm: forward operation (no test existed)
+    // =========================================================================================================
+
+    @Test
+    public void testSetSongPartsRhythmChangesRhythm() throws UnsupportedEditException
+    {
+        // Change spt0 from r44 to r44bis, leaving parentSection unchanged
+        sgs.setSongPartsRhythm(List.of(spt0), r44bis, null);
+
+        assertSame(r44bis, spt0.getRhythm(), "Rhythm must be updated after setSongPartsRhythm");
+        // spt1 and spt2 must be unaffected
+        assertSame(r34, spt1.getRhythm());
+        assertSame(r44, spt2.getRhythm());
+    }
+
+    @Test
+    public void testSetSongPartsRhythmMultipleParts() throws UnsupportedEditException
+    {
+        // Both 4/4 parts changed at once
+        sgs.setSongPartsRhythm(List.of(spt0, spt2), r44bis, null);
+
+        assertSame(r44bis, spt0.getRhythm());
+        assertSame(r44bis, spt2.getRhythm());
+        assertSame(r34, spt1.getRhythm(), "3/4 part must remain unchanged");
+    }
+
+    // =========================================================================================================
+    // Gap 2 — getLastUsedRhythm reflects setSongPartsRhythm changes, including undo
+    // =========================================================================================================
+
+    @Test
+    public void testGetLastUsedRhythmUpdatedAfterSetRhythm() throws UnsupportedEditException
+    {
+        // Baseline: initial setup populates mapTsLastRhythm
+        assertSame(r44, sgs.getLastUsedRhythm(TimeSignature.FOUR_FOUR));
+        assertSame(r34, sgs.getLastUsedRhythm(TimeSignature.THREE_FOUR));
+
+        sgs.setSongPartsRhythm(List.of(spt0), r44bis, null);
+
+        assertSame(r44bis, sgs.getLastUsedRhythm(TimeSignature.FOUR_FOUR), "mapTsLastRhythm must reflect new rhythm");
+        assertSame(r34, sgs.getLastUsedRhythm(TimeSignature.THREE_FOUR), "Unrelated TS must be unaffected");
+    }
+
+    @Test
+    public void testSetSongPartsRhythmUndoRedoRestoresRhythmAndLastUsed() throws UnsupportedEditException
+    {
+        sgs.setSongPartsRhythm(List.of(spt0), r44bis, null);
+
+        undoManager.endCEdit(UNDO_EDIT);
+
+        // Undo: rhythm and mapTsLastRhythm must both be restored
+        assertTrue(undoManager.canUndo());
+        undoManager.undo();
+
+        assertSame(r44, spt0.getRhythm(), "Undo must restore original rhythm");
+        assertSame(r44, sgs.getLastUsedRhythm(TimeSignature.FOUR_FOUR), "Undo must restore mapTsLastRhythm");
+
+        // Redo: rhythm and mapTsLastRhythm must be re-applied
+        assertTrue(undoManager.canRedo());
+        undoManager.redo();
+
+        assertSame(r44bis, spt0.getRhythm(), "Redo must re-apply rhythm");
+        assertSame(r44bis, sgs.getLastUsedRhythm(TimeSignature.FOUR_FOUR), "Redo must restore mapTsLastRhythm");
+    }
+
+    // =========================================================================================================
+    // Gap 3 — explicit undo/redo for addSongParts and removeSongParts
+    // =========================================================================================================
+
+    @Test
+    public void testAddSongPartsUndoRedo() throws UnsupportedEditException
+    {
+        int sizeBefore = sgs.getSizeInBars();   // 16
+        SongPart newSpt = sgs.createSongPart(r44bis, "Extra", sizeBefore, sectionC_44, false);
+        sgs.addSongParts(List.of(newSpt));
+
+        int sizeAfterAdd = sgs.getSizeInBars();
+        assertTrue(sizeAfterAdd > sizeBefore);
+        assertSame(newSpt, sgs.getSongPart(sizeBefore));
+
+        undoManager.endCEdit(UNDO_EDIT);
+
+        undoManager.undo();
+        assertEquals(sizeBefore, sgs.getSizeInBars(), "Undo must restore original size");
+        assertNull(sgs.getSongPart(sizeBefore), "Undo must remove the added part");
+        // Existing parts must be intact
+        assertEquals(0, spt0.getStartBarIndex());
+        assertEquals(4, spt1.getStartBarIndex());
+        assertEquals(8, spt2.getStartBarIndex());
+
+        undoManager.redo();
+        assertEquals(sizeAfterAdd, sgs.getSizeInBars(), "Redo must re-add the part");
+        assertSame(newSpt, sgs.getSongPart(sizeBefore), "Redo must restore added part");
+        assertSame(sgs, newSpt.getContainer(), "Container must be set after redo");
+    }
+
+    @Test
+    public void testRemoveSongPartsUndoRedo()
+    {
+        // Remove the middle 3/4 part
+        sgs.removeSongParts(List.of(spt1));
+
+        assertEquals(12, sgs.getSizeInBars());
+        assertEquals(4, spt2.getStartBarIndex());
+
+        undoManager.endCEdit(UNDO_EDIT);
+
+        undoManager.undo();
+        assertEquals(16, sgs.getSizeInBars(), "Undo must restore full size");
+        assertSame(spt1, sgs.getSongPart(4), "Undo must restore spt1 at bar 4");
+        assertEquals(4, spt1.getStartBarIndex(), "Undo must restore spt1 startBarIndex");
+        assertEquals(8, spt2.getStartBarIndex(), "Undo must restore spt2 startBarIndex");
+
+        undoManager.redo();
+        assertEquals(12, sgs.getSizeInBars(), "Redo must re-apply removal");
+        assertEquals(4, spt2.getStartBarIndex(), "Redo must re-shift spt2");
+        assertNull(sgs.getSongPart(12), "Bar 12 must not exist after redo");
+    }
+
+    // =========================================================================================================
+    // Gap 4 — getUniqueRhythms implicit source rhythm scenario
+    // =========================================================================================================
+
+    @Test
+    public void testGetUniqueRhythmsImplicitSourceRhythm() throws UnsupportedEditException
+    {
+        // Create an adapted rhythm: r34 adapted to 4/4
+        Rhythm adapted_r34_to_44 = rdb.getAdaptedRhythmInstance(r34, TimeSignature.FOUR_FOUR);
+        assertNotNull(adapted_r34_to_44, "Adapted rhythm must be creatable");
+
+        // Switch spt1 from r34 to r34bis so r34 is no longer directly used in the song
+        sgs.setSongPartsRhythm(List.of(spt1), r34bis, sectionB_34);
+        assertFalse(sgs.getSongParts().stream().anyMatch(s -> s.getRhythm() == r34),
+                "r34 must no longer be used directly");
+
+        // Append a 4/4 part using the adapted rhythm (source = r34, now implicit)
+        SongPart adaptedSpt = sgs.createSongPart(adapted_r34_to_44, "AdaptedFrom34", sgs.getSizeInBars(), sectionC_44, false);
+        sgs.addSongParts(List.of(adaptedSpt));
+
+        // getUniqueRhythms(false, false): adapted rhythm AND its implicit source r34 must both appear
+        var allIncluded = sgs.getUniqueRhythms(false, false);
+        assertTrue(allIncluded.contains(adapted_r34_to_44), "Must include adapted rhythm");
+        assertTrue(allIncluded.contains(r34), "Must include implicit source rhythm when neither flag is set");
+        // The adapted rhythm must appear just before its implicit source
+        int adaptedIdx = allIncluded.indexOf(adapted_r34_to_44);
+        int sourceIdx = allIncluded.indexOf(r34);
+        assertEquals(adaptedIdx + 1, sourceIdx, "Implicit source must appear immediately after its adapted rhythm");
+
+        // getUniqueRhythms(false, true): adapted rhythm included, implicit source excluded
+        var excludeImplicit = sgs.getUniqueRhythms(false, true);
+        assertTrue(excludeImplicit.contains(adapted_r34_to_44));
+        assertFalse(excludeImplicit.contains(r34), "Must exclude implicit source when excludeImplicitSourceRhythms=true");
+
+        // getUniqueRhythms(true, false): adapted excluded, implicit source still included
+        var excludeAdapted = sgs.getUniqueRhythms(true, false);
+        assertFalse(excludeAdapted.contains(adapted_r34_to_44), "Must exclude adapted rhythm");
+        assertTrue(excludeAdapted.contains(r34), "Must still include implicit source when excludeAdaptedRhythms=true");
     }
 
     // =========================================================================================================

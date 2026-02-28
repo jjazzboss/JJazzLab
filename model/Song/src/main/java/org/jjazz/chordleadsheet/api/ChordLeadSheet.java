@@ -52,6 +52,8 @@ public interface ChordLeadSheet
 
     /**
      * Set the size of the ChordLeadSheet.
+     * <p>
+     * Fires an InsertedBarsEvent or DeletedBarsEvent.
      *
      * @param size The numbers of bars, must be &gt;= 1 and &lt; MAX_SIZE.
      */
@@ -178,9 +180,8 @@ public interface ChordLeadSheet
      * If there are bars after barIndex, their items are shifted accordingly. If barIndex==0, a new section with a new name is created at bar 0 reusing the
      * previous initial section's time signature.
      *
-     * @param barIndex The bar index from which to insert the new bars.
+     * @param barIndex The bar index from which to insert the new bars. Must be &gt;= 0 and &lt;= getSizeInBars().
      * @param nbBars   The number of bars to insert.
-     * @throws IllegalArgumentException If barIndex &lt; 0 or barIndex &gt; size()
      */
     void insertBars(int barIndex, int nbBars);
 

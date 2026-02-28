@@ -24,6 +24,7 @@ package org.jjazz.song;
 
 import java.text.ParseException;
 import java.util.List;
+import java.util.Locale;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.chordleadsheet.ChordLeadSheetImpl;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
@@ -72,6 +73,13 @@ public class SongInternalUpdaterTest
     SongPart u_spt0;
     SongPart u_spt1, u_spt2, u_spt3, u_spt4;
     JJazzUndoManager undoManager;
+
+
+    static
+    {
+        Utilities.setLoggingFormat(null);
+        Locale.setDefault(Locale.ENGLISH);
+    }
 
     public SongInternalUpdaterTest()
     {
@@ -366,7 +374,7 @@ public class SongInternalUpdaterTest
         cls1.addItem(chord2);
         assertEquals(1.75f, chord1.getPosition().getBeat(), 0);
         assertEquals(3.5f, chord2.getPosition().getBeat(), 0);
-        
+
         // Move chord2 so that there should be a collision at 1.6666 after adjustment to ternary
         cls1.moveItem(chord2, new Position(5, 1.5f));
         sgs.setSongPartsRhythm(List.of(spt), rTernary, null);    // Switch back to ternary

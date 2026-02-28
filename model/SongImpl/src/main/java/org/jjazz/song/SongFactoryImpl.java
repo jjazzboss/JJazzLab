@@ -50,7 +50,6 @@ import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.RhythmInfo;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.song.api.Song;
-import static org.jjazz.song.api.Song.LOGGER;
 import org.jjazz.song.api.SongCreationException;
 import org.jjazz.song.spi.SongFactory;
 import org.jjazz.songstructure.SongStructureImpl;
@@ -195,7 +194,7 @@ public class SongFactoryImpl implements SongFactory
     }
 
     @Override
-    public ChordLeadSheet createSampleChordLeadSheet12bars(String sectionName, int size)
+    public ChordLeadSheet createSampleChordLeadSheet(String sectionName, int size)
     {
         if (size < 12)
         {

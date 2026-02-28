@@ -202,7 +202,7 @@ public class SongImpl implements Serializable, PropertyChangeListener, Song
 
 
             var p = mapUserPhrases.get(oldName);
-            Preconditions.checkArgument(p != null, "oldName=%s mapUserPhrases=%s", oldName, mapUserPhrases);
+            Preconditions.checkArgument(p != null, "renameUserPhraseOperation() oldName=%s mapUserPhrases=%s", oldName, mapUserPhrases);
 
 
             // Perform the change
@@ -782,11 +782,11 @@ public class SongImpl implements Serializable, PropertyChangeListener, Song
     }
 
     /**
-     * Fire a non-vetoable change event.
+     * Fire a change event.
      *
      * @param e
      */
-    public void fireChangeEvent(PropertyChangeEvent e)
+    public void firePropertyChangeEvent(PropertyChangeEvent e)
     {
         Objects.requireNonNull(e);
         pcs.firePropertyChange(e);
@@ -860,7 +860,7 @@ public class SongImpl implements Serializable, PropertyChangeListener, Song
             {
                 String phraseName = performReadAPImethod(() -> getPhraseName(p));
                 assert phraseName != null;
-                fireChangeEvent(new SongPropertyChangeEvent(this, PROP_USER_PHRASE_CONTENT, null, phraseName));
+                firePropertyChangeEvent(new SongPropertyChangeEvent(this, PROP_USER_PHRASE_CONTENT, null, phraseName));
                 fireIsModified();
             }
         }
@@ -876,7 +876,7 @@ public class SongImpl implements Serializable, PropertyChangeListener, Song
     private void fireIsModified()
     {
         saveNeeded = true;
-        fireChangeEvent(new PropertyChangeEvent(this, PROP_MODIFIED_OR_SAVED_OR_RESET, false, true));
+        firePropertyChangeEvent(new PropertyChangeEvent(this, PROP_MODIFIED_OR_SAVED_OR_RESET, false, true));
     }
 
     /**
@@ -885,7 +885,7 @@ public class SongImpl implements Serializable, PropertyChangeListener, Song
     private void fireSaved()
     {
         saveNeeded = false;
-        fireChangeEvent(new PropertyChangeEvent(this, PROP_MODIFIED_OR_SAVED_OR_RESET, true, false));
+        firePropertyChangeEvent(new PropertyChangeEvent(this, PROP_MODIFIED_OR_SAVED_OR_RESET, true, false));
     }
 
     private void fireUndoableEditHappened(UndoableEdit edit)

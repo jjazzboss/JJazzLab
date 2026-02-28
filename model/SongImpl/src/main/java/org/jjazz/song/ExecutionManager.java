@@ -279,7 +279,7 @@ public class ExecutionManager
     private WriteOperationResults executeOperationChain(Operation operation, List<WriteOperationResults> cumulativeOpResults) throws UnsupportedEditException
     {
         // Execute operation
-        var opResults = execute(operation);        // throws UnsupportedEditException                
+        WriteOperationResults opResults = execute(operation);        // throws UnsupportedEditException                
         cumulativeOpResults.add(opResults);
 
         if (songInternalUpdater != null)
@@ -306,7 +306,7 @@ public class ExecutionManager
     private <T> WriteOperationResults<T> execute(Operation<T> op) throws UnsupportedEditException
     {
         Objects.requireNonNull(op);
-        
+
         WriteOperationResults results = switch (op)
         {
             case WriteOperation wop ->
@@ -356,11 +356,23 @@ public class ExecutionManager
                 {
                     case SongImpl sgImpl ->
                     {
-                        sgImpl.fireChangeEvent(spce);
+                        sgImpl.firePropertyChangeEvent(spce);
+                        
+                        // Possible associated changes
+                        for (var propEvent : spce.getRelatedPropertyChanges())
+                        {
+                            sgImpl.firePropertyChangeEvent(propEvent);
+                        }
                     }
                     case MidiMixImpl mmImpl ->
                     {
                         mmImpl.firePropertyChangeEvent(spce);
+                        
+                         // Possible associated changes
+                        for (var propEvent : spce.getRelatedPropertyChanges())
+                        {
+                            mmImpl.firePropertyChangeEvent(propEvent);
+                        }
                     }
                     default ->
                     {

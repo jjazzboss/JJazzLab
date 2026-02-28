@@ -32,7 +32,9 @@ import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.TreeSet;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -87,7 +89,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
      */
     private int size;
     private transient Song song;
-    private ExecutionManager executionManager;
+    private transient ExecutionManager executionManager;
     /**
      * The listeners for changes in this LeadSheet.
      */
@@ -116,6 +118,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         this.size = size;
         this.executionManager = new ExecutionManager();
 
+        ((CLI_SectionImpl) initSection).setContainer(this);
         items.add(initSection);
     }
 
@@ -176,79 +179,11 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     @Override
     public void setSizeInBars(final int newSize)
     {
-        performWriteAPImethod(setSizeInBarsOperation(newSize));
-    }
-
-
-    public WriteOperation setSizeInBarsOperation(final int newSize)
-    {
-        Preconditions.checkArgument(newSize >= 1 && newSize <= MAX_SIZE, "newSize=%s", newSize);
-
-
         WriteOperation operation = () -> 
         {
-            LOGGER.log(Level.FINE, "setSizeInBars() -- newSize={0}", newSize);
-
-            final int oldSize = size;
-            if (newSize == oldSize)
-            {
-                return WriteOperationResults.of(null);
-            }
-
-
-            final List<ChordLeadSheetItem> itemsToRemove = new ArrayList<>();
-            if (newSize < oldSize)
-            {
-                itemsToRemove.addAll(getItems(newSize, Integer.MAX_VALUE, ChordLeadSheetItem.class));
-            }
-
-
-            // Update model
-            itemsToRemove.forEach(item -> removeItemChecked(item));
-            size = newSize;
-
-
-            // Create events
-            UndoableEdit edit = new SimpleEdit("Set Size " + newSize)
-            {
-                @Override
-                public void undoBody()
-                {
-                    LOGGER.log(Level.FINER, "setSizeInBars.undoBody() newSize={0}", newSize);
-                    performWriteAPImethod(() -> 
-                    {
-                        size = oldSize;
-                        itemsToRemove.forEach(item -> addItemChecked(item));
-
-                        var event = new SizeChangedEvent(ChordLeadSheetImpl.this, oldSize, newSize, itemsToRemove);
-                        event.setIsUndo();
-                        return WriteOperationResults.of(event, null);
-                    });
-                }
-
-                @Override
-                public void redoBody()
-                {
-                    LOGGER.log(Level.FINER, "setSizeInBars.redoBody() newSize={0}", newSize);
-                    performWriteAPImethod(() -> 
-                    {
-                        itemsToRemove.forEach(item -> removeItemChecked(item));
-                        size = newSize;
-
-                        var event = new SizeChangedEvent(ChordLeadSheetImpl.this, oldSize, newSize, itemsToRemove);
-                        event.setIsRedo();
-                        return WriteOperationResults.of(event, null);
-                    });
-                }
-            };
-
-            fireUndoableEdit(edit);
-
-            var event = new SizeChangedEvent(ChordLeadSheetImpl.this, oldSize, newSize, itemsToRemove);
-            return WriteOperationResults.of(event, null);
+            return (newSize >= size) ? insertBarsOperation(size, newSize - size).get() : deleteBarsOperation(newSize, size - 1).get();
         };
-
-        return operation;
+        performWriteAPImethod(operation);
     }
 
     @Override
@@ -278,7 +213,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             final ChordLeadSheet oldContainer = item.getContainer();
             final Position oldPos = item.getPosition();
             int barIndex = oldPos.getBar();
-            Preconditions.checkArgument(barIndex < getSizeInBars(), "oldPos=%s size=%s", oldPos, size);
+            Preconditions.checkArgument(barIndex < getSizeInBars(), "addItemOperation() oldPos=%s size=%s", oldPos, size);
             final Position newAdjustedPos = oldPos.getAdjusted(getSection(barIndex).getData().getTimeSignature());
 
 
@@ -366,12 +301,12 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
             // Verify constraints
             final int bar = cliSection.getPosition().getBar();
-            Preconditions.checkArgument(bar < this.size, "cliSection=%s this.size=%s", cliSection, size);
+            Preconditions.checkArgument(bar < this.size, "addSectionOperation() cliSection=%s this.size=%s", cliSection, size);
 
             final CLI_Section curSection = getSection(bar);
             var sameNameSection = getSection(cliSection.getData().getName());
             Preconditions.checkArgument(sameNameSection == null || sameNameSection.getPosition().getBar() == bar,
-                    "cliSection=%s sameNameSection=%s", cliSection, sameNameSection);
+                    "addSectionOperation() cliSection=%s sameNameSection=%s", cliSection, sameNameSection);
 
 
             LOGGER.log(Level.FINE, "addSectionOperation() -- cliSection={0}", cliSection);
@@ -497,7 +432,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         // Operation
         WriteOperation operation = () -> 
         {
-            Preconditions.checkArgument(items.contains(cliSection), "cliSection=%s items=%s", cliSection, items);
+            Preconditions.checkArgument(items.contains(cliSection), "removeSectionOperation() cliSection=%s items=%s", cliSection, items);
 
             LOGGER.log(Level.FINE, "removeSectionOperation() -- cliSection={0}", cliSection);
 
@@ -598,8 +533,8 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         WriteOperation operation = () -> 
         {
             // Preconditions and simple cases
-            Preconditions.checkArgument(newBarIndex < size, "newBarIndex=%s size=%s", newBarIndex, size);
-            Preconditions.checkArgument(items.contains(cliSection), "cliSection=%s items=%s", cliSection, items);
+            Preconditions.checkArgument(newBarIndex < size, "moveSectionOperation() newBarIndex=%s size=%s", newBarIndex, size);
+            Preconditions.checkArgument(items.contains(cliSection), "moveSectionOperation() cliSection=%s items=%s", cliSection, items);
 
             LOGGER.log(Level.FINE, "moveSection() -- cliSection={0} newBarIndex={1}", new Object[]
             {
@@ -790,7 +725,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
         WriteOperation<Boolean> operation = () -> 
         {
-            Preconditions.checkArgument(items.contains(item), "item=%s items=%s", item, items);
+            Preconditions.checkArgument(items.contains(item), "moveItemOperation() item=%s items=%s", item, items);
 
             LOGGER.log(Level.FINE, "moveItemOperation() -- item={0} newPos={1}", new Object[]
             {
@@ -874,7 +809,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
         WriteOperation<Boolean> operation = () -> 
         {
-            Preconditions.checkArgument(items.contains(item), "item=%s items=%s", item, items);
+            Preconditions.checkArgument(items.contains(item), "changeItemOperation() item=%s items=%s", item, items);
 
             LOGGER.log(Level.FINE, "changeItemOperation() -- item={0} newData={1}", new Object[]
             {
@@ -953,7 +888,8 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
         WriteOperation operation = () -> 
         {
-            Preconditions.checkArgument(barIndex <= size, "barIndex=%s size=%s", barIndex, size);
+            Preconditions.checkArgument(barIndex <= size, "insertBarsOperation() barIndex=%s size=%s", barIndex, size);
+            Preconditions.checkArgument(size + nbBars <= MAX_SIZE, "insertBarsOperation() nbBars=%s size=%s", nbBars, size);
 
             LOGGER.log(Level.FINE, "insertBarsOperation() -- barIndex={0} nbBars={1}", new Object[]
             {
@@ -975,15 +911,13 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             if (barIndex == 0)
             {
                 var section0 = getSection(0);
-                assert section0 instanceof WritableItem : "section0=" + section0;
                 var data0 = section0.getData();
                 String newName = "_" + data0.getName();
                 while (getSection(newName) != null)
                 {
                     newName = "_" + newName;
                 }
-                newSection0 = section0.getCopy(new Position(0), null);
-                cliEvents.add(((WritableItem) newSection0).setData(new Section(newName, data0.getTimeSignature())));
+                newSection0 = (CLI_Section) section0.getCopy(new Section(newName, data0.getTimeSignature()), null);
             } else
             {
                 newSection0 = null;
@@ -1028,7 +962,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
                         size = oldSize;
 
-                        var event = new InsertedBarsEvent(ChordLeadSheetImpl.this, barIndex, nbBars, shiftedItems);
+                        var event = new InsertedBarsEvent(ChordLeadSheetImpl.this, barIndex, nbBars, newSection0, shiftedItems);
                         event.setIsUndo();
                         event.addItemChanges(cliEvents2);
                         return WriteOperationResults.of(event, null);
@@ -1056,7 +990,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                             cliEvents2.add(addItemChecked(newSection0));
                         }
 
-                        var event = new InsertedBarsEvent(ChordLeadSheetImpl.this, barIndex, nbBars, shiftedItems);
+                        var event = new InsertedBarsEvent(ChordLeadSheetImpl.this, barIndex, nbBars, newSection0, shiftedItems);
                         event.setIsRedo();
                         event.addItemChanges(cliEvents2);
                         return WriteOperationResults.of(event, null);
@@ -1066,7 +1000,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
             fireUndoableEdit(edit);
 
-            var event = new InsertedBarsEvent(ChordLeadSheetImpl.this, barIndex, nbBars, shiftedItems);
+            var event = new InsertedBarsEvent(ChordLeadSheetImpl.this, barIndex, nbBars, newSection0, shiftedItems);
             event.addItemChanges(cliEvents);
             return WriteOperationResults.of(event, null);
         };
@@ -1088,7 +1022,8 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
         WriteOperation operation = () -> 
         {
-            Preconditions.checkArgument(barIndexTo < size && barIndexTo - barIndexFrom + 1 < size, "barIndexFrom=%s barIndexTo=%s size=%s", barIndexFrom,
+            Preconditions.checkArgument(barIndexTo < size && barIndexTo - barIndexFrom + 1 < size, "deleteBarsOperation() barIndexFrom=%s barIndexTo=%s size=%s",
+                    barIndexFrom,
                     barIndexTo, size);
 
 
@@ -1122,7 +1057,9 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             // Find the possible shifted items requiring an additional beat position adjustment because of a time signature change
             List<ChordLeadSheetItem> itemsToAdjust = new ArrayList<>();
             final CLI_Section prevSectionBeforeCut = barIndexFrom == 0 ? null : getSection(barIndexFrom - 1);
-            if (prevSectionBeforeCut != null && oldSectionAfter != null && oldSectionAfter.getPosition().getBar() > (barIndexTo + 1)
+            if (prevSectionBeforeCut != null
+                    && oldSectionAfter != null
+                    && oldSectionAfter.getPosition().getBar() <= barIndexTo
                     && prevSectionBeforeCut.getData().getTimeSignature().getNbNaturalBeats() < oldSectionAfter.getData().getTimeSignature().getNbNaturalBeats())
             {
                 var oldSectionAfterItems = getItems(oldSectionAfter, ChordLeadSheetItem.class);
@@ -1133,6 +1070,11 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             }
 
 
+            // Save old position of shifted items
+            Map<ChordLeadSheetItem, Position> mapSaveItemOldPos = new IdentityHashMap<>();
+            itemsToShift.forEach(item -> mapSaveItemOldPos.put(item, item.getPosition()));
+
+
             // Update model
             final List<PropertyChangeEvent> cliEvents = new ArrayList<>();
             for (var item : itemsToRemove)
@@ -1140,23 +1082,39 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                 cliEvents.add(removeItemChecked(item));
             }
 
-            // Shift items, with possible beat adjustment
+            // Shift items of several bars
             for (var item : itemsToShift)
             {
                 Position oldPos = item.getPosition();
                 Position newPos = oldPos.getMoved(-nbBars, 0);
-                if (itemsToAdjust.contains(item))
-                {
-                    newPos = getAdjustedBeatToTimeSignature(oldSectionAfter.getData().getTimeSignature(),
-                            prevSectionBeforeCut.getData().getTimeSignature(),
-                            item);
-                }
-                cliEvents.add(changeItemPositionChecked(item, newPos));
+                changeItemPositionChecked(item, newPos);
             }
+
+            // Possibly adjust some items for time signature change
+            // This must be done after the bar shift, so that getAdjustedBeatToTimeSignature() anti-collision feature can work 
+            for (var item : itemsToAdjust)
+            {
+                Position newPos = getAdjustedBeatToTimeSignature(oldSectionAfter.getData().getTimeSignature(),
+                        prevSectionBeforeCut.getData().getTimeSignature(),
+                        item);
+                changeItemPositionChecked(item, newPos);
+            }
+
+
+            // Save new position of shifted items and collect the position change events
+            Map<ChordLeadSheetItem, Position> mapSaveItemNewPos = new IdentityHashMap<>();
+            itemsToShift.forEach(item -> 
+            {
+                var newPos = item.getPosition();
+                var oldPos = mapSaveItemOldPos.get(item);
+                mapSaveItemNewPos.put(item, newPos);
+                cliEvents.add(new PropertyChangeEvent(item, ChordLeadSheetItem.PROP_ITEM_POSITION, oldPos, newPos));
+            });
+
 
             size = newSize;
 
-            
+
             // Create events
             UndoableEdit edit = new SimpleEdit("Delete Bars " + barIndexFrom + "-" + barIndexTo)
             {
@@ -1171,7 +1129,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
                         for (var item : itemsToShift.reversed())
                         {
-                            Position newPos = item.getPosition().getMoved(nbBars, 0);
+                            Position newPos = mapSaveItemOldPos.get(item);
                             cliEvents2.add(changeItemPositionChecked(item, newPos));
                         }
 
@@ -1180,7 +1138,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                             cliEvents2.add(addItemChecked(item));
                         }
 
-                        var event = new DeletedBarsEvent(ChordLeadSheetImpl.this, barIndexFrom, barIndexTo, itemsToRemove, itemsToShift);
+                        var event = new DeletedBarsEvent(ChordLeadSheetImpl.this, barIndexFrom, barIndexTo, itemsToRemove, itemsToShift, itemsToAdjust);
                         event.setIsUndo();
                         event.addItemChanges(cliEvents2);
                         return WriteOperationResults.of(event, null);
@@ -1202,12 +1160,12 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
                         for (var item : itemsToShift)
                         {
-                            Position newPos = item.getPosition().getMoved(-nbBars, 0);
+                            Position newPos = mapSaveItemNewPos.get(item);
                             cliEvents2.add(changeItemPositionChecked(item, newPos));
                         }
 
                         size = newSize;
-                        var event = new DeletedBarsEvent(ChordLeadSheetImpl.this, barIndexFrom, barIndexTo, itemsToRemove, itemsToShift);
+                        var event = new DeletedBarsEvent(ChordLeadSheetImpl.this, barIndexFrom, barIndexTo, itemsToRemove, itemsToShift, itemsToAdjust);
                         event.setIsRedo();
                         event.addItemChanges(cliEvents2);
                         return WriteOperationResults.of(event, null);
@@ -1218,7 +1176,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
             fireUndoableEdit(edit);
 
-            var event = new DeletedBarsEvent(ChordLeadSheetImpl.this, barIndexFrom, barIndexTo, itemsToRemove, itemsToShift);
+            var event = new DeletedBarsEvent(ChordLeadSheetImpl.this, barIndexFrom, barIndexTo, itemsToRemove, itemsToShift, itemsToAdjust);
             event.addItemChanges(cliEvents);
             return WriteOperationResults.of(event, null);
 
@@ -1242,8 +1200,8 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
         WriteOperation operation = () -> 
         {
-            Preconditions.checkArgument(items.contains(cliSection), "cliSection=%s items=%s", cliSection, items);
-            Preconditions.checkArgument(getSection(name) == null, "cliSection=%s items=%s", cliSection, items);
+            Preconditions.checkArgument(items.contains(cliSection), "setSectionNameOperation() cliSection=%s items=%s", cliSection, items);
+            Preconditions.checkArgument(getSection(name) == null, "setSectionNameOperation() cliSection=%s items=%s", cliSection, items);
 
             LOGGER.log(Level.FINE, "setSectionNameOperation() -- cliSection={0} name={1}", new Object[]
             {
@@ -1339,7 +1297,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             {
                 return WriteOperationResults.of(null);
             }
-            Preconditions.checkArgument(items.contains(cliSection), "cliSection=%s items=%s", cliSection, items);
+            Preconditions.checkArgument(items.contains(cliSection), "setSectionTimeSignatureOperation() cliSection=%s items=%s", cliSection, items);
 
 
             final Section newData = new Section(oldData.getName(), ts);
@@ -1633,9 +1591,22 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             return new TmpRecord(other.size, List.copyOf(other.items));
         });
 
-
         return tmpRecord.equals(tmpRecordOther);
     }
+
+    @Override
+    public int hashCode()
+    {
+        int res = performReadAPImethod(() -> 
+        {
+            int hash = 3;
+            hash = 37 * hash + Objects.hashCode(this.items);
+            hash = 37 * hash + this.size;
+            return hash;
+        });
+        return res;
+    }
+
 
     public <R> R performWriteAPImethod(WriteOperation<R> operation)
     {
@@ -1711,7 +1682,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             return res;
         }
 
-        Preconditions.checkState(executionManager.isWriteLockedByCurrentThread(), "write lock required");
+        Preconditions.checkState(executionManager.isWriteLockedByCurrentThread(), "adjustItemsToTimeSignature() write lock required");
 
         for (ChordLeadSheetItem<?> item : iitems)
         {
@@ -1765,8 +1736,8 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
      */
     private PropertyChangeEvent addItemChecked(ChordLeadSheetItem<?> item)
     {
-        Preconditions.checkState(executionManager.isWriteLockedByCurrentThread(), "write lock required");
-        Preconditions.checkArgument(item instanceof WritableItem, "item=%s", item);
+        Preconditions.checkState(executionManager.isWriteLockedByCurrentThread(), "addItemChecked() write lock required");
+        Preconditions.checkArgument(item instanceof WritableItem, "addItemChecked()  item=%s", item);
         var b = items.add(item);
         assert b : "item=" + item + " items=" + items;
         return ((WritableItem) item).setContainer(this);
@@ -1780,8 +1751,8 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
      */
     private PropertyChangeEvent removeItemChecked(ChordLeadSheetItem<?> item)
     {
-        Preconditions.checkState(executionManager.isWriteLockedByCurrentThread(), "write lock required");
-        Preconditions.checkArgument(item instanceof WritableItem, "item=%s", item);
+        Preconditions.checkState(executionManager.isWriteLockedByCurrentThread(), "removeItemChecked() write lock required");
+        Preconditions.checkArgument(item instanceof WritableItem, "removeItemChecked() item=%s", item);
         var b = items.remove(item);
         assert b : "item=" + item + " items=" + items;
         return ((WritableItem) item).setContainer(null);
@@ -1796,7 +1767,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
      */
     private <T> PropertyChangeEvent changeItemDataChecked(ChordLeadSheetItem<T> item, T newData)
     {
-        Preconditions.checkState(executionManager.isWriteLockedByCurrentThread(), "write lock required");
+        Preconditions.checkState(executionManager.isWriteLockedByCurrentThread(), "changeItemDataChecked() write lock required");
         WritableItem<T> wItem = (WritableItem<T>) item;
         var b = items.remove(wItem);
         assert b : "wItem=" + wItem + " newData=" + newData + " items=" + items;
@@ -1815,7 +1786,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
      */
     private <T> PropertyChangeEvent changeItemPositionChecked(ChordLeadSheetItem<T> item, Position newPos)
     {
-        Preconditions.checkState(executionManager.isWriteLockedByCurrentThread(), "write lock required");
+        Preconditions.checkState(executionManager.isWriteLockedByCurrentThread(), "changeItemPositionChecked() write lock required");
         WritableItem<T> wItem = (WritableItem<T>) item;
         var b = items.remove(wItem);
         assert b : "wItem=" + wItem + " newPos=" + newPos + " items=" + items;

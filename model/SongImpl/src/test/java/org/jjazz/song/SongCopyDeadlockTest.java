@@ -23,34 +23,28 @@
 package org.jjazz.song;
 
 import java.time.Duration;
+import java.util.Locale;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jjazz.chordleadsheet.ClsCyclicMutator;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.rhythmdatabase.api.DefaultRhythmDatabase;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
-import org.jjazz.rhythmparametersimpl.api.RP_SYS_Variation;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.spi.SongFactory;
-import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.songstructure.api.SongStructure;
+import org.jjazz.songstructure.SgsCyclicMutator;
+import org.jjazz.utilities.api.Utilities;
 import org.junit.jupiter.api.*;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 
 /**
- * JUnit 5 test to reproduce the deadlock described in issue #676.
+ * JUnit 5 test to reproduce the deadlock described in issue #676 (Song.getDeepCopy() while user makes song changes via UI).
  * <p>
- * <b>Deadlock Topology:</b>
- * <ul>
- * <li><b>Thread A (background music generation):</b> Holds the Song monitor via {@code synchronized Song.getDeepCopy()}) and then attempts to acquire the
- * SongStructureImpl monitor to deep-copy the SongStructure.</li>
- * <li><b>Thread B (EDT-like):</b> User makes a change in the UI, {@code synchronized SongStructureImpl.setRhythmParameterValue(...)}) is called which fires
- * events without releasing the obtained monitor. A listener (Song) calls a synchronized method on Song (e.g., {@code fireIsModified()}), requiring the Song
- * monitor, which he can not get ==> DEADLOCK</li>
- * </ul>
- *
  * @see <a href="https://github.com/jjazzboss/JJazzLab/issues/676">Issue #676</a>
  */
 public class SongCopyDeadlockTest
@@ -61,7 +55,8 @@ public class SongCopyDeadlockTest
 
     static
     {
-        System.setProperty("java.util.logging.SimpleFormatter.format", "%4$s %3$s  %5$s %n");
+        Utilities.setLoggingFormat(null);
+        Locale.setDefault(Locale.ENGLISH);
     }
 
     @BeforeAll
@@ -78,11 +73,10 @@ public class SongCopyDeadlockTest
     {
         LOGGER.log(Level.INFO, "testDeadlock1() --");
 
-        ChordLeadSheet cls = SongFactory.getDefault().createEmptyChordLeadSheet("A", TimeSignature.FOUR_FOUR, 4, "C7");
+        ChordLeadSheet cls = SongFactory.getDefault().createSampleChordLeadSheet("A", 12);
         Song song = SongFactory.getDefault().createSong("TestSong", cls);
 
-        int TIME_OUT_SEC = 5;
-        assertTrue(executeDeadlockScenario(TIME_OUT_SEC, song, sg -> changeRhythmParameter(sg)));
+        executeDeadlockScenario(song);
     }
 
     // ========================================================================================================
@@ -92,42 +86,51 @@ public class SongCopyDeadlockTest
     /**
      * Run 2 threads: one is continuously calling Song.getSongCopy(), the other continuously modifying the same song.
      * <p>
-     * If no deadlock method should return before timeOutSec.
      *
-     * @param timeOutSec
      * @param song
-     * @param songModifier Perform a modification of song
-     * @return
-     * @throws java.lang.Exception
+     * @throws java.lang.InterruptedException
      */
-    private boolean executeDeadlockScenario(int timeOutSec, Song song, Consumer<Song> songModifier) throws Exception
+    private void executeDeadlockScenario(Song song) throws InterruptedException
     {
-        LOGGER.log(Level.INFO, "executeDeadlockScenario() -- timeOutSec={0}", timeOutSec);
+        final int TIME_OUT_SEC = 3;     // Must leave enough time to execute all DEEP_COPY_ITERATION (a DeepCopy is longer than a mutation)
+        final int DEEP_COPY_ITERATIONS = 5000;
+        final int MUTATION_ITERATIONS = DEEP_COPY_ITERATIONS;
+        final int LOG_COUNT = 500;
+        final AtomicInteger deepCopyCount = new AtomicInteger(0);
+        final AtomicInteger mutationCount = new AtomicInteger(0);
+        final AtomicReference<Throwable> readerException = new AtomicReference<>();
+        final AtomicReference<Throwable> writerException = new AtomicReference<>();
 
-        final long COUNT = 1000;
-        final long LOG_COUNT = COUNT / 10;
-
+        LOGGER.log(Level.INFO, "executeDeadlockScenario() -- TIME_OUT_SEC={0}sec. DEEP_COPY_ITERATIONS={1}", new Object[]
+        {
+            TIME_OUT_SEC, DEEP_COPY_ITERATIONS
+        });
 
         // Thread 1 : loop on Song.getSongCopy() 
         Thread songDeepCopyThread = new Thread(() -> 
         {
             LOGGER.info("songDeepCopyThread started --");
+
             try
             {
-                for (long i = 0; i < COUNT; i++)
+                for (long i = 0; i < DEEP_COPY_ITERATIONS; i++)
                 {
                     Song copy = song.getDeepCopy(false);
+                    deepCopyCount.incrementAndGet();
                     if (i % LOG_COUNT == 0 && copy != null)
                     {
                         LOGGER.log(Level.INFO, "songDeepCopyThread i={0}", i);
                     }
-                    Thread.sleep((long) (Math.random() * 2));
+                    if (i % 20 == 0)
+                    {
+                        Thread.yield();
+                    }
                 }
-                LOGGER.log(Level.INFO, "songDeepCopyThread finished OK");
-            } catch (InterruptedException ex)
+            } catch (Throwable t)
             {
-                LOGGER.info(() -> "songDeepCopyThread interrupted ex=" + ex.getMessage());
+                readerException.set(t);
             }
+            LOGGER.log(Level.INFO, "songDeepCopyThread finished OK");
 
         }, "songDeepCopyThread");
 
@@ -136,22 +139,32 @@ public class SongCopyDeadlockTest
         Thread songModifierThread = new Thread(() -> 
         {
             LOGGER.info("songModifierThread started --");
+            ClsCyclicMutator clsMutator = new ClsCyclicMutator(song.getChordLeadSheet());
+            SgsCyclicMutator sgsMutator = new SgsCyclicMutator(song.getSongStructure());
+            
             try
             {
-                for (long j = 0; j < COUNT; j++)
+                for (long j = 0; j < MUTATION_ITERATIONS; j++)
                 {
-                    songModifier.accept(song);
+                    clsMutator.mutate();
+                    sgsMutator.mutate();
+                    
+                    mutationCount.incrementAndGet();
                     if (j % LOG_COUNT == 0)
                     {
                         LOGGER.log(Level.INFO, "songModifierThread j={0}", j);
                     }
-                    Thread.sleep((long) (Math.random() * 2));
+                    // Small yield to encourage interleaving
+                    if (j % 10 == 0)
+                    {
+                        Thread.yield();
+                    }
                 }
-                LOGGER.log(Level.INFO, "songModifierThread finished OK");
-            } catch (InterruptedException ex)
+            } catch (Throwable t)
             {
-                LOGGER.info(() -> "songModifierThread interrupted ex=" + ex.getMessage());
+                writerException.set(t);
             }
+            LOGGER.log(Level.INFO, "songModifierThread finished OK");
 
         }, "songModifierThread");
 
@@ -161,27 +174,33 @@ public class SongCopyDeadlockTest
         songModifierThread.start();
 
 
-        // Wait for both threads to complete with a reasonable timeout
-        boolean b1 = songDeepCopyThread.join(Duration.ofSeconds(timeOutSec));       // true if thread completed before timeOutSec
-        boolean b2 = songModifierThread.join(Duration.ofMillis(10));
-        LOGGER.log(Level.INFO, "executeDeadlockScenario() b1={0} b2={1}", new Object[]
+        // Wait for both threads to complete within TIME_OUT_SEC
+        // throws InterruptedException
+        boolean b1 = songDeepCopyThread.join(Duration.ofSeconds(TIME_OUT_SEC));       // true if thread completed before TIME_OUT_SEC
+        boolean b2 = songModifierThread.join(Duration.ofMillis(100));
+
+
+        LOGGER.log(Level.INFO, "executeDeadlockScenario() DEEP_COPY_ITERATIONS={0} deepCopyCount={1}", new Object[]
         {
-            b1, b2
+            DEEP_COPY_ITERATIONS, deepCopyCount.get()
+        });
+        LOGGER.log(Level.INFO, "executeDeadlockScenario() MUTATION_ITERATIONS={0} mutationCount={1}", new Object[]
+        {
+            MUTATION_ITERATIONS, mutationCount.get()
         });
 
-        return b1 && b2;
+        // Check for exceptions
+        if (readerException.get() != null)
+        {
+            fail("Reader thread failed: " + readerException.get());
+
+        }
+        if (writerException.get() != null)
+        {
+            fail("Writer thread failed: " + writerException.get());
+        }
+
+        assertTrue(b1 && b2, "b1=" + b1 + " b2=" + b2);
     }
 
-
-    private void changeRhythmParameter(Song song)
-    {
-        SongStructure sgs = song.getSongStructure();
-        SongPart spt0 = sgs.getSongParts().get(0);
-        var r = spt0.getRhythm();
-        var rpVariation = RP_SYS_Variation.getVariationRp(r);
-        assert rpVariation != null : "r=" + r;
-        String rpValue = spt0.getRPValue(rpVariation);
-        String newRpValue = rpVariation.getNextValue(rpValue);
-        sgs.setRhythmParameterValue(spt0, rpVariation, newRpValue);
-    }
 }

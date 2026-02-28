@@ -407,7 +407,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
         if (stylePart == null || sps == null || at == null || !shortcSeq.hasChordAtBeginning()
                 || shortcSeq.getBarRange().size() > rhythm.getStyle().getStylePartSizeInBars(stylePart.getType()))
         {
-            throw new IllegalArgumentException("stylePart=" + stylePart + " sps=" + sps + " at=" + at + " cSeq=" + shortcSeq);   //NOI18N
+            throw new IllegalArgumentException("stylePart=" + stylePart + " sps=" + sps + " at=" + at + " cSeq=" + shortcSeq);
         }
 
         RhythmVoice rv = rhythm.getRhythmVoice(at);
@@ -421,7 +421,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
             throw new MusicGenerationException("Invalid data for rhythm " + rhythm.getName() + " / at=" + at);
         }
         int destChannel = getChannelFromMidiMix(rv);
-        assert destChannel != -1 : "stylePart=" + stylePart + " rv=" + rv + " destChannel=" + destChannel + " at=" + at;   //NOI18N
+        assert destChannel != -1 : "stylePart=" + stylePart + " rv=" + rv + " at=" + at + " midiMix=" + contextWork.getMidiMix();
 
 
         // Take all the possible source channels, we'll do the selection when we have the destination chord

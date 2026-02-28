@@ -82,6 +82,19 @@ public class Utilities
     );
 
     /**
+     * Set the default String format used by loggers.
+     * <p>
+     * See https://docs.oracle.com/en/java/javase/23/docs/api/java.logging/java/util/logging/SimpleFormatter.html#format(java.util.logging.LogRecord)
+     *
+     * @param format If null use default one line format.
+     */
+    static public void setLoggingFormat(String format)
+    {
+        String s = format == null ? "%4$s %3$s  %5$s %n" : format;
+        System.setProperty("java.util.logging.SimpleFormatter.format", s);
+    }
+
+    /**
      * Make logging message include a time stamp in milliseconds, relative to the time of the first logged message in the application.
      * <p>
      * Note: this will impact other Logging of other modules as well, but if not registered explicitly, class will be displayed as null.
