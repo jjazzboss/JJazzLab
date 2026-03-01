@@ -60,6 +60,7 @@ import org.jjazz.ss_editor.rpviewer.api.RpViewer;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.cl_editor.api.CL_EditorClientProperties;
 import org.jjazz.flatcomponents.api.FlatComponentsGlobalSettings;
+import org.jjazz.ss_editor.api.SS_Editor;
 import org.jjazz.ss_editor.rpviewer.api.RpViewerEditableRenderer;
 import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.ss_editor.rpviewer.api.RpViewerRenderer;
@@ -83,6 +84,7 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
     private SptViewerMouseListener controller;
     private final Song songModel;
     private SongPart sptModel;
+    private final SS_Editor editor;
     /**
      * Selected state.
      */
@@ -96,6 +98,7 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
     private int zoomVFactor;
     private boolean isPlaybackOn;
     private Color sptColor;
+
     /**
      * Our graphical settings.
      */
@@ -104,12 +107,14 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
     private static final Logger LOGGER = Logger.getLogger(SptViewerImpl.class.getSimpleName());
 
 
-    public SptViewerImpl(SongPart spt, SptViewerSettings settings, DefaultRpViewerRendererFactory factory)
+    public SptViewerImpl(SS_Editor ssEditor, SongPart spt, SptViewerSettings settings, DefaultRpViewerRendererFactory factory)
     {
+        Objects.requireNonNull(ssEditor);
         Objects.requireNonNull(spt);
         Objects.requireNonNull(settings);
         Objects.requireNonNull(factory);
 
+        this.editor = ssEditor;
         songModel = spt.getContainer().getSong();
         sptModel = spt;
         sptModel.addPropertyChangeListener(this);
@@ -558,8 +563,19 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
         {
             switch (e.getPropertyName())
             {
-                case SongPart.PROP_NAME, SongPart.PROP_RHYTHM_PARENT_SECTION ->
+                case SongPart.PROP_NAME ->
                 {
+                    updateUIComponents();
+                }
+                case SongPart.PROP_RHYTHM_PARENT_SECTION ->
+                {
+                    Rhythm oldRhythm = (Rhythm) e.getOldValue();
+                    Rhythm newRhythm = sptModel.getRhythm();
+                    if (oldRhythm != newRhythm)
+                    {
+                        // Rhythm has changed, need to update the RpViewers
+                        setVisibleRps(editor.getVisibleRps(newRhythm));
+                    }
                     updateUIComponents();
                 }
                 case SongPart.PROP_NB_BARS ->

@@ -23,37 +23,29 @@
 package org.jjazz.chordleadsheet.api.event;
 
 import com.google.common.base.Preconditions;
-import java.util.List;
-import java.util.Objects;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 
 /**
  * A section was moved.
+ * <p>
+ * getItemChanges() returns a PROP_ITEM_POSITION for the section, and possible additional ones for the adjusted items because of a TimeSignature change.
  */
 public class SectionMovedEvent extends ClsChangeEvent
 {
 
     private final int oldBar, newBar;
-    private final List<ChordLeadSheetItem> adjustedItems;
 
-    public SectionMovedEvent(ChordLeadSheet src, CLI_Section item, int oldBar, int newBar, List<ChordLeadSheetItem> adjustedItems)
+    public SectionMovedEvent(ChordLeadSheet src, CLI_Section item, int oldBar, int newBar)
     {
         super(src, item);
-        Objects.requireNonNull(adjustedItems);
         Preconditions.checkArgument(oldBar > 0 && newBar > 0 && oldBar != newBar, "item=%s oldBar=%s newBar=%s", item, oldBar, newBar);
         Preconditions.checkArgument(item.getPosition().getBar() == newBar || item.getPosition().getBar() == oldBar,
                 "item=%s oldBar=%s newBar=%s", item, oldBar, newBar);
         this.oldBar = oldBar;
         this.newBar = newBar;
-        this.adjustedItems = List.copyOf(adjustedItems);
     }
 
-    public List<ChordLeadSheetItem> getAdjustedItems()
-    {
-        return adjustedItems;
-    }
 
     /**
      * @return The barIndex of the section before it was moved
@@ -76,6 +68,6 @@ public class SectionMovedEvent extends ClsChangeEvent
     @Override
     public String toString()
     {
-        return "SectionMovedEvent[section=" + getCLI_Section() + ", oldBar=" + oldBar + ", newBar=" + newBar + ", adjustedItems=" + adjustedItems + "]";
+        return "SectionMovedEvent[section=" + getCLI_Section() + ", oldBar=" + oldBar + ", newBar=" + newBar + "]";
     }
 }

@@ -56,7 +56,7 @@ public class SgsCyclicMutator
     public SgsCyclicMutator(SongStructure sgs)
     {
         this.sgs = sgs;
-        assert sgs.getSongParts().size() > 2;
+        assert sgs.getSongParts().size() >= 2;
         spt1 = sgs.getSongParts().get(1);
         r34_1 = spt1.getRhythm();
         assert r34_1.getTimeSignature() == TimeSignature.THREE_FOUR : "r34_1=" + r34_1;
@@ -96,7 +96,7 @@ public class SgsCyclicMutator
             {
                 // Remove the last song part
                 List<SongPart> spts = sgs.getSongParts();
-                if (!spts.isEmpty())
+                if (spts.size() >= 3)
                 {
                     sgs.removeSongParts(List.of(spts.getLast()));
                 }
@@ -104,7 +104,7 @@ public class SgsCyclicMutator
 
             case 2 ->
             {
-                // Change middle song part rhythm
+                // Change spt1 rhythm
                 Rhythm newRhythm = null;
                 if (sgs.getSongParts().contains(spt1) && spt1.getRhythm().getTimeSignature() == TimeSignature.THREE_FOUR)
                 {

@@ -28,7 +28,9 @@ import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 import org.jjazz.harmony.api.Position;
 
 /**
- * One item (but not a section) has been moved.
+ * One item (not a section) was moved.
+ * <p>
+ * getItemChanges() returns one PROP_ITEM_POSITION change event for the item.
  */
 public class ItemMovedEvent extends ClsChangeEvent
 {
@@ -39,7 +41,7 @@ public class ItemMovedEvent extends ClsChangeEvent
     /**
      *
      * @param src
-     * @param item Must not be a CLI_Section.
+     * @param item   Must not be a CLI_Section.
      * @param oldPos
      * @param newPos
      */
@@ -48,7 +50,7 @@ public class ItemMovedEvent extends ClsChangeEvent
         super(src, item);
         if (oldPos == null || newPos == null || item instanceof CLI_Section)
         {
-            throw new IllegalArgumentException("item=" + item + " oldPos=" + oldPos + " newPos=" + newPos);   
+            throw new IllegalArgumentException("item=" + item + " oldPos=" + oldPos + " newPos=" + newPos);
         }
         oldPosition = oldPos;
         newPosition = newPos;

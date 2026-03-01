@@ -23,41 +23,30 @@
 package org.jjazz.chordleadsheet.api.event;
 
 import com.google.common.base.Preconditions;
-import java.util.List;
-import java.util.Objects;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 
 /**
  * A CLI_Section was removed.
+ * <p>
+ * getItemChanges() returns PROP_ITEM_POSITION change events: the adjusted items because of a TimeSignature change.
  */
 public class SectionRemovedEvent extends ClsChangeEvent
 {
 
-    private final List<ChordLeadSheetItem> adjustedItems;
     private final CLI_Section previousBarSection;
 
     /**
      *
      * @param src
-     * @param cliSection    The removed section
-     * @param adjustedItems Possible items (like CLI_ChordSymbols) whose beat was moved sooner in the bar because of a new time signature with less beats. Can
-     *                      be empty.
+     * @param cliSection The removed section
      */
-    public SectionRemovedEvent(ChordLeadSheet src, CLI_Section cliSection, List<ChordLeadSheetItem> adjustedItems)
+    public SectionRemovedEvent(ChordLeadSheet src, CLI_Section cliSection)
     {
         super(src, cliSection);
-        Objects.requireNonNull(adjustedItems);
         Preconditions.checkArgument(cliSection.getPosition().getBar() > 0, "cliSection=%s", cliSection);
-        this.adjustedItems = List.copyOf(adjustedItems);
         var pos = cliSection.getPosition();
         this.previousBarSection = src.getSection(pos.getBar() - 1);
-    }
-
-    public List<ChordLeadSheetItem> getAdjustedItems()
-    {
-        return adjustedItems;
     }
 
     /**
@@ -84,6 +73,6 @@ public class SectionRemovedEvent extends ClsChangeEvent
     @Override
     public String toString()
     {
-        return "SectionRemovedEvent[item=" + getCLI_Section() + ", adjustedItems=" + adjustedItems + "]";
+        return "SectionRemovedEvent[item=" + getCLI_Section() + "]";
     }
 }

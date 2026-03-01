@@ -59,9 +59,8 @@ public interface WritableItem<T> extends ChordLeadSheetItem<T>
      * not have a name clash, ...).
      *
      * @param cls Can be null.
-     * @return The event to be fired by caller.
      */
-    PropertyChangeEvent setContainer(ChordLeadSheet cls);
+    void setContainer(ChordLeadSheet cls);
 
     /**
      * Fire an event to the ChordLeadSheetItem listeners.

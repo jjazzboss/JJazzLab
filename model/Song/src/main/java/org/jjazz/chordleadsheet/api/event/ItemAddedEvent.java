@@ -26,6 +26,11 @@ import java.util.List;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 
+/**
+ * An item (not a section) was added.
+ * <p>
+ * getItemChanges() returns an empty list.
+ */
 public class ItemAddedEvent extends ClsChangeEvent
 {
 

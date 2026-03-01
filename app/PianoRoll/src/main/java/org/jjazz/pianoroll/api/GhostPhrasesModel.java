@@ -219,25 +219,37 @@ public class GhostPhrasesModel implements PropertyChangeListener, ChangeListener
         {
             switch (evt.getPropertyName())
             {
-                case MidiMix.PROP_CHANNEL_INSTRUMENT_MIX ->
+                case MidiMix.PROP_CHANNEL_INSTRUMENT_MIXES ->
                 {
-                    // Added, replaced or removed
-                    int channel = (int) evt.getNewValue();
-                    var insMix = midiMix.getInstrumentMix(channel);
-                    var oldInsMix = (InstrumentMix) evt.getOldValue();
-                    if (insMix == null && oldInsMix != null)
+                    // Added, replaced or removed instrument mixes
+                    boolean visiblePhraseContentChanged = false;
+                    var insMixChanges = (List<MidiMix.InsMixChange>) evt.getOldValue();
+                    for (var insMixChange : insMixChanges)
                     {
-                        // Removed mix
-                        visibleChannels.remove(channel);
+                        int channel = insMixChange.channel();
+                        InstrumentMix oldInsMix = insMixChange.oldInsMix();
+                        InstrumentMix newInsMix = insMixChange.newInsMix();
+
+                        if (newInsMix == null && oldInsMix != null)
+                        {
+                            // Removed mix
+                            visibleChannels.remove(channel);
+                        }
+
+                        if (!visiblePhraseContentChanged && newInsMix != null && oldInsMix != null && visibleChannels.contains(channel))
+                        {
+                            // The InstrumentMix of a visible ghostPhrase was replaced, this might impact the ghost phrase
+                            visiblePhraseContentChanged = true;
+                        }
                     }
+
                     pcs.firePropertyChange(PROP_PHRASE_LIST, false, true);
 
-
-                    if (insMix != null && oldInsMix != null && visibleChannels.contains(channel))
+                    if (visiblePhraseContentChanged)
                     {
-                        // The InstrumentMix of a visible ghostPhrase was replaced, this might impact the ghost phrase
                         pcs.firePropertyChange(PROP_VISIBLE_PHRASE_CONTENT, false, true);
                     }
+
                 }
                 case MidiMix.PROP_RHYTHM_VOICE -> pcs.firePropertyChange(PROP_PHRASE_LIST, false, true);
 

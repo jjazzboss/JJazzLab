@@ -568,9 +568,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
             mapRhythmVisibleRps.put(r, rps);
         }
 
-        List<RhythmParameter<?>> newRps = new ArrayList<>();
-        newRps.addAll(rps);
-        return newRps;
+        return new ArrayList<>(rps);
     }
 
     @Override
@@ -939,7 +937,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     private void addSptViewer(SongPart spt)
     {
         assert spt != null;
-        SptViewer sptv = sptViewerFactory.createSptViewer(spt, sptViewerFactory.getDefaultSptViewerSettings(),
+        SptViewer sptv = sptViewerFactory.createSptViewer(this, spt, sptViewerFactory.getDefaultSptViewerSettings(),
                 sptViewerFactory.getDefaultRpViewerFactory());
         registerSptViewer(sptv);
         sptv.setZoomHFactor(getZoomXFactor(songModel));

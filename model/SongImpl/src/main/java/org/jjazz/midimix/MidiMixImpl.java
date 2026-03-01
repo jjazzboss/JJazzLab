@@ -64,7 +64,6 @@ import org.jjazz.midi.api.synths.GM1Instrument;
 import org.jjazz.midi.api.synths.GMSynth;
 import org.jjazz.midi.api.synths.InstrumentFamily;
 import org.jjazz.midimix.api.MidiMix;
-import static org.jjazz.midimix.api.MidiMix.PROP_CHANNEL_INSTRUMENT_MIX;
 import static org.jjazz.midimix.api.MidiMix.PROP_RHYTHM_VOICE;
 import static org.jjazz.midimix.api.MidiMix.PROP_RHYTHM_VOICE_CHANNEL;
 import org.jjazz.midimix.api.UserRhythmVoice;
@@ -98,10 +97,10 @@ import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_SAVE;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.lookup.ServiceProvider;
+import static org.jjazz.midimix.api.MidiMix.PROP_CHANNEL_INSTRUMENT_MIXES;
 
 /**
  * MidiMix implementation.
- * <p>
  */
 public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMix
 {
@@ -224,20 +223,20 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
 
 
             // Update data
-            List<PropertyChangeEvent> relatedEvents = new ArrayList<>();
-            List<PropertyChangeEvent> relatedEventsUndo = new ArrayList<>();
+            List<InsMixChange> insMixChanges = new ArrayList<>();
+            List<InsMixChange> insMixChangesUndo = new ArrayList<>();
             for (int i = MidiConst.CHANNEL_MIN; i <= MidiConst.CHANNEL_MAX; i++)
             {
                 if (rhythmVoices[i] != null && rhythmVoices[i].getContainer() == r)
                 {
+                    insMixChanges.add(new InsMixChange(i, rhythmVoices[i], instrumentMixes[i], null));
+                    insMixChangesUndo.add(new InsMixChange(i, rhythmVoices[i], null, instrumentMixes[i]));
+
                     prepareRemove(i);
                     rhythmVoices[i] = null;
                     instrumentMixes[i] = null;
-                    relatedEvents.add(new PropertyChangeEvent(this, PROP_CHANNEL_INSTRUMENT_MIX, saveInstrumentMixes[i], i));
-                    relatedEventsUndo.add(new PropertyChangeEvent(this, PROP_CHANNEL_INSTRUMENT_MIX, null, i));
                 }
             }
-
 
             // Prepare the undoable edit
             UndoableEdit edit = new SimpleEdit("Remove rhythm from MidiMix")
@@ -257,9 +256,8 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
                             }
                         }
 
-                        var event = buildDummySongEvent();
+                        var event = new SongPropertyChangeEvent(MidiMixImpl.this, PROP_CHANNEL_INSTRUMENT_MIXES, insMixChangesUndo, null);
                         event.setIsUndo();
-                        event.addRelatedPropertyChanges(relatedEventsUndo);
                         return WriteOperationResults.of(event, null);
                     });
                 }
@@ -279,10 +277,8 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
                             }
                         }
 
-
-                        var event = buildDummySongEvent();
+                        var event = new SongPropertyChangeEvent(MidiMixImpl.this, PROP_CHANNEL_INSTRUMENT_MIXES, insMixChanges, null);
                         event.setIsRedo();
-                        event.addRelatedPropertyChanges(relatedEvents);
                         return WriteOperationResults.of(event, null);
                     });
                 }
@@ -292,8 +288,7 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
             fireUndoableEditHappened(edit);
 
 
-            var event = buildDummySongEvent();
-            event.addRelatedPropertyChanges(relatedEvents);
+            var event = new SongPropertyChangeEvent(MidiMixImpl.this, PROP_CHANNEL_INSTRUMENT_MIXES, insMixChanges, null);
             return WriteOperationResults.of(event, null);
         };
 
@@ -334,9 +329,8 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
 
 
             // Update state
-            List<PropertyChangeEvent> relatedEvents = new ArrayList<>();
-            List<PropertyChangeEvent> relatedEventsUndo = new ArrayList<>();
-
+            List<InsMixChange> insMixChanges = new ArrayList<>();
+            List<InsMixChange> insMixChangesUndo = new ArrayList<>();
             for (Integer channelRhythm : mmRhythm.getUsedChannels())
             {
                 RhythmVoice rvRhythm = mmRhythm.getRhythmVoice(channelRhythm);
@@ -345,12 +339,14 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
                 assert channel != -1;
                 InstrumentMix insMixRhythm = mmRhythm.getInstrumentMix(channelRhythm);
 
+                insMixChanges.add(new InsMixChange(channel, rvRhythm, null, insMixRhythm));
+                insMixChangesUndo.add(new InsMixChange(channel, rvRhythm, insMixRhythm, null));
+
                 prepareAdd(insMixRhythm);
                 rhythmVoices[channel] = rvRhythm;
                 instrumentMixes[channel] = insMixRhythm;
-                relatedEvents.add(new PropertyChangeEvent(this, PROP_CHANNEL_INSTRUMENT_MIX, null, channel));
-                relatedEventsUndo.add(new PropertyChangeEvent(this, PROP_CHANNEL_INSTRUMENT_MIX, insMixRhythm, channel));
             }
+
 
             // Save new state
             var saveNewRhythmVoices = rhythmVoices.clone();
@@ -358,7 +354,7 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
 
 
             // Prepare the undoable edit
-            UndoableEdit edit = new SimpleEdit("Remove rhythm from MidiMix")
+            UndoableEdit edit = new SimpleEdit("add rhythm from MidiMix")
             {
                 @Override
                 public void undoBody()
@@ -375,9 +371,8 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
                             }
                         }
 
-                        var event = buildDummySongEvent();
+                        var event = new SongPropertyChangeEvent(MidiMixImpl.this, PROP_CHANNEL_INSTRUMENT_MIXES, insMixChangesUndo, null);
                         event.setIsUndo();
-                        event.addRelatedPropertyChanges(relatedEventsUndo);
                         return WriteOperationResults.of(event, null);
                     });
                 }
@@ -398,9 +393,8 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
                         }
 
 
-                        var event = buildDummySongEvent();
+                        var event = new SongPropertyChangeEvent(MidiMixImpl.this, PROP_CHANNEL_INSTRUMENT_MIXES, insMixChanges, null);
                         event.setIsRedo();
-                        event.addRelatedPropertyChanges(relatedEvents);
                         return WriteOperationResults.of(event, null);
                     });
                 }
@@ -410,11 +404,10 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
             fireUndoableEditHappened(edit);
 
 
-            var event = buildDummySongEvent();
-            event.addRelatedPropertyChanges(relatedEvents);
+            var event = new SongPropertyChangeEvent(MidiMixImpl.this, PROP_CHANNEL_INSTRUMENT_MIXES, insMixChanges, null);
             return WriteOperationResults.of(event, null);
         };
-        
+
         return operation;
     }
 
@@ -444,6 +437,8 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
             prepareAdd(insMix);
             instrumentMixes[channel] = insMix;
             rhythmVoices[channel] = urv;
+            var insMixChanges = List.of(new InsMixChange(channel, urv, null, insMix));
+            var insMixChangesUndo = List.of(new InsMixChange(channel, urv, insMix, null));
 
 
             if (isDrums && ins == GMSynth.getInstance().getVoidInstrument() && channel != MidiConst.CHANNEL_DRUMS)
@@ -461,11 +456,11 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
                 {
                     performWriteAPImethod(() -> 
                     {
-                        var oldInsMix = prepareRemove(channel);
+                        prepareRemove(channel);
                         instrumentMixes[channel] = null;
                         rhythmVoices[channel] = null;
 
-                        SongPropertyChangeEvent event = new SongPropertyChangeEvent(MidiMixImpl.this, PROP_CHANNEL_INSTRUMENT_MIX, oldInsMix, channel);
+                        var event = new SongPropertyChangeEvent(MidiMixImpl.this, PROP_CHANNEL_INSTRUMENT_MIXES, insMixChangesUndo, null);
                         event.setIsUndo();
                         return WriteOperationResults.of(event, null);
                     });
@@ -480,7 +475,7 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
                         instrumentMixes[channel] = insMix;
                         rhythmVoices[channel] = urv;
 
-                        SongPropertyChangeEvent event = new SongPropertyChangeEvent(MidiMixImpl.this, PROP_CHANNEL_INSTRUMENT_MIX, null, channel);
+                        var event = new SongPropertyChangeEvent(MidiMixImpl.this, PROP_CHANNEL_INSTRUMENT_MIXES, insMixChanges, null);
                         event.setIsRedo();
                         return WriteOperationResults.of(event, null);
                     });
@@ -491,7 +486,7 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
             fireUndoableEditHappened(edit);
 
 
-            SongPropertyChangeEvent event = new SongPropertyChangeEvent(this, PROP_CHANNEL_INSTRUMENT_MIX, null, channel);
+            var event = new SongPropertyChangeEvent(MidiMixImpl.this, PROP_CHANNEL_INSTRUMENT_MIXES, insMixChanges, null);
             return WriteOperationResults.of(event, null);
         };
 
@@ -512,7 +507,10 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
         WriteOperation operation = () -> 
         {
             var urv = getUserRhythmVoice(name);
-            assert urv != null;
+            if (urv == null)
+            {
+                return WriteOperationResults.of(null);
+            }
             int channel = getChannel(urv);
 
 
@@ -520,6 +518,8 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
             final InstrumentMix oldInsMix = prepareRemove(channel);
             instrumentMixes[channel] = null;
             rhythmVoices[channel] = null;
+            var insMixChanges = List.of(new InsMixChange(channel, urv, oldInsMix, null));
+            var insMixChangesUndo = List.of(new InsMixChange(channel, urv, null, oldInsMix));
 
 
             // Prepare the undoable edit
@@ -535,7 +535,7 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
                         instrumentMixes[channel] = oldInsMix;
                         rhythmVoices[channel] = urv;
 
-                        SongPropertyChangeEvent event = new SongPropertyChangeEvent(MidiMixImpl.this, PROP_CHANNEL_INSTRUMENT_MIX, null, channel);
+                        SongPropertyChangeEvent event = new SongPropertyChangeEvent(MidiMixImpl.this, PROP_CHANNEL_INSTRUMENT_MIXES, insMixChangesUndo, null);
                         event.setIsUndo();
                         return WriteOperationResults.of(event, null);
                     });
@@ -550,7 +550,7 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
                         instrumentMixes[channel] = null;
                         rhythmVoices[channel] = null;
 
-                        SongPropertyChangeEvent event = new SongPropertyChangeEvent(MidiMixImpl.this, PROP_CHANNEL_INSTRUMENT_MIX, oldInsMix, channel);
+                        SongPropertyChangeEvent event = new SongPropertyChangeEvent(MidiMixImpl.this, PROP_CHANNEL_INSTRUMENT_MIXES, insMixChanges, null);
                         event.setIsRedo();
                         return WriteOperationResults.of(event, null);
                     });
@@ -561,7 +561,7 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
             fireUndoableEditHappened(edit);
 
 
-            SongPropertyChangeEvent event = new SongPropertyChangeEvent(this, PROP_CHANNEL_INSTRUMENT_MIX, oldInsMix, channel);
+            SongPropertyChangeEvent event = new SongPropertyChangeEvent(MidiMixImpl.this, PROP_CHANNEL_INSTRUMENT_MIXES, insMixChanges, null);
             return WriteOperationResults.of(event, null);
         };
 
@@ -629,6 +629,8 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
             // Update state
             instrumentMixes[channel] = insMix;
             rhythmVoices[channel] = rvKey;
+            var insMixChanges = List.of(new InsMixChange(channel, rvKey, oldInsMix, insMix));
+            var insMixChangesUndo = List.of(new InsMixChange(channel, rvKey, insMix, oldInsMix));
 
 
             // Prepare the undoable edit
@@ -646,7 +648,7 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
                         instrumentMixes[channel] = oldInsMix;       // Can be null
                         rhythmVoices[channel] = oldRvKey;       // Can be null
 
-                        SongPropertyChangeEvent event = new SongPropertyChangeEvent(MidiMixImpl.this, PROP_CHANNEL_INSTRUMENT_MIX, insMix, channel);
+                        SongPropertyChangeEvent event = new SongPropertyChangeEvent(MidiMixImpl.this, PROP_CHANNEL_INSTRUMENT_MIXES, insMixChangesUndo, null);
                         event.setIsUndo();
                         return WriteOperationResults.of(event, null);
                     });
@@ -664,7 +666,7 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
                         instrumentMixes[channel] = insMix;          // Can be null
                         rhythmVoices[channel] = rvKey;              // Can be null
 
-                        SongPropertyChangeEvent event = new SongPropertyChangeEvent(MidiMixImpl.this, PROP_CHANNEL_INSTRUMENT_MIX, oldInsMix, channel);
+                        SongPropertyChangeEvent event = new SongPropertyChangeEvent(MidiMixImpl.this, PROP_CHANNEL_INSTRUMENT_MIXES, insMixChanges, null);
                         event.setIsRedo();
                         return WriteOperationResults.of(event, null);
                     });
@@ -674,7 +676,7 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
 
             fireUndoableEditHappened(edit);
 
-            SongPropertyChangeEvent event = new SongPropertyChangeEvent(this, PROP_CHANNEL_INSTRUMENT_MIX, oldInsMix, channel);
+            SongPropertyChangeEvent event = new SongPropertyChangeEvent(this, PROP_CHANNEL_INSTRUMENT_MIXES, insMixChanges, null);
             return WriteOperationResults.of(event, null);
         };
 
@@ -865,7 +867,7 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
     }
 
     @Override
-    public RhythmVoice geRhythmVoice(InstrumentMix im)
+    public RhythmVoice getRhythmVoice(InstrumentMix im)
     {
         return performReadAPImethod(() -> 
         {
@@ -1100,10 +1102,9 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
             file = f;
         }
 
-        try (FileOutputStream fos = new FileOutputStream(f))
+        try (FileOutputStream fos = new FileOutputStream(f); Writer w = new BufferedWriter(new OutputStreamWriter(fos, "UTF-8")))
         {
             XStream xstream = XStreamInstancesManager.getInstance().getSaveMidiMixInstance();
-            Writer w = new BufferedWriter(new OutputStreamWriter(fos, "UTF-8"));        // Needed to support special/accented chars
             xstream.toXML(this, w);
             if (!isCopy)
             {
@@ -1124,42 +1125,48 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
             }
             LOGGER.log(Level.WARNING, "saveToFile() exception={0}", e.getMessage());
             // Translate into an IOException to be handled by the Netbeans framework 
-            throw new IOException("XStream XML unmarshalling error", e);
+            throw new IOException("XStream XML marshalling error", e);
         }
     }
 
     @Override
     public List<InstrumentMix> getInstrumentMixesPerChannel()
     {
-        return Arrays.asList(instrumentMixes);
+        return performReadAPImethod(() -> List.of(instrumentMixes));
     }
 
     @Override
     public List<InstrumentMix> getInstrumentMixes()
     {
-        ArrayList<InstrumentMix> insMixes = new ArrayList<>();
-        for (InstrumentMix im : instrumentMixes)
+        return performReadAPImethod(() -> 
         {
-            if (im != null)
+            ArrayList<InstrumentMix> insMixes = new ArrayList<>();
+            for (InstrumentMix im : instrumentMixes)
             {
-                insMixes.add(im);
+                if (im != null)
+                {
+                    insMixes.add(im);
+                }
             }
-        }
-        return insMixes;
+            return insMixes;
+        });
     }
 
     @Override
     public Set<Rhythm> getUniqueRhythms()
     {
-        Set<Rhythm> result = new HashSet<>();
-        for (RhythmVoice rv : rhythmVoices)
+        return performReadAPImethod(() -> 
         {
-            if (rv != null && !(rv instanceof UserRhythmVoice))
+            Set<Rhythm> result = new HashSet<>();
+            for (RhythmVoice rv : rhythmVoices)
             {
-                result.add(rv.getContainer());
+                if (rv != null && !(rv instanceof UserRhythmVoice))
+                {
+                    result.add(rv.getContainer());
+                }
             }
-        }
-        return result;
+            return result;
+        });
     }
 
     @Override
@@ -1281,11 +1288,19 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
         // Fire a PROP_MUSIC_GENERATION for specific events
         boolean musicChanged = switch (event.getPropertyName())
         {
-            case PROP_CHANNEL_INSTRUMENT_MIX ->
+            case PROP_CHANNEL_INSTRUMENT_MIXES ->
             {
-                InstrumentMix oldInsMix = (InstrumentMix) event.getOldValue();
-                InstrumentMix newInsMix = getInstrumentMix((Integer) event.getNewValue());
-                yield (oldInsMix != null && newInsMix != null && InstrumentSettings.isMusicGenerationImpacted(oldInsMix.getSettings(), newInsMix.getSettings()));
+                List<MidiMix.InsMixChange> insMixChanges = (List<MidiMix.InsMixChange>) event.getOldValue();
+                for (var imc : insMixChanges)
+                {
+                    InstrumentMix oldInsMix = imc.oldInsMix();
+                    InstrumentMix newInsMix = imc.newInsMix();
+                    if (oldInsMix != null && newInsMix != null && InstrumentSettings.isMusicGenerationImpacted(oldInsMix.getSettings(), newInsMix.getSettings()))
+                    {
+                        yield true;
+                    }
+                }
+                yield false;
             }
             case PROP_DRUMS_INSTRUMENT_KEYMAP, PROP_INSTRUMENT_TRANSPOSITION, PROP_INSTRUMENT_VELOCITY_SHIFT, PROP_CHANNEL_DRUMS_REROUTED ->
                 true;
@@ -1306,7 +1321,7 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
         StringBuilder sb = new StringBuilder();
         var reroutedChannels = getDrumsReroutedChannels();
         sb.append(toString()).append(":\n");
-        for (int i = 0; i < 15; i++)
+        for (int i = MidiConst.CHANNEL_MIN; i <= MidiConst.CHANNEL_MAX; i++)
         {
             InstrumentMix insMix = instrumentMixes[i];
             if (insMix != null)
@@ -1770,16 +1785,16 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
                 continue;
             }
             InstrumentFamily mmFamily = insGM1.getFamily();
-            InstrumentMix infMixFamily = mapFamilyMix.get(mmFamily);
-            if (infMixFamily != null)
+            InstrumentMix insMixFamily = mapFamilyMix.get(mmFamily);
+            if (insMixFamily != null)
             {
                 // Copy InstrumentMix data
-                infMixFamily.setInstrument(infMixFamily.getInstrument());
-                infMixFamily.getSettings().set(infMixFamily.getSettings());
+                insMix.setInstrument(insMixFamily.getInstrument());
+                insMix.getSettings().set(insMixFamily.getSettings());
                 LOGGER.log(Level.FINER, "adaptInstrumentMixes() set (2) channel {0} instrument setting to : {1}", new Object[]
                 {
                     channel,
-                    infMixFamily.getSettings()
+                    insMixFamily.getSettings()
                 });
             }
         }

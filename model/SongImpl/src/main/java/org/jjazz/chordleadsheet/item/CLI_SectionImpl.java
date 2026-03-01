@@ -44,7 +44,6 @@ import org.jjazz.chordleadsheet.api.Section;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
-import static org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem.PROP_CONTAINER;
 import static org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem.equalsThreadUnsafe;
 import static org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem.hashCodeThreadUnsafe;
 import org.jjazz.harmony.api.Position;
@@ -103,16 +102,9 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
     }
 
     @Override
-    final public PropertyChangeEvent setContainer(ChordLeadSheet cls)
+    final public void setContainer(ChordLeadSheet cls)
     {
-        var res = getVoidEvent(this);
-        if (cls != container)
-        {
-            ChordLeadSheet old = container;
-            container = cls;
-            res = new PropertyChangeEvent(this, PROP_CONTAINER, old, container);
-        }
-        return res;
+        this.container = cls;
     }
 
     @Override

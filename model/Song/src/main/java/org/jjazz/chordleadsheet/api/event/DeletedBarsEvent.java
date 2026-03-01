@@ -24,7 +24,6 @@ package org.jjazz.chordleadsheet.api.event;
 
 import com.google.common.base.Preconditions;
 import java.util.List;
-import java.util.Objects;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
@@ -32,29 +31,23 @@ import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 /**
  * Some bars were deleted.
  * <p>
- * getItems() returns the deleted items.
+ * getItems() returns the deleted items.<br>
+ * getItemChanges() returns PROP_ITEM_POSITION change events : the shifted items and possibly adjusted for TimeSignature change.
  */
 public class DeletedBarsEvent extends ClsChangeEvent
 {
 
     private final int barFrom;
     private final int barTo;
-    private final List<ChordLeadSheetItem> shiftedItems;
-    private final List<ChordLeadSheetItem> adjustedItems;
     private final boolean initSectionRemoved;
 
     public DeletedBarsEvent(ChordLeadSheet src, int barFrom, int barTo,
-            List<ChordLeadSheetItem> removedItems,
-            List<ChordLeadSheetItem> shiftedItems,
-            List<ChordLeadSheetItem> adjustedItems)
+            List<ChordLeadSheetItem> removedItems)
     {
         super(src, removedItems);
-        Objects.requireNonNull(shiftedItems);
         Preconditions.checkArgument(barFrom <= barTo, "barFrom=%s barTo=%s", barFrom, barTo);
         this.barFrom = barFrom;
         this.barTo = barTo;
-        this.shiftedItems = List.copyOf(shiftedItems);
-        this.adjustedItems = List.copyOf(adjustedItems);
         this.initSectionRemoved = removedItems.stream().anyMatch(cli -> cli instanceof CLI_Section && cli.getPosition().getBar() == 0);
     }
 
@@ -78,29 +71,6 @@ public class DeletedBarsEvent extends ClsChangeEvent
         return initSectionRemoved;
     }
 
-    /**
-     * The items after the deletion which were shifted.
-     * <p>
-     * Note that some items beat position might have been adjusted because of a time signature change.
-     *
-     * @return Can be empty
-     */
-    public List<ChordLeadSheetItem> getShiftedItems()
-    {
-        return shiftedItems;
-    }
-
-    /**
-     * The items whose beat positino was adjusted because of a time signature change.
-     *
-     * @return Can be empty
-     */
-    public List<ChordLeadSheetItem> getAdjustedItems()
-    {
-        return adjustedItems;
-    }
-
-
     public int getNbDeletedBars()
     {
         return barTo - barFrom + 1;
@@ -114,7 +84,7 @@ public class DeletedBarsEvent extends ClsChangeEvent
 
     public String toDebugString()
     {
-        return "DeletedBarsEvent[barFrom=" + barFrom + " barTo=" + barTo + "removedItems=" + getItems() + " shiftedItems=" + shiftedItems + "]";
+        return "DeletedBarsEvent[barFrom=" + barFrom + " barTo=" + barTo + "removedItems=" + getItems() + "]";
     }
 
 

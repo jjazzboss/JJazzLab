@@ -26,9 +26,9 @@ import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 
 /**
- * One item has changed its content.
+ * One item (not a section) has changed its content.
  * <p>
- * For a CLI_Section change use a SectionChangedEvent.
+ * getItemChanges() returns a PROP_ITEM_DATA change event.<br>
  */
 public class ItemChangedEvent extends ClsChangeEvent
 {

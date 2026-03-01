@@ -49,6 +49,11 @@ public interface SongPart extends Transferable
     public static final String PROP_START_BAR_INDEX = "SptStartBarIndex";
     public static final String PROP_NB_BARS = "SptNbBars";
     public static final String PROP_NAME = "SptName";
+    /**
+     * The rhythm and/or the parent section has changed.
+     * 
+     * oldValue=old rhythm, newValue=old parent section. 
+     */
     public static final String PROP_RHYTHM_PARENT_SECTION = "SptRhythmParentSection";
     public static final DataFlavor DATA_FLAVOR = new DataFlavor(SongPart.class, "Song Part");
 

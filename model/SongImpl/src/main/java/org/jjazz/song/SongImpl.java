@@ -75,6 +75,7 @@ import org.jjazz.utilities.api.ThrowingSupplier;
 import org.jjazz.xstream.api.XStreamInstancesManager;
 import org.jjazz.xstream.spi.XStreamConfigurator;
 import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_LOAD;
+import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_LOAD;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.lookup.ServiceProvider;
@@ -159,7 +160,7 @@ public class SongImpl implements Serializable, PropertyChangeListener, Song
             SongImpl res = new SongImpl(name, sgs, disableSongInternalUpdates);
             res.comments = comments;
             res.tempo = tempo;
-            res.tags = tags;
+            res.tags = new ArrayList<>(tags);
 
 
             // Clone user phrases
@@ -526,8 +527,6 @@ public class SongImpl implements Serializable, PropertyChangeListener, Song
             p.removePropertyChangeListener(this);
         }
 
-        clientProperties.removePropertyChangeListener(this);
-
         pcs.firePropertyChange(PROP_CLOSED, false, true);
 
         if (releaseRhythmResources)
@@ -667,17 +666,12 @@ public class SongImpl implements Serializable, PropertyChangeListener, Song
             file = songFile;
         }
 
-        try (FileOutputStream fos = new FileOutputStream(songFile))
+        try (FileOutputStream fos = new FileOutputStream(songFile); Writer w = new BufferedWriter(new OutputStreamWriter(fos, "UTF-8")))
         {
+            // UTF8 required to support special/accented chars
             XStream xstream = XStreamInstancesManager.getInstance().getSaveSongInstance();
-            Writer w = new BufferedWriter(new OutputStreamWriter(fos, "UTF-8"));        // Needed to support special/accented chars
             Song songCopy = getDeepCopy(true);          // capture a clean copy
             xstream.toXML(songCopy, w);
-            if (!isCopy)
-            {
-                setName(removeSongExtension(songFile.getName()));
-                fireSaved();
-            }
         } catch (IOException e)
         {
             if (!isCopy)
@@ -694,6 +688,12 @@ public class SongImpl implements Serializable, PropertyChangeListener, Song
             // Translate into an IOException to be handled by the Netbeans framework 
             throw new IOException("XStream XML marshalling error", e);
 
+        }
+
+        if (!isCopy)
+        {
+            setName(removeSongExtension(songFile.getName()));
+            fireSaved();
         }
     }
 
@@ -859,9 +859,11 @@ public class SongImpl implements Serializable, PropertyChangeListener, Song
             if (!Phrase.isAdjustingEvent(e.getPropertyName()))
             {
                 String phraseName = performReadAPImethod(() -> getPhraseName(p));
-                assert phraseName != null;
-                firePropertyChangeEvent(new SongPropertyChangeEvent(this, PROP_USER_PHRASE_CONTENT, null, phraseName));
-                fireIsModified();
+                if (phraseName != null)
+                {
+                    firePropertyChangeEvent(new SongPropertyChangeEvent(this, PROP_USER_PHRASE_CONTENT, null, phraseName));
+                    fireIsModified();
+                }
             }
         }
     }
@@ -902,9 +904,9 @@ public class SongImpl implements Serializable, PropertyChangeListener, Song
     private String getPhraseName(Phrase p)
     {
         return mapUserPhrases.keySet().stream()
-                .filter(n -> getUserPhrase(n) == p)
+                .filter(n -> mapUserPhrases.get(n) == p)
                 .findAny()
-                .orElseThrow();
+                .orElse(null);
     }
 
     /**
@@ -1049,7 +1051,7 @@ public class SongImpl implements Serializable, PropertyChangeListener, Song
             {
                 case SONG_LOAD, SONG_SAVE ->
                 {
-                    if (instanceId.equals(MIDIMIX_LOAD))
+                    if (instanceId.equals(SONG_LOAD))
                     {
                         // From 5.1.1 : introduced Song interface API (org.jjazz.song.api) + SongImpl (org.jjazz.song)
                         // From 4.1.0: <Song resolves-to="SongSP" spName="BugAm" spTempo="95">

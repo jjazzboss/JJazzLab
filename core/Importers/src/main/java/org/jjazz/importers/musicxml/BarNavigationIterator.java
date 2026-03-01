@@ -24,8 +24,9 @@
  */
 package org.jjazz.importers.musicxml;
 
-import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.function.Predicate;
@@ -56,7 +57,7 @@ public class BarNavigationIterator implements Iterator<Integer>
     private int nbRestarts;         // When song is restarted from head (dacapo) or from segno (dal segno).
     private String goingAlCoda;     // If non null it's the coda value we're aiming for
     private boolean goingAlFine;
-    private HashMap<ChordLeadSheetItem, StringProperties> mapClirepeatProps = new HashMap<>();
+    private final Map<ChordLeadSheetItem, StringProperties> mapClirepeatProps = new IdentityHashMap<>();
     private int previousBar = -1, currentBar = -1, nextBar = -1;
     private static final Predicate<ChordLeadSheetItem> IS_NAV_ITEM = cli -> cli instanceof CLI_Repeat
             || cli instanceof CLI_NavigationItem

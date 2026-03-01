@@ -437,7 +437,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
                 {
                     InstrumentMix insMix = (InstrumentMix) e.getOldValue();
                     MidiMix mm = songContext.getMidiMix();
-                    RhythmVoice rv = mm.geRhythmVoice(insMix);
+                    RhythmVoice rv = mm.getRhythmVoice(insMix);
                     Integer trackId = mapRvTrackId.get(rv);     // Can be null 
                     if (trackId != null)
                     {

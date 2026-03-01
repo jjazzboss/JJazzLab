@@ -23,15 +23,13 @@
 package org.jjazz.chordleadsheet.api.event;
 
 import com.google.common.base.Preconditions;
-import java.util.List;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 
 /**
  * Some bars were inserted.
  * <p>
- * getItems() returns the shifted items.
+ * getItemChanges() returns PROP_ITEM_POSITION change events: the shifted items.
  */
 public class InsertedBarsEvent extends ClsChangeEvent
 {
@@ -46,11 +44,10 @@ public class InsertedBarsEvent extends ClsChangeEvent
      * @param barFrom
      * @param nbBars
      * @param newInitSection The new init section. Must be non-null only if barFrom == 0
-     * @param shiftedItems
      */
-    public InsertedBarsEvent(ChordLeadSheet src, int barFrom, int nbBars, CLI_Section newInitSection, List<ChordLeadSheetItem> shiftedItems)
+    public InsertedBarsEvent(ChordLeadSheet src, int barFrom, int nbBars, CLI_Section newInitSection)
     {
-        super(src, shiftedItems);
+        super(src);
         Preconditions.checkArgument((barFrom > 0 && newInitSection == null) || (barFrom == 0 && newInitSection != null),
                 "barFrom=%s nbBars=%s newSection=%s", barFrom, nbBars, newInitSection);
         this.barFrom = barFrom;
@@ -88,10 +85,4 @@ public class InsertedBarsEvent extends ClsChangeEvent
     {
         return "InsertedBarsEvent[barFrom=" + barFrom + " nbBars=" + nbBars + "]";
     }
-
-    public String toDebugString()
-    {
-        return "InsertedBarsEvent[barFrom=" + barFrom + " nbBars=" + nbBars + "shiftedItems=" + getItems() + "]";
-    }
-
 }

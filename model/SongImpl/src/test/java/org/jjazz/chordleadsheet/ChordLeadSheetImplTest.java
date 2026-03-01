@@ -68,7 +68,7 @@ public class ChordLeadSheetImplTest
     static
     {
         Utilities.setLoggingFormat(null);
-        Locale.setDefault(Locale.ENGLISH);        
+        Locale.setDefault(Locale.ENGLISH);
     }
 
     public ChordLeadSheetImplTest()
@@ -538,16 +538,20 @@ public class ChordLeadSheetImplTest
     {
         System.out.println("=== insertBars start of leadsheet bar=0  nbBars=3");
         var oldSection0 = cls1.getSection(0);
+        CLI_ChordSymbol chordSymbol1 = cls1.getItems(CLI_ChordSymbol.class).get(1);
+        int chordSymbol1_oldBar = chordSymbol1.getPosition().getBar();
+
         cls1.insertBars(0, 3);
 
-        assertEquals(11, cls1.getSizeInBars());        
+        assertEquals(11, cls1.getSizeInBars());
+        assertEquals(chordSymbol1_oldBar + 3, chordSymbol1.getPosition().getBar());
         var newSection3 = cls1.getSection(3);
-        assertSame(oldSection0, newSection3);        
-        
+        assertSame(oldSection0, newSection3);
+
         var newSection0 = cls1.getSection(0);
         assertTrue(newSection0.getData().getName().contains(oldSection0.getData().getName()));
         assertEquals(newSection0.getData().getTimeSignature(), oldSection0.getData().getTimeSignature());
-        
+
         assertEquals("Section2", cls1.getSection(5).getData().getName());
 
     }
@@ -620,7 +624,7 @@ public class ChordLeadSheetImplTest
         System.out.println("=== deleteBars from start middle of section barFrom=0  barTo=3");
         var oldCliSection0 = cls1.getSection(0);
         cls1.deleteBars(0, 3);
-        assertEquals(4, cls1.getSizeInBars());        
+        assertEquals(4, cls1.getSizeInBars());
         CLI_Section cliSection0 = cls1.getSection(0);
         assertSame(oldCliSection0, cliSection0, "section0 is not removed if no section right after the cut");
         assertEquals(1, cls1.getBarRange(cliSection0).size());
@@ -660,12 +664,12 @@ public class ChordLeadSheetImplTest
     }
 
     /**
-     * Deleting bars that include a section header removes the header but leaves surviving items of that section.
-     * Those items now fall under the previous section's (smaller) time signature, so their beats must be adjusted.
+     * Deleting bars that include a section header removes the header but leaves surviving items of that section. Those items now fall under the previous
+     * section's (smaller) time signature, so their beats must be adjusted.
      * <p>
      * cls1 layout: Section1(4/4)@bar0, Section2(3/4)@bar2, Section3(4/4)@bar5<br>
-     * Db@7:beat3 lives in Section3. Deleting bars 3-5 removes Section3's header (bar 5 ∈ [3,5]);
-     * Db shifts to bar 4 and its beat 3.0 must be adjusted to fit Section2's 3/4.
+     * Db@7:beat3 lives in Section3. Deleting bars 3-5 removes Section3's header (bar 5 ∈ [3,5]); Db shifts to bar 4 and its beat 3.0 must be adjusted to fit
+     * Section2's 3/4.
      */
     @Test
     public void testDeleteBarsAdjustBeatsWhenSectionHeaderDeleted()
@@ -685,12 +689,12 @@ public class ChordLeadSheetImplTest
     }
 
     /**
-     * When the section header survives the deletion (starts at barIndexTo + 1), the header and its items shift
-     * together, so no beat adjustment should be applied.
+     * When the section header survives the deletion (starts at barIndexTo + 1), the header and its items shift together, so no beat adjustment should be
+     * applied.
      * <p>
      * cls1 layout: Section3(4/4)@bar5<br>
-     * Deleting bars 3-4 leaves Section3's header at bar 5 = barIndexTo + 1 (outside the deleted range).
-     * Db@7:beat3 shifts to bar 5 and stays under Section3's 4/4 — beat must remain 3.0.
+     * Deleting bars 3-4 leaves Section3's header at bar 5 = barIndexTo + 1 (outside the deleted range). Db@7:beat3 shifts to bar 5 and stays under Section3's
+     * 4/4 — beat must remain 3.0.
      */
     @Test
     public void testDeleteBarsNoAdjustWhenSectionHeaderNotDeleted()

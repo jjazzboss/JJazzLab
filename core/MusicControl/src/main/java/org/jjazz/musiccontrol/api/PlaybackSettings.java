@@ -23,6 +23,7 @@
 package org.jjazz.musiccontrol.api;
 
 import com.google.common.base.Preconditions;
+import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -98,7 +99,7 @@ public class PlaybackSettings
     /**
      * Fired each time a parameter that can impact music generation is modified .
      * <p>
-     * OldValue=the property name that triggered the musical change, newValue=optional data
+     * OldValue=the PropertyChangeEvent that triggered the musical change
      */
     public static final String PROP_MUSIC_GENERATION = "PlaybackSettingsMusicGeneration";
 
@@ -154,7 +155,7 @@ public class PlaybackSettings
      */
     public int getChordSymbolsDisplayTransposition()
     {
-        return - prefs.getInt(PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION, 0); // Saved as negative range for backwards compatibility
+        return -prefs.getInt(PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION, 0); // Saved as negative range for backwards compatibility
     }
 
     /**
@@ -169,7 +170,7 @@ public class PlaybackSettings
         Preconditions.checkArgument(transposition >= 0 && transposition < 12, "transposition=%s", transposition);
 
         int old = getChordSymbolsDisplayTransposition();
-        prefs.putInt(PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION, - transposition); // Save as negative range for backwards compatibility
+        prefs.putInt(PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION, -transposition); // Save as negative range for backwards compatibility
         pcs.firePropertyChange(PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION, old, transposition);
     }
 
@@ -206,8 +207,9 @@ public class PlaybackSettings
     {
         boolean old = isPlaybackClickEnabled();
         prefs.putBoolean(PROP_PLAYBACK_CLICK_ENABLED, b);
-        pcs.firePropertyChange(PROP_PLAYBACK_CLICK_ENABLED, old, b);
-        fireIsMusicGenerationModified(PROP_PLAYBACK_CLICK_ENABLED, b);
+        var event = new PropertyChangeEvent(this, PROP_PLAYBACK_CLICK_ENABLED, old, b);
+        pcs.firePropertyChange(event);
+        fireMusicGenerationModified(event);
     }
 
     public boolean isPlaybackClickEnabled()
@@ -223,8 +225,9 @@ public class PlaybackSettings
     {
         boolean old = isClickPrecountEnabled();
         prefs.putBoolean(PROP_CLICK_PRECOUNT_ENABLED, b);
-        pcs.firePropertyChange(PROP_CLICK_PRECOUNT_ENABLED, old, b);
-        fireIsMusicGenerationModified(PROP_CLICK_PRECOUNT_ENABLED, b);
+        var event = new PropertyChangeEvent(this, PROP_CLICK_PRECOUNT_ENABLED, old, b);
+        pcs.firePropertyChange(event);
+        fireMusicGenerationModified(event);
     }
 
     public boolean isClickPrecountEnabled()
@@ -247,8 +250,9 @@ public class PlaybackSettings
         if (old != mode)
         {
             prefs.put(PROP_CLICK_PRECOUNT_MODE, mode.name());
-            pcs.firePropertyChange(PROP_CLICK_PRECOUNT_MODE, old, mode);
-            fireIsMusicGenerationModified(PROP_CLICK_PRECOUNT_MODE, mode);
+            var event = new PropertyChangeEvent(this, PROP_CLICK_PRECOUNT_MODE, old, mode);
+            pcs.firePropertyChange(event);
+            fireMusicGenerationModified(event);
         }
     }
 
@@ -319,8 +323,9 @@ public class PlaybackSettings
         if (old != channel)
         {
             prefs.putInt(PROP_CLICK_PREFERRED_CHANNEL, channel);
-            pcs.firePropertyChange(PROP_CLICK_PREFERRED_CHANNEL, old, channel);
-            fireIsMusicGenerationModified(PROP_CLICK_PREFERRED_CHANNEL, channel);
+            var event = new PropertyChangeEvent(this, PROP_CLICK_PREFERRED_CHANNEL, old, channel);
+            pcs.firePropertyChange(event);
+            fireMusicGenerationModified(event);
         }
     }
 
@@ -373,8 +378,9 @@ public class PlaybackSettings
         if (old != pitch)
         {
             prefs.putInt(PROP_CLICK_PITCH_HIGH, pitch);
-            pcs.firePropertyChange(PROP_CLICK_PITCH_HIGH, old, pitch);
-            fireIsMusicGenerationModified(PROP_CLICK_PITCH_HIGH, pitch);
+            var event = new PropertyChangeEvent(this, PROP_CLICK_PITCH_HIGH, old, pitch);
+            pcs.firePropertyChange(event);
+            fireMusicGenerationModified(event);
         }
     }
 
@@ -397,8 +403,9 @@ public class PlaybackSettings
         if (old != pitch)
         {
             prefs.putInt(PROP_CLICK_PITCH_LOW, pitch);
-            pcs.firePropertyChange(PROP_CLICK_PITCH_LOW, old, pitch);
-            fireIsMusicGenerationModified(PROP_CLICK_PITCH_LOW, pitch);
+            var event = new PropertyChangeEvent(this, PROP_CLICK_PITCH_LOW, old, pitch);
+            pcs.firePropertyChange(event);
+            fireMusicGenerationModified(event);
         }
     }
 
@@ -417,8 +424,9 @@ public class PlaybackSettings
         if (old != v)
         {
             prefs.putInt(PROP_CLICK_VELOCITY_HIGH, v);
-            pcs.firePropertyChange(PROP_CLICK_VELOCITY_HIGH, old, v);
-            fireIsMusicGenerationModified(PROP_CLICK_VELOCITY_HIGH, v);
+            var event = new PropertyChangeEvent(this, PROP_CLICK_VELOCITY_HIGH, old, v);
+            pcs.firePropertyChange(event);
+            fireMusicGenerationModified(event);
         }
     }
 
@@ -437,8 +445,9 @@ public class PlaybackSettings
         if (old != v)
         {
             prefs.putInt(PROP_CLICK_VELOCITY_LOW, v);
-            pcs.firePropertyChange(PROP_CLICK_VELOCITY_LOW, old, v);
-            fireIsMusicGenerationModified(PROP_CLICK_VELOCITY_LOW, v);
+            var event = new PropertyChangeEvent(this, PROP_CLICK_VELOCITY_LOW, old, v);
+            pcs.firePropertyChange(event);
+            fireMusicGenerationModified(event);
         }
     }
 
@@ -602,7 +611,7 @@ public class PlaybackSettings
         }
         float nbNaturalBeatsPerBar = ts.getNbNaturalBeats();
         float nbNaturalBeats = nbBars * nbNaturalBeatsPerBar;
-        
+
         try
         {
             if (nbBars == 2 && ts == TimeSignature.FOUR_FOUR)
@@ -653,8 +662,8 @@ public class PlaybackSettings
         return nextTick;
     }
 
-    private void fireIsMusicGenerationModified(String id, Object data)
+    private void fireMusicGenerationModified(PropertyChangeEvent event)
     {
-        pcs.firePropertyChange(PROP_MUSIC_GENERATION, id, data);
+        pcs.firePropertyChange(PROP_MUSIC_GENERATION, event, null);
     }
 }

@@ -96,7 +96,7 @@ public class ClsCyclicMutator
 
             case 4 ->
             {
-                // Change timesignature
+                // Change timesignature of init section
                 var ts = cliSection0.getData().getTimeSignature();
                 var newTs = ts == TimeSignature.FOUR_FOUR ? TimeSignature.TWO_FOUR : TimeSignature.FOUR_FOUR;
                 cls.setSectionTimeSignature(cliSection0, newTs);

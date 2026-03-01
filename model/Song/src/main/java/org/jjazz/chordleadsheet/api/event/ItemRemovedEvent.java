@@ -26,6 +26,12 @@ import java.util.List;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 
+
+/**
+ * An item was removed (not a section).
+ * <p>
+ * getItemChanges() returns an empty list.
+ */
 public class ItemRemovedEvent extends ClsChangeEvent
 {
 

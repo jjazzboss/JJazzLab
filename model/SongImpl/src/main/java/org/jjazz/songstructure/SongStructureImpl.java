@@ -707,6 +707,7 @@ public class SongStructureImpl implements SongStructure, Serializable
             // Prepare events
             final Map<TimeSignature, Rhythm> newMapTsRhythm = new HashMap<>(mapTsLastRhythm);
 
+            
             UndoableEdit edit = new SimpleEdit("Set SongParts rhythm")
             {
                 @Override

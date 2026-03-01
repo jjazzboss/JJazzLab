@@ -47,10 +47,6 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
 {
 
     /**
-     * oldValue=old container, newValue=new container.
-     */
-    public static String PROP_CONTAINER = "PropContainer";
-    /**
      * oldValue=old data, newValue=new data.
      */
     public static String PROP_ITEM_DATA = "ItemData";
@@ -138,7 +134,7 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
      * A compareTo() thread-unsafe implementation which is consistent with
      * {@link #equalsThreadUnsafe(org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem, java.lang.Object)}.
      * <p>
-     * Relies on {@link #compareToSamePosition(org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem).
+     * Container and clientProperties are ignored. Relies on {@link #compareToSamePosition(org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem).
      * .<p>
      * If thread-safety is required, subclass compareTo() implementation should call this method under a read lock.
      *
@@ -170,6 +166,7 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
     /**
      * A thread-unsafe equals() helper implementation consistent with {@link #compareToThreadUnsafe(org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem)}.
      * <p>
+     * Container and clientProperties are ignored.<p>
      * If thread-safety is required, subclass equals() implementation should call this method under a read lock.
      *
      * @param item Cannot be null
@@ -191,6 +188,8 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
     /**
      * A thread-unsafe hashCode() helper implementation consistent with
      * {@link #equalsThreadUnsafe(org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem, java.lang.Object)}.
+     * <p>
+     * Container and clientProperties are ignored.
      * <p>
      * If thread-safety is required, subclass equals() implementation should call this method under a read lock.
      *

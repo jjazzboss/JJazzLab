@@ -22,9 +22,9 @@
  */
 package org.jjazz.ss_editor.sptviewer.spi;
 
-import org.jjazz.song.api.Song;
 import org.openide.util.Lookup;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.ss_editor.api.SS_Editor;
 import org.jjazz.ss_editor.sptviewer.api.SptViewer;
 import org.jjazz.ss_editor.rpviewer.spi.DefaultRpViewerRendererFactory;
 
@@ -59,5 +59,5 @@ public interface SptViewerFactory
         return SptViewerSettings.getDefault();
     }
 
-    SptViewer createSptViewer(SongPart spt, SptViewerSettings settings, DefaultRpViewerRendererFactory factory);
+    SptViewer createSptViewer(SS_Editor ssEditor, SongPart spt, SptViewerSettings settings, DefaultRpViewerRendererFactory factory);
 }

@@ -23,22 +23,22 @@
 package org.jjazz.chordleadsheet.api.event;
 
 import com.google.common.base.Preconditions;
-import java.util.List;
 import java.util.Objects;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.Section;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 
 /**
  * One section name and/or TimeSignature has changed.
+ * <p>
+ * getItemChanges() returns a PROP_ITEM_DATA change event for the section and possibly some PROP_ITEM_POSITION change events: the adjusted items because of a
+ * TimeSignature change.
  */
 public class SectionChangedEvent extends ClsChangeEvent
 {
 
     private final Section oldData;
     private final Section newData;
-    private final List<ChordLeadSheetItem> adjustedItems;
 
     /**
      *
@@ -46,25 +46,17 @@ public class SectionChangedEvent extends ClsChangeEvent
      * @param item
      * @param oldData
      * @param newData
-     * @param adjustedItems Possible items (like CLI_ChordSymbols) whose beat was moved sooner within their bar because of a new time signature with less beats.
-     *                      Can be empty.
      */
-    public SectionChangedEvent(ChordLeadSheet src, CLI_Section item, Section oldData, Section newData, List<ChordLeadSheetItem> adjustedItems)
+    public SectionChangedEvent(ChordLeadSheet src, CLI_Section item, Section oldData, Section newData)
     {
         super(src, item);
         Objects.requireNonNull(oldData);
         Objects.requireNonNull(newData);
-        Objects.requireNonNull(adjustedItems);
         Preconditions.checkArgument(!oldData.equals(newData), "oldData=%s", oldData);
         this.oldData = oldData;
         this.newData = newData;
-        this.adjustedItems = List.copyOf(adjustedItems);
     }
 
-    public List<ChordLeadSheetItem> getAdjustedItems()
-    {
-        return adjustedItems;
-    }
 
     public Section getOldSection()
     {

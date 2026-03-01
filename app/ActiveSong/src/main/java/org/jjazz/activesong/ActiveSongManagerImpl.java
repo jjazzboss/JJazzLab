@@ -42,6 +42,7 @@ import org.jjazz.song.api.Song;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.util.Exceptions;
 import org.jjazz.activesong.spi.ActiveSongManager;
+import org.jjazz.midimix.api.MidiMix.InsMixChange;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession.Context;
 import org.openide.util.lookup.ServiceProvider;
@@ -182,7 +183,7 @@ public class ActiveSongManagerImpl implements PropertyChangeListener, ActiveSong
                 }
             }
         }
-        
+
         pcs.firePropertyChange(PROP_ACTIVE_SONG, activeMidiMix, activeSong);
         return true;
     }
@@ -274,33 +275,38 @@ public class ActiveSongManagerImpl implements PropertyChangeListener, ActiveSong
             MidiMix mm = (MidiMix) evt.getSource();
             switch (propName)
             {
-                case MidiMix.PROP_CHANNEL_INSTRUMENT_MIX ->
+                case MidiMix.PROP_CHANNEL_INSTRUMENT_MIXES ->
                 {
-                    // New , replaced or removed InstrumentMix
-                    int channel = (int) evt.getNewValue();
-                    InstrumentMix oldInsMix = (InstrumentMix) evt.getOldValue();
-                    if (oldInsMix != null)
+                    // New , replaced or removed InstrumentMixes
+                    var insMixChanges = (List<InsMixChange>) evt.getOldValue();
+                    for (var insMixChange : insMixChanges)
                     {
-                        // oldInsMix removed, unregister
-                        oldInsMix.removePropertyChangeListener(this);
-                        oldInsMix.getSettings().removePropertyChangeListener(this);
-                    }
-                    InstrumentMix insMix = mm.getInstrumentMix(channel);
-                    if (insMix != null)
-                    {
-                        // insMix added (new or replacing oldInsMix)                    
-                        insMix.addPropertyChangeListener(this);
-                        insMix.getSettings().addPropertyChangeListener(this);
-                        if (sendMidiMessagePolicy.contains(SendMidiMessagePolicy.MIX_CHANGE))
-                        {
-                            JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
-                            jms.sendMidiMessagesOnJJazzMidiOut(insMix.getAllMidiMessages(channel));
+                        int channel = insMixChange.channel();
+                        InstrumentMix oldInsMix = insMixChange.oldInsMix();
+                        InstrumentMix newInsMix = insMixChange.newInsMix();
 
+                        if (oldInsMix != null)
+                        {
+                            // oldInsMix removed, unregister
+                            oldInsMix.removePropertyChangeListener(this);
+                            oldInsMix.getSettings().removePropertyChangeListener(this);
                         }
-                    } else
-                    {
-                        // oldInsMix removed but nothing replaced it, nothing to do
+                        if (newInsMix != null)
+                        {
+                            // insMix added (new or replacing oldInsMix)                    
+                            newInsMix.addPropertyChangeListener(this);
+                            newInsMix.getSettings().addPropertyChangeListener(this);
+                            if (sendMidiMessagePolicy.contains(SendMidiMessagePolicy.MIX_CHANGE))
+                            {
+                                JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
+                                jms.sendMidiMessagesOnJJazzMidiOut(newInsMix.getAllMidiMessages(channel));
+                            }
+                        } else
+                        {
+                            // oldInsMix removed but nothing replaced it, nothing to do
+                        }
                     }
+
                 }
                 case MidiMix.PROP_RHYTHM_VOICE_CHANNEL ->
                 {

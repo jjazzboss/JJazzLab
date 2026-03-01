@@ -23,6 +23,7 @@
 package org.jjazz.undomanager.api;
 
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Map;
 
 /**
@@ -49,7 +50,7 @@ public class JJazzUndoManagerFinder
 
     private JJazzUndoManagerFinder()
     {
-        map = new HashMap<>();
+        map = new IdentityHashMap<>();
         defaultUndoManager = new JJazzUndoManager();
     }
 

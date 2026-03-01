@@ -24,7 +24,6 @@
  */
 package org.jjazz.song;
 
-import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -33,7 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jjazz.chordleadsheet.ChordLeadSheetImpl;
@@ -47,12 +45,7 @@ import org.jjazz.chordleadsheet.api.event.SectionMovedEvent;
 import org.jjazz.chordleadsheet.api.event.SectionRemovedEvent;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.midi.api.InstrumentMix;
-import org.jjazz.midi.api.synths.GM1Instrument;
-import org.jjazz.midi.api.synths.GMSynth;
-import org.jjazz.midi.api.synths.InstrumentFamily;
 import org.jjazz.midimix.MidiMixImpl;
-import org.jjazz.midimix.MidiMixManagerImpl;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.midimix.spi.MidiMixManager;
@@ -63,9 +56,6 @@ import org.jjazz.rhythm.api.AdaptedRhythm;
 import static org.jjazz.rhythm.api.Division.EIGHTH_SHUFFLE;
 import static org.jjazz.rhythm.api.Division.EIGHTH_TRIPLET;
 import org.jjazz.rhythm.api.Rhythm;
-import org.jjazz.rhythm.api.RhythmVoice;
-import static org.jjazz.rhythm.api.RhythmVoice.Type.DRUMS;
-import static org.jjazz.rhythm.api.RhythmVoice.Type.PERCUSSION;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongPropertyChangeEvent;
 import org.jjazz.songstructure.SongStructureImpl;
@@ -74,7 +64,6 @@ import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.jjazz.songstructure.api.event.SptAddedEvent;
 import org.jjazz.songstructure.api.event.SptRemovedEvent;
 import org.jjazz.songstructure.api.event.SptRhythmChangedEvent;
-import org.jjazz.utilities.api.Utilities;
 import org.openide.util.Exceptions;
 
 /**

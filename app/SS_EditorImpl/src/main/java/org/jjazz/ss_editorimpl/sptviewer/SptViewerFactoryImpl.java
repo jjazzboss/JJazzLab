@@ -26,6 +26,7 @@ package org.jjazz.ss_editorimpl.sptviewer;
 import org.jjazz.ss_editor.sptviewer.api.SptViewer;
 import org.jjazz.ss_editor.sptviewer.spi.SptViewerFactory;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.ss_editor.api.SS_Editor;
 import org.jjazz.ss_editor.sptviewer.spi.SptViewerSettings;
 import org.jjazz.ss_editor.rpviewer.spi.DefaultRpViewerRendererFactory;
 import org.openide.util.lookup.ServiceProvider;
@@ -35,9 +36,9 @@ public class SptViewerFactoryImpl implements SptViewerFactory
 {
   
     @Override
-    public SptViewer createSptViewer(SongPart spt, SptViewerSettings settings, DefaultRpViewerRendererFactory factory)
+    public SptViewer createSptViewer(SS_Editor ssEditor, SongPart spt, SptViewerSettings settings, DefaultRpViewerRendererFactory factory)
     {
-        SptViewer sptv = new SptViewerImpl(spt, settings, factory);
+        SptViewer sptv = new SptViewerImpl(ssEditor, spt, settings, factory);
         return sptv;
     }
 

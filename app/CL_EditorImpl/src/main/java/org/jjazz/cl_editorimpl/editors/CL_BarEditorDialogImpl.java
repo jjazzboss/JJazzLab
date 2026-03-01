@@ -33,6 +33,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -92,7 +93,7 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
     private CLI_Section resultSection;
     private final List<ChordLeadSheetItem> resultAddedItems;
     private final List<ChordLeadSheetItem> resultRemovedItems;
-    private final HashMap<ChordLeadSheetItem, Object> resultMapChangedItems;
+    private final Map<ChordLeadSheetItem, Object> resultMapChangedItems;
     /**
      * Undo manager for the text edits
      */
@@ -152,7 +153,7 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
         resultSection = null;
         resultAddedItems = new ArrayList<>();
         resultRemovedItems = new ArrayList<>();
-        resultMapChangedItems = new HashMap<>();
+        resultMapChangedItems = new IdentityHashMap<>();
     }
 
     @Override

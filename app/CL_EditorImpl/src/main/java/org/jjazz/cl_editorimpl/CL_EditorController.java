@@ -182,9 +182,9 @@ public class CL_EditorController implements CL_EditorMouseListener
     // CL_EditorMouseListener interface
     // ----------------------------------------------------------------------------------
     @SuppressWarnings(
-        {
-            "rawtypes"
-        })
+            {
+                "rawtypes"
+            })
     @Override
     public void itemClicked(MouseEvent e, ChordLeadSheetItem<?> item, IR_Type irType)
     {
@@ -341,7 +341,7 @@ public class CL_EditorController implements CL_EditorMouseListener
 
 
         // Fix Issue #347: need to give time for clTc to become active if it was not the case
-        SwingUtilities.invokeLater(() ->
+        SwingUtilities.invokeLater(() -> 
         {
             if (isWheelChangeEnabled)
             {
@@ -460,6 +460,9 @@ public class CL_EditorController implements CL_EditorMouseListener
             }
             int minBbIndex = Math.min(dragStartBbIndex, pos.getBar());
             int maxBbIndex = Math.max(dragStartBbIndex, pos.getBar());
+            selection.getSelectedBars().stream()
+                    .filter(sb -> sb.getBarBoxIndex() < minBbIndex || sb.getBarBoxIndex() > maxBbIndex)
+                    .forEach(sb -> editor.selectBars(sb.getBarBoxIndex(), sb.getBarBoxIndex(), false));
             editor.selectBars(minBbIndex, maxBbIndex, true);
         }
     }
@@ -508,7 +511,7 @@ public class CL_EditorController implements CL_EditorMouseListener
         }
         LOGGER.log(Level.FINE, "editorWheelMoved() X or Y factor={0}", factor);
         var factor2 = factor;
-        SwingUtilities.invokeLater(() ->
+        SwingUtilities.invokeLater(() -> 
         {
             if (e.isShiftDown())
             {

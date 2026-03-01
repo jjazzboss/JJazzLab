@@ -293,7 +293,8 @@ public interface Song
     /**
      * Set the user phrase for the specified name.
      * <p>
-     * Fires a PROP_USER_PHRASE change event if name was new, or a PROP_USER_PHRASE_CONTENT change event if name was existing.
+     * Fires a PROP_USER_PHRASE change event if name was new, or a PROP_USER_PHRASE_CONTENT change event if name was existing. DO nothing if song has 0 bars (no
+     * song parts).
      * <p>
      * This song will listen to Phrase p's changes and fire a PROP_MODIFIED_OR_SAVED_OR_RESET change event when a non-adjusting change is made.
      * <p>

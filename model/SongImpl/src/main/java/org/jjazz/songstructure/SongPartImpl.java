@@ -329,6 +329,8 @@ public class SongPartImpl implements SongPart, Serializable
      * Set the rhythm and the parent section.
      * <p>
      * Can only be called by SongStructure. SongPart name is unchanged.
+     * 
+     * Fires a PROP_RHYTHM_PARENT_SECTION change event.
      *
      * @param newRhythm        If null rhythm is unchanged.
      * @param newParentSection If null parent section is unchanged.
@@ -357,6 +359,7 @@ public class SongPartImpl implements SongPart, Serializable
         }
 
         var oldRhythm = rhythm;
+        var oldParentSection = parentSection;
         var saveMapRvValues = mapRpValue.clone();
 
 
@@ -391,7 +394,7 @@ public class SongPartImpl implements SongPart, Serializable
             }
         }
 
-        return new PropertyChangeEvent(this, PROP_RHYTHM_PARENT_SECTION, rhythm, newParentSection);
+        return new PropertyChangeEvent(this, PROP_RHYTHM_PARENT_SECTION, oldRhythm, oldParentSection);
     }
 
     /**

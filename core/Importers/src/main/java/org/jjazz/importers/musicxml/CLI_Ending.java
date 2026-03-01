@@ -225,11 +225,9 @@ public class CLI_Ending implements ChordLeadSheetItem<Ending>, WritableItem<Endi
     }
 
     @Override
-    public PropertyChangeEvent setContainer(ChordLeadSheet cls)
+    final public void setContainer(ChordLeadSheet cls)
     {
-        var old = this.container;
         this.container = cls;
-        return new PropertyChangeEvent(this, PROP_CONTAINER, old, cls);
     }
 
     @Override

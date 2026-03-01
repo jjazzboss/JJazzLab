@@ -60,6 +60,24 @@ import org.jjazz.xstream.api.XStreamInstancesManager;
 public interface MidiMix
 {
 
+    /**
+     * Describe an InstrumentMix change added (oldInsMix is null), removed (newInsMix is null), or replaced for a given RhythmVoice-channel pair.
+     *
+     * @param channel   Midi channel
+     * @param rv        Cannot be null
+     * @param oldInsMix Cannot be null if newInsMix is null.
+     * @param newInsMix Cannot be null if oldInsMix is null.
+     */
+    public record InsMixChange(int channel, RhythmVoice rv, InstrumentMix oldInsMix, InstrumentMix newInsMix)
+            {
+
+        public InsMixChange
+        {
+            Preconditions.checkArgument(MidiConst.checkMidiChannel(channel), "channel=%s", channel);
+            Preconditions.checkArgument(oldInsMix != null || newInsMix != null, "oldInsMix=%s newInsMix=%s", oldInsMix, newInsMix);
+        }
+    }
+    ;
     public static final String MIX_FILE_EXTENSION = "mix";
     public static final int NB_AVAILABLE_CHANNELS = MidiConst.CHANNEL_MAX - MidiConst.CHANNEL_MIN + 1;
     /**
@@ -67,11 +85,11 @@ public interface MidiMix
      */
     String PROP_CHANNEL_DRUMS_REROUTED = "ChannelDrumsRerouted";
     /**
-     * Added, replaced or removed InstrumentMix.
+     * One or more InstrumentMixes were added, replaced or removed.
      * <p>
-     * OldValue=the old InstrumentMix (null if new InstrumentMix added), newValue=channel
+     * OldValue=List&lt;InsMixChange&gt; (list contains only additions or only replacements or only removals)
      */
-    String PROP_CHANNEL_INSTRUMENT_MIX = "ChannelInstrumentMix";
+    String PROP_CHANNEL_INSTRUMENT_MIXES = "ChannelInstrumentMixes";
     /**
      * A drums instrument has changed with different keymap.
      * <p>
@@ -119,7 +137,7 @@ public interface MidiMix
     /**
      * Add a user channel.
      * <p>
-     * The channel will be associated to a UserRhythmVoice created from name. Fires a PROP_CHANNEL_INSTRUMENT_MIX change event and an undoable event.
+     * The channel will be associated to a UserRhythmVoice created from name. Fires a PROP_CHANNEL_INSTRUMENT_MIXES change event and an undoable event.
      *
      * @param name
      * @param isDrums
@@ -130,7 +148,7 @@ public interface MidiMix
     /**
      * Remove a user channel.
      * <p>
-     * Fires a PROP_CHANNEL_INSTRUMENT_MIX change event and an undoable event.
+     * Fires a PROP_CHANNEL_INSTRUMENT_MIXES change event and an undoable event.
      *
      * @param name The name of the UserRhythmVoice
      */
@@ -139,7 +157,7 @@ public interface MidiMix
     /**
      * Add channels for all the RhythmVoices of r.
      * <p>
-     * Fires a PROP_CHANNEL_INSTRUMENT_MIX change event for each RhythmVoice, and one undoable event.
+     * Fires a PROP_CHANNEL_INSTRUMENT_MIXES change event for each RhythmVoice, and one undoable event.
      *
      * @param r
      * @throws UnsupportedEditException If no enough MIDI channels available
@@ -149,7 +167,7 @@ public interface MidiMix
     /**
      * Remove all the channels of r.
      * <p>
-     * Fires a PROP_CHANNEL_INSTRUMENT_MIX change event for each RhythmVoice,  and an undoable event.
+     * Fires a PROP_CHANNEL_INSTRUMENT_MIXES change event for each RhythmVoice, and an undoable event.
      *
      * @param r
      */
@@ -168,7 +186,7 @@ public interface MidiMix
      * @param im
      * @return null if InstrumentMix not found.
      */
-    RhythmVoice geRhythmVoice(InstrumentMix im);
+    RhythmVoice getRhythmVoice(InstrumentMix im);
 
     /**
      * Find the channel corresponding to the specified InstrumentMix.
@@ -381,7 +399,7 @@ public interface MidiMix
      * Assign an InstrumentMix to a midi channel and to a key.
      * <p>
      * Replaces any existing InstrumentMix associated to the midi channel. The solo and "drums rerouted channel" status are reset to off for the channel. <br>
-     * Fires a PROP_CHANNEL_INSTRUMENT_MIX change event and an undoable event.
+     * Fires a PROP_CHANNEL_INSTRUMENT_MIXES change event and an undoable event.
      *
      * @param channel A valid midi channel number.
      * @param rvKey   Can be null if insMix is also null. If a song is set, must be consistent with its rhythms and user phrases. Cannot be a

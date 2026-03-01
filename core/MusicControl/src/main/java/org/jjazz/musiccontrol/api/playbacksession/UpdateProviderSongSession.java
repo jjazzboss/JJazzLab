@@ -37,6 +37,7 @@ import org.jjazz.chordleadsheet.api.event.ItemMovedEvent;
 import org.jjazz.chordleadsheet.api.event.ItemRemovedEvent;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.midimix.api.MidiMix.InsMixChange;
 import org.jjazz.midimix.api.UserRhythmVoice;
 import org.jjazz.musiccontrol.api.ControlTrack;
 import org.jjazz.musiccontrol.api.MusicGenerationQueue;
@@ -296,12 +297,11 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
 
         // Analyze the PROP_MUSIC_GENERATION_COMBINED change event origin
         Object sourceEvent = e.getOldValue();
-        Object data = e.getNewValue();
 
 
-        LOGGER.log(Level.FINE, "propertyChange() -- sourceEvent={0} data={1}", new Object[]
+        LOGGER.log(Level.FINE, "propertyChange() -- sourceEvent={0}", new Object[]
         {
-            sourceEvent, data
+            sourceEvent
         });
 
         switch (sourceEvent)
@@ -383,8 +383,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
                 {
                     case Song.PROP_USER_PHRASE ->
                     {
-                        String phraseName = (String) data;
-                        if (getSongContext().getSong().getUserPhrase(phraseName) == null)
+                        if (spce.getOldValue() instanceof String)
                         {
                             // A user phrase was removed: this is supported by the UpdatableSongSession
                             doUpdate = true;
@@ -408,8 +407,9 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
 
             case PropertyChangeEvent pce ->             // must be AFTER case SongPropertyChangeEvent
             {
+                MidiMix midiMix = getSongContext().getMidiMix();
 
-                if (pce.getSource() == getSongContext().getMidiMix())
+                if (pce.getSource() == midiMix)
                 {
                     switch (pce.getPropertyName())
                     {
@@ -417,11 +417,13 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
                         {
                             doDisableUpdates = true;
                         }
-                        case MidiMix.PROP_CHANNEL_INSTRUMENT_MIX ->
+                        case MidiMix.PROP_CHANNEL_INSTRUMENT_MIXES ->
                         {
-                            if (data instanceof UserRhythmVoice)
+                            List<InsMixChange> insMixChanges = (List<InsMixChange>) pce.getOldValue();
+                            InsMixChange insMixChange = insMixChanges.size() == 1 ? insMixChanges.getFirst() : null;
+                            if (insMixChange != null && insMixChange.newInsMix() == null && insMixChange.rv() instanceof UserRhythmVoice)
                             {
-                                // We can accept user channel removal                    
+                                // We can only manage user channel removal                    
                                 doUpdate = true;
                             } else
                             {
@@ -433,7 +435,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
                             doUpdate = true;
                         }
                     }
-                    
+
                 } else if (e.getSource() == PlaybackSettings.getInstance())
                 {
                     switch (pce.getPropertyName())
@@ -449,7 +451,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
                     }
                 }
             }
-            
+
             default -> throw new IllegalStateException("Unexpected value: " + sourceEvent);
         }
 

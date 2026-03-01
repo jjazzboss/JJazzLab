@@ -108,16 +108,9 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
     }
 
     @Override
-    final public PropertyChangeEvent setContainer(ChordLeadSheet cls)
+    final public void setContainer(ChordLeadSheet cls)
     {
-        var res = CLI_SectionImpl.getVoidEvent(this);
-        if (cls != container)
-        {
-            ChordLeadSheet old = container;
-            container = cls;
-            res = new PropertyChangeEvent(this, PROP_CONTAINER, old, container);
-        }
-        return res;
+        this.container = cls;
     }
 
 

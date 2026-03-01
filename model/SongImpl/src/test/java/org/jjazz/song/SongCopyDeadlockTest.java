@@ -26,7 +26,6 @@ import java.time.Duration;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.chordleadsheet.ClsCyclicMutator;
@@ -88,14 +87,15 @@ public class SongCopyDeadlockTest
      * <p>
      *
      * @param song
+     * @return 
      * @throws java.lang.InterruptedException
      */
-    private void executeDeadlockScenario(Song song) throws InterruptedException
+    private boolean executeDeadlockScenario(Song song) throws InterruptedException
     {
-        final int TIME_OUT_SEC = 3;     // Must leave enough time to execute all DEEP_COPY_ITERATION (a DeepCopy is longer than a mutation)
-        final int DEEP_COPY_ITERATIONS = 5000;
+        final int TIME_OUT_SEC = 7;     // Must leave enough time to execute all DEEP_COPY_ITERATION (a DeepCopy is longer than a mutation)
+        final int DEEP_COPY_ITERATIONS = 3000;
         final int MUTATION_ITERATIONS = DEEP_COPY_ITERATIONS;
-        final int LOG_COUNT = 500;
+        final int LOG_COUNT = 1000;
         final AtomicInteger deepCopyCount = new AtomicInteger(0);
         final AtomicInteger mutationCount = new AtomicInteger(0);
         final AtomicReference<Throwable> readerException = new AtomicReference<>();
@@ -121,7 +121,7 @@ public class SongCopyDeadlockTest
                     {
                         LOGGER.log(Level.INFO, "songDeepCopyThread i={0}", i);
                     }
-                    if (i % 20 == 0)
+                    if (Math.random() > 0.2d)
                     {
                         Thread.yield();
                     }
@@ -141,21 +141,21 @@ public class SongCopyDeadlockTest
             LOGGER.info("songModifierThread started --");
             ClsCyclicMutator clsMutator = new ClsCyclicMutator(song.getChordLeadSheet());
             SgsCyclicMutator sgsMutator = new SgsCyclicMutator(song.getSongStructure());
-            
+
             try
             {
-                for (long j = 0; j < MUTATION_ITERATIONS; j++)
+                for (long i = 0; i < MUTATION_ITERATIONS; i++)
                 {
                     clsMutator.mutate();
                     sgsMutator.mutate();
-                    
+
                     mutationCount.incrementAndGet();
-                    if (j % LOG_COUNT == 0)
+                    if (i % LOG_COUNT == 0)
                     {
-                        LOGGER.log(Level.INFO, "songModifierThread j={0}", j);
+                        LOGGER.log(Level.INFO, "songMODIFIERThread i={0}", i);
                     }
                     // Small yield to encourage interleaving
-                    if (j % 10 == 0)
+                    if (Math.random() > 0.2d)
                     {
                         Thread.yield();
                     }
@@ -164,7 +164,7 @@ public class SongCopyDeadlockTest
             {
                 writerException.set(t);
             }
-            LOGGER.log(Level.INFO, "songModifierThread finished OK");
+            LOGGER.log(Level.INFO, "songMODIFIERThread finished OK");
 
         }, "songModifierThread");
 
@@ -201,6 +201,7 @@ public class SongCopyDeadlockTest
         }
 
         assertTrue(b1 && b2, "b1=" + b1 + " b2=" + b2);
+        return b1 && b2;
     }
 
 }

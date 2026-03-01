@@ -32,10 +32,8 @@ import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
-import static org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem.PROP_CONTAINER;
 import static org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem.PROP_ITEM_DATA;
 import static org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem.PROP_ITEM_POSITION;
 import org.jjazz.chordleadsheet.api.item.WritableItem;
@@ -188,11 +186,9 @@ public class CLI_NavigationItem implements ChordLeadSheetItem<NavItem>, Writable
     }
 
     @Override
-    public PropertyChangeEvent setContainer(ChordLeadSheet cls)
+    final public void setContainer(ChordLeadSheet cls)
     {
-        var old = this.container;
         this.container = cls;
-        return new PropertyChangeEvent(this, PROP_CONTAINER, old, cls);
     }
 
     @Override

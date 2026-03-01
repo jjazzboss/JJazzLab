@@ -23,13 +23,13 @@
 package org.jjazz.chordleadsheet.api.event;
 
 import com.google.common.base.Preconditions;
-import java.util.List;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
-import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
 
 /**
  * A CLI_Section was added, possibly replacing an existing one in the same bar.
+ * <p>
+ * getItemChanges() returns PROP_ITEM_POSITION change events: adjusted items because of a TimeSignature change.
  */
 public class SectionAddedEvent extends ClsChangeEvent
 {
@@ -37,31 +37,20 @@ public class SectionAddedEvent extends ClsChangeEvent
     private final CLI_Section sameBarReplacedCliSection;
     private final CLI_Section previousBarSection;
 
-
-    private final List<ChordLeadSheetItem> adjustedItems;
-
     /**
      *
      * @param src
      * @param cliSection         The added section
      * @param replacedCliSection The replaced section (must be in the same bar than cliSection). Can be null.
-     * @param adjustedItems      Possible items (like CLI_ChordSymbols) whose beat was moved sooner in the bar because of a new time signature with less beats.
-     *                           Can be empty.
      */
-    public SectionAddedEvent(ChordLeadSheet src, CLI_Section cliSection, CLI_Section replacedCliSection, List<ChordLeadSheetItem> adjustedItems)
+    public SectionAddedEvent(ChordLeadSheet src, CLI_Section cliSection, CLI_Section replacedCliSection)
     {
         super(src, cliSection);
         int bar = cliSection.getPosition().getBar();
         Preconditions.checkArgument(replacedCliSection == null || replacedCliSection.getPosition().getBar() == bar,
                 "cliSection=%s replacedCliSection=%s", cliSection, replacedCliSection);
         this.sameBarReplacedCliSection = replacedCliSection;
-        this.adjustedItems = List.copyOf(adjustedItems);
         this.previousBarSection = bar == 0 ? null : src.getSection(bar - 1);
-    }
-
-    public List<ChordLeadSheetItem> getAdjustedItems()
-    {
-        return adjustedItems;
     }
 
     /**
@@ -92,6 +81,6 @@ public class SectionAddedEvent extends ClsChangeEvent
     @Override
     public String toString()
     {
-        return "SectionAddedEvent[item=" + getCLI_Section() + ", replacedCliSection=" + sameBarReplacedCliSection + ", adjustedItems=" + adjustedItems + "]";
+        return "SectionAddedEvent[item=" + getCLI_Section() + ", replacedCliSection=" + sameBarReplacedCliSection + "]";
     }
 }
