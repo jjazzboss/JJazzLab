@@ -40,6 +40,7 @@ import org.jjazz.outputsynth.api.FixMidiMix;
 import org.jjazz.pianoroll.api.PianoRollEditorTopComponent;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.SongContext;
+import org.jjazz.song.spi.SongContextFactory;
 import org.jjazz.utilities.api.IntRange;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
@@ -99,7 +100,7 @@ public class PlayLoopZone extends AbstractAction
             IntRange absoluteBarRange = topComponent.getBarRange();
             IntRange loopZone = topComponent.getEditor().getLoopZone();
             IntRange barRange = loopZone == null ? absoluteBarRange : loopZone.getTransformed(absoluteBarRange.from);
-            SongContext context = new SongContext(topComponent.getSong(), topComponent.getMidiMix(), barRange);
+            SongContext context = SongContextFactory.getDefault().of(topComponent.getSong(), topComponent.getMidiMix(), barRange);
 
             FixMidiMix.checkAndPossiblyFix(context.getMidiMix(), true);
 

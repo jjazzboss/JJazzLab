@@ -60,6 +60,7 @@ import org.jjazz.mixconsole.api.MixConsoleTopComponent;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrolactions.api.FixMissingSectionStartChord;
 import org.jjazz.outputsynth.api.FixMidiMix;
+import org.jjazz.song.spi.SongContextFactory;
 import org.jjazz.ss_editor.api.SS_Editor;
 import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
 import org.jjazz.utilities.api.ResUtil;
@@ -183,7 +184,7 @@ public class PlayFromHere extends AbstractAction
         try
         {
             MidiMix midiMix = MidiMixManager.getDefault().findMix(song);      // throws UnsupportedEditException
-            SongContext context = new SongContext(song, midiMix);
+            SongContext context = SongContextFactory.getDefault().of(song, midiMix);
 
             new FixMissingSectionStartChord(context).autofix();
             FixMidiMix.checkAndPossiblyFix(midiMix, true);

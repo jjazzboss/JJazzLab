@@ -59,6 +59,7 @@ import org.jjazz.mixconsole.api.MixConsoleTopComponent;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrolactions.api.FixMissingSectionStartChord;
 import org.jjazz.outputsynth.api.FixMidiMix;
+import org.jjazz.song.spi.SongContextFactory;
 import org.jjazz.ss_editor.api.SS_Editor;
 import org.jjazz.utilities.api.IntRange;
 import org.jjazz.utilities.api.ResUtil;
@@ -178,12 +179,12 @@ public class PlaySelection extends AbstractAction
         try
         {
             MidiMix midiMix = MidiMixManager.getDefault().findMix(song);      // Can raise UnsupportedEditException
-            SongContext context = new SongContext(song, midiMix, rg);
-            
+            SongContext context = SongContextFactory.getDefault().of(song, midiMix, rg);
+
             new FixMissingSectionStartChord(context).autofix();
             FixMidiMix.checkAndPossiblyFix(midiMix, true);
 
-            UpdateProviderSongSession dynSession = UpdateProviderSongSession.getSession(context, PlaybackSession.Context.SONG);            
+            UpdateProviderSongSession dynSession = UpdateProviderSongSession.getSession(context, PlaybackSession.Context.SONG);
             session = UpdatableSongSession.getSession(dynSession);
             mc.setPlaybackSession(session, false);      // Can raise MusicGenerationException
             mc.play(rg.from);
@@ -242,7 +243,7 @@ public class PlaySelection extends AbstractAction
      * - SongStructure=S1 S1 S3 S2<br>
      * If cls range=bar0+bar1, then sgs range=[0;3]<br>
      *
-     * @param ss      The parent sections of the song parts must be in cls.
+     * @param ss          The parent sections of the song parts must be in cls.
      * @param cls
      * @param clsRange
      * @param ssSelection

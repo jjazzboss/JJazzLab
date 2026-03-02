@@ -59,6 +59,7 @@ import org.jjazz.instrumentcomponents.keyboard.api.KeyboardComponent.Orientation
 import org.jjazz.instrumentcomponents.keyboard.api.KeyboardRange;
 import org.jjazz.outputsynth.api.FixMidiMix;
 import org.jjazz.rhythmparametersimpl.api.RP_SYS_Variation;
+import org.jjazz.song.spi.SongContextFactory;
 import org.jjazz.ss_editor.api.SS_Editor;
 import org.jjazz.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.ss_editor.api.SS_Selection;
@@ -316,7 +317,7 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
             {
                 // Use first selected song part
                 songPart = selection.isRhythmParameterSelected()
-                        ? selection.getSelectedSongPartParameters().get(0).getSpt()
+                        ? selection.getSelectedSongPartParameters().get(0).spt()
                         : selection.getSelectedSongParts().get(0);
             }
 
@@ -331,7 +332,7 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
 
 
             // Prepare the arranger 
-            SongContext sgContext = new SongContext(song, midiMix, songPart.getBarRange());
+            SongContext sgContext = SongContextFactory.getDefault().of(song, midiMix, songPart.getBarRange());
 
             FixMidiMix.checkAndPossiblyFix(midiMix, true);
 

@@ -26,7 +26,6 @@ import org.jjazz.musiccontrol.api.MusicGenerationQueue;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.EnumSet;
-import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -40,7 +39,7 @@ import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession.Context;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
 import org.jjazz.musiccontrol.spi.ActiveSongBackgroundMusicBuilder;
 import org.jjazz.song.api.Song;
-import org.jjazz.song.api.SongContext;
+import org.jjazz.song.spi.SongContextFactory;
 import org.openide.util.ChangeSupport;
 import org.openide.util.lookup.ServiceProvider;
 
@@ -332,7 +331,7 @@ public class ActiveSongBackgroundMusicBuilderImpl implements PropertyChangeListe
         }
 
         // Need to transform it into a MusicGenerationQueue.Result
-        lastResult = new MusicGenerationQueue.Result(new SongContext(activeSong, activeMidiMix), mapRvPhrases, null);
+        lastResult = new MusicGenerationQueue.Result(SongContextFactory.getDefault().of(activeSong, activeMidiMix), mapRvPhrases, null);
         cs.fireChange();
     }
 

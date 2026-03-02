@@ -76,10 +76,10 @@ public final class NextRpValue extends SS_ContextAction
         JJazzUndoManagerFinder.getDefault().get(sgs).startCEdit(getActionName());
         for (SongPartParameter sptp : selection.getSelectedSongPartParameters())
         {
-            RhythmParameter rp = sptp.getRp();
+            RhythmParameter rp = sptp.rp();
             if (rp instanceof RpEnumerable)
             {
-                SongPart spt = sptp.getSpt();
+                SongPart spt = sptp.spt();
                 Object newValue = ((RpEnumerable) rp).getNextValue(spt.getRPValue(rp));
                 sgs.setRhythmParameterValue(spt, rp, newValue);
             }

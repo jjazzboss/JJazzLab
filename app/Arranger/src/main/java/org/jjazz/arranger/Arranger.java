@@ -50,6 +50,7 @@ import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongContext;
+import org.jjazz.song.spi.SongContextFactory;
 import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
@@ -363,7 +364,7 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
 
 
         // Return the new context 
-        return new SongContext(songWork, sgContext.getMidiMix(), sptWork.getBarRange());
+        return SongContextFactory.getDefault().of(songWork, sgContext.getMidiMix(), sptWork.getBarRange());
 
     }
 

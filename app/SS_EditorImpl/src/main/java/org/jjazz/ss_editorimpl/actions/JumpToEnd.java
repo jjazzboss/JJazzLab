@@ -56,7 +56,7 @@ public class JumpToEnd extends AbstractAction
             SongPartParameter sptp = selection.getSelectedSongPartParameters().get(selection.getSelectedSongPartParameters().size() - 1);
             selection.unselectAll(editor);
             // Find first compatible rp
-            RhythmParameter<?> rp = RhythmParameter.findFirstCompatibleRp(spt.getRhythm().getRhythmParameters(), sptp.getRp());
+            RhythmParameter<?> rp = RhythmParameter.findFirstCompatibleRp(spt.getRhythm().getRhythmParameters(), sptp.rp());
             if (rp != null)
             {
                 editor.selectRhythmParameter(spt, rp, true);

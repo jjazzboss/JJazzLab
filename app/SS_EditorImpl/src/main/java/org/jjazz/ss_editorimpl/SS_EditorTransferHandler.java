@@ -367,9 +367,9 @@ public class SS_EditorTransferHandler extends TransferHandler
         AtomicBoolean leftSpt = new AtomicBoolean();
         SongPartParameter sptp = editor.getSongPartParameterFromPoint(editorPoint, leftSpt);
         SongStructure sgs = editor.getModel();
-        if (sptp.getSpt() != null)
+        if (sptp.spt() != null)
         {
-            return sgs.getSongParts().indexOf(sptp.getSpt()) + (leftSpt.get() ? 0 : 1);
+            return sgs.getSongParts().indexOf(sptp.spt()) + (leftSpt.get() ? 0 : 1);
         } else
         {
             return 0;

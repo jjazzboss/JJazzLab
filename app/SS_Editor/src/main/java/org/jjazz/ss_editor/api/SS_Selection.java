@@ -24,9 +24,11 @@ package org.jjazz.ss_editor.api;
 
 import org.jjazz.songstructure.api.SongPartParameter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.rhythm.api.Rhythm;
@@ -38,14 +40,14 @@ import org.jjazz.songstructure.api.SongPart;
 /**
  * Provide convenience methods to get information about a selection in a lookup.
  * <p>
- * Selected items can be either SongPart or RhythmParameters, but not both in the same time. Returned SongParts or
- * SongPartParameters are ordered by startBarIndex.
+ * Selected items can be either SelectedSongParts or SongPartParameters, but not both in the same time. Returned SelectedSongParts or SongPartParameters are
+ * ordered by startBarIndex.
  */
 final public class SS_Selection
 {
 
-    private List<SongPart> songParts = new ArrayList<>();
-    private List<SongPartParameter> songPartParameters = new ArrayList<>();
+    private final List<SongPart> songParts = new ArrayList<>();
+    private final List<SongPartParameter> songPartParameters = new ArrayList<>();
     private int minStartSptIndex;
     private int maxStartSptIndex;
     private boolean isContiguousSptSelection;
@@ -75,21 +77,22 @@ final public class SS_Selection
      */
     public SS_Selection(Lookup lookup)
     {
-        if (lookup == null)
+        Objects.requireNonNull(lookup);
+
+        var selSpts = lookup.lookupAll(SelectedSongPart.class);
+        var sptps = lookup.lookupAll(SongPartParameter.class);
+
+        if (!selSpts.isEmpty() && !sptps.isEmpty())
         {
-            throw new IllegalArgumentException("lookup=" + lookup);   
+            throw new IllegalStateException("lookup=" + lookup);
         }
-        @SuppressWarnings("unchecked")
-        ArrayList<SongPart> spts = (ArrayList<SongPart>) new ArrayList<>(lookup.lookupAll(SongPart.class));
-        @SuppressWarnings("unchecked")
-        ArrayList<SongPartParameter> sptps = (ArrayList<SongPartParameter>) new ArrayList<>(lookup.lookupAll(SongPartParameter.class));
-        if (!spts.isEmpty() && !sptps.isEmpty())
+        
+        
+        if (!selSpts.isEmpty())
         {
-            throw new IllegalStateException("lookup=" + lookup);   
-        }
-        if (!spts.isEmpty())
-        {
-            refreshSongParts(spts);
+            refreshSongParts(selSpts.stream()
+                    .map(selSpt -> selSpt.songPart())
+                    .toList());
         } else
         {
             refreshRhythmParameters(sptps);
@@ -98,15 +101,13 @@ final public class SS_Selection
 
     private void refreshSongParts(List<SongPart> spts)
     {
-        if (spts == null)
-        {
-            throw new IllegalArgumentException("items=" + spts);   
-        }
+        Objects.requireNonNull(spts);
+
         songParts.clear();
         songParts.addAll(spts);
         if (!songParts.isEmpty() && !songPartParameters.isEmpty())
         {
-            throw new IllegalStateException("songParts=" + spts + " rhythmParameters=" + songPartParameters);   
+            throw new IllegalStateException("songParts=" + spts + " rhythmParameters=" + songPartParameters);
         }
         isRhythmParameterCompatible = false;
         isSameRhythm = true;
@@ -132,29 +133,23 @@ final public class SS_Selection
         isContiguousSptSelection = songParts.size() == (maxStartSptIndex - minStartSptIndex + 1)
                 && indexSum == songParts.size() * (minStartSptIndex + maxStartSptIndex) / 2;
         // Sort our buffer by startBarIndex
-        Collections.sort(songParts, new Comparator<SongPart>()
+        Collections.sort(songParts, (spt1, spt2) -> Integer.compare(spt1.getStartBarIndex(), spt2.getStartBarIndex()));
+
+        LOGGER.log(Level.FINE, "refreshSongParts() minStartSptIndex={0} maxStartSptIndex={1} isOneSection={2}", new Object[]
         {
-            @Override
-            public int compare(SongPart spt1, SongPart spt2)
-            {
-                return spt1.getStartBarIndex() - spt2.getStartBarIndex();
-            }
+            minStartSptIndex,
+            maxStartSptIndex, isContiguousSptSelection
         });
-        LOGGER.log(Level.FINE, "refreshSongParts() minStartSptIndex={0} maxStartSptIndex={1} isOneSection={2}", new Object[]{minStartSptIndex,
-            maxStartSptIndex, isContiguousSptSelection});   
     }
 
-    private void refreshRhythmParameters(List<SongPartParameter> sptps)
+    private void refreshRhythmParameters(Collection<? extends SongPartParameter> sptps)
     {
-        if (sptps == null)
-        {
-            throw new IllegalArgumentException("srps=" + sptps);   
-        }
+        Objects.requireNonNull(sptps);
         songPartParameters.clear();
         songPartParameters.addAll(sptps);
         if (!songParts.isEmpty() && !songPartParameters.isEmpty())
         {
-            throw new IllegalStateException("songParts=" + songParts + " SongPartParameters=" + songPartParameters);   
+            throw new IllegalStateException("songParts=" + songParts + " SongPartParameters=" + songPartParameters);
         }
         isRhythmParameterCompatible = true;
         isSameRhythm = true;
@@ -167,17 +162,17 @@ final public class SS_Selection
         {
             if (refRhythm == null)
             {
-                refRhythm = sptp.getSpt().getRhythm();
-                refRp = sptp.getRp();
-            } else if (!refRhythm.equals(sptp.getSpt().getRhythm()))
+                refRhythm = sptp.spt().getRhythm();
+                refRp = sptp.rp();
+            } else if (!refRhythm.equals(sptp.spt().getRhythm()))
             {
                 isSameRhythm = false;
             }
-            if (!sptp.getRp().isCompatibleWith(refRp))
+            if (!sptp.rp().isCompatibleWith(refRp))
             {
                 isRhythmParameterCompatible = false;
             }
-            int index = sptp.getSpt().getContainer().getSongParts().indexOf(sptp.getSpt());
+            int index = sptp.spt().getContainer().getSongParts().indexOf(sptp.spt());
             indexSum += index;
             minStartSptIndex = Math.min(index, minStartSptIndex);
             maxStartSptIndex = Math.max(index, maxStartSptIndex);
@@ -186,14 +181,7 @@ final public class SS_Selection
         isContiguousSptSelection = songPartParameters.size() == (maxStartSptIndex - minStartSptIndex + 1)
                 && indexSum == songPartParameters.size() * (minStartSptIndex + maxStartSptIndex) / 2;
         // Sort our buffer by startBarIndex
-        Collections.sort(songPartParameters, new Comparator<SongPartParameter>()
-        {
-            @Override
-            public int compare(SongPartParameter sptp1, SongPartParameter sptp2)
-            {
-                return sptp1.getSpt().getStartBarIndex() - sptp2.getSpt().getStartBarIndex();
-            }
-        });
+        Collections.sort(songPartParameters, (sptp1, sptp2) -> Integer.compare(sptp1.spt().getStartBarIndex(), sptp2.spt().getStartBarIndex()));
     }
 
     /**
@@ -209,7 +197,7 @@ final public class SS_Selection
         {
             for (SongPartParameter sptp : songPartParameters)
             {
-                editor.selectRhythmParameter(sptp.getSpt(), sptp.getRp(), false);
+                editor.selectRhythmParameter(sptp.spt(), sptp.rp(), false);
             }
         }
         if (isSongPartSelected())
@@ -279,8 +267,7 @@ final public class SS_Selection
     /**
      * Get the first SongPart of the selection.
      * <p>
-     * Works independently of the selection mode (SongParts or RhythmParameters). Return a meaningful value only if selection is
-     * not empty.
+     * Works independently of the selection mode (SongParts or RhythmParameters). Return a meaningful value only if selection is not empty.
      *
      * @return The index of the SongPart in the SongStructure.
      */
@@ -292,8 +279,7 @@ final public class SS_Selection
     /**
      * Get the last SongPart of the selection.
      * <p>
-     * Works independently of the selection mode (SongParts or RhythmParameters). Return a meaningful value only if selection is
-     * not empty.
+     * Works independently of the selection mode (SongParts or RhythmParameters). Return a meaningful value only if selection is not empty.
      *
      * @return The index of the SongPart in the SongStructure.
      */
@@ -314,8 +300,7 @@ final public class SS_Selection
 
     /**
      * @param spt
-     * @return The selected rp belonging to spt (only one RhythmParameter can be selected for one spt). Null if no rp selected in
-     * spt.
+     * @return The selected rp belonging to spt (only one RhythmParameter can be selected for one spt). Null if no rp selected in spt.
      */
     public RhythmParameter<?> getSelectedSongPartParameter(SongPart spt)
     {
@@ -325,9 +310,9 @@ final public class SS_Selection
         }
         for (SongPartParameter sptp : songPartParameters)
         {
-            if (sptp.getSpt() == spt)
+            if (sptp.spt() == spt)
             {
-                return sptp.getRp();
+                return sptp.rp();
             }
         }
         return null;
@@ -350,8 +335,7 @@ final public class SS_Selection
     }
 
     /**
-     * The list of selected SongParts (ordered by startBarIndex), or corresponding to the selected RhythmParameters if
-     * RhythmParameters are selected.
+     * The list of selected SongParts (ordered by startBarIndex), or corresponding to the selected RhythmParameters if RhythmParameters are selected.
      *
      * @return
      */
@@ -364,7 +348,7 @@ final public class SS_Selection
         ArrayList<SongPart> res = new ArrayList<>();
         for (SongPartParameter rpp : songPartParameters)
         {
-            res.add(rpp.getSpt());
+            res.add(rpp.spt());
         }
         return res;
     }
@@ -383,7 +367,7 @@ final public class SS_Selection
             return songParts.get(0).getContainer();
         } else
         {
-            return songPartParameters.get(0).getSpt().getContainer();
+            return songPartParameters.get(0).spt().getContainer();
         }
     }
 

@@ -23,52 +23,12 @@
 package org.jjazz.song.api;
 
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.utilities.api.IntRange;
-import org.jjazz.midimix.api.MidiMix;
 
 /**
  * A SongContext with only one SongPart.
  */
-public class SongPartContext extends SongContext
+public interface SongPartContext extends SongContext
 {
 
-    /**
-     * Create a SongPartContext.
-     *
-     * @param s
-     * @param mix
-     * @param spt
-     */
-    public SongPartContext(Song s, MidiMix mix, SongPart spt)
-    {
-        super(s, mix, spt.getBarRange());
-    }
-
-    /**
-     * Create a SongPartContext.
-     *
-     * @param s
-     * @param mix
-     * @param bars The range must be contained in only one SongPart
-     * @throws IllegalArgumentException If the bar range spans over 2 or more SongParts.
-     */
-    public SongPartContext(Song s, MidiMix mix, IntRange bars)
-    {
-        super(s, mix, bars);
-        if (getSongParts().size() != 1)
-        {
-            throw new IllegalArgumentException("song=" + s + " mix=" + mix + " bars=" + bars);
-        }
-    }
-
-    public SongPart getSongPart()
-    {
-        return getSongParts().get(0);
-    }
-
-    @Override
-    public String toString()
-    {
-        return "SongPartContext[sg=" + getSong().getName() + ", " + getMidiMix() + ", " + getSongPart() + ", rg=" + getBarRange() + "]";
-    }
+    SongPart getSongPart();
 }

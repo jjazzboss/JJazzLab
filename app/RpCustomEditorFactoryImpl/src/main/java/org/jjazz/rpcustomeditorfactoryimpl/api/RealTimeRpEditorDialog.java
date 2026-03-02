@@ -45,6 +45,7 @@ import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.spi.SongFactory;
 import org.jjazz.song.api.SongPartContext;
+import org.jjazz.song.spi.SongContextFactory;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.ss_editor.rpviewer.api.RpCustomEditorDialog;
@@ -190,7 +191,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditorDialog<E> implement
 
 
         // Create the new context
-        SongPartContext res = new SongPartContext(songCopy, sptContext.getMidiMix(), spt);
+        SongPartContext res = SongContextFactory.getDefault().of(songCopy, sptContext.getMidiMix(), spt);
         return res;
     }
 

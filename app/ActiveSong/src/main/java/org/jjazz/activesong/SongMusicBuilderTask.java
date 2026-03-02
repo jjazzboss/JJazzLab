@@ -35,6 +35,7 @@ import org.jjazz.musiccontrol.api.MusicGenerationQueue.Result;
 import org.jjazz.musiccontrol.api.SongMusicGenerationListener;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongContext;
+import org.jjazz.song.spi.SongContextFactory;
 import org.openide.util.ChangeSupport;
 
 /**
@@ -228,7 +229,7 @@ public class SongMusicBuilderTask implements ChangeListener, PropertyChangeListe
                     song.getChordLeadSheet().toDebugString());
             return;
         }
-        SongContext sgContext = new SongContext(song, midiMix);
+        SongContext sgContext = SongContextFactory.getDefault().of(song, midiMix);
 
 
         // Request music generation

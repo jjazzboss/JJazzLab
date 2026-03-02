@@ -29,9 +29,9 @@ public interface SS_ContextActionListener
 {
 
     /**
-     * SongPart or SongPartParameter presence has changed in SS_ContextActionSupport's context.
+     * SelectedongPart or SongPartParameter presence has changed in SS_ContextActionSupport's context.
      *
-     * @param selection
+     * @param selection The up-to-date selection
      */
     public void selectionChange(SS_Selection selection);
 }

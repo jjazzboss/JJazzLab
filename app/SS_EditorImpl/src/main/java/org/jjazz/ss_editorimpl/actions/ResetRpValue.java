@@ -76,8 +76,8 @@ public final class ResetRpValue extends SS_ContextAction
         {
             for (SongPartParameter sptp : selection.getSelectedSongPartParameters())
             {
-                RhythmParameter rp = sptp.getRp();
-                SongPart spt = sptp.getSpt();
+                RhythmParameter rp = sptp.rp();
+                SongPart spt = sptp.spt();
                 Object newValue = rp.getDefaultValue();
                 sgs.setRhythmParameterValue(spt, rp, newValue);
             }

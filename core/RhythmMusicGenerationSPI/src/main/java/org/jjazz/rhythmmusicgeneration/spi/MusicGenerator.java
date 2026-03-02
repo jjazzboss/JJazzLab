@@ -33,8 +33,9 @@ import org.jjazz.rhythm.api.RhythmVoice;
  */
 public interface MusicGenerator
 {
+
     /**
-     * Generate the note Phrases which correspond to a musical accompaniment for a given rhythm.
+     * Generate the Phrases which make the musical accompaniment for a given rhythm and a given context.
      * <p>
      * The service provider must compute one Phrase per RhythmVoice/Midi channel. The MidiMix from <code>context</code> provides the Midi channel associated to
      * each RhythmVoice via <code>MidiMix.getChannel(RhythmVoice)</code>. Phrases must be provided for all RhythmVoices (though a Phrase can be empty),
@@ -43,7 +44,7 @@ public interface MusicGenerator
      * If the context song contains several rhythms, the method must add notes ONLY for bars which use this MusicGenerator's rhythm. For example, if context
      * range is bars 3-4 with rhythm1 on bar3 and rhythm2 on bar4, then the rhythm1 generator must add notes for bar 3 only.
      * <p>
-     * IMPORTANT: the following features are directly managed by the JJazzLab framework, notably by postprocessing the output of generateMusic():<br>
+     * Note that the following features are directly managed by the JJazzLab framework, notably by postprocessing the output of generateMusic():<br>
      * - Midi Instrument selection and settings (Program changes, Midi controller messages such as bank select, volume, reverb, panoramic) <br>
      * - RP_SYS_Mute rhythm parameter handling (muting a specific track for a specific SongPart)<br>
      * - RP_SYS_DrumsMix rhythm parameter handling (adjusting some drums track instruments velocity)<br>
@@ -54,7 +55,8 @@ public interface MusicGenerator
      * - Drums channel rerouting<br>
      * - NC chord symbols (produce no sound)<br>
      *
-     * @param context      The information to be used for music generation
+     * @param songContext  A snapshot copy of a SongContext (see {@link org.jjazz.song.api.SongContext#getDeepCopy()}) to be used for music generation. It
+     *                     should NOT be modified by caller while this method is running.
      * @param rhythmVoices Generate music only for these RhythmVoices, or for all RhythmVoices if nothing specified
      * @return One Phrase per rhythm voice/channel.
      *
@@ -62,5 +64,5 @@ public interface MusicGenerator
      *
      */
 
-    Map<RhythmVoice, Phrase> generateMusic(SongContext context, RhythmVoice... rhythmVoices) throws MusicGenerationException;       
+    Map<RhythmVoice, Phrase> generateMusic(SongContext songContext, RhythmVoice... rhythmVoices) throws MusicGenerationException;
 }

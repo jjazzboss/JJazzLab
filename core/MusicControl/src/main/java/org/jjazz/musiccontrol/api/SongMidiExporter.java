@@ -37,6 +37,7 @@ import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongContext;
+import org.jjazz.song.spi.SongContextFactory;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -83,7 +84,7 @@ public class SongMidiExporter
             return false;
         }
 
-        var sgContext = new SongContext(song, midiMix);
+        var sgContext = SongContextFactory.getDefault().of (song, midiMix);
         var ssb = new SongSequenceBuilder(sgContext);
         SongSequenceBuilder.SongSequence songSequence = null;
 

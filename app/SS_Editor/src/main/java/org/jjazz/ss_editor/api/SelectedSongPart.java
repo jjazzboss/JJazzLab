@@ -20,52 +20,64 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.songstructure.api;
+package org.jjazz.ss_editor.api;
 
-import org.jjazz.rhythm.api.RhythmParameter;
-import org.jjazz.rhythm.api.RpEnumerable;
+import java.util.Objects;
+import org.jjazz.songstructure.api.SongPart;
 
 /**
- * Store a RP and its associated SongPart.
+ * A selected SongPart in the SongStructure editor.
+ * <p>
  */
-public record SongPartParameter(SongPart spt, RhythmParameter<?> rp)
+public record SelectedSongPart(SongPart songPart) implements Comparable<SelectedSongPart>
         {
 
-    /**
-     * True if the RhythmParameter is an instance of RP_Enumerable.
-     *
-     * @return
-     */
-    public boolean isEnumerableRp()
+    public SelectedSongPart
     {
-        return rp instanceof RpEnumerable<?>;
+        Objects.requireNonNull(songPart);
     }
 
+    /**
+     * Relies on songPart identity only because used in a selection lookup.
+     *
+     * @param o
+     * @return
+     */
     @Override
     public boolean equals(Object o)
     {
-        if (o instanceof SongPartParameter)
-        {
-            SongPartParameter s = (SongPartParameter) o;
-            return spt == s.spt() && rp == s.rp();
-        } else
+        if (o == null || this.getClass() != o.getClass())
         {
             return false;
         }
+        SelectedSongPart s = (SelectedSongPart) o;
+        return s.songPart == songPart;
     }
 
+    /**
+     * Relies on songPart identity only because used in a selection lookup.
+     *
+     * @return
+     */
     @Override
     public int hashCode()
     {
         int hash = 7;
-        hash = 67 * hash + System.identityHashCode(this.spt);
-        hash = 67 * hash + System.identityHashCode(this.rp);
+        hash = 53 * hash + System.identityHashCode(songPart);
         return hash;
     }
 
     @Override
     public String toString()
     {
-        return "Sptp[spt=" + spt() + " rp=" + rp() + "]";
+        return "selSpt(" + songPart.toString() + ")";
+    }
+
+    @Override
+    public int compareTo(SelectedSongPart other)
+    {
+        Objects.requireNonNull(other);
+        int res = Integer.compare(songPart().getStartBarIndex(), other.songPart().getStartBarIndex());
+        return res;
     }
 }

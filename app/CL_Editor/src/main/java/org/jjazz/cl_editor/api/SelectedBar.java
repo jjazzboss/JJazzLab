@@ -22,7 +22,6 @@
  */
 package org.jjazz.cl_editor.api;
 
-import java.util.Objects;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 
 /**

@@ -41,6 +41,7 @@ import org.jjazz.pianoroll.api.PianoRollEditor;
 import org.jjazz.pianoroll.api.PianoRollEditorTopComponent;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.SongContext;
+import org.jjazz.song.spi.SongContextFactory;
 import static org.jjazz.uiutilities.api.UIUtilities.getGenericControlKeyStroke;
 import org.jjazz.utilities.api.IntRange;
 import org.jjazz.utilities.api.ResUtil;
@@ -90,7 +91,7 @@ public class PlayFromHere extends AbstractAction
         {
             int startBar = computeStartBar();
             MidiMix midiMix = PianoRollEditorTopComponent.get(editor.getSong()).getMidiMix();
-            SongContext context = new SongContext(editor.getSong(), midiMix);
+            SongContext context =SongContextFactory.getDefault().of(editor.getSong(), midiMix);
             FixMidiMix.checkAndPossiblyFix(context.getMidiMix(), true);
 
             // Create the session

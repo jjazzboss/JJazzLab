@@ -47,10 +47,10 @@ public class SongPartCopyBuffer
     /**
      * The buffer for SongParts, kept ordered by startBarIndex.
      */
-    private ArrayList<SongPart> sptBuffer = new ArrayList<>();
+    private final List<SongPart> sptBuffer = new ArrayList<>();
     private int sptMinStartBarIndex;
     private int sptMaxStartBarIndex;
-    private ArrayList<ChangeListener> listeners = new ArrayList<>();
+    private final List<ChangeListener> listeners = new ArrayList<>();
 
     private SongPartCopyBuffer()
     {

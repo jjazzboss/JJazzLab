@@ -52,7 +52,7 @@ final public class SelectedCLI implements Comparable<SelectedCLI>
     }
 
     /**
-     * Relies on cli identity only.
+     * Relies on cli identity only because used in a selection lookup.
      *
      * @param o
      * @return
@@ -69,7 +69,7 @@ final public class SelectedCLI implements Comparable<SelectedCLI>
     }
 
     /**
-     * Relies on cli identity only.
+     * Relies on cli identity only because used in a selection lookup.
      *
      * @return
      */

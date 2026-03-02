@@ -50,6 +50,7 @@ import org.jjazz.musiccontrolactions.api.FixMissingSectionStartChord;
 import org.jjazz.musiccontrolactions.api.RemoteAction;
 import org.jjazz.musiccontrolactions.spi.RemoteActionProvider;
 import org.jjazz.outputsynth.api.FixMidiMix;
+import org.jjazz.song.spi.SongContextFactory;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -165,7 +166,7 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
                     try
                     {
                         MidiMix midiMix = MidiMixManager.getDefault().findMix(currentSong);      // Can raise U
-                        SongContext context = new SongContext(currentSong, midiMix);
+                        SongContext context = SongContextFactory.getDefault().of(currentSong, midiMix);
 
                         new FixMissingSectionStartChord(context).autofix();
                         FixMidiMix.checkAndPossiblyFix(midiMix, true);

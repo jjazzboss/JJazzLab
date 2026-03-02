@@ -60,6 +60,7 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.openide.util.Exceptions;
 import org.openide.util.lookup.ServiceProvider;
 import org.jjazz.outputsynth.spi.OutputSynthManager;
+import org.jjazz.song.spi.SongContextFactory;
 
 /**
  * A RhythmPreviewer instance which plays one song part using the MusicController/PlaybackSession mechanism.
@@ -225,7 +226,7 @@ public class RhythmPreviewerImpl implements RhythmPreviewer
             MidiMix mm = MidiMixManager.getDefault().findMix(song);        // Possible exception here
             OutputSynth outputSynth = OutputSynthManager.getDefault().getDefaultOutputSynth();
             outputSynth.fixInstruments(mm, true);
-            sgContext = new SongContext(song, mm);
+            sgContext = SongContextFactory.getDefault().of(song, mm);
         } catch (UnsupportedEditException ex)
         {
             LOGGER.log(Level.WARNING, "buildSongContext() r={0} ex={1}", new Object[]

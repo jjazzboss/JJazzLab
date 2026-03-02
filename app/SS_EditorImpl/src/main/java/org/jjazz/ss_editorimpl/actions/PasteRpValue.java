@@ -221,8 +221,8 @@ public class PasteRpValue extends AbstractAction implements ContextAwareAction, 
         if (selection.isRhythmParameterSelected())
         {
             res = selection.getSelectedSongPartParameters().stream()
-                    .filter(spp -> spp.getRp().isCompatibleWith(rp))
-                    .map(spp -> spp.getSpt())
+                    .filter(spp -> spp.rp().isCompatibleWith(rp))
+                    .map(spp -> spp.spt())
                     .toList();
         } else
         {

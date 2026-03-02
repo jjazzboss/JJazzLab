@@ -86,7 +86,7 @@ public class SelectAll extends SS_ContextAction
         } else
         {
             // Select all compatible RPs
-            RhythmParameter<?> rp = selection.getSelectedSongPartParameters().get(0).getRp();
+            RhythmParameter<?> rp = selection.getSelectedSongPartParameters().get(0).rp();
             for (SongPart spt : sgs.getSongParts())
             {
                 RhythmParameter<?> crp = RhythmParameter.findFirstCompatibleRp(spt.getRhythm().getRhythmParameters(), rp);

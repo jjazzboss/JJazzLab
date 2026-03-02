@@ -537,8 +537,8 @@ public class SS_EditorController implements SS_EditorMouseListener
             JJazzUndoManagerFinder.getDefault().get(sgs).startCEdit(editName);
             for (SongPartParameter sptp : selection.getSelectedSongPartParameters())
             {
-                SongPart spti = sptp.getSpt();
-                RhythmParameter rpi = sptp.getRp();
+                SongPart spti = sptp.spt();
+                RhythmParameter rpi = sptp.rp();
                 if (spti != spt)
                 {
                     Object compatibleValue = ((RpEnumerable) rpi).calculateValue(dValue); // selected RPs might be different types (but compatible)
@@ -591,13 +591,13 @@ public class SS_EditorController implements SS_EditorMouseListener
             Point editorPoint = SwingUtilities.convertPoint((Component) e.getSource(), e.getPoint(), editor);
             AtomicBoolean leftSpt = new AtomicBoolean();
             SongPartParameter sptp = editor.getSongPartParameterFromPoint(editorPoint, leftSpt);
-            if (sptp.getRp() == null)
+            if (sptp.rp() == null)
             {
                 return;
             }
             selection.unselectAll(editor);
-            int minIndex = Math.min(spts.indexOf(dragStartSpt), spts.indexOf(sptp.getSpt()));
-            int maxIndex = Math.max(spts.indexOf(dragStartSpt), spts.indexOf(sptp.getSpt()));
+            int minIndex = Math.min(spts.indexOf(dragStartSpt), spts.indexOf(sptp.spt()));
+            int maxIndex = Math.max(spts.indexOf(dragStartSpt), spts.indexOf(sptp.spt()));
             for (int i = minIndex; i <= maxIndex; i++)
             {
                 SongPart spti = spts.get(i);

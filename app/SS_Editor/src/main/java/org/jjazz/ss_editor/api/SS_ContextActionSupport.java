@@ -33,13 +33,12 @@ import org.openide.util.Lookup;
 import org.openide.util.LookupEvent;
 import org.openide.util.LookupListener;
 import org.openide.util.WeakListeners;
-import org.jjazz.songstructure.api.SongPart;
 
 /**
  * A helper class to write SS_Editor context aware actions.
  * <p>
  * Listen to changes in the lookup context:<br>
- * - RhyhmPart or SongPartParameter presence changes are notified to the registered SS_ContextActionListeners.<br>
+ * - SelectedSongPart or SongPartParameter presence changes are notified to the registered SS_ContextActionListeners.<br>
  * <p>
  * SS_ContextActionSupport instances are cached per lookup context. Only weak listeners are used: declaratively registered actions might be transient actions
  * (e.g. ContextAwareAction instances).
@@ -50,8 +49,8 @@ public class SS_ContextActionSupport
     private final Lookup context;
     private final Lookup.Result<SongPartParameter> sptpLkpResult;
     private final LookupListener sptpLkpListener;
-    private final Lookup.Result<SongPart> sptLkpResult;
-    private final LookupListener sptLkpListener;
+    private final Lookup.Result<SelectedSongPart> selSptLkpResult;
+    private final LookupListener selSptLkpListener;
     private SS_Selection selection;
     private final List<WeakReference<SS_ContextActionListener>> selectionListeners;
     private static WeakHashMap<Lookup, SS_ContextActionSupport> MapContextInstance;
@@ -91,12 +90,12 @@ public class SS_ContextActionSupport
 
 
         // For WeakReferences to work, we need to keep a strong reference on the listeners (see WeakListeners java doc).
-        sptLkpListener = new LookupListener()
+        selSptLkpListener = new LookupListener()
         {
             @Override
             public void resultChanged(LookupEvent le)
             {
-                sptPresenceChanged();
+                selSptPresenceChanged();
             }
         };
         sptpLkpListener = new LookupListener()
@@ -108,18 +107,18 @@ public class SS_ContextActionSupport
             }
         };
 
-        sptLkpResult = context.lookupResult(SongPart.class);
+        selSptLkpResult = context.lookupResult(SelectedSongPart.class);
         // Need to use WeakListeners so than action can be GC'ed
         // See http://forums.netbeans.org/viewtopic.php?t=35921
-        sptLkpResult.addLookupListener(WeakListeners.create(LookupListener.class, sptLkpListener, sptLkpResult));
+        selSptLkpResult.addLookupListener(WeakListeners.create(LookupListener.class, selSptLkpListener, selSptLkpResult));
 
         sptpLkpResult = context.lookupResult(SongPartParameter.class);
         sptpLkpResult.addLookupListener(WeakListeners.create(LookupListener.class, sptpLkpListener, sptpLkpResult));
 
         // Initialize the selection
-        if (context.lookup(SongPart.class) != null)
+        if (context.lookup(SelectedSongPart.class) != null)
         {
-            sptPresenceChanged();
+            selSptPresenceChanged();
         } else
         {
             sptpPresenceChanged();
@@ -180,10 +179,10 @@ public class SS_ContextActionSupport
                 "rawtypes",
                 "unchecked"
             })
-    private void sptPresenceChanged()
+    private void selSptPresenceChanged()
     {
         selection = new SS_Selection(context);
-        fireSelectionChanged(SongPart.class, selection);
+        fireSelectionChanged(SelectedSongPart.class, selection);
     }
 
     /**

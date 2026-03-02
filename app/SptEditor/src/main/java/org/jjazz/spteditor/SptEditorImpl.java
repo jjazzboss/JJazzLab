@@ -349,11 +349,11 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
         {
             // Possible SongPartParameter selection
             Collection<? extends SongPartParameter> sptps = context.lookupAll(SongPartParameter.class);
-            ArrayList<SongPart> spts2 = new ArrayList<>();
+            List<SongPart> spts2 = new ArrayList<>();
             // Get the list of SongParts corresponding to these RhythmParameters
             for (SongPartParameter sptp : sptps)
             {
-                spts2.add(sptp.getSpt());
+                spts2.add(sptp.spt());
             }
             spts = spts2;
         } else

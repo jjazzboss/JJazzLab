@@ -58,12 +58,10 @@ import org.jjazz.harmony.api.Position;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
-import org.jjazz.songstructure.api.event.RpValueChangedEvent;
 import org.jjazz.songstructure.api.event.SptAddedEvent;
 import org.jjazz.songstructure.api.event.SptRemovedEvent;
 import org.jjazz.songstructure.api.event.SptRenamedEvent;
 import org.jjazz.songstructure.api.event.SptRhythmChangedEvent;
-import org.jjazz.songstructure.api.event.SptResizedEvent;
 import org.jjazz.ss_editor.sptviewer.api.SptViewer;
 import org.jjazz.ss_editor.sptviewer.spi.SptViewerFactory;
 import org.jjazz.ss_editor.api.SS_Editor;
@@ -93,6 +91,7 @@ import static org.jjazz.ss_editor.api.SS_EditorClientProperties.getZoomYFactor;
 import static org.jjazz.ss_editor.api.SS_EditorClientProperties.getViewMode;
 import static org.jjazz.ss_editor.api.SS_EditorClientProperties.setCompactViewModeVisibleRPs;
 import org.jjazz.ss_editor.api.SS_EditorMouseListener;
+import org.jjazz.ss_editor.api.SelectedSongPart;
 
 /**
  * An implementation of the SongStructure editor.
@@ -368,16 +367,17 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         SptViewer rpe = getSptViewer(spt);
         assert rpe != null;
         rpe.setSelected(b);
+         var selSpt = new SelectedSongPart(spt);
         if (b)
         {
             // Warning ! If item is mutable, make sure item uses Object's equals() and hashCode() !
-            selectionLookupContent.add(spt);
-            selectionLastContent.add(spt);
+            selectionLookupContent.add(selSpt);
+            selectionLastContent.add(selSpt);
         } else
         {
             // Warning ! Might not work if item was mutated with equals()/hashCode() defined !
-            selectionLookupContent.remove(spt);
-            selectionLastContent.remove(spt);
+            selectionLookupContent.remove(selSpt);
+            selectionLastContent.remove(selSpt);
         }
         // LOGGER.log(Level.FINE, "After selectSongPart() b=" + b + " spt=" + spt + " lkp=" + lookup);
     }
@@ -1016,7 +1016,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
 
     private boolean isSelected(SongPart spt)
     {
-        return selectionLastContent.contains(spt);
+        return selectionLastContent.contains(new SelectedSongPart(spt));
     }
 
     private boolean isSelected(SongPart spt, RhythmParameter<?> rp)

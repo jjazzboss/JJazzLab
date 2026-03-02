@@ -43,6 +43,7 @@ import org.jjazz.rhythmmusicgeneration.api.ChordSequence;
 import org.jjazz.rhythmmusicgeneration.api.SimpleChordSequence;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.song.api.Song;
+import org.jjazz.song.spi.SongContextFactory;
 import org.jjazz.song.spi.SongFactory;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
@@ -299,7 +300,7 @@ public class BassGenerator implements MusicGenerator
         // Prepare a working context because we'll use a modified song copy 
         SongFactory sf = SongFactory.getDefault();
         Song songWork = sgContextOrig.getSong().getDeepCopy(true);
-        SongContext contextWork = new SongContext(songWork, sgContextOrig.getMidiMix(), sgContextOrig.getBarRange());
+        SongContext contextWork = SongContextFactory.getDefault().of(songWork, sgContextOrig.getMidiMix(), sgContextOrig.getBarRange());
         preprocessBassStyleAutoValue(contextWork);     // Update SongStructure to replace auto BassStyle values by standard BassStyle values
 
 

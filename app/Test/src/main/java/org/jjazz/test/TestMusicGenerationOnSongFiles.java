@@ -46,6 +46,7 @@ import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongCreationException;
+import org.jjazz.song.spi.SongContextFactory;
 import org.jjazz.song.spi.SongFactory;
 import org.netbeans.api.progress.BaseProgressUtils;
 import org.openide.util.Exceptions;
@@ -167,7 +168,7 @@ public final class TestMusicGenerationOnSongFiles implements ActionListener
                         // Generate music
                         LOGGER.log(Level.INFO, "  Generating music...");
                         var midiMix = MidiMixManager.getDefault().findMix(song);      // Can raise MidiUnavailableException      
-                        SongSequenceBuilder seqBuilder = new SongSequenceBuilder(new SongContext(song, midiMix));
+                        SongSequenceBuilder seqBuilder = new SongSequenceBuilder(SongContextFactory.getDefault().of(song, midiMix));
                         seqBuilder.buildMapRvPhrase(true);
                     }
 

@@ -48,6 +48,7 @@ import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongPartContext;
+import org.jjazz.song.spi.SongContextFactory;
 import org.jjazz.ss_editor.api.SS_ContextAction;
 import org.jjazz.ss_editor.api.SS_Editor;
 import org.jjazz.ss_editor.api.SS_EditorTopComponent;
@@ -80,8 +81,8 @@ public final class EditRpWithCustomEditor extends SS_ContextAction
     protected void actionPerformed(ActionEvent ae, SS_Selection selection)
     {
         List<SongPartParameter> sptps = selection.getSelectedSongPartParameters();
-        RhythmParameter<?> rp0 = sptps.get(0).getRp();
-        SongPart spt0 = sptps.get(0).getSpt();
+        RhythmParameter<?> rp0 = sptps.get(0).rp();
+        SongPart spt0 = sptps.get(0).spt();
 
 
         // Open custom editor if supported
@@ -103,7 +104,7 @@ public final class EditRpWithCustomEditor extends SS_ContextAction
                 Exceptions.printStackTrace(ex);
                 return;
             }
-            SongPartContext sptContext = new SongPartContext(song, mm, spt0);
+            SongPartContext sptContext = SongContextFactory.getDefault().of(song, mm, spt0);
             Object value = spt0.getRPValue(rp0);
             var dlgEditor = factory.getEditor((RhythmParameter) rp0);
             assert dlgEditor != null : "rp=" + rp0;
@@ -141,7 +142,7 @@ public final class EditRpWithCustomEditor extends SS_ContextAction
 
                 for (SongPartParameter sptp : sptps)
                 {
-                    sgs.setRhythmParameterValue(sptp.getSpt(), (RhythmParameter) sptp.getRp(), newValue);
+                    sgs.setRhythmParameterValue(sptp.spt(), (RhythmParameter) sptp.rp(), newValue);
                 }
 
                 JJazzUndoManagerFinder.getDefault().get(sgs).endCEdit(getActionName());

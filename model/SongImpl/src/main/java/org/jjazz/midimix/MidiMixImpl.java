@@ -951,11 +951,6 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
         return channels;
     }
 
-    @Override
-    public List<RhythmVoice> getRhythmVoices()
-    {
-        return performReadAPImethod(() -> Stream.of(rhythmVoices).filter(rv -> rv != null).toList());
-    }
 
     @Override
     public List<Integer> getUserChannels()
@@ -1132,24 +1127,23 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
     @Override
     public List<InstrumentMix> getInstrumentMixesPerChannel()
     {
-        return performReadAPImethod(() -> List.of(instrumentMixes));
+        return performReadAPImethod(() -> Stream.of(instrumentMixes)
+                .toList());
     }
 
     @Override
     public List<InstrumentMix> getInstrumentMixes()
     {
-        return performReadAPImethod(() -> 
-        {
-            ArrayList<InstrumentMix> insMixes = new ArrayList<>();
-            for (InstrumentMix im : instrumentMixes)
-            {
-                if (im != null)
-                {
-                    insMixes.add(im);
-                }
-            }
-            return insMixes;
-        });
+        return performReadAPImethod(() -> Stream.of(instrumentMixes)
+                .filter(insMix -> insMix != null)
+                .toList());
+    }
+
+
+    @Override
+    public List<RhythmVoice> getRhythmVoices()
+    {
+        return performReadAPImethod(() -> Stream.of(rhythmVoices).filter(rv -> rv != null).toList());
     }
 
     @Override

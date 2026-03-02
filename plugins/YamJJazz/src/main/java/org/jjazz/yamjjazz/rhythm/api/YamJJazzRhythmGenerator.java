@@ -71,6 +71,7 @@ import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.rhythmparametersimpl.api.RP_SYS_Fill;
 import org.jjazz.rhythmparametersimpl.api.RP_SYS_Intensity;
 import org.jjazz.rhythmparametersimpl.api.RP_SYS_Variation;
+import org.jjazz.song.spi.SongContextFactory;
 import org.jjazz.song.spi.SongFactory;
 import org.openide.util.Exceptions;
 import org.jjazz.songstructure.api.SongPart;
@@ -142,7 +143,7 @@ public class YamJJazzRhythmGenerator implements MusicGenerator
         IntRange contextBarRange = contextOriginal.getBarRange();
         FloatRange contextBeatRange = contextOriginal.getBeatRange();
         Song songWork = contextOriginal.getSong().getDeepCopy(true);
-        this.contextWork = new SongContext(songWork, contextOriginal.getMidiMix(), contextBarRange);
+        this.contextWork = SongContextFactory.getDefault().of(songWork, contextOriginal.getMidiMix(), contextBarRange);
 
 
         // Introduce fake section/songpart when a Fill rhythm parameter is used

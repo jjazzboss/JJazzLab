@@ -136,9 +136,9 @@ public class AdjustRpValues extends AbstractAction implements Presenter.Popup, C
 
         for (SongPartParameter sptp : rpSelectionContext.enumerableSptps)
         {
-            RhythmParameter rp = sptp.getRp();
+            RhythmParameter rp = sptp.rp();
             Object value = ((RpEnumerable<?>) rp).calculateValue(rpSelectionContext.doubleValue0);
-            rpSelectionContext.sgs.setRhythmParameterValue(sptp.getSpt(), rp, value);
+            rpSelectionContext.sgs.setRhythmParameterValue(sptp.spt(), rp, value);
         }
 
         JJazzUndoManagerFinder.getDefault().get(rpSelectionContext.sgs).endCEdit(ResUtil.getString(getClass(), "CTL_Flat"));
@@ -154,9 +154,9 @@ public class AdjustRpValues extends AbstractAction implements Presenter.Popup, C
 
         for (SongPartParameter sptp : rpSelectionContext.enumerableSptps)
         {
-            RhythmParameter rp = sptp.getRp();
+            RhythmParameter rp = sptp.rp();
             Object value = ((RpEnumerable) rp).calculateValue(enforce0_1Range(v));
-            rpSelectionContext.sgs.setRhythmParameterValue(sptp.getSpt(), rp, value);
+            rpSelectionContext.sgs.setRhythmParameterValue(sptp.spt(), rp, value);
             v += step;
         }
 
@@ -174,7 +174,7 @@ public class AdjustRpValues extends AbstractAction implements Presenter.Popup, C
 
         for (SongPartParameter sptp : rpSelectionContext.enumerableSptps)
         {
-            RhythmParameter rp = sptp.getRp();
+            RhythmParameter rp = sptp.rp();
             double y = (1.0 - ((1 + Math.log((10 - x) * 10 + 0.37)) / 5.7)) * yDiff;
             LOGGER.log(Level.FINE, "upSlow() rpData.doubleValue0={0} rpData.doubleValue1={1} x={2} y={3}", new Object[]
             {
@@ -183,7 +183,7 @@ public class AdjustRpValues extends AbstractAction implements Presenter.Popup, C
             });
             double d = enforce0_1Range(rpSelectionContext.doubleValue0 + y);
             Object value = ((RpEnumerable) rp).calculateValue(d);
-            rpSelectionContext.sgs.setRhythmParameterValue(sptp.getSpt(), rp, value);
+            rpSelectionContext.sgs.setRhythmParameterValue(sptp.spt(), rp, value);
             x += 10f / (rpSelectionContext.enumerableSptps.size() - 1f);
         }
 
@@ -207,10 +207,10 @@ public class AdjustRpValues extends AbstractAction implements Presenter.Popup, C
                 rpSelectionContext.doubleValue0,
                 rpSelectionContext.doubleValue1, x, y
             });
-            RhythmParameter rp = sptp.getRp();
+            RhythmParameter rp = sptp.rp();
             double d = enforce0_1Range(rpSelectionContext.doubleValue0 + y);
             Object value = ((RpEnumerable) rp).calculateValue(d);
-            rpSelectionContext.sgs.setRhythmParameterValue(sptp.getSpt(), rp, value);
+            rpSelectionContext.sgs.setRhythmParameterValue(sptp.spt(), rp, value);
             x += 10f / (rpSelectionContext.enumerableSptps.size() - 1f);
         }
 
@@ -233,11 +233,11 @@ public class AdjustRpValues extends AbstractAction implements Presenter.Popup, C
                 rpSelectionContext.doubleValue0,
                 rpSelectionContext.doubleValue1, x, y
             });
-            RhythmParameter rp = sptp.getRp();
+            RhythmParameter rp = sptp.rp();
 
             double d = enforce0_1Range(rpSelectionContext.doubleValue1 + y);
             Object value = ((RpEnumerable) rp).calculateValue(d);
-            rpSelectionContext.sgs.setRhythmParameterValue(sptp.getSpt(), rp, value);
+            rpSelectionContext.sgs.setRhythmParameterValue(sptp.spt(), rp, value);
 
             x += 10f / (rpSelectionContext.enumerableSptps.size() - 1f);
         }
@@ -262,10 +262,10 @@ public class AdjustRpValues extends AbstractAction implements Presenter.Popup, C
                 rpSelectionContext.doubleValue0,
                 rpSelectionContext.doubleValue1, x, y
             });
-            RhythmParameter rp = sptp.getRp();
+            RhythmParameter rp = sptp.rp();
             double d = enforce0_1Range(rpSelectionContext.doubleValue0 - y);
             Object value = ((RpEnumerable) rp).calculateValue(d);
-            rpSelectionContext.sgs.setRhythmParameterValue(sptp.getSpt(), rp, value);
+            rpSelectionContext.sgs.setRhythmParameterValue(sptp.spt(), rp, value);
             x += 10f / (rpSelectionContext.enumerableSptps.size() - 1f);
         }
 
@@ -360,10 +360,10 @@ public class AdjustRpValues extends AbstractAction implements Presenter.Popup, C
             if (sptps.size() > 2)
             {
                 sgs = selection.getModel();
-                spt0 = sptps.get(0).getSpt();
-                rp0 = sptps.get(0).getRp();
-                spt1 = sptps.get(sptps.size() - 1).getSpt();
-                rp1 = sptps.get(sptps.size() - 1).getRp();
+                spt0 = sptps.get(0).spt();
+                rp0 = sptps.get(0).rp();
+                spt1 = sptps.get(sptps.size() - 1).spt();
+                rp1 = sptps.get(sptps.size() - 1).rp();
                 if (rp0 instanceof RpEnumerable && rp1 instanceof RpEnumerable)
                 {
                     doubleValue0 = ((RpEnumerable) rp0).calculatePercentage(spt0.getRPValue(rp0));

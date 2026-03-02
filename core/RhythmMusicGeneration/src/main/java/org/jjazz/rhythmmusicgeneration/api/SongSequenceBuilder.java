@@ -90,6 +90,7 @@ import org.jjazz.rhythmparametersimpl.api.RP_SYS_Fill;
 import org.jjazz.rhythmparametersimpl.api.RP_SYS_TempoFactor;
 import org.jjazz.rhythmparametersimpl.api.RP_SYS_Variation;
 import org.jjazz.song.api.Song;
+import org.jjazz.song.spi.SongContextFactory;
 
 /**
  * Build the musical Phrases and Midi sequence from a Song.
@@ -112,6 +113,7 @@ public class SongSequenceBuilder
      */
     static public class SongSequence
     {
+
         public Sequence sequence;
         public Map<RhythmVoice, Integer> mapRvTrackId;
         public Map<RhythmVoice, Phrase> mapRvPhrase;
@@ -137,7 +139,7 @@ public class SongSequenceBuilder
     {
         Objects.requireNonNull(sgContext);
         this.songContextOriginal = sgContext;
-        this.songContextWork = songContextOriginal.deepClone(false, false);
+        this.songContextWork = songContextOriginal.getDeepCopy();
     }
 
 
@@ -561,7 +563,6 @@ public class SongSequenceBuilder
         // Check there is no 2 chords at same position
         checkChordsAtSamePosition(songContextWork);            // throws MusicGenerationException        
 
-
         for (Rhythm r : songContextWork.getUniqueRhythms())
         {
             // Generate the phrases
@@ -796,7 +797,7 @@ public class SongSequenceBuilder
             {
                 // songPart has an override
                 rvDest = override.rvDest();
-                mg = ((MusicGeneratorProvider) rvDest.getContainer()).getMusicGenerator();                
+                mg = ((MusicGeneratorProvider) rvDest.getContainer()).getMusicGenerator();
                 var destRpVariation = RP_SYS_Variation.getVariationRp(rvDest.getContainer());
                 String destRpVariationValue = override.variation();     // if null, try to reuse source variation value
                 if (destRpVariationValue == null && destRpVariation != null)
@@ -1062,7 +1063,7 @@ public class SongSequenceBuilder
         {
             FloatRange sptBeatRange = context.getSptBeatRange(spt);     // Might be smaller than songPart.toBeatRange()
             IntRange sptBarRange = context.getSptBarRange(spt);         // Might be smaller than songPart.getBarRange()
-            SongPartContext sptContext = new SongPartContext(context.getSong(), context.getMidiMix(), sptBarRange);
+            SongPartContext sptContext = SongContextFactory.getDefault().ofSongPartContext(context.getSong(), context.getMidiMix(), sptBarRange);
 
 
             // Get the RhythmParameter

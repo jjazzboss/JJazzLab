@@ -1,24 +1,26 @@
 /*
- *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  * 
- *  Copyright @2019 Jerome Lelasseux. All rights reserved.
- *
- *  This file is part of the JJazzLab software.
- *   
- *  JJazzLab is free software: you can redistribute it and/or modify
- *  it under the terms of the Lesser GNU General Public License (LGPLv3) 
- *  as published by the Free Software Foundation, either version 3 of the License, 
- *  or (at your option) any later version.
- *
- *  JJazzLab is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU Lesser General Public License for more details.
+ *   DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+ *  
+ *   Copyright @2019 Jerome Lelasseux. All rights reserved.
  * 
- *  You should have received a copy of the GNU Lesser General Public License
- *  along with JJazzLab.  If not, see <https://www.gnu.org/licenses/>
+ *   This file is part of the JJazzLab software.
+ *    
+ *   JJazzLab is free software: you can redistribute it and/or modify
+ *   it under the terms of the Lesser GNU General Public License (LGPLv3) 
+ *   as published by the Free Software Foundation, either version 3 of the License, 
+ *   or (at your option) any later version.
  * 
- *  Contributor(s): 
+ *   JJazzLab is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU Lesser General Public License for more details.
+ *  
+ *   You should have received a copy of the GNU Lesser General Public License
+ *   along with JJazzLab.  If not, see <https://www.gnu.org/licenses/>
+ *  
+ *   Contributor(s): 
+ * 
  */
 package org.jjazz.song.api;
 
@@ -38,131 +40,52 @@ import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
 import org.jjazz.utilities.api.LongRange;
 
-
 /**
  * A Song music generation context.
  * <p>
  * Associates a Song, a MidiMix and a bar range within that song.
  * <p>
- * TODO: make SongContext a record
  */
-public class SongContext
+public interface SongContext
 {
-
-    private final Song song;
-    private final MidiMix midiMix;
-    private final IntRange barRange;
-
-
-    /**
-     * Create a SongContext object for the whole song.
-     *
-     * @param s
-     * @param mm
-     */
-    public SongContext(Song s, MidiMix mm)
-    {
-        this(s, mm, null);
-    }
-
-    /**
-     * Create a SongContext which reuse sgContext's Song and MidiMix, but with the specified range.
-     *
-     * @param sgContext
-     * @param newRange
-     */
-    public SongContext(SongContext sgContext, IntRange newRange)
-    {
-        this(sgContext.getSong(), sgContext.getMidiMix(), newRange);
-    }
-
-    /**
-     * Create a SongContext object for whole or part of a song.
-     *
-     * @param s
-     * @param mm
-     * @param bars If null, the range will represent the whole song from first to last bar.
-     */
-    public SongContext(Song s, MidiMix mm, IntRange bars)
-    {
-        if (s == null || mm == null)
-        {
-            throw new IllegalArgumentException("s=" + s + " mix=" + mm + "barRg=" + bars);
-        }
-        song = s;
-        this.midiMix = mm;
-        int sizeInBars = s.getSongStructure().getSizeInBars();
-        if (sizeInBars == 0)
-        {
-            this.barRange = IntRange.EMPTY_RANGE;
-        } else if (bars == null)
-        {
-            this.barRange = new IntRange(0, sizeInBars - 1);
-        } else if (bars.to > sizeInBars - 1)
-        {
-            throw new IllegalArgumentException("s=" + s + " sizeInBars=" + sizeInBars + " mix=" + mm + " bars=" + bars);
-        } else
-        {
-            this.barRange = bars;
-        }
-    }
-
-
-    /**
-     * Clone the SongContext reusing the same song and midi mix.
-     *
-     * @return
-     */
-    @Override
-    public SongContext clone()
-    {
-        return new SongContext(this, getBarRange());
-    }
-
-    /**
-     * Deep getCopy the SongContext : make a copy of the song and the midimix.
-     *
-     * @param useSongCopyForMidiMixCopy If true the MidiMix copy is created using the Song copy. If false 
-     * @return
-     */
-    public SongContext deepClone(boolean registerSong, boolean useSongCopyForMidiMixCopy)
-    {
-        Song songCopy = song.getDeepCopy(false);
-        MidiMix mixCopy = midiMix.getDeepCopy(useSongCopyForMidiMixCopy ? songCopy:null);
-        return new SongContext(songCopy, mixCopy, barRange);
-    }
-
-    /**
-     * Music should be produced for this song.
-     *
-     * @return
-     */
-    public Song getSong()
-    {
-        return song;
-    }
 
     /**
      * Music should be produced for this MidiMix.
      *
      * @return
      */
-    public MidiMix getMidiMix()
-    {
-        return midiMix;
-    }
+    MidiMix getMidiMix();
 
     /**
-     * Music should be produced only for this range of bars.
-     * <p>
-     * The range can start/end anywhere in the song (including in the middle of a song part).
+     * Music should be produced for this song.
      *
      * @return
      */
-    public IntRange getBarRange()
-    {
-        return barRange;
-    }
+    Song getSong();
+
+    /**
+     * Music should be produced for the song's bar range.
+     * <p>
+     *
+     * @return
+     */
+    IntRange getBarRange();
+
+    /**
+     * Get a deep copy the SongContext : make a copy of the song and the midimix.
+     * <p>
+     * setSong(songCopy) is applied on the the MidiMix copy.
+     *
+     * @return
+     */
+    SongContext getDeepCopy();
+
+    /**
+     * Shallow cloning which reuses the same song and midi mix.
+     *
+     * @return
+     */
+    SongContext clone();
 
     /**
      * The beat range within the song for which music should be produced.
@@ -172,9 +95,25 @@ public class SongContext
      *
      * @return
      */
-    public FloatRange getBeatRange()
+    default FloatRange getBeatRange()
     {
-        var res = song.getSongStructure().toBeatRange(barRange);
+        var res = getSong().getSongStructure().toBeatRange(getBarRange());
+        return res;
+    }
+
+
+    /**
+     * Get all the song parts contained in this context bar range.
+     * <p>
+     *
+     * @return Can be empty.
+     * @see #isInRange(org.jjazz.songstructure.api.SongPart)
+     */
+    default List<SongPart> getSongParts()
+    {
+        var res = getSong().getSongStructure().getSongParts().stream()
+                .filter(spt -> isInRange(spt))
+                .toList();
         return res;
     }
 
@@ -186,41 +125,10 @@ public class SongContext
      *
      * @return
      */
-    public LongRange getTickRange()
+    default public LongRange getTickRange()
     {
         var beatRange = getBeatRange();
         var res = new LongRange((long) (beatRange.from * MidiConst.PPQ_RESOLUTION), (long) (beatRange.to * MidiConst.PPQ_RESOLUTION));
-        return res;
-    }
-
-    /**
-     * Get all the song parts contained in this context bar range.
-     * <p>
-     *
-     * @return Can be empty.
-     * @see #isInRange(org.jjazz.songstructure.api.SongPart)
-     */
-    public List<SongPart> getSongParts()
-    {
-        var res = song.getSongStructure().getSongParts().stream()
-                .filter(spt -> isInRange(spt))
-                .toList();
-        return res;
-    }
-
-    /**
-     * Get the unique parent sections used by the context song parts.
-     *
-     * @return An ordered list by position
-     */
-    public List<CLI_Section> getUniqueSections()
-    {
-        List<CLI_Section> res = new ArrayList<>();
-
-        getSongParts().stream()
-                .map(spt -> spt.getParentSection())
-                .filter(section -> !res.contains(section))
-                .forEach(section -> res.add(section));
         return res;
     }
 
@@ -231,9 +139,9 @@ public class SongContext
      * @param spt
      * @return Can be the EMPTY_RANGE if spt is not part of this context.
      */
-    public IntRange getSptBarRange(SongPart spt)
+    default IntRange getSptBarRange(SongPart spt)
     {
-        return spt.getBarRange().getIntersection(barRange);
+        return spt.getBarRange().getIntersection(getBarRange());
     }
 
     /**
@@ -243,9 +151,9 @@ public class SongContext
      * @param spt
      * @return
      */
-    public FloatRange getSptBeatRange(SongPart spt)
+    default FloatRange getSptBeatRange(SongPart spt)
     {
-        FloatRange sptRange = song.getSongStructure().toBeatRange(spt.getBarRange());
+        FloatRange sptRange = getSong().getSongStructure().toBeatRange(spt.getBarRange());
         return sptRange.getIntersectRange(getBeatRange());
     }
 
@@ -255,23 +163,13 @@ public class SongContext
      * @param spt
      * @return
      */
-    public LongRange getSptTickRange(SongPart spt)
+    default LongRange getSptTickRange(SongPart spt)
     {
         FloatRange sptRange = getSptBeatRange(spt);
         LongRange lr = new LongRange((long) (sptRange.from * MidiConst.PPQ_RESOLUTION), (long) (sptRange.to * MidiConst.PPQ_RESOLUTION));
         return lr;
     }
 
-    /**
-     * Check if the specified spt has at least one bar in the range of this context.
-     *
-     * @param spt
-     * @return
-     */
-    public boolean isInRange(SongPart spt)
-    {
-        return barRange.isIntersecting(spt.getBarRange());
-    }
 
     /**
      * Get the bar ranges in this context whose SongParts use rpValue.
@@ -284,7 +182,7 @@ public class SongContext
      * @param rpValue A value for rp
      * @return Can be empty
      */
-    public <E> List<IntRange> getMergedBarRanges(Rhythm r, RhythmParameter<E> rp, E rpValue)
+    default <E> List<IntRange> getMergedBarRanges(Rhythm r, RhythmParameter<E> rp, E rpValue)
     {
         Objects.requireNonNull(r);
         Objects.requireNonNull(rp);
@@ -307,10 +205,10 @@ public class SongContext
      *
      * @return
      */
-    public List<Rhythm> getUniqueRhythms()
+    default List<Rhythm> getUniqueRhythms()
     {
         ArrayList<Rhythm> res = new ArrayList<>();
-        for (SongPart spt : song.getSongStructure().getSongParts())
+        for (SongPart spt : getSong().getSongStructure().getSongParts())
         {
             if (isInRange(spt) && !res.contains(spt.getRhythm()))
             {
@@ -325,7 +223,7 @@ public class SongContext
      *
      * @return
      */
-    public List<RhythmVoice> getUniqueRhythmVoices()
+    default List<RhythmVoice> getUniqueRhythmVoices()
     {
         ArrayList<RhythmVoice> rvs = new ArrayList<>();
         for (Rhythm r : getUniqueRhythms())
@@ -336,39 +234,32 @@ public class SongContext
     }
 
     /**
-     * Converts a tick position relative to this context into an absolute SongStructure Position.
+     * Get the unique parent sections used by the context song parts.
      *
-     * @param relativeTick 0 for the start of this context bar range.
-     * @return Null if tick is out of the bounds of this context.
+     * @return An ordered list by position
      */
-    public Position toPosition(long relativeTick)
+    default public List<CLI_Section> getUniqueSections()
     {
-        FloatRange br = getBeatRange();
-        float absPosInBeats = toPositionInBeats(relativeTick);
-        if (!br.contains(absPosInBeats, true))
-        {
-            return null;
-        }
-        return song.getSongStructure().toPosition(absPosInBeats);
-    }
+        List<CLI_Section> res = new ArrayList<>();
 
-    /**
-     * Converts a tick position relative to this context into an absolute SongStructure position in beats.
-     *
-     * @param relativeTick 0 for the start of this context bar range.
-     * @return -1 if tick is out of the bounds of this context.
-     */
-    public float toPositionInBeats(long relativeTick)
-    {
-        FloatRange br = getBeatRange();
-        float res = br.from + (float) relativeTick / MidiConst.PPQ_RESOLUTION;
-        if (!br.contains(res, true))
-        {
-            res = -1;
-        }
+        getSongParts().stream()
+                .map(spt -> spt.getParentSection())
+                .filter(section -> !res.contains(section))
+                .forEach(section -> res.add(section));
         return res;
     }
 
+
+    /**
+     * Check if the specified spt has at least one bar in the range of this context.
+     *
+     * @param spt
+     * @return
+     */
+    default boolean isInRange(SongPart spt)
+    {
+        return getBarRange().isIntersecting(spt.getBarRange());
+    }
 
     /**
      * Converts a tick position relative to this context into a ChordLeadSheet Position.
@@ -376,14 +267,14 @@ public class SongContext
      * @param relativeTick
      * @return Null if tick is out of the bounds of this context.
      */
-    public Position toClsPosition(long relativeTick)
+    default Position toClsPosition(long relativeTick)
     {
         Position ssPos = toPosition(relativeTick);
         if (ssPos == null)
         {
             return null;
         }
-        SongPart spt = song.getSongStructure().getSongPart(ssPos.getBar());
+        SongPart spt = getSong().getSongStructure().getSongPart(ssPos.getBar());
         int sectionBar = spt.getParentSection().getPosition().getBar();
         return new Position(ssPos.getBar() - spt.getStartBarIndex() + sectionBar, ssPos.getBeat());
     }
@@ -395,7 +286,7 @@ public class SongContext
      * @param pos
      * @return -1 if pos is outside this context range. Returns 0 for the first bar/beat of the context range.
      */
-    public long toRelativeTick(Position pos)
+    default long toRelativeTick(Position pos)
     {
         if (pos == null)
         {
@@ -404,9 +295,9 @@ public class SongContext
         long tick = -1;
         int bar = pos.getBar();
         float beat = pos.getBeat();
-        if (barRange.contains(bar))
+        if (getBarRange().contains(bar))
         {
-            SongPart spt = song.getSongStructure().getSongPart(bar);
+            SongPart spt = getSong().getSongStructure().getSongPart(bar);
             LongRange sptTickRange = getSptTickRange(spt);
             IntRange sptBarRange = getSptBarRange(spt);
             int relativeBar = bar - sptBarRange.from;
@@ -417,52 +308,38 @@ public class SongContext
         return tick;
     }
 
-    @Override
-    public int hashCode()
-    {
-        int hash = 5;
-        hash = 97 * hash + Objects.hashCode(this.song);
-        hash = 97 * hash + Objects.hashCode(this.midiMix);
-        hash = 97 * hash + Objects.hashCode(this.barRange);
-        return hash;
-    }
 
-    @Override
-    public boolean equals(Object obj)
+    /**
+     * Converts a tick position relative to this context into an absolute SongStructure Position.
+     *
+     * @param relativeTick 0 for the start of this context bar range.
+     * @return Null if tick is out of the bounds of this context.
+     */
+    default Position toPosition(long relativeTick)
     {
-        if (obj instanceof SongContext other)
+        FloatRange br = getBeatRange();
+        float absPosInBeats = toPositionInBeats(relativeTick);
+        if (!br.contains(absPosInBeats, true))
         {
-            if (this == other)
-            {
-                return true;
-            }
-            if (!Objects.equals(this.song, other.song))
-            {
-                return false;
-            }
-            if (!Objects.equals(this.midiMix, other.midiMix))
-            {
-                return false;
-            }
-            if (!Objects.equals(this.barRange, other.barRange))
-            {
-                return false;
-            }
-            return true;
-        } else
-        {
-            return false;
+            return null;
         }
+        return getSong().getSongStructure().toPosition(absPosInBeats);
     }
 
-    @Override
-    public String toString()
+    /**
+     * Converts a tick position relative to this context into an absolute SongStructure position in beats.
+     *
+     * @param relativeTick 0 for the start of this context bar range.
+     * @return -1 if tick is out of the bounds of this context.
+     */
+    default float toPositionInBeats(long relativeTick)
     {
-        return "SongContext[song=" + song.getName() + ", " + midiMix + ", range=" + barRange + "]";
+        FloatRange br = getBeatRange();
+        float res = br.from + (float) relativeTick / MidiConst.PPQ_RESOLUTION;
+        if (!br.contains(res, true))
+        {
+            res = -1;
+        }
+        return res;
     }
-
-
-    // ============================================================================================
-    // Private methods
-    // ============================================================================================   
 }

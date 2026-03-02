@@ -92,12 +92,12 @@ public class CopyRpValue extends SS_ContextAction
 
         // Collect data
         List<Object> values = new ArrayList<>();
-        RhythmParameter<?> rp0 = sptps.get(0).getRp();
-        SongPart spt0 = sptps.get(0).getSpt();
+        RhythmParameter<?> rp0 = sptps.get(0).rp();
+        SongPart spt0 = sptps.get(0).spt();
         for (SongPartParameter sptp : sptps)
         {
-            RhythmParameter<?> rpi = sptp.getRp();
-            SongPart spt = sptp.getSpt();
+            RhythmParameter<?> rpi = sptp.rp();
+            SongPart spt = sptp.spt();
             values.add(spt.getRPValue(rpi));
         }
 
@@ -126,10 +126,10 @@ public class CopyRpValue extends SS_ContextAction
         if (selection.isRhythmParameterSelected() && selection.isContiguousSptSelection())
         {
             var sptps = selection.getSelectedSongPartParameters();
-            Rhythm r0 = sptps.get(0).getSpt().getRhythm();
+            Rhythm r0 = sptps.get(0).spt().getRhythm();
             var opt = sptps.stream()
                     .skip(1)
-                    .map(sptp -> sptp.getSpt().getRhythm())
+                    .map(sptp -> sptp.spt().getRhythm())
                     .filter(r -> r != r0)
                     .findAny();
             b = opt.isEmpty();

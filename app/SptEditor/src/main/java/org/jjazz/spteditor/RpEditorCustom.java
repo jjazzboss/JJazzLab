@@ -38,6 +38,7 @@ import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongPartContext;
+import org.jjazz.song.spi.SongContextFactory;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.spteditor.api.RpEditor;
 import org.jjazz.utilities.api.ResUtil;
@@ -127,7 +128,7 @@ public class RpEditorCustom extends RpEditorComponent
             Exceptions.printStackTrace(ex);
             return;
         }
-        SongPartContext sptContext = new SongPartContext(songModel, mm, songPart);
+        SongPartContext sptContext = SongContextFactory.getDefault().of(songModel, mm, songPart);
         var dlgEditor = RpCustomEditorFactory.findFactory(rp).getEditor(rp);
         assert dlgEditor != null : "rp=" + rp;
         dlgEditor.preset(value, sptContext);
