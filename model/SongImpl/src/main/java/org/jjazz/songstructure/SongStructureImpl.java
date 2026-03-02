@@ -196,8 +196,8 @@ public class SongStructureImpl implements SongStructure, Serializable
                     .map(spt -> 
                     {
                         CLI_Section oldParentSection = spt.getParentSection();
-                        CLI_Section newParentSection = newParent.getSection(oldParentSection.getData().getName());
-                        return new SongPartImpl(res, spt.getRhythm(), spt.getStartBarIndex(), spt.getNbBars(), newParentSection);
+                        CLI_Section newParentSection = newParent.getSection(oldParentSection.getData().getName());                        
+                        return spt.getCopy(null, spt.getStartBarIndex(), spt.getNbBars(), newParentSection);
                     })
                     .toList();
 
