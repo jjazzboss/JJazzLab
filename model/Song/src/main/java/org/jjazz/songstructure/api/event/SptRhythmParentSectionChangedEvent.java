@@ -36,7 +36,7 @@ import org.jjazz.songstructure.api.SongPart;
  * <p>
  * getSongParts() will return the updated SongParts (newSpts).
  */
-public class SptRhythmChangedEvent extends SgsChangeEvent
+public class SptRhythmParentSectionChangedEvent extends SgsChangeEvent
 {
 
     public record OldData(Rhythm rhythm, CLI_Section parentSection)
@@ -55,7 +55,7 @@ public class SptRhythmChangedEvent extends SgsChangeEvent
      * @param mapSptOldData The old data for each SongPart from newSpts
      * @param newSpts       The updated SongParts
      */
-    public SptRhythmChangedEvent(SongStructure src, Rhythm r, Map<SongPart, OldData> mapSptOldData, List<SongPart> newSpts)
+    public SptRhythmParentSectionChangedEvent(SongStructure src, Rhythm r, Map<SongPart, OldData> mapSptOldData, List<SongPart> newSpts)
     {
         super(src, newSpts);
         Objects.requireNonNull(newSpts);

@@ -63,7 +63,7 @@ import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.jjazz.songstructure.api.event.SptAddedEvent;
 import org.jjazz.songstructure.api.event.SptRemovedEvent;
-import org.jjazz.songstructure.api.event.SptRhythmChangedEvent;
+import org.jjazz.songstructure.api.event.SptRhythmParentSectionChangedEvent;
 
 /**
  * Manage the derived changes after a primary change on a Song component (Song, ChordLeadSheet, SongStructure).
@@ -167,7 +167,7 @@ class SongInternalUpdater
         Objects.requireNonNull(event);
         switch (event)
         {
-            case SptRhythmChangedEvent srce ->
+            case SptRhythmParentSectionChangedEvent srce ->
             {
                 preCheckSptRhythmChanged(srce);
             }
@@ -317,9 +317,9 @@ class SongInternalUpdater
             {
                 res = getDerivedSptRemoved(e);
             }
-            case SptRhythmChangedEvent e ->
+            case SptRhythmParentSectionChangedEvent e ->
             {
-                res = getDerivedSptRhythmChanged(e);
+                res = getDerivedSptRhythmParentSectionChanged(e);
             }
             default ->
             {
@@ -402,14 +402,14 @@ class SongInternalUpdater
 
             // Collect all the unique rhythms
             Set<Rhythm> uniqueRhythms = new HashSet<>();
-            uniqueRhythms.add(newRhythm);
+            uniqueRhythms.add(getSourceRhythm(newRhythm));
             uniqueRhythms.addAll(songStructure.getUniqueRhythms(true, false));
             checkMidiMixForMidiChannelUnavailableError(uniqueRhythms);   // throws UnsupportedEditException
         }
     }
 
     /**
-     * A section was added to an empty bar.
+     * A section was added.
      * <p>
      * - Insert a new SongPart for the added section<br>
      * - Reduce the size of the SongPart(s) whose parent section is the previous shortened section<br>
@@ -460,7 +460,7 @@ class SongInternalUpdater
         if (newRhythm != null)
         {
             Set<Rhythm> uniqueRhythms = new HashSet<>();
-            uniqueRhythms.add(newRhythm);
+            uniqueRhythms.add(getSourceRhythm(newRhythm));
             uniqueRhythms.addAll(songStructure.getUniqueRhythms(true, false));
             checkMidiMixForMidiChannelUnavailableError(uniqueRhythms);   // throws UnsupportedEditException
         }
@@ -520,7 +520,7 @@ class SongInternalUpdater
 
         var newTs = sce.getNewSection().getTimeSignature();
         Rhythm newRhythm = songStructure.getRecommendedRhythm(newTs, spts.getFirst().getStartBarIndex());
-        var event = new SptRhythmChangedEvent(songStructure, newRhythm, new HashMap<>(), spts);
+        var event = new SptRhythmParentSectionChangedEvent(songStructure, newRhythm, new HashMap<>(), spts);
         preCheckSptRhythmChanged(event);               // throws UnsupportedEditException
     }
 
@@ -802,7 +802,7 @@ class SongInternalUpdater
     private void preCheckSptAdded(SptAddedEvent sae) throws UnsupportedEditException
     {
         Set<Rhythm> uniqueRhythms = new HashSet<>(getMidiMix().getUniqueRhythms());
-        sae.getSongParts().forEach(spt -> uniqueRhythms.add(getSourceRhythm(spt.getRhythm())));
+        uniqueRhythms.addAll(sae.getRhythms(true));
         checkMidiMixForMidiChannelUnavailableError(uniqueRhythms);     // throws UnsupportedEditException
     }
 
@@ -867,10 +867,10 @@ class SongInternalUpdater
      * @param srce
      * @throws UnsupportedEditException If not enough MIDI channels
      */
-    private void preCheckSptRhythmChanged(SptRhythmChangedEvent srce) throws UnsupportedEditException
+    private void preCheckSptRhythmChanged(SptRhythmParentSectionChangedEvent srce) throws UnsupportedEditException
     {
         var spts = srce.getSongParts();
-        var newRhythm = srce.getNewRhythm();
+        var newRhythm = getSourceRhythm(srce.getNewRhythm());
 
         if (newRhythm != null)
         {
@@ -885,7 +885,7 @@ class SongInternalUpdater
     }
 
     /**
-     * The rhythm of some SongParts has changed.
+     * The rhythm and/or the parent section of some SongParts have changed.
      * <p>
      * - Update MidiMix: possibly remove some rhythms and possibly add new rhythm<br>
      * - Update chord symbols position if new rhythm division has changed<br>
@@ -893,10 +893,10 @@ class SongInternalUpdater
      * @param srce
      * @return
      */
-    private List<Operation> getDerivedSptRhythmChanged(SptRhythmChangedEvent srce)
+    private List<Operation> getDerivedSptRhythmParentSectionChanged(SptRhythmParentSectionChangedEvent srce)
     {
         var spts = srce.getSongParts();
-        var newRhythm = srce.getNewRhythm();
+        var newRhythm = getSourceRhythm(srce.getNewRhythm());   // Can be null
 
         List<Operation> res = new ArrayList<>();
 
@@ -1051,7 +1051,7 @@ class SongInternalUpdater
      * Manage the AdaptedRhythm case.
      * <p>
      * @param r
-     * @return A Rhythm instance which is not an AdaptedRhythm
+     * @return A Rhythm instance which is not an AdaptedRhythm. Can be null if r is null.
      */
     private Rhythm getSourceRhythm(Rhythm r)
     {

@@ -10,8 +10,6 @@
 - use pcs or swingPcs depending on listeners usage (song/cls/sgs and chordleadsheetitems + songparts).
 - possibly fire all song/cls/sgs on EDT via 
 
-- use concurrency protection for midimix, SongContext.deepCopy() must be protected
-
 - save old .sng/.mix copies of various changes in Song test folder
 
 Tests:

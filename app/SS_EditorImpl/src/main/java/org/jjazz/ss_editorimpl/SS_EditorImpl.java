@@ -61,7 +61,7 @@ import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.jjazz.songstructure.api.event.SptAddedEvent;
 import org.jjazz.songstructure.api.event.SptRemovedEvent;
 import org.jjazz.songstructure.api.event.SptRenamedEvent;
-import org.jjazz.songstructure.api.event.SptRhythmChangedEvent;
+import org.jjazz.songstructure.api.event.SptRhythmParentSectionChangedEvent;
 import org.jjazz.ss_editor.sptviewer.api.SptViewer;
 import org.jjazz.ss_editor.sptviewer.spi.SptViewerFactory;
 import org.jjazz.ss_editor.api.SS_Editor;
@@ -753,7 +753,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
             case SptRemovedEvent e -> handleSptRemoved(e);
             case SptAddedEvent e -> handleSptAdded(e);
             case SptRenamedEvent e -> updateSptMultiSelectMode();   // Update the MultiSelectBar on/off state on each SptViewer
-            case SptRhythmChangedEvent e ->
+            case SptRhythmParentSectionChangedEvent e ->
             {
                 // Event is directly managed by each SptViewer, here we only do stuff which impacts all SptViewers
                 storeVisibleRPsInCompactModeIfRequired(e.getSongParts().stream()

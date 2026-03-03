@@ -29,8 +29,10 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import org.jjazz.chordleadsheet.ChordLeadSheetImpl;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.api.UserRhythmVoice;
@@ -95,7 +97,7 @@ public class MidiMixImplTest
 
 
         var sf = SongFactory.getDefault();
-        cls = sf.createSampleChordLeadSheet("section1", 12);
+        cls = new ChordLeadSheetImpl("section1", TimeSignature.FOUR_FOUR, 12);
         sgs = sf.createSongStructure(cls);
         song = (SongImpl) sf.createSong("Test-Song", sgs);      // No user phrase
 

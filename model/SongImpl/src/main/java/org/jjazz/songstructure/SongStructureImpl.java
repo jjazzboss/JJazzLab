@@ -26,7 +26,7 @@ import com.google.common.base.Preconditions;
 import com.thoughtworks.xstream.XStream;
 import java.beans.PropertyChangeEvent;
 import org.jjazz.songstructure.api.event.RpValueChangedEvent;
-import org.jjazz.songstructure.api.event.SptRhythmChangedEvent;
+import org.jjazz.songstructure.api.event.SptRhythmParentSectionChangedEvent;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.jjazz.songstructure.api.event.SptResizedEvent;
 import org.jjazz.songstructure.api.event.SptRemovedEvent;
@@ -675,20 +675,20 @@ public class SongStructureImpl implements SongStructure, Serializable
 
 
             // Save SongParts data
-            final Map<SongPart, SptRhythmChangedEvent.OldData> mapSptOldData = new IdentityHashMap<>();
-            final Map<SongPart, SptRhythmChangedEvent.OldData> mapSptNewData = new IdentityHashMap<>();
+            final Map<SongPart, SptRhythmParentSectionChangedEvent.OldData> mapSptOldData = new IdentityHashMap<>();
+            final Map<SongPart, SptRhythmParentSectionChangedEvent.OldData> mapSptNewData = new IdentityHashMap<>();
             for (var spt : spts)
             {
-                var oldData = new SptRhythmChangedEvent.OldData(spt.getRhythm(), spt.getParentSection());
+                var oldData = new SptRhythmParentSectionChangedEvent.OldData(spt.getRhythm(), spt.getParentSection());
                 mapSptOldData.put(spt, oldData);
-                var newData = new SptRhythmChangedEvent.OldData(newRhythm, newParentSection);
+                var newData = new SptRhythmParentSectionChangedEvent.OldData(newRhythm, newParentSection);
                 mapSptNewData.put(spt, newData);
             }
             final Map<TimeSignature, Rhythm> oldMapTsRhythm = new HashMap<>(mapTsLastRhythm);
 
 
             // Check for possible veto
-            var preCheckEvent = new SptRhythmChangedEvent(this, newRhythm, mapSptOldData, spts);
+            var preCheckEvent = new SptRhythmParentSectionChangedEvent(this, newRhythm, mapSptOldData, spts);
             preCheckChange(preCheckEvent);        // throws UnsupportedEditException
 
 
@@ -725,7 +725,7 @@ public class SongStructureImpl implements SongStructure, Serializable
                         }
                         mapTsLastRhythm = new HashMap<>(oldMapTsRhythm);
 
-                        var event = new SptRhythmChangedEvent(SongStructureImpl.this, newRhythm, mapSptNewData, spts);
+                        var event = new SptRhythmParentSectionChangedEvent(SongStructureImpl.this, newRhythm, mapSptNewData, spts);
                         event.setIsUndo();
                         event.addSongPartChanges(sptEvents2);
                         return WriteOperationResults.of(event, null);
@@ -747,7 +747,7 @@ public class SongStructureImpl implements SongStructure, Serializable
                         }
                         mapTsLastRhythm = new HashMap<>(newMapTsRhythm);
 
-                        var event = new SptRhythmChangedEvent(SongStructureImpl.this, newRhythm, mapSptOldData, spts);
+                        var event = new SptRhythmParentSectionChangedEvent(SongStructureImpl.this, newRhythm, mapSptOldData, spts);
                         event.setIsRedo();
                         event.addSongPartChanges(sptEvents2);
                         return WriteOperationResults.of(event, null);
@@ -758,7 +758,7 @@ public class SongStructureImpl implements SongStructure, Serializable
             fireUndoableEditHappened(edit);
 
 
-            var event = new SptRhythmChangedEvent(SongStructureImpl.this, newRhythm, mapSptOldData, spts);
+            var event = new SptRhythmParentSectionChangedEvent(SongStructureImpl.this, newRhythm, mapSptOldData, spts);
             event.addSongPartChanges(sptEvents);
 
             return WriteOperationResults.of(event, null);

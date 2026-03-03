@@ -367,8 +367,10 @@ public class SongInternalUpdaterTest
         cls1.addItem(chord1);
         cls1.addItem(chord2);
 
-        // Change rhythm, should impact off-beat chords position
-        sgs.setSongPartsRhythm(List.of(spt), rTernary, null);
+        // Change rhythm, should impact off-beat chords position.
+        // Switch ALL binary 4/4 spts at once: remaining = r34 only = 12 channels total, within 16-channel limit.
+        var binarySpts = sgs.getSongParts().stream().filter(s -> s.getRhythm().equals(rBinary)).toList();
+        sgs.setSongPartsRhythm(binarySpts, rTernary, null);
         assertEquals(1.66666f, chord1.getPosition().getBeat(), 0.001f);
         assertEquals(3.66666f, chord2.getPosition().getBeat(), 0.001f);
 
@@ -384,7 +386,8 @@ public class SongInternalUpdaterTest
 
         // Move chord2 so that there should be a collision at 1.6666 after adjustment to ternary
         cls1.moveItem(chord2, new Position(5, 1.5f));
-        sgs.setSongPartsRhythm(List.of(spt), rTernary, null);    // Switch back to ternary
+        var binarySpts2 = sgs.getSongParts().stream().filter(s -> s.getRhythm().equals(rBinary)).toList();
+        sgs.setSongPartsRhythm(binarySpts2, rTernary, null);    // Switch back to ternary
         assertEquals(1.75f, chord1.getPosition().getBeat(), 0.001f);        // Could not be moved
         assertEquals(1.66666f, chord2.getPosition().getBeat(), 0.001f);
 
@@ -400,6 +403,9 @@ public class SongInternalUpdaterTest
     public void testChangeTimeSignaturePlusDivisionChange() throws UnavailableRhythmException, UnsupportedEditException
     {
         System.out.println("\n============ testChangeTimeSignaturePlusDivisionChange");
+
+        // spt0 (bar 8, r34) must be removed first: with 6-voice rhythms, having r44+r34+rWaltzSwing would exceed the 16-channel MIDI limit.
+        sgs.removeSongParts(List.of(spt0));
 
         var rWaltzSwing = getRhythm(TimeSignature.THREE_FOUR, Division.EIGHTH_SHUFFLE);
 
@@ -599,6 +605,13 @@ public class SongInternalUpdaterTest
     {
         System.out.println("\n============ testSptAddedAndRemovedUpdatesMidiMixRhythms");
         MidiMix midiMix = MidiMixManager.getDefault().findMix(song);
+
+        // With 6-voice rhythms, r44(6)+r34(6)=12 channels leaves only 4 free — not enough to add a new 6-voice rhythm.
+        // Remove both r34 song parts so the MidiMix has only r44 (6 channels), giving 10 free slots.
+        var sptSection2 = sgs.getSongParts().get(1);  // section2 spt at bar 2 (r34)
+        sgs.removeSongParts(List.of(sptSection2));
+        sgs.removeSongParts(List.of(spt0));           // spt0 also uses r34 (bar index shifted after previous removal)
+
         var initialRhythms = new HashSet<>(midiMix.getUniqueRhythms());
 
         Rhythm newRhythm = findAdditionalRhythm(TimeSignature.FOUR_FOUR, midiMix);

@@ -67,7 +67,7 @@ import org.jjazz.rhythm.api.Division;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongMetaEvents;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.songstructure.api.event.SptRhythmChangedEvent;
+import org.jjazz.songstructure.api.event.SptRhythmParentSectionChangedEvent;
 import org.openide.util.Exceptions;
 
 /**
@@ -702,7 +702,7 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
             if (evt.getSource() == songMetaEvents)
             {
                 assert evt.getPropertyName().equals(SongMetaEvents.PROP_CLS_SGS_CHANGE);
-                if (evt.getOldValue() instanceof SptRhythmChangedEvent srce)
+                if (evt.getOldValue() instanceof SptRhythmParentSectionChangedEvent srce)
                 {
                     // Update if a rhythm was changed
                     updateSectionsDivision(srce.getSongParts());

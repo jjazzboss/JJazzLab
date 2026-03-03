@@ -58,7 +58,7 @@ import org.jjazz.songstructure.api.event.SptAddedEvent;
 import org.jjazz.songstructure.api.event.SptRemovedEvent;
 import org.jjazz.songstructure.api.event.SptRenamedEvent;
 import org.jjazz.songstructure.api.event.SptResizedEvent;
-import org.jjazz.songstructure.api.event.SptRhythmChangedEvent;
+import org.jjazz.songstructure.api.event.SptRhythmParentSectionChangedEvent;
 import org.openide.awt.StatusDisplayer;
 import org.openide.util.*;
 
@@ -349,7 +349,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
                     {
                         doDisableUpdates = true;
                     }
-                    case SptRhythmChangedEvent evt ->
+                    case SptRhythmParentSectionChangedEvent evt ->
                     {
                         doDisableUpdates = true;
                     }

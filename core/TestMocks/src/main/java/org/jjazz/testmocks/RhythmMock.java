@@ -41,6 +41,8 @@ import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmparametersimpl.api.RP_SYS_CustomPhrase;
 import org.jjazz.rhythmparametersimpl.api.RP_SYS_Fill;
 import org.jjazz.rhythmparametersimpl.api.RP_SYS_Intensity;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_Mute;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_TempoFactor;
 import org.jjazz.rhythmparametersimpl.api.RP_SYS_Variation;
 
 /**
@@ -83,15 +85,24 @@ public class RhythmMock implements Rhythm
 
         // Rhythm voices
         GM1Bank gmb = GMSynth.getInstance().getGM1Bank();
+        rhythmVoices.add(new RhythmVoice(new DrumKit(Type.STANDARD, KeyMapGM.getInstance()), this, RhythmVoice.Type.PERCUSSION, "Perc",
+                GMSynth.getInstance().getVoidInstrument(), 8));
         rhythmVoices.add(new RhythmVoice(new DrumKit(Type.STANDARD, KeyMapGM.getInstance()), this, RhythmVoice.Type.DRUMS, "Drums",
                 GMSynth.getInstance().getVoidInstrument(), 9));
         rhythmVoices.add(new RhythmVoice(this, RhythmVoice.Type.BASS, "Bass", gmb.getDefaultInstrument(InstrumentFamily.Bass), 10));
+        rhythmVoices.add(new RhythmVoice(this, RhythmVoice.Type.CHORD1, "Guitar", gmb.getDefaultInstrument(InstrumentFamily.Guitar), 11));
+        rhythmVoices.add(new RhythmVoice(this, RhythmVoice.Type.CHORD2, "Piano", gmb.getDefaultInstrument(InstrumentFamily.Piano), 12));
+        rhythmVoices.add(new RhythmVoice(this, RhythmVoice.Type.PAD, "Pad", gmb.getDefaultInstrument(InstrumentFamily.Strings), 13));
+
 
         // Our Rhythm Parameters
         rhythmParameters.add(new RP_SYS_Variation(true));
+        rhythmParameters.add(new RP_SYS_Intensity(true));        
         rhythmParameters.add(new RP_SYS_Fill(true));
-        rhythmParameters.add(new RP_SYS_Intensity(true));
+        rhythmParameters.add(RP_SYS_Mute.createMuteRp(this, true));
+        rhythmParameters.add(RP_SYS_TempoFactor.getInstance());        
         rhythmParameters.add(new RP_SYS_CustomPhrase(this, true));
+
     }
 
     // ==============================================================================================
@@ -199,7 +210,7 @@ public class RhythmMock implements Rhythm
     @Override
     public String getName()
     {
-        return "JuanName-" + getTimeSignature().toString();
+        return "RhythmMock" + getTimeSignature().toString();
     }
 
     @Override

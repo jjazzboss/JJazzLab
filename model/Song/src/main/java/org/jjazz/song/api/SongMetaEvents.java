@@ -43,7 +43,7 @@ import org.jjazz.songstructure.api.SgsChangeListener;
 import org.jjazz.songstructure.api.event.RpValueChangedEvent;
 import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.jjazz.songstructure.api.event.SptRenamedEvent;
-import org.jjazz.songstructure.api.event.SptRhythmChangedEvent;
+import org.jjazz.songstructure.api.event.SptRhythmParentSectionChangedEvent;
 
 /**
  * A helper class which listens to Song/ChordLeadSheet/SongStructure change events to provide higher-level property change events.
@@ -212,7 +212,7 @@ public class SongMetaEvents implements ClsChangeListener, SgsChangeListener, Pro
                 musicalContentChanged = false;
                 sizeInBeatsChanged = false;
             }
-            case SptRhythmChangedEvent e ->
+            case SptRhythmParentSectionChangedEvent e ->
             {
                 musicalContentChanged = true;
                 sizeInBeatsChanged = false;
