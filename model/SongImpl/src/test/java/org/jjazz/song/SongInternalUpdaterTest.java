@@ -23,12 +23,14 @@
 package org.jjazz.song;
 
 import java.text.ParseException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.chordleadsheet.ChordLeadSheetImpl;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.chordleadsheet.api.event.SectionAddedEvent;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
@@ -36,6 +38,9 @@ import org.jjazz.chordleadsheet.item.CLI_SectionImpl;
 import org.jjazz.chordleadsheet.item.CLI_ChordSymbolImpl;
 import org.jjazz.chordleadsheet.spi.item.CLI_Factory;
 import org.jjazz.harmony.api.Position;
+import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.midimix.spi.MidiMixManager;
+import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Division;
 import org.jjazz.rhythm.api.Rhythm;
@@ -43,6 +48,7 @@ import org.jjazz.rhythmdatabase.api.DefaultRhythmDatabase;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.song.api.Song;
+import org.jjazz.song.api.SongPropertyChangeEvent;
 import org.jjazz.song.spi.SongFactory;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
@@ -55,6 +61,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.openide.util.Exceptions;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
+import org.jjazz.songstructure.api.event.SptAddedEvent;
 import org.jjazz.utilities.api.Utilities;
 
 public class SongInternalUpdaterTest
@@ -524,6 +531,132 @@ public class SongInternalUpdaterTest
         assertTrue(sgs.getSongParts().get(2).getNbBars() == 1);
     }
 
+    @Test
+    public void testUserPhraseAddRemoveUpdatesMidiMixUserChannel() throws UnsupportedEditException
+    {
+        System.out.println("\n============ testUserPhraseAddRemoveUpdatesMidiMixUserChannel");
+        MidiMix midiMix = MidiMixManager.getDefault().findMix(song);
+
+        String name = "phrase1";
+        assertNull(midiMix.getUserRhythmVoice(name));
+
+        song.setUserPhrase(name, new Phrase(0));
+        assertNotNull(midiMix.getUserRhythmVoice(name));
+
+        song.removeUserPhrase(name);
+        assertNull(midiMix.getUserRhythmVoice(name));
+    }
+
+    @Test
+    public void testUserPhraseRenameUpdatesMidiMixUserChannel() throws UnsupportedEditException
+    {
+        System.out.println("\n============ testUserPhraseRenameUpdatesMidiMixUserChannel");
+        MidiMix midiMix = MidiMixManager.getDefault().findMix(song);
+
+        String oldName = "phrase1";
+        String newName = "phrase2";
+        song.setUserPhrase(oldName, new Phrase(0));
+
+        var oldUrv = midiMix.getUserRhythmVoice(oldName);
+        assertNotNull(oldUrv);
+        int channel = midiMix.getChannel(oldUrv);
+
+        song.renameUserPhrase(oldName, newName);
+
+        assertNull(midiMix.getUserRhythmVoice(oldName));
+        var newUrv = midiMix.getUserRhythmVoice(newName);
+        assertNotNull(newUrv);
+        assertEquals(channel, midiMix.getChannel(newUrv));
+    }
+
+    @Test
+    public void testUserPhrasePreCheckVetoesIfNoMidiChannelAvailable() throws UnsupportedEditException
+    {
+        System.out.println("\n============ testUserPhrasePreCheckVetoesIfNoMidiChannelAvailable");
+        MidiMix midiMix = MidiMixManager.getDefault().findMix(song);
+
+        int i = 0;
+        while (!midiMix.getUnusedChannels().isEmpty())
+        {
+            midiMix.addUserChannel("fill" + i++, false);
+        }
+
+        assertThrows(UnsupportedEditException.class, () -> song.setUserPhrase("phrase1", new Phrase(0)));
+    }
+
+    @Test
+    public void testUserPhrasePreCheckVetoesIfSameNameUserChannelExists() throws UnsupportedEditException
+    {
+        System.out.println("\n============ testUserPhrasePreCheckVetoesIfSameNameUserChannelExists");
+        MidiMix midiMix = MidiMixManager.getDefault().findMix(song);
+
+        midiMix.addUserChannel("phrase1", false);
+        assertThrows(UnsupportedEditException.class, () -> song.setUserPhrase("phrase1", new Phrase(0)));
+    }
+
+    @Test
+    public void testSptAddedAndRemovedUpdatesMidiMixRhythms() throws UnavailableRhythmException, UnsupportedEditException
+    {
+        System.out.println("\n============ testSptAddedAndRemovedUpdatesMidiMixRhythms");
+        MidiMix midiMix = MidiMixManager.getDefault().findMix(song);
+        var initialRhythms = new HashSet<>(midiMix.getUniqueRhythms());
+
+        Rhythm newRhythm = findAdditionalRhythm(TimeSignature.FOUR_FOUR, midiMix);
+        assertFalse(midiMix.getUniqueRhythms().contains(newRhythm));
+
+        SongPart sptNew = sgs.createSongPart(newRhythm, null, sgs.getSizeInBars(), section1, true);
+        sgs.addSongParts(List.of(sptNew));
+        assertTrue(midiMix.getUniqueRhythms().contains(newRhythm));
+
+        sgs.removeSongParts(List.of(sptNew));
+        assertEquals(initialRhythms, midiMix.getUniqueRhythms());
+    }
+
+    @Test
+    public void testGetDerivedOperationsNoForwardDuringUndoRedo()
+    {
+        System.out.println("\n============ testGetDerivedOperationsNoForwardDuringUndoRedo");
+        SongInternalUpdater updater = new SongInternalUpdater(song);
+
+        SongPropertyChangeEvent evt = new SongPropertyChangeEvent(song, Song.PROP_USER_PHRASE, new Phrase(0), "phrase1");
+        evt.setIsUndo();
+
+        var ops = updater.getDerivedOperations(WriteOperationResults.of(evt, null));
+        assertTrue(ops.isEmpty());
+
+        SectionAddedEvent clsEvt = new SectionAddedEvent(cls1, new CLI_SectionImpl("Tmp", TimeSignature.FOUR_FOUR, 1), null);
+        clsEvt.setIsRedo();
+        var ops2 = updater.getDerivedOperations(WriteOperationResults.of(clsEvt, null));
+        assertTrue(ops2.isEmpty());
+
+        var sgsEvt = new SptAddedEvent(sgs, List.of(sgs.getSongPart(0)));
+        sgsEvt.setIsUndo();
+        var ops3 = updater.getDerivedOperations(WriteOperationResults.of(sgsEvt, null));
+        assertTrue(ops3.isEmpty());
+    }
+
+    @Test
+    public void testReplaceSectionSameBarRenamesOnlyDefaultNamedSongParts() throws UnsupportedEditException
+    {
+        System.out.println("\n============ testReplaceSectionSameBarRenamesOnlyDefaultNamedSongParts");
+        var sptsSection2 = sgs.getSongParts(spt -> spt.getParentSection() == section2);
+        assertFalse(sptsSection2.isEmpty());
+
+        SongPart customizedSpt = sptsSection2.get(0);
+        sgs.setSongPartsName(List.of(customizedSpt), "custom");
+
+        CLI_Section replaced = new CLI_SectionImpl("ReplacedSection2", TimeSignature.THREE_FOUR, section2.getPosition().getBar());
+        cls1.addSection(replaced);
+
+        assertSame(replaced, cls1.getSection(section2.getPosition().getBar()));
+        assertTrue(sgs.getSongParts(spt -> spt.getParentSection() == section2).isEmpty());
+
+        var newParentSpts = sgs.getSongParts(spt -> spt.getParentSection() == replaced);
+        assertEquals(sptsSection2.size(), newParentSpts.size());
+        assertEquals(1, newParentSpts.stream().filter(spt -> spt.getName().equals("custom")).count());
+        assertEquals(sptsSection2.size() - 1, newParentSpts.stream().filter(spt -> spt.getName().equals("ReplacedSection2")).count());
+    }
+
     private void redoAll()
     {
         while (undoManager.canRedo())
@@ -548,6 +681,31 @@ public class SongInternalUpdaterTest
                 .orElseThrow();
         var r = rdb.getRhythmInstance(rInfo);        // throws UnavailableRhythmException
         return r;
+    }
+
+    private Rhythm findAdditionalRhythm(TimeSignature ts, MidiMix midiMix) throws UnavailableRhythmException
+    {
+        int currentVoiceCount = midiMix.getUserChannels().size();
+        for (var r : midiMix.getUniqueRhythms())
+        {
+            currentVoiceCount += r.getRhythmVoices().size();
+        }
+
+        int maxNewVoices = MidiMix.NB_AVAILABLE_CHANNELS - currentVoiceCount;
+        for (var rInfo : rdb.getRhythms(ts))
+        {
+            var r = rdb.getRhythmInstance(rInfo);
+            if (midiMix.getUniqueRhythms().contains(r))
+            {
+                continue;
+            }
+            if (r.getRhythmVoices().size() <= maxNewVoices)
+            {
+                return r;
+            }
+        }
+
+        throw new IllegalStateException("No suitable rhythm found for ts=" + ts + " maxNewVoices=" + maxNewVoices);
     }
 
 }

@@ -165,8 +165,13 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
 
     @Override
     public MidiMix getDeepCopy(Song sg)
-    {
+    {        
         MidiMixImpl mm = new MidiMixImpl();
+        
+        if (sg instanceof SongImpl sgImpl)
+        {
+            mm.setSong(sgImpl);
+        }
 
         performReadAPImethod(() -> 
         {

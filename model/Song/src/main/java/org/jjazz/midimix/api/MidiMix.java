@@ -157,7 +157,7 @@ public interface MidiMix
     /**
      * Add channels for all the RhythmVoices of r.
      * <p>
-     * Fires a PROP_CHANNEL_INSTRUMENT_MIXES change event for each RhythmVoice, and one undoable event.
+     * Fires a PROP_CHANNEL_INSTRUMENT_MIXES change event and an undoable event.
      *
      * @param r
      * @throws UnsupportedEditException If no enough MIDI channels available
@@ -167,7 +167,7 @@ public interface MidiMix
     /**
      * Remove all the channels of r.
      * <p>
-     * Fires a PROP_CHANNEL_INSTRUMENT_MIXES change event for each RhythmVoice, and an undoable event.
+     * Fires a PROP_CHANNEL_INSTRUMENT_MIXES change event and an undoable event.
      *
      * @param r
      */
@@ -209,8 +209,7 @@ public interface MidiMix
      * <p>
      * Mutable internal objects are deeply copied, e.g. InstrumentMixes. Not copied: listeners, isSaveNeeded.
      *
-     * @param song The song of the returned instance. If null the copy will directly reuse this song. If not null, caller is responsible to provide a song
-     *             consistent with this MidiMix.
+     * @param song The song to be set on the returned instance. If not null, caller is responsible to provide a song consistent with this MidiMix.
      * @return
      * @see #checkConsistency(org.jjazz.song.api.Song, boolean)
      */
@@ -462,10 +461,11 @@ public interface MidiMix
         }
         MidiMix mm = null;
 
-        try (var fis = new FileInputStream(f))
+        try (var fis = new FileInputStream(f); Reader r = new BufferedReader(new InputStreamReader(fis, "UTF-8")))
         {
+            // UTF8 required to support special/accented chars
             XStream xstream = XStreamInstancesManager.getInstance().getLoadMidiMixInstance();
-            Reader r = new BufferedReader(new InputStreamReader(fis, "UTF-8"));        // Needed to support special/accented chars
+            
             mm = (MidiMix) xstream.fromXML(r);
             mm.setFile(f);
         } catch (XStreamException e)

@@ -55,6 +55,7 @@ public class MidiSynth
      */
     public interface Finder
     {
+
         /**
          * Find the first Finder implementation in the global lookup.
          *
@@ -176,16 +177,22 @@ public class MidiSynth
             throw new IOException(msg);
         }
 
+
         // Read the file
-        FileInputStream fis = new FileInputStream(file);
-        var synths = reader.readSynthsFromStream(fis, file);    // Can raise exception
+        MidiSynth res = null;
+        try (var fis = new FileInputStream(file))
+        {
+            var synths = reader.readSynthsFromStream(fis, file);    // Can raise IOException
 
-
-        // Find the 1st non empty synth
-        MidiSynth res = synths.stream()
-                .filter(s -> s.getNbInstruments() > 0)
-                .findAny()
-                .orElse(null);
+            // Find the 1st non empty synth
+            res = synths.stream()
+                    .filter(s -> s.getNbInstruments() > 0)
+                    .findAny()
+                    .orElse(null);
+        } catch (IOException ex)
+        {
+            throw ex;
+        }
 
 
         if (res == null)

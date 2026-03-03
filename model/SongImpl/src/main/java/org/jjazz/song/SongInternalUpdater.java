@@ -64,7 +64,6 @@ import org.jjazz.songstructure.api.event.SgsChangeEvent;
 import org.jjazz.songstructure.api.event.SptAddedEvent;
 import org.jjazz.songstructure.api.event.SptRemovedEvent;
 import org.jjazz.songstructure.api.event.SptRhythmChangedEvent;
-import org.openide.util.Exceptions;
 
 /**
  * Manage the derived changes after a primary change on a Song component (Song, ChordLeadSheet, SongStructure).
@@ -218,7 +217,9 @@ class SongInternalUpdater
                 return getSongDerivedOperations(results.pChangeEvent());
             } else
             {
-                throw new IllegalStateException("event=" + event);
+                throw new IllegalStateException("Unexpected event source. sourceClass="
+                        + event.getSource().getClass().getName() + ", property=" + event.getPropertyName()
+                        + ", event=" + event);
             }
         }
     }
@@ -363,7 +364,7 @@ class SongInternalUpdater
                     res = getDerivedRemoveUserPhrase(name);
                 }
             }
-            case Song.PROP_PHRASE_NAME ->
+            case Song.PROP_USER_PHRASE_NAME ->
             {
                 String oldName = (String) srcEvent.getOldValue();
                 String newName = (String) srcEvent.getNewValue();
@@ -800,7 +801,7 @@ class SongInternalUpdater
      */
     private void preCheckSptAdded(SptAddedEvent sae) throws UnsupportedEditException
     {
-        Set<Rhythm> uniqueRhythms = getMidiMix().getUniqueRhythms();
+        Set<Rhythm> uniqueRhythms = new HashSet<>(getMidiMix().getUniqueRhythms());
         sae.getSongParts().forEach(spt -> uniqueRhythms.add(getSourceRhythm(spt.getRhythm())));
         checkMidiMixForMidiChannelUnavailableError(uniqueRhythms);     // throws UnsupportedEditException
     }
@@ -1013,6 +1014,8 @@ class SongInternalUpdater
 
     /**
      * Get all the songParts whose parent section is parentSection.
+     * <p>
+     * The returned list is expected to be ordered by increasing start bar index.
      *
      * @param parentSection
      * @return
@@ -1077,6 +1080,9 @@ class SongInternalUpdater
 
     /**
      * Compute where to insert a new SongPart for newSection.
+     * <p>
+     * This method assumes that {@link #getSongParts(org.jjazz.chordleadsheet.api.item.CLI_Section)} returns SongParts
+     * ordered by increasing start bar index.
      *
      * @param newSection
      * @param prevSection The section before cliSection. Can be null.
@@ -1187,8 +1193,8 @@ class SongInternalUpdater
                 midiMix = (MidiMixImpl) MidiMixManager.getDefault().findMix(song);
             } catch (UnsupportedEditException ex)
             {
-                // Should never happen
-                Exceptions.printStackTrace(ex);
+                // Should never happen. If it does, this indicates a programming error.
+                throw new IllegalStateException("Unable to obtain MidiMix for song=" + song, ex);
             }
         }
         return midiMix;

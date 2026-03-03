@@ -5,13 +5,11 @@ JJazzLab is a musical application which generates MIDI backing tracks. It's a ja
 ## Folder Structure
 
 - `/app`: Contains application-level modules (UI, session management, etc.).
-- `/core`: Contains the core modules (data model, generic music generation algorithms, playback control, etc.).
+- `/model`: Contains the core data models Song, SongStructure, ChordLeadSheet, MidiMix, Phrase, Harmony.
+- `/core`: Contains the core services (generic music generation algorithms, playback control, etc.).
 - `/plugins`: Contains the plugins modules (rhythm generation engines, fluidsynth integration).
+- Maven executable path is `D:\Progs\netbeans\java\maven\bin\mvn.cmd`
 
-## Libraries
-
-- **Guava**
-- Xstream for serialization
 
 ## Best practices
 
@@ -22,27 +20,3 @@ JJazzLab is a musical application which generates MIDI backing tracks. It's a ja
 - **Javadoc**: required except for trivial cases such as a short method with a self-explanatory name. Keep it simple. Limit the use of html tags to <p> and <br>.
 - **Comment**: use comments in the code
 - **Preconditions**: use Objects.requireNonNull(var) and Guava Preconditions methods for other cases.
-
-### Naming Conventions
-
-- `UpperCamelCase` for class and interface names.
-- `lowerCamelCase` for method and variable names.
-- `UPPER_SNAKE_CASE` for constants.
-- `lowercase` for package names.
-- Use nouns for classes (`UserService`) and verbs for methods (`getUserById`).
-
-### Common Bug Patterns
-
-- Resource management: Always close resources (files, sockets, streams). Use try-with-resources where possible so resources are closed automatically.
-- Equality checks: Compare object equality with `.equals()` or `Objects.equals(...)` rather than `==` for non-primitives; this avoids reference-equality bugs. Use `==` for enum type comparison.
-- Redundant casts: Remove unnecessary casts; prefer correct generic typing and let the compiler infer types where possible.
-
-
-### Common Code Smells
-
-- Parameter count: Keep method parameter lists reasonably short. If a method needs many params, consider grouping into a value object or using the builder pattern.
-- Method size: Keep methods focused. Extract helper methods to improve readability and testability.
-- Cognitive complexity: Reduce nested conditionals and heavy branching by extracting methods, using polymorphism, or applying the Strategy pattern.
-- Duplicated literals: Extract repeated strings and numbers into named constants or enums to reduce errors and ease changes.
-- Dead code: Remove unused variables and assignments. They confuse readers and can hide bugs.
-- Magic numbers: Replace numeric literals with named constants that explain intent (e.g., MAX_RETRIES).

@@ -30,6 +30,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.chordleadsheet.ClsCyclicMutator;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
+import org.jjazz.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.phrase.api.NoteEvent;
+import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythmdatabase.api.DefaultRhythmDatabase;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.song.api.Song;
@@ -87,14 +90,14 @@ public class SongCopyDeadlockTest
      * <p>
      *
      * @param song
-     * @return 
+     * @return
      * @throws java.lang.InterruptedException
      */
     private boolean executeDeadlockScenario(Song song) throws InterruptedException
     {
-        final int TIME_OUT_SEC = 7;     // Must leave enough time to execute all DEEP_COPY_ITERATION (a DeepCopy is longer than a mutation)
+        final int TIME_OUT_SEC = 10;     // Must leave enough time to execute all iterations
         final int DEEP_COPY_ITERATIONS = 3000;
-        final int MUTATION_ITERATIONS = DEEP_COPY_ITERATIONS;
+        final int MUTATION_ITERATIONS = 2500;
         final int LOG_COUNT = 1000;
         final AtomicInteger deepCopyCount = new AtomicInteger(0);
         final AtomicInteger mutationCount = new AtomicInteger(0);
@@ -121,7 +124,7 @@ public class SongCopyDeadlockTest
                     {
                         LOGGER.log(Level.INFO, "songDeepCopyThread i={0}", i);
                     }
-                    if (Math.random() > 0.2d)
+                    if (i % 20 == 0)
                     {
                         Thread.yield();
                     }
@@ -141,13 +144,16 @@ public class SongCopyDeadlockTest
             LOGGER.info("songModifierThread started --");
             ClsCyclicMutator clsMutator = new ClsCyclicMutator(song.getChordLeadSheet());
             SgsCyclicMutator sgsMutator = new SgsCyclicMutator(song.getSongStructure());
-
             try
             {
                 for (long i = 0; i < MUTATION_ITERATIONS; i++)
                 {
                     clsMutator.mutate();
                     sgsMutator.mutate();
+                    if (i % 5 == 0)
+                    {
+                        mutateSong(song);
+                    }
 
                     mutationCount.incrementAndGet();
                     if (i % LOG_COUNT == 0)
@@ -155,7 +161,7 @@ public class SongCopyDeadlockTest
                         LOGGER.log(Level.INFO, "songMODIFIERThread i={0}", i);
                     }
                     // Small yield to encourage interleaving
-                    if (Math.random() > 0.2d)
+                    if (i % 30 == 0)
                     {
                         Thread.yield();
                     }
@@ -177,7 +183,7 @@ public class SongCopyDeadlockTest
         // Wait for both threads to complete within TIME_OUT_SEC
         // throws InterruptedException
         boolean b1 = songDeepCopyThread.join(Duration.ofSeconds(TIME_OUT_SEC));       // true if thread completed before TIME_OUT_SEC
-        boolean b2 = songModifierThread.join(Duration.ofMillis(100));
+        boolean b2 = songModifierThread.join(Duration.ofSeconds(2));
 
 
         LOGGER.log(Level.INFO, "executeDeadlockScenario() DEEP_COPY_ITERATIONS={0} deepCopyCount={1}", new Object[]
@@ -202,6 +208,29 @@ public class SongCopyDeadlockTest
 
         assertTrue(b1 && b2, "b1=" + b1 + " b2=" + b2);
         return b1 && b2;
+    }
+
+    private void mutateSong(Song song) throws UnsupportedEditException
+    {
+        String oldName = song.getName();
+        String newName = oldName.startsWith("BLAHH") ? oldName.substring(5) : oldName + "BLAHH";
+        song.setName(newName);
+
+        final String PHRASE_NAME = "PhraseName";
+        var userPhraseNames = song.getUserPhraseNames();
+        var nbPhrases = userPhraseNames.size();
+        switch (nbPhrases)
+        {
+            case 0 ->
+            {
+                Phrase p = new Phrase(0);
+                p.add(new NoteEvent(64, 1, 60, 5));
+                song.setUserPhrase(PHRASE_NAME, p);
+                p.add(new NoteEvent(60, 1, 60, 1));
+            }
+            case 1 -> song.removeUserPhrase(PHRASE_NAME);
+            default -> throw new IllegalStateException("nbPhrases=" + nbPhrases);
+        }
     }
 
 }

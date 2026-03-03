@@ -224,7 +224,7 @@ public class SongImpl implements Serializable, PropertyChangeListener, Song
                     {
                         mapUserPhrases = oldMap;
 
-                        var event = new SongPropertyChangeEvent(SongImpl.this, PROP_PHRASE_NAME, newName, oldName);
+                        var event = new SongPropertyChangeEvent(SongImpl.this, PROP_USER_PHRASE_NAME, newName, oldName);
                         event.setIsUndo();
                         return WriteOperationResults.of(event, null);
                     });
@@ -237,7 +237,7 @@ public class SongImpl implements Serializable, PropertyChangeListener, Song
                     {
                         mapUserPhrases = newMap;
 
-                        var event = new SongPropertyChangeEvent(SongImpl.this, PROP_PHRASE_NAME, oldName, newName);
+                        var event = new SongPropertyChangeEvent(SongImpl.this, PROP_USER_PHRASE_NAME, oldName, newName);
                         event.setIsRedo();
                         return WriteOperationResults.of(event, null);
                     });
@@ -246,7 +246,7 @@ public class SongImpl implements Serializable, PropertyChangeListener, Song
 
             fireUndoableEditHappened(edit);
 
-            var event = new SongPropertyChangeEvent(SongImpl.this, PROP_PHRASE_NAME, oldName, newName);
+            var event = new SongPropertyChangeEvent(SongImpl.this, PROP_USER_PHRASE_NAME, oldName, newName);
             return WriteOperationResults.of(event, null);
         };
 
@@ -352,27 +352,13 @@ public class SongImpl implements Serializable, PropertyChangeListener, Song
 
     }
 
-    /**
-     * Get all the names of the user phrases.
-     *
-     * @return Can't be null.
-     */
     @Override
     public Set<String> getUserPhraseNames()
     {
         return performReadAPImethod(() -> new HashSet<>(mapUserPhrases.keySet()));
     }
 
-    /**
-     * Get the user phrase associated to specified name.
-     * <p>
-     * Returned phrase might be longer than the song.
-     * <p>
-     *
-     * @param name
-     * @return Null if no phrase associated to name. The Phrase channel should be ignored.
-     * @see #setUserPhrase(java.lang.String, org.jjazz.phrase.api.Phrase)
-     */
+
     @Override
     public Phrase getUserPhrase(String name)
     {
@@ -391,22 +377,12 @@ public class SongImpl implements Serializable, PropertyChangeListener, Song
         return songStructure;
     }
 
-    /**
-     * Convenience method which delegates to getSongStructure().getSizeInBars().
-     *
-     * @return
-     */
     @Override
     public int getSize()
     {
         return songStructure.getSizeInBars();
     }
 
-    /**
-     * Get the preferred tempo for this song.
-     *
-     * @return
-     */
     @Override
     public int getTempo()
     {
@@ -414,13 +390,6 @@ public class SongImpl implements Serializable, PropertyChangeListener, Song
     }
 
 
-    /**
-     * Set the preferred tempo for this song.
-     * <p>
-     * Fires a PROP_TEMPO property change event.
-     *
-     * @param newTempo
-     */
     @Override
     public final void setTempo(final int newTempo)
     {
@@ -436,13 +405,6 @@ public class SongImpl implements Serializable, PropertyChangeListener, Song
         });
     }
 
-    /**
-     * Set the list of String tags associated to this song, e.g. "rock", "dance-oriented", etc...
-     * <p>
-     * Fires a PROP_TAGS property change events.
-     *
-     * @param newTags Must not be null but can be an empty list. Tags are space-trimmed and converted to lower case.
-     */
     @Override
     public void setTags(List<String> newTags)
     {
@@ -463,33 +425,18 @@ public class SongImpl implements Serializable, PropertyChangeListener, Song
         });
     }
 
-    /**
-     * @return List can be empty if not tags. Tags are lowercase.
-     */
     @Override
     public List<String> getTags()
     {
         return performReadAPImethod(() -> new ArrayList<>(tags));
     }
 
-    /**
-     * The song name.
-     *
-     * @return
-     */
     @Override
     public String getName()
     {
         return performReadAPImethod(() -> name);
     }
 
-    /**
-     * Set the song name.
-     * <p>
-     * Fire a PROP_NAME property change event.
-     *
-     * @param newName A non-empty string.
-     */
     @Override
     public final void setName(final String newName)
     {
@@ -506,13 +453,6 @@ public class SongImpl implements Serializable, PropertyChangeListener, Song
         });
     }
 
-    /**
-     * Mark song instance as closed, it should not be used anymore.
-     * <p>
-     * Fires a PROP_CLOSED property change event.
-     *
-     * @param releaseRhythmResources True if the method should also call releaseResources() for each used rhythm.
-     */
     @Override
     public void close(boolean releaseRhythmResources)
     {
@@ -538,34 +478,18 @@ public class SongImpl implements Serializable, PropertyChangeListener, Song
         }
     }
 
-    /**
-     *
-     * @return True if close() has been called.
-     */
     @Override
     public boolean isClosed()
     {
         return closed;
     }
 
-    /**
-     * The comments associated to this song.
-     *
-     * @return Can be an empty String.
-     */
     @Override
     public String getComments()
     {
         return performReadAPImethod(() -> comments);
     }
 
-    /**
-     * Set the comments.
-     * <p>
-     * Fires the PROP_COMMENTS change event.
-     *
-     * @param newComments
-     */
     @Override
     public void setComments(final String newComments)
     {
@@ -581,22 +505,12 @@ public class SongImpl implements Serializable, PropertyChangeListener, Song
         });
     }
 
-    /**
-     * The file where this song is stored.
-     *
-     * @return Can be null for example if it's a builtin song or created programmatically.
-     */
     @Override
     public File getFile()
     {
         return file;
     }
 
-    /**
-     * Set the file from which the song can be read/written.
-     *
-     * @param f Can be null.
-     */
     @Override
     public void setFile(File f)
     {
@@ -604,14 +518,6 @@ public class SongImpl implements Serializable, PropertyChangeListener, Song
     }
 
 
-    /**
-     * Same as SaveToFile but notify user if problem.
-     * <p>
-     *
-     * @param f
-     * @param isCopy
-     * @return False if problem
-     */
     @Override
     public boolean saveToFileNotify(File f, boolean isCopy)
     {
@@ -645,16 +551,6 @@ public class SongImpl implements Serializable, PropertyChangeListener, Song
         return b;
     }
 
-    /**
-     * Save this song to a file.
-     * <p>
-     * Song file/name are set according to songFile. Fires a PROP_MODIFIED_OR_SAVED_OR_RESET property change event with oldValue=true and newValue=false.
-     *
-     * @param songFile
-     * @param isCopy   If true do not update this instance, PROP_MODIFIED_OR_SAVED_OR_RESET change event is not fired.
-     * @throws java.io.IOException
-     * @see getFile()
-     */
     @Override
     public void saveToFile(File songFile, boolean isCopy) throws IOException
     {
@@ -697,22 +593,12 @@ public class SongImpl implements Serializable, PropertyChangeListener, Song
         }
     }
 
-    /**
-     * @return True if song has some unsaved changes.
-     */
     @Override
     public boolean isSaveNeeded()
     {
         return saveNeeded;
     }
 
-    /**
-     * Set or reset the "save needed" status, i.e if song has some unsaved changes or not.
-     * <p>
-     * Fires a PROP_MODIFIED_OR_SAVED_OR_RESET change event with the relevant values.
-     *
-     * @param b
-     */
     @Override
     public void setSaveNeeded(boolean b)
     {

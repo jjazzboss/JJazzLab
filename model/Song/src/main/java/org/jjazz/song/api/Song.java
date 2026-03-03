@@ -54,7 +54,7 @@ public interface Song
      * Default song comments.
      */
     public static final String DEFAULT_COMMENTS = ResUtil.getString(Song.class, "EDIT_ME");
-    String PROP_PHRASE_NAME = "PROP_PHRASE_NAME";
+    String PROP_USER_PHRASE_NAME = "PROP_USER_PHRASE_NAME";
     String PROP_NAME = "PROP_NAME";
     String PROP_COMMENTS = "PROP_COMMENTS";
     String PROP_TAGS = "PROP_TAGS";
@@ -209,7 +209,7 @@ public interface Song
     /**
      * Rename a user phrase.
      * <p>
-     * Fires a PROP_PHRASE_NAME change event.
+Fires a PROP_USER_PHRASE_NAME change event.
      *
      * @param name    Must be the name of an existing phrase
      * @param newName
@@ -219,17 +219,19 @@ public interface Song
     /**
      * Save this song to a file (XML format).
      * <p>
-     * Song's file and name is set to f and f's name. Fires a PROP_MODIFIED_OR_SAVED_OR_RESET property change event with oldValue=true and newValue=false.
+     * If isCopy is false: song's file and name are updated from songFile, and a PROP_MODIFIED_OR_SAVED_OR_RESET property change event is fired with
+     * oldValue=true and newValue=false.<br>
+     * If isCopy is true: only the file write is performed, song state and events are unchanged.
      *
      * @param songFile
-     * @param isCopy   Indicate that the save operation if for a copy, ie just perform the save operation and do nothing else (song name is not set, etc.)
+     * @param isCopy   If true, just write the file without updating this song instance (name, file, save-needed state, events).
      * @throws java.io.IOException
      * @see getFile()
      */
     void saveToFile(File songFile, boolean isCopy) throws IOException;
 
     /**
-     * Same as SaveToFile but notify user if a problem occured.
+     * Same as saveToFile but notify user if a problem occurred.
      * <p>
      *
      * @param f
@@ -241,7 +243,7 @@ public interface Song
     /**
      * Set the comments.
      * <p>
-     * Fires the PROP_COMMENTS change event.
+     * Fires the PROP_COMMENTS change event. This operation is not undoable.
      *
      * @param newComments
      */
@@ -257,7 +259,7 @@ public interface Song
     /**
      * Set the song name.
      * <p>
-     * Fires a PROP_NAME property change event.
+     * Fires a PROP_NAME property change event. This operation is not undoable.
      *
      * @param newName A non-empty string.
      */
@@ -275,7 +277,7 @@ public interface Song
     /**
      * Set the list of String tags associated to this song, e.g. "rock", "dance-oriented", etc...
      * <p>
-     * Fires a PROP_TAGS property change events.
+     * Fires a PROP_TAGS property change events. This operation is not undoable.
      *
      * @param newTags Must not be null but can be an empty list. Tags are space-trimmed and converted to lower case.
      */
@@ -284,7 +286,7 @@ public interface Song
     /**
      * Set the preferred tempo for this song.
      * <p>
-     * Fires a PROP_TEMPO property change event.
+     * Fires a PROP_TEMPO property change event. This operation is not undoable.
      *
      * @param newTempo
      */

@@ -47,6 +47,7 @@ import org.jjazz.rhythm.api.RhythmFeatures;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
+import org.jjazz.song.ExecutionManager;
 import org.jjazz.utilities.api.SmallMap;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -93,6 +94,7 @@ public class SongPartImpl implements SongPart, Serializable
      * Parent section.
      */
     private CLI_Section parentSection;
+    private final ExecutionManager executionManager;
     private final StringProperties clientProperties;
     /**
      * The value associated to each RhythmParameter.
@@ -101,7 +103,7 @@ public class SongPartImpl implements SongPart, Serializable
     /**
      * Our container. Must be transient to avoid circular dependency at deserialization.
      */
-    private transient SongStructure container;
+    private transient SongStructureImpl container;
     /**
      * The listeners for changes in this model.
      */
@@ -125,11 +127,15 @@ public class SongPartImpl implements SongPart, Serializable
         Objects.requireNonNull(parentSection);
         Preconditions.checkArgument(startBarIndex >= 0 && nbBars >= 1, "startBarIndex=%s nbBars=%s", startBarIndex, nbBars);
 
+        this.executionManager = new ExecutionManager();
         this.rhythm = r;
         this.startBarIndex = startBarIndex;
         this.nbBars = nbBars;
         this.parentSection = parentSection;
         this.clientProperties = new StringProperties(this);
+
+
+        resetRPvalues();
     }
 
     /**
@@ -143,7 +149,7 @@ public class SongPartImpl implements SongPart, Serializable
      * @param nbBars
      * @param parentSection Cannot be null
      */
-    public SongPartImpl(SongStructure container, Rhythm r, int startBarIndex, int nbBars, CLI_Section parentSection)
+    public SongPartImpl(SongStructureImpl container, Rhythm r, int startBarIndex, int nbBars, CLI_Section parentSection)
     {
         Objects.requireNonNull(container);
         Objects.requireNonNull(r);
@@ -151,6 +157,7 @@ public class SongPartImpl implements SongPart, Serializable
         Preconditions.checkArgument(startBarIndex >= 0 && nbBars >= 1, "startBarIndex=%s nbBars=%s", startBarIndex, nbBars);
 
         this.container = container;
+        this.executionManager = container.getExecutionManager();
         this.rhythm = r;
         this.startBarIndex = startBarIndex;
         this.nbBars = nbBars;
@@ -268,8 +275,8 @@ public class SongPartImpl implements SongPart, Serializable
      */
     public void setContainer(SongStructure sgs)
     {
-        Objects.requireNonNull(sgs);
-        container = sgs;
+        Preconditions.checkArgument(sgs instanceof SongStructureImpl, "sgs=%s", sgs);
+        container = (SongStructureImpl) sgs;
     }
 
     @Override
@@ -329,7 +336,7 @@ public class SongPartImpl implements SongPart, Serializable
      * Set the rhythm and the parent section.
      * <p>
      * Can only be called by SongStructure. SongPart name is unchanged.
-     * 
+     * <p>
      * Fires a PROP_RHYTHM_PARENT_SECTION change event.
      *
      * @param newRhythm        If null rhythm is unchanged.
@@ -338,20 +345,17 @@ public class SongPartImpl implements SongPart, Serializable
      */
     public PropertyChangeEvent setRhythm(Rhythm newRhythm, CLI_Section newParentSection)
     {
-        Preconditions.checkArgument(newParentSection == null
-                || newParentSection.getContainer() != null,
-                "newParentSection=%s", newParentSection);
-        Preconditions.checkArgument(newParentSection == null
-                || nbBars == newParentSection.getContainer().getBarRange(newParentSection).size(),
-                "this=%s newParentSection=%s", this, newParentSection);
-
-        // When undoing a rhythm change caused by a time signature change, setRhythm() will be called with the same parent section 
-        // whose time signature has not been undone yet. So the time signature precondition will fail, but it should not.
-//        Preconditions.checkArgument(
-//                newParentSection == null
-//                || newRhythm == null
-//                || newParentSection.getData().getTimeSignature() == newRhythm.getTimeSignature(),
-//                "this=%s newRhythm=%s newParentSection=%s", this, newRhythm, newParentSection);
+        //
+        // NO PRECONDITIONS because this module-private method can be called during a SongStructure undo operation in a TRANSIENT state.
+        //
+        // Example 1: 
+        // newParentSection's container might be null when undoing the sequence "oldSection replaced by newSection -> update SongPart parentSection". 
+        // Undo process starts by calling setRhythm(..., oldParentSection) but oldParentSection was removed so its container is null (it will be set in next cls undo step)
+        //
+        // Example 2:
+        // newParentSection time signature might be different from newRhythm's one when undoing a rhythm change caused by a time signature change.
+        // Undo process starts by calling setRhythm() but parent section time signature has not been undone yet (it will be set in next cls undo step).
+        // 
 
         if ((newRhythm == null || rhythm == newRhythm) && (newParentSection == null || newParentSection == parentSection))
         {
@@ -605,7 +609,7 @@ public class SongPartImpl implements SongPart, Serializable
     // -------------------------------------------------------------------------------------------
     private <T> T performReadAPImethod(Supplier<T> operation)
     {
-        return ((SongStructureImpl) container).getExecutionManager().executeReadOperation(operation);
+        return executionManager.executeReadOperation(operation);
     }
 
     /**
@@ -875,6 +879,7 @@ public class SongPartImpl implements SongPart, Serializable
                     }
 
                     // Assign the value
+
                     newSpt.setRPValue(newRp, newValue);
 
                 } else if (rhythmIsUnavailable == 1)
