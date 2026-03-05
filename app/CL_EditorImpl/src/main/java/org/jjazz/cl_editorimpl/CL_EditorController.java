@@ -460,9 +460,11 @@ public class CL_EditorController implements CL_EditorMouseListener
             }
             int minBbIndex = Math.min(dragStartBbIndex, pos.getBar());
             int maxBbIndex = Math.max(dragStartBbIndex, pos.getBar());
-            selection.getSelectedBars().stream()
+            // Unselect out-of-range bars
+            selection.getSelectedBars().stream()        
                     .filter(sb -> sb.getBarBoxIndex() < minBbIndex || sb.getBarBoxIndex() > maxBbIndex)
                     .forEach(sb -> editor.selectBars(sb.getBarBoxIndex(), sb.getBarBoxIndex(), false));
+            // Select bar-range
             editor.selectBars(minBbIndex, maxBbIndex, true);
         }
     }
