@@ -137,6 +137,7 @@ public class BassGenerator implements MusicGenerator
         var bassPhrases = getOneBassPhrasePerBassStyle(context, tags);
         HashMap<RhythmVoice, Phrase> res = new HashMap<>();
         int channel = getChannelFromMidiMix(context.getMidiMix(), rvBass);
+        assert channel != -1 : "rvBass=" + rvBass + " context.getMidiMix()=" + context.getMidiMix();
         Phrase pRes = new Phrase(channel, false);
         for (var p : bassPhrases)
         {
@@ -298,7 +299,6 @@ public class BassGenerator implements MusicGenerator
 
 
         // Prepare a working context because we'll use a modified song copy 
-        SongFactory sf = SongFactory.getDefault();
         Song songWork = sgContextOrig.getSong().getDeepCopy(true);
         SongContext contextWork = SongContextFactory.getDefault().of(songWork, sgContextOrig.getMidiMix(), sgContextOrig.getBarRange());
         preprocessBassStyleAutoValue(contextWork);     // Update SongStructure to replace auto BassStyle values by standard BassStyle values

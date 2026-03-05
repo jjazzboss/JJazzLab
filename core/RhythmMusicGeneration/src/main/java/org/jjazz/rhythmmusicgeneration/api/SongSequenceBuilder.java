@@ -141,7 +141,7 @@ public class SongSequenceBuilder
     {
         Objects.requireNonNull(sgContext);
         this.songContextOriginal = sgContext;
-        this.songContextWork = songContextOriginal.getDeepCopy();
+        this.songContextWork = songContextOriginal.getDeepCopy(false);
     }
 
 

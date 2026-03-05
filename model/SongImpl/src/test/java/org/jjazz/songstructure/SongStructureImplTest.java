@@ -889,6 +889,27 @@ public class SongStructureImplTest
     }
 
     // =========================================================================================================
+    // Copy-paste tests
+    // =========================================================================================================
+
+    @Test
+    public void testSimulateCopyPasteSongPartAtSameBar() throws UnsupportedEditException
+    {
+        System.out.println("=== testSimulateCopyPasteSongPartAtSameBar()");
+        var saveBarSize = sgs.getSizeInBars();
+        var sptCopy = spt0.getCopy(null, spt0.getStartBarIndex(), spt0.getNbBars(), null);
+        sgs.addSongParts(List.of(sptCopy));
+
+        assertSame(spt0.getRhythm(), sptCopy.getRhythm(), "Copy must use the same rhythm");
+        assertSame(spt0.getParentSection(), sptCopy.getParentSection(), "Copy must use the same name");
+
+        assertEquals(saveBarSize + spt0.getNbBars(), sgs.getSizeInBars(), "Total size must grow by the copy's nbBars");
+        assertSame(sptCopy, sgs.getSongPart(0), "Copy must be at bar 0");
+        assertEquals(spt0.getNbBars(), spt0.getStartBarIndex(), "Original spt0 must have shifted to bar 4");
+        assertEquals(spt0.getNbBars() * 2 + spt1.getNbBars(), spt2.getStartBarIndex(), "spt2 must have shifted by one copy's worth of bars");
+    }
+
+    // =========================================================================================================
     // Helper methods
     // =========================================================================================================
 

@@ -1261,7 +1261,6 @@ public class SongStructureImpl implements SongStructure, Serializable
         LOGGER.log(Level.FINE, "addSongPartInternal() -- spt={0}", spt);
         Objects.requireNonNull(spt);
         Preconditions.checkArgument(spt instanceof SongPartImpl, "addSongPartImpl() spt=%s class=%s", spt, spt.getClass());
-        Preconditions.checkArgument(!songParts.contains(spt), "addSongPartImpl() spt=%s", spt);
         Preconditions.checkState(executionManager.isWriteLockedByCurrentThread(), "addSongPartImpl() write lock required");
 
         int barIndex = spt.getStartBarIndex();

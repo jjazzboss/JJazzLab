@@ -24,6 +24,7 @@ package org.jjazz.song;
 
 import java.util.Objects;
 import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongContext;
 import org.jjazz.utilities.api.IntRange;
@@ -115,13 +116,13 @@ public class SongContextImpl implements SongContext
      * @return
      */
     @Override
-    public SongContext getDeepCopy()
+    public SongContext getDeepCopy(boolean disableInternalUpdates)
     {
         SongImpl songImpl = (SongImpl) song;
         return songImpl.performReadAPImethod(() -> 
         {
-            Song songCopy = song.getDeepCopy(false);
-            MidiMix mixCopy = midiMix.getDeepCopy(songCopy);
+            Song songCopy = song.getDeepCopy(disableInternalUpdates);
+            MidiMix mixCopy = MidiMixManager.getDefault().getDeepCopy(midiMix, disableInternalUpdates ? null : songCopy);
             return new SongContextImpl(songCopy, mixCopy, barRange);
         });
     }

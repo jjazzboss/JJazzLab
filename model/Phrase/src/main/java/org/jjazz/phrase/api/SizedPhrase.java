@@ -22,15 +22,14 @@
  */
 package org.jjazz.phrase.api;
 
-import com.google.common.base.Preconditions;
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
 import java.text.ParseException;
 import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.undo.UndoableEdit;
 import org.jjazz.harmony.api.TimeSignature;
+import org.jjazz.undomanager.api.SimpleEdit;
 import org.jjazz.utilities.api.FloatRange;
 
 /**
@@ -127,8 +126,27 @@ Overrides Phrase.getNotesBeatRange() because the beat range is fixed for a Sized
     @Override
     public void shiftAllEvents(float shiftInBeats, boolean handleNegativePositions)
     {
-        beatRange = beatRange.getTransformed(shiftInBeats);
+        var oldBeatRange = beatRange;
+        var newBeatRange = beatRange.getTransformed(shiftInBeats);
+        beatRange = newBeatRange;
         super.shiftAllEvents(shiftInBeats, handleNegativePositions);
+
+        // beatRange change must be part of undo/redo, since the parent only undoes note positions
+        UndoableEdit edit = new SimpleEdit("ShiftBeatRange")
+        {
+            @Override
+            public void undoBody()
+            {
+                beatRange = oldBeatRange;
+            }
+
+            @Override
+            public void redoBody()
+            {
+                beatRange = newBeatRange;
+            }
+        };
+        fireUndoableEditHappened(edit);
     }
 
     /**
@@ -165,7 +183,8 @@ Overrides Phrase.getNotesBeatRange() because the beat range is fixed for a Sized
     static public SizedPhrase loadAsString(String s) throws ParseException
     {
         SizedPhrase sp = null;
-        if (s.charAt(0) == '[' && s.charAt(s.length() - 1) == ']')
+        s = s.trim();
+        if (s.length() >= 9 && s.charAt(0) == '[' && s.charAt(s.length() - 1) == ']')
         {
             String[] strs = s.substring(1, s.length() - 1).split("\\|");    // "[8|12.0|16.0|4/4|NoteEventStr0|NoteEventStr1]"
             if (strs.length >= 4)

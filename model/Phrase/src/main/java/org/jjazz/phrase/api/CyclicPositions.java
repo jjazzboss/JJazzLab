@@ -69,10 +69,7 @@ public class CyclicPositions
             positions[i] = morePosStartSize[(i - 1) * 3];
             cycleOffsets[i] = morePosStartSize[(i - 1) * 3 + 1];
             cycleSizes[i] = morePosStartSize[(i - 1) * 3 + 2];
-            if (positions[i] < 0 || positions[i] >= cycleSizes[i])
-            {
-                throw new IllegalArgumentException("morePosStartSize=" + Arrays.asList(morePosStartSize));
-            }
+            checkArgument(positions[i] >= 0 && positions[i] < cycleSizes[i], "morePosStartSize=%s", Arrays.asList(morePosStartSize));
         }
     }
 
@@ -100,7 +97,8 @@ public class CyclicPositions
             }
             float inCyclePos = (pos - cycleOffsets[i]) - cycleSizes[i] * cycleIndex;
 
-            if (inCyclePos >= positions[i] - nearWindow && (nearWindow == 0 || inCyclePos < positions[i] + nearWindow))
+            if (nearWindow == 0 ? inCyclePos == positions[i]
+                                : inCyclePos >= positions[i] - nearWindow && inCyclePos < positions[i] + nearWindow)
             {
                 res = true;
                 break;

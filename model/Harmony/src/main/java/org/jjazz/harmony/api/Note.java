@@ -22,6 +22,7 @@
  */
 package org.jjazz.harmony.api;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.text.ParseException;
 import java.util.Objects;
@@ -134,10 +135,10 @@ public class Note implements Comparable<Note>, Cloneable
      */
     public Note(int p, SymbolicDuration sd, int v, Accidental alt)
     {
-        if (!checkPitch(p) || sd == null || alt == null || !checkVelocity(v))
-        {
-            throw new IllegalArgumentException("p=" + p + " sd=" + sd + " alt=" + alt + " v=" + v);
-        }
+        Objects.requireNonNull(sd, "sd");
+        Objects.requireNonNull(alt, "alt");
+        checkArgument(checkPitch(p), "p=%s", p);
+        checkArgument(checkVelocity(v), "v=%s", v);
         pitch = p;
         beatDuration = sd.getDuration();
         symbolicDuration = sd;
@@ -155,10 +156,10 @@ public class Note implements Comparable<Note>, Cloneable
      */
     public Note(int p, float bd, int v, Accidental alt)
     {
-        if (!checkPitch(p) || bd <= 0 || alt == null || !checkVelocity(v))
-        {
-            throw new IllegalArgumentException("p=" + p + " bd=" + bd + " alt=" + alt + " v=" + v);
-        }
+        Objects.requireNonNull(alt, "alt");
+        checkArgument(checkPitch(p), "p=%s", p);
+        checkArgument(bd > 0, "bd=%s", bd);
+        checkArgument(checkVelocity(v), "v=%s", v);
         pitch = p;
         beatDuration = bd;
         symbolicDuration = SymbolicDuration.getSymbolicDuration(bd);
@@ -202,10 +203,7 @@ public class Note implements Comparable<Note>, Cloneable
      */
     public Note(String s) throws ParseException
     {
-        if (s == null)
-        {
-            throw new NullPointerException("s");
-        }
+        Objects.requireNonNull(s, "s");
         String str = s.trim();
         Accidental alt = Accidental.FLAT;         // By default
 
@@ -404,10 +402,7 @@ public class Note implements Comparable<Note>, Cloneable
      */
     public int getRelativePitchDelta(int relPitch)
     {
-        if (relPitch > 11 || relPitch < 0)
-        {
-            throw new IllegalArgumentException("relPitch=" + relPitch);
-        }
+        checkArgument(relPitch >= 0 && relPitch <= 11, "relPitch=%s", relPitch);
         int pitchDelta = relPitch - getRelativePitch();
         if (pitchDelta > 6)
         {
@@ -440,16 +435,13 @@ public class Note implements Comparable<Note>, Cloneable
      */
     public Note getCentered(int lowPitch, int highPitch)
     {
-        if (lowPitch > highPitch - 12)
-        {
-            throw new IllegalArgumentException("lowPitch=" + lowPitch + " highPïtch=" + highPitch);
-        }
+        checkArgument(lowPitch <= highPitch - 12, "lowPitch=%s highPitch=%s", lowPitch, highPitch);
         int newPitch = pitch;
-        while (pitch < lowPitch)
+        while (newPitch < lowPitch)
         {
             newPitch += 12;
         }
-        while (pitch > highPitch)
+        while (newPitch > highPitch)
         {
             newPitch -= 12;
         }
@@ -468,10 +460,7 @@ public class Note implements Comparable<Note>, Cloneable
      */
     public Note getTransposed(int pitchShift, int pitchLimit)
     {
-        if (pitchLimit < 13 || pitchLimit > 119)
-        {
-            throw new IllegalArgumentException("t=" + pitchShift + " pitchLimit=" + pitchLimit);
-        }
+        checkArgument(pitchLimit >= 13 && pitchLimit <= 119, "pitchShift=%s pitchLimit=%s", pitchShift, pitchLimit);
         int newPitch = this.pitch + pitchShift;
         if (pitchShift > 0)
         {
@@ -523,10 +512,7 @@ public class Note implements Comparable<Note>, Cloneable
      */
     public int getLowerPitch(int relPitch, boolean acceptEquals)
     {
-        if (relPitch < 0 || relPitch > 11)
-        {
-            throw new IllegalArgumentException("this=" + this + " relPitch=" + relPitch);
-        }
+        checkArgument(relPitch >= 0 && relPitch <= 11, "relPitch=%s", relPitch);
         int p = getOctave() * 12 + relPitch;
         if ((relPitch == getRelativePitch() && !acceptEquals) || relPitch > getRelativePitch())
         {
@@ -553,10 +539,7 @@ public class Note implements Comparable<Note>, Cloneable
      */
     public int getUpperPitch(int relPitch, boolean inclusive)
     {
-        if (relPitch < 0 || relPitch > 11)
-        {
-            throw new IllegalArgumentException("this=" + this + " relPitch=" + relPitch);
-        }
+        checkArgument(relPitch >= 0 && relPitch <= 11, "relPitch=%s", relPitch);
         int p = getOctave() * 12 + relPitch;
         if ((relPitch == getRelativePitch() && !inclusive) || relPitch < getRelativePitch())
         {
@@ -675,7 +658,7 @@ public class Note implements Comparable<Note>, Cloneable
             res = Float.compare(beatDuration, n.beatDuration);
             if (res == 0)
             {
-                res = Float.compare(velocity, n.velocity);
+                res = Integer.compare(velocity, n.velocity);
             }
         }
         return res;
@@ -985,7 +968,7 @@ public class Note implements Comparable<Note>, Cloneable
             relPitch = absPitch % 12;
         } else
         {
-            relPitch = 12 - (-absPitch % 12);
+            relPitch = (12 - (-absPitch % 12)) % 12;
         }
         return relPitch;
     }
@@ -1013,10 +996,7 @@ public class Note implements Comparable<Note>, Cloneable
      */
     static public int limitPitch(int pitch, int lowPitch, int highPitch)
     {
-        if (lowPitch > highPitch - 11)
-        {
-            throw new IllegalArgumentException("lowPitch=" + lowPitch + " highPitch=" + highPitch);
-        }
+        checkArgument(lowPitch <= highPitch - 11, "lowPitch=%s highPitch=%s", lowPitch, highPitch);
         int newPitch = pitch;
         while (newPitch < lowPitch)
         {
@@ -1040,10 +1020,7 @@ public class Note implements Comparable<Note>, Cloneable
      */
     static public Note[] getChromaticNotesArray(int pitchFrom, int pitchTo)
     {
-        if ((pitchFrom > pitchTo) || (pitchFrom < 0) || (pitchTo < 0))
-        {
-            throw new IllegalArgumentException("pitchFrom=" + pitchFrom + " pitchTo=" + pitchTo);
-        }
+        checkArgument(pitchFrom >= 0 && pitchTo >= 0 && pitchFrom <= pitchTo, "pitchFrom=%s pitchTo=%s", pitchFrom, pitchTo);
 
         Note[] notes = new Note[pitchTo - pitchFrom + 1];
 

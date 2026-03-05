@@ -109,7 +109,7 @@ public class ExportToAudio extends AbstractAction
         }
 
 
-        MidiMix midiMix = MidiMixManager.getDefault().findExistingMix(song);
+        MidiMix midiMix = MidiMixManager.getDefault().findRegisteredMix(song);
         int nbNonMutedChannels = (int) midiMix.getInstrumentMixes().stream().filter(im -> !im.isMute()).count();
         if (nbNonMutedChannels == 0)
         {
@@ -121,14 +121,13 @@ public class ExportToAudio extends AbstractAction
         }
 
         // Show file chooser
-        File audioFile = ExportToMidiFile.getExportFile(song, ".mp3", saveExportDir);        
-        JFileChooser chooser = getFileChooser(audioFile);
+        JFileChooser chooser = getFileChooser(ExportToMidiFile.getExportFile(song, ".mp3", saveExportDir));
         int res = chooser.showSaveDialog(WindowManager.getDefault().getMainWindow());
         if (res != JFileChooser.APPROVE_OPTION)
         {
             return;
         }
-        audioFile = chooser.getSelectedFile();
+        File audioFile = chooser.getSelectedFile();
         String audioFileName = Utilities.replaceExtension(audioFile.getName(), "");
         String audioFileExt = Utilities.getExtension(audioFile.getName());
         File audioFileDir = audioFile.getParentFile();
@@ -202,7 +201,7 @@ public class ExportToAudio extends AbstractAction
             {
                 if (!midiMix.getInstrumentMix(channel).isMute())
                 {
-                    var newMidiMix = midiMix.getDeepCopy(null);
+                    var newMidiMix = MidiMixManager.getDefault().getDeepCopy(midiMix, null);
                     for (int newChannel : newMidiMix.getUsedChannels())
                     {
                         newMidiMix.getInstrumentMix(newChannel).setMute(newChannel != channel);
@@ -336,7 +335,7 @@ public class ExportToAudio extends AbstractAction
             FILE_CHOOSER.setFileSelectionMode(JFileChooser.FILES_ONLY);
             FILE_CHOOSER.setDialogTitle(ResUtil.getString(getClass(), "CTL_ExportToAudioDialogTitle"));
 
-            
+
             // Adjust the selected file extension when user selects a different file filter
             FILE_CHOOSER.addPropertyChangeListener(JFileChooser.FILE_FILTER_CHANGED_PROPERTY, (var evt) -> 
             {

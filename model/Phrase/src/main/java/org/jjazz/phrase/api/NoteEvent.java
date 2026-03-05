@@ -24,7 +24,6 @@ package org.jjazz.phrase.api;
 
 import com.google.common.base.Preconditions;
 import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
@@ -71,7 +70,6 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
 
     private float position;
     protected ObservableProperties<Object> clientProperties;
-    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(NoteEvent.class.getSimpleName());
 
     /**
@@ -336,7 +334,7 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
     public boolean equalsAsNoteNearPosition(NoteEvent ne, float nearWindow)
     {
         Preconditions.checkNotNull(ne);
-        Preconditions.checkNotNull(nearWindow>=0, "nearWindow=%s", nearWindow);
+        Preconditions.checkArgument(nearWindow >= 0, "nearWindow=%s", nearWindow);
         
         if (ne.getPitch() != getPitch())
         {
@@ -365,7 +363,7 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
      * @return 0 only if this == n.
      */
     @Override
-    public int compareTo​(Note n)
+    public int compareTo(Note n)
     {
         if (n == this)
         {
@@ -397,7 +395,7 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
      * @param n
      * @return
      */
-    public int compareToAsPosition​(NoteEvent n)
+    public int compareToAsPosition(NoteEvent n)
     {
         int res = Float.compare(position, n.position);
         return res;
@@ -478,12 +476,12 @@ public class NoteEvent extends Note implements Cloneable, Comparable<Note>
 
     public void addClientPropertyChangeListener(PropertyChangeListener l)
     {
-        pcs.addPropertyChangeListener(l);
+        clientProperties.addPropertyChangeListener(l);
     }
 
     public void removeClientPropertyChangeListener(PropertyChangeListener l)
     {
-        pcs.removePropertyChangeListener(l);
+        clientProperties.removePropertyChangeListener(l);
     }
 
     /**

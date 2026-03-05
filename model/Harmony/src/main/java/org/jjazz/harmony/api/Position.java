@@ -123,7 +123,7 @@ public final class Position implements Comparable<Position>, Serializable
      */
     public Position setBar(int bar)
     {
-        Preconditions.checkArgument(bar >= 0, "bar=%", bar);
+        Preconditions.checkArgument(bar >= 0, "bar=%s", bar);
         int old = this.bar;
         this.bar = bar;
         pcs.firePropertyChange(PROP_BAR, old, this.bar);
@@ -492,7 +492,7 @@ public final class Position implements Comparable<Position>, Serializable
     {
         String s = String.format("%.2f", (beat + 1));
         int index = s.length() - 1;
-        while (s.charAt(index) == '0' || s.charAt(index) == ',' || s.charAt(index) == '.')
+        while (index >= 0 && (s.charAt(index) == '0' || s.charAt(index) == ',' || s.charAt(index) == '.'))
         {
             // Remove trailing 0
             index--;

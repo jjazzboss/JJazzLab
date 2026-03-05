@@ -135,8 +135,7 @@ public class JJSwingRhythmProvider implements RhythmProvider
     @Override
     public AdaptedRhythm getAdaptedRhythm(Rhythm r, TimeSignature ts)
     {
-        // TO BE IMPLEMENTED !
-        LOGGER.warning("getAdaptedRhythm() Not yet implemented");
+        // TODO
         return null;
     }
 

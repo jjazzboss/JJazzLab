@@ -355,17 +355,17 @@ public class ChordLeadSheetImplTest
     public void testChangeItem()
     {
         System.out.println("=== changeItem ChordSymbol");
-        var cli1 = cls1.getItems(1, 1, CLI_ChordSymbol.class).get(0);
-        var newData1 = cliChordSymbolF_b3_3.getData();
-        assertTrue(cls1.changeItem(cli1, newData1));
-        assertSame(newData1, cli1.getData());
+        var cli1 = cls1.getItems(1, 1, CLI_ChordSymbol.class).get(0);   // F#7
+        var data1 = cliChordSymbolF_b3_3.getData();
+        assertTrue(cls1.changeItem(cli1, data1));
+        assertSame(data1, cli1.getData());
 
         // Can not change an item if an equal one (with new data) is already there
-        var newData2 = cliChordSymbolG_b6_0.getData();
-        var cli2 = cli1.getCopy(newData2, null);
+        var data2 = cliChordSymbolG_b6_0.getData();
+        var cli2 = cli1.getCopy(data2, null);
         assertTrue(cls1.addItem(cli2));
-        assertFalse(cls1.changeItem(cli2, newData1));
-        assertSame(newData2, cli2.getData());
+        assertFalse(cls1.changeItem(cli2, data1));
+        assertSame(data2, cli2.getData());
     }
 
     @Test
@@ -836,6 +836,7 @@ public class ChordLeadSheetImplTest
     {
         System.out.println("=== testInitSectionContainer()");
         assertSame(cls1, cls1.getSection(0).getContainer());
+
     }
 
     @Test
@@ -867,6 +868,15 @@ public class ChordLeadSheetImplTest
         CLI_Section lastSection = cls1.getSection(size - 1);
         // Should return the last section if index >= size
         assertSame(lastSection, cls1.getSection(size + 10));
+    }
+
+    @Test
+    public void testGetSectionBar()
+    {
+        System.out.println("=== testGetSectionBar");
+        assertEquals(0, cls1.getSection(0).getPosition().getBar());
+        assertEquals(0, cls1.getSection(1).getPosition().getBar());
+        assertEquals(2, cls1.getSection(2).getPosition().getBar());
     }
 
     @Test
@@ -923,6 +933,139 @@ public class ChordLeadSheetImplTest
         }
     }
 
+
+    // =========================================================================
+    // get*() coverage tests
+    // =========================================================================
+    /**
+     * cls1 has 8 bars => getBarRange() must return [0, 7].
+     */
+    @Test
+    public void testGetBarRange()
+    {
+        System.out.println("=== testGetBarRange()");
+        var range = cls1.getBarRange();
+        assertEquals(0, range.from);
+        assertEquals(7, range.to);
+        assertEquals(8, range.size());
+    }
+
+    /**
+     * cls1 chord symbols in order: Dm7@0:0, F#7@1:0, Bbmaj7#5@1:3, D7b9b5@2:0, FM7#11@4:1, Eb7b9#5@5:0.75, Db@7:3.
+     * <p>
+     * Inclusive from bar 4, beat 0 => FM7#11, Eb7b9#5, Db (3 items). Exclusive from bar 4, beat 1 => Eb7b9#5, Db (2 items).
+     */
+    @Test
+    public void testGetItemsAfter()
+    {
+        System.out.println("=== testGetItemsAfter()");
+        var res = cls1.getItemsAfter(new Position(4), true, CLI_ChordSymbol.class, c -> true);
+        assertEquals(3, res.size());
+        assertEquals(new Position(4, 1), res.get(0).getPosition());
+
+        res = cls1.getItemsAfter(new Position(4, 1), false, CLI_ChordSymbol.class, c -> true);
+        assertEquals(2, res.size());
+        assertEquals(new Position(5, 0.75f), res.get(0).getPosition());
+    }
+
+    /**
+     * Inclusive up to bar 4, beat 1 => Dm7, F#7, Bbmaj7#5, D7b9b5, FM7#11 (5 items). Exclusive up to bar 4, beat 1 => Dm7, F#7, Bbmaj7#5, D7b9b5 (4 items).
+     */
+    @Test
+    public void testGetItemsBefore()
+    {
+        System.out.println("=== testGetItemsBefore()");
+        var res = cls1.getItemsBefore(new Position(4, 1), true, CLI_ChordSymbol.class, c -> true);
+        assertEquals(5, res.size());
+        assertEquals(new Position(4, 1), res.get(4).getPosition());
+
+        res = cls1.getItemsBefore(new Position(4, 1), false, CLI_ChordSymbol.class, c -> true);
+        assertEquals(4, res.size());
+        assertEquals(new Position(2, 0), res.get(3).getPosition());
+    }
+
+    /**
+     * Bar 1 contains F#7@1:0 (first) and Bbmaj7#5@1:3 (last). Bar 3 is empty.
+     */
+    @Test
+    public void testGetBarFirstItem()
+    {
+        System.out.println("=== testGetBarFirstItem()");
+        var item = cls1.getBarFirstItem(1, CLI_ChordSymbol.class, c -> true);
+        assertNotNull(item);
+        assertEquals(new Position(1, 0), item.getPosition());
+
+        assertNull(cls1.getBarFirstItem(3, CLI_ChordSymbol.class, c -> true));
+    }
+
+    /**
+     * Bar 1 contains F#7@1:0 (first) and Bbmaj7#5@1:3 (last). Bar 3 is empty.
+     */
+    @Test
+    public void testGetBarLastItem()
+    {
+        System.out.println("=== testGetBarLastItem()");
+        var item = cls1.getBarLastItem(1, CLI_ChordSymbol.class, c -> true);
+        assertNotNull(item);
+        assertEquals(new Position(1, 3), item.getPosition());
+
+        assertNull(cls1.getBarLastItem(3, CLI_ChordSymbol.class, c -> true));
+    }
+
+    /**
+     * getNextItem on Section2 returns Section3. getNextItem on the last section returns null.
+     */
+    @Test
+    public void testGetNextItem()
+    {
+        System.out.println("=== testGetNextItem()");
+        var section2 = cls1.getSection("Section2");
+        var section3 = cls1.getSection("Section3");
+
+        assertSame(section3, cls1.getNextItem(section2));
+        assertNull(cls1.getNextItem(section3));
+    }
+
+    /**
+     * getPreviousItem on Section2 returns Section1. getPreviousItem on the first section returns null.
+     */
+    @Test
+    public void testGetPreviousItem()
+    {
+        System.out.println("=== testGetPreviousItem()");
+        var section1 = cls1.getSection("Section1");
+        var section2 = cls1.getSection("Section2");
+
+        assertSame(section1, cls1.getPreviousItem(section2));
+        assertNull(cls1.getPreviousItem(section1));
+    }
+
+    /**
+     * Section1 spans bars 0-1 with Dm7@0:0, F#7@1:0, Bbmaj7#5@1:3. Filtering on beat == 0 must return only Dm7 and F#7.
+     */
+    @Test
+    public void testGetItemsBySectionWithTester()
+    {
+        System.out.println("=== testGetItemsBySectionWithTester()");
+        var section1 = cls1.getSection("Section1");
+        var res = cls1.getItems(section1, CLI_ChordSymbol.class, c -> c.getPosition().getBeat() == 0);
+        assertEquals(2, res.size());
+        assertEquals(new Position(0, 0), res.get(0).getPosition());
+        assertEquals(new Position(1, 0), res.get(1).getPosition());
+    }
+
+    /**
+     * getItems(barFrom, barTo, Class) without tester: bars 2 to 4 contain Section2@2, D7b9b5@2:0, FM7#11@4:1 (3 items).
+     */
+    @Test
+    public void testGetItemsByBarRangeNoTester()
+    {
+        System.out.println("=== testGetItemsByBarRangeNoTester()");
+        var res = cls1.getItems(2, 4, ChordLeadSheetItem.class);
+        assertEquals(3, res.size());
+        assertSame(cls1.getSection("Section2"), res.get(0));
+        assertEquals(new Position(4, 1), res.get(2).getPosition());
+    }
 
     private void undoAll()
     {

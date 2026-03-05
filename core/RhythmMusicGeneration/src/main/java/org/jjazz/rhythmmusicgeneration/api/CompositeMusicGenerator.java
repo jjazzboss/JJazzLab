@@ -25,7 +25,6 @@
 package org.jjazz.rhythmmusicgeneration.api;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.Sets;
@@ -44,6 +43,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.Phrases;
 import org.jjazz.rhythm.api.MusicGenerationException;
@@ -178,6 +178,7 @@ public class CompositeMusicGenerator implements MusicGenerator
         }
     }
 
+    
 
     private final RvToDelegateUnitMapper baseRvToDelegateUnitMapper;
     private final Rhythm baseRhythm;
@@ -681,7 +682,8 @@ public class CompositeMusicGenerator implements MusicGenerator
         } else
         {
             // Need to change the SongStructure, create a getCopy context
-            res = SongContextFactory.getDefault().of(context, br).getDeepCopy();   
+            var context2 = SongContextFactory.getDefault().of(context, br);
+            res =  context2.getDeepCopy(false);     // Important to get the MidiMix updated by the rhythm change below
 
 
             SongStructure sgsCopy = res.getSong().getSongStructure();

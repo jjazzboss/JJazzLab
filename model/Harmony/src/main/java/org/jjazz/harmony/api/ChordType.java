@@ -26,6 +26,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -135,12 +136,10 @@ final public class ChordType
      */
     public ChordType(String b, String e, Family f, int i9, int i3, int i11, int i5, int i13, int i7)
     {
-        if ((b == null) || (e == null) || !checkDegree(i9) || !checkDegree(i3) || !checkDegree(i11)
-            || !checkDegree(i5) || !checkDegree(i13) || !checkDegree(i7))
-        {
-            throw new IllegalArgumentException(
-                "b=" + b + " e=" + e + " f=" + f + " i9=" + i9 + " i3=" + i3 + " i11=" + i11 + " i5=" + i5 + " i13=" + i13 + " i7=" + i7);
-        }
+        Objects.requireNonNull(b, "b");
+        Objects.requireNonNull(e, "e");
+        checkArgument(checkDegree(i9) && checkDegree(i3) && checkDegree(i11) && checkDegree(i5) && checkDegree(i13) && checkDegree(i7),
+                "b=%s e=%s f=%s i9=%s i3=%s i11=%s i5=%s i13=%s i7=%s", b, e, f, i9, i3, i11, i5, i13, i7);
 
         base = b;
         extension = e;
@@ -253,10 +252,7 @@ final public class ChordType
      */
     public DegreeIndex getDegreeIndex(Degree d)
     {
-        if (d == null)
-        {
-            throw new NullPointerException("d");
-        }
+        Objects.requireNonNull(d, "d");
         int index = degrees.indexOf(d);
 
         if (index != -1 && isSpecial2Chord())
@@ -394,10 +390,7 @@ final public class ChordType
      */
     public Degree getDegree(int relPitch)
     {
-        if (relPitch < 0 || relPitch > 11)
-        {
-            throw new IllegalArgumentException("relPitch=" + relPitch);
-        }
+        checkArgument(relPitch >= 0 && relPitch <= 11, "relPitch=%s", relPitch);
         for (Degree d : degrees)
         {
             if (d.getPitch() == relPitch)
@@ -466,10 +459,7 @@ final public class ChordType
      */
     public Degree getDegreeMostProbable(int relPitch)
     {
-        if (relPitch < 0 || relPitch > 11)
-        {
-            throw new IllegalArgumentException("relPitch=" + relPitch);
-        }
+        checkArgument(relPitch >= 0 && relPitch <= 11, "relPitch=%s", relPitch);
         Degree d = getDegree(relPitch);
         if (d == null)
         {
@@ -668,7 +658,7 @@ final public class ChordType
                     // If we are are, this chord has no 9 defined
                     // If d=#9 then this chord type is major, otherwise we would not be here
                     destDegree = Degree.NINTH;
-                    if (extension.equals("m7b5"))
+                    if (getName().equals("m7b5"))
                     {
                         destDegree = Degree.NINTH_FLAT;
                     }
@@ -712,7 +702,7 @@ final public class ChordType
                 case SIXTH_OR_THIRTEENTH ->
                 {
                     // Thirteenth natural can only be naturally mapped on 13, b13 or 6 chord types. If we're here this chord type is different.   
-                    if (extension.equals("m7b5") || extension.equals("m9b5"))
+                    if (getName().equals("m7b5") || getName().equals("m9b5"))
                     {
                         destDegree = Degree.THIRTEENTH_FLAT;                  // Assume locrian mode
                     } else if ((dTmp = getDegree(8)) != null)                // If chord type has a #5 go there
@@ -734,7 +724,7 @@ final public class ChordType
                     {
                         // 6 chord
                         destDegree = Degree.SEVENTH;    // Assume that a 6 chord is a I-chord
-                    } else if (extension.equals("dim7"))
+                    } else if (getName().equals("dim7"))
                     {
                         destDegree = Degree.SIXTH_OR_THIRTEENTH;  // In dim7 7 is actually a bb7=13
                     }

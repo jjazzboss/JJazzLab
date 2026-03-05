@@ -592,7 +592,11 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         {
             // Playback point was already shown
             SptViewer lastSptv = getSptViewer(lastPlaybackSpt);
-            if (!show)
+            if (lastSptv == null)
+            {
+                // Viewer was removed (e.g. editor was cleaned up)
+                lastPlaybackSpt = null;
+            } else if (!show)
             {
                 lastSptv.showPlaybackPoint(false, null);
                 lastPlaybackSpt = null;
@@ -601,9 +605,12 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
                 // Playback point changed SptViewer, switch off old location and switch on new location
                 lastSptv.showPlaybackPoint(false, null);
                 SptViewer newSptv = getSptViewer(newSpt);
-                newSptv.showPlaybackPoint(true, pos);
-                lastPlaybackSpt = newSpt;
-                makeSptViewerVisible(newSpt);
+                if (newSptv != null)
+                {
+                    newSptv.showPlaybackPoint(true, pos);
+                    lastPlaybackSpt = newSpt;
+                    makeSptViewerVisible(newSpt);
+                }
             }
         } else if (show && newSpt != null)
         {
@@ -1011,6 +1018,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
      */
     private void unregisterSptViewer(SptViewer sptv)
     {
+        sptv.getDropTarget().removeDropTargetListener(dropTargetListener);
         sptv.setController(null);
     }
 

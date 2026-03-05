@@ -72,13 +72,14 @@ public interface SongContext
     IntRange getBarRange();
 
     /**
-     * Get a deep copy the SongContext : make a copy of the song and the midimix.
-     * <p>
-     * setSong(songCopy) is applied on the the MidiMix copy.
+     * Deep copy the Song and the MidiMix.
      *
+     * @param disableInternalUpdates If true the returned Song instance will have internal consistency updates disabled, e.g. changing a section in the
+     *                               ChordLeadSheet won't impact the SongStructure. The returned MidiMix instance will also not be associated to the Song copy.
+     *                               For special purposes only, this can lead to inconsistent states.
      * @return
      */
-    SongContext getDeepCopy();
+    SongContext getDeepCopy(boolean disableInternalUpdates);
 
     /**
      * Shallow cloning which reuses the same song and midi mix.

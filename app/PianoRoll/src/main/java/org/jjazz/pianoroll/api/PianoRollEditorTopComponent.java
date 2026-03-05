@@ -117,7 +117,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 
         this.song = sg;
         setDisplayName(getDefaultTabName(song));
-        midiMix = MidiMixManager.getDefault().findExistingMix(sg);
+        midiMix = MidiMixManager.getDefault().findRegisteredMix(sg);
         ghostPhrasesModel = new GhostPhrasesModel(midiMix, 0);
 
 

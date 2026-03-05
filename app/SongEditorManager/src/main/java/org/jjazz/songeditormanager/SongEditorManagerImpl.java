@@ -127,7 +127,7 @@ public class SongEditorManagerImpl implements SongEditorManager, PropertyChangeL
                 var asm = ActiveSongManager.getDefault();
                 if (makeActive && asm.isActivable(song) == null)
                 {
-                    MidiMix mm = MidiMixManager.getDefault().findExistingMix(s);
+                    MidiMix mm = MidiMixManager.getDefault().findRegisteredMix(s);
                     SwingUtilities.invokeLater(() -> asm.setActive(s, mm));
                 }
                 return;
@@ -278,7 +278,7 @@ public class SongEditorManagerImpl implements SongEditorManager, PropertyChangeL
 
         // Read song from file
         // Fix the MidiMix if needed
-        var mm = MidiMixManager.getDefault().findExistingMix(song);
+        var mm = MidiMixManager.getDefault().findRegisteredMix(song);
         OutputSynthManager.getDefault().getDefaultOutputSynth().fixInstruments(mm, true);
 
         // Update last song directory
@@ -435,7 +435,7 @@ public class SongEditorManagerImpl implements SongEditorManager, PropertyChangeL
         preTc.requestActive();
 
 
-        // Listen to RP value changes while editor edits our model, and MidiMix for channel changes        
+        // Listener used while the piano roll editor edits our phrase
         PropertyChangeListener listener = new PropertyChangeListener()
         {
             @Override
@@ -447,11 +447,9 @@ public class SongEditorManagerImpl implements SongEditorManager, PropertyChangeL
                             && e.getOldValue() instanceof RP_SYS_CustomPhrase
                             && e.getNewValue() instanceof RP_SYS_CustomPhraseValue newRpValue)
                     {
-                        // Our rpValue was replaced, check if our customized phrase is still there
-                        Phrase newP = newRpValue.getCustomizedPhrase(rv);
-                        if (newP != p)
+                        if (newRpValue.getCustomizedPhrase(rv) == null)
                         {
-                            // It's not there anymore, close the editor
+                            // RP_SYS_CustomPhraseValue was changed and there is no more a custom phrase for rv: close the editor
                             preTc.close();
                         }
                     }
@@ -461,6 +459,7 @@ public class SongEditorManagerImpl implements SongEditorManager, PropertyChangeL
                     {
                         case PianoRollEditor.PROP_MODEL_PHRASE, PianoRollEditor.PROP_EDITOR_ALIVE ->
                         {
+                            // The piano roll editor now edits another phrase phrase, or was closed, no more need to listen
                             editor.removePropertyChangeListener(this);
                             spt.removePropertyChangeListener(this);
                             midiMix.removePropertyChangeListener(this);
@@ -471,6 +470,7 @@ public class SongEditorManagerImpl implements SongEditorManager, PropertyChangeL
                     if (e.getPropertyName().equals(MidiMix.PROP_RHYTHM_VOICE_CHANNEL)
                             || e.getPropertyName().equals(MidiMix.PROP_RHYTHM_VOICE))
                     {
+                        // If user updates the channel's name/number for rv, update the editor
                         int channel = midiMix.getChannel(rv);
                         preTc.setModelForSongPartCustomPhrase(spt, p, channel, keyMap);
                         preTc.setTitle(buildPrEditorSongPartPhraseTitle(rv.getName(), channel));

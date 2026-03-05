@@ -107,7 +107,7 @@ public class AccentProcessor
      * @param tempo             Required to best adjust e.g. "shot" notes duration
      * @param preCellBeatWindow A value in the range [0;1/nbCellsPerBeat[. Used to accomodate for non-quantized notes: notes whose relative position is &gt;
      *                          -preCellBeatWindow will be included in the current cell.
-     * @param config 
+     * @param config
      *
      */
     public AccentProcessor(SimpleChordSequence cSeq, int nbCellsPerBeat, int tempo, float preCellBeatWindow, AccentProcessorConfig config)
@@ -180,16 +180,15 @@ public class AccentProcessor
         for (CLI_ChordSymbol cliCs : simpleChordSequence)
         {
 
-            GridChordContext gct = new GridChordContext(cliCs, simpleChordSequence, gdh.gridAccents);
+
             ChordRenderingInfo cri = cliCs.getData().getRenderingInfo();
-
-
             if (!isProcessHoldShot(cri, hsMode))
             {
                 // Nothing to do
                 continue;
             }
 
+            GridChordContext gct = new GridChordContext(cliCs, simpleChordSequence, gdh.gridAccents);
 
 //        LOGGER.log(Level.FINE, "processHoldShotDrums() gct={0}, features={1}", new Object[]
 //        {
@@ -243,15 +242,14 @@ public class AccentProcessor
         for (CLI_ChordSymbol cliCs : simpleChordSequence)
         {
 
-            GridChordContext gct = new GridChordContext(cliCs, simpleChordSequence, gdh.gridAccents);
             ChordRenderingInfo cri = cliCs.getData().getRenderingInfo();
-
             if (cri.getAccentFeature() == null)
             {
                 // No accent, nothing todo
                 continue;
             }
 
+            GridChordContext gct = new GridChordContext(cliCs, simpleChordSequence, gdh.gridAccents);
 //        LOGGER.log(Level.FINE, "processAccentDrums() gct={0}, features={1}", new Object[]
 //        {
 //            gct, cri.getFeatures()
@@ -345,16 +343,14 @@ public class AccentProcessor
         for (CLI_ChordSymbol cliCs : simpleChordSequence)
         {
 
-            GridChordContext gct = new GridChordContext(cliCs, simpleChordSequence, grid);
             ChordRenderingInfo cri = cliCs.getData().getRenderingInfo();
-
-
             if (cri.getAccentFeature() == null)
             {
                 // No accent, nothing todo
                 continue;
             }
 
+            GridChordContext gct = new GridChordContext(cliCs, simpleChordSequence, grid);
             // LOGGER.log(Level.FINE, "processAccentBass()   BEFORE grid={0}", gct.grid.toString(gct.chordCell - 4, gct.chordCell + 6));
 
             int notePitch;
@@ -420,15 +416,14 @@ public class AccentProcessor
         for (CLI_ChordSymbol cliCs : simpleChordSequence)
         {
 
-            GridChordContext gct = new GridChordContext(cliCs, simpleChordSequence, grid);
             ChordRenderingInfo cri = cliCs.getData().getRenderingInfo();
-
-
             if (!isProcessHoldShot(cri, hsMode))
             {
                 // Nothing todo
                 continue;
             }
+
+            GridChordContext gct = new GridChordContext(cliCs, simpleChordSequence, grid);
 
 
 //        LOGGER.log(Level.FINE, "processHoldShotMono() gct={0}, features={1}", new Object[]
@@ -515,16 +510,14 @@ public class AccentProcessor
 
         for (CLI_ChordSymbol cliCs : simpleChordSequence)
         {
-
-            GridChordContext gct = new GridChordContext(cliCs, simpleChordSequence, grid);
             ChordRenderingInfo cri = cliCs.getData().getRenderingInfo();
-
             if (!isProcessHoldShot(cri, hsMode))
             {
                 // Nothing to do
                 continue;
             }
 
+            GridChordContext gct = new GridChordContext(cliCs, simpleChordSequence, grid);
 
 //        LOGGER.log(Level.FINE, "processHoldShotChord() gct={0}, features={1}", new Object[]
 //        {
@@ -607,15 +600,14 @@ public class AccentProcessor
         for (CLI_ChordSymbol cliCs : simpleChordSequence)
         {
 
-            GridChordContext gct = new GridChordContext(cliCs, simpleChordSequence, grid);
             ChordRenderingInfo cri = cliCs.getData().getRenderingInfo();
-
             if (cri.getAccentFeature() == null)
             {
                 // Nothing to do
                 continue;
             }
 
+            GridChordContext gct = new GridChordContext(cliCs, simpleChordSequence, grid);
 
 //        LOGGER.log(Level.FINE, "processAccentChord() gct={0}, features={1}", new Object[]
 //        {
@@ -886,7 +878,8 @@ public class AccentProcessor
         Position pos = cliCs.getPosition();
         float vel = accentNote.getVelocity();
         int offset = cri.getAccentFeature().equals(Feature.ACCENT) ? config.drumsAccentMediumOffset : config.drumsAccentStrongOffset;
-        int extra = pos.isFirstBarBeat() || pos.isHalfBarBeat(timeSignature, true) || pos.isHalfBarBeat(timeSignature, false) ? config.drumsAccentExtraDownBeat : 0;
+        int extra = pos.isFirstBarBeat() || pos.isHalfBarBeat(timeSignature, true) || pos.isHalfBarBeat(timeSignature, false) ? config.drumsAccentExtraDownBeat
+                : 0;
 
         vel += offset + extra;
 

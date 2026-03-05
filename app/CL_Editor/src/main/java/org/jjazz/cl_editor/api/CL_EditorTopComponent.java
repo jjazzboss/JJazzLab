@@ -303,32 +303,23 @@ public final class CL_EditorTopComponent extends TopComponent implements Propert
     @Override
     public void propertyChange(final PropertyChangeEvent evt)
     {
-        // Model changes can be generated outside the EDT      
-        Runnable run = new Runnable()
+        ActiveSongManager asm = ActiveSongManager.getDefault();
+        if (evt.getSource() == songModel)
         {
-            @Override
-            public void run()
+            if (evt.getPropertyName().equals(Song.PROP_NAME))
             {
-                ActiveSongManager asm = ActiveSongManager.getDefault();
-                if (evt.getSource() == songModel)
-                {
-                    if (evt.getPropertyName().equals(Song.PROP_NAME))
-                    {
-                        updateTabName();
-                    } else if (evt.getPropertyName().equals(Song.PROP_MODIFIED_OR_SAVED_OR_RESET))
-                    {
-                        updateTabName();
-                    }
-                } else if (evt.getSource() == asm)
-                {
-                    if (evt.getPropertyName().equals(ActiveSongManager.PROP_ACTIVE_SONG))
-                    {
-                        updateTabName();
-                    }
-                }
+                updateTabName();
+            } else if (evt.getPropertyName().equals(Song.PROP_MODIFIED_OR_SAVED_OR_RESET))
+            {
+                updateTabName();
             }
-        };
-        org.jjazz.uiutilities.api.UIUtilities.invokeLaterIfNeeded(run);
+        } else if (evt.getSource() == asm)
+        {
+            if (evt.getPropertyName().equals(ActiveSongManager.PROP_ACTIVE_SONG))
+            {
+                updateTabName();
+            }
+        }
     }
 
     // -------------------------------------------------------------------------------------

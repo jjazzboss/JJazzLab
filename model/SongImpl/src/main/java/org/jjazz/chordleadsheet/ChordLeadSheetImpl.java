@@ -781,7 +781,11 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     @Override
     public <T> boolean changeItem(ChordLeadSheetItem<T> item, final T newData)
     {
-        return performWriteAPImethod(changeItemOperation(item, newData));
+        if (!item.getData().equals(newData))
+        {
+            return performWriteAPImethod(changeItemOperation(item, newData));
+        }
+        return false;
     }
 
     public <T> WriteOperation<Boolean> changeItemOperation(ChordLeadSheetItem<T> item, final T newData)
@@ -804,6 +808,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             {
                 return WriteOperationResults.of(Boolean.FALSE);
             }
+
 
             // Change state
             var propEvent = changeItemDataChecked(item, newData);
@@ -1169,7 +1174,10 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     @Override
     public void setSectionName(CLI_Section cliSection, String name)
     {
-        performWriteAPImethod(setSectionNameOperation(cliSection, name));
+        if (!cliSection.getData().getName().equals(name))
+        {
+            performWriteAPImethod(setSectionNameOperation(cliSection, name));
+        }
     }
 
     public WriteOperation setSectionNameOperation(CLI_Section cliSection, String name)
@@ -1182,18 +1190,17 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         WriteOperation operation = () -> 
         {
             Preconditions.checkArgument(items.contains(cliSection), "setSectionNameOperation() cliSection=%s items=%s", cliSection, items);
+            if (cliSection.getData().getName().equals(name))
+            {
+                return WriteOperationResults.of(null);
+            }
             Preconditions.checkArgument(getSection(name) == null, "setSectionNameOperation() cliSection=%s items=%s", cliSection, items);
+
 
             LOGGER.log(Level.FINE, "setSectionNameOperation() -- cliSection={0} name={1}", new Object[]
             {
                 cliSection, name
             });
-
-            if (cliSection.getData().getName().equals(name))
-            {
-                return WriteOperationResults.of(null);
-            }
-
 
             final Section oldData = cliSection.getData();
             final Section newData = new Section(name, oldData.getTimeSignature());
@@ -1258,7 +1265,10 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     @Override
     public void setSectionTimeSignature(CLI_Section cliSection, TimeSignature ts) throws UnsupportedEditException
     {
-        performWriteAPImethodThrowing(setSectionTimeSignatureOperation(cliSection, ts));
+        if (!cliSection.getData().getTimeSignature().equals(ts))
+        {
+            performWriteAPImethodThrowing(setSectionTimeSignatureOperation(cliSection, ts));
+        }
     }
 
     public ThrowingWriteOperation setSectionTimeSignatureOperation(CLI_Section cliSection, TimeSignature ts) throws UnsupportedEditException
@@ -1269,20 +1279,18 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
         ThrowingWriteOperation operation = () -> 
         {
+            Preconditions.checkArgument(items.contains(cliSection), "setSectionTimeSignatureOperation() cliSection=%s items=%s", cliSection, items);
+            final Section oldData = cliSection.getData();
+            if (oldData.getTimeSignature() == ts)
+            {
+                return WriteOperationResults.of(null);
+            }
+            final Section newData = new Section(oldData.getName(), ts);
+
             LOGGER.log(Level.FINE, "setSectionTimeSignatureOperation() -- cliSection={0} ts={1}", new Object[]
             {
                 cliSection, ts
             });
-
-            final Section oldData = cliSection.getData();
-            if (oldData.getTimeSignature().equals(ts))
-            {
-                return WriteOperationResults.of(null);
-            }
-            Preconditions.checkArgument(items.contains(cliSection), "setSectionTimeSignatureOperation() cliSection=%s items=%s", cliSection, items);
-
-
-            final Section newData = new Section(oldData.getName(), ts);
 
 
             // Pre-check change

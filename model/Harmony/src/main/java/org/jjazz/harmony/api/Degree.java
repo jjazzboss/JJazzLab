@@ -22,8 +22,10 @@
  */
 package org.jjazz.harmony.api;
 
+import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 
 /**
@@ -172,10 +174,8 @@ public enum Degree
      */
     static public Degree getDegree(Natural n, int alt)
     {
-        if (alt < -1 || alt > 1)
-        {
-            throw new IllegalArgumentException("n=" + n + " alt=" + alt);
-        }
+        Objects.requireNonNull(n, "n");
+        Preconditions.checkArgument(alt >= -1 && alt <= 1, "n=%s alt=%s", n, alt);
         for (Degree d : Degree.values())
         {
             if (d.getNatural() == n && d.getAccidental() == alt)
@@ -194,10 +194,7 @@ public enum Degree
      */
     static public List<Degree> getDegrees(int relPitch)
     {
-        if (relPitch < 0 || relPitch > 11)
-        {
-            throw new IllegalArgumentException("relPitch=" + relPitch);
-        }
+        Preconditions.checkArgument(relPitch >= 0 && relPitch <= 11, "relPitch=%s", relPitch);
         ArrayList<Degree> res = new ArrayList<>();
         for (Degree d : Degree.values())
         {
@@ -219,50 +216,23 @@ public enum Degree
      */
     static public Degree getDegreeMostProbable(int relPitch)
     {
-        if (relPitch < 0 || relPitch > 11)
+        Preconditions.checkArgument(relPitch >= 0 && relPitch <= 11, "relPitch=%s", relPitch);
+        return switch (relPitch)
         {
-            throw new IllegalArgumentException("relPitch=" + relPitch);
-        }
-        Degree d = ROOT;
-        switch (relPitch)
-        {
-            case 1:
-                d = NINTH_FLAT;
-                break;
-            case 2:
-                d = NINTH;
-                break;
-            case 3:
-                d = THIRD_FLAT;         // and not NINTH_SHARP
-                break;
-            case 4:
-                d = THIRD;
-                break;
-            case 5:
-                d = FOURTH_OR_ELEVENTH;
-                break;
-            case 6:
-                d = FIFTH_FLAT;         // and not ELEVENTH_SHARP
-                break;
-            case 7:
-                d = FIFTH;
-                break;
-            case 8:
-                d = FIFTH_SHARP;        // and not THIRTEENTH_FLAT
-                break;
-            case 9:
-                d = SIXTH_OR_THIRTEENTH;
-                break;
-            case 10:
-                d = SEVENTH_FLAT;
-                break;
-            case 11:
-                d = SEVENTH;
-                break;
-            default:
-                throw new IllegalArgumentException("d=" + d);
-        }
-        return d;
+            case 0 -> ROOT;
+            case 1 -> NINTH_FLAT;
+            case 2 -> NINTH;
+            case 3 -> THIRD_FLAT;           // and not NINTH_SHARP
+            case 4 -> THIRD;
+            case 5 -> FOURTH_OR_ELEVENTH;
+            case 6 -> FIFTH_FLAT;           // and not ELEVENTH_SHARP
+            case 7 -> FIFTH;
+            case 8 -> FIFTH_SHARP;          // and not THIRTEENTH_FLAT
+            case 9 -> SIXTH_OR_THIRTEENTH;
+            case 10 -> SEVENTH_FLAT;
+            case 11 -> SEVENTH;
+            default -> throw new IllegalArgumentException("relPitch=" + relPitch);
+        };
     }
 
 

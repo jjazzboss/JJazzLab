@@ -229,6 +229,7 @@ public interface ChordLeadSheet
      * Get the last matching item before cli.
      *
      * @param <T>
+     * @param cli
      * @param itemClass Accept items which are assignable from aClass
      * @param tester
      * @return Can be null.

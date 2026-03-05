@@ -573,7 +573,13 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             Set<SelectedCLI> newSelectedItems = new HashSet<>(oldSelectedClis);
             for (var item : items)
             {
-                newSelectedItems.add(new SelectedCLI(item));
+                if (b)
+                {
+                    newSelectedItems.add(new SelectedCLI(item));
+                } else
+                {
+                    newSelectedItems.remove(new SelectedCLI(item));
+                }
             }
             // Use InstanceContent.set() to minimize nb of lookup change events        
             selectionLookupContent.set(newSelectedItems, null);
@@ -838,7 +844,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
                 if (evt.getPropertyName().equals(ColorSetManager.PROP_REF_COLOR_CHANGED))
                 {
                     Color oldColor = (Color) evt.getOldValue();
-                    Color newColor = (Color) evt.getOldValue();
+                    Color newColor = (Color) evt.getNewValue();
                     // Check if some section colors are impacted
                     boolean changed = false;
                     for (var cliSection : songModel.getChordLeadSheet().getItems(CLI_Section.class))

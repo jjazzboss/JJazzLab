@@ -303,6 +303,10 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
     public JJazzUndoManager getUndoManager()
     {
+        if (songModel == null)
+        {
+            return null;
+        }
         return JJazzUndoManagerFinder.getDefault().get(songModel);
     }
 
@@ -814,7 +818,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
     private void resetModel()
     {
         removeAllChannels();
-        if (songMidiMix != null)
+        if (songMidiMix != null && songModel != null)
         {
             instanceContent.remove(songMidiMix);
             UndoManager um = JJazzUndoManagerFinder.getDefault().get(songModel);

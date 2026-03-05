@@ -113,10 +113,8 @@ public class ChordSymbol implements Cloneable
     protected ChordSymbol(Note rootDg, Note bassDg, ChordType ct, String originalName)
     {
         this(rootDg, bassDg, ct);
-        if (originalName == null || originalName.isBlank())
-        {
-            throw new IllegalArgumentException("rootDg=" + rootDg + " bassDg=" + bassDg + " ct=" + ct + " originalName=" + originalName);
-        }
+        Preconditions.checkArgument(originalName != null && !originalName.isBlank(),
+                "rootDg=%s bassDg=%s ct=%s originalName=%s", rootDg, bassDg, ct, originalName);
         this.originalName = originalName;
     }
 
@@ -155,7 +153,7 @@ public class ChordSymbol implements Cloneable
             String strBass = str.substring(slashIndex + 1);
             if (strBass.isBlank() || strBass.length() > 2 || (strBass.length() == 2 && strBass.charAt(1) != 'b' && strBass.charAt(1) != '#'))
             {
-                throw new ParseException(errorInvalidCs + ": " + originalName, slashIndex);
+                throw new ParseException(errorInvalidCs + ": " + str, slashIndex);
             }
             originalName = str.substring(0, 1).toUpperCase() + str.substring(1, slashIndex)
                     + "/"
@@ -268,7 +266,7 @@ public class ChordSymbol implements Cloneable
      */
     public boolean isSlashChord()
     {
-        return bassNote != rootNote;
+        return !bassNote.equalsRelativePitch(rootNote);
     }
 
 
@@ -572,10 +570,7 @@ public class ChordSymbol implements Cloneable
      */
     public boolean isSameChordType(ChordSymbol cs)
     {
-        if (cs == null)
-        {
-            throw new NullPointerException("cs");
-        }
+        Objects.requireNonNull(cs, "cs");
         // We can use "==" equality (and not equals) because ChordTypes are immutable objects
         // that only come from the ChordType.database
         return chordType == cs.chordType;
@@ -592,10 +587,8 @@ public class ChordSymbol implements Cloneable
      */
     public int getRelativePitch(int relPitch, ChordSymbol destCs)
     {
-        if (relPitch < 0 || relPitch > 11 || destCs == null)
-        {
-            throw new IllegalArgumentException("relPitch=" + relPitch + " destCs=" + destCs);
-        }
+        Objects.requireNonNull(destCs, "destCs");
+        Preconditions.checkArgument(relPitch >= 0 && relPitch <= 11, "relPitch=%s", relPitch);
         int srcRelPitchToRoot = Note.getNormalizedRelPitch(relPitch - getRootNote().getRelativePitch());
         int destRelPitch = Note.getNormalizedRelPitch(destCs.getRootNote().getRelativePitch() + srcRelPitchToRoot);
         return destRelPitch;
@@ -694,7 +687,7 @@ public class ChordSymbol implements Cloneable
     static public ChordSymbol getRandom()
     {
         int rootPitch = (int) Math.round(Math.random() * 11);
-        int bassPitch = Math.round(1) > 0.7 ? rootPitch : (int) Math.round(Math.random() * 11);
+        int bassPitch = Math.random() > 0.7 ? rootPitch : (int) Math.round(Math.random() * 11);
         var chordTypes = ChordTypeDatabase.getDefault().getChordTypes();
         int index = (int) Math.round(Math.random() * (chordTypes.size() - 1));
         ChordType ct = chordTypes.get(index);

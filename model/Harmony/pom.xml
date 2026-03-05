@@ -14,7 +14,7 @@
     
     
     <properties>        
-        <jjazzlab.surefire.skipTests>true</jjazzlab.surefire.skipTests>   <!-- test files are empty for now -->
+        <!-- <jjazzlab.surefire.skipTests>true</jjazzlab.surefire.skipTests> -->
     </properties>
                 
     

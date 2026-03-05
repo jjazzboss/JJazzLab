@@ -158,7 +158,7 @@ public class Phrases
     {
         if (notes.isEmpty())
         {
-            return 70;  // Default fallback for empty list
+            return defaultValue;
         }
 
         var velocities = notes.stream()
@@ -428,8 +428,8 @@ public class Phrases
         Set<NoteEvent> beatWindowProcessedNotes = new HashSet<>();
         if (beatWindow > 0)
         {
-            FloatRange frLeft = range.from - beatWindow > 0 ? new FloatRange(range.from - beatWindow, range.from) : null;
-            FloatRange frRight = new FloatRange(range.to - beatWindow, range.to);
+            FloatRange frLeft = range.from - beatWindow >= 0 ? new FloatRange(range.from - beatWindow, range.from) : null;
+            FloatRange frRight = range.to - beatWindow >= 0 ? new FloatRange(range.to - beatWindow, range.to) : null;
 
             for (var ne : p)
             {
@@ -450,7 +450,7 @@ public class Phrases
                     }
                     beatWindowProcessedNotes.add(ne);
 
-                } else if (frRight.contains(neBr.from, true))
+                } else if (frRight != null && frRight.contains(neBr.from, true))
                 {
                     // Remove the note
                     beatWindowProcessedNotes.add(ne);
@@ -705,15 +705,25 @@ public class Phrases
     {
         float end = sp.getNotesBeatRange().to - 0.1f;
         Map<NoteEvent, NoteEvent> mapNotes = new HashMap<>();
+        List<NoteEvent> toRemove = new ArrayList<>();
         for (var ne : sp)
         {
             if (ne.getBeatRange().to > end)
             {
-                mapNotes.put(ne, ne.setDuration(end - ne.getPositionInBeats(), true));
+                if (ne.getPositionInBeats() < end)
+                {
+                    // Shorten the note to end exactly at the safe boundary
+                    mapNotes.put(ne, ne.setDuration(end - ne.getPositionInBeats(), true));
+                } else
+                {
+                    // Note starts so close to the boundary it cannot be safely shortened; remove it
+                    toRemove.add(ne);
+                }
             }
         }
         sp.replaceAll(mapNotes, false);
-        return !mapNotes.isEmpty();
+        sp.removeAll(toRemove);
+        return !mapNotes.isEmpty() || !toRemove.isEmpty();
     }
 
     /**
@@ -811,10 +821,8 @@ public class Phrases
      */
     static public void limitPitch(Phrase p, int lowLimit, int highLimit)
     {
-        if (lowLimit < 0 || highLimit > 127 || lowLimit > highLimit || highLimit - lowLimit < 11)
-        {
-            throw new IllegalArgumentException("lowLimit=" + lowLimit + " highLimit=" + highLimit);
-        }
+        Preconditions.checkArgument(lowLimit >= 0 && highLimit <= 127 && lowLimit <= highLimit && highLimit - lowLimit >= 11,
+                "lowLimit=%s highLimit=%s", lowLimit, highLimit);
 
         Predicate<NoteEvent> tester = ne -> ne.getPitch() < lowLimit || ne.getPitch() > highLimit;
         Function<NoteEvent, NoteEvent> mapper = ne -> 

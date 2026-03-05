@@ -32,11 +32,10 @@ import org.jjazz.midi.api.Instrument;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.song.api.Song;
-import org.jjazz.song.api.SongCreationException;
 import org.openide.util.Lookup;
 
 /**
- * A service provider to obtain MidiMix instances and perform some MidiMix updates.
+ * A service provider which manages the MidiMix instances associated to Songs and Rhythms.
  * <p>
  */
 public interface MidiMixManager
@@ -53,11 +52,22 @@ public interface MidiMixManager
     }
 
     /**
+     * Find a mix previously registered.
+     * <p>
+     * If you're not sure use {@link #createMix(org.jjazz.song.api.Song)} instead.
+     *
+     * @param s
+     * @return Can't be null
+     * @throws IllegalStateException If no mix found
+     */
+    MidiMix findRegisteredMix(Song s);
+
+    /**
      * Get a MidiMix for the specified song in the following order.
      * <p>
      * 1. If the mix for song s already exists, just return it <br>
      * 2. Load mix from song mix file <br>
-     * 3. Create a new mix for s using findMix(Rhythm) for each song's rhythm
+     * 3. Create and register a new mix for s using {@link #createMix(org.jjazz.song.api.Song)} for each song's rhythm
      * <p>
      *
      * @param s
@@ -66,23 +76,13 @@ public interface MidiMixManager
      */
     MidiMix findMix(Song s) throws UnsupportedEditException;
 
-    /**
-     * Find a mix which must be existing.
-     * <p>
-     * If you're not sure if a MidiMix was already created for the specified song, use findMix(Song) instead.
-     *
-     * @param s
-     * @return Can't be null
-     * @throws IllegalStateException If no mix found
-     */
-    MidiMix findExistingMix(Song s);
 
     /**
      * Try to get a MidiMix for the specified Rhythm in the following order:
      * <p>
-     * 1. If the mix for rhythm r already exists, just return it <br>
+     * 1. If the registered mix for rhythm r already exists, just return it <br>
      * 2. Load mix from the default rhythm mix file <br>
-     * 3. Create a new mix for r
+     * 3. Create and register a new mix for r using {@link #createMix(org.jjazz.rhythm.api.Rhythm) }
      * <p>
      *
      * @param r
@@ -91,7 +91,7 @@ public interface MidiMixManager
     MidiMix findMix(Rhythm r);
 
     /**
-     * Create a new MidiMix for the specified song.
+     * Create and register a new MidiMix for the specified song.
      * <p>
      * Use the default rhythm mix for each song's rhythm. Create UserRhythmVoices key if song as some user phrases.
      *
@@ -102,7 +102,7 @@ public interface MidiMixManager
     MidiMix createMix(Song sg) throws UnsupportedEditException;
 
     /**
-     * Create a MidiMix for the specified rhythm.
+     * Create and register a MidiMix for the specified rhythm.
      * <p>
      * Create one InstrumentMix per rhythm voice, using rhythm voice's preferred instrument and settings, and preferred channel (except if several voices share
      * the same preferred channel)
@@ -144,10 +144,37 @@ public interface MidiMixManager
     /**
      * Build a rhythm MidiMix from a song MidiMix.
      *
-     * @param songMidiMix
+     * @param midiMix
      * @param r
+     * @return Can be empty if midiMix does not use r
+     */
+    MidiMix getRhythmMix(MidiMix midiMix, Rhythm r);
+
+    /**
+     * Get a deep copy of midiMix.
+     * <p>
+     *
+     * @param midiMix
+     * @param song    If not null, the returned instance is registered with this song (caller is responsible to provide a song consistent with midiMix).
      * @return
      */
-    MidiMix getRhythmMix(MidiMix songMidiMix, Rhythm r);
+    MidiMix getDeepCopy(MidiMix midiMix, Song song);
+
+    /**
+     * Register a MidiMix to a song, so that it can be found by {@link #findMix(org.jjazz.song.api.Song)}.
+     * <p>
+     * MidiMix will be automatically unregistered when song is closed.
+     *
+     * @param mm
+     * @param song
+     */
+    void registerMidiMix(MidiMix mm, Song song);
+
+    /**
+     * Unregister the MidiMix associated to a song.
+     *
+     * @param song
+     */
+    public void unregisterMidiMix(Song song);
 
 }

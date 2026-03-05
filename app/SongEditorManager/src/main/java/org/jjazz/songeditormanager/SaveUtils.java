@@ -130,7 +130,7 @@ class SaveUtils
         int resMix;
 
         // Save Mix
-        MidiMix songMix = MidiMixManager.getDefault().findExistingMix(song);
+        MidiMix songMix = MidiMixManager.getDefault().findRegisteredMix(song);
         if (songMix != null)
         {
             File songMixFile = MidiMix.getSongMixFile(songFile);

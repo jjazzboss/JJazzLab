@@ -24,14 +24,8 @@
  */
 package org.jjazz.phrase.api;
 
-import com.google.common.collect.ListMultimap;
-import java.io.File;
 import java.text.ParseException;
-import java.util.List;
-import java.util.function.Predicate;
-import javax.sound.midi.Track;
-import org.jjazz.harmony.api.Chord;
-import org.jjazz.utilities.api.FloatRange;
+import java.util.Locale;
 import org.jjazz.utilities.api.Utilities;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -41,8 +35,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- *
- * @author Jerome
+ * Phrase related unit tests.
  */
 public class PhrasesTest
 {
@@ -55,6 +48,7 @@ public class PhrasesTest
     public static void setUpClass() throws Exception
     {
         System.setProperty(NoteEvent.SYSTEM_PROP_NOTEEVENT_TOSTRING_FORMAT, "(p=%2$.1f d=%3$.1f)");
+        Locale.setDefault(Locale.ENGLISH);
     }
 
     @AfterAll
@@ -123,7 +117,7 @@ public class PhrasesTest
     public void testSaveLoadAsString() throws ParseException
     {
         System.out.println("testSaveLoadAsString");
-        
+
         Phrase p = new Phrase(0);
         p.add(new NoteEvent(50, 2.2f, 34, 0.9999f));         // (pitch, dur, velo, pos)
         p.add(new NoteEvent(57, 12f, 79, 3f));         // (pitch, dur, velo, pos)
@@ -133,143 +127,8 @@ public class PhrasesTest
         Phrase pSave = p.clone();
         String s = Phrase.saveAsString(p);
         p = Phrase.loadAsString(s);
-        
-        assertTrue(p.equalsAsNoteNearPosition(pSave, 0));        
-    }
 
-    /**
-     * Test of getChord method, of class Phrases.
-     */
-    // @Test
-    public void testGetChord()
-    {
-        System.out.println("getChord");
-        Phrase p = null;
-        Chord expResult = null;
-        Chord result = Phrases.getChord(p);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-
-    /**
-     * Test of silenceAfter method, of class Phrases.
-     */
-    // @Test
-    public void testSilenceAfter()
-    {
-        System.out.println("silenceAfter");
-        Phrase p = null;
-        float posInBeats = 0.0F;
-        Phrases.silenceAfter(p, posInBeats);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-
-    /**
-     * Test of getSlice method, of class Phrases.
-     */
-    // @Test
-    public void testGetSlice()
-    {
-        System.out.println("getSlice");
-        Phrase p = null;
-        FloatRange range = null;
-        boolean keepLeft = false;
-        int cutRight = 0;
-        float beatWindow = 0.0F;
-        Phrase expResult = null;
-        Phrase result = Phrases.getSlice(p, range, keepLeft, cutRight, beatWindow);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-
-    /**
-     * Test of silence method, of class Phrases.
-     */
-    // @Test
-    public void testSilence()
-    {
-        System.out.println("silence");
-        Phrase p = null;
-        FloatRange range = null;
-        boolean cutLeft = false;
-        boolean keepRight = false;
-        float beatWindow = 0.0F;
-        Phrases.silence(p, range, cutLeft, keepRight, beatWindow);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-
-    /**
-     * Test of getCrossingNotes method, of class Phrases.
-     */
-    // @Test
-    public void testGetCrossingNotes()
-    {
-        System.out.println("getCrossingNotes");
-        Phrase p = null;
-        float posInBeats = 0.0F;
-        boolean strict = false;
-        List<NoteEvent> expResult = null;
-        List<NoteEvent> result = Phrases.getCrossingNotes(p, posInBeats, strict);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-
-    /**
-     * Test of getNotesByPitch method, of class Phrases.
-     */
-    // @Test
-    public void testGetNotesByPitch()
-    {
-        System.out.println("getNotesByPitch");
-        Phrase p = null;
-        Predicate<NoteEvent> tester = null;
-        ListMultimap<Integer, NoteEvent> expResult = null;
-        ListMultimap<Integer, NoteEvent> result = Phrases.getNotesByPitch(p, tester);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-
-
-    /**
-     * Test of importPhrase method, of class Phrases.
-     */
-    // @Test
-    public void testImportPhrase() throws Exception
-    {
-        System.out.println("importPhrase");
-        File midiFile = null;
-        int channel = 0;
-        boolean isDrums = false;
-        boolean strictChannel = false;
-        boolean notifyUserIfNoChannelNotes = false;
-        Phrase expResult = null;
-        Phrase result = Phrases.importPhrase(midiFile, channel, isDrums, strictChannel, notifyUserIfNoChannelNotes);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-
-    /**
-     * Test of getPhrases method, of class Phrases.
-     */
-    // @Test
-    public void testGetPhrases()
-    {
-        System.out.println("getPhrases");
-        int tracksPPQ = 0;
-        Track[] tracks = null;
-        Integer[] channels = null;
-        List<Phrase> expResult = null;
-        List<Phrase> result = Phrases.getPhrases(tracksPPQ, tracks, channels);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertTrue(p.equalsAsNoteNearPosition(pSave, 0));
     }
 
 }

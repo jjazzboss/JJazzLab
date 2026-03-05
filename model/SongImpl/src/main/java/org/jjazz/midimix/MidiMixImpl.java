@@ -149,57 +149,6 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
         return executionManager;
     }
 
-    /**
-     * Associate a song to this MidiMix.
-     * <p>
-     * Song's ExecutionManager will be reused by this instance. Song will be also used to perform some consistency checks when modifying this instance.
-     *
-     * @param song Cannot be null
-     */
-    public void setSong(SongImpl song)
-    {
-        Objects.requireNonNull(song);
-        this.song = song;
-        executionManager = song.getExecutionManager();
-    }
-
-    @Override
-    public MidiMix getDeepCopy(Song sg)
-    {        
-        MidiMixImpl mm = new MidiMixImpl();
-        
-        if (sg instanceof SongImpl sgImpl)
-        {
-            mm.setSong(sgImpl);
-        }
-
-        performReadAPImethod(() -> 
-        {
-            System.arraycopy(rhythmVoices, 0, mm.rhythmVoices, 0, rhythmVoices.length);
-            System.arraycopy(saveMuteConfiguration, 0, mm.saveMuteConfiguration, 0, saveMuteConfiguration.length);
-
-            for (int i = 0; i < instrumentMixes.length; i++)
-            {
-                var insMix = instrumentMixes[i];
-                mm.instrumentMixes[i] = insMix == null ? null : new InstrumentMix(insMix);
-                if (soloedInsMixes.contains(insMix))
-                {
-                    mm.soloedInsMixes.add(mm.instrumentMixes[i]);
-                }
-            }
-
-            for (int channel : drumsReroutedChannels.keySet())
-            {
-                assert mm.instrumentMixes[channel] != null : "this=" + this;
-                mm.drumsReroutedChannels.put(channel, mm.instrumentMixes[channel]);
-            }
-            return null;
-        });
-
-        return mm;
-    }
-
-
     @Override
     public Song getSong()
     {
@@ -1269,6 +1218,64 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
     public String toString()
     {
         return "MidiMix[sg=" + (song == null ? "null" : song.getName()) + ", ch=" + getUsedChannels() + "]";
+    }
+
+
+    /**
+     * Associate a song to this MidiMix.
+     * <p>
+     * Song's ExecutionManager will be reused by this instance. Song will be also used to perform some consistency checks when modifying this instance.
+     *
+     * @param song Cannot be null
+     */
+    protected void setSong(SongImpl song)
+    {
+        Objects.requireNonNull(song);
+        this.song = song;
+        executionManager = song.getExecutionManager();
+    }
+
+    /**
+     * Get a deep copy of this MidiMix.
+     * <p>
+     *
+     * @param song The song to be set on the returned instance. If not null, caller is responsible to provide a song consistent with this MidiMix.
+     * @return
+     * @see #checkConsistency(org.jjazz.song.api.Song, boolean)
+     */
+    protected MidiMix getDeepCopy(Song song)
+    {
+        MidiMixImpl mm = new MidiMixImpl();
+
+        if (song instanceof SongImpl sgImpl)
+        {
+            mm.setSong(sgImpl);
+        }
+
+        performReadAPImethod(() -> 
+        {
+            System.arraycopy(rhythmVoices, 0, mm.rhythmVoices, 0, rhythmVoices.length);
+            System.arraycopy(saveMuteConfiguration, 0, mm.saveMuteConfiguration, 0, saveMuteConfiguration.length);
+
+            for (int i = 0; i < instrumentMixes.length; i++)
+            {
+                var insMix = instrumentMixes[i];
+                mm.instrumentMixes[i] = insMix == null ? null : new InstrumentMix(insMix);
+                if (soloedInsMixes.contains(insMix))
+                {
+                    mm.soloedInsMixes.add(mm.instrumentMixes[i]);
+                }
+            }
+
+            for (int channel : drumsReroutedChannels.keySet())
+            {
+                assert mm.instrumentMixes[channel] != null : "this=" + this;
+                mm.drumsReroutedChannels.put(channel, mm.instrumentMixes[channel]);
+            }
+            return null;
+        });
+
+        return mm;
     }
 
     /**

@@ -63,7 +63,7 @@ public interface SongStructure
      *
      * @param excludeAdaptedRhythms        If true, don't return AdaptedRhythm instances
      * @param excludeImplicitSourceRhythms If true don't return "implicit source rhythms" instances
-     * @return The list of rhythms, in the order they are used in the song.
+     * @return A modifiable list of rhythms, in the order they are used in the song.
      */
     default List<Rhythm> getUniqueRhythms(boolean excludeAdaptedRhythms, boolean excludeImplicitSourceRhythms)
     {

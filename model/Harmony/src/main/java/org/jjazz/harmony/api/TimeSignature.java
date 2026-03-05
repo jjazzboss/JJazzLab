@@ -67,6 +67,12 @@ public enum TimeSignature
     private final int naturalBeat;
     private final int nbNaturalBeats;
     private static final Logger LOGGER = Logger.getLogger(TimeSignature.class.getSimpleName());
+    private static final List<FloatRange> T44_DOWN_RANGES = List.of(new FloatRange(0, BEAT_WINDOW), new FloatRange(2 - BEAT_WINDOW, 2 + BEAT_WINDOW));
+    private static final List<FloatRange> T34_DOWN_RANGES = List.of(new FloatRange(0, BEAT_WINDOW), new FloatRange(1 - BEAT_WINDOW, 1 + BEAT_WINDOW));
+    private static final List<FloatRange> DEF_DOWN_RANGES = List.of(FloatRange.EMPTY_FLOAT_RANGE);
+    private static final List<FloatRange> T44_UP_RANGES = List.of(new FloatRange(1 - BEAT_WINDOW, 1 + BEAT_WINDOW), new FloatRange(3 - BEAT_WINDOW, 3 + BEAT_WINDOW));
+    private static final List<FloatRange> T34_UP_RANGES = List.of(new FloatRange(2 - BEAT_WINDOW, 2 + BEAT_WINDOW));
+    private static final List<FloatRange> DEF_UP_RANGES = List.of(FloatRange.EMPTY_FLOAT_RANGE);
 
     /**
      * @param upp   The number of lower units that make a bar.
@@ -90,6 +96,7 @@ public enum TimeSignature
      */
     static public TimeSignature parse(String s) throws ParseException
     {
+        Objects.requireNonNull(s, "s");
         String[] strs = s.trim().split("/");
         if (strs.length != 2)
         {
@@ -227,9 +234,6 @@ public enum TimeSignature
     public boolean isDownBeat(float beat)
     {
         Preconditions.checkArgument(checkBeat(beat), "this=%s beat=%s", this, beat);
-        final List<FloatRange> T44_DOWN_RANGES = List.of(new FloatRange(0, BEAT_WINDOW), new FloatRange(2 - BEAT_WINDOW, 2 + BEAT_WINDOW));
-        final List<FloatRange> T34_DOWN_RANGES = List.of(new FloatRange(0, BEAT_WINDOW), new FloatRange(1 - BEAT_WINDOW, 1 + BEAT_WINDOW));
-        final List<FloatRange> DEF_DOWN_RANGES = List.of(FloatRange.EMPTY_FLOAT_RANGE);
 
         List<FloatRange> downRanges = switch (this)
         {
@@ -258,10 +262,6 @@ public enum TimeSignature
     {
         Preconditions.checkArgument(checkBeat(beat), "this=%s beat=%s", this, beat);
 
-        final List<FloatRange> T44_UP_RANGES = List.of(new FloatRange(1 - BEAT_WINDOW, 1 + BEAT_WINDOW), new FloatRange(3 - BEAT_WINDOW, 3 + BEAT_WINDOW));
-        final List<FloatRange> T34_UP_RANGES = List.of(new FloatRange(2 - BEAT_WINDOW, 2 + BEAT_WINDOW));
-        final List<FloatRange> DEF_UP_RANGES = List.of(FloatRange.EMPTY_FLOAT_RANGE);
-
         List<FloatRange> downRanges = switch (this)
         {
             case FOUR_FOUR ->
@@ -279,7 +279,7 @@ public enum TimeSignature
 
 
     /**
-     * Check if beat is &lt;= (getNbNaturalBeats() - beatWindow).
+     * Check if beat is &gt;= (getNbNaturalBeats() - beatWindow).
      *
      * @param beat The relative beat within a bar
      * @param beatWindow 

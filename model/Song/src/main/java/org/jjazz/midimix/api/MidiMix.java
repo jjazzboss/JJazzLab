@@ -205,17 +205,6 @@ public interface MidiMix
     int getChannel(RhythmVoice rvKey);
 
     /**
-     * Get a deep copy of this MidiMix.
-     * <p>
-     * Mutable internal objects are deeply copied, e.g. InstrumentMixes. Not copied: listeners, isSaveNeeded.
-     *
-     * @param song The song to be set on the returned instance. If not null, caller is responsible to provide a song consistent with this MidiMix.
-     * @return
-     * @see #checkConsistency(org.jjazz.song.api.Song, boolean)
-     */
-    MidiMix getDeepCopy(Song song);
-
-    /**
      * The channels which are rerouted to the GM Drums channel.
      *
      * @return Can be empty.

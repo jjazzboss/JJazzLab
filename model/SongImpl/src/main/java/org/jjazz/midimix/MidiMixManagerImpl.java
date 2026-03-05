@@ -135,13 +135,13 @@ public class MidiMixManagerImpl implements MidiMixManager, PropertyChangeListene
                 mm = createMix(s);          // throws UnsupportedEditException
             }
 
-            registerSong(mm, s);
+            registerMidiMix(mm, s);
         }
         return mm;
     }
 
     @Override
-    public MidiMix findExistingMix(Song s)
+    public MidiMix findRegisteredMix(Song s)
     {
         MidiMix mm = mapSongMix.get(s);
         if (mm == null)
@@ -229,7 +229,7 @@ public class MidiMixManagerImpl implements MidiMixManager, PropertyChangeListene
 
         checkConsistency(mm, sg, true);
         mm.setSong((SongImpl) sg);
-        registerSong(mm, sg);
+        registerMidiMix(mm, sg);
 
         return mm;
 
@@ -279,6 +279,17 @@ public class MidiMixManagerImpl implements MidiMixManager, PropertyChangeListene
         return mm;
     }
 
+    @Override
+    public MidiMix getDeepCopy(MidiMix midiMix, Song song)
+    {
+        Preconditions.checkArgument(midiMix instanceof MidiMixImpl);
+        var res = ((MidiMixImpl) midiMix).getDeepCopy(song);
+        if (song != null)
+        {
+            registerMidiMix(res, song);
+        }
+        return res;
+    }
 
     @Override
     public List<Integer> getChannelsNeedingDrumsRerouting(MidiMix midiMix, Map<Integer, Instrument> mapChannelNewIns)
@@ -356,7 +367,7 @@ public class MidiMixManagerImpl implements MidiMixManager, PropertyChangeListene
         List<WriteOperation> operations = ((MidiMixImpl) midiMixDest).performReadAPImethodThrowing(() -> 
         {
             // Find the matching voices except the user phrase channels
-            List<RhythmVoice> rvsDest = midiMixDest.getRhythmVoices();
+            List<RhythmVoice> rvsDest = new ArrayList<>(midiMixDest.getRhythmVoices());
             for (RhythmVoice rvSrc : rvsSrc)
             {
                 boolean matched = false;
@@ -444,6 +455,22 @@ public class MidiMixManagerImpl implements MidiMixManager, PropertyChangeListene
         return mmRhythm;
     }
 
+    @Override
+    public void registerMidiMix(MidiMix mm, Song song)
+    {
+        if (!mapSongMix.containsKey(song))
+        {
+            song.addPropertyChangeListener(Song.PROP_CLOSED, this);
+        }
+        mapSongMix.put(song, mm);
+    }
+
+    @Override
+    public void unregisterMidiMix(Song song)
+    {
+        song.removePropertyChangeListener(Song.PROP_CLOSED, this);
+        mapSongMix.remove(song);
+    }
 
     // =================================================================================
     // PropertyChangeListener methods
@@ -456,7 +483,7 @@ public class MidiMixManagerImpl implements MidiMixManager, PropertyChangeListene
             if (e.getPropertyName().equals(Song.PROP_CLOSED))
             {
                 assert mapSongMix.containsKey(song) : "song=" + song + " mapSongMix=" + mapSongMix;
-                unregisterSong(song);
+                unregisterMidiMix(song);
             }
         }
     }
@@ -465,21 +492,6 @@ public class MidiMixManagerImpl implements MidiMixManager, PropertyChangeListene
     // ==================================================================
     // Private functions
     // ==================================================================
-    private void registerSong(MidiMix mm, Song sg)
-    {
-        if (!mapSongMix.containsKey(sg))
-        {
-            sg.addPropertyChangeListener(Song.PROP_CLOSED, this);
-        }
-        mapSongMix.put(sg, mm);
-    }
-
-    private void unregisterSong(Song song)
-    {
-        song.removePropertyChangeListener(Song.PROP_CLOSED, this);
-        mapSongMix.remove(song);
-    }
-
     /**
      * Add RhythmVoices and InstrumentMixes copies from midiMixSrc to midiMixDest.
      * <p>

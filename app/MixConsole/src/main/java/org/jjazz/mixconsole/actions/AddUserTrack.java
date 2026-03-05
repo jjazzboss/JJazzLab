@@ -148,7 +148,7 @@ public class AddUserTrack extends AbstractAction
 
 
         // Open the PianoRollEditor
-        MidiMix midiMix = MidiMixManager.getDefault().findExistingMix(song);
+        MidiMix midiMix = MidiMixManager.getDefault().findRegisteredMix(song);
         var userRv = midiMix.getUserRhythmVoice(name);
         assert userRv != null : " midiMix=" + midiMix + " name=" + name;
         SongEditorManager.getDefault().showPianoRollEditorForUserTrack(song, midiMix, userRv);

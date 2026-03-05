@@ -22,6 +22,7 @@
  */
 package org.jjazz.phrase.api;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.HashBiMap;
 import com.thoughtworks.xstream.XStream;
 import java.beans.PropertyChangeListener;
@@ -41,6 +42,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Map;
 import java.util.NavigableSet;
 import java.util.Set;
@@ -143,10 +145,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
      */
     public Phrase(int channel, boolean isDrums)
     {
-        if (!MidiConst.checkMidiChannel(channel))
-        {
-            throw new IllegalArgumentException("channel=" + channel);
-        }
+        Preconditions.checkArgument(MidiConst.checkMidiChannel(channel), "channel=%s", channel);
         this.channel = channel;
         this.isDrums = isDrums;
     }
@@ -180,7 +179,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
         if (p.size() == size())
         {
             var pIt = p.iterator();
-            b = stream().allMatch(ne -> pIt.next().equalsAsNoteNearPosition(ne, nearWindow));
+            b = stream().allMatch(ne -> ne.equalsAsNoteNearPosition(pIt.next(), nearWindow));
         }
         return b;
     }
@@ -494,7 +493,15 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
                 NoteEvent newNe = mapper.apply(ne);
                 if (newNe != ne)
                 {
-                    newNe.getClientProperties().set(ne.getClientProperties());
+                    // Preserve mapper-set client properties: only fill in from ne what newNe doesn't already have
+                    var newProps = newNe.getClientProperties();
+                    for (var k : ne.getClientProperties().getPropertyNames())
+                    {
+                        if (newProps.get(k) == null)
+                        {
+                            newProps.put(k, ne.getClientProperties().get(k));
+                        }
+                    }
                     if (newNe.getClientProperties().get(PARENT_NOTE) == null)
                     {
                         newNe.getClientProperties().put(PARENT_NOTE, ne);         // If no previous PARENT_NOTE client property we can add one
@@ -1024,10 +1031,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
                 {
                     newPosInBeats = 0;
                 }
-                if (newPosInBeats < 0)
-                {
-                    throw new IllegalArgumentException("ne=" + ne + " shiftInBeats=" + shiftInBeats);
-                }
+                Preconditions.checkArgument(newPosInBeats >= 0, "ne=%s shiftInBeats=%s", ne, shiftInBeats);
                 toBeMoved.put(ne, newPosInBeats);
             }
         } else
@@ -1155,7 +1159,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
     @Override
     public NavigableSet<NoteEvent> descendingSet()
     {
-        return noteEvents.descendingSet();
+        return Collections.unmodifiableNavigableSet(noteEvents.descendingSet());
     }
 
     /**
@@ -1188,8 +1192,11 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
      */
     public NavigableSet<NoteEvent> subSet(FloatRange range, boolean excludeUpperBound)
     {
-        return Collections.unmodifiableNavigableSet(noteEvents.subSet(getFloorNote(range.from), true, getCeilNote(range.to),
-                excludeUpperBound));
+        // When excluding the upper bound, use getFloorNote (sorts below all real notes at that position) as
+        // exclusive upper bound. When including, use getCeilNote (sorts above all real notes) as exclusive
+        // upper bound so real notes at range.to are included.
+        NoteEvent upperBound = excludeUpperBound ? getFloorNote(range.to) : getCeilNote(range.to);
+        return Collections.unmodifiableNavigableSet(noteEvents.subSet(getFloorNote(range.from), true, upperBound, false));
     }
 
 
@@ -1319,12 +1326,9 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
         pcs.removePropertyChangeListener(l);
     }
 
-    private void fireUndoableEditHappened(UndoableEdit edit)
+    protected void fireUndoableEditHappened(UndoableEdit edit)
     {
-        if (edit == null)
-        {
-            throw new IllegalArgumentException("edit=" + edit);
-        }
+        Objects.requireNonNull(edit, "edit");
         UndoableEditEvent event = new UndoableEditEvent(this, edit);
         for (UndoableEditListener l : undoListeners.toArray(UndoableEditListener[]::new))
         {
@@ -1334,20 +1338,14 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
 
     public void addUndoableEditListener(UndoableEditListener l)
     {
-        if (l == null)
-        {
-            throw new NullPointerException("l=" + l);
-        }
+        Objects.requireNonNull(l, "l");
         undoListeners.remove(l);
         undoListeners.add(l);
     }
 
     public void removeUndoableEditListener(UndoableEditListener l)
     {
-        if (l == null)
-        {
-            throw new NullPointerException("l=" + l);
-        }
+        Objects.requireNonNull(l, "l");
         undoListeners.remove(l);
     }
     // --------------------------------------------------------------------- 
@@ -1381,21 +1379,15 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
 
         final var biMapOldNew = HashBiMap.create(mapOldNew);
 
-        // Change state
+        // Change state: remove all first to avoid TreeSet position collisions, then add all new ones
         for (var oldNe : mapOldNew.keySet())
         {
-            var newNe = mapOldNew.get(oldNe);
-            if (noteEvents.remove(oldNe))
-            {
-                checkAddNote(newNe);
-                if (!noteEvents.add(newNe))
-                {
-                    throw new IllegalArgumentException("newNe=" + newNe + " already belongs to this phrase=" + this);
-                }
-            } else
-            {
-                throw new IllegalArgumentException("oldNe=" + oldNe + " does not belong to this phrase=" + this);
-            }
+            Preconditions.checkArgument(noteEvents.remove(oldNe), "oldNe=%s does not belong to this phrase=%s", oldNe, this);
+        }
+        for (var newNe : mapOldNew.values())
+        {
+            checkAddNote(newNe);
+            Preconditions.checkArgument(noteEvents.add(newNe), "newNe=%s already belongs to this phrase=%s", newNe, this);
         }
 
 
@@ -1551,10 +1543,7 @@ public class Phrase implements Collection<NoteEvent>, SortedSet<NoteEvent>, Navi
 
     private void checkAddNote(NoteEvent ne)
     {
-        if (!canAddNote(ne))
-        {
-            throw new IllegalArgumentException("ne=" + ne + " this=" + this);
-        }
+        Preconditions.checkArgument(canAddNote(ne), "ne=%s this=%s", ne, this);
     }
 
 
