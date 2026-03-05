@@ -92,10 +92,14 @@ public class JavaLameMp3Encoder implements Mp3Encoder
      */
     private void wavToMp3(File wavFile, File mp3File, int bitRate, boolean useVariableEncoding) throws IOException, UnsupportedAudioFileException
     {
-        var is = new FileInputStream(wavFile);
-        AudioInputStream audioIs = AudioSystem.getAudioInputStream(new BufferedInputStream(is));        // BufferedInputStream needed to add mark/reset support
-        byte[] mp3Bytes = encodeToMp3(audioIs, bitRate, useVariableEncoding);
-        new FileOutputStream(mp3File).write(mp3Bytes);
+        try (var is = new FileInputStream(wavFile); var audioIs = AudioSystem.getAudioInputStream(new BufferedInputStream(is)); var fos = new FileOutputStream(mp3File))
+        {
+            // BufferedInputStream needed to add mark/reset support
+            byte[] mp3Bytes = encodeToMp3(audioIs, bitRate, useVariableEncoding);
+
+            // Save file
+            fos.write(mp3Bytes);
+        } 
     }
 
     /**
