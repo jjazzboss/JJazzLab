@@ -26,7 +26,7 @@ import com.google.common.base.Preconditions;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.beans.PropertyChangeListener;
-import javax.swing.event.SwingPropertyChangeSupport;
+import java.beans.PropertyChangeSupport;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
@@ -53,7 +53,7 @@ public class IP_ChordSymbol implements CLI_ChordSymbol
     /**
      * The listeners for changes in this ChordLeadSheetItem.
      */
-    protected transient SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    protected transient PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
 
     public IP_ChordSymbol(CLI_ChordSymbol item)

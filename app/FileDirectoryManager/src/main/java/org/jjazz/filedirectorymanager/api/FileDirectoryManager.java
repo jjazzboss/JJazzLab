@@ -27,7 +27,7 @@ import java.nio.file.Path;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
-import javax.swing.event.SwingPropertyChangeSupport;
+import java.beans.PropertyChangeSupport;
 import org.openide.modules.InstalledFileLocator;
 import org.openide.modules.Modules;
 import org.openide.modules.Places;
@@ -51,7 +51,7 @@ public class FileDirectoryManager
     private static final Preferences prefs = NbPreferences.forModule(FileDirectoryManager.class);
 
     private static final Logger LOGGER = Logger.getLogger(FileDirectoryManager.class.getSimpleName());
-    private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
     public static FileDirectoryManager getInstance()
     {

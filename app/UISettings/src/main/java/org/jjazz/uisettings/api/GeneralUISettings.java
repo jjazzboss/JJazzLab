@@ -45,7 +45,7 @@ import java.util.regex.Pattern;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.border.Border;
-import javax.swing.event.SwingPropertyChangeSupport;
+import java.beans.PropertyChangeSupport;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.filedirectorymanager.api.FileDirectoryManager;
 import org.jjazz.uiutilities.api.HSLColor;
@@ -119,7 +119,7 @@ public class GeneralUISettings
     private final Theme sessionTheme;
 
     private static final Preferences prefs = NbPreferences.forModule(GeneralUISettings.class);
-    private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(GeneralUISettings.class.getSimpleName());
 
     static public GeneralUISettings getInstance()

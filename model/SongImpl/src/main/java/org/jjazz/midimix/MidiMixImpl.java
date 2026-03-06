@@ -50,6 +50,7 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
+import javax.swing.event.SwingPropertyChangeSupport;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.UndoableEdit;
@@ -132,7 +133,7 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
     private transient File file;
     private transient SongImpl song;
     private ExecutionManager executionManager;
-    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+    private final PropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(MidiMixImpl.class.getSimpleName());
 
     /**

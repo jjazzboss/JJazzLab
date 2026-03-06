@@ -37,7 +37,7 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.event.SwingPropertyChangeSupport;
+import java.beans.PropertyChangeSupport;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.synths.InstrumentFamily;
@@ -166,7 +166,7 @@ public class Humanizer
     private Config config;
     private Map<NoteEvent, NoteEvent> mapNoteOrig = new HashMap<>(); //  note => original note
     private Map<NoteEvent, NoteFactors> mapNoteRandomFactors = new HashMap<>(); //  note => random factors 
-    private final transient SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private final transient PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(Humanizer.class.getSimpleName());
 
     /**

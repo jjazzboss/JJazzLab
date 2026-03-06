@@ -32,7 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import javax.swing.event.SwingPropertyChangeSupport;
+import java.beans.PropertyChangeSupport;
 import org.jjazz.midi.api.DrumKit;
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.InstrumentMix;
@@ -83,7 +83,7 @@ public class MixChannelPanelModelImpl implements MixChannelPanelModel, PropertyC
     private String iconTooltip;
     private ImageIcon icon;
     private Color channelColor = Color.LIGHT_GRAY;
-    private final transient SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private final transient PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private RhythmVoice rhythmVoice;
 
     /**

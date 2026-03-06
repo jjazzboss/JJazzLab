@@ -3,7 +3,7 @@ package org.jjazz.jjswing.bass;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
-import javax.swing.event.SwingPropertyChangeSupport;
+import java.beans.PropertyChangeSupport;
 import org.openide.util.NbPreferences;
 
 /**
@@ -17,7 +17,7 @@ public class BassGeneratorSettings
     private static final String PREF_SWING_PROFILE_INTENSITY = "PrefSwingProfileIntensity";
     private static BassGeneratorSettings INSTANCE;
     private final Preferences prefs = NbPreferences.forModule(BassGeneratorSettings.class);
-    private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
     private static final Logger LOGGER = Logger.getLogger(BassGeneratorSettings.class.getSimpleName());
 

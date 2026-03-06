@@ -31,7 +31,7 @@ import java.util.HashMap;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.JComponent;
-import javax.swing.event.SwingPropertyChangeSupport;
+import java.beans.PropertyChangeSupport;
 import org.openide.util.NbPreferences;
 
 /**
@@ -44,7 +44,7 @@ public class FlatComponentsGlobalSettings
     
     private static FlatComponentsGlobalSettings INSTANCE;
     private final HashMap<WeakReference<JComponent>, MouseWheelListener> mouseWheelInstalledComponents = new HashMap<>();
-    private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private static final Preferences prefs = NbPreferences.forModule(FlatComponentsGlobalSettings.class);
     private static final Logger LOGGER = Logger.getLogger(FlatComponentsGlobalSettings.class.getSimpleName());
 

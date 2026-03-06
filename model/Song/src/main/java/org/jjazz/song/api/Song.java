@@ -87,8 +87,23 @@ public interface Song
     static final Logger LOGGER = Logger.getLogger(Song.class.getSimpleName());
 
 
+    /**
+     * Add a listener.
+     * <p>
+     * Listeners are called on the EDT.
+     *
+     * @param l
+     */
     void addPropertyChangeListener(PropertyChangeListener l);
 
+    /**
+     * Add a listener for propertyName.
+     * <p>
+     * Listeners are called on the EDT.
+     *
+     * @param propertyName
+     * @param l
+     */
     void addPropertyChangeListener(String propertyName, PropertyChangeListener l);
 
     void addUndoableEditListener(UndoableEditListener l);
@@ -209,7 +224,7 @@ public interface Song
     /**
      * Rename a user phrase.
      * <p>
-Fires a PROP_USER_PHRASE_NAME change event.
+     * Fires a PROP_USER_PHRASE_NAME change event.
      *
      * @param name    Must be the name of an existing phrase
      * @param newName

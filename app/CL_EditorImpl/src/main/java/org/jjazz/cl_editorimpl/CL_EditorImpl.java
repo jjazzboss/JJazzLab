@@ -51,7 +51,7 @@ import java.util.stream.IntStream;
 import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
-import javax.swing.event.SwingPropertyChangeSupport;
+import java.beans.PropertyChangeSupport;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.event.*;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
@@ -797,78 +797,74 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     @Override
     public void propertyChange(final PropertyChangeEvent evt)
     {
-        // Changes can be generated outside the EDT
-        org.jjazz.uiutilities.api.UIUtilities.invokeLaterIfNeeded(() -> 
+        if (evt.getSource() == settings)
         {
-            if (evt.getSource() == settings)
+            if (evt.getPropertyName().equals(CL_EditorSettings.PROP_BACKGROUND_COLOR))
             {
-                if (evt.getPropertyName().equals(CL_EditorSettings.PROP_BACKGROUND_COLOR))
+                setBackground(settings.getBackgroundColor());
+            }
+        } else if (evt.getSource() == songModel.getClientProperties())
+        {
+            switch (evt.getPropertyName())
+            {
+                case CL_EditorClientProperties.PROP_BAR_ANNOTATION_VISIBLE ->
                 {
-                    setBackground(settings.getBackgroundColor());
+                    setBarAnnotationVisible(CL_EditorClientProperties.isBarAnnotationVisible(songModel));
                 }
-            } else if (evt.getSource() == songModel.getClientProperties())
-            {
-                switch (evt.getPropertyName())
+                case CL_EditorClientProperties.PROP_BAR_ANNOTATION_NB_LINES ->
                 {
-                    case CL_EditorClientProperties.PROP_BAR_ANNOTATION_VISIBLE ->
-                    {
-                        setBarAnnotationVisible(CL_EditorClientProperties.isBarAnnotationVisible(songModel));
-                    }
-                    case CL_EditorClientProperties.PROP_BAR_ANNOTATION_NB_LINES ->
-                    {
-                        setBarAnnotationNbLines(CL_EditorClientProperties.getBarAnnotationNbLines(songModel));
-                    }
-                    case CL_EditorClientProperties.PROP_ZOOM_FACTOR_Y ->
-                    {
-                        var zoomY = CL_EditorClientProperties.getZoomYFactor(songModel);
-                        for (BarBox bb : getBarBoxes())
-                        {
-                            bb.setZoomVFactor(zoomY);
-                        }
-                    }
+                    setBarAnnotationNbLines(CL_EditorClientProperties.getBarAnnotationNbLines(songModel));
                 }
-            } else if (evt.getSource() instanceof StringProperties sp && sp.getOwner() instanceof CLI_Section cliSection)
-            {
-                switch (evt.getPropertyName())
+                case CL_EditorClientProperties.PROP_ZOOM_FACTOR_Y ->
                 {
-                    case CL_EditorClientProperties.PROP_SECTION_START_ON_NEW_LINE ->
+                    var zoomY = CL_EditorClientProperties.getZoomYFactor(songModel);
+                    for (BarBox bb : getBarBoxes())
                     {
-                        if (cliSection != clsModel.getSection(0))
-                        {
-                            updatePaddingBoxes();
-                        }
+                        bb.setZoomVFactor(zoomY);
                     }
-                }
-            } else if (evt.getSource() == ColorSetManager.getDefault())
-            {
-                if (evt.getPropertyName().equals(ColorSetManager.PROP_REF_COLOR_CHANGED))
-                {
-                    Color oldColor = (Color) evt.getOldValue();
-                    Color newColor = (Color) evt.getNewValue();
-                    // Check if some section colors are impacted
-                    boolean changed = false;
-                    for (var cliSection : songModel.getChordLeadSheet().getItems(CLI_Section.class))
-                    {
-                        if (CL_EditorClientProperties.getSectionColor(cliSection).equals(oldColor))
-                        {
-                            CL_EditorClientProperties.setSectionColor(cliSection, newColor);
-                            changed = true;
-                        }
-                    }
-                    if (changed)
-                    {
-                        songModel.setSaveNeeded(true);
-                    }
-                }
-
-            } else if (evt.getSource() == PlaybackSettings.getInstance())
-            {
-                if (evt.getPropertyName().equals(PlaybackSettings.PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION))
-                {
-                    setDisplayTransposition((int) evt.getNewValue());
                 }
             }
-        });
+        } else if (evt.getSource() instanceof StringProperties sp && sp.getOwner() instanceof CLI_Section cliSection)
+        {
+            switch (evt.getPropertyName())
+            {
+                case CL_EditorClientProperties.PROP_SECTION_START_ON_NEW_LINE ->
+                {
+                    if (cliSection != clsModel.getSection(0))
+                    {
+                        updatePaddingBoxes();
+                    }
+                }
+            }
+        } else if (evt.getSource() == ColorSetManager.getDefault())
+        {
+            if (evt.getPropertyName().equals(ColorSetManager.PROP_REF_COLOR_CHANGED))
+            {
+                Color oldColor = (Color) evt.getOldValue();
+                Color newColor = (Color) evt.getNewValue();
+                // Check if some section colors are impacted
+                boolean changed = false;
+                for (var cliSection : songModel.getChordLeadSheet().getItems(CLI_Section.class))
+                {
+                    if (CL_EditorClientProperties.getSectionColor(cliSection).equals(oldColor))
+                    {
+                        CL_EditorClientProperties.setSectionColor(cliSection, newColor);
+                        changed = true;
+                    }
+                }
+                if (changed)
+                {
+                    songModel.setSaveNeeded(true);
+                }
+            }
+
+        } else if (evt.getSource() == PlaybackSettings.getInstance())
+        {
+            if (evt.getPropertyName().equals(PlaybackSettings.PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION))
+            {
+                setDisplayTransposition((int) evt.getNewValue());
+            }
+        }
     }
 
     private void setDisplayTransposition(int dt)
@@ -1278,8 +1274,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             // Undo: bars are re-inserted, so reverse the deletion
             int newSize = clsModel.getSizeInBars();
             int oldSize = newSize - e.getNbDeletedBars();
-            
-            
+
+
             // Enable the trailing bars with ItemRenderers
             clsSizeChanged(oldSize, newSize);
 
@@ -1897,7 +1893,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     private class CL_EditorZoomable implements Zoomable
     {
 
-        private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+        private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
         @Override
         public Zoomable.Capabilities getZoomCapabilities()

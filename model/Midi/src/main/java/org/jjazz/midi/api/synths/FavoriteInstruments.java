@@ -23,12 +23,12 @@
 package org.jjazz.midi.api.synths;
 
 import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
-import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.MidiSynth;
 import org.openide.util.NbPreferences;
@@ -53,7 +53,7 @@ public class FavoriteInstruments
      * The Preferences of this object.
      */
     private static Preferences prefs = NbPreferences.forModule(FavoriteInstruments.class);
-    private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(FavoriteInstruments.class.getSimpleName());
 
     public static FavoriteInstruments getInstance()

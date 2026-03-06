@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
-import javax.swing.event.SwingPropertyChangeSupport;
+import java.beans.PropertyChangeSupport;
 import org.jjazz.cl_editor.itemrenderer.api.IR_ChordSymbolSettings;
 import org.jjazz.utilities.api.Utilities;
 import org.openide.util.NbPreferences;
@@ -63,7 +63,7 @@ public class IR_ChordSymbolSettingsImpl implements IR_ChordSymbolSettings, FontC
     /**
      * The listeners for changes of this object.
      */
-    private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(IR_ChordSymbolSettingsImpl.class.getName());
 
     public IR_ChordSymbolSettingsImpl()

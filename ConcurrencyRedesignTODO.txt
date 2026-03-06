@@ -1,5 +1,3 @@
-- check SongPart usages as Map keys since now SongPart equals()/hashCode() is defined on content => update unit tests
-
 - check timer usages : use SharedScheduleExecutor ? firing on EDT required (swing timer)
 
 - check song/cls/sgs/songpart/cli/midimix listeners usage: 

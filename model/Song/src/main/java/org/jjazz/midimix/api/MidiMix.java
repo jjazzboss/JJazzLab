@@ -173,8 +173,23 @@ public interface MidiMix
      */
     void removeRhythm(Rhythm r);
 
+    /**
+     * Add a listener.
+     * <p>
+     * Listeners are called on the EDT.
+     *
+     * @param l
+     */
     void addPropertyChangeListener(PropertyChangeListener l);
 
+    /**
+     * Add a listener for propertyName.
+     * <p>
+     * Listeners are called on the EDT.
+     *
+     * @param propertyName
+     * @param l
+     */
     void addPropertyChangeListener(String propertyName, PropertyChangeListener l);
 
     void addUndoableEditListener(UndoableEditListener l);
@@ -454,7 +469,7 @@ public interface MidiMix
         {
             // UTF8 required to support special/accented chars
             XStream xstream = XStreamInstancesManager.getInstance().getLoadMidiMixInstance();
-            
+
             mm = (MidiMix) xstream.fromXML(r);
             mm.setFile(f);
         } catch (XStreamException e)

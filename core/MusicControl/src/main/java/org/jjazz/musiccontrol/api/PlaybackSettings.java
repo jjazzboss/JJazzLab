@@ -39,7 +39,7 @@ import javax.sound.midi.Sequence;
 import javax.sound.midi.Sequencer;
 import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Track;
-import javax.swing.event.SwingPropertyChangeSupport;
+import java.beans.PropertyChangeSupport;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.MidiConst;
@@ -104,7 +104,7 @@ public class PlaybackSettings
     public static final String PROP_MUSIC_GENERATION = "PlaybackSettingsMusicGeneration";
 
     private int loopCount = 0;
-    private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private static Preferences prefs = NbPreferences.forModule(PlaybackSettings.class);
     protected static final Logger LOGGER = Logger.getLogger(PlaybackSettings.class.getSimpleName());
 

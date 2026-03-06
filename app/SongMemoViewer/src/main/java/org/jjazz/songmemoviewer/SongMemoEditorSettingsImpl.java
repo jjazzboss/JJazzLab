@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.UIManager;
-import javax.swing.event.SwingPropertyChangeSupport;
+import java.beans.PropertyChangeSupport;
 import org.jjazz.songmemoviewer.api.SongMemoEditorSettings;
 import org.jjazz.utilities.api.Utilities;
 import org.openide.util.NbPreferences;
@@ -56,7 +56,7 @@ public class SongMemoEditorSettingsImpl implements SongMemoEditorSettings, FontC
     /**
      * The listeners for changes of this object.
      */
-    private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(SongMemoEditorSettingsImpl.class.getName());
 
     public SongMemoEditorSettingsImpl()

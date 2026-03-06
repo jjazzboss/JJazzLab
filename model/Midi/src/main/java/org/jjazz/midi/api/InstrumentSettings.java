@@ -24,6 +24,7 @@ package org.jjazz.midi.api;
 
 import com.thoughtworks.xstream.XStream;
 import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
@@ -33,7 +34,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.sound.midi.MidiMessage;
-import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.xstream.spi.XStreamConfigurator;
 import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_LOAD;
 import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_SAVE;
@@ -70,7 +70,7 @@ public class InstrumentSettings implements Serializable
     private boolean volumeEnabled = true;
     private transient InstrumentMix container;
 
-    private transient SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private transient PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(InstrumentSettings.class.getSimpleName());
 
     /**

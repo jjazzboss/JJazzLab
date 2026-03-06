@@ -216,8 +216,7 @@ public class ControlToolbarPanel extends javax.swing.JPanel implements PropertyC
         @Override
         public void beatChanged(Position oldPos, Position newPos, float newPosInBeats)
         {
-            // Changes are generated outside the EDT
-            SwingUtilities.invokeLater(() -> posModel.set(newPos)); // PositionViewer listens to posModel changes
+            posModel.set(newPos); // PositionViewer listens to posModel changes
         }
     }
 

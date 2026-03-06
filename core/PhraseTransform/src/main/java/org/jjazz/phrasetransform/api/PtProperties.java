@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
-import javax.swing.event.SwingPropertyChangeSupport;
+import java.beans.PropertyChangeSupport;
 
 /**
  * Special properties for PhraseTransformer.
@@ -42,7 +42,7 @@ public class PtProperties extends Properties
 
     public static final String PROP_PROPERTY = "PropProp";
 
-    private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
     /**
      * Create a properties object.

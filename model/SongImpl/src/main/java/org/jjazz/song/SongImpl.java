@@ -53,6 +53,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.event.SwingPropertyChangeSupport;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.UndoableEdit;
@@ -103,8 +104,7 @@ public class SongImpl implements Serializable, PropertyChangeListener, Song
     private volatile transient boolean closed;
     private transient final ExecutionManager executionManager;
     protected transient CopyOnWriteArrayList<UndoableEditListener> undoListeners = new CopyOnWriteArrayList<>();
-    private final transient PropertyChangeSupport pcs = new PropertyChangeSupport(this);
-    private final transient VetoableChangeSupport vcs = new VetoableChangeSupport(this);
+    private final transient PropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(Song.class.getSimpleName());
 
     /**

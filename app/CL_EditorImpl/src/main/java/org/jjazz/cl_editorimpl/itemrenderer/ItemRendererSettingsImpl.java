@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.prefs.Preferences;
 import javax.swing.BorderFactory;
 import javax.swing.border.Border;
-import javax.swing.event.SwingPropertyChangeSupport;
+import java.beans.PropertyChangeSupport;
 import org.jjazz.cl_editor.itemrenderer.api.ItemRendererSettings;
 import org.jjazz.uiutilities.api.FontColorUserSettingsProvider;
 import org.jjazz.uisettings.api.GeneralUISettings;
@@ -53,7 +53,7 @@ public class ItemRendererSettingsImpl implements ItemRendererSettings, FontColor
     /**
      * The listeners for changes of this object.
      */
-    private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
     @Override
     public Color getSelectedBackgroundColor()

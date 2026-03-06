@@ -30,15 +30,13 @@ import org.jjazz.songstructure.api.SongPart;
 /**
  * Listener of events occurring when PlaybackSession is being played by the MusicController.
  * <p>
- * MusicController will fire the events taking into account the user-defined output synth latency. Events are fired on the Event Dispatching Thread. So event
- * handling must be time-efficient.
- * <p>
+ * Musical/real-time events (e.g. beatChanged(), midiActivity(), etc.) are fired on the EDT, taking into account the user-defined output synth latency.
  */
 public interface PlaybackListener
 {
 
     /**
-     * Tell the MusicController if we listen to the specified PlaybackSession.
+     * Indicates if this listener accepts MusicController events related to the specified PlaybackSession.
      *
      * @param session Can not be null
      * @return If true MusicController will send events while playing session. If false no events will be sent.
@@ -57,6 +55,8 @@ public interface PlaybackListener
 
     /**
      * Called on each beat change.
+     * <p>
+     * Call is made on the EDT.
      *
      * @param oldPos
      * @param newPos
@@ -66,6 +66,8 @@ public interface PlaybackListener
 
     /**
      * Called on chord symbol change.
+     * <p>
+     * Call is made on the EDT.
      *
      * @param chordSymbol The current chord symbol with an absolute position (position within the entire song structure).
      */
@@ -73,6 +75,8 @@ public interface PlaybackListener
 
     /**
      * Called on SongPart change.
+     * <p>
+     * Call is made on the EDT.
      *
      * @param spt
      */
@@ -82,6 +86,8 @@ public interface PlaybackListener
      * Indicates some musical activity on specified channel at specified time.
      * <p>
      * Should be used only for non-accurate "musical activity " indicators : if several notes are played in a brief period time, only one event will be fired.
+     * <p>
+     * Call is made on the EDT.
      *
      * @param tick    The approximate tick of the Midi activity. Can be -1 if no tick information available.
      * @param channel

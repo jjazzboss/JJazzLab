@@ -33,7 +33,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Track;
-import javax.swing.event.SwingPropertyChangeSupport;
+import java.beans.PropertyChangeSupport;
 import org.jjazz.musiccontrol.spi.ActiveSongBackgroundMusicBuilder;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.midi.api.InstrumentMix;
@@ -86,7 +86,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     private Map<RhythmVoice, Integer> mapRvTrackId;
     private Map<RhythmVoice, Phrase> mapRvPhrase;
     private Map<Integer, Boolean> mapTrackIdMuted;
-    private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(BaseSongSession.class.getSimpleName());
 
     /**

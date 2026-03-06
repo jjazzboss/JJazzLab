@@ -27,7 +27,7 @@ import java.awt.Font;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
-import javax.swing.event.SwingPropertyChangeSupport;
+import java.beans.PropertyChangeSupport;
 import org.jjazz.pianoroll.spi.PianoRollEditorSettings;
 import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.uiutilities.api.HSLColor;
@@ -46,7 +46,7 @@ public class PianoRollEditorSettingsImpl implements PianoRollEditorSettings
     /**
      * The listeners for changes of this object.
      */
-    private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(PianoRollEditorSettingsImpl.class.getSimpleName());
 
     public PianoRollEditorSettingsImpl()

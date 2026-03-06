@@ -26,12 +26,12 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.Sequencer;
-import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.harmony.api.ChordSymbol;
 import org.jjazz.harmony.spi.ChordTypeDatabase;
@@ -77,7 +77,7 @@ public class Arranger implements SgsChangeListener, PropertyChangeListener
     private SongPart songPartWork;
     private CLI_ChordSymbol firstChordSymbol;
     private boolean playing;
-    private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(Arranger.class.getSimpleName());
 
     /**

@@ -27,7 +27,7 @@ import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.prefs.Preferences;
-import javax.swing.event.SwingPropertyChangeSupport;
+import java.beans.PropertyChangeSupport;
 import org.jjazz.mixconsole.api.MixConsoleSettings;
 import org.jjazz.uiutilities.api.FontColorUserSettingsProvider;
 import org.jjazz.uisettings.api.GeneralUISettings;
@@ -51,7 +51,7 @@ public class MixConsoleSettingsImpl implements MixConsoleSettings, FontColorUser
     /**
      * The listeners for changes of this object.
      */
-    private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
     @Override
     public Color getMixChannelBackgroundColor()

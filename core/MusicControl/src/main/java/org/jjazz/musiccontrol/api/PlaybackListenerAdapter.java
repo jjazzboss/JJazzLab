@@ -32,7 +32,7 @@ import org.jjazz.songstructure.api.SongPart;
 /**
  * Convenience class.
  * <p>
- * Note that methods are called on the Swing Event Dispatching Thread. Event handling must be time-efficient.
+ * Note that methods are called on the Swing EDT.
  */
 public class PlaybackListenerAdapter implements PlaybackListener
 {

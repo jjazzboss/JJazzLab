@@ -25,8 +25,7 @@ package org.jjazz.musiccontrol.api;
 /**
  * A listener to Note ON/OFF events fired by the MusicController.
  * <p>
- * MusicController will fire the events taking into account the user-defined output synth latency. Events are fired by the
- * MusicController on the Event Dispatching Thread, event handling must be time-efficient.
+ * Events are fired outside the EDT and taking into account the user-defined output synth latency.
  */
 public interface NoteListener
 {
@@ -34,11 +33,13 @@ public interface NoteListener
     /**
      * A note ON event has occured.
      * <p>
+     * <p>
+     * Call is made outside the EDT.
      *
      * @param channel
      * @param pitch
      * @param velocity
-     * @param tick The approximate tick at which the event occured. Can be -1 if no tick information available.
+     * @param tick     The approximate tick at which the event occured. Can be -1 if no tick information available.
      */
     void noteOn(long tick, int channel, int pitch, int velocity);
 
@@ -46,9 +47,11 @@ public interface NoteListener
      * A note OFF event has occured.
      * <p>
      *
+     * Call is made outside the EDT.
+     * 
      * @param channel
      * @param pitch
-     * @param tick The approximate tick at which the event occured. Can be -1 if no tick information available.
+     * @param tick    The approximate tick at which the event occured. Can be -1 if no tick information available.
      */
     void noteOff(long tick, int channel, int pitch);
 }

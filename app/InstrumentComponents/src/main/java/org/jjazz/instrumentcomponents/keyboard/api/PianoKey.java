@@ -128,7 +128,7 @@ public class PianoKey extends JComponent
 
     private static final Logger LOGGER = Logger.getLogger(PianoKey.class.getSimpleName());
 
-    // private transient SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    // private transient PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
     /**
      * Create a standard Pianokey with Orientation.DOWN.

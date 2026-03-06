@@ -24,12 +24,12 @@ package org.jjazz.activesong;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.InstrumentSettings;
 import org.jjazz.midi.api.JJazzMidiSystem;
@@ -58,7 +58,7 @@ public class ActiveSongManagerImpl implements PropertyChangeListener, ActiveSong
     private EnumSet<SendMidiMessagePolicy> sendMidiMessagePolicy = EnumSet.allOf(SendMidiMessagePolicy.class);
     private MidiMix activeMidiMix;
     private Song activeSong;
-    private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(ActiveSongManager.class.getSimpleName());
 
 

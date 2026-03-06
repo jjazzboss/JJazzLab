@@ -25,7 +25,7 @@ package org.jjazz.cl_editorimpl;
 import java.awt.Color;
 import java.beans.PropertyChangeListener;
 import java.util.prefs.Preferences;
-import javax.swing.event.SwingPropertyChangeSupport;
+import java.beans.PropertyChangeSupport;
 import org.jjazz.cl_editor.spi.CL_EditorSettings;
 import org.jjazz.uisettings.api.GeneralUISettings;
 import org.jjazz.upgrade.api.UpgradeManager;
@@ -44,7 +44,7 @@ public class CL_EditorSettingsImpl implements CL_EditorSettings
     /**
      * The listeners for changes of this object.
      */
-    private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
     @Override
     public void setBackgroundColor(Color color)

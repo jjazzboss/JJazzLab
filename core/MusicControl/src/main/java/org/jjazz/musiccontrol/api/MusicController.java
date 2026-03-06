@@ -25,12 +25,12 @@ package org.jjazz.musiccontrol.api;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.midi.InvalidMidiDataException;
@@ -63,6 +63,7 @@ import org.jjazz.musiccontrol.api.playbacksession.ControlTrackProvider;
 import org.jjazz.outputsynth.api.OutputSynth;
 import org.jjazz.rhythmmusicgeneration.api.SongSequenceBuilder;
 import org.jjazz.outputsynth.spi.OutputSynthManager;
+import org.jjazz.utilities.api.SharedExecutorServices;
 
 /**
  * Control the music playback of a PlaybackSession.
@@ -73,10 +74,10 @@ import org.jjazz.outputsynth.spi.OutputSynthManager;
  * - start/pause/stop/disabled state changes<br>
  * <p>
  * Use NoteListener to get notified of note ON/OFF events during playback. Use PlaybackListener to get notified of other events such as beat/chord symbol
- * changes -this requires a PlaybackSession which implements ControlTrackprovider. Note that listeners will be notified out of the Swing EDT.<br>
- * The current output synth latency is taken into account to fire events to NoteListeners and PlaybackListeners.
+ * changes -this requires a PlaybackSession which implements ControlTrackprovider. Musical/real-time events such as PlaybackListener.beatChanged() or
+ * NoteListener.noteOn() are fired on the EDT, taking into account the user-defined output synth latency.
  * <p>
- * Use acquireSequencer()/releaseSequencer() if you want to use the Java system sequencer independently.
+ * Use acquireSequencer()/releaseSequencer() if you want to temporarily use the Java system sequencer for another purpose.
  */
 public class MusicController implements PropertyChangeListener, MetaEventListener
 {
@@ -140,12 +141,6 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     private float songPartTempoFactor;
     private int audioLatency;
     /**
-     * Keep track of active timers used to compensate the audio latency.
-     * <p>
-     * Needed to force stop them when sequencer is stopped/paused by user.
-     */
-    private final Set<Timer> audioLatencyTimers;
-    /**
      * Our MidiReceiver to be able to fire events to NoteListeners and PlaybackListener (midiActivity).
      */
     private McReceiver receiver;
@@ -154,8 +149,8 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      */
     private boolean debugPlayedSequence;
     private final PropertyChangeSupport pcs;
-    private final List<PlaybackListener> playbackListeners;
-    private final List<NoteListener> noteListeners;
+    protected final CopyOnWriteArrayList<PlaybackListener> playbackListeners;
+    protected final CopyOnWriteArrayList<NoteListener> noteListeners;
     private static final Logger LOGGER = Logger.getLogger(MusicController.class.getSimpleName());
 
     public static MusicController getInstance()
@@ -176,10 +171,9 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     private MusicController()
     {
         this.pcs = new PropertyChangeSupport(this);
-        this.playbackListeners = new ArrayList<>();
-        this.noteListeners = new ArrayList<>();
+        this.playbackListeners = new CopyOnWriteArrayList<>();
+        this.noteListeners = new CopyOnWriteArrayList<>();
         this.songPartTempoFactor = 1;
-        this.audioLatencyTimers = new HashSet<>();
         this.currentBeatPosition = new Position();
         this.state = State.STOPPED;
         this.sequencer = JJazzMidiSystem.getInstance().getDefaultSequencer();
@@ -520,7 +514,6 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             case PLAYING ->
             {
                 sequencer.stop();
-                clearPendingEvents();
             }
             default -> throw new AssertionError(state.name());
         }
@@ -563,7 +556,6 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
 
         sequencer.stop();
-        clearPendingEvents();
 
 
         // Change state
@@ -707,11 +699,11 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     /**
      * Add a listener of note ON/OFF events.
      * <p>
-     * Listeners will be called out of the Swing EDT (Event Dispatch Thread). Can not be called if MusicController is playing.
+     * Listeners will be called on the Swing EDT (Event Dispatch Thread). Can not be called if MusicController is playing.
      *
      * @param listener
      */
-    public synchronized void addNoteListener(NoteListener listener)
+    public void addNoteListener(NoteListener listener)
     {
         if (isPlaying())
         {
@@ -728,7 +720,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
      *
      * @param listener
      */
-    public synchronized void removeNoteListener(NoteListener listener)
+    public void removeNoteListener(NoteListener listener)
     {
         if (isPlaying())
         {
@@ -740,11 +732,11 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     /**
      * Add a listener to be notified of playback bar/beat changes events etc.
      * <p>
-     * Listeners will be called out of the Swing EDT (Event Dispatch Thread).
+     * Listeners will be called on the Swing EDT (Event Dispatch Thread).
      *
      * @param listener
      */
-    public synchronized void addPlaybackListener(PlaybackListener listener)
+    public void addPlaybackListener(PlaybackListener listener)
     {
         if (!playbackListeners.contains(listener))
         {
@@ -752,17 +744,17 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         }
     }
 
-    public synchronized void removePlaybackListener(PlaybackListener listener)
+    public void removePlaybackListener(PlaybackListener listener)
     {
         playbackListeners.remove(listener);
     }
 
-    public synchronized void addPropertyChangeListener(PropertyChangeListener listener)
+    public void addPropertyChangeListener(PropertyChangeListener listener)
     {
         pcs.addPropertyChangeListener(listener);
     }
 
-    public synchronized void removePropertyChangeListener(PropertyChangeListener listener)
+    public void removePropertyChangeListener(PropertyChangeListener listener)
     {
         pcs.removePropertyChangeListener(listener);
     }
@@ -975,11 +967,17 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     private void firePlaybackListenerEnabledChanged(boolean b)
     {
         // No need to use a latency aware event
-        for (PlaybackListener pl : playbackListeners.toArray(PlaybackListener[]::new))
+        for (PlaybackListener pl : playbackListeners)
         {
             if (playbackSession == null || pl.isAccepted(playbackSession))
             {
-                pl.enabledChanged(b);
+                try
+                {
+                    pl.enabledChanged(b);
+                } catch (Exception e)
+                {
+                    LOGGER.log(Level.WARNING, "firePlaybackListenerEnabledChanged() exception in listener " + pl, e);
+                }
             }
         }
     }
@@ -994,12 +992,18 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
             fireLatencyAwareEvent(() -> 
             {
-                for (PlaybackListener pl : playbackListeners.toArray(PlaybackListener[]::new))
+                for (PlaybackListener pl : playbackListeners)
                 {
                     // playbackSession might be null because in the meantime of the latency firing session was closed ?
                     if (playbackSession == null || pl.isAccepted(playbackSession))
                     {
-                        pl.chordSymbolChanged(cliCs);
+                        try
+                        {
+                            pl.chordSymbolChanged(cliCs);
+                        } catch (Exception e)
+                        {
+                            LOGGER.log(Level.WARNING, "fireChordSymbolChanged() exception in listener " + pl, e);
+                        }
                     }
                 }
             });
@@ -1010,12 +1014,18 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     {
         fireLatencyAwareEvent(() -> 
         {
-            for (PlaybackListener pl : playbackListeners.toArray(PlaybackListener[]::new))
+            for (PlaybackListener pl : playbackListeners)
             {
                 // playbackSession might be null because in the meantime of the latency firing session was closed ?
                 if (playbackSession == null || pl.isAccepted(playbackSession))
                 {
-                    pl.beatChanged(oldPos, newPos, newPosInBeats);
+                    try
+                    {
+                        pl.beatChanged(oldPos, newPos, newPosInBeats);
+                    } catch (Exception e)
+                    {
+                        LOGGER.log(Level.WARNING, "fireBeatChanged() exception in listener " + pl, e);
+                    }
                 }
             }
         });
@@ -1028,12 +1038,18 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             currentSongPart = newSpt;
             fireLatencyAwareEvent(() -> 
             {
-                for (PlaybackListener pl : playbackListeners.toArray(PlaybackListener[]::new))
+                for (PlaybackListener pl : playbackListeners)
                 {
                     // playbackSession might be null because in the meantime of the latency firing session was closed ?
                     if (playbackSession == null || pl.isAccepted(playbackSession))
                     {
-                        pl.songPartChanged(newSpt);
+                        try
+                        {
+                            pl.songPartChanged(newSpt);
+                        } catch (Exception e)
+                        {
+                            LOGGER.log(Level.WARNING, "fireSongPartChanged() exception in listener " + pl, e);
+                        }
                     }
                 }
             });
@@ -1046,7 +1062,13 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         {
             for (NoteListener l : noteListeners)
             {
-                l.noteOn(tick, channel, pitch, velocity);
+                try
+                {
+                    l.noteOn(tick, channel, pitch, velocity);
+                } catch (Exception e)
+                {
+                    LOGGER.log(Level.WARNING, "fireNoteOn() exception in listener " + l, e);
+                }
             }
         });
     }
@@ -1057,7 +1079,13 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         {
             for (NoteListener l : noteListeners)
             {
-                l.noteOff(tick, channel, pitch);
+                try
+                {
+                    l.noteOff(tick, channel, pitch);
+                } catch (Exception e)
+                {
+                    LOGGER.log(Level.WARNING, "fireNoteOff() exception in listener " + l, e);
+                }
             }
         });
     }
@@ -1067,21 +1095,26 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     {
         fireLatencyAwareEvent(() -> 
         {
-            for (PlaybackListener pl : playbackListeners.toArray(PlaybackListener[]::new))
+            for (PlaybackListener pl : playbackListeners)
             {
                 // playbackSession might be null because in the meantime of the latency firing session was closed ?
                 if (playbackSession == null || pl.isAccepted(playbackSession))
                 {
-                    pl.midiActivity(tick, channel);
+                    try
+                    {
+                        pl.midiActivity(tick, channel);
+                    } catch (Exception e)
+                    {
+                        LOGGER.log(Level.WARNING, "fireMidiActivity() exception in listener " + pl, e);
+                    }
                 }
             }
         });
     }
 
     /**
-     * Fire an event on the EDT after a time delay to take into account the current output synth latency.
+     * Fire an event after the audioLatency delay on the EDT.
      * <p>
-     * Active timers are available in audioLatencyTimers.
      *
      * @param r
      */
@@ -1092,35 +1125,11 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             SwingUtilities.invokeLater(r);
         } else
         {
-            Timer t = new Timer(audioLatency, evt -> 
-            {
-                r.run();            // Will be run on the EDT
-            });
-            t.addActionListener(evt -> 
-            {
-                synchronized (audioLatencyTimers)
-                {
-                    audioLatencyTimers.remove(t);
-                }
-            });
-            synchronized (audioLatencyTimers)
-            {
-                audioLatencyTimers.add(t);
-            }
-            t.setRepeats(false);
-            t.start();
-        }
-    }
-
-    /**
-     * When sequencer is stopped or paused, make sure there is no pending events.
-     */
-    private void clearPendingEvents()
-    {
-        for (Iterator<Timer> it = audioLatencyTimers.iterator(); it.hasNext();)
-        {
-            it.next().stop();
-            it.remove();
+            // Most of the listeners use events to update the UI, so safer to fire on EDT.
+            SharedExecutorServices.getScheduledExecutor().schedule(
+                    () -> SwingUtilities.invokeLater(r),
+                     audioLatency,
+                    TimeUnit.MILLISECONDS);
         }
     }
 
@@ -1318,16 +1327,14 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     }
 
     /**
-     * Our Midi Receiver used to fire events to NoteListeners and PlaybackListener.midiActivity().
-     * <p>
-     * Events are fired taking into account the current output synth latency.
+     * Our Midi Receiver used collect Note On/Off events and Midi activity events.
      * <p>
      */
     private class McReceiver implements Receiver
     {
 
         /**
-         * Fire only one Activity event for this period of time, even if there are several notes.
+         * Coalesce activity events during this period of time.
          */
         public static final int ACTIVITY_MIN_PERIOD_MS = 100;
 

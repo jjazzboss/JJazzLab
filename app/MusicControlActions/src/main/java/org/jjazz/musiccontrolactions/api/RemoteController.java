@@ -32,7 +32,7 @@ import java.util.prefs.Preferences;
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.Receiver;
 import javax.swing.SwingUtilities;
-import javax.swing.event.SwingPropertyChangeSupport;
+import java.beans.PropertyChangeSupport;
 import org.jjazz.midi.api.JJazzMidiSystem;
 import org.openide.util.Lookup;
 import org.openide.util.NbPreferences;
@@ -49,7 +49,7 @@ public class RemoteController
     private final List<RemoteAction> remoteActions;
     private boolean isEnabled;
 
-    private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private static final Preferences prefs = NbPreferences.forModule(RemoteController.class);
     private static final Logger LOGGER = Logger.getLogger(RemoteController.class.getSimpleName());
 

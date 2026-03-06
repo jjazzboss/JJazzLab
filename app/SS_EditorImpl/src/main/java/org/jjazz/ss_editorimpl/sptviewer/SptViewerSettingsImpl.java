@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.prefs.Preferences;
 import javax.swing.BorderFactory;
 import javax.swing.border.Border;
-import javax.swing.event.SwingPropertyChangeSupport;
+import java.beans.PropertyChangeSupport;
 import org.jjazz.ss_editor.sptviewer.spi.SptViewerSettings;
 import org.jjazz.uiutilities.api.FontColorUserSettingsProvider;
 import org.jjazz.uisettings.api.GeneralUISettings;
@@ -59,7 +59,7 @@ public class SptViewerSettingsImpl implements SptViewerSettings, FontColorUserSe
     /**
      * The listeners for changes of this object.
      */
-    private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
     @Override
     public void setDefaultBackgroundColor(Color color)

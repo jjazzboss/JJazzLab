@@ -77,6 +77,7 @@ import org.jjazz.rhythmparametersimpl.api.RP_SYS_Mute;
 import org.jjazz.rhythmparametersimpl.api.RP_SYS_OverrideTracks;
 import org.jjazz.rhythmparametersimpl.api.RP_SYS_TempoFactor;
 import org.jjazz.rhythmparametersimpl.api.RP_SYS_Variation;
+import org.jjazz.utilities.api.SharedExecutorServices;
 
 /**
  * An advanced swing rhythm which uses a specific generator for the bass (walking, etc.).
@@ -129,7 +130,7 @@ public class JJSwingRhythm implements YamJJazzRhythm
         rhythmParameters = buildRhythmParameters(baseRhythm);
 
         // Need task to avoid endless loop with the RhythmDatabase constructor
-        SwingUtilities.invokeLater(() -> musicGenerator = new CompositeMusicGenerator(this, buildRvMapper()));
+        SharedExecutorServices.getScheduledExecutor().submit(() -> musicGenerator = new CompositeMusicGenerator(this, buildRvMapper()));
     }
 
     @Override

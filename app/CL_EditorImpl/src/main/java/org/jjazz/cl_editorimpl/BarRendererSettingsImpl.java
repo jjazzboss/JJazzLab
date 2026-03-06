@@ -25,7 +25,7 @@ package org.jjazz.cl_editorimpl;
 import java.beans.PropertyChangeListener;
 import java.util.prefs.Preferences;
 import javax.swing.border.Border;
-import javax.swing.event.SwingPropertyChangeSupport;
+import java.beans.PropertyChangeSupport;
 import org.jjazz.cl_editor.spi.BarRendererSettings;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
@@ -41,7 +41,7 @@ public class BarRendererSettingsImpl implements BarRendererSettings
     /**
      * The listeners for changes of this object.
      */
-    private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
     @Override
     public Border getDefaultBorder()

@@ -31,6 +31,7 @@ import javax.swing.Action;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackListenerAdapter;
@@ -75,9 +76,9 @@ public class PlaybackAutoScroll extends ToggleAction implements PropertyChangeLi
 
 
         editor.addPropertyChangeListener(this);
-        
-        
-        var mc = MusicController.getInstance();        
+
+
+        var mc = MusicController.getInstance();
         musicListener.enabled = mc.isPlaying() || mc.isPaused();
     }
 
@@ -156,7 +157,7 @@ public class PlaybackAutoScroll extends ToggleAction implements PropertyChangeLi
         {
             super(EnumSet.of(PlaybackSession.Context.SONG));
         }
-        
+
         @Override
         public void beatChanged(Position oldPos, Position newPos, float newPosInBeats)
         {

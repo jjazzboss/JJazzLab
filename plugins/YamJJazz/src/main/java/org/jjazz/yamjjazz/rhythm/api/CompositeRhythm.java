@@ -39,7 +39,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.event.SwingPropertyChangeSupport;
+import java.beans.PropertyChangeSupport;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.phrasetransform.api.rps.RP_SYS_DrumsTransform;
 import org.jjazz.rhythm.api.MusicGenerationException;
@@ -69,7 +69,7 @@ public class CompositeRhythm implements YamJJazzRhythm
     private MusicGenerator musicGenerator;
     private final List<RhythmParameter<?>> rhythmParameters;
     private final List<RhythmVoice> rhythmVoices;
-    private final transient PropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private final transient PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(CompositeRhythm.class.getSimpleName());
 
     public CompositeRhythm(YamJJazzRhythm baseRhythm)

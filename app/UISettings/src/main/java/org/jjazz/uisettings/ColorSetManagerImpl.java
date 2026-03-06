@@ -29,7 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.prefs.Preferences;
-import javax.swing.event.SwingPropertyChangeSupport;
+import java.beans.PropertyChangeSupport;
 import org.openide.util.NbPreferences;
 import org.jjazz.uisettings.api.ColorSetManager;
 import org.jjazz.upgrade.api.UpgradeManager;
@@ -75,7 +75,7 @@ public class ColorSetManagerImpl implements ColorSetManager
     /**
      * Listeners for reference colors changes.
      */
-    private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
     static public ColorSetManagerImpl getInstance()
     {

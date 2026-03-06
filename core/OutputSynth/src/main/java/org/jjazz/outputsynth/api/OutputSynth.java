@@ -459,9 +459,9 @@ public class OutputSynth
 
 
         /**
-         * Get the value of AudioLatency
+         * Get the value of AudioLatency (ms).
          *
-         * @return the value of AudioLatency
+         * @return 
          */
         public int getAudioLatency()
         {
@@ -469,9 +469,9 @@ public class OutputSynth
         }
 
         /**
-         * Set the value of AudioLatency
+         * Set the value of AudioLatency (ms).
          *
-         * @param audioLatency new value of AudioLatency
+         * @param audioLatency 
          */
         public void setAudioLatency(int audioLatency)
         {

@@ -34,7 +34,7 @@ import java.util.prefs.Preferences;
 import javax.swing.BorderFactory;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
-import javax.swing.event.SwingPropertyChangeSupport;
+import java.beans.PropertyChangeSupport;
 import org.jjazz.ss_editor.rpviewer.api.RpViewerSettings;
 import org.jjazz.ss_editor.sptviewer.spi.SptViewerSettings;
 import org.jjazz.uiutilities.api.FontColorUserSettingsProvider;
@@ -62,7 +62,7 @@ public class RpViewerSettingsImpl implements RpViewerSettings, FontColorUserSett
     /**
      * The listeners for changes of this object.
      */
-    private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(RpViewerSettingsImpl.class.getSimpleName());
 
     public RpViewerSettingsImpl()

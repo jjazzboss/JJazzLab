@@ -40,7 +40,7 @@ import java.util.logging.Logger;
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Track;
-import javax.swing.event.SwingPropertyChangeSupport;
+import java.beans.PropertyChangeSupport;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.midi.api.MidiUtilities;
@@ -168,7 +168,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
     private final HashMap<Integer, Boolean> mapTrackIdMuted = new HashMap<>();
     private static final List<UpdatableSongSession> sessions = new ArrayList<>();
 
-    private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(UpdatableSongSession.class.getSimpleName());
 
 

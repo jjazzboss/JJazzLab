@@ -36,7 +36,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.event.SwingPropertyChangeSupport;
+import java.beans.PropertyChangeSupport;
 import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.MidiConst;
 import org.jjazz.musiccontrol.spi.ActiveSongBackgroundMusicBuilder;
@@ -72,7 +72,7 @@ public class GhostPhrasesModel implements PropertyChangeListener, ChangeListener
     private volatile Map<Integer, Phrase> mapChannelPhrase = new HashMap<>();
     private volatile Set<Integer> visibleChannels = new HashSet<>();
     private int editedChannel;
-    private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(GhostPhrasesModel.class.getSimpleName());
 
 

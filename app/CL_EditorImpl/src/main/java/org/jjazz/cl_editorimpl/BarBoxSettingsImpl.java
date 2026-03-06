@@ -31,7 +31,7 @@ import java.util.prefs.Preferences;
 import javax.swing.BorderFactory;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
-import javax.swing.event.SwingPropertyChangeSupport;
+import java.beans.PropertyChangeSupport;
 import org.jjazz.cl_editor.spi.BarBoxSettings;
 import org.jjazz.utilities.api.Utilities;
 import org.openide.util.NbPreferences;
@@ -57,7 +57,7 @@ public class BarBoxSettingsImpl implements BarBoxSettings, FontColorUserSettings
     /**
      * The listeners for changes of this object.
      */
-    private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     ArrayList<FontColorUserSettingsProvider.FCSetting> fcSettings = new ArrayList<>();
 
     public BarBoxSettingsImpl()

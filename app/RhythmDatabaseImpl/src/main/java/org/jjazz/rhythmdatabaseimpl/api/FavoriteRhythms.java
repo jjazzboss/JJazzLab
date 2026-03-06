@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
-import javax.swing.event.SwingPropertyChangeSupport;
+import java.beans.PropertyChangeSupport;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.rhythm.spi.RhythmProvider;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
@@ -55,7 +55,7 @@ public class FavoriteRhythms
     private static final String PREF_NB_FAVORITE_RHYTHMS = "PropNbFavoriteRhythms";
     private final ArrayList<RhythmInfo> rhythms = new ArrayList<>();
     private static final Preferences prefs = NbPreferences.forModule(FavoriteRhythms.class);
-    private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(FavoriteRhythms.class.getSimpleName());
 
     public static FavoriteRhythms getInstance()

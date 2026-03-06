@@ -28,7 +28,7 @@ import java.beans.PropertyChangeListener;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
-import javax.swing.event.SwingPropertyChangeSupport;
+import java.beans.PropertyChangeSupport;
 import org.jjazz.cl_editor.itemrenderer.api.IR_AnnotationTextSettings;
 import org.jjazz.uiutilities.api.FontColorUserSettingsProvider;
 import org.jjazz.uisettings.api.GeneralUISettings;
@@ -53,7 +53,7 @@ public class IR_AnnotationTextSettingsImpl implements IR_AnnotationTextSettings,
     /**
      * The listeners for changes of this object.
      */
-    private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(IR_AnnotationTextSettingsImpl.class.getName());
 
     @Override

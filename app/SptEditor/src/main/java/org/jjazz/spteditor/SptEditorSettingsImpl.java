@@ -25,7 +25,7 @@ package org.jjazz.spteditor;
 import java.awt.Font;
 import java.beans.PropertyChangeListener;
 import java.util.prefs.Preferences;
-import javax.swing.event.SwingPropertyChangeSupport;
+import java.beans.PropertyChangeSupport;
 import org.jjazz.spteditor.api.SptEditorSettings;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.api.UpgradeTask;
@@ -44,7 +44,7 @@ public class SptEditorSettingsImpl extends SptEditorSettings
     /**
      * The listeners for changes of this object.
      */
-    private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
     @Override
     public void setNameFont(Font font)

@@ -25,12 +25,12 @@
 package org.jjazz.rhythm.api;
 
 import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.io.File;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
-import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.rhythm.spi.RhythmDirsLocator;
 
 /**
@@ -43,7 +43,7 @@ public class RhythmDirsLocatorImpl implements RhythmDirsLocator
 
     private final Preferences prefs;
     private final String defaultUserRhythmDir;
-    private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(RhythmDirsLocatorImpl.class.getSimpleName());
 
     /**

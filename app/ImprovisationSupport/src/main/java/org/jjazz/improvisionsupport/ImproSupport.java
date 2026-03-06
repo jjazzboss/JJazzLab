@@ -32,7 +32,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
-import javax.swing.event.SwingPropertyChangeSupport;
+import java.beans.PropertyChangeSupport;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.improvisionsupport.PlayRestScenario.DenseSparseValue;
 import org.jjazz.improvisionsupport.PlayRestScenario.PlayRestValue;
@@ -70,7 +70,7 @@ public class ImproSupport implements PropertyChangeListener
     private final SongMetaEvents songMetaEvents;
     private boolean dirty;
 
-    private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(ImproSupport.class.getSimpleName());
 
     public ImproSupport(CL_Editor clEditor)

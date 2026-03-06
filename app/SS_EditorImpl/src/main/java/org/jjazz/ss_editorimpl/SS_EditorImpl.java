@@ -52,7 +52,7 @@ import java.util.logging.Logger;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
-import javax.swing.event.SwingPropertyChangeSupport;
+import java.beans.PropertyChangeSupport;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.rhythm.api.Rhythm;
@@ -367,7 +367,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         SptViewer rpe = getSptViewer(spt);
         assert rpe != null;
         rpe.setSelected(b);
-         var selSpt = new SelectedSongPart(spt);
+        var selSpt = new SelectedSongPart(spt);
         if (b)
         {
             // Warning ! If item is mutable, make sure item uses Object's equals() and hashCode() !
@@ -681,67 +681,62 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     @Override
     public void propertyChange(final PropertyChangeEvent evt)
     {
-        // Model changes can be generated outside the EDT
-        Runnable run = () -> 
+        if (evt.getSource() == settings)
         {
-            if (evt.getSource() == settings)
-            {
-                updateUIComponents();
+            updateUIComponents();
 
-            } else if (evt.getSource() == songModel.getClientProperties())
+        } else if (evt.getSource() == songModel.getClientProperties())
+        {
+            switch (evt.getPropertyName())
             {
-                switch (evt.getPropertyName())
+                case SS_EditorClientProperties.PROP_ZOOM_FACTOR_X, SS_EditorClientProperties.PROP_ZOOM_FACTOR_Y ->
                 {
-                    case SS_EditorClientProperties.PROP_ZOOM_FACTOR_X, SS_EditorClientProperties.PROP_ZOOM_FACTOR_Y ->
+                    boolean isX = evt.getPropertyName().equals(SS_EditorClientProperties.PROP_ZOOM_FACTOR_X);
+                    int zFactor = isX ? getZoomXFactor(songModel) : getZoomYFactor(songModel);
+                    for (SptViewer sptv : getSptViewers())
                     {
-                        boolean isX = evt.getPropertyName().equals(SS_EditorClientProperties.PROP_ZOOM_FACTOR_X);
-                        int zFactor = isX ? getZoomXFactor(songModel) : getZoomYFactor(songModel);
-                        for (SptViewer sptv : getSptViewers())
+                        if (isX)
                         {
-                            if (isX)
-                            {
-                                sptv.setZoomHFactor(zFactor);
-                            } else
-                            {
-                                sptv.setZoomVFactor(zFactor);
-                            }
+                            sptv.setZoomHFactor(zFactor);
+                        } else
+                        {
+                            sptv.setZoomVFactor(zFactor);
                         }
-                        revalidate();
-                        repaint();
                     }
-                    case SS_EditorClientProperties.PROP_VIEW_MODE ->
-                    {
-                        boolean compact = getViewMode(songModel).equals(ViewMode.COMPACT);
-                        var allRhythms = sgsModel.getUniqueRhythms(false, true);
+                    revalidate();
+                    repaint();
+                }
+                case SS_EditorClientProperties.PROP_VIEW_MODE ->
+                {
+                    boolean compact = getViewMode(songModel).equals(ViewMode.COMPACT);
+                    var allRhythms = sgsModel.getUniqueRhythms(false, true);
 
-                        for (var r : allRhythms)
-                        {
-                            List<RhythmParameter<?>> rps = compact ? getCompactViewModeVisibleRPs(songModel, r) : r.getRhythmParameters();
-                            setVisibleRps(r, rps);
-                        }
-                    }
-                    default ->
+                    for (var r : allRhythms)
                     {
-                        var rId = getRhythmIdFromCompactViewRhythmPropertyName(evt.getPropertyName());
-                        if (rId != null)
+                        List<RhythmParameter<?>> rps = compact ? getCompactViewModeVisibleRPs(songModel, r) : r.getRhythmParameters();
+                        setVisibleRps(r, rps);
+                    }
+                }
+                default ->
+                {
+                    var rId = getRhythmIdFromCompactViewRhythmPropertyName(evt.getPropertyName());
+                    if (rId != null)
+                    {
+                        // Compact RP list for rhythm rId has changed
+                        if (getViewMode(songModel).equals(ViewMode.COMPACT))
                         {
-                            // Compact RP list for rhythm rId has changed
-                            if (getViewMode(songModel).equals(ViewMode.COMPACT))
-                            {
-                                var r = sgsModel.getSongParts().stream()
-                                        .filter(spt -> spt.getRhythm().getUniqueId().equals(rId))
-                                        .map(spt -> spt.getRhythm())
-                                        .findAny()
-                                        .orElseThrow(() -> new IllegalStateException("rId=" + rId + " sgsModel=" + sgsModel));
-                                var rps = getCompactViewModeVisibleRPs(songModel, r);
-                                setVisibleRps(r, rps);
-                            }
+                            var r = sgsModel.getSongParts().stream()
+                                    .filter(spt -> spt.getRhythm().getUniqueId().equals(rId))
+                                    .map(spt -> spt.getRhythm())
+                                    .findAny()
+                                    .orElseThrow(() -> new IllegalStateException("rId=" + rId + " sgsModel=" + sgsModel));
+                            var rps = getCompactViewModeVisibleRPs(songModel, r);
+                            setVisibleRps(r, rps);
                         }
                     }
                 }
             }
-        };
-        UIUtilities.invokeLaterIfNeeded(run);
+        }
     }
 
     //------------------------------------------------------------------------------
@@ -1238,7 +1233,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     {
 
         int yFactor = 50;
-        private final SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+        private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
         @Override
         public Zoomable.Capabilities getZoomCapabilities()

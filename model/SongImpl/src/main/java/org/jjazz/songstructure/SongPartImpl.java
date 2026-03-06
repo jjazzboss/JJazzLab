@@ -40,6 +40,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.rhythm.api.Rhythm;
@@ -107,7 +108,7 @@ public class SongPartImpl implements SongPart, Serializable
     /**
      * The listeners for changes in this model.
      */
-    private final transient PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+    private final transient PropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(SongPartImpl.class.getSimpleName());
 
 

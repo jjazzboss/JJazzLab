@@ -25,6 +25,7 @@ package org.jjazz.midi.api;
 import com.google.common.base.Preconditions;
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.io.File;
 import java.io.IOException;
 import org.jjazz.midi.api.device.MidiFilter;
@@ -45,7 +46,6 @@ import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Soundbank;
 import javax.sound.midi.Synthesizer;
 import javax.sound.midi.Transmitter;
-import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.midi.api.device.JJazzMidiDevice;
 import org.jjazz.midi.api.device.MidiFilter.Config;
 import org.jjazz.utilities.api.ResUtil;
@@ -129,7 +129,7 @@ public final class JJazzMidiSystem
      * The Preferences of this object.
      */
     private static final Preferences prefs = NbPreferences.forModule(JJazzMidiSystem.class);
-    private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(JJazzMidiSystem.class.getSimpleName());
 
     static public JJazzMidiSystem getInstance()

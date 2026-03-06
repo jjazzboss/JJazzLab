@@ -26,6 +26,7 @@ package org.jjazz.musiccontrol.api;
 
 import java.util.ArrayList;
 import java.util.logging.Logger;
+import javax.swing.SwingUtilities;
 import org.jjazz.midi.api.MidiConst;
 
 /**
@@ -36,6 +37,9 @@ import org.jjazz.midi.api.MidiConst;
 public class MidiActivityMonitor
 {
 
+    /**
+     * Listener is notified on the EDT.
+     */
     public interface Listener
     {
 

@@ -51,8 +51,8 @@ public interface SongPart extends Transferable
     public static final String PROP_NAME = "SptName";
     /**
      * The rhythm and/or the parent section has changed.
-     * 
-     * oldValue=old rhythm, newValue=old parent section. 
+     * <p>
+     * oldValue=old rhythm, newValue=old parent section.
      */
     public static final String PROP_RHYTHM_PARENT_SECTION = "SptRhythmParentSection";
     public static final DataFlavor DATA_FLAVOR = new DataFlavor(SongPart.class, "Song Part");
@@ -130,8 +130,10 @@ public interface SongPart extends Transferable
     SongPart getCopy(Rhythm r, int startBarIndex, int nbBars, CLI_Section parentSection);
 
     /**
-     * Because listeners are called outside read/write lock, listeners should rely on event's embedded data rather than on the model itself (which could
-     * theoretically be modified by another thread).
+     * Add a listener.
+     * <p>
+     * Listeners will be called on the EDT. Because listeners are called outside read/write lock, listeners should rely on event's embedded data rather than on
+     * the model itself (which could theoretically be modified by another thread).
      *
      * @param l
      */

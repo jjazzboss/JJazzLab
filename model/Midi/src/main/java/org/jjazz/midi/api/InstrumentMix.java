@@ -24,6 +24,7 @@ package org.jjazz.midi.api;
 
 import com.thoughtworks.xstream.XStream;
 import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
@@ -32,7 +33,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import javax.sound.midi.MidiMessage;
-import javax.swing.event.SwingPropertyChangeSupport;
 import org.jjazz.xstream.spi.XStreamConfigurator;
 import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_LOAD;
 import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_SAVE;
@@ -58,7 +58,7 @@ public class InstrumentMix implements Serializable
     private boolean instrumentEnabled = true;
     private boolean mute = false;
     private transient boolean solo = false;
-    private transient SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private transient PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
     public InstrumentMix(Instrument instrument, InstrumentSettings settings)
     {

@@ -29,7 +29,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
-import javax.swing.event.SwingPropertyChangeSupport;
+import java.beans.PropertyChangeSupport;
 import org.jjazz.cl_editor.itemrenderer.api.IR_SectionSettings;
 import org.jjazz.uiutilities.api.FontColorUserSettingsProvider;
 import org.jjazz.uisettings.api.GeneralUISettings;
@@ -54,7 +54,7 @@ public class IR_SectionSettingsImpl implements IR_SectionSettings, FontColorUser
     /**
      * The listeners for changes of this object.
      */
-    private SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+    private PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(IR_SectionSettingsImpl.class.getName());
 
     @Override
