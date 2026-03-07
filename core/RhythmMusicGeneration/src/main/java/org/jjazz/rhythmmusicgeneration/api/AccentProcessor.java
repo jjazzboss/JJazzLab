@@ -49,13 +49,12 @@ import org.jjazz.utilities.api.FloatRange;
 import org.jjazz.utilities.api.IntRange;
 
 /**
- * Phrase manipulation methods dealing with accents.
+ * Modify phrases depending CLI_ChordSymbol accents.
  *
  * @see ChordRenderingInfo
  */
 public class AccentProcessor
 {
-
 
     /**
      * For a given phrase decide how chord symbols with HOLD/SHOT/EXTENDED_HOLD_SHOT rendering options should be processed.
@@ -83,21 +82,38 @@ public class AccentProcessor
     private final float preCellBeatWindow;
     private final TimeSignature timeSignature;
     private int tempo;
-
+    private final AccentProcessorConfig config;
     protected static final Logger LOGGER = Logger.getLogger(AccentProcessor.class.getSimpleName());
 
+
     /**
-     * Construct an object to manipulate phrases corresponding to the specified parameters.
+     * Create an AccentProcessor using a default configuration.
+     *
+     * @param cSeq
+     * @param nbCellsPerBeat
+     * @param tempo
+     * @param preCellBeatWindow
+     */
+    public AccentProcessor(SimpleChordSequence cSeq, int nbCellsPerBeat, int tempo, float preCellBeatWindow)
+    {
+        this(cSeq, nbCellsPerBeat, tempo, preCellBeatWindow, new AccentProcessorConfig());
+    }
+
+    /**
+     * Construct an AccentProcessor to manipulate phrases corresponding to the specified parameters.
      *
      * @param cSeq              Can't be empty. The start position in beats must be an arithmetic integer.
      * @param nbCellsPerBeat    4 or 3. 3 should be used for ternary feel rhythm or 3/8 or 6/8 or 12/8 time signatures.
      * @param tempo             Required to best adjust e.g. "shot" notes duration
      * @param preCellBeatWindow A value in the range [0;1/nbCellsPerBeat[. Used to accomodate for non-quantized notes: notes whose relative position is &gt;
      *                          -preCellBeatWindow will be included in the current cell.
+     * @param config
+     *
      */
-    public AccentProcessor(SimpleChordSequence cSeq, int nbCellsPerBeat, int tempo, float preCellBeatWindow)
+    public AccentProcessor(SimpleChordSequence cSeq, int nbCellsPerBeat, int tempo, float preCellBeatWindow, AccentProcessorConfig config)
     {
         Objects.requireNonNull(cSeq);
+        Objects.requireNonNull(config);
         Preconditions.checkArgument(!cSeq.isEmpty());
         Preconditions.checkArgument(cSeq.getStartBeatPosition() >= 0 && cSeq.getStartBeatPosition() == Math.floor(cSeq.getStartBeatPosition()),
                 "cSeq.getStartBeatPosition()=%s",
@@ -106,7 +122,7 @@ public class AccentProcessor
         Preconditions.checkArgument(TempoRange.checkTempo(tempo), "tempo=%s", tempo);
         Preconditions.checkArgument(nbCellsPerBeat >= 3 && nbCellsPerBeat <= 4, "nbCellsPerBeat=%s", nbCellsPerBeat);
 
-
+        this.config = config;
         this.simpleChordSequence = cSeq;
         this.cSeqBeatRange = cSeq.getBeatRange();
         timeSignature = simpleChordSequence.getTimeSignature();
@@ -164,16 +180,15 @@ public class AccentProcessor
         for (CLI_ChordSymbol cliCs : simpleChordSequence)
         {
 
-            GridChordContext gct = new GridChordContext(cliCs, simpleChordSequence, gdh.gridAccents);
+
             ChordRenderingInfo cri = cliCs.getData().getRenderingInfo();
-
-
             if (!isProcessHoldShot(cri, hsMode))
             {
                 // Nothing to do
                 continue;
             }
 
+            GridChordContext gct = new GridChordContext(cliCs, simpleChordSequence, gdh.gridAccents);
 
 //        LOGGER.log(Level.FINE, "processHoldShotDrums() gct={0}, features={1}", new Object[]
 //        {
@@ -183,7 +198,7 @@ public class AccentProcessor
             if (gct.afterCellRange.isEmpty())
             {
                 // Nothing to do
-                return;
+                continue;
             }
 
             // Clean a number of cells
@@ -227,15 +242,14 @@ public class AccentProcessor
         for (CLI_ChordSymbol cliCs : simpleChordSequence)
         {
 
-            GridChordContext gct = new GridChordContext(cliCs, simpleChordSequence, gdh.gridAccents);
             ChordRenderingInfo cri = cliCs.getData().getRenderingInfo();
-
             if (cri.getAccentFeature() == null)
             {
                 // No accent, nothing todo
                 continue;
             }
 
+            GridChordContext gct = new GridChordContext(cliCs, simpleChordSequence, gdh.gridAccents);
 //        LOGGER.log(Level.FINE, "processAccentDrums() gct={0}, features={1}", new Object[]
 //        {
 //            gct, cri.getFeatures()
@@ -329,16 +343,14 @@ public class AccentProcessor
         for (CLI_ChordSymbol cliCs : simpleChordSequence)
         {
 
-            GridChordContext gct = new GridChordContext(cliCs, simpleChordSequence, grid);
             ChordRenderingInfo cri = cliCs.getData().getRenderingInfo();
-
-
             if (cri.getAccentFeature() == null)
             {
                 // No accent, nothing todo
                 continue;
             }
 
+            GridChordContext gct = new GridChordContext(cliCs, simpleChordSequence, grid);
             // LOGGER.log(Level.FINE, "processAccentBass()   BEFORE grid={0}", gct.grid.toString(gct.chordCell - 4, gct.chordCell + 6));
 
             int notePitch;
@@ -404,15 +416,14 @@ public class AccentProcessor
         for (CLI_ChordSymbol cliCs : simpleChordSequence)
         {
 
-            GridChordContext gct = new GridChordContext(cliCs, simpleChordSequence, grid);
             ChordRenderingInfo cri = cliCs.getData().getRenderingInfo();
-
-
             if (!isProcessHoldShot(cri, hsMode))
             {
                 // Nothing todo
                 continue;
             }
+
+            GridChordContext gct = new GridChordContext(cliCs, simpleChordSequence, grid);
 
 
 //        LOGGER.log(Level.FINE, "processHoldShotMono() gct={0}, features={1}", new Object[]
@@ -477,7 +488,7 @@ public class AccentProcessor
     public void processHoldShotChord(Phrase p, HoldShotMode hsMode)
     {
         Objects.requireNonNull(p);
-        Objects.requireNonNull(p);
+        Objects.requireNonNull(hsMode);
 //        if (!p.isEmpty() && p.getNotesBeatRange().from < cSeqBeatRange.from)
 //        {
 //            throw new IllegalArgumentException("hsMode=" + hsMode + " p=" + p);   //NOI18N
@@ -499,16 +510,14 @@ public class AccentProcessor
 
         for (CLI_ChordSymbol cliCs : simpleChordSequence)
         {
-
-            GridChordContext gct = new GridChordContext(cliCs, simpleChordSequence, grid);
             ChordRenderingInfo cri = cliCs.getData().getRenderingInfo();
-
             if (!isProcessHoldShot(cri, hsMode))
             {
                 // Nothing to do
                 continue;
             }
 
+            GridChordContext gct = new GridChordContext(cliCs, simpleChordSequence, grid);
 
 //        LOGGER.log(Level.FINE, "processHoldShotChord() gct={0}, features={1}", new Object[]
 //        {
@@ -591,15 +600,14 @@ public class AccentProcessor
         for (CLI_ChordSymbol cliCs : simpleChordSequence)
         {
 
-            GridChordContext gct = new GridChordContext(cliCs, simpleChordSequence, grid);
             ChordRenderingInfo cri = cliCs.getData().getRenderingInfo();
-
             if (cri.getAccentFeature() == null)
             {
                 // Nothing to do
                 continue;
             }
 
+            GridChordContext gct = new GridChordContext(cliCs, simpleChordSequence, grid);
 
 //        LOGGER.log(Level.FINE, "processAccentChord() gct={0}, features={1}", new Object[]
 //        {
@@ -609,7 +617,7 @@ public class AccentProcessor
             if (gct.grid.isEmpty(gct.chordCell))
             {
                 // Nothing to do
-                return;
+                continue;
             }
 
             // There are notes
@@ -656,25 +664,25 @@ public class AccentProcessor
     {
         if (cri.hasOneFeature(Feature.EXTENDED_HOLD_SHOT))
         {
-            return 10000;
+            return 10000;  // to make sure we have a silence until next chord symbol
         }
         int nbCells = gct.grid.getNbCellsPerBeat() * 2 - 1;
         if (TempoRange.SLOW.contains(tempo))
         {
-            nbCells = Math.round(nbCells * 1f);
+            nbCells = Math.round(nbCells * config.holdShotPostSilenceMultiplierSlow);
         } else if (TempoRange.MEDIUM_SLOW.contains(tempo))
         {
-            nbCells = Math.round(nbCells * 1.2f);
+            nbCells = Math.round(nbCells * config.holdShotPostSilenceMultiplierMediumSlow);
         } else if (TempoRange.MEDIUM.contains(tempo))
         {
-            nbCells = Math.round(nbCells * 1.4f);
+            nbCells = Math.round(nbCells * config.holdShotPostSilenceMultiplierMedium);
         } else if (TempoRange.MEDIUM_FAST.contains(tempo))
         {
-            nbCells = Math.round(nbCells * 1.6f);
+            nbCells = Math.round(nbCells * config.holdShotPostSilenceMultiplierMediumFast);
         } else
         {
             // FAST
-            nbCells = Math.round(nbCells * 2f);
+            nbCells = Math.round(nbCells * config.holdShotPostSilenceMultiplierFast);
         }
 
         return nbCells;
@@ -689,7 +697,7 @@ public class AccentProcessor
 
     private float getAccentNoteMinDuration(GridChordContext gct)
     {
-        float dur = getShotNoteDuration(gct) * 1.5f;
+        float dur = getShotNoteDuration(gct) * config.accentMinToShotRatio;
         dur = Math.min(dur, Math.max(gct.afterBeatRange.size() - 0.1f, cellDuration / 2));
         return dur;
     }
@@ -705,20 +713,20 @@ public class AccentProcessor
         float dur = cellDuration;
         if (TempoRange.SLOW.contains(tempo))
         {
-            dur *= 1.8f;
+            dur *= config.shotDurationMultiplierSlow;
         } else if (TempoRange.MEDIUM_SLOW.contains(tempo))
         {
-            dur *= 1.9f;
+            dur *= config.shotDurationMultiplierMediumSlow;
         } else if (TempoRange.MEDIUM.contains(tempo))
         {
-            dur *= 2.2f;
+            dur *= config.shotDurationMultiplierMedium;
         } else if (TempoRange.MEDIUM_FAST.contains(tempo))
         {
-            dur *= 2.5f;
+            dur *= config.shotDurationMultiplierMediumFast;
         } else
         {
             // FAST
-            dur *= 2.8f;
+            dur *= config.shotDurationMultiplierFast;
         }
         dur = Math.min(dur, Math.max(gct.afterBeatRange.size() - 0.1f, cellDuration / 2));
         return dur;
@@ -737,18 +745,16 @@ public class AccentProcessor
      */
     private int computeNewNoteVelocity(Grid grid, int cellIndex, ChordRenderingInfo cri)
     {
-        final int NOTE_WINDOW_SIZE = 10;        // Nb of notes used
-
         // LOGGER.fine("computeNewNoteVelocity() -- cellIndex==" + cellIndex + " cri=" + cri);
 
         // Get the notes around our cell
-        List<NoteEvent> nes = getAroundNotes(grid, cellIndex, NOTE_WINDOW_SIZE);
+        List<NoteEvent> nes = getAroundNotes(grid, cellIndex, config.noteWindowSize);
 
         // Get the velocity list
         List<Integer> velocities = nes.stream().map(ne -> ne.getVelocity()).toList();
 
         // Compute velocity
-        int v = ComputeVelocityFromStats(velocities, cri, 60);
+        int v = computeVelocityFromStats(velocities, cri, config.defaultNoteVelocity);
 
         // LOGGER.fine("computeNewNoteVelocity() v=" + v);
         return v;
@@ -767,7 +773,7 @@ public class AccentProcessor
     private int computeNewNoteAbsolutePitch(Grid grid, int cellIndex, int relPitch)
     {
         int res = 48 + relPitch;     // Default
-        List<NoteEvent> nes = getAroundNotes(grid, cellIndex, 10);
+        List<NoteEvent> nes = getAroundNotes(grid, cellIndex, config.noteWindowSize);
         if (!nes.isEmpty())
         {
             int minDist = 1000;
@@ -803,10 +809,9 @@ public class AccentProcessor
      */
     private int computeDrumsAccentPitch(Grid grid, int cellIndex)
     {
-        final int NOTE_WINDOW_SIZE = 10;
         int res = MidiConst.BASS_DRUM_1;
 
-        List<NoteEvent> nes = getAroundNotes(grid, cellIndex, NOTE_WINDOW_SIZE);
+        List<NoteEvent> nes = getAroundNotes(grid, cellIndex, config.noteWindowSize);
         if (!nes.isEmpty())
         {
             HashMap<Integer, Integer> mapPitchCount = new HashMap<>();
@@ -844,18 +849,16 @@ public class AccentProcessor
      */
     private int computeNewDrumAccentNoteVelocity(int pitch, Grid grid, int cellIndex, ChordRenderingInfo cri)
     {
-        final int NOTE_WINDOW_SIZE = 10;        // Nb of notes used
-
         // LOGGER.fine("computeNewDrumAccentNoteVelocity() -- pitch=" + pitch + " cellIndex=" + cellIndex + " cri=" + cri);
 
         // Get the notes around our cell
-        List<NoteEvent> nes = getAroundNotes(grid, cellIndex, NOTE_WINDOW_SIZE);
+        List<NoteEvent> nes = getAroundNotes(grid, cellIndex, config.noteWindowSize);
 
         // Get the velocity list only for notes with same pitch (same instrument)
         List<Integer> velocities = nes.stream().filter(ne -> ne.getPitch() == pitch).map(ne -> ne.getVelocity()).toList();
 
         // Compute velocity
-        int v = ComputeVelocityFromStats(velocities, cri, 55);
+        int v = computeVelocityFromStats(velocities, cri, config.defaultDrumAccentVelocity);
 
         // LOGGER.fine("computeNewDrumAccentNoteVelocity() v=" + v);
         return v;
@@ -871,18 +874,16 @@ public class AccentProcessor
      */
     private int computeExistingDrumAccentNoteVelocity(CLI_ChordSymbol cliCs, NoteEvent accentNote)
     {
-        final int MEDIUM_VEL_OFFSET = 12;
-        final int STRONG_VEL_OFFSET = 25;
-        final int EXTRA_DOWN_BEAT = 5;
         ChordRenderingInfo cri = cliCs.getData().getRenderingInfo();
         Position pos = cliCs.getPosition();
         float vel = accentNote.getVelocity();
-        int offset = cri.getAccentFeature().equals(Feature.ACCENT) ? MEDIUM_VEL_OFFSET : STRONG_VEL_OFFSET;
-        int extra = pos.isFirstBarBeat() || pos.isHalfBarBeat(timeSignature, true) || pos.isHalfBarBeat(timeSignature, false) ? EXTRA_DOWN_BEAT : 0;
+        int offset = cri.getAccentFeature().equals(Feature.ACCENT) ? config.drumsAccentMediumOffset : config.drumsAccentStrongOffset;
+        int extra = pos.isFirstBarBeat() || pos.isHalfBarBeat(timeSignature, true) || pos.isHalfBarBeat(timeSignature, false) ? config.drumsAccentExtraDownBeat
+                : 0;
 
         vel += offset + extra;
 
-        return (int) Math.min(120, vel);
+        return (int) Math.min(config.maxVelocity, vel);
 
     }
 
@@ -895,7 +896,7 @@ public class AccentProcessor
      * @param defaultVal If not enough notes around
      * @return
      */
-    private int ComputeVelocityFromStats(List<Integer> velocities, ChordRenderingInfo cri, int defaultVal)
+    private int computeVelocityFromStats(List<Integer> velocities, ChordRenderingInfo cri, int defaultVal)
     {
         // We need a copy : we'll modify the list for the calculations
         velocities = new ArrayList<>(velocities);
@@ -903,8 +904,6 @@ public class AccentProcessor
 
 //        final float MEDIUM_VEL_FACTOR = 1f;
 //        final float STRONG_VEL_FACTOR = 1.3f;
-        final int MEDIUM_VEL_OFFSET = 14;
-        final int STRONG_VEL_OFFSET = 30;
         int vRef;
         int vMin, vMax;
 
@@ -985,11 +984,11 @@ public class AccentProcessor
             if (cri.hasOneFeature(Feature.ACCENT))
             {
                 // factor = MEDIUM_VEL_FACTOR;
-                offset = MEDIUM_VEL_OFFSET;
+                offset = config.accentVelocityOffsetMedium;
             } else if (cri.hasOneFeature(Feature.ACCENT_STRONGER))
             {
                 // factor = STRONG_VEL_FACTOR;                
-                offset = STRONG_VEL_OFFSET;
+                offset = config.accentVelocityOffsetStrong;
             } else
             {
                 throw new IllegalStateException("cri=" + cri);   //NOI18N
@@ -999,8 +998,8 @@ public class AccentProcessor
         }
 
 
-        v = Math.min(v, 120);
-        v = Math.max(v, 10);
+        v = Math.min(v, config.maxVelocity);
+        v = Math.max(v, config.minVelocity);
 
         // LOGGER.fine("ComputeVelocityFromStats()  ==> v=" + v);
 
@@ -1064,7 +1063,7 @@ public class AccentProcessor
     {
         IntRange rg = gct.grid.getCellRange(beatRange, false);
         float lastCellStartPos = gct.grid.getStartPos(rg.to);
-        if ((beatRange.to - lastCellStartPos) < 0 & rg.size() > 1)
+        if ((beatRange.to - lastCellStartPos) < 0 && rg.size() > 1)
         {
             // Upper bound is in the pre-cell beat window of next cell
             rg = rg.getTransformed(0, -1);
@@ -1083,15 +1082,9 @@ public class AccentProcessor
     private class GridDrumsHelper
     {
 
-        private static final double CRASH_THRESHOLD_MIN = 0.2;         // 2/10 chances of adding a crash cymbal
-        private static final double CRASH_THRESHOLD_NORMAL = 0.6;
-        private static final double CRASH_THRESHOLD_MAX = 0.8;         // 8/10 chances of adding a crash cymbal
-        private static final double SLIDING_WINDOW_CRASH_COUNT_NORMAL = 1; // If 1 crash in the sliding window use CRASH_THRESHOLD_NORMAL
-        private static final int SLIDING_WINDOW_BEAT_SIZE = 4;
         private final LinkedList<Integer> slidingWindow = new LinkedList<>();   // Keep the cell of each previous crashes within the sliding window                
         private int slidingWindowSize;
 
-        public static final int ACCENT_THRESHOLD_VEL_MIN = 40;
         public List<Integer> openHiHatPitches;
         public List<Integer> accentPitches;
         public List<Integer> crashPitches;
@@ -1109,10 +1102,10 @@ public class AccentProcessor
                 throw new IllegalArgumentException("p=" + p + " kit=" + kit);   //NOI18N
             }
 
-            slidingWindowSize = SLIDING_WINDOW_BEAT_SIZE * nbCellsPerBeat;
+            slidingWindowSize = config.slidingWindowBeatSize * nbCellsPerBeat;
 
             accentPitches = kit.getKeyMap().getKeys(DrumKit.Subset.ACCENT);
-            Predicate<NoteEvent> filterAccents = ne -> accentPitches.contains(ne.getPitch()) && ne.getVelocity() >= ACCENT_THRESHOLD_VEL_MIN;
+            Predicate<NoteEvent> filterAccents = ne -> accentPitches.contains(ne.getPitch()) && ne.getVelocity() >= config.drumsAccentThresholdVelocity;
             gridAccents = new Grid(p, cSeqBeatRange, nbCellsPerBeat, filterAccents, preCellBeatWindow);
             refGridAccents = gridAccents.clone(); // Preserved grid for velocity/pitch calculations        
 
@@ -1133,7 +1126,7 @@ public class AccentProcessor
          */
         public boolean needCrash(int cellIndex, ChordRenderingInfo cri)
         {
-            double threshold = CRASH_THRESHOLD_NORMAL;
+            double threshold = config.crashThresholdNormal;
 
             // Easy case
             if (cri.hasOneFeature(Feature.NO_CRASH))
@@ -1148,14 +1141,14 @@ public class AccentProcessor
             updateSlidingWindow(cellIndex);
             int nbCrashes = slidingWindow.size();
 
-            if (nbCrashes < SLIDING_WINDOW_CRASH_COUNT_NORMAL)
+            if (nbCrashes < config.slidingWindowCrashCountNormal)
             {
                 // There is less crashes than normal, make a crash more probable
-                threshold += 0.1f * (SLIDING_WINDOW_CRASH_COUNT_NORMAL - nbCrashes);
-            } else if (nbCrashes > SLIDING_WINDOW_CRASH_COUNT_NORMAL)
+                threshold += 0.1f * (config.slidingWindowCrashCountNormal - nbCrashes);
+            } else if (nbCrashes > config.slidingWindowCrashCountNormal)
             {
                 // There is already more crashes than normal, make a crash less probable
-                threshold -= 0.15f * (nbCrashes - SLIDING_WINDOW_CRASH_COUNT_NORMAL);
+                threshold -= 0.15f * (nbCrashes - config.slidingWindowCrashCountNormal);
             }
 
             float factor;
@@ -1172,8 +1165,8 @@ public class AccentProcessor
             }
 
             threshold *= factor;
-            threshold = Math.min(threshold, CRASH_THRESHOLD_MAX);
-            threshold = Math.max(threshold, CRASH_THRESHOLD_MIN);
+            threshold = Math.min(threshold, config.crashThresholdMax);
+            threshold = Math.max(threshold, config.crashThresholdMin);
 
             boolean b = Math.random() < threshold;
 
@@ -1189,7 +1182,6 @@ public class AccentProcessor
          */
         public void addCrashCymbal(int cellIndex, float posInBeats, ChordRenderingInfo cri)
         {
-            final int NOTE_WINDOW_SIZE = 5;
 
             if (!gridCrashes.isEmpty(cellIndex) || cri.hasOneFeature(Feature.NO_CRASH) || crashPitches.isEmpty())
             {
@@ -1202,9 +1194,9 @@ public class AccentProcessor
 
 
             // Find velocity
-            List<NoteEvent> nes = getAroundNotes(refGridCrashes, cellIndex, NOTE_WINDOW_SIZE);
+            List<NoteEvent> nes = getAroundNotes(refGridCrashes, cellIndex, config.crashVelocityWindowSize);
             List<Integer> velocities = nes.stream().filter(ne -> ne.getPitch() == crashPitch).map(ne -> ne.getVelocity()).toList();
-            int v = ComputeVelocityFromStats(velocities, cri, 60);
+            int v = computeVelocityFromStats(velocities, cri, config.defaultCrashVelocity);
 
 
             // Add the cymbal

@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.NoteEvent;
-import org.jjazz.songcontext.api.SongContext;
+import org.jjazz.song.api.SongContext;
 import java.util.HashMap;
 import java.util.Objects;
 import java.util.logging.Level;

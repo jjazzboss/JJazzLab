@@ -22,13 +22,16 @@
  */
 package org.jjazz.rhythmmusicgeneration.api;
 
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_OverrideTracksValue;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_Mute;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_OverrideTracks;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.SetMultimap;
 import org.jjazz.rhythm.api.UserErrorGenerationException;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.NoteEvent;
-import org.jjazz.songcontext.api.SongContext;
+import org.jjazz.song.api.SongContext;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -68,11 +71,8 @@ import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhrase;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_CustomPhraseValue;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_TempoFactor;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
-import org.jjazz.songcontext.api.SongPartContext;
+import org.jjazz.song.api.SongPartContext;
 import org.netbeans.api.progress.BaseProgressUtils;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
@@ -81,12 +81,16 @@ import org.jjazz.utilities.api.IntRange;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.util.Exceptions;
 import org.jjazz.outputsynth.spi.OutputSynthManager;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Fill;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
 import org.jjazz.rhythmmusicgeneration.api.CompositeMusicGenerator.DelegateUnit;
 import org.jjazz.rhythmmusicgeneration.spi.ConfigurableMusicGeneratorProvider;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGeneratorProvider;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_CustomPhrase;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_CustomPhraseValue;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_Fill;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_TempoFactor;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_Variation;
 import org.jjazz.song.api.Song;
+import org.jjazz.song.spi.SongContextFactory;
 
 /**
  * Build the musical Phrases and Midi sequence from a Song.
@@ -95,6 +99,8 @@ import org.jjazz.song.api.Song;
 public class SongSequenceBuilder
 {
 
+    private static final Level DEFAULT_LEVEL = Level.FINE;
+    
     /**
      * @see #getTempoFactorMetaMessage(float)
      * @see #getTempoFactor(javax.sound.midi.MetaMessage)
@@ -109,6 +115,7 @@ public class SongSequenceBuilder
      */
     static public class SongSequence
     {
+
         public Sequence sequence;
         public Map<RhythmVoice, Integer> mapRvTrackId;
         public Map<RhythmVoice, Phrase> mapRvPhrase;
@@ -134,7 +141,7 @@ public class SongSequenceBuilder
     {
         Objects.requireNonNull(sgContext);
         this.songContextOriginal = sgContext;
-        this.songContextWork = songContextOriginal.deepClone(false, false);
+        this.songContextWork = songContextOriginal.getDeepCopy(false);
     }
 
 
@@ -558,7 +565,6 @@ public class SongSequenceBuilder
         // Check there is no 2 chords at same position
         checkChordsAtSamePosition(songContextWork);            // throws MusicGenerationException        
 
-
         for (Rhythm r : songContextWork.getUniqueRhythms())
         {
             // Generate the phrases
@@ -667,7 +673,7 @@ public class SongSequenceBuilder
             // Adapt to the current context
             p = Phrases.getSlice(p, br, false, 1, 0.1f);
 
-            LOGGER.log(Level.FINE, "addUserTrackPhrases() Adding user phrase for name={0} p={1}", new Object[]
+            LOGGER.log(DEFAULT_LEVEL, "addUserTrackPhrases() Adding user phrase for name={0} p={1}", new Object[]
             {
                 userPhraseName, p
             });
@@ -695,7 +701,7 @@ public class SongSequenceBuilder
             throw new MusicGenerationException("Rhythm " + r.getName() + " does not implement MusicGeneratorProvider, it can not generate music");
         }
 
-        LOGGER.log(Level.FINE, "processRP_SYS_OverrideTracks() r={0} sgContext={1}", new Object[]
+        LOGGER.log(DEFAULT_LEVEL, "processRP_SYS_OverrideTracks() r={0} sgContext={1}", new Object[]
         {
             r, sgContext
         });
@@ -749,7 +755,7 @@ public class SongSequenceBuilder
 
 
         // Generate the phrases
-        LOGGER.log(Level.FINE, "generateRhythmPhrases() calling generateMusic() for rhythm r={0}", r);
+        LOGGER.log(DEFAULT_LEVEL, "generateRhythmPhrases() calling generateMusic() for rhythm r={0}", r);
         Map<RhythmVoice, Phrase> res = mg.generateMusic(sgContext);
 
 
@@ -793,7 +799,7 @@ public class SongSequenceBuilder
             {
                 // songPart has an override
                 rvDest = override.rvDest();
-                mg = ((MusicGeneratorProvider) rvDest.getContainer()).getMusicGenerator();                
+                mg = ((MusicGeneratorProvider) rvDest.getContainer()).getMusicGenerator();
                 var destRpVariation = RP_SYS_Variation.getVariationRp(rvDest.getContainer());
                 String destRpVariationValue = override.variation();     // if null, try to reuse source variation value
                 if (destRpVariationValue == null && destRpVariation != null)
@@ -855,7 +861,7 @@ public class SongSequenceBuilder
             {
                 MMAP_SONG_SUBSTITUTE_TRACKS_RHYTHMS.get(song).forEach(cr -> 
                 {
-                    LOGGER.log(Level.FINE, "releaseSubstitutetrackRhythmResourcesUponSongClose() (lambda-listener) song closed, release resources of cr={0}",
+                    LOGGER.log(DEFAULT_LEVEL, "releaseSubstitutetrackRhythmResourcesUponSongClose() (lambda-listener) song closed, release resources of cr={0}",
                             cr);
                     cr.releaseResources();
                 });
@@ -1052,14 +1058,14 @@ public class SongSequenceBuilder
      */
     private void processDrumsTransforms(SongContext context, Map<RhythmVoice, Phrase> rvPhrases)
     {
-        LOGGER.log(Level.FINE, "processDrumsTransforms() -- context={0}", context);
+        LOGGER.log(DEFAULT_LEVEL, "processDrumsTransforms() -- context={0}", context);
 
 
         for (SongPart spt : context.getSongParts())
         {
             FloatRange sptBeatRange = context.getSptBeatRange(spt);     // Might be smaller than songPart.toBeatRange()
             IntRange sptBarRange = context.getSptBarRange(spt);         // Might be smaller than songPart.getBarRange()
-            SongPartContext sptContext = new SongPartContext(context.getSong(), context.getMidiMix(), sptBarRange);
+            SongPartContext sptContext = SongContextFactory.getDefault().ofSongPartContext(context.getSong(), context.getMidiMix(), sptBarRange);
 
 
             // Get the RhythmParameter
@@ -1075,7 +1081,7 @@ public class SongSequenceBuilder
             // Get the RP value and transform phrases as needed
             RP_SYS_DrumsTransformValue rpValue = spt.getRPValue(rpDrumsTransform);
             RhythmVoice rvDrums = rpValue.getRhythmVoice();
-            LOGGER.log(Level.FINE, "processDrumsTransforms() rpValue={0} rvDrums={1}", new Object[]
+            LOGGER.log(DEFAULT_LEVEL, "processDrumsTransforms() rpValue={0} rvDrums={1}", new Object[]
             {
                 rpValue, rvDrums
             });
@@ -1124,7 +1130,7 @@ public class SongSequenceBuilder
             if (insSet.getTransposition() != 0)
             {
                 p.processPitch(pitch -> pitch + insSet.getTransposition());
-                LOGGER.log(Level.FINE, "processInstrumentsSettings()    Adjusting transposition={0} for rv={1}", new Object[]
+                LOGGER.log(DEFAULT_LEVEL, "processInstrumentsSettings()    Adjusting transposition={0} for rv={1}", new Object[]
                 {
                     insSet.getTransposition(),
                     rv
@@ -1133,7 +1139,7 @@ public class SongSequenceBuilder
             if (insSet.getVelocityShift() != 0)
             {
                 p.processVelocity(v -> v + insSet.getVelocityShift());
-                LOGGER.log(Level.FINE, "processInstrumentsSettings()    Adjusting velocity={0} for rv={1}", new Object[]
+                LOGGER.log(DEFAULT_LEVEL, "processInstrumentsSettings()    Adjusting velocity={0} for rv={1}", new Object[]
                 {
                     insSet.getVelocityShift(),
                     rv
@@ -1161,7 +1167,7 @@ public class SongSequenceBuilder
                 continue;
             }
 
-            LOGGER.log(Level.FINE, "processFadeOut() processing spt={0}", spt);
+            LOGGER.log(DEFAULT_LEVEL, "processFadeOut() processing spt={0}", spt);
             FloatRange beatRange = context.getSptBeatRange(spt);        // Might be smaller than songPart.toBeatRange()
 
             for (RhythmVoice rv : rvPhrases.keySet())

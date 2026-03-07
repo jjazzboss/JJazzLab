@@ -1,5 +1,5 @@
 /**
- * Objects and helper methods to generate musical phrases from the song and form the final backing track (see SongSequenceBuilder).
+ * Objects and service providers to help generate musical phrases for a song and form the final backing track.
  * <p>
  */
 package org.jjazz.rhythmmusicgeneration.api;

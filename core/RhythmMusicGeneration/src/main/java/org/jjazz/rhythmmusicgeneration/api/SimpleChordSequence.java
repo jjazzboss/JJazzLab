@@ -87,7 +87,6 @@ public class SimpleChordSequence extends ChordSequence
     public SimpleChordSequence clone()
     {
         SimpleChordSequence scs = new SimpleChordSequence(this, this.startBeatPosition, this.timeSignature);
-        scs.addAll(this);
         return scs;
     }
 

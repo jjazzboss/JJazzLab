@@ -105,7 +105,7 @@ public class GridChordContext
     private void calculate()
     {
         chordPosInBeats = chordSequence.toPositionInBeats(chord.getPosition());
-        chordCell = grid.getCell(chordPosInBeats, true);
+        chordCell = grid.getCell(chordPosInBeats, false);
         int cellFrom, cellTo;
         float posInBeats;
 
@@ -115,7 +115,7 @@ public class GridChordContext
         if (nextChord != null)
         {
             posInBeats = chordSequence.toPositionInBeats(nextChord.getPosition());
-            cellTo = grid.getCell(posInBeats, true) - 1;
+            cellTo = grid.getCell(posInBeats, false) - 1;
         } else
         {
             cellTo = grid.getCellRange().to;
@@ -128,7 +128,7 @@ public class GridChordContext
         if (previousChord != null)
         {
             posInBeats = chordSequence.toPositionInBeats(previousChord.getPosition());
-            cellFrom = grid.getCell(posInBeats, true) + 1;
+            cellFrom = grid.getCell(posInBeats, false) + 1;
 
         } else
         {

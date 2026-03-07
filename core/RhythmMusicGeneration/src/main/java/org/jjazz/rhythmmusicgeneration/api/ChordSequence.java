@@ -33,7 +33,7 @@ import java.util.function.Predicate;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.chordleadsheet.api.item.CLI_Factory;
+import org.jjazz.chordleadsheet.spi.item.CLI_Factory;
 import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo.Feature;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
@@ -85,8 +85,13 @@ public class ChordSequence extends TreeSet<CLI_ChordSymbol> implements Comparabl
         List<Integer> res = new ArrayList<>();
         for (var cliCs : this)
         {
+            var nextCliCs = higher(cliCs);
+            if (nextCliCs == null)
+            {
+                break;
+            }
             Note root = cliCs.getData().getRootNote();
-            Note root2 = higher(cliCs).getData().getRootNote();
+            Note root2 = nextCliCs.getData().getRootNote();
             int delta = root.getRelativeAscInterval(root2);
             res.add(delta);
         }
@@ -183,9 +188,9 @@ public class ChordSequence extends TreeSet<CLI_ChordSymbol> implements Comparabl
         Preconditions.checkNotNull(posFrom);
         Preconditions.checkNotNull(tester);
 
-        var headSet = headSet(CLI_ChordSymbol.createItemFrom(posFrom, inclusive),
+        var tailSet = tailSet(CLI_ChordSymbol.createItemFrom(posFrom, inclusive),
                 false);   // useless because of createItemFrom
-        var res = headSet.stream().
+        var res = tailSet.stream().
                 filter(cliCs -> tester.test(cliCs))
                 .findFirst()
                 .orElse(null);

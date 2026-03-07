@@ -34,12 +34,12 @@ import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.chordleadsheet.api.item.CLI_Factory;
+import org.jjazz.chordleadsheet.spi.item.CLI_Factory;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.chordleadsheet.api.item.VoidAltExtChordSymbol;
 import org.jjazz.rhythm.api.UserErrorGenerationException;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Marker;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_Marker;
 import org.jjazz.song.api.Song;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.utilities.api.FloatRange;
@@ -209,6 +209,7 @@ public class SongChordSequence extends ChordSequence
                 var scs = new SimpleChordSequence(subSequence(barRange, false), beatStart, ts);
                 res.add(scs);
                 tmpList.clear();
+                tmpList.add(spt);
             }
             prevSpt = spt;
         }

@@ -27,9 +27,11 @@ package org.jjazz.rhythmmusicgeneration.api;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
+import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -41,14 +43,16 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.midimix.api.MidiMix;
+import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.Phrases;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
-import org.jjazz.rhythm.api.rhythmparameters.RP_SYS_Variation;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_Variation;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
-import org.jjazz.songcontext.api.SongContext;
+import org.jjazz.song.api.SongContext;
+import org.jjazz.song.spi.SongContextFactory;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.utilities.api.IntRange;
@@ -174,6 +178,7 @@ public class CompositeMusicGenerator implements MusicGenerator
         }
     }
 
+    
 
     private final RvToDelegateUnitMapper baseRvToDelegateUnitMapper;
     private final Rhythm baseRhythm;
@@ -278,7 +283,7 @@ public class CompositeMusicGenerator implements MusicGenerator
      */
     private Map<SongPart, String> getMapSptVariation(List<DelegateUnit> delegateUnits)
     {
-        Map<SongPart, String> res = new HashMap();
+        Map<SongPart, String> res = new IdentityHashMap();
         delegateUnits.forEach(unit -> res.put(unit.songPart(), unit.rpVariationValue()));
         return res;
     }
@@ -484,7 +489,7 @@ public class CompositeMusicGenerator implements MusicGenerator
      */
     private Set<SongPart> findMultiVariationSongParts(List<DelegateUnit> delegateUnits)
     {
-        Set<SongPart> res = new HashSet<>();
+        Set<SongPart> res = Sets.newIdentityHashSet();     // SongParts are mutable -though we're not supposed to change them here...
 
         var spts = delegateUnits.stream()
                 .map(du -> du.songPart())
@@ -510,7 +515,7 @@ public class CompositeMusicGenerator implements MusicGenerator
                 }
             }
         }
-        return res;
+        return res;     
     }
 
     /**
@@ -639,7 +644,7 @@ public class CompositeMusicGenerator implements MusicGenerator
     private SongContext getSubContext(SongContext context, List<SongPart> spts)
     {
         IntRange br = context.getBarRange().getIntersection(new IntRange(spts.getFirst().getStartBarIndex(), spts.getLast().getBarRange().to));
-        return new SongContext(context, br);
+        return SongContextFactory.getDefault().of(context, br);
     }
 
     /**
@@ -673,27 +678,25 @@ public class CompositeMusicGenerator implements MusicGenerator
                         .allMatch(spt -> spt.getRhythm() == delegateRhythm && spt.getRPValue(delegateRhythmRpVariation).equals(mapSptRpVariationValue.get(spt))))
         {
             // No need to change the SongStructure
-            res = new SongContext(context, br);
+            res = SongContextFactory.getDefault().of(context, br);
         } else
         {
             // Need to change the SongStructure, create a getCopy context
-            res = new SongContext(context, br).deepClone(false, true);   // setMidiMixSong=true because MidiMix must update itself when we will later replace the rhythm
+            var context2 = SongContextFactory.getDefault().of(context, br);
+            res =  context2.getDeepCopy(false);     // Important to get the MidiMix updated by the rhythm change below
 
-            
+
             SongStructure sgsCopy = res.getSong().getSongStructure();
             var spts = toOrderedSongPartList(mapSptRpVariationValue.keySet());
 
 
             // Replace base rhythm by delegateRhythm               
-            var oldSpts = spts.stream()
+            var sptsCopy = spts.stream()
                     .map(spt -> sgsCopy.getSongPart(spt.getStartBarIndex()))
-                    .toList();
-            var newSpts = oldSpts.stream()
-                    .map(spt -> spt.getCopy(delegateRhythm, spt.getStartBarIndex(), spt.getNbBars(), spt.getParentSection()))
                     .toList();
             try
             {
-                sgsCopy.replaceSongParts(oldSpts, newSpts);     // exception possible if not enough Midi channel
+                sgsCopy.setSongPartsRhythm(sptsCopy, delegateRhythm, null);     // exception possible if not enough Midi channel
             } catch (UnsupportedEditException ex)
             {
                 LOGGER.log(Level.WARNING, "createDelegateContext() Can not use delegate rhythm. context={0}, baseRhythm={1}, delegateRhythm={2}. ex={3}",
@@ -705,13 +708,14 @@ public class CompositeMusicGenerator implements MusicGenerator
                 throw new MusicGenerationException(msg);
             }
 
+            
             // Possibly update rpVariationValue of some SongParts
             if (delegateRhythmRpVariation != null)
             {
-                for (int i = 0; i < newSpts.size(); i++)
+                for (int i = 0; i < sptsCopy.size(); i++)
                 {
-                    var newSpt = newSpts.get(i);
-                    var rpVariationValue = newSpt.getRPValue(delegateRhythmRpVariation);
+                    var sptCopy = sptsCopy.get(i);
+                    var rpVariationValue = sptCopy.getRPValue(delegateRhythmRpVariation);
                     var mapSpt = spts.get(i);
                     var destVariationValue = mapSptRpVariationValue.get(mapSpt);
                     if (!rpVariationValue.equals(destVariationValue))
@@ -719,9 +723,9 @@ public class CompositeMusicGenerator implements MusicGenerator
                         LOGGER.log(LogLevel, "createDelegateContext() targetSpt={0}: setting delegate variation value to {1}",
                                 new Object[]
                                 {
-                                    newSpt, destVariationValue
+                                    sptCopy, destVariationValue
                                 });
-                        sgsCopy.setRhythmParameterValue(newSpt, delegateRhythmRpVariation, destVariationValue);
+                        sgsCopy.setRhythmParameterValue(sptCopy, delegateRhythmRpVariation, destVariationValue);
                     }
                 }
             }
