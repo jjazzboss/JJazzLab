@@ -199,7 +199,7 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
     @Override
     public synchronized void setPosition(Position p)
     {
-        if (position == null)
+        if (p == null)
         {
             throw new NullPointerException("p=" + p);
         }

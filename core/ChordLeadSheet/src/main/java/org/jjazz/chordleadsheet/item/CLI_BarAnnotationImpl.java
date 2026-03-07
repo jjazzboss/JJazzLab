@@ -175,7 +175,7 @@ public class CLI_BarAnnotationImpl implements CLI_BarAnnotation, WritableItem<St
     @Override
     public synchronized void setPosition(Position p)
     {
-        if (position == null)
+        if (p == null)
         {
             throw new NullPointerException("p=" + p);
         }
@@ -326,6 +326,10 @@ public class CLI_BarAnnotationImpl implements CLI_BarAnnotation, WritableItem<St
         private Object readResolve() throws ObjectStreamException
         {
             CLI_BarAnnotationImpl cli = new CLI_BarAnnotationImpl(spAnnotation, spBarIndex);
+            if (spClientProperties != null)
+            {
+                cli.getClientProperties().set(spClientProperties);
+            }
             return cli;
         }
     }

@@ -948,7 +948,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             return;
         }
 
-        if (!(cliSection instanceof WritableItem) || !items.contains(cliSection) || getSection(name) != null || !items.contains(cliSection))
+        if (!(cliSection instanceof WritableItem) || !items.contains(cliSection) || getSection(name) != null)
         {
             throw new IllegalArgumentException("section=" + cliSection + " name=" + name + " items=" + items);
         }
@@ -1328,7 +1328,6 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
             shiftedItems, nbBars
         });
 
-        Collections.synchronizedList(listeners);
         if (shiftedItems.isEmpty() || nbBars == 0)
         {
             return;

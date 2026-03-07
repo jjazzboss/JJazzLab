@@ -114,7 +114,7 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
     @Override
     public synchronized final void setPosition(Position p)
     {
-        if (position == null)
+        if (p == null)
         {
             throw new NullPointerException("p=" + p);
         }
