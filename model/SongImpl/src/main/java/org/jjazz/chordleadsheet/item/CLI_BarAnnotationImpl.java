@@ -36,6 +36,7 @@ import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.function.Supplier;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.chordleadsheet.ChordLeadSheetImpl;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
@@ -149,13 +150,9 @@ public class CLI_BarAnnotationImpl implements CLI_BarAnnotation, WritableItem<St
     public PropertyChangeEvent setData(String ecs)
     {
         Objects.requireNonNull(ecs);
-        var res = CLI_SectionImpl.getVoidEvent(this);
-        if (!ecs.equals(data))
-        {
-            String oldData = data;
-            data = ecs;
-            res = new PropertyChangeEvent(this, PROP_ITEM_DATA, oldData, data);
-        }
+        String oldData = data;
+        data = ecs;
+        var res = new PropertyChangeEvent(this, PROP_ITEM_DATA, oldData, data);
         return res;
     }
 
@@ -205,13 +202,9 @@ public class CLI_BarAnnotationImpl implements CLI_BarAnnotation, WritableItem<St
     public final PropertyChangeEvent setPosition(Position p)
     {
         Objects.requireNonNull(p);
-        var res = CLI_SectionImpl.getVoidEvent(this);
-        if (!position.equals(p))
-        {
-            Position oldPos = position;
-            position = new Position(p);
-            res = new PropertyChangeEvent(this, PROP_ITEM_POSITION, oldPos, position);
-        }
+        Position oldPos = position;
+        position = new Position(p);
+        var res = new PropertyChangeEvent(this, PROP_ITEM_POSITION, oldPos, position);
         return res;
     }
 
@@ -375,6 +368,13 @@ public class CLI_BarAnnotationImpl implements CLI_BarAnnotation, WritableItem<St
         private Object readResolve() throws ObjectStreamException
         {
             CLI_BarAnnotationImpl cli = new CLI_BarAnnotationImpl(spAnnotation, spBarIndex);
+            if (spClientProperties != null)
+            {
+                cli.getClientProperties().set(spClientProperties);
+            } else
+            {
+                LOGGER.log(Level.WARNING, "SerializationProxy.readResolve() Unexpected null value for spClientProperties. spAnnotation={0}", spAnnotation);
+            }
             return cli;
         }
     }

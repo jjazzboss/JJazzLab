@@ -57,6 +57,7 @@ public class StaticSongSession extends BaseSongSession
     {
         Objects.requireNonNull(sgContext);
         Objects.requireNonNull(sConfig);
+        Objects.requireNonNull(context);
         StaticSongSession session = findSession(sgContext, sConfig, context);
         if (session == null)
         {
@@ -109,8 +110,11 @@ public class StaticSongSession extends BaseSongSession
     {
         super.close();
         sessions.remove(this);
-        songMusicGenerationListener.removePropertyChangeListener(this);
-        songMusicGenerationListener.cleanup();
+        if (songMusicGenerationListener != null)
+        {
+            songMusicGenerationListener.removePropertyChangeListener(this);
+            songMusicGenerationListener.cleanup();
+        }
     }
 
     // ============================================================================================

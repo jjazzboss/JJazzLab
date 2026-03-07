@@ -95,6 +95,7 @@ public class WbpsaStore
      */
     public void populate(List<Integer> bars, List<BassStyle> bassStyles)
     {
+        Objects.requireNonNull(bars);
         Objects.requireNonNull(bassStyles);
         Preconditions.checkArgument(!bassStyles.isEmpty());
 
@@ -251,9 +252,9 @@ public class WbpsaStore
         {
             var wbpsas = getWbpSourceAdaptations(bar, size);
 
-            if (!hideEmptyBars || !wbpsas.isEmpty())
+            var br = new IntRange(bar, bar + size - 1);
+            if ((!hideEmptyBars || !wbpsas.isEmpty()) && tiling.isUsable(br))
             {
-                var br = new IntRange(bar, bar + size - 1);
                 var barChords = tiling.getSimpleChordSequence(br, true);
                 sb.append(String.format("%1$03d: %2$s\n", bar, barChords.toString()));
             }

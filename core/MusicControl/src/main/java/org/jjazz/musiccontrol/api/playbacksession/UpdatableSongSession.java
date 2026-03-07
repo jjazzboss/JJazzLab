@@ -28,6 +28,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -114,7 +115,8 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
         @Override
         public String toString()
         {
-            return "<mapRvPhrases.keySet=" + getMapRvPhrases().keySet() + ", controlTrack=" + getControlTrack() + ">";
+            var rvKeys = getMapRvPhrases() != null ? getMapRvPhrases().keySet().toString() : "null";
+            return "<mapRvPhrases.keySet=" + rvKeys + ", controlTrack=" + getControlTrack() + ">";
         }
     }
 
@@ -367,62 +369,65 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
 
 
         // We might have potentially modified phrases, new user phrases or deleted user phrases
-        Set<RhythmVoice> updatedRvs = update.getMapRvPhrases().keySet();
-        Set<RhythmVoice> currentRvs = currentMapRvPhrase.keySet();
-        var modifiedPhraseRvs = new HashSet<>(updatedRvs);
-        modifiedPhraseRvs.retainAll(currentRvs);
-        var newUserPhraseRvs = new HashSet<>(updatedRvs);
-        newUserPhraseRvs.removeAll(currentRvs);
-        var removedUserPhraseRvs = new HashSet<>(currentRvs);
-        removedUserPhraseRvs.removeAll(updatedRvs);
-
-
-        // It's an error if we have a new user phrase passed in an update: we can only work with a constant number of RhythmVoices/tracks
-        if (!newUserPhraseRvs.isEmpty())
+        if (update.getMapRvPhrases() != null)
         {
-            throw new IllegalStateException(
-                    "updatedRvs=" + updatedRvs + " currentRvs=" + currentRvs + " => newUserPhraseRvs=" + newUserPhraseRvs);
-        }
+            Set<RhythmVoice> updatedRvs = update.getMapRvPhrases().keySet();
+            Set<RhythmVoice> currentRvs = currentMapRvPhrase.keySet();
+            var modifiedPhraseRvs = new HashSet<>(updatedRvs);
+            modifiedPhraseRvs.retainAll(currentRvs);
+            var newUserPhraseRvs = new HashSet<>(updatedRvs);
+            newUserPhraseRvs.removeAll(currentRvs);
+            var removedUserPhraseRvs = new HashSet<>(currentRvs);
+            removedUserPhraseRvs.removeAll(updatedRvs);
 
 
-        // Update sequence for each modified phrase 
-        for (RhythmVoice rv : modifiedPhraseRvs)
-        {
-            var updatedPhrase = update.getMapRvPhrases().get(rv);
-            var currentPhrase = currentMapRvPhrase.get(rv);
-            LOGGER.log(Level.FINE, "   rv={0}", rv);
-            LOGGER.log(Level.FINE, "     currentPhrase={0}", currentPhrase);
-            LOGGER.log(Level.FINE, "     updatedPhrase={0}", updatedPhrase);
-
-
-            if (currentPhrase.equalsAsNoteNearPosition(updatedPhrase, 0))
+            // It's an error if we have a new user phrase passed in an update: we can only work with a constant number of RhythmVoices/tracks
+            if (!newUserPhraseRvs.isEmpty())
             {
-                // No change do nothing
-                continue;
-            } else
-            {
-                // Replace the current events
-                LOGGER.log(Level.FINE, "updateSequence()     changes detected for rv={0}, updating", rv);
-                currentMapRvPhrase.put(rv, updatedPhrase);
+                throw new IllegalStateException(
+                        "updatedRvs=" + updatedRvs + " currentRvs=" + currentRvs + " => newUserPhraseRvs=" + newUserPhraseRvs);
             }
 
 
-            // Update the track
-            int trackId = getOriginalRvTrackIdMap().get(rv);
-            updateTrack(trackId, Phrases.toMidiEvents(updatedPhrase), precountShift);
+            // Update sequence for each modified phrase 
+            for (RhythmVoice rv : modifiedPhraseRvs)
+            {
+                var updatedPhrase = update.getMapRvPhrases().get(rv);
+                var currentPhrase = currentMapRvPhrase.get(rv);
+                LOGGER.log(Level.FINE, "   rv={0}", rv);
+                LOGGER.log(Level.FINE, "     currentPhrase={0}", currentPhrase);
+                LOGGER.log(Level.FINE, "     updatedPhrase={0}", updatedPhrase);
 
-        }
+
+                if (currentPhrase.equalsAsNoteNearPosition(updatedPhrase, 0))
+                {
+                    // No change do nothing
+                    continue;
+                } else
+                {
+                    // Replace the current events
+                    LOGGER.log(Level.FINE, "updateSequence()     changes detected for rv={0}, updating", rv);
+                    currentMapRvPhrase.put(rv, updatedPhrase);
+                }
 
 
-        // Update sequence for each removed user phrase : set an empty phrase
-        for (RhythmVoice urv : removedUserPhraseRvs)
-        {
-            LOGGER.log(Level.FINE, "    Clearing user phrase for urv={0}", urv.getName());
-            int channel = currentMapRvPhrase.get(urv).getChannel();
-            Phrase emptyPhrase = new Phrase(channel, urv.isDrums());
-            currentMapRvPhrase.put(urv, emptyPhrase);
-            int trackId = getOriginalRvTrackIdMap().get(urv);
-            updateTrack(trackId, Phrases.toMidiEvents(emptyPhrase), precountShift);
+                // Update the track
+                int trackId = getOriginalRvTrackIdMap().get(rv);
+                updateTrack(trackId, Phrases.toMidiEvents(updatedPhrase), precountShift);
+
+            }
+
+
+            // Update sequence for each removed user phrase : set an empty phrase
+            for (RhythmVoice urv : removedUserPhraseRvs)
+            {
+                LOGGER.log(Level.FINE, "    Clearing user phrase for urv={0}", urv.getName());
+                int channel = currentMapRvPhrase.get(urv).getChannel();
+                Phrase emptyPhrase = new Phrase(channel, urv.isDrums());
+                currentMapRvPhrase.put(urv, emptyPhrase);
+                int trackId = getOriginalRvTrackIdMap().get(urv);
+                updateTrack(trackId, Phrases.toMidiEvents(emptyPhrase), precountShift);
+            }
         }
 
 
@@ -500,10 +505,10 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
     }
 
     @Override
-    public HashMap<Integer, Boolean> getTracksMuteStatus()
+    public Map<Integer, Boolean> getTracksMuteStatus()
     {
-        // Our version
-        return mapTrackIdMuted;
+        // Our version — return an unmodifiable view to prevent external mutation of internal state
+        return (Map<Integer, Boolean>) Collections.unmodifiableMap(mapTrackIdMuted);
     }
 
     @Override
@@ -782,7 +787,7 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
     {
         for (var updatableSession : sessions)
         {
-            if (EnumSet.of(PlaybackSession.State.GENERATED, PlaybackSession.State.NEW).contains(session.getState())
+            if (EnumSet.of(PlaybackSession.State.GENERATED, PlaybackSession.State.NEW).contains(updatableSession.getState())
                     && !updatableSession.isDirty()
                     && session == updatableSession.baseSongSession)
             {

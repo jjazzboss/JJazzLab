@@ -24,6 +24,7 @@ package org.jjazz.musiccontrol.api.playbacksession;
 
 import java.beans.PropertyChangeListener;
 import java.util.HashMap;
+import java.util.Map;
 import javax.sound.midi.Sequence;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.song.api.SongContext;
@@ -183,7 +184,7 @@ public interface PlaybackSession
      * @return Key=track id, Value=true if track is muted. Can be null if no meaningful value can be returned.
      * @see PROP_MUTED_TRACKS
      */
-    HashMap<Integer, Boolean> getTracksMuteStatus();
+    Map<Integer, Boolean> getTracksMuteStatus();
 
     /**
      * The tick position of the end of the loop.

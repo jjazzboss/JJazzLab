@@ -580,7 +580,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         {
             return;
         }
-        if (!playbackSession.getBarRange().contains(barIndex))
+        if (playbackSession.getBarRange() != null && !playbackSession.getBarRange().contains(barIndex))
         {
             throw new IllegalArgumentException(
                     "Invalid barIndex=" + barIndex + " playbackSession.getBarRange()=" + playbackSession.getBarRange());
@@ -724,7 +724,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     {
         if (isPlaying())
         {
-            throw new IllegalStateException("addNoteListener() called while MusicController is playing");
+            throw new IllegalStateException("removeNoteListener() called while MusicController is playing");
         }
         noteListeners.remove(listener);
     }
@@ -955,7 +955,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             var sgContext = scp.getSongContext();
             long relativeTick = getRelativeTickFromLoopStart(tick);
             posInBeats = sgContext.toPositionInBeats(relativeTick);
-            LOGGER.log(Level.FINE, "setPosition()   > song session: relativeTick={1} posInBeats={2}", new Object[]
+            LOGGER.log(Level.FINE, "setPosition()   > song session: relativeTick={0} posInBeats={1}", new Object[]
             {
                 relativeTick,
                 posInBeats

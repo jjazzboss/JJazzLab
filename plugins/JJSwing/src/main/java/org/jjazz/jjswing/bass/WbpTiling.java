@@ -32,6 +32,7 @@ import com.google.common.collect.SortedSetMultimap;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -104,7 +105,7 @@ public class WbpTiling
      */
     public List<SimpleChordSequence> getScsList()
     {
-        return scsList;
+        return Collections.unmodifiableList(scsList);
     }
 
     /**
@@ -514,7 +515,8 @@ public class WbpTiling
             }
 
             var nextWbpsa = getWbpSourceAdaptationStartingAt(br.to + 1);
-            int targetPitch = nextWbpsa != null ? nextWbpsa.getAdaptedPhrase().first().getPitch() : -1;
+            int targetPitch = (nextWbpsa != null && nextWbpsa.getAdaptedPhrase() != null)
+                    ? nextWbpsa.getAdaptedPhrase().first().getPitch() : -1;
 
             // Create the WbpSources
             var wbpSources = wbpSourcesBuilder.build(subSeq, targetPitch);

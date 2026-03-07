@@ -436,7 +436,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
                         }
                     }
 
-                } else if (e.getSource() == PlaybackSettings.getInstance())
+                } else if (pce.getSource() == PlaybackSettings.getInstance())
                 {
                     switch (pce.getPropertyName())
                     {
@@ -548,21 +548,6 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
 
 
     /**
-     * Check that the specified ChordLeadSheet barIndex is part of our context.
-     *
-     * @param clsBarIndex
-     * @return
-     */
-    private boolean isClsBarIndexPartOfContext(int clsBarIndex)
-    {
-        SongContext sgContext = getSongContext();
-        ChordLeadSheet cls = sgContext.getSong().getChordLeadSheet();
-        CLI_Section section = cls.getSection(clsBarIndex);
-        return sgContext.getSongParts().stream().anyMatch(spt -> spt.getParentSection() == section);
-    }
-
-
-    /**
      * Like setDirty() plus it stops further updates and disable the control track.
      * <p>
      * Fire an UpdateProvider.PROP_UPDATE_PROVISION_ENABLED change event.
@@ -630,7 +615,7 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
             var sessionCtrlTrack = getControlTrack();      // Might be null if session was closed in the meantime (usually we're NOT on the Swing EDT!)
             if (sessionCtrlTrack != null)
             {
-                cTrack = new ControlTrack(result.songContext(), getControlTrack().getTrackId());
+                cTrack = new ControlTrack(result.songContext(), sessionCtrlTrack.getTrackId());
             }
         }
 

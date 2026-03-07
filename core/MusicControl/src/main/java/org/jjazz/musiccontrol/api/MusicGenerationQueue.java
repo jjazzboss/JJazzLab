@@ -78,7 +78,7 @@ public class MusicGenerationQueue implements Runnable
     private UpdateGenerationTask generationTask;
     private SongContext threadSharedSongContext;
     private SongContext lastAddedSongContext;
-    private Result lastResult;
+    private volatile Result lastResult;
     private final int preUpdateBufferTimeMs;
     private final int postUpdateSleepTimeMs;
     private volatile boolean running;
@@ -180,7 +180,7 @@ public class MusicGenerationQueue implements Runnable
         {
             LOGGER.fine("stop()");
             running = false;
-            new Thread(() -> 
+            SharedExecutorServices.getThreadFactory("JL-MusicGenerationQueueStop", true).newThread(() -> 
             {
                 // This will block so better in a thread, not a problem since generationExecutorService and executorService will no longer be used
                 Utilities.shutdownAndAwaitTermination(generationExecutorService, 3000, 1000);
@@ -269,11 +269,6 @@ public class MusicGenerationQueue implements Runnable
     private synchronized void writeThreadSharedSongContext(SongContext sgContext)
     {
         threadSharedSongContext = sgContext;
-    }
-
-    private synchronized SongContext readThreadSharedSongContext()
-    {
-        return threadSharedSongContext;
     }
 
     private synchronized SongContext readThreadSharedSongContextThenNullify()

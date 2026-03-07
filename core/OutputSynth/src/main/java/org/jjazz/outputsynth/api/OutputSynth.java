@@ -83,7 +83,7 @@ public class OutputSynth
     public OutputSynth clone()
     {
         OutputSynth res = new OutputSynth(midiSynth);
-        res.userSettings.set(res.userSettings);
+        res.userSettings.set(this.userSettings);
         return res;
     }
 
@@ -518,8 +518,8 @@ public class OutputSynth
          */
         public void setRemapTableValues(GMRemapTable tbl)
         {
+            // remapTable's listener will forward the change as PROP_GM_REMAP_TABLE
             remapTable.set(tbl);
-            pcs.firePropertyChange(PROP_GM_REMAP_TABLE, false, true);
         }
 
         public GMRemapTable getGMRemapTable()
@@ -600,7 +600,13 @@ public class OutputSynth
 
             setAudioLatency(latency);
             setSendModeOnUponPlay(mode);
-            setUserMelodicInstrument(userIns);
+            try
+            {
+                setUserMelodicInstrument(userIns);
+            } catch (IllegalArgumentException ex)
+            {
+                throw new IOException("Instrument not compatible with current synth. sUserIns=" + sUserIns + " ex=" + ex.getMessage());
+            }
             setRemapTableValues(remap);
         }
 

@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.function.Predicate;
@@ -78,7 +79,7 @@ public class DefaultRhythmDatabase implements RhythmDatabase
      * Stores the default rhythms per time signature
      */
     private final Preferences prefs;
-    private final ArrayList<ChangeListener> listeners = new ArrayList<>();
+    private final CopyOnWriteArrayList<ChangeListener> listeners = new CopyOnWriteArrayList<>();
     private static final Logger LOGGER = Logger.getLogger(DefaultRhythmDatabase.class.getSimpleName());
 
     /**
@@ -335,7 +336,7 @@ public class DefaultRhythmDatabase implements RhythmDatabase
     {
         if (ts == null || ri == null || ri.isAdaptedRhythm())
         {
-            throw new IllegalArgumentException("ts=" + ts + " ri=" + null);
+            throw new IllegalArgumentException("ts=" + ts + " ri=" + ri);
         }
         
         if (getRhythm(ri.rhythmUniqueId()) == null)

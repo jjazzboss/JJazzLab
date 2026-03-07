@@ -310,6 +310,7 @@ public class HumanizeDialog extends javax.swing.JDialog implements ChangeListene
 
     private void exit()
     {
+        humanizer.removePropertyChangeListener(this);
         var mc = MusicController.getInstance();
         mc.stop();
         mc.removePropertyChangeListener(this);

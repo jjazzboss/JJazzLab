@@ -130,13 +130,9 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
     public final PropertyChangeEvent setPosition(Position p)
     {
         Objects.requireNonNull(p);
-        var res = CLI_SectionImpl.getVoidEvent(this);
-        if (!position.equals(p))
-        {
-            Position oldPos = position;
-            position = new Position(p);
-            res = new PropertyChangeEvent(this, PROP_ITEM_POSITION, oldPos, position);
-        }
+        Position oldPos = position;
+        position = new Position(p);
+        var res = new PropertyChangeEvent(this, PROP_ITEM_POSITION, oldPos, position);
         return res;
     }
 
@@ -151,13 +147,9 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
     public PropertyChangeEvent setData(ExtChordSymbol ecs)
     {
         Objects.requireNonNull(ecs);
-        var res = CLI_SectionImpl.getVoidEvent(this);
-        if (!ecs.equals(data))
-        {
-            ExtChordSymbol oldData = data;
-            data = ecs;
-            res = new PropertyChangeEvent(this, PROP_ITEM_DATA, oldData, data);
-        }
+        ExtChordSymbol oldData = data;
+        data = ecs;
+        var res = new PropertyChangeEvent(this, PROP_ITEM_DATA, oldData, data);
         return res;
     }
 
@@ -184,7 +176,7 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
         });
     }
 
-   @Override
+    @Override
     public int compareTo(ChordLeadSheetItem<?> o)
     {
         return performReadAPImethod(() -> compareToThreadUnsafe(o));
@@ -211,7 +203,7 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
         });
     }
 
-     @Override
+    @Override
     public boolean equals(Object o)
     {
         return performReadAPImethod(() -> equalsThreadUnsafe(this, o));

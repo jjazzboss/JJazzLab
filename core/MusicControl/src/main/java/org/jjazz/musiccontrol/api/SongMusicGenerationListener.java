@@ -94,9 +94,20 @@ public class SongMusicGenerationListener implements PropertyChangeListener
     {
         return midiMix;
     }
+
+    /**
+     * The delay in ms before firing a PROP_MUSIC_GENERATION_COMBINED event.
+     *
+     * @return
+     */
+    public long getPreFireChangeEventDelayMs()
+    {
+        return coalescingTaskScheduler.getDelayMs();
+    }
     
     public void cleanup()
     {
+        coalescingTaskScheduler.cancel();
         this.songMetaEvents.removePropertyChangeListener(SongMetaEvents.PROP_MUSIC_GENERATION, this);
         this.midiMix.removePropertyChangeListener(MidiMix.PROP_MUSIC_GENERATION, this);
         PlaybackSettings.getInstance().removePropertyChangeListener(PlaybackSettings.PROP_MUSIC_GENERATION, this);

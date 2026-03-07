@@ -30,6 +30,7 @@ import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -49,7 +50,7 @@ import org.jjazz.utilities.api.FloatRange;
 public class TwoFeelPhraseBuilder implements PhraseBuilder
 {
 
-    private static int sessionCount = 0;
+    private static final AtomicInteger sessionCount = new AtomicInteger(0);
     private static final BassStyle STYLE = BassStyle.TWO_FEEL;
     private static final Logger LOGGER = Logger.getLogger(TwoFeelPhraseBuilder.class.getSimpleName());
 
@@ -231,8 +232,7 @@ public class TwoFeelPhraseBuilder implements PhraseBuilder
 
     private String getUniqueCustomId(String prefix)
     {
-        var res = prefix + "_" + sessionCount;
-        sessionCount++;
+        var res = prefix + "_" + sessionCount.getAndIncrement();
         return res;
     }
 
@@ -314,8 +314,12 @@ public class TwoFeelPhraseBuilder implements PhraseBuilder
 
                 NoteEvent ne = new NoteEvent(bassPitch, duration, velocity, brCliCsAdjusted.from);
                 sp.add(ne);
-                ne = new NoteEvent(bassPitch, addNote1Duration, velocity - 4, addNote1BeatPos);
-                sp.add(ne);
+                if (addNote1Duration > 0)
+                {
+                    // Guard against zero duration when brCliCsAdjusted.to lands exactly on a beat
+                    ne = new NoteEvent(bassPitch, addNote1Duration, velocity - 4, addNote1BeatPos);
+                    sp.add(ne);
+                }
             } else
             {
                 // Play a single note: bass note

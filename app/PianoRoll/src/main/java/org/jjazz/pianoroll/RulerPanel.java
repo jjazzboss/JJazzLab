@@ -105,7 +105,7 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
     public RulerPanel(PianoRollEditor editor, NotesPanel notesPanel)
     {
         this.editor = editor;
-        this.editor.addPropertyChangeListener(PianoRollEditor.PROP_CHORD_SEQUENCE, this);
+        this.editor.addPropertyChangeListener(this);
 
         this.notesPanel = notesPanel;
         this.xMapper = notesPanel.getXMapper();
@@ -552,7 +552,12 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
             if (!e.isControlDown())
             {
                 var loopZone = editor.getLoopZone();
-                int bar = xMapper.getPositionFromX(xOrigin).getBar();
+                Position posFromX = xMapper.getPositionFromX(xOrigin);
+                if (posFromX == null)
+                {
+                    return;
+                }
+                int bar = posFromX.getBar();
                 if (e.isShiftDown() && loopZone != null)
                 {
                     if (bar < loopZone.from)
@@ -649,7 +654,7 @@ public class RulerPanel extends JPanel implements PropertyChangeListener
             Position pos = xMapper.getPositionFromX(e.getX());
             if (pos != null)
             {
-                int bar = xMapper.getPositionFromX(e.getX()).getBar();
+                int bar = pos.getBar();
                 int min = Math.min(bar, loopZoneBarOrigin);
                 int max = Math.max(bar, loopZoneBarOrigin);
                 editor.setLoopZone(new IntRange(min, max));

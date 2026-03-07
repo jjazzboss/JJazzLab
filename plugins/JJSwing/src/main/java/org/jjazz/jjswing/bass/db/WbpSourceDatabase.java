@@ -130,14 +130,13 @@ public class WbpSourceDatabase
      */
     public boolean addWbpSource(WbpSource wbps)
     {
-        boolean b = false;
-        if (!database.exists(wbps.getId())
-                && getFirstCompatibleWbpSource(wbps.getBassStyle(), wbps.getSimpleChordSequence(), wbps.getSizedPhrase(), true) == null)
+        // Compatibility check is done outside the lock (it's expensive), so two equivalent sources
+        // could slip in concurrently — that is acceptable. The subsequent addIfAbsent is atomic.
+        if (getFirstCompatibleWbpSource(wbps.getBassStyle(), wbps.getSimpleChordSequence(), wbps.getSizedPhrase(), true) != null)
         {
-            database.add(wbps);
-            b = true;
+            return false;
         }
-        return b;
+        return database.addIfAbsent(wbps);
     }
 
     /**
@@ -148,13 +147,7 @@ public class WbpSourceDatabase
      */
     public boolean removeWbpSource(WbpSource wbps)
     {
-        boolean b = false;
-        if (database.exists(wbps.getId()))
-        {
-            database.remove(wbps);
-            b = true;
-        }
-        return b;
+        return database.removeIfPresent(wbps);
     }
 
 
@@ -670,7 +663,7 @@ public class WbpSourceDatabase
 
         public synchronized List<WbpSource> getSessionWbpSources(String sessionId)
         {
-            return mmapSessionIdWbpSources.get(sessionId);
+            return new ArrayList<>(mmapSessionIdWbpSources.get(sessionId));
         }
 
         public synchronized List<WbpSource> getWbpSources(int nbBars, BassStyle... styles)
@@ -686,7 +679,37 @@ public class WbpSourceDatabase
 
         public synchronized List<WbpSource> getWbpSources(StyleAndProfile sap)
         {
-            return mmapSapWbpSources.get(sap);
+            return new ArrayList<>(mmapSapWbpSources.get(sap));
+        }
+
+        /**
+         * Atomically check ID absence and add. Returns true if added, false if a WbpSource with the same ID already exists.
+         */
+        public synchronized boolean addIfAbsent(WbpSource wbpSource)
+        {
+            if (mapIdWbpSource.containsKey(wbpSource.getId()))
+            {
+                return false;
+            }
+            mapIdWbpSource.put(wbpSource.getId(), wbpSource);
+            mmapSessionIdWbpSources.put(wbpSource.getSessionId(), wbpSource);
+            mmapSapWbpSources.put(new StyleAndProfile(wbpSource.getBassStyle(), wbpSource.getRootProfile()), wbpSource);
+            return true;
+        }
+
+        /**
+         * Atomically check ID presence and remove. Returns true if removed, false if the WbpSource was not found.
+         */
+        public synchronized boolean removeIfPresent(WbpSource wbpSource)
+        {
+            if (!mapIdWbpSource.containsKey(wbpSource.getId()))
+            {
+                return false;
+            }
+            mapIdWbpSource.remove(wbpSource.getId());
+            mmapSessionIdWbpSources.remove(wbpSource.getSessionId(), wbpSource);
+            mmapSapWbpSources.remove(new StyleAndProfile(wbpSource.getBassStyle(), wbpSource.getRootProfile()), wbpSource);
+            return true;
         }
 
         public synchronized void add(WbpSource wbpSource)

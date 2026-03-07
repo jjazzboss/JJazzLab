@@ -43,7 +43,6 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.midimix.api.MidiMix;
-import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.Phrases;
 import org.jjazz.rhythm.api.MusicGenerationException;
@@ -374,8 +373,17 @@ public class CompositeMusicGenerator implements MusicGenerator
             @Override
             public boolean equals(Object obj)
             {
-                DelegateUnitCell other = (DelegateUnitCell) obj;
+                if (!(obj instanceof DelegateUnitCell other))
+                {
+                    return false;
+                }
                 return Objects.equals(delegateUnit().rpVariationValue(), other.delegateUnit().rpVariationValue());
+            }
+
+            @Override
+            public int hashCode()
+            {
+                return Objects.hashCode(delegateUnit().rpVariationValue());
             }
 
             @Override
@@ -600,8 +608,14 @@ public class CompositeMusicGenerator implements MusicGenerator
             var targetRv = mgConfig.mapRvBaseDest.get(baseRv);
             if (baseRv != targetRv)
             {
-                Phrase p = targetRv.getContainer() != baseRhythm ? mapRvPhrases.remove(targetRv) : mapRvPhrases.get(targetRv);
-                assert p != null : "targetRv=" + targetRv + " baseRv=" + baseRv;
+                Phrase src = mapRvPhrases.get(targetRv);
+                assert src != null : "targetRv=" + targetRv + " baseRv=" + baseRv;
+                if (targetRv.getContainer() != baseRhythm)
+                {
+                    mapRvPhrases.remove(targetRv);
+                }
+                // Clone so that multiple baseRv mapping to the same targetRv each get their own phrase
+                Phrase p = src.clone();
                 mapRvPhrases.put(baseRv, p);
                 LOGGER.log(LogLevel, "callDelegateGenerator() mapping p from {0} to {1}. p.size()={2}", new Object[]
                 {
@@ -632,19 +646,6 @@ public class CompositeMusicGenerator implements MusicGenerator
             var pDest = mapDest.get(rv);
             pDest.add(pSrc);
         }
-    }
-
-    /**
-     * A subpart of context which only use spts (or part of spts).
-     *
-     * @param context
-     * @param spts
-     * @return
-     */
-    private SongContext getSubContext(SongContext context, List<SongPart> spts)
-    {
-        IntRange br = context.getBarRange().getIntersection(new IntRange(spts.getFirst().getStartBarIndex(), spts.getLast().getBarRange().to));
-        return SongContextFactory.getDefault().of(context, br);
     }
 
     /**
@@ -760,6 +761,11 @@ public class CompositeMusicGenerator implements MusicGenerator
             });
 
             var p = mapBaseRvPhrases.get(rvBase);
+            if (p == null)
+            {
+                LOGGER.log(Level.WARNING, "postProcessPhrases() Unexpected no phrase found for rvBase={0}, skipping", rvBase);
+                continue;
+            }
             var pSpt = p.clone();
             Phrases.getSlice(pSpt, brSpt, false, 1, 0.1f);  // keep only the SongPart slice before processing it
             postProcessor.accept(pSpt);

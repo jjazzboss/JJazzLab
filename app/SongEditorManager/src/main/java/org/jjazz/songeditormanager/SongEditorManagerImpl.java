@@ -241,7 +241,7 @@ public class SongEditorManagerImpl implements SongEditorManager, PropertyChangeL
         // Check if file is already opened
         for (Song s : getOpenedSongs())
         {
-            if (s.getFile() == f)
+            if (f.equals(s.getFile()))
             {
                 showSong(s, makeActive, false);
                 return s;
@@ -348,53 +348,57 @@ public class SongEditorManagerImpl implements SongEditorManager, PropertyChangeL
         // - Remove PianoRollEditor if user phrase is removed
         var editor = preTc.getEditor();
         DrumKit.KeyMap keyMap2 = keyMap;
-        PropertyChangeListener listener = evt -> 
+        PropertyChangeListener listener = new PropertyChangeListener()
         {
-            // LOGGER.severe("editUserPhrase.propertyChange() e=" + Utilities.toDebugString(evt));
-            if (evt.getSource() == song)
+            @Override
+            public void propertyChange(PropertyChangeEvent evt)
             {
-                if (evt.getPropertyName().equals(Song.PROP_USER_PHRASE))
+                // LOGGER.severe("editUserPhrase.propertyChange() e=" + Utilities.toDebugString(evt));
+                if (evt.getSource() == song)
                 {
-                    // Close the editor if our phrase is removed
-                    if (evt.getOldValue() instanceof String && evt.getNewValue() instanceof Phrase p && p == userPhrase)
+                    if (evt.getPropertyName().equals(Song.PROP_USER_PHRASE))
                     {
-                        preTc.close();
+                        // Close the editor if our phrase is removed
+                        if (evt.getOldValue() instanceof String && evt.getNewValue() instanceof Phrase p && p == userPhrase)
+                        {
+                            preTc.close();
+                        }
                     }
-                }
-            } else if (evt.getSource() == editor)
-            {
-                switch (evt.getPropertyName())
+                } else if (evt.getSource() == editor)
                 {
-                    case PianoRollEditor.PROP_MODEL_PHRASE, PianoRollEditor.PROP_EDITOR_ALIVE ->
+                    switch (evt.getPropertyName())
                     {
-                        editor.removePropertyChangeListener(this);
-                        midiMix.removePropertyChangeListener(this);
-                        song.removePropertyChangeListener(this);
+                        case PianoRollEditor.PROP_MODEL_PHRASE, PianoRollEditor.PROP_EDITOR_ALIVE ->
+                        {
+                            editor.removePropertyChangeListener(this);
+                            midiMix.removePropertyChangeListener(this);
+                            song.removePropertyChangeListener(this);
+                        }
                     }
-                }
-            } else if (evt.getSource() == midiMix)
-            {
-                if (evt.getPropertyName().equals(MidiMix.PROP_RHYTHM_VOICE))
+                } else if (evt.getSource() == midiMix)
                 {
-                    // Used for UserRhythmVoice name change
-                    var newRv = (RhythmVoice) evt.getNewValue();
-                    var newRvName = newRv.getName();
-                    if (newRv instanceof UserRhythmVoice && song.getUserPhrase(newRvName) == userPhrase)
+                    if (evt.getPropertyName().equals(MidiMix.PROP_RHYTHM_VOICE))
                     {
-                        int channel = midiMix.getChannel(newRv);                // Normally unchanged
-                        preTc.setTitle(buildPrEditorUserTrackTitle(newRvName, channel));
-                    }
+                        // Used for UserRhythmVoice name change
+                        var newRv = (RhythmVoice) evt.getNewValue();
+                        var newRvName = newRv.getName();
+                        if (newRv instanceof UserRhythmVoice && song.getUserPhrase(newRvName) == userPhrase)
+                        {
+                            int channel = midiMix.getChannel(newRv);                // Normally unchanged
+                            preTc.setTitle(buildPrEditorUserTrackTitle(newRvName, channel));
+                        }
 
-                } else if (evt.getPropertyName().equals(MidiMix.PROP_RHYTHM_VOICE_CHANNEL))
-                {
-                    // Used to change channel of a RhythmVoice
-                    int newChannel = (int) evt.getNewValue();
-                    var rv = midiMix.getRhythmVoice(newChannel);
-                    var rvName = rv.getName();
-                    if (rv instanceof UserRhythmVoice && song.getUserPhrase(rvName) == userPhrase)
+                    } else if (evt.getPropertyName().equals(MidiMix.PROP_RHYTHM_VOICE_CHANNEL))
                     {
-                        preTc.setModelForUserPhrase(userPhrase, newChannel, keyMap2);
-                        preTc.setTitle(buildPrEditorUserTrackTitle(rvName, newChannel));
+                        // Used to change channel of a RhythmVoice
+                        int newChannel = (int) evt.getNewValue();
+                        var rv = midiMix.getRhythmVoice(newChannel);
+                        var rvName = rv.getName();
+                        if (rv instanceof UserRhythmVoice && song.getUserPhrase(rvName) == userPhrase)
+                        {
+                            preTc.setModelForUserPhrase(userPhrase, newChannel, keyMap2);
+                            preTc.setTitle(buildPrEditorUserTrackTitle(rvName, newChannel));
+                        }
                     }
                 }
             }
@@ -555,7 +559,11 @@ public class SongEditorManagerImpl implements SongEditorManager, PropertyChangeL
 
                 } else if (evt.getNewValue() instanceof PianoRollEditorTopComponent prTc)
                 {
-                    getSongEditorSet(prTc.getSong()).setPianoRollEditor(null);
+                    var editors = getSongEditorSet(prTc.getSong());
+                    if (editors != null)
+                    {
+                        editors.setPianoRollEditor(null);
+                    }
                 }
             } else if (evt.getPropertyName().equals(TopComponent.Registry.PROP_ACTIVATED))
             {

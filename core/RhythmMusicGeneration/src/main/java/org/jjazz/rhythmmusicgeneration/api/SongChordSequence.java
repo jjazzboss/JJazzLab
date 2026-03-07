@@ -174,7 +174,7 @@ public class SongChordSequence extends ChordSequence
         Objects.requireNonNull(sptTester);
         List<SimpleChordSequence> res = new ArrayList<>();
 
-        // the SongParts which intersect this SongChordSequence range
+        // The SongParts which intersect this SongChordSequence range
         var rangeSpts = getSongParts().stream()
                 .filter(spt -> sptTester.test(spt))
                 .toList();
@@ -209,6 +209,7 @@ public class SongChordSequence extends ChordSequence
                 var scs = new SimpleChordSequence(subSequence(barRange, false), beatStart, ts);
                 res.add(scs);
                 tmpList.clear();
+                tmpList.add(spt);
             }
             prevSpt = spt;
         }

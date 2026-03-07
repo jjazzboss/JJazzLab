@@ -100,7 +100,7 @@ public class JJSwingRhythm implements YamJJazzRhythm
     private final RhythmFeatures features;
     private final String[] tags;
     private YamJJazzRhythm baseRhythm;
-    private MusicGenerator musicGenerator;
+    private volatile MusicGenerator musicGenerator;
     private final List<RhythmParameter<?>> rhythmParameters;
     private final List<RhythmVoice> rhythmVoices;
     private final transient PropertyChangeSupport pcs = new PropertyChangeSupport(this);
@@ -328,7 +328,7 @@ public class JJSwingRhythm implements YamJJazzRhythm
     @Override
     public String[] getTags()
     {
-        return tags;
+        return tags.clone();
     }
 
 

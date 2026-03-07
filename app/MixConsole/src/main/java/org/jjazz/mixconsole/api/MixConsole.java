@@ -33,9 +33,11 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.TreeMap;
 import java.util.WeakHashMap;
 import java.util.logging.Level;
@@ -315,9 +317,9 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
      *
      * @return
      */
-    public TreeMap<Integer, ChannelPanelSet> getChannelPanelSets()
+    public NavigableMap<Integer, ChannelPanelSet> getChannelPanelSets()
     {
-        return tmapChannelPanelSets;
+        return Collections.unmodifiableNavigableMap(tmapChannelPanelSets);
     }
 
     /**

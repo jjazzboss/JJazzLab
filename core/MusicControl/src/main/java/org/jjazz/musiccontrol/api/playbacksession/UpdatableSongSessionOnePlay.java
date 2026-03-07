@@ -25,6 +25,7 @@ package org.jjazz.musiccontrol.api.playbacksession;
 import com.google.common.base.Preconditions;
 import java.beans.PropertyChangeEvent;
 import java.util.EnumSet;
+import java.util.Objects;
 import org.jjazz.musiccontrol.api.MusicController;
 
 /**
@@ -41,12 +42,18 @@ public class UpdatableSongSessionOnePlay extends UpdatableSongSession
      */
     public UpdatableSongSessionOnePlay(BaseSongSession session)
     {
-        super(session);
-        Preconditions.checkNotNull(session);
-        Preconditions.checkArgument(session instanceof UpdateProvider);
-
-
+        super(checkSession(session));
         MusicController.getInstance().addPropertyChangeListener(this);
+    }
+
+    /**
+     * Validate session before passing to super(), so that no listener is registered on an invalid argument.
+     */
+    private static BaseSongSession checkSession(BaseSongSession session)
+    {
+        Objects.requireNonNull(session, "session");
+        Preconditions.checkArgument(session instanceof UpdateProvider, "session must implement UpdateProvider: %s", session);
+        return session;
     }
 
     @Override

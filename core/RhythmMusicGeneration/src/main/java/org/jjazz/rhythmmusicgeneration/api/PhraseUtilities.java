@@ -22,16 +22,18 @@
  */
 package org.jjazz.rhythmmusicgeneration.api;
 
+import com.google.common.base.Preconditions;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.NoteEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jjazz.harmony.api.Chord;
 import org.jjazz.harmony.api.ChordType;
@@ -84,7 +86,7 @@ public class PhraseUtilities
         }
 
         int rootPitchDelta = Note.getNormalizedRelPitch(
-        ecsDest.getRootNote().getRelativePitch() - pSrc.getSourceChordSymbol().getRootNote().getRelativePitch());
+                ecsDest.getRootNote().getRelativePitch() - pSrc.getSourceChordSymbol().getRootNote().getRelativePitch());
         ExtChordSymbol ecsSrc = pSrc.getSourceChordSymbol();
 
 
@@ -272,9 +274,16 @@ public class PhraseUtilities
                     {
                         mapSrcDestDegrees.size(), pSrc.getChannel()
                     });
-            var extraDegrees = mapSrcDestDegrees.keySet().stream().skip(9).collect(Collectors.toList());
+            // Sort by pitch for a stable, deterministic selection of the extra degrees to remove
+            var extraDegrees = mapSrcDestDegrees.keySet().stream()
+                    .sorted(Comparator.comparingInt(Degree::getPitch))
+                    .skip(9)
+                    .toList();
+            int srcRootRelPitch = pSrc.getSourceChordSymbol().getRootNote().getRelativePitch();
             pSrcWork = pSrc.clone();
-            pSrcWork.removeIf(ne -> extraDegrees.stream().anyMatch(d -> d.getPitch() == ne.getRelativePitch()));
+            // Compare root-relative degree pitch against the note's pitch offset from the source chord root
+            pSrcWork.removeIf(ne -> extraDegrees.stream().anyMatch(d ->
+                    d.getPitch() == Note.getNormalizedRelPitch(ne.getRelativePitch() - srcRootRelPitch)));
             mapSrcDestDegrees = pSrcWork.getDestDegrees(ecsDest, ChordMode.INVERSION_ALLOWED);
 
         }
@@ -358,7 +367,7 @@ public class PhraseUtilities
     /**
      * Get the relative pitches corresponding to the degrees for a chord symbol whose root=rootPitch.
      * <p>
-     * Ex: rootPitch=0, degrees=ROOT,FIFTH =&gt; return [0,7]=[C,G]
+     * Ex: rootPitch=0, degrees=ROOT,FIFTH =&gt; returns [0,7]=[C,G]
      *
      * @param rootPitch
      * @param degrees
@@ -366,10 +375,8 @@ public class PhraseUtilities
      */
     static public List<Integer> getRelativePitches(int rootPitch, Degree[] degrees)
     {
-        if (!Note.checkPitch(rootPitch) || degrees == null)
-        {
-            throw new IllegalArgumentException("rootPitch=" + rootPitch + " degrees=" + Arrays.toString(degrees));
-        }
+        Objects.requireNonNull(degrees);
+        Preconditions.checkArgument(rootPitch >= 0 && rootPitch <= 11, "rootPitch=%s", rootPitch);
         List<Integer> res = Stream.of(degrees)
                 .map(d -> Note.getNormalizedRelPitch(rootPitch + d.getPitch()))
                 .toList();

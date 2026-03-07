@@ -30,10 +30,10 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -62,7 +62,7 @@ public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
     private final SimpleChordSequence simpleChordSequence;
     private Phrase adaptedPhrase;
     private int targetPitch;
-    private static final Map<String, WbpSourceAdaptation> MAP_KEYSTR_WBPSA = new HashMap<>();
+    private static final Map<String, WbpSourceAdaptation> MAP_KEYSTR_WBPSA = new ConcurrentHashMap<>();
     private static final Logger LOGGER = Logger.getLogger(WbpSourceAdaptation.class.getSimpleName());
 
     /**
@@ -83,35 +83,36 @@ public class WbpSourceAdaptation implements Comparable<WbpSourceAdaptation>
         WbpSourceAdaptation res;
 
         var key = computeKey(wbpSource, scs);
-        var wbpsa = MAP_KEYSTR_WBPSA.get(key);
-        if (wbpsa == null)
+        var existing = MAP_KEYSTR_WBPSA.get(key);
+        if (existing == null)
         {
-            // Create the instance
-            res = new WbpSourceAdaptation(wbpSource, scs);
-            MAP_KEYSTR_WBPSA.put(key, res);
-            LOGGER.log(Level.FINE, "of() Creating instance for {0}  key={1}  resBr={2}", new Object[]
+            // Try to atomically insert a fresh seed entry
+            var candidate = new WbpSourceAdaptation(wbpSource, scs);
+            existing = MAP_KEYSTR_WBPSA.putIfAbsent(key, candidate);
+            if (existing == null)
             {
-                wbpSource, key, res.getBeatRange()
-            });
-        } else
-        {
-            // Reuse wbpsa harmonic/transposability scores
-            res = new WbpSourceAdaptation(wbpSource, scs);
-            Score baseScore = wbpsa.getCompatibilityScore();
-            Score newScore = new Score(baseScore.harmonicCompatibility(), baseScore.transposability(), 0, 0, 0);    // tempo/pre/post-target scores reset because depend on context
-            res.compatibilityScore = newScore;
-            if (wbpsa.getAdaptedPhrase() != null)
-            {
-                res.adaptedPhrase = wbpsa.getAdaptedPhrase().clone();
-                float shift = res.getBeatRange().from - wbpsa.getBeatRange().from;
-                res.adaptedPhrase.shiftAllEvents(shift, true);
+                // candidate was successfully inserted – return it directly
+                LOGGER.log(Level.FINE, "of() Creating instance for {0}  key={1}  resBr={2}", new Object[]
+                {
+                    wbpSource, key, candidate.getBeatRange()
+                });
+                return candidate;
             }
-            res.targetPitch = wbpsa.targetPitch;
-//            LOGGER.log(Level.SEVERE, "of() reusing values for {0}  key={1}  wbpsaBr={2}  resBr={3}", new Object[]
-//            {
-//                wbpSource, key, wbpsa.getBeatRange(), res.getBeatRange()
-//            });
+            // Another thread inserted first; fall through with their entry as 'existing'
         }
+
+        // Cache hit: create a new ephemeral instance reusing harmonic/transposability scores from 'existing'
+        res = new WbpSourceAdaptation(wbpSource, scs);
+        Score baseScore = existing.getCompatibilityScore();
+        Score newScore = new Score(baseScore.harmonicCompatibility(), baseScore.transposability(), 0, 0, 0);    // tempo/pre/post-target scores reset because depend on context
+        res.compatibilityScore = newScore;
+        if (existing.getAdaptedPhrase() != null)
+        {
+            res.adaptedPhrase = existing.getAdaptedPhrase().clone();
+            float shift = res.getBeatRange().from - existing.getBeatRange().from;
+            res.adaptedPhrase.shiftAllEvents(shift, true);
+        }
+        res.targetPitch = existing.targetPitch;
 
         return res;
     }

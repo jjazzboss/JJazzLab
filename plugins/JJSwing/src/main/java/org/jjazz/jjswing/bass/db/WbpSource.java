@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -76,8 +77,8 @@ public class WbpSource extends Wbp
                 "firstNoteBeatShift=%s", firstNoteBeatShift);
         checkArgument(phrase.getSizeInBars() >= 1 && phrase.getSizeInBars() <= 4, "phrase=%s", phrase);
 
-        this.mapDestChordRootTransposibility = new HashMap<>();
-        this.mapCsSlice = new HashMap<>();
+        this.mapDestChordRootTransposibility = new ConcurrentHashMap<>();
+        this.mapCsSlice = new ConcurrentHashMap<>();
         this.originalChordSequence = cSeq.deepClone();
         this.sessionId = sessionId;
         this.id = sessionId + "#fr=" + sessionBarFrom + "#sz=" + phrase.getSizeInBars();
@@ -438,7 +439,7 @@ public class WbpSource extends Wbp
         }
 
 
-        float countOutside = tDown ? countOutsideDown : countOutsideDown;
+        float countOutside = tDown ? countOutsideDown : countOutsideUp;
         float countExtended = tDown ? countExtendedDown : countExtendedUp;
         float countGood = tDown ? countGoodDown : countGoodUp;
         int transpose = tDown ? -transposeDown : transposeUp;

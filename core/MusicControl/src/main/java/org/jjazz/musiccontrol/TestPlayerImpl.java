@@ -25,6 +25,7 @@ package org.jjazz.musiccontrol;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeListener;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.Sequence;
@@ -178,7 +179,7 @@ public class TestPlayerImpl implements TestPlayer
         }
 
         @Override
-        public HashMap<Integer, Boolean> getTracksMuteStatus()
+        public Map<Integer, Boolean> getTracksMuteStatus()
         {
             return null;
         }

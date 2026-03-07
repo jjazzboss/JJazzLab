@@ -43,10 +43,10 @@ import java.util.logging.Logger;
  * B B B
  *
  * Groups of min 2 cells: (row, col)
- * 1. (0,0), (0,2), (1,0), (1,2)  - 'A'
- * 2. (1,0), (1,1), (1,2)         - 'A' the middle line
- * 3. (2,0), (2,1), (2,2)         - 'B' the last line
- * 4. (0,1), (2,1)                - 'B'
+ * 1. (0,0), (0,2), (1,0), (1,2)  - The A's in NW, W, NE, E cells
+ * 2. (1,0), (1,1), (1,2)         - The A's in middle line
+ * 3. (2,0), (2,1), (2,2)         - The B's in last line
+ * 4. (0,1), (2,1)                - The B's in N and S cells
  * </pre>
  * <p>
  * This class uses a greedy algorithm to find the minimum number of removals required to clear the matrix.

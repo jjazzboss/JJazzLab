@@ -27,6 +27,7 @@ package org.jjazz.jjswing.bass;
 import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -48,6 +49,7 @@ public class TilerMaxDistance implements Tiler
      */
     public TilerMaxDistance(Predicate<WbpSourceAdaptation> wbpsaTester)
     {
+        Objects.requireNonNull(wbpsaTester);
         this.wbpsaTester = wbpsaTester;
     }
 
@@ -55,6 +57,10 @@ public class TilerMaxDistance implements Tiler
     @Override
     public void tile(WbpTiling tiling, WbpsaStore store)
     {
+        Objects.requireNonNull(tiling);
+        Objects.requireNonNull(store);
+        Preconditions.checkArgument(store.getTiling() == tiling, "tiling=%s  store.getTiling()=%s", tiling, store.getTiling());
+
         LOGGER.log(Level.FINE, "tile() --");
 
         // LOGGER.log(Level.FINE, "tile() store=\n{0}", store.toDebugString(true));

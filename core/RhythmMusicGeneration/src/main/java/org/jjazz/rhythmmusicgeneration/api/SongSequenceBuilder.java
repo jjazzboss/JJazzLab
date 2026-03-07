@@ -1035,7 +1035,7 @@ public class SongSequenceBuilder
 
                 // Prepare the phrase
                 Phrase pCustom = rpValue.getCustomizedPhrase(rv);
-                var pWork = new Phrase(0);
+                var pWork = new Phrase(0);      // Ok to hard-code it, should not be used
                 pWork.add(pCustom);
                 pWork.shiftAllEvents(sptBeatRange.from, false);                // Custom phrase starts at beat 0, make it match songPart's start
                 pWork = Phrases.getSlice(pWork, sptBeatRangeInContext, false, 1, 0.1f);    // Keep only the relevant slice

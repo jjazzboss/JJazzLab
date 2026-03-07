@@ -73,26 +73,6 @@ public class ChordSequence extends TreeSet<CLI_ChordSymbol> implements Comparabl
         return cSeq;
     }
 
-    /**
-     * The relative root ascending intervals of N chord symbols of this chord sequence.
-     * <p>
-     * Example: if chords=[Em,D7,F/A] then returned list is [10;3].
-     *
-     * @return A list with N-1 values in the range [0;11].
-     */
-    public List<Integer> getRootAscIntervals()
-    {
-        List<Integer> res = new ArrayList<>();
-        for (var cliCs : this)
-        {
-            Note root = cliCs.getData().getRootNote();
-            Note root2 = higher(cliCs).getData().getRootNote();
-            int delta = root.getRelativeAscInterval(root2);
-            res.add(delta);
-        }
-        return res;
-    }
-
     public final IntRange getBarRange()
     {
         return barRange;
@@ -183,9 +163,9 @@ public class ChordSequence extends TreeSet<CLI_ChordSymbol> implements Comparabl
         Preconditions.checkNotNull(posFrom);
         Preconditions.checkNotNull(tester);
 
-        var headSet = headSet(CLI_ChordSymbol.createItemFrom(posFrom, inclusive),
+        var tailSet=  tailSet(CLI_ChordSymbol.createItemFrom(posFrom, inclusive),
                 false);   // useless because of createItemFrom
-        var res = headSet.stream().
+        var res = tailSet.stream().
                 filter(cliCs -> tester.test(cliCs))
                 .findFirst()
                 .orElse(null);

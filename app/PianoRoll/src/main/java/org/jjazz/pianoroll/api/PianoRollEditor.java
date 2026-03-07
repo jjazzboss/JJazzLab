@@ -485,7 +485,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
         var oldLoopZone = loopZone;
         loopZone = null;
         keyMap = kMap;
-        int oldChannel = channel;
+        int oldChannel = this.channel;
         this.channel = channel;
         this.beatRange = beatRange;
         mapPosTimeSignature = mapPosTs;
@@ -1161,7 +1161,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
     @Override
     public String toString()
     {
-        return "PianoRollEditor[" + song.getName() + "]";
+        return "PianoRollEditor[" + (song != null ? song.getName() : "null") + "]";
     }
     // ==========================================================================================================
     // ClsChangeListener interface
@@ -2274,7 +2274,10 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
 
 
                 final var nv0 = getNoteView(p.getNotes().get(0));
-                SwingUtilities.invokeLater(() -> notesPanel.scrollRectToVisible(nv0.getBounds()));     // invokeLater to make sure task is run after nv0 is layouted                
+                if (nv0 != null)
+                {
+                    SwingUtilities.invokeLater(() -> notesPanel.scrollRectToVisible(nv0.getBounds()));     // invokeLater to make sure task is run after nv0 is layouted
+                }
             }
 
             return true;

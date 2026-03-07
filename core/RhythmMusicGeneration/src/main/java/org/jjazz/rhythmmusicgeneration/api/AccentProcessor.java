@@ -198,7 +198,7 @@ public class AccentProcessor
             if (gct.afterCellRange.isEmpty())
             {
                 // Nothing to do
-                return;
+                continue;
             }
 
             // Clean a number of cells
@@ -1063,7 +1063,7 @@ public class AccentProcessor
     {
         IntRange rg = gct.grid.getCellRange(beatRange, false);
         float lastCellStartPos = gct.grid.getStartPos(rg.to);
-        if ((beatRange.to - lastCellStartPos) < 0 & rg.size() > 1)
+        if ((beatRange.to - lastCellStartPos) < 0 && rg.size() > 1)
         {
             // Upper bound is in the pre-cell beat window of next cell
             rg = rg.getTransformed(0, -1);
@@ -1085,14 +1085,14 @@ public class AccentProcessor
         private final LinkedList<Integer> slidingWindow = new LinkedList<>();   // Keep the cell of each previous crashes within the sliding window                
         private int slidingWindowSize;
 
-        public List<Integer> openHiHatPitches;
-        public List<Integer> accentPitches;
-        public List<Integer> crashPitches;
-        public Grid gridCrashes;
-        public Grid refGridCrashes;
-        public Grid gridAccents;
-        public Grid refGridAccents;
-        public Grid gridOpenHiHats;
+        public final List<Integer> openHiHatPitches;
+        public final List<Integer> accentPitches;
+        public final List<Integer> crashPitches;
+        public final Grid gridCrashes;
+        public final Grid refGridCrashes;
+        public final Grid gridAccents;
+        public final Grid refGridAccents;
+        public final Grid gridOpenHiHats;
 
 
         public GridDrumsHelper(Phrase p, DrumKit kit)

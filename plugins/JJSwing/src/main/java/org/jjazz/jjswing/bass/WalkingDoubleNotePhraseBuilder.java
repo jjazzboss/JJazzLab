@@ -178,13 +178,19 @@ public class WalkingDoubleNotePhraseBuilder implements PhraseBuilder
         if (res == forbiddenPitch)
         {
             int relPitch5th = ecs.getRelativePitch(ChordType.DegreeIndex.FIFTH);
-            int res5th = BassGenerator.getClosestAndAcceptableBassPitch(forbiddentTargetNote, relPitch5th);
             int relPitch3rd = ecs.getRelativePitch(ChordType.DegreeIndex.THIRD_OR_FOURTH);
-            if (relPitch3rd == -1)
+            if (relPitch5th == -1 && relPitch3rd == -1)
             {
-                res = res5th;
+                // No alternative degrees available, keep res as-is
+            } else if (relPitch5th == -1)
+            {
+                res = BassGenerator.getClosestAndAcceptableBassPitch(forbiddentTargetNote, relPitch3rd);
+            } else if (relPitch3rd == -1)
+            {
+                res = BassGenerator.getClosestAndAcceptableBassPitch(forbiddentTargetNote, relPitch5th);
             } else
             {
+                int res5th = BassGenerator.getClosestAndAcceptableBassPitch(forbiddentTargetNote, relPitch5th);
                 int res3rd = BassGenerator.getClosestAndAcceptableBassPitch(forbiddentTargetNote, relPitch3rd);
                 res = Math.abs(res3rd - forbiddenPitch) < Math.abs(res5th - forbiddenPitch) ? res3rd : res5th;
             }

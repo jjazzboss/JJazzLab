@@ -150,13 +150,9 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
     public PropertyChangeEvent setData(Section section)
     {
         Objects.requireNonNull(section);
-        var res = getVoidEvent(this);
-        if (!section.equals(data))
-        {
-            Section oldData = data;
-            data = section.clone();
-            res = new PropertyChangeEvent(this, PROP_ITEM_DATA, oldData, data);
-        }
+        Section oldData = data;
+        data = section.clone();
+        var res = new PropertyChangeEvent(this, PROP_ITEM_DATA, oldData, data);
         return res;
     }
 
@@ -226,13 +222,9 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
     public final PropertyChangeEvent setPosition(Position p)
     {
         Objects.requireNonNull(p);
-        var res = getVoidEvent(this);
-        if (!position.equals(p))
-        {
-            Position oldPos = position;
-            position = new Position(p);
-            res = new PropertyChangeEvent(this, PROP_ITEM_POSITION, oldPos, position);
-        }
+        Position oldPos = position;
+        position = new Position(p);
+        var res = new PropertyChangeEvent(this, PROP_ITEM_POSITION, oldPos, position);
         return res;
     }
 

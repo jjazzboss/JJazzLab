@@ -3,7 +3,6 @@ package org.jjazz.jjswing.drums.db;
 import static com.google.common.base.Preconditions.checkArgument;
 import com.google.common.collect.Streams;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
@@ -31,7 +30,7 @@ public class DpSource
     private final int alternateId;
     private final DrumsStyle drumsStyle;
     private final List<String> tags;
-    private DpSourceStats stats;
+    private volatile DpSourceStats stats;
     private static final Logger LOGGER = Logger.getLogger(DpSource.class.getSimpleName());
 
     /**
@@ -63,7 +62,7 @@ public class DpSource
         this.alternateId = altId;
         this.drumsPhrase = dPhrase;
         this.percPhrase = pPhrase;
-        this.tags = Collections.unmodifiableList(Stream.of(tags).map(t -> t.toLowerCase()).toList());
+        this.tags = new ArrayList<>(Stream.of(tags).map(t -> t.toLowerCase()).toList());
 
 
         Phrases.fixEndOfPhraseNotes(drumsPhrase);
@@ -217,7 +216,7 @@ public class DpSource
         boolean b = false;
         if (!tags.contains(tag))
         {
-            tags.add(tag);
+            tags.add(tag.toLowerCase());
             b = true;
         }
         return b;

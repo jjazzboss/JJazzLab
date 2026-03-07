@@ -129,7 +129,7 @@ public class DrumsGenerator implements MusicGenerator
         }
         if (rvPerc != null)
         {
-            var drumKit = getDrumKit(rvDrums, context.getMidiMix());
+            var drumKit = getDrumKit(rvPerc, context.getMidiMix());
             postProcessPhrase(context, pPerc, drumKit);
             res.put(rvPerc, pPerc);
         }

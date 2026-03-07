@@ -238,9 +238,12 @@ public class ActiveSongBackgroundMusicBuilderImpl implements PropertyChangeListe
     // ChangeListener interface
     // ==========================================================================================================
     @Override
-    public void stateChanged(ChangeEvent e)
+    public synchronized void stateChanged(ChangeEvent e)
     {
-        nonPlayingSongResultReceived(songMusicBuilderTask.getLastResult());
+        if (songMusicBuilderTask != null)
+        {
+            nonPlayingSongResultReceived(songMusicBuilderTask.getLastResult());
+        }
     }
 
 
@@ -249,7 +252,8 @@ public class ActiveSongBackgroundMusicBuilderImpl implements PropertyChangeListe
     //=============================================================================
     private void setState(Mode newMode, UpdatableSongSession newUpdatableSongSession, Song newSong, MidiMix newMidiMix)
     {
-        if (newSong == activeSong && newMidiMix == activeMidiMix && newMode.equals(mode))
+        if (newSong == activeSong && newMidiMix == activeMidiMix && newMode.equals(mode)
+                && newUpdatableSongSession == updatableSongSession)
         {
             return;
         }

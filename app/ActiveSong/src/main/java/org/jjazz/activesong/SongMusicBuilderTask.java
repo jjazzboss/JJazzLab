@@ -142,7 +142,7 @@ public class SongMusicBuilderTask implements ChangeListener, PropertyChangeListe
 
     public boolean isStarted()
     {
-        return musicGenerationQueue.isRunning();
+        return musicGenerationQueue != null && musicGenerationQueue.isRunning();
     }
 
     /**
@@ -162,7 +162,7 @@ public class SongMusicBuilderTask implements ChangeListener, PropertyChangeListe
      */
     public boolean isGeneratingMusic()
     {
-        return musicGenerationQueue.isGeneratingMusic();
+        return musicGenerationQueue != null && musicGenerationQueue.isGeneratingMusic();
     }
 
     /**
@@ -221,7 +221,7 @@ public class SongMusicBuilderTask implements ChangeListener, PropertyChangeListe
     private void postMusicGenerationRequest()
     {
         // Can't use a thread here because this might lead to concurrent modification (eg of a user phrase) while copy is being made                
-        LOGGER.log(Level.FINE, "stateChanged() -- posting music generation request for {0}", song.getName());
+        LOGGER.log(Level.FINE, "postMusicGenerationRequest() -- posting music generation request for {0}", song.getName());
         if (song.getChordLeadSheet().getSection(0) == null)
         {
             // Robustness check, happened once but can't reproduce...

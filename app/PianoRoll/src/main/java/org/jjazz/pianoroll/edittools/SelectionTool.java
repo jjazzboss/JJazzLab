@@ -70,8 +70,8 @@ public class SelectionTool implements EditTool
         RESIZE_WEST(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR)),
         RESIZE_EAST(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR)),
         // MOVE(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR)),
-        MOVE(load("DnD.Cursor.MoveDrop")),
-        COPY(load("DnD.Cursor.CopyDrop"));      // Taken from JDK DragSource.java
+        MOVE(loadCursor("DnD.Cursor.MoveDrop")),
+        COPY(loadCursor("DnD.Cursor.CopyDrop"));      // Taken from JDK DragSource.java
 
         private final Cursor cursor;
 
@@ -152,7 +152,6 @@ public class SelectionTool implements EditTool
     public void noteDragged(MouseEvent e, NoteView nvSource)
     {
         var neSource = nvSource.getModel();
-        var point = e.getPoint();
         boolean overrideSnapSetting = isOverrideSnapSetting(e);
         Point editorPoint = SwingUtilities.convertPoint(nvSource, e.getPoint(), nvSource.getParent());
         editorPoint.x = Math.max(0, editorPoint.x);
@@ -458,12 +457,10 @@ public class SelectionTool implements EditTool
                 mapSrcDragNotes.values().forEach(nei -> NoteEvent.markIsAdjustingNote(nei, false));
                 editor.getModel().addAll(mapSrcDragNotes.values(), false);
 
+                editor.getUndoManager().endCEdit(undoText);
 
                 editor.selectNotes(mapSrcDragNotes.keySet(), false);
                 editor.selectNotes(mapSrcDragNotes.values(), true);
-
-
-                editor.getUndoManager().endCEdit(undoText);
             }
             default ->
                 throw new AssertionError(state.name());
@@ -612,20 +609,25 @@ public class SelectionTool implements EditTool
         return res;
     }
 
-    private static Cursor load(String name)
+    private static Cursor loadCursor(String name)
     {
         if (GraphicsEnvironment.isHeadless())
         {
             throw new IllegalStateException();
         }
-
+        Cursor res = null;
         try
         {
-            return (Cursor) Toolkit.getDefaultToolkit().getDesktopProperty(name);
+            res = (Cursor) Toolkit.getDefaultToolkit().getDesktopProperty(name);
         } catch (Exception e)
         {
-            throw new RuntimeException("load() Failed to load system cursor: " + name + " : " + e.getMessage());
+            // Nothing
         }
+        if (res == null)
+        {
+            LOGGER.log(Level.WARNING, "loadCursor() name={0} No valide cursor found.", name);
+        }
+        return res;
     }
 
     private void removeControlKeyListener(Container container)

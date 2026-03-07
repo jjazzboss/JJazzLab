@@ -536,9 +536,14 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
         if (xMapper.isUptodate())
         {
             // We can limit the search to some NoteViews, useful when many many notes
-            SwingUtilities.computeIntersection(0, 0, getWidth(), getHeight(), r);
-            float brFrom = xMapper.getBeatPosition(xMapper.getPositionFromX(r.x));
-            float brTo = xMapper.getBeatPosition(xMapper.getPositionFromX(r.x + r.width - 1));
+            // Use a local copy to avoid mutating the caller's rectangle
+            Rectangle rClipped = SwingUtilities.computeIntersection(0, 0, getWidth(), getHeight(), new Rectangle(r));
+            if (rClipped.isEmpty())
+            {
+                return Collections.emptyList();
+            }
+            float brFrom = xMapper.getBeatPosition(xMapper.getPositionFromX(rClipped.x));
+            float brTo = xMapper.getBeatPosition(xMapper.getPositionFromX(rClipped.x + rClipped.width - 1));
             NoteEvent neMin = new NoteEvent(0, 1, 0, Math.max(0, brFrom - 48f)); // we manage up to a 48 beats-long note that would cross our rectangle
             NoteEvent neMax = new NoteEvent(0, 1, 0, brTo + 0.1f);
             nvs = mapNoteViews.subMap(neMin, neMax).values();       // ordered by note position

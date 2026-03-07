@@ -30,6 +30,7 @@ import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -53,7 +54,7 @@ import static org.jjazz.jjswing.bass.PhraseBuilder.PhraseBuilderLogLevel;
 public class WalkingPhraseBuilder implements PhraseBuilder
 {
 
-    private static int sessionCount = 0;
+    private static final AtomicInteger sessionCount = new AtomicInteger(0);
     private static final BassStyle STYLE = BassStyle.WALKING;
     private static final Logger LOGGER = Logger.getLogger(WalkingPhraseBuilder.class.getSimpleName());
 
@@ -238,9 +239,7 @@ public class WalkingPhraseBuilder implements PhraseBuilder
 
     private String getUniqueCustomId(String prefix)
     {
-        var res = prefix + "_" + sessionCount;
-        sessionCount++;
-        return res;
+        return prefix + "_" + sessionCount.getAndIncrement();
     }
 
     /**

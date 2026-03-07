@@ -633,7 +633,7 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
             res = (int) Math.floor((55 - avg) / 12);
         } else if (avg > 79f)
         {
-            res = (int) Math.floor((avg - 67) / 12);
+            res = (int) Math.floor((67 - avg) / 12);
         }
         res = Ints.constrainToRange(res, -3, 3);
 
@@ -736,6 +736,13 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
         private NoteEventBuffer(int size)
         {
             super(size);
+        }
+
+        @Override
+        public void clear()
+        {
+            super.clear();
+            selectedNotes.clear();
         }
 
         /**

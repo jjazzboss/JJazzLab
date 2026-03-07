@@ -33,59 +33,58 @@ import org.jjazz.utilities.api.IntRange;
 /**
  * A helper class to calculate a number of data related to one chord symbol of a chord sequence with an associated grid.
  * <p>
- * Data covers the zone from the chord symbol before (or the start of chord sequence if no previous chord symbol) to the chord symbol after
- * (or end of chord sequence if no next chord symbol). When present the bounding chord symbols before/after are not part of the covered
- * zone.
+ * Data covers the zone from the chord symbol before (or the start of chord sequence if no previous chord symbol) to the chord symbol after (or end of chord
+ * sequence if no next chord symbol). When present the bounding chord symbols before/after are not part of the covered zone.
  */
 public class GridChordContext
 {
 
     // Context
-    public SimpleChordSequence chordSequence;
-    public Grid grid;
-    public CLI_ChordSymbol chord;
-    public TimeSignature timeSignature;
+    public final SimpleChordSequence chordSequence;
+    public final Grid grid;
+    public final CLI_ChordSymbol chord;
+    public final TimeSignature timeSignature;
 
     /**
      * The cell of the chord symbol.
      */
-    public int chordCell;
+    public final int chordCell;
     /**
      * The absolute position of the chord symbol.
      */
-    public float chordPosInBeats;
+    public final float chordPosInBeats;
     /**
      * The relative position in beat in the cell, can be negative !
      */
-    public float relPosInCell;
+    public final float relPosInCell;
     /**
      * The relative cell within the beat.
      */
-    public int relCellInBeat;
+    public final int relCellInBeat;
     /**
      * from=chordCell+1, to=cell before next beat, can be empty.
      */
-    public IntRange toNextBeatCellRange;
+    public final IntRange toNextBeatCellRange;
     /**
      * from=beat start, to=chordCell-1, can be empty.
      */
-    public IntRange fromBeatStartCellRange;
+    public final IntRange fromBeatStartCellRange;
     /**
      * from=chordCell+1, to=cell before next chord symbol or end of grid, can be empty.
      */
-    public IntRange afterCellRange;
+    public final IntRange afterCellRange;
     /**
      * from=cell after previous chord symbol or start of grid, to=chordCell-1, can be empty.
      */
-    public IntRange beforeCellRange;
+    public final IntRange beforeCellRange;
     /**
      * from=1st cell of this zone, to=last cell of this zone
      */
-    public IntRange cellRange;
+    public final IntRange cellRange;
     /**
      * from=chord position, to=end of the zone (last cell position minus the pre-cell window)
      */
-    public FloatRange afterBeatRange;
+    public final FloatRange afterBeatRange;
 
     public GridChordContext(CLI_ChordSymbol cliCs, SimpleChordSequence cSeq, Grid grid)
     {
@@ -93,17 +92,13 @@ public class GridChordContext
         Objects.requireNonNull(cSeq);
         Objects.requireNonNull(grid);
         Preconditions.checkArgument(cSeq.contains(cliCs), "cliCs=%s cSeq=%s", cliCs, cSeq);
-        
+
         this.chord = cliCs;
         this.chordSequence = cSeq;
         this.grid = grid;
         this.timeSignature = cSeq.getTimeSignature();
-        calculate();
-    }
 
 
-    private void calculate()
-    {
         chordPosInBeats = chordSequence.toPositionInBeats(chord.getPosition());
         chordCell = grid.getCell(chordPosInBeats, false);
         int cellFrom, cellTo;
@@ -151,8 +146,8 @@ public class GridChordContext
             toNextBeatCellRange = IntRange.EMPTY_RANGE;
         } else
         {
-            toNextBeatCellRange = new IntRange(chordCell + 1, chordCell + grid.getNbCellsPerBeat() - relCellInBeat - 1);
-            toNextBeatCellRange = afterCellRange.getIntersection(toNextBeatCellRange);
+            var tmpRange = new IntRange(chordCell + 1, chordCell + grid.getNbCellsPerBeat() - relCellInBeat - 1);
+            toNextBeatCellRange = afterCellRange.getIntersection(tmpRange);
         }
 
         // Range from start of beat
@@ -161,8 +156,8 @@ public class GridChordContext
             fromBeatStartCellRange = IntRange.EMPTY_RANGE;
         } else
         {
-            fromBeatStartCellRange = new IntRange(chordCell - relCellInBeat, chordCell - 1);
-            fromBeatStartCellRange = beforeCellRange.getIntersection(fromBeatStartCellRange);
+            var tmp = new IntRange(chordCell - relCellInBeat, chordCell - 1);
+            fromBeatStartCellRange = beforeCellRange.getIntersection(tmp);
         }
 
         // Beat range from the chord symbol location to the end of the zone

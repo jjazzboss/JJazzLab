@@ -72,6 +72,8 @@ public class AnticipatedChordProcessor
         Objects.requireNonNull(cSeq);
         Preconditions.checkArgument(!cSeq.isEmpty());
         Preconditions.checkArgument(nbCellsPerBeat >= 3 && nbCellsPerBeat <= 4, "nbCellsPerBeat=%s", nbCellsPerBeat);
+        Preconditions.checkArgument(preCellBeatWindow >= 0 && preCellBeatWindow < (1f / nbCellsPerBeat), "preCellBeatWindow=%s nbCellsPerBeat=%s",
+                (Float) preCellBeatWindow, (Integer) nbCellsPerBeat);
         Preconditions.checkArgument(cSeq.getBeatRange().from >= 0 && cSeq.getBeatRange().from == Math.floor(cSeq.getBeatRange().from),
                 "cSeq.getBeatRange()=%s", cSeq.getBeatRange());
 
@@ -169,6 +171,10 @@ public class AnticipatedChordProcessor
         for (CLI_ChordSymbol cliCs : anticipatableChords)
         {
             int chordCell = grid.getCell(simpleChordSequence.getPositionInBeats(cliCs), true);
+            if (chordCell == lastCellIndex)
+            {
+                continue;
+            }
             int inBeatChordCell = chordCell % nbCellsPerBeat;
             int nextBeatChordCell = Math.min(lastCellIndex, chordCell + (nbCellsPerBeat - inBeatChordCell));
             LOGGER.log(Level.FINE, "anticipateChords_Poly() cliCs={0} chordCell={1} nextBeatChordCell={2}", new Object[]
@@ -195,8 +201,7 @@ public class AnticipatedChordProcessor
             for (Integer pitch : mapPitchGrid.keySet())
             {
                 Grid pitchGrid = mapPitchGrid.get(pitch);
-                int anticipatedCell = (chordCell == lastCellIndex) ? -1 : pitchGrid.getLastNoteCell(new IntRange(chordCell + 1,
-                        nextBeatChordCell));
+                int anticipatedCell = pitchGrid.getLastNoteCell(new IntRange(chordCell + 1, nextBeatChordCell));
                 if (anticipatedCell != -1)
                 {
                     pitchGrid.removeNotes(new IntRange(chordCell, anticipatedCell - 1));
@@ -335,5 +340,5 @@ public class AnticipatedChordProcessor
     {
         return 30;
     }
-  
+
 }

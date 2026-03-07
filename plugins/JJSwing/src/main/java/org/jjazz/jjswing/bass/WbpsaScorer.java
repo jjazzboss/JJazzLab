@@ -170,8 +170,11 @@ public class WbpsaScorer
             // If pre/post target scores can be computed then check constraints on non-root start note and non-chord-tone last note: 
             // - if start note is not root, make sure it's the target note of the previous wbpsa
             // - if last note is not a chord tone, make sure next wbpsa matches our target note
+            // Use the effective scores: the cached value in res if the computation was skipped (score already set), otherwise the locally computed value.
+            float effectivePreScore = res.preTargetNoteMatch() != 0 ? res.preTargetNoteMatch() : preTargetNoteScore;
+            float effectivePostScore = res.postTargetNoteMatch() != 0 ? res.postTargetNoteMatch() : postTargetNoteScore;
             boolean criticalPrePostTargetScoreIssue = isPrePostTargetScoreComputable
-                    && ((!wbpSource.isStartingOnChordBass() && preTargetNoteScore < 100f) || (!wbpSource.isEndingOnChordTone() && postTargetNoteScore < 100f));
+                    && ((!wbpSource.isStartingOnChordBass() && effectivePreScore < 100f) || (!wbpSource.isEndingOnChordTone() && effectivePostScore < 100f));
 
 
             if (!criticalPrePostTargetScoreIssue)
@@ -318,7 +321,7 @@ public class WbpsaScorer
      *
      * @param wbpsa
      * @param tiling
-     * @return Can not be null
+     * @return Can be null if no next WbpSourceAdaptation exists
      */
     private WbpSourceAdaptation getNextWbpsa(WbpSourceAdaptation wbpsa, WbpTiling tiling)
     {

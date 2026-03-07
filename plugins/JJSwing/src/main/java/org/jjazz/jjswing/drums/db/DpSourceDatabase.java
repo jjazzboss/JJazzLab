@@ -50,6 +50,10 @@ public class DpSourceDatabase
             if (INSTANCE == null)
             {
                 INSTANCE = new DpSourceDatabase(ts);
+            } else if (!INSTANCE.timeSignature.equals(ts))
+            {
+                LOGGER.log(Level.WARNING, "getInstance() called with ts={0} but instance was created with ts={1}, returning existing instance",
+                        new Object[]{ts, INSTANCE.timeSignature});
             }
         }
         return INSTANCE;
@@ -93,7 +97,12 @@ public class DpSourceDatabase
      */
     public DpSourceSet getDpSourceSet(DrumsStyle dStyle) throws IllegalArgumentException
     {
-        return mapStyleDpSources.get(dStyle);
+        var res = mapStyleDpSources.get(dStyle);
+        if (res == null)
+        {
+            throw new IllegalArgumentException("No DpSourceSet found for dStyle=" + dStyle);
+        }
+        return res;
     }
 
 
@@ -231,6 +240,10 @@ public class DpSourceDatabase
         });
 
         Sequence sequence = loadSequenceFromResource(getClass(), midiFileResourcePath);
+        if (sequence == null)
+        {
+            throw new IllegalStateException("Failed to load MIDI resource: " + midiFileResourcePath);
+        }
         if (sequence.getDivisionType() != Sequence.PPQ)
         {
             throw new IllegalStateException("sequence.getDivisionType()=" + sequence.getDivisionType());

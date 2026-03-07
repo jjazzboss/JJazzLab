@@ -728,13 +728,6 @@ public class BassGenerator implements MusicGenerator
      * @param pitch                  The pedal note pitch
      * @param p
      */
-    /**
-     * Add pedal notes to p with pattern quarter-half-quarter-half-quarter etc.
-     *
-     * @param extendedChordBeatRange Add notes in this range. Starts on beat 0 of a bar
-     * @param pitch                  The pedal note pitch
-     * @param p
-     */
     private void addPedalNotes1(FloatRange extendedChordBeatRange, int pitch, Phrase p)
     {
         float beatPos = extendedChordBeatRange.from;
@@ -746,6 +739,10 @@ public class BassGenerator implements MusicGenerator
             if (beatPos + dur >= extendedChordBeatRange.to)
             {
                 dur = extendedChordBeatRange.to - 2 * NON_QUANTIZED_WINDOW - beatPos;
+                if (dur <= 0)
+                {
+                    break;
+                }
             }
 
             int vel = Velocities.getRandomBassVelocity();
@@ -776,6 +773,10 @@ public class BassGenerator implements MusicGenerator
             if (beatPos + dur >= extendedChordBeatRange.to)
             {
                 dur = extendedChordBeatRange.to - 2 * NON_QUANTIZED_WINDOW - beatPos;
+                if (dur <= 0)
+                {
+                    break;
+                }
             }
 
             int vel = Velocities.getRandomBassVelocity();

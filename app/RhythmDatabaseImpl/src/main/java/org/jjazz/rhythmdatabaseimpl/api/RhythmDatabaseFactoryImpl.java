@@ -123,7 +123,7 @@ public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory, Propert
     }
 
     @Override
-    public Future<?> initialize()
+    public synchronized Future<?> initialize()
     {
         if (initFuture == null)
         {
@@ -236,25 +236,28 @@ public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory, Propert
             // Prepare the ProgressHandle                    
             ProgressHandle ph = ProgressHandle.createHandle(msgScanAll);
             ph.start();
-
-
-            // Poll RhythmProviders
-            MultipleErrorsReport errReport = dbInstance.addRhythmsFromRhythmProviders(false, false, true);
-
-
-            // Save cache file
-            writeCacheInSeparateThread();
-
-
-            ph.finish();
-
-
-            // Notify user of possible errors
-            if (errReport.primaryErrorMessage != null)
+            try
             {
-                SwingUtilities.invokeLater(()
-                        -> new MultipleErrorsReportDialog(ResUtil.getString(getClass(), "CTL_FileBasedRhythmErrors"), errReport).setVisible(true)
-                );
+
+                // Poll RhythmProviders
+                MultipleErrorsReport errReport = dbInstance.addRhythmsFromRhythmProviders(false, false, true);
+
+
+                // Save cache file
+                writeCacheInSeparateThread();
+
+
+                // Notify user of possible errors
+                if (errReport.primaryErrorMessage != null)
+                {
+                    SwingUtilities.invokeLater(()
+                            -> new MultipleErrorsReportDialog(ResUtil.getString(getClass(), "CTL_FileBasedRhythmErrors"), errReport).setVisible(true)
+                    );
+                }
+
+            } finally
+            {
+                ph.finish();
             }
 
         } else
@@ -266,45 +269,49 @@ public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory, Propert
             String msg = ResUtil.getString(getClass(), "CTL_ScanningAllBuiltinRhythms");
             ProgressHandle ph = ProgressHandle.createHandle(msg);
             ph.start();
-
-
-            // Scan only for builtin Rhythms
-            MultipleErrorsReport errReport = dbInstance.addRhythmsFromRhythmProviders(false, true, false);
-
-
-            // Notify errors
-            if (errReport.primaryErrorMessage != null)
-            {
-                SwingUtilities.invokeLater(()
-                        -> new MultipleErrorsReportDialog(ResUtil.getString(getClass(), "CTL_BuiltinRhythmErrors"), errReport).setVisible(true)
-                );
-            }
-
-
-            // Read cache
-            msg = ResUtil.getString(getClass(), "CTL_ReadingRhythmDbCacheFile");
-            ph.setDisplayName(msg);
-
             try
             {
-                int added = RhythmDbCache.loadFromFile(RhythmDbCache.getDefaultFile(), dbInstance);
-                LOGGER.log(Level.INFO, "doInitialization() Successfully added {0} RhythmInfos from the cache to the database", added);
 
-            } catch (IOException ex)
+                // Scan only for builtin Rhythms
+                MultipleErrorsReport errReport = dbInstance.addRhythmsFromRhythmProviders(false, true, false);
+
+
+                // Notify errors
+                if (errReport.primaryErrorMessage != null)
+                {
+                    SwingUtilities.invokeLater(()
+                            -> new MultipleErrorsReportDialog(ResUtil.getString(getClass(), "CTL_BuiltinRhythmErrors"), errReport).setVisible(true)
+                    );
+                }
+
+
+                // Read cache
+                msg = ResUtil.getString(getClass(), "CTL_ReadingRhythmDbCacheFile");
+                ph.setDisplayName(msg);
+
+                try
+                {
+                    int added = RhythmDbCache.loadFromFile(RhythmDbCache.getDefaultFile(), dbInstance);
+                    LOGGER.log(Level.INFO, "doInitialization() Successfully added {0} RhythmInfos from the cache to the database", added);
+
+                } catch (IOException ex)
+                {
+                    LOGGER.log(Level.SEVERE, "doInitialization() Can''t load cache file, starting full scan... IOException ex={0}", ex.getMessage());
+
+                    // Start a full scan (except for built-in rhythms since we already have them)
+                    ph.progress(msgScanAll);
+                    dbInstance.addRhythmsFromRhythmProviders(true, false, true);     // Ignore errors
+                    writeCacheInSeparateThread();
+
+                } catch (ClassNotFoundException ex)
+                {
+                    Exceptions.printStackTrace(ex);
+                }
+
+            } finally
             {
-                LOGGER.log(Level.SEVERE, "doInitialization() Can''t load cache file, starting full scan... IOException ex={0}", ex.getMessage());
-
-                // Start a full scan (except for built-in rhythms since we already have them)
-                ph.progress(msgScanAll);
-                dbInstance.addRhythmsFromRhythmProviders(true, false, true);     // Ignore errors
-                writeCacheInSeparateThread();
-
-            } catch (ClassNotFoundException ex)
-            {
-                Exceptions.printStackTrace(ex);
+                ph.finish();
             }
-
-            ph.finish();
 
         }
 
@@ -337,7 +344,7 @@ public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory, Propert
             }
         };
 
-        new Thread(task).start();
+        SharedExecutorServices.getExecutor().submit(task);
 
     }
 

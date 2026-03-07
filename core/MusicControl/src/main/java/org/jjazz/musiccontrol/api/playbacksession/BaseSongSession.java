@@ -457,8 +457,11 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
             {
                 case PlaybackSettings.PROP_PLAYBACK_CLICK_ENABLED ->
                 {
-                    mapTrackIdMuted.put(playbackClickTrackId, !PlaybackSettings.getInstance().isPlaybackClickEnabled());
-                    pcs.firePropertyChange(PROP_MUTED_TRACKS, false, true);
+                    if (playbackClickTrackId != -1)
+                    {
+                        mapTrackIdMuted.put(playbackClickTrackId, !PlaybackSettings.getInstance().isPlaybackClickEnabled());
+                        pcs.firePropertyChange(PROP_MUTED_TRACKS, false, true);
+                    }
                 }
                 case PlaybackSettings.PROP_LOOPCOUNT ->
                 {

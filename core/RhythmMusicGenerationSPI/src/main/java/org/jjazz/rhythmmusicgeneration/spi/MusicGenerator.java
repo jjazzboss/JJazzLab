@@ -58,7 +58,7 @@ public interface MusicGenerator
      * @param songContext  A snapshot copy of a SongContext (see {@link org.jjazz.song.api.SongContext#getDeepCopy()}) to be used for music generation. It
      *                     should NOT be modified by caller while this method is running.
      * @param rhythmVoices Generate music only for these RhythmVoices, or for all RhythmVoices if nothing specified
-     * @return One Phrase per rhythm voice/channel.
+     * @return One Phrase per rhythm voice (Phrase instances channel should be ignored, use the songContext MidiMix to get the channel used by a RhythmVoice).
      *
      * @throws MusicGenerationException If generator could not produce the expected music for some reason.
      *

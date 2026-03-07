@@ -239,8 +239,9 @@ public class WbpSourceSlice
         // It's dangerous to simplify if notes/chordsymbol consistency for 3rd and 5th is not cristal-clear 
         // Example D7b9 with notes D C Bb A should not be simplified as D7
         var d3 = srcChordType.getDegree(DegreeIndex.THIRD_OR_FOURTH);       // Might be null for C2 chord
+        var d5 = srcChordType.getDegree(DegreeIndex.FIFTH);                  // Might be null for unusual chord types
         boolean consistencyOK = (d3 == null || !getDegreeCompatibility(srcNotesNoGhost, srcExtChordSymbol, d3).isIncompatible())
-                && !getDegreeCompatibility(srcNotesNoGhost, srcExtChordSymbol, srcChordType.getDegree(DegreeIndex.FIFTH)).isIncompatible();
+                && (d5 == null || !getDegreeCompatibility(srcNotesNoGhost, srcExtChordSymbol, d5).isIncompatible());
 
         if (consistencyOK)
         {

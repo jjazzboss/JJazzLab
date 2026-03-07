@@ -176,8 +176,9 @@ public class DefaultOutputSynthManager implements OutputSynthManager, PropertyCh
         // Notify listeners
         pcs.firePropertyChange(PROP_MDOUT_OUTPUTSYNTH, mdOutName, outSynth);
         var mdOut = JJazzMidiSystem.getInstance().getDefaultOutDevice();
-        if (mdOut != null && mdOutName.equals(mdOut.getDeviceInfo().getName()))
+        if (mdOut != null && mdOutName.equals(mdOut.getDeviceInfo().getName()) && oldSynth != null)
         {
+            // Only fire if replacing an existing synth: first-time creation is handled by midiOutChanged()
             pcs.firePropertyChange(PROP_DEFAULT_OUTPUTSYNTH, oldSynth, outSynth);
         }
 
@@ -213,16 +214,28 @@ public class DefaultOutputSynthManager implements OutputSynthManager, PropertyCh
             case OutputSynthManager.STD_JJAZZLAB_SOUNDFONT_GS ->
             {
                 synth = MidiSynthManager.getDefault().getMidiSynth(DefaultMidiSynthManager.JJAZZLAB_SOUNDFONT_GS_SYNTH_NAME);
+                if (synth == null)
+                {
+                    return null;
+                }
                 mode = OutputSynth.UserSettings.SendModeOnUponPlay.GS;
             }
             case OutputSynthManager.STD_JJAZZLAB_SOUNDFONT_XG ->
             {
                 synth = MidiSynthManager.getDefault().getMidiSynth(DefaultMidiSynthManager.JJAZZLAB_SOUNDFONT_XG_SYNTH_NAME);
+                if (synth == null)
+                {
+                    return null;
+                }
                 mode = OutputSynth.UserSettings.SendModeOnUponPlay.XG;
             }
             case OutputSynthManager.STD_JJAZZLAB_SOUNDFONT_GM2 ->
             {
                 synth = MidiSynthManager.getDefault().getMidiSynth(DefaultMidiSynthManager.JJAZZLAB_SOUNDFONT_GM2_SYNTH_NAME);
+                if (synth == null)
+                {
+                    return null;
+                }
                 mode = OutputSynth.UserSettings.SendModeOnUponPlay.GM2;
             }
             default ->
@@ -291,9 +304,25 @@ public class DefaultOutputSynthManager implements OutputSynthManager, PropertyCh
     // ===============================================================================
     private void midiOutChanged(MidiDevice oldMd, MidiDevice newMd)
     {
-        var oldSynth = oldMd == null ? null : getMidiDeviceOutputSynth(oldMd.getDeviceInfo().getName());
-        var newSynth = newMd == null ? null : getMidiDeviceOutputSynth(newMd.getDeviceInfo().getName());
-        pcs.firePropertyChange(PROP_DEFAULT_OUTPUTSYNTH, oldSynth, newSynth);   // newSynth might be null !
+        var oldSynth = oldMd == null ? null : mapDeviceNameSynth.get(oldMd.getDeviceInfo().getName());
+
+        if (newMd == null)
+        {
+            pcs.firePropertyChange(PROP_DEFAULT_OUTPUTSYNTH, oldSynth, null);
+            return;
+        }
+
+        // Check if new device was already in the map before lazy creation
+        String newMdName = newMd.getDeviceInfo().getName();
+        boolean wasAlreadyCached = mapDeviceNameSynth.containsKey(newMdName);
+        var newSynth = getMidiDeviceOutputSynth(newMdName);
+
+        // If the entry was not cached, setMidiDeviceOutputSynth already fired PROP_DEFAULT_OUTPUTSYNTH
+        // Only fire it here for the already-cached case to avoid a double notification
+        if (wasAlreadyCached)
+        {
+            pcs.firePropertyChange(PROP_DEFAULT_OUTPUTSYNTH, oldSynth, newSynth);
+        }
     }
 
     private void store(String mdOutName, OutputSynth outSynth)
