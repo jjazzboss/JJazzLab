@@ -27,7 +27,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.GridLayout;
 import java.awt.KeyboardFocusManager;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -111,7 +110,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     /**
      * Our LayoutManager.
      */
-    private final GridLayout gridLayout;
+    private final CL_EditorLayout clEditorLayout;
     /**
      * Keep a list of BarBox components.
      */
@@ -213,8 +212,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         int zxf = CL_EditorClientProperties.getZoomXFactor(songModel);
         nbColumns = zxf > -1 ? computeNbColsFromXZoomFactor(zxf) : 4;
 
-        gridLayout = new GridLayout(0, nbColumns);   // Nb of lines adjusted to number of bars
-        setLayout(gridLayout);
+        clEditorLayout = new CL_EditorLayout(nbColumns, settings.getSectionStartOnNewLineExtraHeight());
+        setLayout(clEditorLayout);
         setBackground(settings.getBackgroundColor());
 
         // The lookup for selection
@@ -388,7 +387,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         }
         int oldNbColumns = nbColumns;
         nbColumns = nbCols;
-        gridLayout.setColumns(nbColumns);
+        clEditorLayout.setNbColumns(nbColumns);
         updatePaddingBoxes();
         revalidate();
         int oldFactor = computeXZoomFactorFromNbCols(oldNbColumns);
@@ -800,6 +799,10 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
                 if (evt.getPropertyName().equals(CL_EditorSettings.PROP_BACKGROUND_COLOR))
                 {
                     setBackground(settings.getBackgroundColor());
+                } else if (evt.getPropertyName().equals(CL_EditorSettings.PROP_SECTION_START_ON_NEW_LINE_EXTRA_HEIGHT))
+                {
+                    clEditorLayout.setNewLineExtraHeight(settings.getSectionStartOnNewLineExtraHeight());
+                    revalidate();
                 }
             } else if (evt.getSource() == songModel.getClientProperties())
             {
@@ -1637,7 +1640,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
      */
     private int getNbRows()
     {
-        return gridLayout.getRows();
+        return clEditorLayout.getNbRows(getComponentCount());
     }
 
     /**
@@ -1661,6 +1664,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 
     /**
      * Remove/Add PaddingBoxes so that "start on new line" sections appear on a new line.
+     * Also updates the layout manager about which rows should have extra vertical space above them.
      */
     private void updatePaddingBoxes()
     {
@@ -1676,9 +1680,10 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             }
         }
 
-        // Add PaddingBoxes starting from the end
+        // Add PaddingBoxes and compute new-line rows
         var cliSections = clsModel.getItems(CLI_Section.class);
         int offset = 0;
+        Set<Integer> newLineRows = new HashSet<>();
         for (CLI_Section cliSection : cliSections)
         {
             int sectionCompIndex = cliSection.getPosition().getBar() + offset;
@@ -1692,10 +1697,18 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
                     add(new PaddingBox(settings.getBarBoxSettings()), sectionCompIndex);
                 }
                 offset += padding;
+                sectionCompIndex += padding;
+            }
+            // Mark row as a "new line" row (skip the very first component at index 0)
+            if (CL_EditorClientProperties.isSectionIsOnNewLine(cliSection) && sectionCompIndex > 0)
+            {
+                newLineRows.add(sectionCompIndex / nbColumns);
             }
         }
 
-        if (needRevalidate)
+        boolean newLineRowsChanged = clEditorLayout.setNewLineRows(newLineRows);
+
+        if (needRevalidate || newLineRowsChanged)
         {
             revalidate();
         }
