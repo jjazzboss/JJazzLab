@@ -33,9 +33,11 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
@@ -455,6 +457,10 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
         List<Difference> diffResult = Diff.diff(csListOld, csListNew,
                 (cliCs1, cliCs2) -> cliCs1.getData().equals(cliCs2.getData()) ? 0 : 1);
 
+        // Track which old/new indices are consumed by the diff entries (ADDED, DELETED, CHANGED).
+        // Indices NOT in these sets are "unchanged" items (same chord data, part of the LCS).
+        Set<Integer> oldUsedIndices = new HashSet<>();
+        Set<Integer> newUsedIndices = new HashSet<>();
 
         for (Difference aDiff : diffResult)
         {
@@ -470,6 +476,8 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
                     {
                         csListOld.get(d), csListNew.get(a)
                     });
+                    oldUsedIndices.add(d);
+                    newUsedIndices.add(a);
                     d++;
                     a++;
                 } while (d <= aDiff.getDeletedEnd());
@@ -483,6 +491,7 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
                         {
                             resultAddedItems.add(csListNew.get(i));
                             LOGGER.log(Level.FINE, "adding {0}", csListNew.get(i));
+                            newUsedIndices.add(i);
                         }
                     }
                     case DELETED ->
@@ -491,6 +500,7 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
                         {
                             resultRemovedItems.add(csListOld.get(i));
                             LOGGER.log(Level.FINE, "removing {0}", csListOld.get(i));
+                            oldUsedIndices.add(i);
                         }
                     }
                     default ->
@@ -505,11 +515,50 @@ public class CL_BarEditorDialogImpl extends CL_BarEditorDialog
                             {
                                 csListOld.get(d), csListNew.get(a)
                             });
+                            oldUsedIndices.add(d);
+                            newUsedIndices.add(a);
                             d++;
                             a++;
                         } while (d <= aDiff.getDeletedEnd());
                     }
                 }
+            }
+        }
+
+        // Identify "unchanged" chords (same data, in the LCS) whose beat position has shifted.
+        // Such chords must be repositioned: remove the old item and add the new one at its correct position.
+        List<Integer> unchangedOldIndices = new ArrayList<>();
+        List<Integer> unchangedNewIndices = new ArrayList<>();
+        for (int i = 0; i < csListOld.size(); i++)
+        {
+            if (!oldUsedIndices.contains(i))
+            {
+                unchangedOldIndices.add(i);
+            }
+        }
+        for (int i = 0; i < csListNew.size(); i++)
+        {
+            if (!newUsedIndices.contains(i))
+            {
+                unchangedNewIndices.add(i);
+            }
+        }
+        // The two lists must match 1-to-1 (they represent the same LCS items)
+        assert unchangedOldIndices.size() == unchangedNewIndices.size()
+                : "unchangedOldIndices=" + unchangedOldIndices + " unchangedNewIndices=" + unchangedNewIndices;
+        for (int i = 0; i < unchangedOldIndices.size(); i++)
+        {
+            CLI_ChordSymbol oldCs = csListOld.get(unchangedOldIndices.get(i));
+            CLI_ChordSymbol newCs = csListNew.get(unchangedNewIndices.get(i));
+            if (!oldCs.getPosition().equals(newCs.getPosition()))
+            {
+                // Same chord data but different beat position: remove old, add new at correct position
+                resultRemovedItems.add(oldCs);
+                resultAddedItems.add(newCs);
+                LOGGER.log(Level.FINE, "repositioning {0} to {1}", new Object[]
+                {
+                    oldCs, newCs.getPosition()
+                });
             }
         }
     }
