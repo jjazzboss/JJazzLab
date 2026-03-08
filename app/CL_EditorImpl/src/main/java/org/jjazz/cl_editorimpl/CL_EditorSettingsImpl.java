@@ -37,6 +37,8 @@ import org.openide.util.lookup.ServiceProvider;
 public class CL_EditorSettingsImpl implements CL_EditorSettings
 {
 
+    private static final int DEFAULT_SECTION_START_ON_NEW_LINE_EXTRA_HEIGHT = 20;
+
     /**
      * The Preferences of this object.
      */
@@ -65,6 +67,30 @@ public class CL_EditorSettingsImpl implements CL_EditorSettings
     public Color getBackgroundColor()
     {
         return new Color(prefs.getInt(PROP_BACKGROUND_COLOR, GeneralUISettings.getInstance().getColor("background.white").getRGB()));
+    }
+
+    @Override
+    public int getSectionStartOnNewLineExtraHeight()
+    {
+        return prefs.getInt(PROP_SECTION_START_ON_NEW_LINE_EXTRA_HEIGHT, DEFAULT_SECTION_START_ON_NEW_LINE_EXTRA_HEIGHT);
+    }
+
+    @Override
+    public void setSectionStartOnNewLineExtraHeight(int height)
+    {
+        if (height < 0)
+        {
+            throw new IllegalArgumentException("height=" + height);
+        }
+        int old = getSectionStartOnNewLineExtraHeight();
+        if (height == DEFAULT_SECTION_START_ON_NEW_LINE_EXTRA_HEIGHT)
+        {
+            prefs.remove(PROP_SECTION_START_ON_NEW_LINE_EXTRA_HEIGHT);
+        } else
+        {
+            prefs.putInt(PROP_SECTION_START_ON_NEW_LINE_EXTRA_HEIGHT, height);
+        }
+        pcs.firePropertyChange(PROP_SECTION_START_ON_NEW_LINE_EXTRA_HEIGHT, old, height);
     }
 
     @Override
