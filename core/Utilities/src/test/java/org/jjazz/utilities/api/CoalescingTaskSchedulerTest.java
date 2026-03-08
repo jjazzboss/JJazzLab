@@ -43,7 +43,7 @@ public class CoalescingTaskSchedulerTest
 {
 
     private CoalescingTaskScheduler scheduler;
-    private static final long SHORT_DELAY = 100; // milliseconds
+    private static final long SHORT_DELAY = 300; // milliseconds
     private static final long TOLERANCE = 50; // timing tolerance
 
 
