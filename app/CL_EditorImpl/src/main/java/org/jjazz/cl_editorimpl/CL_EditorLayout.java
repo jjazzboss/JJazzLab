@@ -32,11 +32,12 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * A custom LayoutManager for the CL_Editor that arranges components in a fixed number of columns (like GridLayout), and optionally adds
- * extra vertical space above rows that start a new section line.
+ * A custom LayoutManager for the CL_Editor that arranges BarBox components in a fixed number of columns.
  * <p>
- * All columns have equal width. All rows have the same base height (determined by the tallest component's preferred height). Rows whose
- * index is listed in the "new line rows" set get an additional {@code newLineExtraHeight} pixels added above them.
+ * All columns have equal width. All rows have the same base height (determined by the tallest component's preferred height).
+ * <p>
+ * BarBox indices listed in the "new line BarBox indices" set are forced to start on a new row. Additionally,
+ * {@code newLineExtraHeight} pixels of vertical space are inserted above each such row (provided it is not the very first row).
  */
 public class CL_EditorLayout implements LayoutManager
 {
@@ -44,14 +45,14 @@ public class CL_EditorLayout implements LayoutManager
     private int nbColumns;
     private int newLineExtraHeight;
     /**
-     * The set of row indices (0-based) that should have extra space added above them.
+     * The set of BarBox indices (0-based) that must start on a new row, with extra space above.
      */
-    private Set<Integer> newLineRows = Collections.emptySet();
+    private Set<Integer> newLineBarBoxIndices = Collections.emptySet();
 
     /**
-     * Create a layout with the given number of columns and no extra height.
+     * Create a layout with the given number of columns and extra height.
      *
-     * @param nbColumns       must be &gt;= 1
+     * @param nbColumns          must be &gt;= 1
      * @param newLineExtraHeight pixels to add above "new line" rows, must be &gt;= 0
      */
     public CL_EditorLayout(int nbColumns, int newLineExtraHeight)
@@ -97,39 +98,96 @@ public class CL_EditorLayout implements LayoutManager
     }
 
     /**
-     * Set the row indices (0-based) that should have extra vertical space added above them.
+     * Set the BarBox indices (0-based) that must start on a new row (with extra space above).
      *
-     * @param rows set of row indices; must not be null
-     * @return true if the set of new-line rows changed
+     * @param indices set of BarBox indices; must not be null
+     * @return true if the set changed
      */
-    public boolean setNewLineRows(Set<Integer> rows)
+    public boolean setNewLineBarBoxIndices(Set<Integer> indices)
     {
-        if (rows == null)
+        if (indices == null)
         {
-            throw new IllegalArgumentException("rows must not be null");
+            throw new IllegalArgumentException("indices must not be null");
         }
-        Set<Integer> newSet = new HashSet<>(rows);
-        if (newSet.equals(newLineRows))
+        Set<Integer> newSet = new HashSet<>(indices);
+        if (newSet.equals(newLineBarBoxIndices))
         {
             return false;
         }
-        newLineRows = newSet;
+        newLineBarBoxIndices = newSet;
         return true;
     }
 
     /**
-     * Get the number of rows for the given number of components.
+     * Get the row index (0-based) of the BarBox at the given index.
+     * <p>
+     * This accounts for forced new-line breaks from {@code newLineBarBoxIndices}.
      *
-     * @param nbComponents
-     * @return
+     * @param bbIndex the BarBox index
+     * @return the 0-based row index
      */
-    public int getNbRows(int nbComponents)
+    public int getRowIndex(int bbIndex)
     {
-        if (nbComponents == 0)
+        int col = 0;
+        int row = 0;
+        for (int i = 0; i < bbIndex; i++)
+        {
+            if (newLineBarBoxIndices.contains(i) && col != 0)
+            {
+                row++;
+                col = 0;
+            }
+            col++;
+            if (col == nbColumns)
+            {
+                col = 0;
+                row++;
+            }
+        }
+        // Check whether the target BarBox itself forces a new row
+        if (newLineBarBoxIndices.contains(bbIndex) && col != 0)
+        {
+            row++;
+        }
+        return row;
+    }
+
+    /**
+     * Get the total number of rows needed to display {@code nbBarBoxes} BarBoxes.
+     * <p>
+     * This accounts for forced new-line breaks from {@code newLineBarBoxIndices}.
+     *
+     * @param nbBarBoxes total number of BarBox components
+     * @return number of rows (&gt;= 0)
+     */
+    public int getNbRows(int nbBarBoxes)
+    {
+        if (nbBarBoxes == 0)
         {
             return 0;
         }
-        return (nbComponents + nbColumns - 1) / nbColumns;
+        int col = 0;
+        int row = 0;
+        for (int i = 0; i < nbBarBoxes; i++)
+        {
+            if (newLineBarBoxIndices.contains(i) && col != 0)
+            {
+                row++;
+                col = 0;
+            }
+            col++;
+            if (col == nbColumns)
+            {
+                col = 0;
+                row++;
+            }
+        }
+        // If we finished in the middle of a row, count that partial row
+        if (col > 0)
+        {
+            row++;
+        }
+        return row;
     }
 
     @Override
@@ -170,31 +228,38 @@ public class CL_EditorLayout implements LayoutManager
 
             int totalWidth = parent.getWidth() - insets.left - insets.right;
             int colWidth = totalWidth / nbColumns;
-
-            // Compute base row height from components' preferred heights
             int rowHeight = getMaxPreferredHeight(parent, true);
 
-            int nbRows = getNbRows(nbComponents);
-
-            // Layout each component
-            int compIndex = 0;
+            int col = 0;
             int y = insets.top;
-            for (int row = 0; row < nbRows; row++)
+
+            for (int i = 0; i < nbComponents; i++)
             {
-                // Add extra space above this row if it's a "new line" row
-                if (newLineRows.contains(row))
+                // If this BarBox must start on a new line...
+                if (newLineBarBoxIndices.contains(i))
                 {
-                    y += newLineExtraHeight;
+                    if (col != 0)
+                    {
+                        // Wrap to the next row
+                        y += rowHeight;
+                        col = 0;
+                    }
+                    // Add extra space above this row (not at the very top of the editor)
+                    if (y > insets.top)
+                    {
+                        y += newLineExtraHeight;
+                    }
                 }
 
-                int x = insets.left;
-                for (int col = 0; col < nbColumns && compIndex < nbComponents; col++, compIndex++)
+                int x = insets.left + col * colWidth;
+                parent.getComponent(i).setBounds(x, y, colWidth, rowHeight);
+
+                col++;
+                if (col == nbColumns)
                 {
-                    Component c = parent.getComponent(compIndex);
-                    c.setBounds(x, y, colWidth, rowHeight);
-                    x += colWidth;
+                    col = 0;
+                    y += rowHeight;
                 }
-                y += rowHeight;
             }
         }
     }
@@ -217,14 +282,13 @@ public class CL_EditorLayout implements LayoutManager
 
             int rowHeight = getMaxPreferredHeight(parent, preferred);
             int colWidth = getMaxPreferredWidth(parent, preferred);
-
             int nbRows = getNbRows(nbComponents);
 
-            // Compute total extra height for new line rows
+            // Count extra height: one extra block per new-line BarBox that is not the very first component
             int totalExtraHeight = 0;
-            for (int row : newLineRows)
+            for (int bbIndex : newLineBarBoxIndices)
             {
-                if (row < nbRows)
+                if (bbIndex > 0 && bbIndex < nbComponents)
                 {
                     totalExtraHeight += newLineExtraHeight;
                 }
