@@ -101,6 +101,18 @@ public class PrintCL_EditorSettings implements CL_EditorSettings
         // Do nothing
     }
 
+    @Override
+    public int getSectionStartOnNewLineExtraHeight()
+    {
+        return defaultSettings.getSectionStartOnNewLineExtraHeight();
+    }
+
+    @Override
+    public void setSectionStartOnNewLineExtraHeight(int height)
+    {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
     // ====================================================================
     // Private classes
     // ====================================================================

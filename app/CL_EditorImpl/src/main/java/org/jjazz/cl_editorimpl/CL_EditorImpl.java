@@ -110,7 +110,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     /**
      * Our LayoutManager.
      */
-    private final GridLayout gridLayout;
+    private final CL_EditorLayout clEditorLayout;
     /**
      * Keep a list of BarBox components.
      */
@@ -211,9 +211,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         // Graphical stuff
         int zxf = CL_EditorClientProperties.getZoomXFactor(songModel);
         nbColumns = zxf > -1 ? computeNbColsFromXZoomFactor(zxf) : 4;
-
-        gridLayout = new GridLayout(0, nbColumns);   // Nb of lines adjusted to number of bars
-        setLayout(gridLayout);
+        clEditorLayout = new CL_EditorLayout(nbColumns, settings.getSectionStartOnNewLineExtraHeight());
+        setLayout(clEditorLayout);
         setBackground(settings.getBackgroundColor());
 
         // The lookup for selection
@@ -329,13 +328,6 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         {
             removeBarBox(barBoxes.get(i));
         }
-        for (Component c : getComponents())
-        {
-            if (c instanceof PaddingBox pBox)
-            {
-                removePaddingBox(pBox);
-            }
-        }
 
         PlaybackSettings.getInstance()
                 .removePropertyChangeListener(PlaybackSettings.PROP_CHORD_SYMBOLS_DISPLAY_TRANSPOSITION, this);
@@ -387,9 +379,10 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         }
         int oldNbColumns = nbColumns;
         nbColumns = nbCols;
-        gridLayout.setColumns(nbColumns);
-        updatePaddingBoxes();
-        revalidate();
+        clEditorLayout.setNbColumns(nbColumns);
+        updateNewLineSections();        // this will call revalidate()
+
+
         int oldFactor = computeXZoomFactorFromNbCols(oldNbColumns);
         int newFactor = computeXZoomFactorFromNbCols(nbColumns);
         LOGGER.log(Level.FINER, "oldFactor={0} newFactor={1}", new Object[]
@@ -799,22 +792,27 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     {
         if (evt.getSource() == settings)
         {
-            if (evt.getPropertyName().equals(CL_EditorSettings.PROP_BACKGROUND_COLOR))
+            switch (evt.getPropertyName())
             {
-                setBackground(settings.getBackgroundColor());
+                case CL_EditorSettings.PROP_BACKGROUND_COLOR -> setBackground(settings.getBackgroundColor());
+
+                case CL_EditorSettings.PROP_SECTION_START_ON_NEW_LINE_EXTRA_HEIGHT ->
+                {
+                    clEditorLayout.setNewLineExtraHeight(settings.getSectionStartOnNewLineExtraHeight());
+                    revalidate();
+                }
             }
+
         } else if (evt.getSource() == songModel.getClientProperties())
         {
             switch (evt.getPropertyName())
             {
                 case CL_EditorClientProperties.PROP_BAR_ANNOTATION_VISIBLE ->
-                {
                     setBarAnnotationVisible(CL_EditorClientProperties.isBarAnnotationVisible(songModel));
-                }
+
                 case CL_EditorClientProperties.PROP_BAR_ANNOTATION_NB_LINES ->
-                {
                     setBarAnnotationNbLines(CL_EditorClientProperties.getBarAnnotationNbLines(songModel));
-                }
+
                 case CL_EditorClientProperties.PROP_ZOOM_FACTOR_Y ->
                 {
                     var zoomY = CL_EditorClientProperties.getZoomYFactor(songModel);
@@ -824,18 +822,14 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
                     }
                 }
             }
+
         } else if (evt.getSource() instanceof StringProperties sp && sp.getOwner() instanceof CLI_Section cliSection)
         {
-            switch (evt.getPropertyName())
+            if (evt.getPropertyName().equals(CL_EditorClientProperties.PROP_SECTION_START_ON_NEW_LINE))
             {
-                case CL_EditorClientProperties.PROP_SECTION_START_ON_NEW_LINE ->
-                {
-                    if (cliSection != clsModel.getSection(0))
-                    {
-                        updatePaddingBoxes();
-                    }
-                }
+                updateNewLineSections();
             }
+
         } else if (evt.getSource() == ColorSetManager.getDefault())
         {
             if (evt.getPropertyName().equals(ColorSetManager.PROP_REF_COLOR_CHANGED))
@@ -1449,10 +1443,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 
                 registerBarBox(bb);
 
-
-                // Insert the BarBox at correct location (possible presence of padding boxes)
-                int compIndex = getComponentIndex(bbIndex);
-                add(bb, compIndex);
+                add(bb, bbIndex);
 
 
                 barBoxes.add(bbIndex, bb);
@@ -1468,8 +1459,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             }
         }
 
-        updatePaddingBoxes();
-        revalidate();
+        updateNewLineSections();        // cals revalidate()
     }
 
     private BarBox getBarBox(int bbIndex)
@@ -1485,35 +1475,19 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     }
 
     /**
-     * Return the Component index corresponding to specified BarBox index.
+     * Inform the layout manager about which BarBox indices start a new section line.
      * <p>
-     * This takes into account PaddingBoxes or other non-BarBox components present in the editor. BarBox is inserted after non-BarBox components.
-     *
-     * @param barBoxIndex In the range [0,getBarBoxes().size()], the latter to append the BarBox at the end
-     * @return
+     * Calls revalidate().
      */
-    private int getComponentIndex(int barBoxIndex)
+    private void updateNewLineSections()
     {
-        Preconditions.checkPositionIndex(barBoxIndex, getBarBoxes().size(),
-                "barBoxIndex=" + barBoxIndex + " getBarBoxes().size()=" + getBarBoxes().size());
+        var bbBars = clsModel.getItems(CLI_Section.class).stream()
+                .filter(cli -> CL_EditorClientProperties.isSectionIsOnNewLine(cli))
+                .map(cli -> cli.getPosition().getBar())
+                .toList();
 
-        // getComponents() should be called on EDT, otherwise need treeLock
-        assert SwingUtilities.isEventDispatchThread() : "Not running in the EDT! barBoxIndex=" + barBoxIndex;
-        int bbIndex = 0;
-        int index = 0;
-        for (Component c : getComponents())
-        {
-            index++;
-            if (c instanceof BarBox)
-            {
-                if (bbIndex == barBoxIndex)
-                {
-                    return index - 1;
-                }
-                bbIndex++;
-            }
-        }
-        return index;
+        clEditorLayout.setNewLineBarBoxIndices(bbBars);
+        revalidate();
     }
 
     private void removeBarBox(BarBox bb)
@@ -1637,7 +1611,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             propagateSectionChange(cliSection);
             if (CL_EditorClientProperties.isSectionIsOnNewLine(cliSection))
             {
-                updatePaddingBoxes();
+                updateNewLineSections();
             }
             // Listen to sectionOnNewLine changes
             cliSection.getClientProperties().addPropertyChangeListener(this);
@@ -1675,7 +1649,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             cliSection.getClientProperties().removePropertyChangeListener(this);
             if (CL_EditorClientProperties.isSectionIsOnNewLine(cliSection))
             {
-                updatePaddingBoxes();
+                updateNewLineSections();
             }
             if (!skipSectionRemovalCleaning)
             {
@@ -1814,74 +1788,24 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     }
 
     /**
-     * The total number of rows taking into account BarBoxes (within chord leadhseet and after) and the PaddingBoxes.
-     *
-     * @return
-     */
-    private int getNbRows()
-    {
-        return gridLayout.getRows();
-    }
-
-    /**
-     * Get the row of the specified BarBox.
+     * Get the row of the specified BarBox, accounting for "start on new line" sections.
      *
      * @param bbIndex
      * @return
      */
     private int getRowIndex(int bbIndex)
     {
-        int compIndex = getComponentIndex(bbIndex);
-        return compIndex / getNbColumns();
-
-    }
-
-    private void removePaddingBox(PaddingBox pd)
-    {
-        pd.cleanup();
-        remove(pd);
+        return clEditorLayout.getRowIndex(bbIndex);
     }
 
     /**
-     * Remove/Add PaddingBoxes so that "start on new line" sections appear on a new line.
+     * The total number of rows, accounting for "start on new line" sections.
+     *
+     * @return
      */
-    private void updatePaddingBoxes()
+    private int getNbRows()
     {
-        assert SwingUtilities.isEventDispatchThread();
-        boolean needRevalidate = false;
-        // Remove all non-BarBox components
-        for (Component c : getComponents())
-        {
-            if (c instanceof PaddingBox pBox)
-            {
-                needRevalidate = true;
-                removePaddingBox(pBox);
-            }
-        }
-
-        // Add PaddingBoxes starting from the end
-        var cliSections = clsModel.getItems(CLI_Section.class);
-        int offset = 0;
-        for (CLI_Section cliSection : cliSections)
-        {
-            int sectionCompIndex = cliSection.getPosition().getBar() + offset;
-            int remainder = sectionCompIndex % nbColumns;
-            if (CL_EditorClientProperties.isSectionIsOnNewLine(cliSection) && remainder != 0)
-            {
-                int padding = nbColumns - remainder;
-                for (int j = 0; j < padding; j++)
-                {
-                    needRevalidate = true;
-                    add(new PaddingBox(settings.getBarBoxSettings()), sectionCompIndex);
-                }
-                offset += padding;
-            }
-        }
-
-        if (needRevalidate)
-        {
-            revalidate();
-        }
+        return clEditorLayout.getNbRows(getNbBarBoxes());
     }
 
     //===========================================================================

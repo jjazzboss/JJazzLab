@@ -30,17 +30,18 @@ public interface CL_EditorSettings
 {
 
     public static String PROP_BACKGROUND_COLOR = "BackgroundColor";
+    public static String PROP_SECTION_START_ON_NEW_LINE_EXTRA_HEIGHT = "SectionStartOnNewLineExtraHeight";
 
     public static CL_EditorSettings getDefault()
     {
         CL_EditorSettings result = Lookup.getDefault().lookup(CL_EditorSettings.class);
         if (result == null)
         {
-            throw new NullPointerException("result=" + result);   
+            throw new NullPointerException("result=" + result);
         }
         return result;
     }
-    
+
     default BarBoxSettings getBarBoxSettings()
     {
         return BarBoxSettings.getDefault();
@@ -49,6 +50,20 @@ public interface CL_EditorSettings
     Color getBackgroundColor();
 
     void setBackgroundColor(Color color);
+
+    /**
+     * Get the extra height in pixels added above a bar row when the row starts with a section set to start on a new line.
+     *
+     * @return A value &gt;= 0
+     */
+    int getSectionStartOnNewLineExtraHeight();
+
+    /**
+     * Set the extra height in pixels added above a bar row when the row starts with a section set to start on a new line.
+     *
+     * @param height If &lt; 0 restore the default value
+     */
+    void setSectionStartOnNewLineExtraHeight(int height);
 
     void addPropertyChangeListener(PropertyChangeListener listener);
 

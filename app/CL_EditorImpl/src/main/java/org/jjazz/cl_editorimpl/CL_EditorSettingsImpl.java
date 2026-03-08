@@ -27,9 +27,6 @@ import java.beans.PropertyChangeListener;
 import java.util.prefs.Preferences;
 import java.beans.PropertyChangeSupport;
 import org.jjazz.cl_editor.spi.CL_EditorSettings;
-import org.jjazz.uisettings.api.GeneralUISettings;
-import org.jjazz.upgrade.api.UpgradeManager;
-import org.jjazz.upgrade.api.UpgradeTask;
 import org.openide.util.NbPreferences;
 import org.openide.util.lookup.ServiceProvider;
 
@@ -64,7 +61,28 @@ public class CL_EditorSettingsImpl implements CL_EditorSettings
     @Override
     public Color getBackgroundColor()
     {
-        return new Color(prefs.getInt(PROP_BACKGROUND_COLOR, GeneralUISettings.getInstance().getColor("background.white").getRGB()));
+        return new Color(prefs.getInt(PROP_BACKGROUND_COLOR, Color.LIGHT_GRAY.getRGB()));
+    }
+
+    @Override
+    public int getSectionStartOnNewLineExtraHeight()
+    {
+        return prefs.getInt(PROP_SECTION_START_ON_NEW_LINE_EXTRA_HEIGHT, 8);
+    }
+
+    @Override
+    public void setSectionStartOnNewLineExtraHeight(int height)
+    {
+        int old = getSectionStartOnNewLineExtraHeight();
+        if (height < 0)
+        {
+            prefs.remove(PROP_SECTION_START_ON_NEW_LINE_EXTRA_HEIGHT);
+            height = getSectionStartOnNewLineExtraHeight();
+        } else
+        {
+            prefs.putInt(PROP_SECTION_START_ON_NEW_LINE_EXTRA_HEIGHT, height);
+        }
+        pcs.firePropertyChange(PROP_SECTION_START_ON_NEW_LINE_EXTRA_HEIGHT, old, height);
     }
 
     @Override
