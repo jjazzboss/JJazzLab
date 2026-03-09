@@ -33,7 +33,13 @@ public class JumpToHome extends AbstractAction
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        CL_Editor editor = CL_EditorTopComponent.getActive().getEditor();
+        var tcEditor = CL_EditorTopComponent.getActive();
+        if (tcEditor == null)
+        {
+            return;
+        }
+        CL_Editor editor = tcEditor.getEditor();
+            
         editor.clearSelection();
         editor.selectBars(0, 0, true);
         editor.setFocusOnBar(0);

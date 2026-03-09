@@ -29,6 +29,7 @@ import java.beans.PropertyChangeListener;
 import java.util.Collection;
 import java.util.logging.Logger;
 import javax.swing.SwingConstants;
+import org.jjazz.uiutilities.api.ValueToolTip;
 import org.jjazz.uiutilities.api.Zoomable;
 import org.openide.awt.StatusLineElementProvider;
 import org.openide.util.*;
@@ -112,7 +113,7 @@ public class ZoomYWidget extends javax.swing.JPanel implements StatusLineElement
             }
             slider.setValue(newFactor);
             slider.setToolTipText(String.valueOf(newFactor));
-
+            ValueToolTip.show(slider, String.valueOf(newFactor), 1000);
         }
     }
 

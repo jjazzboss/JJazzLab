@@ -22,6 +22,7 @@
  */
 package org.jjazz.flatcomponents.api;
 
+import org.jjazz.uiutilities.api.ValueToolTip;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -41,6 +42,7 @@ import java.awt.geom.RoundRectangle2D;
 import java.util.logging.Logger;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
+import javax.swing.ToolTipManager;
 
 /**
  * A vertical flat slider.
@@ -49,8 +51,8 @@ import javax.swing.SwingUtilities;
  */
 public class FlatIntegerVerticalSlider extends JComponent implements MouseListener, MouseMotionListener, MouseWheelListener
 {
-
-    public static final String PROP_VALUE = "PropValue";    
+    
+    public static final String PROP_VALUE = "PropValue";
 
     // UI variables
     private int padding = 5;
@@ -72,21 +74,20 @@ public class FlatIntegerVerticalSlider extends JComponent implements MouseListen
     private MouseEvent lastMouseEvent;
     private int yDragStart = Integer.MIN_VALUE;
     private int yValueDragStart;
-
+    
     private static final Logger LOGGER = Logger.getLogger(FlatIntegerVerticalSlider.class.getSimpleName());
-
+    
     public FlatIntegerVerticalSlider()
     {
         addMouseListener(this);
         addMouseMotionListener(this);
 
-
         // Use mouse wheel only if enabled
         FlatComponentsGlobalSettings.getInstance().installChangeValueWithMouseWheelSupport(this, this);
-
+        
         BorderManager.getInstance().register(this, false, false, true);
     }
-
+    
     @Override
     public Dimension getPreferredSize()
     {
@@ -94,18 +95,18 @@ public class FlatIntegerVerticalSlider extends JComponent implements MouseListen
         int h = (int) Math.ceil(calcHeight() + 2 * padding);
         return new Dimension(w, h);
     }
-
+    
     @Override
     public void paintComponent(Graphics g)
     {
         super.paintComponent(g); // Honor the opaque property
 
         final int arc = 6;
-
+        
         Graphics2D g2 = (Graphics2D) g.create();
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-
+        
+        
         Insets in = getInsets();
         int w = getWidth();
         int h = getHeight();
@@ -189,8 +190,8 @@ public class FlatIntegerVerticalSlider extends JComponent implements MouseListen
         g2.draw(lineUpper);
         g2.draw(lineMiddle);
         g2.draw(lineLower);
-
-
+        
+        
         g2.dispose();
     }
 
@@ -293,12 +294,12 @@ public class FlatIntegerVerticalSlider extends JComponent implements MouseListen
         this.maxValue = maxValue;
         repaint();
     }
-
+    
     public void setValue(int v)
     {
         if (v < 0 || v > 127)
         {
-            throw new IllegalArgumentException("v=" + v);   
+            throw new IllegalArgumentException("v=" + v);
         }
         if (value != v)
         {
@@ -306,27 +307,31 @@ public class FlatIntegerVerticalSlider extends JComponent implements MouseListen
             value = v;
             updateToolTipText();
             repaint();
+            if (isShowing())
+            {
+                ValueToolTip.show(this, String.valueOf(value));                
+            }
             firePropertyChange(PROP_VALUE, old, value);
         }
     }
-
+    
     public int getValue()
     {
         return value;
     }
-
+    
     @Override
     public void setEnabled(boolean b)
     {
         super.setEnabled(b);
         updateToolTipText();
     }
-
+    
     public String getTooltipLabel()
     {
         return tooltipLabel;
     }
-
+    
     public void setTooltipLabel(String tooltipLabel)
     {
         this.tooltipLabel = tooltipLabel;
@@ -421,7 +426,7 @@ public class FlatIntegerVerticalSlider extends JComponent implements MouseListen
         revalidate();
         repaint();
     }
-
+    
     protected String prepareToolTipText()
     {
         String valueAstring = isEnabled() ? String.valueOf(getValue()) : "OFF";
@@ -435,9 +440,9 @@ public class FlatIntegerVerticalSlider extends JComponent implements MouseListen
     @Override
     public void mouseClicked(MouseEvent e)
     {
-
+        
     }
-
+    
     @Override
     public void mousePressed(MouseEvent e)
     {
@@ -446,24 +451,24 @@ public class FlatIntegerVerticalSlider extends JComponent implements MouseListen
             setValue((minValue + maxValue) / 2);
         }
     }
-
+    
     @Override
     public void mouseReleased(MouseEvent e)
     {
         // Possibly dragging end
         yDragStart = Integer.MIN_VALUE;
     }
-
+    
     @Override
     public void mouseEntered(MouseEvent e)
     {
     }
-
+    
     @Override
     public void mouseExited(MouseEvent e)
     {
     }
-
+    
     @Override
     public void mouseDragged(MouseEvent e)
     {
@@ -472,7 +477,7 @@ public class FlatIntegerVerticalSlider extends JComponent implements MouseListen
         {
             return;
         }
-
+        
         if (yDragStart == Integer.MIN_VALUE)
         {
             // Start dragging
@@ -492,14 +497,13 @@ public class FlatIntegerVerticalSlider extends JComponent implements MouseListen
             lastMouseEvent = null;
         }
     }
-
+    
     @Override
-
     public void mouseMoved(MouseEvent e)
     {
         // Nothing
     }
-
+    
     @Override
     public void mouseWheelMoved(MouseWheelEvent e)
     {
@@ -519,7 +523,7 @@ public class FlatIntegerVerticalSlider extends JComponent implements MouseListen
             {
                 setValue(maxValue);
             }
-
+            
         } else if (e.getWheelRotation() > 0)
         {
             if (value - step >= minValue)
@@ -534,28 +538,29 @@ public class FlatIntegerVerticalSlider extends JComponent implements MouseListen
     }
 
     // ==========================================================================
-    // Private fucntions
+    // Private methods
     // ==========================================================================
     private void updateToolTipText()
     {
-        setToolTipText(prepareToolTipText());
+        String text = prepareToolTipText();
+        setToolTipText(text);
     }
-
+    
     private double calcButtonWidth()
     {
         return buttonHeight / 1.867;
     }
-
+    
     private double calcHeight()
     {
         return buttonHeight * 4.8;
     }
-
+    
     private double calcGrooveWidth()
     {
         return buttonHeight / 4;
     }
-
+    
     private double calcDoubleMarkLength()
     {
         // return buttonHeight / 9;

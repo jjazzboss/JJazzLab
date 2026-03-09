@@ -33,7 +33,13 @@ public class JumpToEnd extends AbstractAction
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        CL_Editor editor = CL_EditorTopComponent.getActive().getEditor();
+        var tcEditor = CL_EditorTopComponent.getActive();
+        if (tcEditor == null)
+        {
+            return;
+        }
+        CL_Editor editor = tcEditor.getEditor();
+              
         editor.clearSelection();
         int lastBarIndex = editor.getModel().getSizeInBars() - 1;
         editor.selectBars(lastBarIndex, lastBarIndex, true);

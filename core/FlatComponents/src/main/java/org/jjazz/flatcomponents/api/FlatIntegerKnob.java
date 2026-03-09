@@ -22,6 +22,7 @@
  */
 package org.jjazz.flatcomponents.api;
 
+import org.jjazz.uiutilities.api.ValueToolTip;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GradientPaint;
@@ -49,8 +50,7 @@ import javax.swing.SwingUtilities;
 /**
  * A flat knob.
  * <p>
- * Value can be changed by dragging mouse or mouse wheel. ctrl-click reset the value. Whatever the actual component size, the
- * drawing is done at preferred size.
+ * Value can be changed by dragging mouse or mouse wheel. ctrl-click reset the value. Whatever the actual component size, the drawing is done at preferred size.
  */
 public class FlatIntegerKnob extends JPanel implements MouseMotionListener, MouseWheelListener, MouseListener
 {
@@ -58,7 +58,7 @@ public class FlatIntegerKnob extends JPanel implements MouseMotionListener, Mous
     /**
      * Fire a PROP_Value property change event when user changes the value.
      */
-    public static final String PROP_VALUE = "PropValue";    
+    public static final String PROP_VALUE = "PropValue";
 
     private double valueLineThickness = 4;
     private double valueLineGap = 2;
@@ -148,7 +148,8 @@ public class FlatIntegerKnob extends JPanel implements MouseMotionListener, Mous
                 2 * knobRadius,
                 2 * knobRadius
         );
-        Paint p = new GradientPaint((float) xKnobCenter, (float) (yKnobCenter - knobRadius), knobUpperColor, (float) xKnobCenter, (float) (yKnobCenter + knobRadius), knobLowerColor);
+        Paint p = new GradientPaint((float) xKnobCenter, (float) (yKnobCenter - knobRadius), knobUpperColor, (float) xKnobCenter,
+                (float) (yKnobCenter + knobRadius), knobLowerColor);
         g2.setPaint(p);
         g2.fill(knob);
         g2.setPaint(null);
@@ -377,13 +378,17 @@ public class FlatIntegerKnob extends JPanel implements MouseMotionListener, Mous
     {
         if (v < getMinValue() || v > getMaxValue())
         {
-            throw new IllegalArgumentException("v=" + v);   
+            throw new IllegalArgumentException("v=" + v);
         }
         if (value != v)
         {
             int old = value;
             value = v;
             updateToolTipText();
+            if (isShowing())
+            {
+                ValueToolTip.show(this, String.valueOf(value));
+            }
             repaint();
             firePropertyChange(PROP_VALUE, old, value);
         }

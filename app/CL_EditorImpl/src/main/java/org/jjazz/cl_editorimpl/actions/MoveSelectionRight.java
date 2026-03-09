@@ -39,7 +39,13 @@ public class MoveSelectionRight extends AbstractAction
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        CL_Editor editor = CL_EditorTopComponent.getActive().getEditor();
+        var tcEditor = CL_EditorTopComponent.getActive();
+        if (tcEditor == null)
+        {
+            return;
+        }
+        CL_Editor editor = tcEditor.getEditor();
+        
         Component c = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
         if (c instanceof BarBox)
         {
@@ -53,14 +59,14 @@ public class MoveSelectionRight extends AbstractAction
     /**
      * Move selection right from the specified ItemRenderer.
      *
-     * @param ir ItemRenderer
+     * @param ir     ItemRenderer
      * @param extend If true extend the selection rather than move.
      */
     @SuppressWarnings(
-        {
-            "rawtypes",
-            "unchecked"
-        })
+            {
+                "rawtypes",
+                "unchecked"
+            })
     public static void moveSelectionRightIR(CL_Editor editor, ItemRenderer ir, boolean extend)
     {
         ChordLeadSheetItem<?> fItem = ir.getModel();
@@ -83,7 +89,7 @@ public class MoveSelectionRight extends AbstractAction
      * Move selection right from barIndex.
      *
      * @param barIndex
-     * @param extend If true extend the selection rather than move.
+     * @param extend   If true extend the selection rather than move.
      */
     public static void moveSelectionRightBarBox(CL_Editor editor, int barIndex, boolean extend)
     {

@@ -31,6 +31,7 @@ import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import org.jjazz.uiutilities.api.ValueToolTip;
 import org.jjazz.uiutilities.api.Zoomable;
 import org.openide.awt.Actions;
 import org.openide.awt.StatusLineElementProvider;
@@ -116,6 +117,7 @@ public class ZoomXWidget extends javax.swing.JPanel implements StatusLineElement
             }
             slider.setValue(newFactor);
             slider.setToolTipText(String.valueOf(newFactor));
+            ValueToolTip.show(slider, String.valueOf(newFactor), 1000);
         }
     }
 
