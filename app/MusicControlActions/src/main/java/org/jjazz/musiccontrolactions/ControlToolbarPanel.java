@@ -27,7 +27,6 @@ import java.beans.PropertyChangeListener;
 import java.util.EnumSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.SwingUtilities;
 import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.musiccontrol.api.MusicController;

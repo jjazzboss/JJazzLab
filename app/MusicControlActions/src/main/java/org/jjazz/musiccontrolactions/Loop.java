@@ -65,7 +65,7 @@ public class Loop extends BooleanStateAction implements PropertyChangeListener, 
 
     public Loop()
     {
-        setBooleanState(false);
+        setBooleanState(PlaybackSettings.getInstance().getLoopCount() == Sequencer.LOOP_CONTINUOUSLY);
         putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/musiccontrolactions/resources/Loop-OFF-24x24.png")));
         putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/musiccontrolactions/resources/Loop-ON-24x24.png")));
         putValue("JJazzDisabledIcon", new ImageIcon(getClass().getResource("/org/jjazz/musiccontrolactions/resources/LoopDisabled-24x24.png")));                   
