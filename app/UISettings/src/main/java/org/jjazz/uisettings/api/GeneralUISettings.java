@@ -81,6 +81,7 @@ public class GeneralUISettings
         new Locale.Builder().setLanguage("pt").setRegion("BR").build(),
         new Locale.Builder().setLanguage("ja").setRegion("JP").build(),
         new Locale.Builder().setLanguage("uk").setRegion("UA").build(),
+        new Locale.Builder().setLanguage("ko").setRegion("KR").build()
     };
 
     protected enum LookAndFeelId
