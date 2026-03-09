@@ -289,10 +289,8 @@ public interface SongContext
      */
     default long toRelativeTick(Position pos)
     {
-        if (pos == null)
-        {
-            throw new NullPointerException("pos");
-        }
+        Objects.requireNonNull(pos);
+
         long tick = -1;
         int bar = pos.getBar();
         float beat = pos.getBeat();

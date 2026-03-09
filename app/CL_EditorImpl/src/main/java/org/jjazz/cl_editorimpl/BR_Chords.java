@@ -206,6 +206,7 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
                 IP_ChordSymbol newCliIP = new IP_ChordSymbol(cliCs);
                 newCliIP.setPosition(pos);
                 irIP = addItemRenderer(newCliIP);
+                assert irIP != null : "newCliIP=" + newCliIP;
                 irIP.setSelected(true);
                 cliIP = newCliIP;
             } else
@@ -218,6 +219,7 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
             if (irIP == null)
             {
                 irIP = addItemRenderer(item);
+                assert irIP != null : "item=" + item;
                 irIP.setSelected(true);
             }
         } else if (item instanceof CLI_BarAnnotation)
@@ -225,6 +227,7 @@ public class BR_Chords extends BarRenderer implements BeatBasedBarRenderer, Comp
             if (irIP == null)
             {
                 irIP = addItemRenderer(item);
+                assert irIP != null : "item=" + item;
                 irIP.setSelected(true);
             }
         }

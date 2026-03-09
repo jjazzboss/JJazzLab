@@ -684,9 +684,9 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         Preconditions.checkNotNull(item);
         Preconditions.checkArgument(!(show && pos == null));
 
-        LOGGER.log(Level.FINER, "showInsertionPoint() b={0} item={1} pos={2} copyMode={3}", new Object[]
+        LOGGER.log(Level.FINE, "showInsertionPoint() show={0}  item={1}  pos={2}  insertionPointLastPos={3}", new Object[]
         {
-            show, item, pos, copyMode
+            show, item, pos, insertionPointLastPos
         });
 
         if (!show && insertionPointLastPos != null)

@@ -25,6 +25,7 @@ package org.jjazz.chordleadsheet.api.item;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
+import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.util.Objects;
@@ -42,7 +43,6 @@ import org.jjazz.utilities.api.StringProperties;
  *
  * @param <T>
  */
-
 public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLeadSheetItem<?>>
 {
 
@@ -259,6 +259,16 @@ public interface ChordLeadSheetItem<T> extends Transferable, Comparable<ChordLea
         return new DefaultComparableItem(new Position(bar), true, true);
     }
 
+    /**
+     * Return a PropertyChangeEvent which will not be fired.
+     *
+     * @param item
+     * @return
+     */
+    static public PropertyChangeEvent getVoidEvent(ChordLeadSheetItem<?> item)
+    {
+        return new PropertyChangeEvent(item, "a", 1, 1);
+    }
 
     // ==================================================================================================
     // Inner classes

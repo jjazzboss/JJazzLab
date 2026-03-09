@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.sound.midi.MidiUnavailableException;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -136,7 +135,7 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditorDialog<RP_SYS_Custo
         // Start a task to generate the phrases 
         Runnable task = () -> 
         {
-            SessionConfig config = new SessionConfig(false, false, false, 0, null);
+            SessionConfig config = new SessionConfig(false, false, false, 0, 0, null);
             BaseSongSession tmpSession = new BaseSongSession(songPartContext, config, false, PlaybackSession.Context.RP_VALUE_PREVIEW);
             try
             {

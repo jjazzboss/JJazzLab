@@ -188,22 +188,25 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
      * Add one ItemRenderer for item e.
      *
      * @param item
-     * @return ItemRenderer The object that has been created and added.
+     * @return ItemRenderer The object that has been created and added. Might be null if BarRenderer instance does not use an ItemRenderer to render the item.
      */
     public ItemRenderer addItemRenderer(ChordLeadSheetItem<?> item)
     {
         Preconditions.checkArgument(isRegisteredItemClass(item), "item=%s", item);
 
         ItemRenderer ir = createItemRenderer(item);
-        ir.setZoomFactor(getZoomVFactor());
+        if (ir != null)
+        {
+            ir.setZoomFactor(getZoomVFactor());
 
-        // Transmit the enabled state
-        ir.setEnabled(isEnabled());
+            // Transmit the enabled state
+            ir.setEnabled(isEnabled());
 
-        // Add it as a children of this BarRenderer
-        add(ir);
+            // Add it as a children of this BarRenderer
+            add(ir);
 
-        revalidate();
+            revalidate();
+        }
 
         return ir;
     }
@@ -217,11 +220,11 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
     public ItemRenderer removeItemRenderer(ChordLeadSheetItem<?> item)
     {
         ItemRenderer ir = getItemRenderer(item);
-        if (ir == null)
+        if (ir != null)
         {
-            return null;
+            removeItemRenderer(ir);
         }
-        removeItemRenderer(ir);
+
         return ir;
     }
 

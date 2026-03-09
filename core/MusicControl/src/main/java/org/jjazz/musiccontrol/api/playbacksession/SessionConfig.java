@@ -33,23 +33,30 @@ import java.awt.event.ActionListener;
  * @param includePrecountTrack If true add the precount track, and loopStartTick will depend on the PlaybackSettings
  * @param includeControlTrack  if true add a control track (beat positions + chord symbol markers)
  * @param loopCount            See Sequencer.setLoopCount(). Use PLAYBACK_SETTINGS_LOOP_COUNT to rely on the PlaybackSettings instance value.
+ * @param loopRestartBar       The SongContext relative bar to restart from when playback is in loop mode
  * @param endOfPlaybackAction  Action executed when playback is stopped. Can be null.
  */
 public record SessionConfig(boolean includeClickTrack,
         boolean includePrecountTrack,
         boolean includeControlTrack,
         int loopCount,
+        int loopRestartBar,
         ActionListener endOfPlaybackAction)
         {
 
- 
-
     /**
-     * Create a default config which includes all tracks, loopCount uses PlaybackSettings, and no endOfPlaybackAction.
+     * Create a default config which includes all tracks, loopCount uses PlaybackSettings, loopRestartBar=0, and no endOfPlaybackAction.
      */
     public SessionConfig()
     {
-        this(true, true, true, BaseSongSession.PLAYBACK_SETTINGS_LOOP_COUNT, null);
+        this(0);
     }
 
+    /**
+     * Create a default config with the specified loopRestartBar=0
+     */
+    public SessionConfig(int restartBar)
+    {
+        this(true, true, true, BaseSongSession.PLAYBACK_SETTINGS_LOOP_COUNT, restartBar, null);
+    }
 }

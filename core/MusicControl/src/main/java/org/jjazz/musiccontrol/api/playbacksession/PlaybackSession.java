@@ -23,7 +23,6 @@
 package org.jjazz.musiccontrol.api.playbacksession;
 
 import java.beans.PropertyChangeListener;
-import java.util.HashMap;
 import java.util.Map;
 import javax.sound.midi.Sequence;
 import org.jjazz.rhythm.api.MusicGenerationException;
@@ -83,7 +82,7 @@ public interface PlaybackSession
 
     /**
      * Provide the context in which the PlaybackSession is used.
-     * 
+     * <p>
      * Used by e.g. PlaybackListeners which want to be active only in a given context.
      * <p>
      */
@@ -96,19 +95,19 @@ public interface PlaybackSession
         /**
          * Used when playing in arranger mode.
          */
-        ARRANGER, 
+        ARRANGER,
         /**
-         * Used e.g. when hearing test notes. 
+         * Used e.g. when hearing test notes.
          */
-        AUDITIONING, 
+        AUDITIONING,
         /**
          * Used when "preview hearing" a rhythm.
          */
-        RHYTHM_PREVIEW, 
+        RHYTHM_PREVIEW,
         /**
-         * Used when "preview hearing" 
+         * Used when "preview hearing"
          */
-        RP_VALUE_PREVIEW, 
+        RP_VALUE_PREVIEW,
         /**
          * For other cases
          */
@@ -195,7 +194,7 @@ public interface PlaybackSession
     long getLoopEndTick();
 
     /**
-     * The tick position of the start of the loop.
+     * The tick position to restart from in loop mode once end tick is reached.
      * <p>
      *
      * @return -1 if no meaningful value can be returned.

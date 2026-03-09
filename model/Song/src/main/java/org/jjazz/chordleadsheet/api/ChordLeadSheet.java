@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 import java.util.List;
 import java.util.function.Predicate;
 import javax.swing.event.UndoableEditListener;
+import org.jjazz.chordleadsheet.api.item.CLI_LoopRestartBar;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
@@ -36,7 +37,9 @@ import org.jjazz.utilities.api.IntRange;
 /**
  * The model for a chord leadsheet.
  * <p>
- * The leadsheet is made of sections (a name + a time signature) and items like chord symbols or bar annotations.
+ * The leadsheet is defined by a size in bars and a list of ChordLeadSheetItems ordered by position such as sections, chord symbols, annotations.
+ * <p>
+ * Bar 0 always contains a CLI_Section. A ChordLeadSheet always contain one and only one CLI_LoopRestartBar, by default at bar 0, so it can only be moved.
  */
 public interface ChordLeadSheet
 {
@@ -65,7 +68,7 @@ public interface ChordLeadSheet
      * Item position might be adjusted to the bar's TimeSignature. This will set the item's container to this ChordLeadSheet. Nothing is done if an equal item
      * is already in the ChordLeadSheet.
      *
-     * @param item The ChordLeadSheetItem to add. Must be a WritableItem. Can not be a CLI_Section.
+     * @param item The ChordLeadSheetItem to add. Must be a WritableItem. Can not be a CLI_Section or a CLI_LoopRestartBar.
      * @return True if item was added
      * @throws IllegalArgumentException If item's position out of leadsheet bounds or item is a CLI_Section.
      * @see #addSection(org.jjazz.chordleadsheet.api.item.CLI_Section)
@@ -77,7 +80,7 @@ public interface ChordLeadSheet
      * <p>
      * This sets the item's container to null.
      *
-     * @param item The item to be removed.
+     * @param item The item to be removed. Can not be a CLI_Section or a CLI_LoopRestartBar.
      * @return True if item was removed
      * @see #removeSection(org.jjazz.chordleadsheet.api.item.CLI_Section)
      */
@@ -498,6 +501,24 @@ public interface ChordLeadSheet
         var nextSection = getNextItem(cliSection);
         int lastBar = nextSection == null ? getSizeInBars() - 1 : nextSection.getPosition().getBar() - 1;
         return new IntRange(bar, lastBar);
+    }
+
+    /**
+     * Get the only CLI_LoopRestartBar of the ChordLeadSheet.
+     * <p>
+     * By default the CLI_LoopRestartBar instance is at bar 0. Use moveItem() to change its location.
+     *
+     * @return Cannot be null
+     * @see #moveItem(org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem, org.jjazz.harmony.api.Position)
+     */
+    default CLI_LoopRestartBar getLoopRestartBarItem()
+    {
+        var items= getItems(CLI_LoopRestartBar.class);
+        if (items.size()!=1)
+        {
+            throw new IllegalStateException("items="+items);
+        }
+        return items.getFirst();
     }
 
     /**

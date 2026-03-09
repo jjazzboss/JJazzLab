@@ -140,6 +140,7 @@ public class BR_Annotation extends BarRenderer
             if (insertionPointRenderer == null)
             {
                 insertionPointRenderer = addItemRenderer(item);
+                assert insertionPointRenderer != null : "item=" + item;
                 insertionPointRenderer.setSelected(true);
             }
             if (insertionPointRenderer instanceof IR_Copiable irc)

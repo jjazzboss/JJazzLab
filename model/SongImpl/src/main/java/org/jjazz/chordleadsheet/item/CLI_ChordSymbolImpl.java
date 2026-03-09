@@ -75,7 +75,7 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
      * Need to be transient otherwise this introduces circularities in the objects graph that prevent ChordLeadSheetImpl's proxy serialization to work. This
      * field must be restored by its container at deserialization.
      */
-    private volatile transient ChordLeadSheet container = null;
+    private volatile transient ChordLeadSheetImpl container = null;
     /**
      * The listeners for changes in this ChordLeadSheetItem.
      */
@@ -110,7 +110,7 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
     @Override
     final public void setContainer(ChordLeadSheet cls)
     {
-        this.container = cls;
+        this.container = (ChordLeadSheetImpl) cls;
     }
 
 
@@ -301,7 +301,7 @@ public class CLI_ChordSymbolImpl implements CLI_ChordSymbol, WritableItem<ExtCho
             return operation.get();
         } else
         {
-            return ((ChordLeadSheetImpl) container).getExecutionManager().executeReadOperation(operation);
+            return container.getExecutionManager().executeReadOperation(operation);
         }
     }
     // ================================================================================================================

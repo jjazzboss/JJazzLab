@@ -28,12 +28,12 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.sound.midi.MidiUnavailableException;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.chordleadsheet.api.item.CLI_LoopRestartBar;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.spi.MidiMixManager;
@@ -189,8 +189,10 @@ public class PlayFromHere extends AbstractAction
             new FixMissingSectionStartChord(context).autofix();
             FixMidiMix.checkAndPossiblyFix(midiMix, true);
 
-            UpdateProviderSongSession dynSession = UpdateProviderSongSession.getSession(context, PlaybackSession.Context.SONG);
-            session = UpdatableSongSession.getSession(dynSession);
+            int restartBar = context.getSong().getSongStructure().getLoopRestartBar();
+            UpdateProviderSongSession dynSession = UpdateProviderSongSession.getSession(context, PlaybackSession.Context.SONG, restartBar);
+            
+            session = UpdatableSongSession.getSession(dynSession);            
             mc.setPlaybackSession(session, false);  // Can generate MusicGenerationException
             mc.play(playFromBar);
 

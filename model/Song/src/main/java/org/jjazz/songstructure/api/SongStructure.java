@@ -316,6 +316,26 @@ public interface SongStructure
     }
 
     /**
+     * Get the song bar corresponding to the loop restart bar.
+     * <p>
+     * Relies on the 1st SongPart whose parent section is the CLI_LoopRestartBar's section. If no section matches, returns 0 by default.
+     *
+     * @return
+     * @see ChordLeadSheet#getLoopRestartBarItem()
+     */
+    default int getLoopRestartBar()
+    {
+        var cls = getParentChordLeadSheet();
+        var cliLoopRestart = cls.getLoopRestartBarItem();
+        var section = cls.getSection(cliLoopRestart.getPosition().getBar());
+        var firstSpt = getSongParts().stream()
+                .filter(spt -> spt.getParentSection() == section)
+                .findFirst()
+                .orElse(null);
+        return firstSpt == null ? 0 : getSptItemPosition(firstSpt, cliLoopRestart).getBar();
+    }
+
+    /**
      * Add a list of SongParts.
      * <p>
      * Each SongPart must have a valid startBarIndex, either:<br>

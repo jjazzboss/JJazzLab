@@ -56,6 +56,7 @@ import org.jjazz.chordleadsheet.api.item.WritableItem;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.chordleadsheet.api.ClsChangeListener;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.chordleadsheet.item.CLI_LoopRestartBarImpl;
 import org.jjazz.song.ExecutionManager;
 import org.jjazz.song.ThrowingWriteOperation;
 import org.jjazz.song.WriteOperation;
@@ -118,26 +119,39 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         this.size = size;
         this.executionManager = new ExecutionManager();
 
+        // Add mandatory items
         ((CLI_SectionImpl) initSection).setContainer(this);
         items.add(initSection);
+        var restartBar = new CLI_LoopRestartBarImpl(0);
+        restartBar.setContainer(this);
+        items.add(restartBar);
     }
 
     @Override
     public ChordLeadSheet getDeepCopy()
     {
-
         var res = performReadAPImethod(() -> 
         {
             var initSection = getSection(0);
             assert initSection != null;
 
+            // Create the copy
             var clsCopy = new ChordLeadSheetImpl(initSection.getData().getName(), initSection.getData().getTimeSignature(), size);
+
+            
+            // Special handling for the LoopRestartBarItem
+            var cliRestartBar = clsCopy.getLoopRestartBarItem();
+            clsCopy.moveItem(cliRestartBar, getLoopRestartBarItem().getPosition());
+
 
             for (var item : getItems())
             {
                 if (item == initSection)
                 {
                     clsCopy.getSection(0).getClientProperties().set(initSection.getClientProperties());
+                    continue;
+                } else if (item instanceof CLI_LoopRestartBarImpl)
+                {
                     continue;
                 }
 
@@ -203,6 +217,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         Objects.requireNonNull(item);
         Preconditions.checkArgument(item instanceof WritableItem, "item=%s", item);
         Preconditions.checkArgument(!(item instanceof CLI_Section), "item=%s", item);
+        Preconditions.checkArgument(!(item instanceof CLI_LoopRestartBarImpl), "item=%s", item);
 
 
         WriteOperation<Boolean> operation = () -> 
@@ -632,6 +647,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     {
         Objects.requireNonNull(item);
         Preconditions.checkArgument(!(item instanceof CLI_Section), "item=%s", item);
+        Preconditions.checkArgument(!(item instanceof CLI_LoopRestartBarImpl), "item=%s", item);
 
 
         WriteOperation<Boolean> operation = () -> 
@@ -1847,12 +1863,13 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
      * <p>
      * Allow to be independent of future chordleadsheet internal data structure changes.<p>
      * spVERSION 2 (JJazzLab 4.1.0) introduces several aliases to get rid of hard-coded qualified class names (XStreamConfig class introduction).<br>
+     * spVERSION 3 (JJazzLab 5.2) introduces CLI_LoopRestartBar
      */
     private static class SerializationProxy implements Serializable
     {
 
         private static final long serialVersionUID = 2879716323116L;
-        private final int spVERSION = 2;
+        private final int spVERSION = 3;
         private final ArrayList<ChordLeadSheetItem> spItems;
         private final int spSize;
 
@@ -1908,6 +1925,10 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                         // Translate to an ObjectStreamException
                         throw new InvalidObjectException(ex.getMessage());
                     }
+                } else if (item instanceof CLI_LoopRestartBarImpl)
+                {
+                    var cliLoopRestartBar = cls.getLoopRestartBarItem();
+                    cls.moveItem(cliLoopRestartBar, item.getPosition());
                 } else
                 {
                     cls.addItem(item);
