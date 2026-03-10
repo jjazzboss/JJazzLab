@@ -245,17 +245,22 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
         int barTop = getDrawingArea().y;
 
         // Draw the axis
-        g2.setColor(sectionColor);
 
         int axisY = barTop + (barHeight / 2);
-        int width = 4;
-        g2.fillRect(barLeft, axisY + 1 - width / 2, barWidth, width);
+        int thickness = 4;
 
         if (isLoopRestartBar && getBarIndex() > 0)
         {
-            g2.setColor(Color.DARK_GRAY);
-            g2.fillRect(barLeft, barTop, 4, barHeight);
+            // Extra thick line if restart loop
+            g2.setColor(sectionColor.darker());
+            int thickness2 = thickness + 4;
+            g2.fillRect(barLeft, axisY + 1 - thickness2 / 2, barWidth, thickness2);
         }
+
+        // The normal thick line
+        g2.setColor(sectionColor);
+        g2.fillRect(barLeft, axisY + 1 - thickness / 2, barWidth, thickness);
+
     }
 
     @Override

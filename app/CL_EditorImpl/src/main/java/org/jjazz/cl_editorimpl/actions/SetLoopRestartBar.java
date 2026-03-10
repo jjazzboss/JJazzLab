@@ -23,76 +23,142 @@
 package org.jjazz.cl_editorimpl.actions;
 
 import java.awt.event.ActionEvent;
-import java.util.EnumSet;
+import java.util.Objects;
+import java.util.logging.Logger;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import static javax.swing.Action.NAME;
-import org.jjazz.chordleadsheet.api.ChordLeadSheet;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JMenuItem;
 import org.jjazz.chordleadsheet.api.item.CLI_LoopRestartBar;
-import org.jjazz.cl_editor.api.CL_ContextAction;
-import org.openide.awt.ActionID;
-import org.openide.awt.ActionReference;
-import org.openide.awt.ActionReferences;
-import org.openide.awt.ActionRegistration;
+import org.jjazz.chordleadsheet.api.item.CLI_Section;
+import org.jjazz.chordleadsheet.spi.item.CLI_Factory;
+import org.jjazz.cl_editor.api.CL_Editor;
+import org.jjazz.cl_editor.api.CL_EditorClientProperties;
+import org.jjazz.cl_editor.api.CL_EditorTopComponent;
 import org.jjazz.cl_editor.api.CL_Selection;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.utilities.api.ResUtil;
+import org.openide.awt.ActionID;
+import org.openide.awt.ActionReference;
+import org.openide.awt.ActionReferences;
+import org.openide.awt.ActionRegistration;
+import org.openide.util.ContextAwareAction;
+import org.openide.util.Lookup;
+import org.openide.util.actions.Presenter;
+
 
 /**
- * Set the loop restart bar.
+ * Toggle selected bar as restart bar in playback loop mode.
+ * <p>
+ * Action has no keyboard shortcut and is only showed in transient popup menus, no need for CL_ContextAction.
  */
-@ActionRegistration(displayName = "not_used", lazy = false)
+@ActionRegistration(displayName = "not_used", lazy = false) // lazy can't be true because of Presenter.Popup implementation
 @ActionID(category = "JJazz", id = "org.jjazz.cl_editor.actions.setlooprestartbar")
 @ActionReferences(
         {
             @ActionReference(path = "Actions/Bar", position = 1415),
         })
-public final class SetLoopRestartBar extends CL_ContextAction
+public final class SetLoopRestartBar extends AbstractAction implements Presenter.Popup, ContextAwareAction
 {
 
-    @Override
-    protected void configureAction()
+    private JCheckBoxMenuItem checkBoxMenuItem;
+    private CL_Editor editor;
+    private int selBar;
+    private CLI_LoopRestartBar cliLoopRestart = null;
+    private static final Logger LOGGER = Logger.getLogger(SetLoopRestartBar.class.getSimpleName());
+
+    public SetLoopRestartBar()
     {
-        putValue(NAME, ResUtil.getString(getClass(), "CTL_SetLoopRestartBar"));
-        putValue(CL_ContextAction.LISTENING_TARGETS, EnumSet.of(ListeningTarget.BAR_SELECTION));
+        // Not used besides for creating the ContextAwareAction
+    }
+
+    public SetLoopRestartBar(Lookup context)
+    {
+        Objects.requireNonNull(context);
+        putValue(NAME, ResUtil.getString(getClass(), "CTL_LoopRestartBar"));
+        checkBoxMenuItem = new JCheckBoxMenuItem(this);
+
+
+        var selection = new CL_Selection(context);
+        CL_EditorTopComponent tc = CL_EditorTopComponent.get(selection.getChordLeadSheet());
+        assert tc != null : "cls=" + selection.getChordLeadSheet();
+        editor = tc.getEditor();
+
+
+        boolean b = selection.getSelectedBars().size() == 1 && selection.isBarSelectedWithinCls();
+        setEnabled(b);
+
+
+        b = false;
+        selBar = selection.getMinBarIndexWithinCls();
+        if (selBar >= 0)
+        {
+            cliLoopRestart = editor.getSongModel().getChordLeadSheet().getLoopRestartBarItem();
+            int restartBar = cliLoopRestart == null ? 0 : cliLoopRestart.getPosition().getBar();
+            b = selBar == restartBar;
+        }
+        checkBoxMenuItem.setSelected(b);
     }
 
     @Override
-    protected void actionPerformed(ActionEvent ae, ChordLeadSheet cls, CL_Selection selection)
+    public Action createContextAwareInstance(Lookup lkp)
     {
-        var selBars = selection.getSelectedBars();
-        assert selBars.size() == 1;
-        var newBar = selBars.getFirst().getModelBarIndex();
-        var oldCli = cls.getLoopRestartBarItem();
-        var oldBar = oldCli.getPosition().getBar();
-        if (newBar == oldBar)
-        {
-            return;
-        }
+        return new SetLoopRestartBar(lkp);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent ae)
+    {
+        assert selBar != -1;
+        var cls = editor.getSongModel().getChordLeadSheet();
+        var actionName = (String) getValue(NAME);
 
         JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(cls);
-        um.startCEdit(getActionName());
+        um.startCEdit(actionName);
 
-        cls.moveItem(oldCli, new Position(newBar));
 
-        um.endCEdit(getActionName());
+        if (cliLoopRestart == null)
+        {
+            // Add  CLI_LoopRestartBar
+            cliLoopRestart = CLI_Factory.getDefault().createLoopRestartBar(selBar);
+            cls.addItem(cliLoopRestart);
+
+        } else if (selBar != cliLoopRestart.getPosition().getBar())
+        {
+            // Move CLI_LoopRestartBar
+            cls.moveItem(cliLoopRestart, new Position(selBar));
+
+        } else
+        {
+            // Remove CLI_LoopRestartBar
+            cls.removeItem(cliLoopRestart);
+
+        }
+
+        um.endCEdit(actionName);
     }
 
+    // ============================================================================================= 
+    // Presenter.Popup implementation
+    // =============================================================================================      
     @Override
-    public void selectionChange(CL_Selection selection)
+    public JMenuItem getPopupPresenter()
+    {
+        return checkBoxMenuItem;
+    }
+
+    // ======================================================================
+    // Private methods
+    // ======================================================================   
+
+    private boolean isSelected(CL_Selection selection)
     {
         boolean b = false;
-        if (selection.getSelectedBars().size() == 1 && selection.isBarSelectedWithinCls())
-        {
-            int bar = selection.getMinBarIndex();
-            int oldBar = selection.getChordLeadSheet().getLoopRestartBarItem().getPosition().getBar();
-            b = bar != oldBar;
-        }
-        setEnabled(b);
-    }
 
-    // ===================================================================================================================
-    // Private methods
-    // ===================================================================================================================    
+        return b;
+    }
 
 }

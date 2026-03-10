@@ -29,7 +29,6 @@ import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
 import javax.swing.KeyStroke;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
-import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.cl_editor.api.CL_ContextAction;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;

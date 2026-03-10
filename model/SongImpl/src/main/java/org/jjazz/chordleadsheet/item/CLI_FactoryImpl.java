@@ -23,7 +23,6 @@
 package org.jjazz.chordleadsheet.item;
 
 import java.text.ParseException;
-import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.TimeSignature;
@@ -31,7 +30,7 @@ import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.CLI_BarAnnotation;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
-import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
+import org.jjazz.chordleadsheet.api.item.CLI_LoopRestartBar;
 import org.jjazz.chordleadsheet.spi.item.CLI_Factory;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.harmony.api.Position;
@@ -40,9 +39,10 @@ import org.openide.util.lookup.ServiceProvider;
 /**
  * CLI_Factory default implementation.
  */
-@ServiceProvider(service=CLI_Factory.class)
+@ServiceProvider(service = CLI_Factory.class)
 public class CLI_FactoryImpl implements CLI_Factory
 {
+
     private static CLI_Section SECTION_SAMPLE;
     private static CLI_ChordSymbol CHORD_SYMBOL_SAMPLE;
 
@@ -58,7 +58,7 @@ public class CLI_FactoryImpl implements CLI_Factory
         {
             Logger.getLogger(CLI_FactoryImpl.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
     }
 
     @Override
@@ -112,6 +112,13 @@ public class CLI_FactoryImpl implements CLI_Factory
         var cli = new CLI_BarAnnotationImpl(text, bar);
         return cli;
     }
-    
-    
+
+    @Override
+    public CLI_LoopRestartBar createLoopRestartBar(int bar)
+    {
+        var cli = new CLI_LoopRestartBarImpl(bar);
+        return cli;
+    }
+
+
 }

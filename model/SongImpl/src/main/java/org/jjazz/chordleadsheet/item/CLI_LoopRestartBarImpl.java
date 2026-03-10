@@ -227,6 +227,11 @@ public class CLI_LoopRestartBarImpl implements CLI_LoopRestartBar, WritableItem<
         }
     }
 
+    @Override
+    public String toString()
+    {
+        return performReadAPImethod(() -> "RestartBar-"+getPosition().getBar());
+    }
 
     /**
      * This enables XStream instance configuration even for private classes or classes from non-public packages of Netbeans modules.

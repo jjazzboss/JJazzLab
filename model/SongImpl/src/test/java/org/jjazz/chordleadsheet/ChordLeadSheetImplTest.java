@@ -236,9 +236,9 @@ public class ChordLeadSheetImplTest
                 false,
                 ChordLeadSheetItem.class,
                 cli -> true);
-        assertEquals(5, res.size());
+        assertEquals(4, res.size());
         assertSame(cls1.getSection(0), res.get(0));
-        assertEquals(new Position(1, 3), res.get(4).getPosition());
+        assertEquals(new Position(1, 3), res.get(3).getPosition());
     }
 
     @Test
@@ -848,7 +848,7 @@ public class ChordLeadSheetImplTest
         System.out.println("=== setSize()");
         cls1.setSizeInBars(3);
         assertEquals(3, cls1.getSizeInBars());
-        assertEquals(7, cls1.getItems(ChordLeadSheetItem.class).size());
+        assertEquals(6, cls1.getItems(ChordLeadSheetItem.class).size());
     }
 
     @Test

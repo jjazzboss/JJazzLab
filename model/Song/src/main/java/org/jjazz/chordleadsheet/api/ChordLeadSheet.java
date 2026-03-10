@@ -39,7 +39,7 @@ import org.jjazz.utilities.api.IntRange;
  * <p>
  * The leadsheet is defined by a size in bars and a list of ChordLeadSheetItems ordered by position such as sections, chord symbols, annotations.
  * <p>
- * Bar 0 always contains a CLI_Section. A ChordLeadSheet always contain one and only one CLI_LoopRestartBar, by default at bar 0, so it can only be moved.
+ * Bar 0 always contains a CLI_Section. A ChordLeadSheet can only contain 0 or 1 CLI_LoopRestartBar.
  */
 public interface ChordLeadSheet
 {
@@ -68,9 +68,9 @@ public interface ChordLeadSheet
      * Item position might be adjusted to the bar's TimeSignature. This will set the item's container to this ChordLeadSheet. Nothing is done if an equal item
      * is already in the ChordLeadSheet.
      *
-     * @param item The ChordLeadSheetItem to add. Must be a WritableItem. Can not be a CLI_Section or a CLI_LoopRestartBar.
+     * @param item The ChordLeadSheetItem to add. Must be a WritableItem. Can not be a CLI_Section.
      * @return True if item was added
-     * @throws IllegalArgumentException If item's position out of leadsheet bounds or item is a CLI_Section.
+     * @throws IllegalArgumentException If item's position out of leadsheet bounds, or item is a CLI_Section, or item is the 2nd CLI_LoopRestartBar
      * @see #addSection(org.jjazz.chordleadsheet.api.item.CLI_Section)
      */
     boolean addItem(ChordLeadSheetItem<?> item);
@@ -80,7 +80,7 @@ public interface ChordLeadSheet
      * <p>
      * This sets the item's container to null.
      *
-     * @param item The item to be removed. Can not be a CLI_Section or a CLI_LoopRestartBar.
+     * @param item The item to be removed. Can not be a CLI_Section.
      * @return True if item was removed
      * @see #removeSection(org.jjazz.chordleadsheet.api.item.CLI_Section)
      */
@@ -504,21 +504,15 @@ public interface ChordLeadSheet
     }
 
     /**
-     * Get the only CLI_LoopRestartBar of the ChordLeadSheet.
+     * Get the optional CLI_LoopRestartBar of the ChordLeadSheet.
      * <p>
-     * By default the CLI_LoopRestartBar instance is at bar 0. Use moveItem() to change its location.
      *
-     * @return Cannot be null
-     * @see #moveItem(org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem, org.jjazz.harmony.api.Position)
+     * @return Null if no CLI_LoopRestartBar found.
      */
     default CLI_LoopRestartBar getLoopRestartBarItem()
     {
-        var items= getItems(CLI_LoopRestartBar.class);
-        if (items.size()!=1)
-        {
-            throw new IllegalStateException("items="+items);
-        }
-        return items.getFirst();
+        var items = getItems(CLI_LoopRestartBar.class);
+        return items.isEmpty() ? null : items.getFirst();
     }
 
     /**
