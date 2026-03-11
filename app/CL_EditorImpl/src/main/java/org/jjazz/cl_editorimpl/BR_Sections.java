@@ -29,6 +29,7 @@ import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Insets;
+import java.awt.Rectangle;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.beans.PropertyChangeEvent;
@@ -71,9 +72,9 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
      * Special shared JPanel instances per editor, used to calculate the preferred size for a BarRenderer subclass..
      */
     private static final Map<Integer, PrefSizePanel> mapEditorPrefSizePanel = new HashMap<>();
-
+    private static final int LOOP_RESTART_BAR_SIGN_WIDTH = 8;
     private static final Dimension MIN_SIZE = new Dimension(10, 4);
-    private boolean isLoopRestartBar;
+    private boolean showLoopRestart;
     private CLI_Section cliSection;
     /**
      * The last color we used to paint this BarRenderer.
@@ -226,6 +227,21 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
     }
 
     /**
+     * Overridden to leave an area for the loop restart bar sign if present.
+     */
+    @Override
+    public Rectangle getDrawingArea()
+    {
+        var r = super.getDrawingArea();
+        if (showLoopRestart && getBarIndex() > 0)
+        {
+            r.x += LOOP_RESTART_BAR_SIGN_WIDTH;
+            r.width -= LOOP_RESTART_BAR_SIGN_WIDTH;
+        }
+        return r;
+    }
+
+    /**
      * Overridden to draw a line corresponding to the section's color.
      *
      * @param g
@@ -249,12 +265,11 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
         int axisY = barTop + (barHeight / 2);
         int thickness = 4;
 
-        if (isLoopRestartBar && getBarIndex() > 0)
+        if (showLoopRestart)
         {
-            // Extra thick line if restart loop
-            g2.setColor(sectionColor.darker());
-            int thickness2 = thickness + 4;
-            g2.fillRect(barLeft, axisY + 1 - thickness2 / 2, barWidth, thickness2);
+            g2.setColor(Color.DARK_GRAY);
+            g2.fillRect(barLeft - LOOP_RESTART_BAR_SIGN_WIDTH, barTop, 3, barHeight);
+            g2.fillRect(barLeft - LOOP_RESTART_BAR_SIGN_WIDTH + 4, barTop, 1, barHeight);
         }
 
         // The normal thick line
@@ -284,9 +299,13 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
 
         if (item instanceof CLI_LoopRestartBar)
         {
-            // Directly renderered by BR_Sections paintComponent()
-            isLoopRestartBar = true;
-            repaint();
+            // Directly renderered by BR_Sections paintComponent(). Layout is impacted.
+            if (getBarIndex() > 0)
+            {
+                showLoopRestart = true;
+                repaint();
+                revalidate();
+            }
             return null;
         }
 
@@ -309,11 +328,11 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
     @Override
     public ItemRenderer removeItemRenderer(ChordLeadSheetItem<?> item)
     {
-        Objects.requireNonNull(item);
         if (item instanceof CLI_LoopRestartBar)
         {
-            isLoopRestartBar = false;
+            showLoopRestart = false;
             repaint();
+            revalidate();
         }
         return super.removeItemRenderer(item);
     }

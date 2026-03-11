@@ -37,6 +37,7 @@ import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.chordleadsheet.api.item.NCExtChordSymbol;
 import org.jjazz.chordleadsheet.item.CLI_ChordSymbolImpl;
 import org.jjazz.chordleadsheet.item.CLI_SectionImpl;
+import org.jjazz.chordleadsheet.spi.item.CLI_Factory;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.harmony.api.TimeSignature;
@@ -279,6 +280,19 @@ public class ChordLeadSheetImplTest
         System.out.println("=== addItem ChordSymbol");
         cls1.addItem(cliChordSymbolG_b6_0);
         assertSame(cliChordSymbolG_b6_0, cls1.getItems(6, 6, ChordLeadSheetItem.class).get(0));
+    }
+    @Test
+    public void testLoopRestartBar()
+    {
+        System.out.println("=== testLoopRestartBar");
+        assertEquals(null, cls1.getLoopRestartBarItem());
+        
+        var cli = CLI_Factory.getDefault().createLoopRestartBar(2);
+        assertEquals(true, cls1.addItem(cli));        
+        assertSame(cli, cls1.getLoopRestartBarItem());
+        
+        var cli2 = cli.getCopy(null, new Position(0));
+        assertThrows(IllegalArgumentException.class, () -> cls1.addItem(cli2));
     }
 
     @Test

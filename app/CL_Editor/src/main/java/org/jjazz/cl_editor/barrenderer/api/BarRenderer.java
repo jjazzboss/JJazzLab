@@ -529,7 +529,6 @@ abstract public class BarRenderer extends JPanel implements PropertyChangeListen
         ir.cleanup();
         remove(ir);
         revalidate();
-        // Repaint background behind removed ItemRenderer
         repaint();
     }
 
