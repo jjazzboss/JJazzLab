@@ -56,6 +56,7 @@ public class FluidSynthEmbeddedSynth implements EmbeddedSynth, PropertyChangeLis
     private static final String PREF_REVERB = "PrefReverb";
     private static final String PREF_CHORUS = "PrefChorus";
     private static final String PREF_GAIN = "PrefGain";
+    private static final String PREF_AUDIO_DRIVER = "PrefAudioDriver";
     private static final float DEFAULT_GAIN = 2.0f;
     private static final Reverb DEFAULT_REVERB = Reverb.ROOM_REVERB;
     private static final Chorus DEFAULT_CHORUS = Chorus.NORMAL_CHORUS;
@@ -78,9 +79,9 @@ public class FluidSynthEmbeddedSynth implements EmbeddedSynth, PropertyChangeLis
 
 
     /**
-     * Redirect to setSoundFontFile().
+     * Accept a SoundFont file.
      *
-     * @param config Must be a soundfont file.
+     * @param config
      * @see #setSoundFontFile(java.io.File)
      */
     @Override
@@ -162,7 +163,11 @@ public class FluidSynthEmbeddedSynth implements EmbeddedSynth, PropertyChangeLis
 
         try
         {
-            fluidSynth.open(true);      // throws FluidSynthException
+            // Open using default audio driver
+            String audioDriver = getAudioDriver();      // Might be null on a fresh start
+            fluidSynth.open(audioDriver);      // throws FluidSynthException
+            saveAudioDriver(fluidSynth.getSettings().getString("audio.driver"));        // Save the actual (non-null) driver name picked by FluidSynth
+ 
 
             File f = getSoundFontFile();    // throws FluidSynthException
             fluidSynth.loadSoundFont(f);    // throws FluidSynthException
@@ -264,6 +269,32 @@ public class FluidSynthEmbeddedSynth implements EmbeddedSynth, PropertyChangeLis
     }
 
     /**
+     * The saved audio driver string to be used when opening FluidSynth.
+     *
+     * @return can be null
+     */
+    public String getAudioDriver()
+    {
+        return prefs.get(PREF_AUDIO_DRIVER, null);
+    }
+
+    /**
+     * Save the audio driver string to be used when opening FluidSynth.
+     *
+     * @param s Can be null
+     */
+    public void saveAudioDriver(String s)
+    {
+        if (s == null)
+        {
+            prefs.remove(PREF_AUDIO_DRIVER);
+        } else
+        {
+            prefs.put(PREF_AUDIO_DRIVER, s);
+        }
+    }
+
+    /**
      * Fast check that this is the expected soundfont file.
      *
      * @param f
@@ -313,6 +344,7 @@ public class FluidSynthEmbeddedSynth implements EmbeddedSynth, PropertyChangeLis
     // ===========================================================================================
     // Private methods
     // ===========================================================================================
+
 
     private Reverb getReverbPreset(String name)
     {

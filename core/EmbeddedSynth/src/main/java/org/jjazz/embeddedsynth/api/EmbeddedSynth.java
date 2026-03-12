@@ -34,7 +34,8 @@ public interface EmbeddedSynth
 
     /**
      * Give the possibility to configure the synth before being opened.
-     * 
+     * <p>
+     *
      * @param config An implementation-specific configuration object, eg a SoundFont file for a SoundFont-based synth.
      */
     void configure(Object config);
@@ -43,6 +44,7 @@ public interface EmbeddedSynth
      * Initialize the synth (load resources...).
      *
      * @throws org.jjazz.embeddedsynth.api.EmbeddedSynthException
+     * @see #configure(java.lang.Object) 
      */
     void open() throws EmbeddedSynthException;
 

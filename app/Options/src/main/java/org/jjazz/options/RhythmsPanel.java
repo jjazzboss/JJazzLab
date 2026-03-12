@@ -47,9 +47,9 @@ import org.jjazz.rhythm.spi.RhythmDirsLocator;
 import org.jjazz.rhythm.spi.RhythmProvider;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.RhythmInfo;
+import org.jjazz.rhythmdatabase.spi.RhythmDatabaseFactory;
 import org.jjazz.rhythmdatabaseimpl.api.AddRhythmsAction;
 import org.jjazz.rhythmdatabaseimpl.api.DeleteRhythmFile;
-import org.jjazz.rhythmdatabaseimpl.api.RhythmDatabaseFactoryImpl;
 import org.jjazz.rhythmselectiondialog.api.ui.RhythmProviderJList;
 import org.jjazz.rhythmselectiondialog.api.ui.RhythmJTable;
 import org.jjazz.uiutilities.api.UIUtilities;
@@ -480,7 +480,7 @@ final class RhythmsPanel extends javax.swing.JPanel implements PropertyChangeLis
 
     private void btn_rescanActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_btn_rescanActionPerformed
     {//GEN-HEADEREND:event_btn_rescanActionPerformed
-        RhythmDatabaseFactoryImpl.getInstance().markForStartupRescan(true);
+        RhythmDatabaseFactory.getDefault().markForStartupRescan(true);
 
 
         String msg = ResUtil.getString(getClass(), "CTL_ConfirmFullRescanRestart");

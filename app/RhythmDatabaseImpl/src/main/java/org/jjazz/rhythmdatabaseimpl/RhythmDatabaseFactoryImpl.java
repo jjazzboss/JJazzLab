@@ -22,15 +22,13 @@
  *   Contributor(s): 
  * 
  */
-package org.jjazz.rhythmdatabaseimpl.api;
+package org.jjazz.rhythmdatabaseimpl;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -41,7 +39,6 @@ import org.jjazz.rhythm.spi.RhythmDirsLocator;
 import org.jjazz.rhythmdatabase.api.DefaultRhythmDatabase;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.spi.RhythmDatabaseFactory;
-import org.jjazz.rhythmdatabaseimpl.RhythmDbCache;
 import org.jjazz.uiutilities.api.PleaseWaitDialog;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.utilities.api.CheckedRunnable;
@@ -174,6 +171,7 @@ public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory, Propert
      *
      * @param b
      */
+    @Override
     public void markForStartupRescan(boolean b)
     {
         LOGGER.log(Level.INFO, "markForStartupRescan() b={0}", b);
@@ -185,6 +183,7 @@ public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory, Propert
      *
      * @return
      */
+    @Override
     public boolean isMarkedForStartupRescan()
     {
         return prefs.getBoolean(PREF_NEED_RESCAN, true);
