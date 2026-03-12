@@ -212,6 +212,8 @@ public class SettingsDialog extends javax.swing.JDialog implements PropertyChang
         
         
         MusicController.getInstance().stop();
+        
+        
         class ChangeDriverTask implements Runnable
         {
 
@@ -309,6 +311,8 @@ public class SettingsDialog extends javax.swing.JDialog implements PropertyChang
         jScrollPane2 = new javax.swing.JScrollPane();
         list_audioDrivers = new javax.swing.JList<>();
         btn_setAudioDriver = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        helpTextArea1 = new org.jjazz.flatcomponents.api.HelpTextArea();
         pnbl_knobs = new javax.swing.JPanel();
         pnl_gain = new javax.swing.JPanel();
         lbl_gain = new javax.swing.JLabel();
@@ -393,12 +397,6 @@ public class SettingsDialog extends javax.swing.JDialog implements PropertyChang
 
         pnl_audioDrivers.setBorder(javax.swing.BorderFactory.createTitledBorder(org.openide.util.NbBundle.getMessage(SettingsDialog.class, "SettingsDialog.pnl_audioDrivers.border.title"))); // NOI18N
 
-        list_audioDrivers.setModel(new javax.swing.AbstractListModel<String>()
-        {
-            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4" };
-            public int getSize() { return strings.length; }
-            public String getElementAt(int i) { return strings[i]; }
-        });
         list_audioDrivers.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         list_audioDrivers.setVisibleRowCount(4);
         list_audioDrivers.addListSelectionListener(new javax.swing.event.ListSelectionListener()
@@ -419,6 +417,15 @@ public class SettingsDialog extends javax.swing.JDialog implements PropertyChang
             }
         });
 
+        jScrollPane1.setBackground(null);
+        jScrollPane1.setBorder(null);
+
+        helpTextArea1.setBackground(null);
+        helpTextArea1.setColumns(20);
+        helpTextArea1.setRows(5);
+        helpTextArea1.setText(org.openide.util.NbBundle.getMessage(SettingsDialog.class, "SettingsDialog.helpTextArea1.text")); // NOI18N
+        jScrollPane1.setViewportView(helpTextArea1);
+
         javax.swing.GroupLayout pnl_audioDriversLayout = new javax.swing.GroupLayout(pnl_audioDrivers);
         pnl_audioDrivers.setLayout(pnl_audioDriversLayout);
         pnl_audioDriversLayout.setHorizontalGroup(
@@ -427,8 +434,12 @@ public class SettingsDialog extends javax.swing.JDialog implements PropertyChang
                 .addContainerGap()
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 98, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btn_setAudioDriver)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGroup(pnl_audioDriversLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(pnl_audioDriversLayout.createSequentialGroup()
+                        .addComponent(btn_setAudioDriver)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addComponent(jScrollPane1))
+                .addContainerGap())
         );
         pnl_audioDriversLayout.setVerticalGroup(
             pnl_audioDriversLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -437,7 +448,8 @@ public class SettingsDialog extends javax.swing.JDialog implements PropertyChang
                 .addGroup(pnl_audioDriversLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(pnl_audioDriversLayout.createSequentialGroup()
                         .addComponent(btn_setAudioDriver)
-                        .addGap(0, 0, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jScrollPane1))
                     .addComponent(jScrollPane2))
                 .addContainerGap())
         );
@@ -528,7 +540,7 @@ public class SettingsDialog extends javax.swing.JDialog implements PropertyChang
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(btn_cancel))
                     .addComponent(pnl_audioDrivers, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(pnbl_knobs, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(pnbl_knobs, javax.swing.GroupLayout.DEFAULT_SIZE, 306, Short.MAX_VALUE))
                 .addContainerGap())
         );
 
@@ -604,6 +616,8 @@ public class SettingsDialog extends javax.swing.JDialog implements PropertyChang
     private javax.swing.JButton btn_setAudioDriver;
     private javax.swing.JComboBox<Chorus> combo_chorus;
     private javax.swing.JComboBox<Reverb> combo_reverb;
+    private org.jjazz.flatcomponents.api.HelpTextArea helpTextArea1;
+    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private org.jjazz.flatcomponents.api.FlatIntegerKnob knob_gain;
     private org.jjazz.flatcomponents.api.FlatIntegerKnob knob_latency;
