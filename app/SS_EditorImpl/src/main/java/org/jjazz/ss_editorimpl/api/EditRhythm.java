@@ -22,6 +22,8 @@
  */
 package org.jjazz.ss_editorimpl.api;
 
+import java.awt.Component;
+import java.awt.KeyboardFocusManager;
 import org.jjazz.ss_editor.api.SS_ContextActionSupport;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
@@ -33,6 +35,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
+import javax.swing.FocusManager;
 import javax.swing.KeyStroke;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.undo.UndoableEdit;
@@ -60,6 +63,10 @@ import org.openide.windows.WindowManager;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ss_editor.api.SS_ContextActionListener;
+import org.jjazz.ss_editor.api.SS_Editor;
+import org.jjazz.ss_editor.api.SS_EditorTopComponent;
+import org.jjazz.ss_editor.rpviewer.api.RpViewer;
+import org.jjazz.ss_editor.sptviewer.api.SptViewer;
 import org.jjazz.ss_editorimpl.rhythmselectiondialog.RhythmSelectionDialogCustomComp;
 import org.jjazz.undomanager.api.SimpleEdit;
 import org.jjazz.utilities.api.ResUtil;
@@ -107,7 +114,25 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
     @Override
     public void actionPerformed(ActionEvent e)
     {
+        var editor = SS_EditorTopComponent.getActive().getEditor();
+        
+        Component c = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+        SongPart spt = null;
+        if (c instanceof SptViewer sptv)
+        {
+            spt = sptv.getModel();
+        } else if (c instanceof RpViewer rpv)
+        {
+            // Because of the rhythm change the RpViewer will probably disappear
+            spt = rpv.getSptModel();
+        }
+
         changeSongPartsRhythm(cap.getSelection().getIndirectlySelectedSongParts());
+
+        if (spt != null)
+        {            
+            editor.setFocusOnSongPart(spt);
+        }
     }
 
     @Override

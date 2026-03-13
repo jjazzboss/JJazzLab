@@ -29,22 +29,19 @@ import org.openide.util.lookup.AbstractLookup.Pair;
 import org.openide.util.lookup.InstanceContent.Convertor;
 
 /**
- * A special InstanceContent directly copied from the original source code (NB7), but which uses MutableInstanceContent internally
- * to allow handling of mutable objects. Note that the equals() and hashCode() functions of the stored objects will no longer be
- * used.
+ * A drop-in replacement for InstanceContent that uses object identity (System.identityHashCode / ==) instead of the object's own hashCode/equals.
  * <p>
- * With the default InstanceContent implementation, this does not work, when stored objects are modified, objects removing may
- * fail because their hashCode() has changed.
+ * This avoids bug https://github.com/apache/netbeans/issues/9270/
  * <p>
  * Note that operations that use Convertor are not supported.
  */
-public class MutableInstanceContent extends AbstractLookup.Content
+public class IdentityBasedInstanceContent extends AbstractLookup.Content
 {
 
     /**
      * Create a new, empty content.
      */
-    public MutableInstanceContent()
+    public IdentityBasedInstanceContent()
     {
     }
 
@@ -54,7 +51,7 @@ public class MutableInstanceContent extends AbstractLookup.Content
      * @param notifyIn the executor to notify changes in
      * @since 7.16
      */
-    public MutableInstanceContent(Executor notifyIn)
+    public IdentityBasedInstanceContent(Executor notifyIn)
     {
         super(notifyIn);
     }
@@ -96,8 +93,9 @@ public class MutableInstanceContent extends AbstractLookup.Content
 }
 
 /**
- * Instance of one item representing an object. The only difference with original source code is that we don't delegate to obj's
- * equals() and hashCode().
+ * Instance of one item representing an object. The only difference with original source code is that we don't delegate to obj's equals() and hashCode().
+ *
+ * @param <T>
  */
 class MutableSimpleItem<T> extends Pair<T>
 {
@@ -107,13 +105,13 @@ class MutableSimpleItem<T> extends Pair<T>
     /**
      * Create an item.
      *
-     * @obj object to register
+     * @param obj object to register
      */
     public MutableSimpleItem(T obj)
     {
         if (obj == null)
         {
-            throw new NullPointerException();   
+            throw new NullPointerException();
         }
         this.obj = obj;
     }
@@ -121,17 +119,19 @@ class MutableSimpleItem<T> extends Pair<T>
     /**
      * Tests whether this item can produce object of class c.
      */
+    @Override
     public boolean instanceOf(Class<?> c)
     {
         return c.isInstance(obj);
     }
 
     /**
-     * Get instance of registered object. If convertor is specified then method InstanceLookup.Convertor.convertor is used and
-     * weak reference to converted object is saved.
+     * Get instance of registered object. If convertor is specified then method InstanceLookup.Convertor.convertor is used and weak reference to converted
+     * object is saved.
      *
      * @return the instance of the object.
      */
+    @Override
     public T getInstance()
     {
         return obj;
@@ -146,10 +146,10 @@ class MutableSimpleItem<T> extends Pair<T>
     @Override
     public boolean equals(Object o)
     {
-        if (o instanceof MutableSimpleItem)
+        if (o instanceof MutableSimpleItem mutableSimpleItem)
         {
             // return obj.equals(((SimpleItem) o).obj);            
-            return obj == ((MutableSimpleItem) o).obj;
+            return obj == mutableSimpleItem.obj;
         } else
         {
             return false;
@@ -159,7 +159,6 @@ class MutableSimpleItem<T> extends Pair<T>
     /**
      * Here we differ from original ! Use identity hash code.
      *
-     * @param o
      * @return
      */
     @Override
@@ -175,6 +174,7 @@ class MutableSimpleItem<T> extends Pair<T>
      *
      * @return string representing the item, that can be used for persistance purposes to locate the same item next time
      */
+    @Override
     public String getId()
     {
         return "IL[" + obj.toString() + "]"; // NOI18N
@@ -183,6 +183,7 @@ class MutableSimpleItem<T> extends Pair<T>
     /**
      * Getter for display name of the item.
      */
+    @Override
     public String getDisplayName()
     {
         return obj.toString();
@@ -194,6 +195,7 @@ class MutableSimpleItem<T> extends Pair<T>
      * @param obj the instance
      * @return if the item has already create an instance and it is the same as obj.
      */
+    @Override
     protected boolean creatorOf(Object obj)
     {
         return obj == this.obj;
@@ -205,6 +207,7 @@ class MutableSimpleItem<T> extends Pair<T>
      * @return the correct class
      */
     @SuppressWarnings("unchecked")
+    @Override
     public Class<? extends T> getType()
     {
         return (Class<? extends T>) obj.getClass();

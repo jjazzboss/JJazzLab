@@ -217,8 +217,9 @@ public class RP_SYS_CustomPhraseValue
                     RhythmVoice rv = r.getRhythmVoices().stream().filter(rvi -> rvi.getName().equals(subStrs[0])).findAny().orElse(null);
                     if (rv == null)
                     {
-                        res = null;
-                        break;
+                        // Voice not found in replacement rhythm: skip this entry (custom phrase data is lost for this voice)
+                        LOGGER.warning("loadFromString() RhythmVoice '" + subStrs[0] + "' not found in rhythm " + r + ". Skipping custom phrase for this voice.");
+                        continue;
                     }
 
                     Phrase p;

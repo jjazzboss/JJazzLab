@@ -76,7 +76,6 @@ import org.openide.util.lookup.AbstractLookup;
 import org.openide.util.lookup.InstanceContent;
 import org.openide.util.lookup.ProxyLookup;
 import org.jjazz.song.api.Song;
-import org.jjazz.uiutilities.api.UIUtilities;
 import org.openide.awt.UndoRedo;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SgsChangeListener;
@@ -92,6 +91,7 @@ import static org.jjazz.ss_editor.api.SS_EditorClientProperties.getViewMode;
 import static org.jjazz.ss_editor.api.SS_EditorClientProperties.setCompactViewModeVisibleRPs;
 import org.jjazz.ss_editor.api.SS_EditorMouseListener;
 import org.jjazz.ss_editor.api.SelectedSongPart;
+import org.jjazz.utilities.api.IdentityBasedInstanceContent;
 
 /**
  * An implementation of the SongStructure editor.
@@ -141,7 +141,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     /**
      * Store non-selection stuff.
      */
-    private InstanceContent generalLookupContent;
+    private IdentityBasedInstanceContent generalLookupContent;      // because we add mutable items (see bug https://github.com/apache/netbeans/issues/9270)
     /**
      * The last spt index of the insertion point.
      */
@@ -213,7 +213,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         selectionLastContent = new ArrayList<>();
 
         // The lookup for other stuff
-        generalLookupContent = new InstanceContent();
+        generalLookupContent = new IdentityBasedInstanceContent();
         generalLookup = new AbstractLookup(generalLookupContent);
 
         // Our implementation is made "Zoomable" by controllers
@@ -264,8 +264,8 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         sgsModel.addUndoableEditListener(undoManager);
 
         // Fill our lookup
-        generalLookupContent.add(sgsModel);
-        generalLookupContent.add(songModel);
+        generalLookupContent.add(sgsModel);    // sgsModel is mutable but this is OK, we never remove it so no bug https://github.com/apache/netbeans/issues/9270
+        generalLookupContent.add(songModel);   // song is mutable but this is OK, we never remove it so no bug https://github.com/apache/netbeans/issues/9270
 
 
         // Restore view mode

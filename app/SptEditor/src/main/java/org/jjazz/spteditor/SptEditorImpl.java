@@ -51,26 +51,27 @@ import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.ss_editor.api.SS_EditorTopComponent;
 import org.openide.util.lookup.AbstractLookup;
-import org.openide.util.lookup.InstanceContent;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.spteditor.api.SptEditor;
 import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.spteditor.spi.RpEditorComponentFactory;
 import org.jjazz.spteditor.spi.DefaultRpEditorComponentFactory;
 import org.jjazz.spteditor.spi.RpEditorComponent;
+import org.jjazz.ss_editor.api.SelectedSongPart;
 import org.jjazz.ss_editorimpl.api.EditRhythm;
+import org.jjazz.utilities.api.IdentityBasedInstanceContent;
 
 public class SptEditorImpl extends SptEditor implements PropertyChangeListener
 {
 
     private Lookup.Result<SongPartParameter> sptpLkpResult;
     private LookupListener sptpLkpListener;
-    private Lookup.Result<SongPart> sptLkpResult;
+    private Lookup.Result<SelectedSongPart> sptLkpResult;
     private LookupListener sptLkpListener;
     private final Lookup.Result<Song> songLkpResult;
     private LookupListener songLkpListener;
     private final Lookup lookup;
-    private final InstanceContent instanceContent;
+    private final IdentityBasedInstanceContent instanceContent;     // because we add mutable items (see bug https://github.com/apache/netbeans/issues/9270)
     /**
      * The songparts currently edited by this editor.
      */
@@ -106,7 +107,7 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
 
 
         // Our general lookup : store our action map, the edited song and songStructure and the edited songparts.
-        instanceContent = new InstanceContent();
+        instanceContent = new IdentityBasedInstanceContent();
         instanceContent.add(getActionMap());
         lookup = new AbstractLookup(instanceContent);
 
@@ -344,21 +345,18 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
      */
     private void refresh(Lookup context)
     {
-        Collection<? extends SongPart> spts = context.lookupAll(SongPart.class);
-        if (spts.isEmpty())
+        List<SongPart> spts = new ArrayList<>();
+        Collection<? extends SelectedSongPart> sspts = context.lookupAll(SelectedSongPart.class);
+        if (sspts.isEmpty())
         {
             // Possible SongPartParameter selection
             Collection<? extends SongPartParameter> sptps = context.lookupAll(SongPartParameter.class);
-            List<SongPart> spts2 = new ArrayList<>();
             // Get the list of SongParts corresponding to these RhythmParameters
-            for (SongPartParameter sptp : sptps)
-            {
-                spts2.add(sptp.spt());
-            }
-            spts = spts2;
+            sptps.forEach(sptp -> spts.add(sptp.spt()));
         } else
         {
-            // SongPart selection. Nothing to do
+            // SongPart selection
+            sspts.forEach(sspt -> spts.add(sspt.songPart()));
         }
 
         LOGGER.log(Level.FINE, "refresh() spts={0}", spts);
@@ -454,7 +452,7 @@ public class SptEditorImpl extends SptEditor implements PropertyChangeListener
 
         // Directly listen to the sgsModel editor selection changes
         Lookup context = ssEditor.getLookup();
-        sptLkpResult = context.lookupResult(SongPart.class);
+        sptLkpResult = context.lookupResult(SelectedSongPart.class);
         sptLkpResult.addLookupListener(WeakListeners.create(LookupListener.class, sptLkpListener, sptLkpResult));
         sptpLkpResult = context.lookupResult(SongPartParameter.class);
         sptpLkpResult.addLookupListener(WeakListeners.create(LookupListener.class, sptpLkpListener, sptpLkpResult));

@@ -42,7 +42,7 @@ import org.openide.util.WeakListeners;
  * A helper class to write CL_Editor context aware actions.
  * <p>
  * Listen to changes in the lookup context:<br>
- * - ChordLeadSheetItem and SelectedBar presence changes are notified to the registered CL_ContextActionListeners.<br>
+ * - SelectedCLI and SelectedBar presence changes are notified to the registered CL_ContextActionListeners.<br>
  * - If a ChordLeadSheet is present, listen to its changes and forward the ClsChangeEvents to the registered ClsChangeListeners.<br>
  * <p>
  * CL_ContextActionSupport instances are cached per lookup context. Only weak listeners are used: declaratively registered actions might be transient actions

@@ -39,6 +39,7 @@ import javax.swing.text.PlainDocument;
 import org.jjazz.song.api.Song;
 import org.jjazz.songmemoviewer.api.SongMemoEditorSettings;
 import org.jjazz.undomanager.api.JJazzUndoManager;
+import org.jjazz.utilities.api.IdentityBasedInstanceContent;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -50,7 +51,6 @@ import org.openide.util.LookupListener;
 import org.openide.util.Utilities;
 import org.openide.util.WeakListeners;
 import org.openide.util.lookup.AbstractLookup;
-import org.openide.util.lookup.InstanceContent;
 import org.openide.windows.WindowManager;
 
 /**
@@ -62,7 +62,7 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
     private final Lookup.Result<Song> songLkpResult;
     private LookupListener songLkpListener;
     private final Lookup lookup;
-    private final InstanceContent instanceContent;
+    private final IdentityBasedInstanceContent instanceContent;      // because we add mutable items (see bug https://github.com/apache/netbeans/issues/9270)
     private Song songModel;
     private SongMemoEditorSettings settings;
     /**
@@ -93,7 +93,7 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
 
 
         // Our general lookup : store our action map and the edited song 
-        instanceContent = new InstanceContent();
+        instanceContent = new IdentityBasedInstanceContent();
         instanceContent.add(getActionMap());
         lookup = new AbstractLookup(instanceContent);
 
@@ -308,7 +308,7 @@ public class SongMemoEditor extends javax.swing.JPanel implements PropertyChange
 
 
         // Last
-        instanceContent.add(songModel);
+        instanceContent.add(songModel);     
 
     }
 

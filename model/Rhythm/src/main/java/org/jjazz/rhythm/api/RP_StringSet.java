@@ -375,7 +375,7 @@ public class RP_StringSet implements RhythmParameter<Set<String>>, RpEnumerable<
                 res.add(str);
             }
         }
-        return Collections.unmodifiableSet(res);
+        return res == null ? null : Collections.unmodifiableSet(res);
     }
     
     @Override
