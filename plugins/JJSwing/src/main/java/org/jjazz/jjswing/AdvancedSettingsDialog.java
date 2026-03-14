@@ -81,7 +81,7 @@ public class AdvancedSettingsDialog extends JDialog
         {
             return;
         }
-        LOGGER.log(Level.SEVERE, "Generating dummy change in {0}", song);
+        LOGGER.log(Level.FINE, "Generating dummy change in {0}", song);
         var spt = spts.getFirst();
         var r = spt.getRhythm();
         var rpMarker = RP_SYS_Marker.getMarkerRp(r);

@@ -92,7 +92,7 @@ public class SwingBassTempoAdapter
 
         if (phrase.isEmpty() || phrase.isDrums() || profile.intensity == 0)
         {
-            LOGGER.log(Level.SEVERE, "adaptToTempo() skipped, intensity={0}", profile.intensity);
+            LOGGER.log(Level.FINE, "adaptToTempo() skipped, intensity={0}", profile.intensity);
             return;
         }
 

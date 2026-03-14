@@ -351,6 +351,7 @@ public class Utilities
         return !(locale.getLanguage().equals("zh")
                 || locale.getLanguage().equals("ja")
                 || locale.getLanguage().equals("ru")
+                || locale.getLanguage().equals("ko")
                 || locale.getLanguage().equals("uk"));
     }
 

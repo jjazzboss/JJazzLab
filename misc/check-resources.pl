@@ -281,13 +281,14 @@ sub processJavaFile
 }
 
 # $1 a properties file line (already chomp'd)
+# $2 line
 # Checks the line for suspicious or corrupted characters and prints warnings.
 sub checkLineForInvalidChars
 {
-	my ($line) = @_;
+	my ($file, $line) = @_;
 
 	# Warn about Java \uXXXX-style unicode escapes left as literals (Ã may be legit in Portuguese)
-	print "###### WARNING Possible Java U-based unicode escapes found (Ã might be legit in portugese) : $line\n"
+	print "$file ##### WARNING Probable corrupted chars (but Ã might be legit in portugese) : $line\n"
 		if ($line =~ /u00|Ã/);
 
 	# Detect corrupted characters: UTF-8 multi-byte sequences mistakenly decoded as Latin-1.
@@ -297,7 +298,7 @@ sub checkLineForInvalidChars
 	#   3-byte corruption (e.g. CJK):                     U+00E0-U+00EF followed by two U+0080-U+00BF
 	# Portuguese accented chars (ã, ç, â...) live in U+00C0-U+00FF and are never followed by a
 	# U+0080-U+00BF continuation, so they do not trigger false positives here.
-	print "###### WARNING Possible corrupted characters (encoding issue, e.g. Chinese/Russian): $line\n"
+	print "$file ##### WARNING Probable corrupted chars: $line\n"
 		if ($line =~ /[\x{C0}-\x{DF}][\x{80}-\x{BF}]/ || $line =~ /[\x{E0}-\x{EF}][\x{80}-\x{BF}]{2}/);
 }
 
@@ -316,7 +317,7 @@ sub processBundleFile
 				chomp;	
 				next if /^\s*#/ || ! /=/;
 
-				checkLineForInvalidChars($_);
+				checkLineForInvalidChars($file, $_);
 
 				my $eqIndex = index($_, "=");
 				my $key = substr($_, 0, $eqIndex);

@@ -39,12 +39,24 @@
         </screenshot>
     </screenshots>
     <releases>
+        <release version="5.2" date="2026-03-15">
+            <url type="details">https://github.com/jjazzboss/JJazzLab/releases/tag/5.2</url>
+            <description>
+                <p>Release description</p>
+                <ul>
+                    <li>This is the latest stable release</li>
+                    <li>Many bugs fixes, including the global freeze one</li>
+                    <li>A restart bar can be set when playback is in loop mode</li>        
+                    <li>FluidSynth audio driver can be adjusted (mostly for Linux)</li>
+                    <li>Improved rendering when a section starts on a new line</li>
+                </ul>
+            </description>
+        </release> 	
         <release version="5.1" date="2026-01-02">
             <url type="details">https://github.com/jjazzboss/JJazzLab/releases/tag/5.1</url>
             <description>
                 <p>Release description</p>
                 <ul>
-                    <li>This is the latest stable release</li>
                     <li>23 bug fixes</li>
                     <li>jjSwing style improvements: drums fills, tempo-based swing-feel adaptations, ...</li>
                     <li>4 new Yamaha styles</li>
