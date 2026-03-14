@@ -180,7 +180,7 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
         Runnable task = () -> 
         {
             SongContext workContext = RealTimeRpEditorDialog.buildPreviewContext(songPartContext, rp, rp.getDefaultValue());
-            SessionConfig config = new SessionConfig(false, false, false, 0, null);
+            SessionConfig config = new SessionConfig(false, false, false, 0, 0, null);
             BaseSongSession tmpSession = new BaseSongSession(workContext, config, false, PlaybackSession.Context.RP_VALUE_PREVIEW);
             try
             {

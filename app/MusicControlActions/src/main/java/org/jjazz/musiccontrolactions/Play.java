@@ -30,12 +30,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.sound.midi.MidiUnavailableException;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
 import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.chordleadsheet.api.item.CLI_LoopRestartBar;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.musiccontrol.api.MusicController;
@@ -58,7 +58,6 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
-import org.openide.util.Exceptions;
 import org.openide.util.HelpCtx;
 import org.openide.util.Lookup;
 import org.openide.util.LookupEvent;
@@ -171,13 +170,14 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
                         new FixMissingSectionStartChord(context).autofix();
                         FixMidiMix.checkAndPossiblyFix(midiMix, true);
 
-                        // Prepare the session
-                        UpdateProviderSongSession dynSession = UpdateProviderSongSession.getSession(context, PlaybackSession.Context.SONG);
-                        session = UpdatableSongSession.getSession(dynSession);
-                        mc.setPlaybackSession(session, false);  // Can generate MusicGenerationException
 
+                        // Prepare the session
+                        int restartBar = context.getSong().getSongStructure().getLoopRestartBar();
+                        UpdateProviderSongSession dynSession = UpdateProviderSongSession.getSession(context, PlaybackSession.Context.SONG, restartBar);
 
                         // Start sequencer
+                        session = UpdatableSongSession.getSession(dynSession);
+                        mc.setPlaybackSession(session, false);  // Can generate MusicGenerationException
                         mc.play(0);
 
 

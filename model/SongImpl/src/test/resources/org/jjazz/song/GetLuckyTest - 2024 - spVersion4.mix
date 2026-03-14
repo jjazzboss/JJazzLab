@@ -1,0 +1,114 @@
+<MidiMix resolves-to="MidiMixSP">
+  <spVERSION>3</spVERSION>
+  <spInsMixes>
+    <null/>
+    <null/>
+    <null/>
+    <null/>
+    <null/>
+    <null/>
+    <null/>
+    <null/>
+    <null/>
+    <InstrumentMix resolves-to="InstrumentMixSP" spVERSION="2" spInsEnabled="true" spMute="false">
+      <spIns resolves-to="InstrumentSP" spVERSION="2" spSaveString="FluidSynth#:#NOT_SET#_#Drums#_#Brush Kit" spPatchname="Brush Kit"/>
+      <spInsSettings resolves-to="InstrumentSettingsSP" spVERSION="2" spTransposition="0" spVelocityShift="0" spVolume="96">
+        <spPanoramic>64</spPanoramic>
+        <spReverb>26</spReverb>
+        <spChorus>8</spChorus>
+        <spPanoramicEnabled>true</spPanoramicEnabled>
+        <spReverbEnabled>true</spReverbEnabled>
+        <spChorusEnabled>true</spChorusEnabled>
+        <spVolumeEnabled>true</spVolumeEnabled>
+      </spInsSettings>
+    </InstrumentMix>
+    <InstrumentMix resolves-to="InstrumentMixSP" spVERSION="2" spInsEnabled="true" spMute="false">
+      <spIns resolves-to="InstrumentSP" spVERSION="2" spSaveString="FluidSynth#:#NOT_SET#_#GM Bank#_#Acoustic Bass" spPatchname="Acoustic Bass"/>
+      <spInsSettings resolves-to="InstrumentSettingsSP" spVERSION="2" spTransposition="0" spVelocityShift="0" spVolume="88">
+        <spPanoramic>64</spPanoramic>
+        <spReverb>14</spReverb>
+        <spChorus>18</spChorus>
+        <spPanoramicEnabled>true</spPanoramicEnabled>
+        <spReverbEnabled>true</spReverbEnabled>
+        <spChorusEnabled>true</spChorusEnabled>
+        <spVolumeEnabled>true</spVolumeEnabled>
+      </spInsSettings>
+    </InstrumentMix>
+    <InstrumentMix resolves-to="InstrumentMixSP" spVERSION="2" spInsEnabled="true" spMute="false">
+      <spIns resolves-to="InstrumentSP" spVERSION="2" spSaveString="FluidSynth#:#NOT_SET#_#GM Bank#_#Grand Piano" spPatchname="Grand Piano"/>
+      <spInsSettings resolves-to="InstrumentSettingsSP" spVERSION="2" spTransposition="0" spVelocityShift="0" spVolume="57">
+        <spPanoramic>102</spPanoramic>
+        <spReverb>26</spReverb>
+        <spChorus>8</spChorus>
+        <spPanoramicEnabled>true</spPanoramicEnabled>
+        <spReverbEnabled>true</spReverbEnabled>
+        <spChorusEnabled>true</spChorusEnabled>
+        <spVolumeEnabled>true</spVolumeEnabled>
+      </spInsSettings>
+    </InstrumentMix>
+    <InstrumentMix resolves-to="InstrumentMixSP" spVERSION="2" spInsEnabled="true" spMute="false">
+      <spIns resolves-to="InstrumentSP" spVERSION="2" spSaveString="FluidSynth#:#NOT_SET#_#GM Bank#_#Jazz Guitar" spPatchname="Jazz Guitar"/>
+      <spInsSettings resolves-to="InstrumentSettingsSP" spVERSION="2" spTransposition="0" spVelocityShift="0" spVolume="46">
+        <spPanoramic>22</spPanoramic>
+        <spReverb>41</spReverb>
+        <spChorus>40</spChorus>
+        <spPanoramicEnabled>true</spPanoramicEnabled>
+        <spReverbEnabled>true</spReverbEnabled>
+        <spChorusEnabled>true</spChorusEnabled>
+        <spVolumeEnabled>true</spVolumeEnabled>
+      </spInsSettings>
+    </InstrumentMix>
+    <null/>
+    <InstrumentMix resolves-to="InstrumentMixSP" spVERSION="2" spInsEnabled="true" spMute="false">
+      <spIns resolves-to="InstrumentSP" spVERSION="2" spSaveString="FluidSynth#:#NOT_SET#_#GM Bank#_#Flute" spPatchname="Flute"/>
+      <spInsSettings resolves-to="InstrumentSettingsSP" spVERSION="2" spTransposition="0" spVelocityShift="0" spVolume="94">
+        <spPanoramic>75</spPanoramic>
+        <spReverb>41</spReverb>
+        <spChorus>8</spChorus>
+        <spPanoramicEnabled>true</spPanoramicEnabled>
+        <spReverbEnabled>true</spReverbEnabled>
+        <spChorusEnabled>true</spChorusEnabled>
+        <spVolumeEnabled>true</spVolumeEnabled>
+      </spInsSettings>
+    </InstrumentMix>
+    <null/>
+  </spInsMixes>
+  <spKeys>
+    <null/>
+    <null/>
+    <null/>
+    <null/>
+    <null/>
+    <null/>
+    <null/>
+    <null/>
+    <null/>
+    <RvStorage>
+      <rhythmId>MediumJazz.S737.sst-ID</rhythmId>
+      <rvName>Rhythm</rvName>
+      <outer-class reference="../../.."/>
+    </RvStorage>
+    <RvStorage>
+      <rhythmId>MediumJazz.S737.sst-ID</rhythmId>
+      <rvName>Bass</rvName>
+      <outer-class reference="../../.."/>
+    </RvStorage>
+    <RvStorage>
+      <rhythmId>MediumJazz.S737.sst-ID</rhythmId>
+      <rvName>Chord1</rvName>
+      <outer-class reference="../../.."/>
+    </RvStorage>
+    <RvStorage>
+      <rhythmId>MediumJazz.S737.sst-ID</rhythmId>
+      <rvName>Chord2</rvName>
+      <outer-class reference="../../.."/>
+    </RvStorage>
+    <null/>
+    <RvStorage>
+      <rhythmId>MediumJazz.S737.sst-ID</rhythmId>
+      <rvName>Phrase1</rvName>
+      <outer-class reference="../../.."/>
+    </RvStorage>
+    <null/>
+  </spKeys>
+</MidiMix>

@@ -1,0 +1,236 @@
+<MidiMix resolves-to="org.jjazz.midimix.api.MidiMix$SerializationProxy">
+  <spVERSION>2</spVERSION>
+  <spInsMixes>
+    <null/>
+    <null/>
+    <null/>
+    <null/>
+    <null/>
+    <null/>
+    <null/>
+    <null/>
+    <org.jjazz.midi.api.InstrumentMix resolves-to="org.jjazz.midi.api.InstrumentMix$SerializationProxy">
+      <spVERSION>1</spVERSION>
+      <spIns class="org.jjazz.midi.api.synths.GSDrumsInstrument" resolves-to="org.jjazz.midi.api.synths.GSDrumsInstrument$SerializationProxy">
+        <spVERSION>1</spVERSION>
+        <spSaveString>JJazzLab SoundFont (GS)#:#NOT_SET#_#Drums#_#Std Kit 1</spSaveString>
+      </spIns>
+      <spInsSettings resolves-to="org.jjazz.midi.api.InstrumentSettings$SerializationProxy">
+        <spVERSION>1</spVERSION>
+        <spTransposition>0</spTransposition>
+        <spVelocityShift>0</spVelocityShift>
+        <spVolume>46</spVolume>
+        <spPanoramic>82</spPanoramic>
+        <spReverb>20</spReverb>
+        <spChorus>8</spChorus>
+        <spPanoramicEnabled>true</spPanoramicEnabled>
+        <spReverbEnabled>true</spReverbEnabled>
+        <spChorusEnabled>true</spChorusEnabled>
+        <spVolumeEnabled>true</spVolumeEnabled>
+      </spInsSettings>
+      <spInsEnabled>true</spInsEnabled>
+      <spMute>false</spMute>
+    </org.jjazz.midi.api.InstrumentMix>
+    <org.jjazz.midi.api.InstrumentMix resolves-to="org.jjazz.midi.api.InstrumentMix$SerializationProxy">
+      <spVERSION>1</spVERSION>
+      <spIns class="org.jjazz.midi.api.synths.GSDrumsInstrument" reference="../../org.jjazz.midi.api.InstrumentMix/spIns"/>
+      <spInsSettings resolves-to="org.jjazz.midi.api.InstrumentSettings$SerializationProxy">
+        <spVERSION>1</spVERSION>
+        <spTransposition>0</spTransposition>
+        <spVelocityShift>0</spVelocityShift>
+        <spVolume>94</spVolume>
+        <spPanoramic>64</spPanoramic>
+        <spReverb>23</spReverb>
+        <spChorus>8</spChorus>
+        <spPanoramicEnabled>true</spPanoramicEnabled>
+        <spReverbEnabled>true</spReverbEnabled>
+        <spChorusEnabled>true</spChorusEnabled>
+        <spVolumeEnabled>true</spVolumeEnabled>
+      </spInsSettings>
+      <spInsEnabled>true</spInsEnabled>
+      <spMute>false</spMute>
+    </org.jjazz.midi.api.InstrumentMix>
+    <org.jjazz.midi.api.InstrumentMix resolves-to="org.jjazz.midi.api.InstrumentMix$SerializationProxy">
+      <spVERSION>1</spVERSION>
+      <spIns class="org.jjazz.midi.api.synths.GSInstrument" resolves-to="org.jjazz.midi.api.synths.GSInstrument$SerializationProxy">
+        <spVERSION>1</spVERSION>
+        <spSaveString>JJazzLab SoundFont (GS)#:#NOT_SET#_#GM Bank#_#Fingered Bass</spSaveString>
+      </spIns>
+      <spInsSettings resolves-to="org.jjazz.midi.api.InstrumentSettings$SerializationProxy">
+        <spVERSION>1</spVERSION>
+        <spTransposition>0</spTransposition>
+        <spVelocityShift>0</spVelocityShift>
+        <spVolume>71</spVolume>
+        <spPanoramic>64</spPanoramic>
+        <spReverb>8</spReverb>
+        <spChorus>21</spChorus>
+        <spPanoramicEnabled>true</spPanoramicEnabled>
+        <spReverbEnabled>true</spReverbEnabled>
+        <spChorusEnabled>true</spChorusEnabled>
+        <spVolumeEnabled>true</spVolumeEnabled>
+      </spInsSettings>
+      <spInsEnabled>true</spInsEnabled>
+      <spMute>false</spMute>
+    </org.jjazz.midi.api.InstrumentMix>
+    <org.jjazz.midi.api.InstrumentMix resolves-to="org.jjazz.midi.api.InstrumentMix$SerializationProxy">
+      <spVERSION>1</spVERSION>
+      <spIns class="org.jjazz.midi.api.synths.GSInstrument" resolves-to="org.jjazz.midi.api.synths.GSInstrument$SerializationProxy">
+        <spVERSION>1</spVERSION>
+        <spSaveString>JJazzLab SoundFont (GS)#:#NOT_SET#_#GM Bank#_#Clean Guitar</spSaveString>
+      </spIns>
+      <spInsSettings resolves-to="org.jjazz.midi.api.InstrumentSettings$SerializationProxy">
+        <spVERSION>1</spVERSION>
+        <spTransposition>0</spTransposition>
+        <spVelocityShift>0</spVelocityShift>
+        <spVolume>74</spVolume>
+        <spPanoramic>40</spPanoramic>
+        <spReverb>26</spReverb>
+        <spChorus>49</spChorus>
+        <spPanoramicEnabled>true</spPanoramicEnabled>
+        <spReverbEnabled>true</spReverbEnabled>
+        <spChorusEnabled>true</spChorusEnabled>
+        <spVolumeEnabled>true</spVolumeEnabled>
+      </spInsSettings>
+      <spInsEnabled>true</spInsEnabled>
+      <spMute>false</spMute>
+    </org.jjazz.midi.api.InstrumentMix>
+    <org.jjazz.midi.api.InstrumentMix resolves-to="org.jjazz.midi.api.InstrumentMix$SerializationProxy">
+      <spVERSION>1</spVERSION>
+      <spIns class="org.jjazz.midi.api.synths.GSInstrument" resolves-to="org.jjazz.midi.api.synths.GSInstrument$SerializationProxy">
+        <spVERSION>1</spVERSION>
+        <spSaveString>JJazzLab SoundFont (GS)#:#NOT_SET#_#GM Bank#_#Grand Piano</spSaveString>
+      </spIns>
+      <spInsSettings resolves-to="org.jjazz.midi.api.InstrumentSettings$SerializationProxy">
+        <spVERSION>1</spVERSION>
+        <spTransposition>0</spTransposition>
+        <spVelocityShift>0</spVelocityShift>
+        <spVolume>57</spVolume>
+        <spPanoramic>64</spPanoramic>
+        <spReverb>15</spReverb>
+        <spChorus>8</spChorus>
+        <spPanoramicEnabled>true</spPanoramicEnabled>
+        <spReverbEnabled>true</spReverbEnabled>
+        <spChorusEnabled>true</spChorusEnabled>
+        <spVolumeEnabled>true</spVolumeEnabled>
+      </spInsSettings>
+      <spInsEnabled>true</spInsEnabled>
+      <spMute>false</spMute>
+    </org.jjazz.midi.api.InstrumentMix>
+    <org.jjazz.midi.api.InstrumentMix resolves-to="org.jjazz.midi.api.InstrumentMix$SerializationProxy">
+      <spVERSION>1</spVERSION>
+      <spIns class="org.jjazz.midi.api.synths.GSInstrument" resolves-to="org.jjazz.midi.api.synths.GSInstrument$SerializationProxy">
+        <spVERSION>1</spVERSION>
+        <spSaveString>JJazzLab SoundFont (GS)#:#NOT_SET#_#GM Bank#_#Synth Strings 1</spSaveString>
+      </spIns>
+      <spInsSettings resolves-to="org.jjazz.midi.api.InstrumentSettings$SerializationProxy">
+        <spVERSION>1</spVERSION>
+        <spTransposition>0</spTransposition>
+        <spVelocityShift>0</spVelocityShift>
+        <spVolume>46</spVolume>
+        <spPanoramic>64</spPanoramic>
+        <spReverb>48</spReverb>
+        <spChorus>8</spChorus>
+        <spPanoramicEnabled>true</spPanoramicEnabled>
+        <spReverbEnabled>true</spReverbEnabled>
+        <spChorusEnabled>true</spChorusEnabled>
+        <spVolumeEnabled>true</spVolumeEnabled>
+      </spInsSettings>
+      <spInsEnabled>true</spInsEnabled>
+      <spMute>false</spMute>
+    </org.jjazz.midi.api.InstrumentMix>
+    <org.jjazz.midi.api.InstrumentMix resolves-to="org.jjazz.midi.api.InstrumentMix$SerializationProxy">
+      <spVERSION>1</spVERSION>
+      <spIns class="org.jjazz.midi.api.synths.GSInstrument" resolves-to="org.jjazz.midi.api.synths.GSInstrument$SerializationProxy">
+        <spVERSION>1</spVERSION>
+        <spSaveString>JJazzLab SoundFont (GS)#:#NOT_SET#_#GM Bank#_#Organ 3</spSaveString>
+      </spIns>
+      <spInsSettings resolves-to="org.jjazz.midi.api.InstrumentSettings$SerializationProxy">
+        <spVERSION>1</spVERSION>
+        <spTransposition>0</spTransposition>
+        <spVelocityShift>0</spVelocityShift>
+        <spVolume>44</spVolume>
+        <spPanoramic>87</spPanoramic>
+        <spReverb>30</spReverb>
+        <spChorus>100</spChorus>
+        <spPanoramicEnabled>true</spPanoramicEnabled>
+        <spReverbEnabled>true</spReverbEnabled>
+        <spChorusEnabled>true</spChorusEnabled>
+        <spVolumeEnabled>true</spVolumeEnabled>
+      </spInsSettings>
+      <spInsEnabled>true</spInsEnabled>
+      <spMute>false</spMute>
+    </org.jjazz.midi.api.InstrumentMix>
+    <org.jjazz.midi.api.InstrumentMix resolves-to="org.jjazz.midi.api.InstrumentMix$SerializationProxy">
+      <spVERSION>1</spVERSION>
+      <spIns class="org.jjazz.midi.api.synths.GSInstrument" resolves-to="org.jjazz.midi.api.synths.GSInstrument$SerializationProxy">
+        <spVERSION>1</spVERSION>
+        <spSaveString>JJazzLab SoundFont (GS)#:#NOT_SET#_#GM Bank#_#Brass Section</spSaveString>
+      </spIns>
+      <spInsSettings resolves-to="org.jjazz.midi.api.InstrumentSettings$SerializationProxy">
+        <spVERSION>1</spVERSION>
+        <spTransposition>0</spTransposition>
+        <spVelocityShift>0</spVelocityShift>
+        <spVolume>101</spVolume>
+        <spPanoramic>64</spPanoramic>
+        <spReverb>19</spReverb>
+        <spChorus>19</spChorus>
+        <spPanoramicEnabled>true</spPanoramicEnabled>
+        <spReverbEnabled>true</spReverbEnabled>
+        <spChorusEnabled>true</spChorusEnabled>
+        <spVolumeEnabled>true</spVolumeEnabled>
+      </spInsSettings>
+      <spInsEnabled>true</spInsEnabled>
+      <spMute>false</spMute>
+    </org.jjazz.midi.api.InstrumentMix>
+  </spInsMixes>
+  <spKeys>
+    <null/>
+    <null/>
+    <null/>
+    <null/>
+    <null/>
+    <null/>
+    <null/>
+    <null/>
+    <org.jjazz.midimix.api.MidiMix_-SerializationProxy_-RvStorage>
+      <rhythmId>Soul.S584.prs-ID</rhythmId>
+      <rvName>SubRhythm</rvName>
+      <outer-class reference="../../.."/>
+    </org.jjazz.midimix.api.MidiMix_-SerializationProxy_-RvStorage>
+    <org.jjazz.midimix.api.MidiMix_-SerializationProxy_-RvStorage>
+      <rhythmId>Soul.S584.prs-ID</rhythmId>
+      <rvName>Rhythm</rvName>
+      <outer-class reference="../../.."/>
+    </org.jjazz.midimix.api.MidiMix_-SerializationProxy_-RvStorage>
+    <org.jjazz.midimix.api.MidiMix_-SerializationProxy_-RvStorage>
+      <rhythmId>Soul.S584.prs-ID</rhythmId>
+      <rvName>Bass</rvName>
+      <outer-class reference="../../.."/>
+    </org.jjazz.midimix.api.MidiMix_-SerializationProxy_-RvStorage>
+    <org.jjazz.midimix.api.MidiMix_-SerializationProxy_-RvStorage>
+      <rhythmId>Soul.S584.prs-ID</rhythmId>
+      <rvName>Chord1</rvName>
+      <outer-class reference="../../.."/>
+    </org.jjazz.midimix.api.MidiMix_-SerializationProxy_-RvStorage>
+    <org.jjazz.midimix.api.MidiMix_-SerializationProxy_-RvStorage>
+      <rhythmId>Soul.S584.prs-ID</rhythmId>
+      <rvName>Chord2</rvName>
+      <outer-class reference="../../.."/>
+    </org.jjazz.midimix.api.MidiMix_-SerializationProxy_-RvStorage>
+    <org.jjazz.midimix.api.MidiMix_-SerializationProxy_-RvStorage>
+      <rhythmId>Soul.S584.prs-ID</rhythmId>
+      <rvName>Pad</rvName>
+      <outer-class reference="../../.."/>
+    </org.jjazz.midimix.api.MidiMix_-SerializationProxy_-RvStorage>
+    <org.jjazz.midimix.api.MidiMix_-SerializationProxy_-RvStorage>
+      <rhythmId>Soul.S584.prs-ID</rhythmId>
+      <rvName>Phrase1</rvName>
+      <outer-class reference="../../.."/>
+    </org.jjazz.midimix.api.MidiMix_-SerializationProxy_-RvStorage>
+    <org.jjazz.midimix.api.MidiMix_-SerializationProxy_-RvStorage>
+      <rhythmId>Soul.S584.prs-ID</rhythmId>
+      <rvName>Phrase2</rvName>
+      <outer-class reference="../../.."/>
+    </org.jjazz.midimix.api.MidiMix_-SerializationProxy_-RvStorage>
+  </spKeys>
+</MidiMix>

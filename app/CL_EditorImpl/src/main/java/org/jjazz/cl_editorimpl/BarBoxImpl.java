@@ -199,7 +199,7 @@ public class BarBoxImpl extends BarBox implements FocusListener, PropertyChangeL
      * The operation requests each BarRenderer to create ItemRenderers if appropriate.
      *
      * @param item
-     * @return List The created ItemRenderers.
+     * @return List The created ItemRenderers. Might be empty.
      */
     @Override
     public List<ItemRenderer> addItem(ChordLeadSheetItem<?> item)
@@ -216,7 +216,11 @@ public class BarBoxImpl extends BarBox implements FocusListener, PropertyChangeL
         {
             if (br.isRegisteredItemClass(item))
             {
-                result.add(br.addItemRenderer(item));
+                var ir = br.addItemRenderer(item);
+                if (ir != null)
+                {
+                    result.add(ir);
+                }
             }
         }
 
@@ -241,7 +245,7 @@ public class BarBoxImpl extends BarBox implements FocusListener, PropertyChangeL
             this, item
         });
 
-        ArrayList<ItemRenderer> result = new ArrayList<>();
+        List<ItemRenderer> result = new ArrayList<>();
         for (BarRenderer br : getBarRenderers())
         {
             if (br.isRegisteredItemClass(item))

@@ -24,7 +24,6 @@ package org.jjazz.musiccontrol;
 
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeListener;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 import javax.sound.midi.InvalidMidiDataException;

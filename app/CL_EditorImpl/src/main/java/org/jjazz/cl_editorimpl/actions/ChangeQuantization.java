@@ -50,7 +50,7 @@ import org.openide.windows.WindowManager;
 @ActionRegistration(displayName = "not_used", lazy = false)
 @ActionReferences(
         {
-            @ActionReference(path = "Actions/Bar", position = 1400, separatorBefore = 1390),
+            @ActionReference(path = "Actions/Bar", position = 1400, separatorBefore = 1390, separatorAfter = 1405),
             @ActionReference(path = "Actions/Section", position = 2200)
         })
 public class ChangeQuantization extends CL_ContextAction
@@ -63,7 +63,7 @@ public class ChangeQuantization extends CL_ContextAction
     protected void configureAction()
     {
         putValue(NAME, ResUtil.getString(getClass(), "CTL_ChangeQuantization"));
-        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES));        
+        putValue(LISTENING_TARGETS, EnumSet.of(ListeningTarget.CLS_ITEMS_SELECTION, ListeningTarget.ACTIVE_CLS_CHANGES));
     }
 
     @Override

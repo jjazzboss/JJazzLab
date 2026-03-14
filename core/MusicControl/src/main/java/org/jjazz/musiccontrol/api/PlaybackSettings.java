@@ -103,7 +103,6 @@ public class PlaybackSettings
      */
     public static final String PROP_MUSIC_GENERATION = "PlaybackSettingsMusicGeneration";
 
-    private int loopCount = 0;
     private PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private static Preferences prefs = NbPreferences.forModule(PlaybackSettings.class);
     protected static final Logger LOGGER = Logger.getLogger(PlaybackSettings.class.getSimpleName());
@@ -127,7 +126,7 @@ public class PlaybackSettings
 
     public int getLoopCount()
     {
-        return loopCount;
+        return prefs.getInt(PROP_LOOPCOUNT, 0);
     }
 
     /**
@@ -138,14 +137,11 @@ public class PlaybackSettings
      */
     public void setLoopCount(int loopCount)
     {
-        if (loopCount != Sequencer.LOOP_CONTINUOUSLY && loopCount < 0)
-        {
-            throw new IllegalArgumentException("loopCount=" + loopCount);
-        }
+        Preconditions.checkArgument(loopCount >= 0 || loopCount == Sequencer.LOOP_CONTINUOUSLY, "loopCount=%s", loopCount);
 
-        int old = this.loopCount;
-        this.loopCount = loopCount;
-        pcs.firePropertyChange(PROP_LOOPCOUNT, old, this.loopCount);
+        int old = getLoopCount();
+        prefs.putInt(PROP_LOOPCOUNT, loopCount);
+        pcs.firePropertyChange(PROP_LOOPCOUNT, old, loopCount);
     }
 
     /**
@@ -280,33 +276,31 @@ public class PlaybackSettings
      */
     public int getClickPrecountNbBars(TimeSignature ts, int tempo)
     {
-        switch (getClickPrecountMode())
+        int res = switch (getClickPrecountMode())
         {
-            case ONE_BAR:
-                return 1;
-            case TWO_BARS:
-                return 2;
-            case AUTO:
-                if (ts == null || tempo < 0)
-                {
-                    throw new IllegalArgumentException("ts=" + ts + " tempo=" + tempo);
-                }
+            case ONE_BAR ->
+                1;
+            case TWO_BARS ->
+                2;
+            case AUTO ->
+            {
+                Preconditions.checkArgument(ts != null && tempo >= 0, "ts=%s tempo=%s", ts, tempo);
                 float nBeats = ts.getNbNaturalBeats();
-                int res;
                 if (nBeats <= 3)
                 {
-                    res = tempo < 55 ? 1 : 2;
+                    yield tempo < 55 ? 1 : 2;
                 } else if (nBeats <= 4)
                 {
-                    res = tempo < 100 ? 1 : 2;
+                    yield tempo < 100 ? 1 : 2;
                 } else
                 {
-                    res = tempo < 120 ? 1 : 2;
+                    yield tempo < 120 ? 1 : 2;
                 }
-                return res;
-            default:
-                throw new IllegalStateException("getClickPrecountMode()=" + getClickPrecountMode());
-        }
+            }
+            default -> throw new IllegalStateException("getClickPrecountMode()=" + getClickPrecountMode());
+        };
+
+        return res;
     }
 
     /**

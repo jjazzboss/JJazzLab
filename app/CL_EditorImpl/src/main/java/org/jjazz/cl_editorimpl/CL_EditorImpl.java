@@ -27,7 +27,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.GridLayout;
 import java.awt.KeyboardFocusManager;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -85,6 +84,7 @@ import org.jjazz.cl_editor.spi.BarRendererProvider;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.openide.awt.UndoRedo;
 import org.jjazz.uisettings.api.ColorSetManager;
+import org.jjazz.utilities.api.IdentityBasedInstanceContent;
 import org.jjazz.utilities.api.StringProperties;
 
 /**
@@ -144,7 +144,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
     /**
      * Store non-selection stuff.
      */
-    private final InstanceContent generalLookupContent;
+    private final IdentityBasedInstanceContent generalLookupContent;
     /**
      * The leadsheet clsModel.
      */
@@ -220,7 +220,7 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         selectionLookup = new AbstractLookup(selectionLookupContent);
 
         // The lookup for other stuff
-        generalLookupContent = new InstanceContent();
+        generalLookupContent = new IdentityBasedInstanceContent();  // because we add mutable items (see bug https://github.com/apache/netbeans/issues/9270)
         generalLookup = new AbstractLookup(generalLookupContent);
 
         // Initialize with actionmap and our Zoomable object
@@ -253,8 +253,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         }
 
         // Fill our lookup
-        generalLookupContent.add(clsModel);
-        generalLookupContent.add(songModel);
+        generalLookupContent.add(clsModel);    
+        generalLookupContent.add(songModel);   
 
         // Add or remove barboxes at the end if required
         int newSizeInBars = computeNbBarBoxes(NB_EXTRA_LINES, clsModel.getSizeInBars());
@@ -608,10 +608,10 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             var selItem = new SelectedCLI(item);
             if (b)
             {
-                selectionLookupContent.add(selItem);  // Warning, hash used inside, don't use objects which can mutate while being selected!
+                selectionLookupContent.add(selItem);  
             } else
             {
-                selectionLookupContent.remove(selItem);  // Warning, hash used inside, don't use objects which can mutate while being selected!
+                selectionLookupContent.remove(selItem);  
             }
         }
 
@@ -684,9 +684,9 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         Preconditions.checkNotNull(item);
         Preconditions.checkArgument(!(show && pos == null));
 
-        LOGGER.log(Level.FINER, "showInsertionPoint() b={0} item={1} pos={2} copyMode={3}", new Object[]
+        LOGGER.log(Level.FINE, "showInsertionPoint() show={0}  item={1}  pos={2}  insertionPointLastPos={3}", new Object[]
         {
-            show, item, pos, copyMode
+            show, item, pos, insertionPointLastPos
         });
 
         if (!show && insertionPointLastPos != null)

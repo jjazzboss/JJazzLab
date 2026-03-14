@@ -26,9 +26,9 @@ import com.google.common.base.Preconditions;
 import java.awt.event.ActionEvent;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
-import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.RhythmInfo;
 import static javax.swing.Action.NAME;
+import org.jjazz.rhythmdatabase.spi.RhythmDatabaseFactory;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -73,7 +73,7 @@ public class DeleteRhythmFile extends AbstractAction
         if (NotifyDescriptor.YES_OPTION == result)
         {
             ri.file().deleteOnExit();
-            RhythmDatabaseFactoryImpl.getInstance().markForStartupRescan(true);
+            RhythmDatabaseFactory.getDefault().markForStartupRescan(true);
         }
     }
 

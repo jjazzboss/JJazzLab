@@ -50,6 +50,7 @@ import org.jjazz.utilities.api.MultipleErrorsReport;
 import org.jjazz.coreuicomponents.api.MultipleErrorsReportDialog;
 import org.jjazz.rhythm.spi.RhythmDirsLocator;
 import org.jjazz.rhythmdatabase.api.RhythmInfo;
+import org.jjazz.rhythmdatabase.spi.RhythmDatabaseFactory;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -194,7 +195,7 @@ public class AddRhythmsAction extends AbstractAction
                     DialogDisplayer.getDefault().notify(nd);
                 }
 
-                RhythmDatabaseFactoryImpl.getInstance().markForStartupRescan(true);
+                RhythmDatabaseFactory.getDefault().markForStartupRescan(true);
             }
         }
     }

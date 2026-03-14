@@ -69,7 +69,6 @@ import org.jjazz.utilities.api.ResUtil;
  */
 public class BaseSongSession implements PropertyChangeListener, PlaybackSession, ControlTrackProvider, SongContextProvider, EndOfPlaybackActionProvider
 {
-
     public static final int PLAYBACK_SETTINGS_LOOP_COUNT = -1298;
     private State state = State.NEW;
     private boolean isDirty;
@@ -80,7 +79,8 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     private ControlTrack controlTrack;
     private int playbackClickTrackId = -1;
     private int precountClickTrackId = -1;
-    private long loopStartTick = 0;
+    private long musicStartTick = 0;                    // by default if no precount
+    private long loopStartTick = 0;                     // By default if restart bar is 0
     private long loopEndTick = -1;
     private final Context context;
     private Map<RhythmVoice, Integer> mapRvTrackId;
@@ -198,16 +198,16 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
         }
 
 
-        // Add the click precount track - this must be done last because it might shift all song events      
+        // Reference tick positions         
         if (sessionConfig.includePrecountTrack())
         {
-            loopStartTick = PlaybackSettings.getInstance().addPrecountClickTrack(sequence, songContext);
+            // Add the click precount track - this must be done last because it might shift all song events  
+            musicStartTick = PlaybackSettings.getInstance().addPrecountClickTrack(sequence, songContext);
             precountClickTrackId = sequence.getTracks().length - 1;
             mapTrackIdMuted.put(precountClickTrackId, false);
         }
-
-
-        loopEndTick = loopStartTick + Math.round(songContext.getBeatRange().size() * MidiConst.PPQ_RESOLUTION);
+        loopEndTick = musicStartTick + Math.round(songContext.getBeatRange().size() * MidiConst.PPQ_RESOLUTION);
+        loopStartTick = musicStartTick + songContext.toRelativeTick(new Position(sessionConfig.loopRestartBar()));
 
 
         // Listen to changes that can be handled without going dirty
@@ -244,6 +244,16 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
         return state == State.GENERATED ? sequence : null;
     }
 
+    /**
+     * The tick position of the music start, taking into account possible 1 or 2 precount bars.
+     *
+     * @return
+     */
+    public long getMusicStartTick()
+    {
+        return state == State.GENERATED ? musicStartTick : -1;
+    }
+
     @Override
     public long getLoopStartTick()
     {
@@ -278,7 +288,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
                 tick = songContext.toRelativeTick(new Position(barIndex));
                 if (tick != -1)
                 {
-                    tick += loopStartTick;
+                    tick += musicStartTick;
                 }
             }
         }
@@ -585,4 +595,5 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
 
         return res;
     }
+
 }

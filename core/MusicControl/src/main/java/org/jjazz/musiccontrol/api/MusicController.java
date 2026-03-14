@@ -951,7 +951,6 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         float posInBeats = -1;
         if (playbackSession instanceof SongContextProvider scp)
         {
-
             var sgContext = scp.getSongContext();
             long relativeTick = getRelativeTickFromLoopStart(tick);
             posInBeats = sgContext.toPositionInBeats(relativeTick);

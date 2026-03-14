@@ -78,7 +78,6 @@ import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.awt.Actions;
 import org.openide.util.lookup.AbstractLookup;
-import org.openide.util.lookup.InstanceContent;
 import org.jjazz.flatcomponents.api.FlatButton;
 import org.jjazz.mixconsole.MixChannelPanel;
 import org.jjazz.mixconsole.MixChannelPanelControllerImpl;
@@ -87,6 +86,7 @@ import org.jjazz.mixconsole.PhraseViewerPanel;
 import org.jjazz.mixconsole.MixConsoleLayoutManager;
 import org.jjazz.rhythmstubs.api.RhythmStub;
 import org.jjazz.songeditormanager.spi.SongEditorManager;
+import org.jjazz.utilities.api.IdentityBasedInstanceContent;
 import org.jjazz.utilities.api.ResUtil;
 import org.netbeans.api.options.OptionsDisplayer;
 import org.openide.awt.MenuBar;
@@ -129,7 +129,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
     private static final Color CHANNEL_COLOR_USER = new Color(192, 115, 243);       // Light purple
 
     private static Rhythm RHYTHM_ALL;
-    private final InstanceContent instanceContent;
+    private final IdentityBasedInstanceContent instanceContent;
     private final Lookup lookup;
     private final Lookup.Result<Song> songLkpResult;
     private LookupListener songLkpListener;
@@ -218,7 +218,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         };
 
         // Our general lookup : store our action map plus the currently edited song and a Savable object when needed
-        instanceContent = new InstanceContent();
+        instanceContent = new IdentityBasedInstanceContent();       // because we add mutable items (see bug https://github.com/apache/netbeans/issues/9270)
         instanceContent.add(getActionMap());
         lookup = new AbstractLookup(instanceContent);
 
@@ -635,8 +635,8 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
 
         // Update our lookup
-        instanceContent.add(songMidiMix);
-        instanceContent.add(songModel);
+        instanceContent.add(songMidiMix);       
+        instanceContent.add(songModel);         
 
 
         // Update the console with MidiMix changes

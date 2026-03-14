@@ -127,6 +127,7 @@ import org.jjazz.uiutilities.api.Zoomable;
 import org.jjazz.undomanager.api.JJazzUndoManager;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.utilities.api.FloatRange;
+import org.jjazz.utilities.api.IdentityBasedInstanceContent;
 import org.jjazz.utilities.api.IntRange;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
@@ -209,7 +210,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
     private Quantization quantization;
     private final Lookup lookup;
     private JJazzUndoManager undoManager;
-    private final InstanceContent generalLookupContent;
+    private final IdentityBasedInstanceContent generalLookupContent;
     private int rulerStartBar;
     private EditTool activeTool;
     private final NoteSelection noteSelection;
@@ -276,7 +277,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
 
 
         // The lookup for other stuff, before createUI()
-        generalLookupContent = new InstanceContent();
+        generalLookupContent = new IdentityBasedInstanceContent();      // because we add mutable items (see bug https://github.com/apache/netbeans/issues/9270)
         var zoomable = new PianoRollZoomable();
         generalLookupContent.add(zoomable);
         generalLookupContent.add(getActionMap());
@@ -376,7 +377,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
         this.song = song;
         updateChordSequence();
 
-        generalLookupContent.add(song);
+        generalLookupContent.add(song);    
         rulerPanel.setSong(song);
         scorePanel.setSong(song);
         setUndoManager(JJazzUndoManagerFinder.getDefault().get(getSong()));

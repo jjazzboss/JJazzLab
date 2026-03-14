@@ -379,6 +379,7 @@ public class BR_ChordPositions extends BarRenderer implements BeatBasedBarRender
                 IP_ChordSymbol newCliIP = new IP_ChordSymbol(chordSymbol);
                 newCliIP.setPosition(pos);
                 irIP = addItemRenderer(newCliIP);
+                assert irIP != null : "newCliIP=" + newCliIP;
                 irIP.setSelected(true);
                 cliIP = newCliIP;
             } else

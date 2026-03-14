@@ -148,6 +148,20 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
         return getSession(sgContext, new SessionConfig(), true, context);
     }
 
+    /**
+     * Get a session using the default config with the specific restartBar, with update control enabled.
+     * <p>
+     *
+     * @param sgContext
+     * @param context
+     * @param restartBar
+     * @return A targetSession in the NEW or GENERATED state.
+     */
+    static public UpdateProviderSongSession getSession(SongContext sgContext, Context context, int restartBar)
+    {
+        return getSession(sgContext, new SessionConfig(restartBar), true, context);
+    }
+
 
     private UpdateProviderSongSession(SongContext sgContext, SessionConfig sConfig, boolean enableUpdateControl, Context context)
     {

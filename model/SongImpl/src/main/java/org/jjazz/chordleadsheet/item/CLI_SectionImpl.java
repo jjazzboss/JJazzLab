@@ -70,12 +70,12 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
      */
     private Section data;
 
-    private StringProperties clientProperties;
+    private final StringProperties clientProperties;
     /**
      * The container of this item. Need to be transient otherwise this introduces circularities in the objects graph that prevent ChordLeadSheetImpl's
      * proxyserialization to work. This field must be restored by its container at deserialization.
      */
-    private volatile transient ChordLeadSheet container = null;
+    private volatile transient ChordLeadSheetImpl container = null;
     private final transient PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(CLI_SectionImpl.class.getSimpleName());
 
@@ -104,7 +104,7 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
     @Override
     final public void setContainer(ChordLeadSheet cls)
     {
-        this.container = cls;
+        this.container = (ChordLeadSheetImpl) cls;
     }
 
     @Override
@@ -251,18 +251,6 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
         pcs.removePropertyChangeListener(l);
     }
 
-
-    /**
-     * Return a PropertyChangeEvent which will not be fired.
-     *
-     * @param item
-     * @return
-     */
-    static protected PropertyChangeEvent getVoidEvent(ChordLeadSheetItem<?> item)
-    {
-        return new PropertyChangeEvent(item, "a", 1, 1);
-    }
-
     /**
      * Execute a read operation using the read lock if a container is set.
      *
@@ -277,7 +265,7 @@ public class CLI_SectionImpl implements CLI_Section, WritableItem<Section>, Seri
             return operation.get();
         } else
         {
-            return ((ChordLeadSheetImpl) container).getExecutionManager().executeReadOperation(operation);
+            return container.getExecutionManager().executeReadOperation(operation);
         }
     }
 

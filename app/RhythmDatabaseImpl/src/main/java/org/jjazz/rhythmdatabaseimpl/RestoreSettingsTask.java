@@ -24,7 +24,6 @@
  */
 package org.jjazz.rhythmdatabaseimpl;
 
-import org.jjazz.rhythmdatabaseimpl.api.RhythmDatabaseFactoryImpl;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.upgrade.api.UpgradeTask;
 import org.openide.util.NbPreferences;

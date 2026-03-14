@@ -29,8 +29,10 @@ import java.util.logging.Logger;
 
 /**
  * A Comparator which uses Position then PositionOrder to order ChordLeadSheetItems.
- *
+ * <p>
  * Conditions to return the 0 value can be adjusted at construction.
+ *
+ * @param <T>
  */
 public class CLI_Comparator<T extends ChordLeadSheetItem<?>> implements Comparator<T>
 {
@@ -56,7 +58,7 @@ public class CLI_Comparator<T extends ChordLeadSheetItem<?>> implements Comparat
         {
             return 0;
         }
-        
+
         int res = cli1.getPosition().compareTo(cli2.getPosition());
         if (res == 0)
         {

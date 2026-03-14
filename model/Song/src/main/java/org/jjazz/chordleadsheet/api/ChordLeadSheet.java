@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 import java.util.List;
 import java.util.function.Predicate;
 import javax.swing.event.UndoableEditListener;
+import org.jjazz.chordleadsheet.api.item.CLI_LoopRestartBar;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ChordLeadSheetItem;
@@ -36,7 +37,9 @@ import org.jjazz.utilities.api.IntRange;
 /**
  * The model for a chord leadsheet.
  * <p>
- * The leadsheet is made of sections (a name + a time signature) and items like chord symbols or bar annotations.
+ * The leadsheet is defined by a size in bars and a list of ChordLeadSheetItems ordered by position such as sections, chord symbols, annotations.
+ * <p>
+ * Bar 0 always contains a CLI_Section. A ChordLeadSheet can only contain 0 or 1 CLI_LoopRestartBar.
  */
 public interface ChordLeadSheet
 {
@@ -67,7 +70,7 @@ public interface ChordLeadSheet
      *
      * @param item The ChordLeadSheetItem to add. Must be a WritableItem. Can not be a CLI_Section.
      * @return True if item was added
-     * @throws IllegalArgumentException If item's position out of leadsheet bounds or item is a CLI_Section.
+     * @throws IllegalArgumentException If item's position out of leadsheet bounds, or item is a CLI_Section, or item is the 2nd CLI_LoopRestartBar
      * @see #addSection(org.jjazz.chordleadsheet.api.item.CLI_Section)
      */
     boolean addItem(ChordLeadSheetItem<?> item);
@@ -77,7 +80,7 @@ public interface ChordLeadSheet
      * <p>
      * This sets the item's container to null.
      *
-     * @param item The item to be removed.
+     * @param item The item to be removed. Can not be a CLI_Section.
      * @return True if item was removed
      * @see #removeSection(org.jjazz.chordleadsheet.api.item.CLI_Section)
      */
@@ -498,6 +501,18 @@ public interface ChordLeadSheet
         var nextSection = getNextItem(cliSection);
         int lastBar = nextSection == null ? getSizeInBars() - 1 : nextSection.getPosition().getBar() - 1;
         return new IntRange(bar, lastBar);
+    }
+
+    /**
+     * Get the optional CLI_LoopRestartBar of the ChordLeadSheet.
+     * <p>
+     *
+     * @return Null if no CLI_LoopRestartBar found.
+     */
+    default CLI_LoopRestartBar getLoopRestartBarItem()
+    {
+        var items = getItems(CLI_LoopRestartBar.class);
+        return items.isEmpty() ? null : items.getFirst();
     }
 
     /**

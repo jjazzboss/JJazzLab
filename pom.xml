@@ -189,6 +189,8 @@
                     <version>3.5.2</version>
                     <configuration>
                         <skipTests>${jjazzlab.surefire.skipTests}</skipTests>
+                        <!-- Required for XStream EnumSetConverter: needs reflective access to java.util.EnumSet private fields -->
+                        <argLine>--add-opens java.base/java.util=ALL-UNNAMED</argLine>
                     </configuration>
                 </plugin>           
                 <plugin>

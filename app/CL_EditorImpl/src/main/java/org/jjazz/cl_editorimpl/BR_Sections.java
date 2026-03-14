@@ -22,11 +22,14 @@
  */
 package org.jjazz.cl_editorimpl;
 
+import com.google.common.base.Preconditions;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Insets;
+import java.awt.Rectangle;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.beans.PropertyChangeEvent;
@@ -34,9 +37,12 @@ import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
+import org.jjazz.chordleadsheet.api.item.CLI_LoopRestartBar;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.spi.item.CLI_Factory;
@@ -66,8 +72,9 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
      * Special shared JPanel instances per editor, used to calculate the preferred size for a BarRenderer subclass..
      */
     private static final Map<Integer, PrefSizePanel> mapEditorPrefSizePanel = new HashMap<>();
-
+    private static final int LOOP_RESTART_BAR_SIGN_WIDTH = 8;
     private static final Dimension MIN_SIZE = new Dimension(10, 4);
+    private boolean showLoopRestart;
     private CLI_Section cliSection;
     /**
      * The last color we used to paint this BarRenderer.
@@ -155,11 +162,16 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
     @Override
     public void showInsertionPoint(boolean b, ChordLeadSheetItem<?> item, Position pos, boolean copyMode)
     {
+        LOGGER.log(Level.FINE, "showInsertionPoint() -- barIndex={0} b={1} item={2} pos={3} insertionPointRenderer={4}", new Object[]
+        {
+            getBarIndex(), b, item, pos, insertionPointRenderer
+        });
         if (b)
         {
             if (insertionPointRenderer == null)
             {
                 insertionPointRenderer = addItemRenderer(item);
+                assert insertionPointRenderer != null : "item=" + item;
                 insertionPointRenderer.setSelected(true);
             }
             if (insertionPointRenderer instanceof IR_Copiable irc)
@@ -215,6 +227,21 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
     }
 
     /**
+     * Overridden to leave an area for the loop restart bar sign if present.
+     */
+    @Override
+    public Rectangle getDrawingArea()
+    {
+        var r = super.getDrawingArea();
+        if (showLoopRestart && getBarIndex() > 0)
+        {
+            r.x += LOOP_RESTART_BAR_SIGN_WIDTH;
+            r.width -= LOOP_RESTART_BAR_SIGN_WIDTH;
+        }
+        return r;
+    }
+
+    /**
      * Overridden to draw a line corresponding to the section's color.
      *
      * @param g
@@ -227,17 +254,28 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
             return;
         }
 
+        Graphics2D g2 = (Graphics2D) g;
         int barWidth = getDrawingArea().width;
         int barHeight = getDrawingArea().height;
         int barLeft = getDrawingArea().x;
         int barTop = getDrawingArea().y;
 
         // Draw the axis
-        g.setColor(sectionColor);
 
         int axisY = barTop + (barHeight / 2);
-        int width = 4;
-        g.fillRect(barLeft, axisY + 1 - width / 2, barWidth, width);
+        int thickness = 4;
+
+        if (showLoopRestart)
+        {
+            g2.setColor(Color.DARK_GRAY);
+            g2.fillRect(barLeft - LOOP_RESTART_BAR_SIGN_WIDTH, barTop, 3, barHeight);
+            g2.fillRect(barLeft - LOOP_RESTART_BAR_SIGN_WIDTH + 4, barTop, 1, barHeight);
+        }
+
+        // The normal thick line
+        g2.setColor(sectionColor);
+        g2.fillRect(barLeft, axisY + 1 - thickness / 2, barWidth, thickness);
+
     }
 
     @Override
@@ -249,22 +287,54 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
     @Override
     public boolean isRegisteredItemClass(ChordLeadSheetItem<?> item)
     {
-        return item instanceof CLI_Section;
+        return item instanceof CLI_Section || item instanceof CLI_LoopRestartBar;
     }
 
     @Override
     protected ItemRenderer createItemRenderer(ChordLeadSheetItem<?> item)
     {
-        if (!isRegisteredItemClass(item))
+        Objects.requireNonNull(item);
+        Preconditions.checkArgument(isRegisteredItemClass(item), "item=%s", item);
+
+
+        if (item instanceof CLI_LoopRestartBar)
         {
-            throw new IllegalArgumentException("item=" + item);
+            // Directly renderered by BR_Sections paintComponent(). Layout is impacted.
+            if (getBarIndex() > 0)
+            {
+                showLoopRestart = true;
+                repaint();
+                revalidate();
+            }
+            return null;
         }
+
+        // Section
+        assert item instanceof CLI_Section : "item=" + item;
         ItemRenderer ir = getItemRendererFactory().createItemRenderer(IR_Type.Section, item, getSettings().getItemRendererSettings());
         if (ir instanceof IR_Section irs && sectionColor != null)
         {
             irs.setSectionColor(sectionColor);
         }
         return ir;
+    }
+
+    /**
+     * Overridden to update state if a CLI_LoopRestartBar was removed.
+     *
+     * @param item
+     * @return
+     */
+    @Override
+    public ItemRenderer removeItemRenderer(ChordLeadSheetItem<?> item)
+    {
+        if (item instanceof CLI_LoopRestartBar)
+        {
+            showLoopRestart = false;
+            repaint();
+            revalidate();
+        }
+        return super.removeItemRenderer(item);
     }
 
     //-----------------------------------------------------------------------

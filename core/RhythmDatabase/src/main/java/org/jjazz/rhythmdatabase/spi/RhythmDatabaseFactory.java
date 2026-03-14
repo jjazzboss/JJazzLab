@@ -77,4 +77,18 @@ public interface RhythmDatabaseFactory
      */
     RhythmDatabase get();
 
+
+    /**
+     * Request or cancel a full rescan upon next startup.
+     *
+     * @param b
+     */
+    public void markForStartupRescan(boolean b);
+
+    /**
+     * Check if a full rescan s planned for next startup.
+     *
+     * @return
+     */
+    public boolean isMarkedForStartupRescan();
 }

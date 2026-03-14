@@ -56,6 +56,8 @@ import org.jjazz.chordleadsheet.api.item.WritableItem;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.chordleadsheet.api.ClsChangeListener;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
+import org.jjazz.chordleadsheet.api.item.CLI_LoopRestartBar;
+import org.jjazz.chordleadsheet.item.CLI_LoopRestartBarImpl;
 import org.jjazz.song.ExecutionManager;
 import org.jjazz.song.ThrowingWriteOperation;
 import org.jjazz.song.WriteOperation;
@@ -118,6 +120,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         this.size = size;
         this.executionManager = new ExecutionManager();
 
+        // Add mandatory item
         ((CLI_SectionImpl) initSection).setContainer(this);
         items.add(initSection);
     }
@@ -125,13 +128,14 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
     @Override
     public ChordLeadSheet getDeepCopy()
     {
-
         var res = performReadAPImethod(() -> 
         {
             var initSection = getSection(0);
             assert initSection != null;
 
+            // Create the copy
             var clsCopy = new ChordLeadSheetImpl(initSection.getData().getName(), initSection.getData().getTimeSignature(), size);
+
 
             for (var item : getItems())
             {
@@ -208,6 +212,11 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
         WriteOperation<Boolean> operation = () -> 
         {
             LOGGER.log(Level.FINE, "addItemOperation() -- item={0}", item);
+            
+            if (item instanceof CLI_LoopRestartBar && getLoopRestartBarItem() != null)
+            {
+                throw new IllegalArgumentException("A CLI_LoopRestartBar is already present. item=" + item + " items=" + items);
+            }
 
 
             final ChordLeadSheet oldContainer = item.getContainer();
@@ -691,6 +700,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
 
         return operation;
     }
+
 
     @Override
     public boolean moveItem(ChordLeadSheetItem<?> item, Position newPos)
@@ -1847,12 +1857,13 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
      * <p>
      * Allow to be independent of future chordleadsheet internal data structure changes.<p>
      * spVERSION 2 (JJazzLab 4.1.0) introduces several aliases to get rid of hard-coded qualified class names (XStreamConfig class introduction).<br>
+     * spVERSION 3 (JJazzLab 5.2) introduces CLI_LoopRestartBar
      */
     private static class SerializationProxy implements Serializable
     {
 
         private static final long serialVersionUID = 2879716323116L;
-        private final int spVERSION = 2;
+        private final int spVERSION = 3;
         private final ArrayList<ChordLeadSheetItem> spItems;
         private final int spSize;
 
@@ -1908,7 +1919,7 @@ public class ChordLeadSheetImpl implements ChordLeadSheet, Serializable
                         // Translate to an ObjectStreamException
                         throw new InvalidObjectException(ex.getMessage());
                     }
-                } else
+                }  else
                 {
                     cls.addItem(item);
                 }

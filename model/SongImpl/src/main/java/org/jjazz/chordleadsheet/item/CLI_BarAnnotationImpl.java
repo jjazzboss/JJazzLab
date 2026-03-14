@@ -77,7 +77,7 @@ public class CLI_BarAnnotationImpl implements CLI_BarAnnotation, WritableItem<St
      * Need to be transient otherwise this introduces circularities in the objects graph that prevent ChordLeadSheetImpl's proxyserialization to work. This
      * field must be restored by its container at deserialization.
      */
-    private volatile transient ChordLeadSheet container = null;
+    private volatile transient ChordLeadSheetImpl container = null;
 
     private final transient PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private static final Logger LOGGER = Logger.getLogger(CLI_BarAnnotationImpl.class.getSimpleName());
@@ -105,7 +105,7 @@ public class CLI_BarAnnotationImpl implements CLI_BarAnnotation, WritableItem<St
     @Override
     final public void setContainer(ChordLeadSheet cls)
     {
-        this.container = cls;
+        this.container = (ChordLeadSheetImpl) cls;
     }
 
     @Override
@@ -248,7 +248,7 @@ public class CLI_BarAnnotationImpl implements CLI_BarAnnotation, WritableItem<St
             return operation.get();
         } else
         {
-            return ((ChordLeadSheetImpl) container).getExecutionManager().executeReadOperation(operation);
+            return container.getExecutionManager().executeReadOperation(operation);
         }
     }
 

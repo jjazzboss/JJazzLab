@@ -187,7 +187,7 @@ public class Utilities
     {
         return Modifier.isStatic(clazz.getModifiers());
     }
-
+    
     /**
      * Get the next gaussian random value between -1 and 1 using a standard deviation of 0.3.
      *

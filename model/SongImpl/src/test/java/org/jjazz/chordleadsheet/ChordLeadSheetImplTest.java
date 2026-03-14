@@ -37,6 +37,7 @@ import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.chordleadsheet.api.item.NCExtChordSymbol;
 import org.jjazz.chordleadsheet.item.CLI_ChordSymbolImpl;
 import org.jjazz.chordleadsheet.item.CLI_SectionImpl;
+import org.jjazz.chordleadsheet.spi.item.CLI_Factory;
 import org.jjazz.harmony.api.Note;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.harmony.api.TimeSignature;
@@ -236,34 +237,37 @@ public class ChordLeadSheetImplTest
                 false,
                 ChordLeadSheetItem.class,
                 cli -> true);
-        assertEquals(res.size(), 4);
-        assertSame(res.get(0), cls1.getSection(0));
-        assertEquals(res.get(3).getPosition(), new Position(1, 3));
+        assertEquals(4, res.size());
+        assertSame(cls1.getSection(0), res.get(0));
+        assertEquals(new Position(1, 3), res.get(3).getPosition());
     }
 
     @Test
     public void testGetFirstLastItems()
     {
         System.out.println("=== testGetFirstLastItems() ");
-        var items = cls1.getItems();
+        var chordSymbols = cls1.getItems(CLI_ChordSymbol.class);
 
-        var cli = cls1.getFirstItemAfter(items.get(3), CLI_ChordSymbol.class, c -> true);
-        assertSame(cli, items.get(5));
+        
+        // getFirstItemAfter
+        var cli = cls1.getFirstItemAfter(chordSymbols.get(3), CLI_ChordSymbol.class, c -> true);
+        assertSame(cli, chordSymbols.get(4));
 
         cli = cls1.getFirstItemAfter(new Position(2), true, CLI_ChordSymbol.class, c -> true);
-        assertSame(cli, items.get(5));
+        assertSame(cli, chordSymbols.get(3));
 
         cli = cls1.getFirstItemAfter(new Position(2), false, CLI_ChordSymbol.class, c -> true);
-        assertSame(cli, items.get(6));
+        assertSame(cli, chordSymbols.get(4));
 
-        cli = cls1.getLastItemBefore(items.get(7), CLI_ChordSymbol.class, c -> true);
-        assertSame(cli, items.get(6));
+        // getLastItemBefore
+        cli = cls1.getLastItemBefore(chordSymbols.get(6), CLI_ChordSymbol.class, c -> true);
+        assertSame(cli, chordSymbols.get(5));
 
         cli = cls1.getLastItemBefore(new Position(2), true, CLI_ChordSymbol.class, c -> true);
-        assertSame(cli, items.get(5));
+        assertSame(cli, chordSymbols.get(3));
 
         cli = cls1.getLastItemBefore(new Position(2), false, CLI_ChordSymbol.class, c -> true);
-        assertSame(cli, items.get(3));
+        assertSame(cli, chordSymbols.get(2));
 
         cli = cls1.getLastItemBefore(new Position(0), false, CLI_ChordSymbol.class, c -> true);
         assertNull(cli);
@@ -276,6 +280,19 @@ public class ChordLeadSheetImplTest
         System.out.println("=== addItem ChordSymbol");
         cls1.addItem(cliChordSymbolG_b6_0);
         assertSame(cliChordSymbolG_b6_0, cls1.getItems(6, 6, ChordLeadSheetItem.class).get(0));
+    }
+    @Test
+    public void testLoopRestartBar()
+    {
+        System.out.println("=== testLoopRestartBar");
+        assertEquals(null, cls1.getLoopRestartBarItem());
+        
+        var cli = CLI_Factory.getDefault().createLoopRestartBar(2);
+        assertEquals(true, cls1.addItem(cli));        
+        assertSame(cli, cls1.getLoopRestartBarItem());
+        
+        var cli2 = cli.getCopy(null, new Position(0));
+        assertThrows(IllegalArgumentException.class, () -> cls1.addItem(cli2));
     }
 
     @Test

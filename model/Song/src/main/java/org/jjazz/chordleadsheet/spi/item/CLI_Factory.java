@@ -27,6 +27,7 @@ import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.item.CLI_BarAnnotation;
 import org.jjazz.chordleadsheet.api.item.CLI_ChordSymbol;
+import org.jjazz.chordleadsheet.api.item.CLI_LoopRestartBar;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.chordleadsheet.api.item.ExtChordSymbol;
 import org.jjazz.harmony.api.Position;
@@ -38,7 +39,7 @@ import org.openide.util.Lookup;
  */
 public interface CLI_Factory
 {
-    
+
     public static CLI_Factory getDefault()
     {
         CLI_Factory result = Lookup.getDefault().lookup(CLI_Factory.class);
@@ -68,7 +69,7 @@ public interface CLI_Factory
      * @return
      */
     CLI_ChordSymbol createChordSymbol(ExtChordSymbol ecs, Position pos);
-    
+
     default CLI_ChordSymbol createChordSymbol(ExtChordSymbol ecs, int bar, float beat)
     {
         return createChordSymbol(ecs, new Position(bar, beat));
@@ -85,7 +86,7 @@ public interface CLI_Factory
      * @throws java.text.ParseException If chord symbol specification is invalid
      */
     CLI_ChordSymbol createChordSymbol(String chordSymbol, Position pos) throws ParseException;
-    
+
     default CLI_ChordSymbol createChordSymbol(String chordSymbol, int bar, float beat) throws ParseException
     {
         return createChordSymbol(chordSymbol, new Position(bar, beat));
@@ -99,8 +100,16 @@ public interface CLI_Factory
      * @return
      */
     CLI_BarAnnotation createBarAnnotation(String annotation, int bar);
-    
+
+    /**
+     * Create a CLI_LoopRestartBar at specified bar.
+     *
+     * @param bar
+     * @return
+     */
+    CLI_LoopRestartBar createLoopRestartBar(int bar);
+
     CLI_Section getSampleSection();
-    
+
     CLI_ChordSymbol getSampleChordSymbol();
 }

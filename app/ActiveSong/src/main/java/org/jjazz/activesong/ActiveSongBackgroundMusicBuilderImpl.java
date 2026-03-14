@@ -22,7 +22,6 @@
  */
 package org.jjazz.activesong;
 
-import org.jjazz.musiccontrol.api.MusicGenerationQueue;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.EnumSet;
@@ -35,6 +34,7 @@ import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.MusicController.State;
+import org.jjazz.musiccontrol.api.MusicGenerationQueue;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession.Context;
 import org.jjazz.musiccontrol.api.playbacksession.UpdatableSongSession;
 import org.jjazz.musiccontrol.spi.ActiveSongBackgroundMusicBuilder;
