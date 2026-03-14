@@ -280,6 +280,28 @@ sub processJavaFile
 	return %res;
 }
 
+# $1 a properties file line (already chomp'd)
+# Checks the line for suspicious or corrupted characters and prints warnings.
+sub checkLineForInvalidChars
+{
+	my ($line) = @_;
+
+	# Warn about Java \uXXXX-style unicode escapes left as literals (Ã may be legit in Portuguese)
+	print "###### WARNING Possible Java U-based unicode escapes found (Ã might be legit in portugese) : $line\n"
+		if ($line =~ /u00|Ã/);
+
+	# Detect corrupted characters: UTF-8 multi-byte sequences mistakenly decoded as Latin-1.
+	# When a file is opened with the wrong encoding, each UTF-8 lead/continuation byte is stored
+	# as its own Latin-1 codepoint, producing characteristic two- or three-char sequences:
+	#   2-byte corruption (e.g. Cyrillic, Greek, Arabic): U+00C0-U+00DF followed by U+0080-U+00BF
+	#   3-byte corruption (e.g. CJK):                     U+00E0-U+00EF followed by two U+0080-U+00BF
+	# Portuguese accented chars (ã, ç, â...) live in U+00C0-U+00FF and are never followed by a
+	# U+0080-U+00BF continuation, so they do not trigger false positives here.
+	print "###### WARNING Possible corrupted characters (encoding issue, e.g. Chinese/Russian): $line\n"
+		if ($line =~ /[\x{C0}-\x{DF}][\x{80}-\x{BF}]/ || $line =~ /[\x{E0}-\x{EF}][\x{80}-\x{BF}]{2}/);
+}
+
+
 # $1 ResourceBundle file name
 # returns: hash with all key-value pairs
 sub processBundleFile
@@ -288,13 +310,14 @@ sub processBundleFile
     my %res;
 	if (-f $file)
 	{
-		open my $handle, '<', $file or die "Cannot open $file for reading: $!";	
+		open my $handle, '<:encoding(UTF-8)', $file or die "Cannot open $file for reading: $!";
 		while (<$handle>)
 		{
 				chomp;	
-				next if /^\s*#/ || ! /=/;     
-				
-				print "###### WARNING Possible Java U-based unicode escapes found (Ã might be legit in portugese) : $_\n" if (/u00|Ã/);					
+				next if /^\s*#/ || ! /=/;
+
+				checkLineForInvalidChars($_);
+
 				my $eqIndex = index($_, "=");
 				my $key = substr($_, 0, $eqIndex);
 				my $val = substr($_, $eqIndex+1);
