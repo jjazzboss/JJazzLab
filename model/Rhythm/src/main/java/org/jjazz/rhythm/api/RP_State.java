@@ -23,6 +23,7 @@
 package org.jjazz.rhythm.api;
 
 import com.google.common.base.Preconditions;
+import java.text.ParseException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -77,7 +78,7 @@ public class RP_State implements RhythmParameter<String>, RpEnumerable<String>, 
         this.defaultValue = defaultValue;
         this.primary = isPrimary;
     }
-    
+
     @Override
     public RP_State getCopy(Rhythm r)
     {
@@ -248,9 +249,14 @@ public class RP_State implements RhythmParameter<String>, RpEnumerable<String>, 
     }
 
     @Override
-    public String loadFromString(String s)
+    public String loadFromString(String s) throws ParseException
     {
-        return saveAsString(s);
+        String res = saveAsString(s);
+        if (res == null)
+        {
+            throw new ParseException(displayName + ": invalid String value=" + s, 0);
+        }
+        return res;
     }
 
     @Override

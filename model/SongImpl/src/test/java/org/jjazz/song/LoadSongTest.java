@@ -24,70 +24,90 @@
  */
 package org.jjazz.song;
 
-import java.awt.Dialog;
 import java.io.File;
 import java.net.URL;
+import java.text.ParseException;
 import java.util.Locale;
-import java.util.logging.Logger;
+import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.rhythmdatabase.api.DefaultRhythmDatabase;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.spi.SongFactory;
+import org.jjazz.testmocks.api.TestDialogDisplayer;
 import org.jjazz.utilities.api.Utilities;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import org.openide.DialogDescriptor;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 import org.openide.DialogDisplayer;
-import org.openide.NotifyDescriptor;
-import org.openide.util.lookup.ServiceProvider;
+import org.openide.util.Lookup;
 
 /**
  * Tests that sample .sng files (covering different serialization versions) can be loaded without throwing an exception.
  */
 public class LoadSongTest
 {
-
+    
     static
     {
         Utilities.setLoggingFormat(null);
         Locale.setDefault(Locale.ENGLISH);
     }
-
+    
     @BeforeAll
-    public static void setUpClass()
+    public static void setUpClass(TestInfo testInfo) throws Exception
     {
+        System.out.println("\n" + testInfo.getDisplayName() + "     ########################\n");
         // Populate the rhythm database so that XStream converters that reference rhythms can resolve them
         var rdb = (DefaultRhythmDatabase) RhythmDatabase.getDefault();
         rdb.addRhythmsFromRhythmProviders(false, true, false);
         System.out.println(rdb.toStatsString());
-    }
+        
 
+        DialogDisplayer testDialogDisplayer = Lookup.getDefault().lookup(DialogDisplayer.class);
+        if (testDialogDisplayer instanceof TestDialogDisplayer tdd)
+        {
+            // Stub implementation
+            tdd.setDiscardMessages(true);       // We don't need any message
+        } else
+        {
+            throw new IllegalStateException("testDialogDisplayer=" + testDialogDisplayer);
+        }
+        
+    }
+    
+    @BeforeEach
+    public void setUp(TestInfo testInfo) throws UnsupportedEditException, ParseException
+    {
+        System.out.println(testInfo.getDisplayName() + " ------");
+    }
+    
     @Test
     public void testLoadPhaseDance2020() throws Exception
     {
         loadSng("PhaseDance - 2020-spVersion1.sng");
     }
-
+    
     @Test
     public void testLoadSoul2022() throws Exception
     {
         loadSng("Soul - 2022 - spVersion2.sng");
     }
-
+    
     @Test
     public void testLoadGetLucky2024() throws Exception
     {
         loadSng("GetLuckyTest - 2024 - spVersion4.sng");
     }
-
+    
     @Test
     public void testLoadMaxine2024() throws Exception
     {
         loadSng("Maxine_new - 2024 - spVersion4.sng");
     }
-
+    
     @Test
     public void testLoadSpeakNoEvil2026() throws Exception
     {
@@ -108,53 +128,10 @@ public class LoadSongTest
     {
         URL url = LoadSongTest.class.getResource(resourceName);
         assertNotNull(url, "Resource not found on classpath: " + resourceName);
-
+        
         var file = new File(url.toURI());
         Song song = SongFactory.getDefault().loadFromFile(file);
         assertNotNull(song, "loadFromFile() returned null for: " + resourceName);
     }
-
-
-    /**
-     * Basic implementation which just print messages on stdout (instead of getting a dialog).
-     */
-    @ServiceProvider(service = DialogDisplayer.class)
-    static public class TestDialogDisplayer extends DialogDisplayer
-    {
-
-        private static final Logger LOGGER = Logger.getLogger(TestDialogDisplayer.class.getSimpleName());
-
-        public TestDialogDisplayer()
-        {
-            LOGGER.info("Using ToolkitDialogDisplayer()");
-        }
-
-        @Override
-        public Object notify(NotifyDescriptor nd)
-        {
-            String msg = nd.getMessage().toString();
-            switch (nd.getMessageType())
-            {
-                case NotifyDescriptor.WARNING_MESSAGE ->
-                    LOGGER.warning(msg);
-                case NotifyDescriptor.ERROR_MESSAGE ->
-                    LOGGER.severe(msg);
-                case NotifyDescriptor.QUESTION_MESSAGE ->
-                    throw new IllegalArgumentException("nd=" + nd);
-                default ->
-                    LOGGER.info(msg);
-            }
-
-            return NotifyDescriptor.CLOSED_OPTION;
-        }
-
-        @Override
-        public Dialog createDialog(DialogDescriptor dd)
-        {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-        }
-
-    }
-
-
+    
 }

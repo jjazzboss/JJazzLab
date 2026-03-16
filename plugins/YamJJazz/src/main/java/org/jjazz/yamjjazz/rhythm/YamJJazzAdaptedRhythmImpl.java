@@ -515,7 +515,6 @@ public class YamJJazzAdaptedRhythmImpl implements YamJJazzAdaptedRhythm
         {
             if (rp instanceof RP_SYS_Variation
                     || rp instanceof RP_SYS_Variation
-                    || rp instanceof RP_SYS_Feel
                     || rp instanceof RP_SYS_Intensity
                     || rp instanceof RP_SYS_Fill
                     || rp instanceof RP_SYS_Mute

@@ -23,6 +23,7 @@
 package org.jjazz.rhythm.api;
 
 import com.google.common.base.Preconditions;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -304,21 +305,25 @@ public class RP_Integer implements RhythmParameter<Integer>, RpEnumerable<Intege
     }
 
     @Override
-    public Integer loadFromString(String s)
+    public Integer loadFromString(String s) throws ParseException
     {
-        Integer value = null;
+        Integer res = null;
         try
         {
             Integer v = Integer.valueOf(s);
             if (isValidValue(v))
             {
-                value = v;
+                res = v;
             }
         } catch (NumberFormatException ex)
         {
-            // Do nothing
+            // Nothing
         }
-        return value;
+        if (res == null)
+        {
+            throw new ParseException(displayName + ": invalid String value=" + s, 0);
+        }
+        return res;
     }
 
     @Override

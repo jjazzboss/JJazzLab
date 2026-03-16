@@ -22,6 +22,7 @@
  */
 package org.jjazz.song;
 
+import java.text.ParseException;
 import java.time.Duration;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -35,6 +36,7 @@ import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythmdatabase.api.DefaultRhythmDatabase;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
+import static org.jjazz.song.SongMultiRhythmTest.rdb;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.spi.SongFactory;
 import org.jjazz.songstructure.SgsCyclicMutator;
@@ -62,19 +64,24 @@ public class SongCopyDeadlockTest
     }
 
     @BeforeAll
-    public static void setUpClass() throws Exception
+    public static void setUpClass(TestInfo testInfo) throws Exception
     {
+        System.out.println("\n" + testInfo.getDisplayName() + "     ########################\n");
         rdb = (DefaultRhythmDatabase) RhythmDatabase.getDefault();
         rdb.addRhythmsFromRhythmProviders(false, true, false);
-        LOGGER.log(Level.INFO, "RhythmDatabase initialized: {0}", rdb.toStatsString());
+        System.out.println(rdb.toStatsString());
         assert !rdb.getRhythms().isEmpty();
+    }
+
+    @BeforeEach
+    public void setUp(TestInfo testInfo)
+    {
+        System.out.println(testInfo.getDisplayName() + " ------");
     }
 
     @Test
     public void testDeadlock1() throws Exception
     {
-        LOGGER.log(Level.INFO, "testDeadlock1() --");
-
         ChordLeadSheet cls = SongFactory.getDefault().createSampleChordLeadSheet("A", 12);
         Song song = SongFactory.getDefault().createSong("TestSong", cls);
 

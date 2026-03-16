@@ -35,7 +35,6 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.ACCELERATOR_KEY;
 import static javax.swing.Action.NAME;
-import javax.swing.FocusManager;
 import javax.swing.KeyStroke;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.undo.UndoableEdit;
@@ -46,7 +45,6 @@ import org.jjazz.rhythmdatabase.api.RhythmInfo;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.rhythmselectiondialog.spi.RhythmPreviewer;
 import org.jjazz.song.api.Song;
-import org.jjazz.song.spi.SongFactory;
 import org.jjazz.ss_editor.api.SS_Selection;
 import org.jjazz.rhythmselectiondialog.api.RhythmSelectionDialog;
 import org.jjazz.rhythmselectiondialog.spi.RhythmSelectionDialogProvider;
@@ -63,7 +61,6 @@ import org.openide.windows.WindowManager;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.ss_editor.api.SS_ContextActionListener;
-import org.jjazz.ss_editor.api.SS_Editor;
 import org.jjazz.ss_editor.api.SS_EditorTopComponent;
 import org.jjazz.ss_editor.rpviewer.api.RpViewer;
 import org.jjazz.ss_editor.sptviewer.api.SptViewer;
@@ -292,7 +289,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
             sgs.setSongPartsRhythm(sptsToBeUpdated, newRhythm, null);
         } catch (UnsupportedEditException ex)
         {
-            String msg = undoText + ": " + newRhythm.getName() + ".\n" + ex.getLocalizedMessage();
+            String msg = newRhythm.getName() + ": " + ex.getLocalizedMessage();
             um.abortCEdit(undoText, msg);
             return;
         }

@@ -38,10 +38,14 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmFeatures;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythm.api.RhythmVoice;
+import org.jjazz.rhythmmusicgeneration.spi.ConfigurableMusicGeneratorProvider;
+import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.rhythmparametersimpl.api.RP_SYS_CustomPhrase;
 import org.jjazz.rhythmparametersimpl.api.RP_SYS_Fill;
 import org.jjazz.rhythmparametersimpl.api.RP_SYS_Intensity;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_Marker;
 import org.jjazz.rhythmparametersimpl.api.RP_SYS_Mute;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_OverrideTracks;
 import org.jjazz.rhythmparametersimpl.api.RP_SYS_TempoFactor;
 import org.jjazz.rhythmparametersimpl.api.RP_SYS_Variation;
 
@@ -50,7 +54,7 @@ import org.jjazz.rhythmparametersimpl.api.RP_SYS_Variation;
  * <p>
  * This class can be used when testing with rhythms without the need of music generation, e.g. for SongStructure.
  */
-public class RhythmMock implements Rhythm
+public class RhythmMock implements Rhythm, ConfigurableMusicGeneratorProvider
 {
 
     private final String uniqueId;
@@ -96,12 +100,14 @@ public class RhythmMock implements Rhythm
 
 
         // Our Rhythm Parameters
-        rhythmParameters.add(new RP_SYS_Variation(true));
+        rhythmParameters.add(new RP_SYS_Variation(true, "Main A-1", "Intro A-1", "Ending A-1", "Main A-1", "Main A-2", "Main B-1", "Main B-1", "Main C-1", "Main C-2", "Main D-1", "Main D-2"));
         rhythmParameters.add(new RP_SYS_Intensity(true));        
         rhythmParameters.add(new RP_SYS_Fill(true));
         rhythmParameters.add(RP_SYS_Mute.createMuteRp(this, true));
+        rhythmParameters.add(RP_SYS_Marker.getInstance());
         rhythmParameters.add(RP_SYS_TempoFactor.getInstance());        
         rhythmParameters.add(new RP_SYS_CustomPhrase(this, true));
+        rhythmParameters.add(new RP_SYS_OverrideTracks(this, true));
 
     }
 
@@ -244,5 +250,17 @@ public class RhythmMock implements Rhythm
     public void removePropertyChangeListener(PropertyChangeListener l)
     {
         // Nothing
+    }
+
+    @Override
+    public void setMusicGenerator(MusicGenerator mg)
+    {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public MusicGenerator getMusicGenerator()
+    {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 }

@@ -93,8 +93,7 @@ public class RP_SYS_DrumsTransformValue
     /**
      * Return a copy of this object but with the specified chain.
      *
-     * @param chain If null, the returned copy will use the default value. If not null, the last PhraseTransform must be a
-     *              DrumsMixTransform instance.
+     * @param chain If null, the returned copy will use the default value. If not null, the last PhraseTransform must be a DrumsMixTransform instance.
      * @return
      */
     public RP_SYS_DrumsTransformValue getCopy(PhraseTransformChain chain)
@@ -147,7 +146,7 @@ public class RP_SYS_DrumsTransformValue
      * @param v
      * @return
      *
-     *  @see #loadFromString(org.jjazz.rhythm.api.RhythmVoice, java.lang.String) 
+     * @see #loadFromString(org.jjazz.rhythm.api.RhythmVoice, java.lang.String)
      * @see PhraseTransformChain#saveAsString(org.jjazz.phrasetransform.api.PhraseTransformChain)
      */
     static public String saveAsString(RP_SYS_DrumsTransformValue v)
@@ -160,11 +159,12 @@ public class RP_SYS_DrumsTransformValue
      *
      * @param rv Must have a container defined and be of RhythmVoice.Type.DRUMS
      * @param s  Example "[uniqueId1#prop1=value1,prop2=value2|uniqueId2#|uniqueId3#prop1=value1]"
-     * @return Can be null
+     * @return
+     * @throws java.text.ParseException
      * @see #saveAsString(org.jjazz.phrasetransform.api.rps.RP_SYS_DrumsTransformValue)
      * @see PhraseTransformChain#loadFromString(java.lang.String)
      */
-    static public RP_SYS_DrumsTransformValue loadFromString(RhythmVoice rv, String s)
+    static public RP_SYS_DrumsTransformValue loadFromString(RhythmVoice rv, String s) throws ParseException
     {
         checkNotNull(s);
         checkArgument(rv.getContainer() != null
@@ -178,33 +178,28 @@ public class RP_SYS_DrumsTransformValue
         }
 
 
-        try
+        res.transformChain = PhraseTransformChain.loadFromString(s);            // throws ParseException
+
+
+        // Check consistency of loaded data => fix regression Issue #309 introduced in 3.2 by changing the position of the DrumsMixInstance (first then last)            
+        var lastPt = !res.transformChain.isEmpty() ? res.transformChain.get(res.transformChain.size() - 1) : null;
+        if (!(lastPt instanceof DrumsMixTransform))
         {
-            res.transformChain = PhraseTransformChain.loadFromString(s);            // Throws ParseException
-
-
-            // Check consistency of loaded data => fix regression Issue #309 introduced in 3.2 by changing the position of the DrumsMixInstance (first then last)            
-            var lastPt = !res.transformChain.isEmpty() ? res.transformChain.get(res.transformChain.size() - 1) : null;
-            if (!(lastPt instanceof DrumsMixTransform))
+            // If DrumsMix is at first position then fix it
+            var firstPt = !res.transformChain.isEmpty() ? res.transformChain.get(0) : null;
+            if (firstPt instanceof DrumsMixTransform)
             {
-                // If DrumsMix is at first position then fix it
-                var firstPt = !res.transformChain.isEmpty() ? res.transformChain.get(0) : null;
-                if (firstPt instanceof DrumsMixTransform)
-                {
-                    res.transformChain.remove(0);
-                    res.transformChain.add(firstPt);
-                } else
-                {
-                    throw new ParseException("loadFromString() Missing first or final DrumsMixTransform, can't build RP_SYS_DrumsTransformValue instance for rv=" + rv.getName() + " from s=" + s, 0);
-                }
+                res.transformChain.remove(0);
+                res.transformChain.add(firstPt);
+            } else
+            {
+                throw new ParseException(
+                        "loadFromString() Missing first or final DrumsMixTransform, can't build RP_SYS_DrumsTransformValue instance for rv=" + rv.getName() + " from s=" + s,
+                        0);
             }
-        } catch (ParseException ex)
-        {
-            LOGGER.log(Level.WARNING, "loadFromString() {0}", ex.getMessage());
-            res = null;
         }
 
-
+        assert res != null;
         return res;
     }
 

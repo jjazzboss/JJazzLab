@@ -3,6 +3,8 @@ package org.jjazz.rhythmparametersimpl.api;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import static com.google.common.base.Preconditions.checkNotNull;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.MultimapBuilder;
 import java.text.ParseException;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -12,6 +14,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.phrase.api.SizedPhrase;
@@ -23,9 +26,14 @@ import org.jjazz.rhythm.api.RhythmVoice;
  * <p>
  * All custom phrases start at beat 0.
  */
+
 public class RP_SYS_CustomPhraseValue
 {
 
+    /**
+     * Used to prevent multiple identical warnings for a given rhythm.
+     */
+    static private ListMultimap<String, String> mmapRhythmIdMissingRvName = MultimapBuilder.hashKeys().arrayListValues().build();
     private Rhythm rhythm;
     private final Map<RhythmVoice, Phrase> mapRvPhrase;
     private static final Logger LOGGER = Logger.getLogger(RP_SYS_CustomPhraseValue.class.getSimpleName());
@@ -71,7 +79,7 @@ public class RP_SYS_CustomPhraseValue
     {
         rhythm = value.rhythm;
         mapRvPhrase = new HashMap<>();
-        
+
         for (var rv : value.getCustomizedRhythmVoices())
         {
             var p = value.getCustomizedPhrase(rv);
@@ -201,6 +209,7 @@ public class RP_SYS_CustomPhraseValue
         checkNotNull(s);
         checkNotNull(r);
         RP_SYS_CustomPhraseValue res = new RP_SYS_CustomPhraseValue(r);
+
         if (s.isBlank())
         {
             return res;
@@ -210,55 +219,75 @@ public class RP_SYS_CustomPhraseValue
         for (String str : strs)
         {
             String subStrs[] = str.split("%");
-            if (subStrs.length == 2)
+            if (subStrs.length != 2)
             {
-                try
+                res = null;
+                break;
+            }
+
+
+            var rvName = subStrs[0];
+            var phraseStr = subStrs[1];
+
+            // Can we find rvName in r ?
+            RhythmVoice rv = r.getRhythmVoices().stream().filter(rvi -> rvi.getName().equals(rvName)).findAny().orElse(null);
+            if (rv == null)
+            {
+                // No, log warning once
+                if (!mmapRhythmIdMissingRvName.get(r.getUniqueId()).contains(rvName))
                 {
-                    RhythmVoice rv = r.getRhythmVoices().stream().filter(rvi -> rvi.getName().equals(subStrs[0])).findAny().orElse(null);
-                    if (rv == null)
-                    {
-                        // Voice not found in replacement rhythm: skip this entry (custom phrase data is lost for this voice)
-                        LOGGER.warning("loadFromString() RhythmVoice '" + subStrs[0] + "' not found in rhythm " + r + ". Skipping custom phrase for this voice.");
-                        continue;
-                    }
-
-                    Phrase p;
-                    String pStr = subStrs[1];
-
-                    // Backward compatibility HACK: up to JJazzLab 3.2.1, we used SizedPhrase instead of Phrase
-                    if (isSizedPhraseSaveString(pStr))
-                    {
-                        SizedPhrase sp = SizedPhrase.loadAsString(pStr);
-                        p = new Phrase(sp.getChannel());
-                        p.add(sp);
-                    } else
-                    {
-                        p = Phrase.loadAsString(pStr);
-                    }
-
-                    res.setCustomizedPhrase(rv, p);
-
-                } catch (IllegalArgumentException ex)
-                {
-                    res = null;
-                    break;
+                    // rvName not found in rhythm: skip this entry (custom phrase data is lost for this voice)
+                    LOGGER.log(Level.WARNING, "loadFromString() RhythmVoice {0} not found in rhythm {1}. Skipping custom phrase for this voice.",
+                            new Object[]
+                            {
+                                rvName, r.getName()
+                            });
                 }
-            } else
+                mmapRhythmIdMissingRvName.put(r.getUniqueId(), rvName);
+                continue;
+            }
+
+
+            try
+            {
+                Phrase p;
+
+                // Backward compatibility HACK: up to JJazzLab 3.2.1, we used SizedPhrase instead of Phrase
+                if (isSizedPhraseSaveString(phraseStr))     // throws ParseException
+                {
+                    SizedPhrase sp = SizedPhrase.loadAsString(phraseStr);    // throws ParseException
+                    p = new Phrase(sp.getChannel());
+                    p.add(sp);
+                } else
+                {
+                    p = Phrase.loadAsString(phraseStr);    // throws ParseException
+                }
+
+                res.setCustomizedPhrase(rv, p);
+
+            } catch (ParseException ex)
             {
                 res = null;
                 break;
             }
         }
 
+
         if (res == null)
         {
-            throw new IllegalArgumentException("loadAsString() Invalid RP_SYS_CustomPhraseValue string s=" + s);
+            throw new ParseException("RP_SYS_CustomPhraseValue: invalid String value=" + s, 0);
         }
 
         return res;
     }
 
 
+    /**
+     * RhythmParameter value classes must have equals()/hashCode() defined.
+     *
+     * @param obj
+     * @return
+     */
     @Override
     public boolean equals(Object obj)
     {
@@ -306,12 +335,17 @@ public class RP_SYS_CustomPhraseValue
      *
      * @param saveString
      * @return
+     * @throws java.text.ParseException
      */
-    private static boolean isSizedPhraseSaveString(String saveString)
+    private static boolean isSizedPhraseSaveString(String saveString) throws ParseException
     {
         // PHRASE: "[8|NoteEventStr0|NoteEventStr1]" 
         // SIZED_PHRASE: "[8|12.0|16.0|4/4|NoteEventStr0|NoteEventStr1]"
         String[] strs = saveString.split("\\|");
+        if (strs.length < 2)
+        {
+            throw new ParseException("Not enough parts in Phrase string=" + saveString, 0);
+        }
         assert strs.length > 1 : "saveString=" + saveString;
         return strs.length >= 4 && strs[3].contains("/");   // Check that 4th cell is a time signature
     }

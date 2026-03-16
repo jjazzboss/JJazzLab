@@ -22,6 +22,7 @@
  */
 package org.jjazz.rhythmparametersimpl.api;
 
+import java.text.ParseException;
 import org.jjazz.rhythm.api.RP_State;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.utilities.api.ResUtil;
@@ -55,7 +56,8 @@ public class RP_SYS_Marker extends RP_State
 
     private RP_SYS_Marker()
     {
-        super(ID, ResUtil.getString(RP_SYS_Marker.class, "CTL_SysMarker"), ResUtil.getString(RP_SYS_Marker.class, "CTL_SysMarkerDesc"), false, THEME, THEME, SOLO, THEME + "2", THEME + "3", THEME + "4", SOLO + "2", SOLO + "3", SOLO + "4");
+        super(ID, ResUtil.getString(RP_SYS_Marker.class, "CTL_SysMarker"), ResUtil.getString(RP_SYS_Marker.class, "CTL_SysMarkerDesc"), false, THEME, THEME,
+                SOLO, THEME + "2", THEME + "3", THEME + "4", SOLO + "2", SOLO + "3", SOLO + "4");
     }
 
     /**
@@ -63,9 +65,10 @@ public class RP_SYS_Marker extends RP_State
      *
      * @param s
      * @return
+     * @throws java.text.ParseException
      */
     @Override
-    public String loadFromString(String s)
+    public String loadFromString(String s) throws ParseException
     {
         for (String value : getPossibleValues())
         {
@@ -74,7 +77,7 @@ public class RP_SYS_Marker extends RP_State
                 return value;
             }
         }
-        return null;
+        throw new ParseException(getDisplayName() + ": invalid String value=" + s, 0);
     }
 
     /**

@@ -28,6 +28,7 @@ import org.jjazz.rhythmdatabase.spi.RhythmDatabaseFactory;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -315,7 +316,10 @@ public class DefaultRhythmDatabase implements RhythmDatabase
                 .filter(ri -> !ri.isAdaptedRhythm())
                 .toList();
 
-        assert rhythms.size() > 0 : " mapRpRhythms=" + this.mmapRpRinfos;
+        if (rhythms.isEmpty())
+        {
+            throw new IllegalStateException("No RhythmInfo found for ts=" + ts + " mmapRpRinfos=" + this.mmapRpRinfos);
+        }
 
         // Take first rhythm which does not come from a StubRhythmProvider
         for (RhythmInfo ri : rhythms)
@@ -449,13 +453,16 @@ public class DefaultRhythmDatabase implements RhythmDatabase
      * @param excludeBuiltinRhythms
      * @param excludeFileRhythms
      * @param forceFileRhythmsRescan Unused when excludedFileRhythms is true
+     * @param rhythmProviderIds The accepted RhythmProvider Ids. If no id provided, accept all instances found in the lookup.
      * @return
      * @see RhythmProvider
      */
-    public MultipleErrorsReport addRhythmsFromRhythmProviders(boolean excludeBuiltinRhythms, boolean excludeFileRhythms, boolean forceFileRhythmsRescan)
+    public MultipleErrorsReport addRhythmsFromRhythmProviders(boolean excludeBuiltinRhythms, boolean excludeFileRhythms, boolean forceFileRhythmsRescan, String... rhythmProviderIds)
     {
-
-        var rps = RhythmProvider.getRhythmProviders();
+        var allRps = RhythmProvider.getRhythmProviders();
+        var rpIdList = Arrays.asList(rhythmProviderIds);
+        var rps = rpIdList.isEmpty() ? allRps : allRps.stream().filter(rp -> rpIdList.contains(rp.getInfo().getUniqueId())).toList();
+        
         final MultipleErrorsReport errReport = new MultipleErrorsReport();
 
         int n = 0;

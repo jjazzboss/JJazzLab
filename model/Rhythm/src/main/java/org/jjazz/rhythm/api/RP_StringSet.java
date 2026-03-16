@@ -23,6 +23,7 @@
 package org.jjazz.rhythm.api;
 
 import com.google.common.base.Preconditions;
+import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -39,7 +40,7 @@ import java.util.logging.Logger;
  */
 public class RP_StringSet implements RhythmParameter<Set<String>>, RpEnumerable<Set<String>>, Cloneable
 {
-    
+
     public static final int MAX_SET_SIZE = 12;
     private final String id;
     private final String displayName;
@@ -77,31 +78,31 @@ public class RP_StringSet implements RhythmParameter<Set<String>>, RpEnumerable<
         this.possibleValues = List.of(possibleValues);
         if (this.possibleValues.indexOf("") != -1)
         {
-            throw new IllegalArgumentException("n=" + name + " defaultVal=" + defaultValue + " possibleValues=" + this.possibleValues);            
+            throw new IllegalArgumentException("n=" + name + " defaultVal=" + defaultValue + " possibleValues=" + this.possibleValues);
         }
         this.defaultValue = Collections.unmodifiableSet(defaultValue);
         if (!isValidValue(defaultValue))
         {
-            throw new IllegalArgumentException("n=" + name + " defaultVal=" + defaultValue + " possibleValues=" + this.possibleValues);            
+            throw new IllegalArgumentException("n=" + name + " defaultVal=" + defaultValue + " possibleValues=" + this.possibleValues);
         }
         this.minValue = Collections.unmodifiableSet(new HashSet<>());
         this.maxValue = Collections.unmodifiableSet(new HashSet<>(this.possibleValues));
         this.primary = isPrimary;
-        
+
     }
 
     @Override
     public RP_StringSet getCopy(Rhythm r)
     {
         return new RP_StringSet(id, displayName, description, primary, defaultValue, possibleValues.toArray(String[]::new));
-    }    
-    
+    }
+
     @Override
     public boolean isPrimary()
     {
         return primary;
     }
-    
+
     @Override
     public int hashCode()
     {
@@ -114,7 +115,7 @@ public class RP_StringSet implements RhythmParameter<Set<String>>, RpEnumerable<
         hash = 37 * hash + (this.primary ? 1 : 0);
         return hash;
     }
-    
+
     @Override
     public boolean equals(Object obj)
     {
@@ -153,14 +154,14 @@ public class RP_StringSet implements RhythmParameter<Set<String>>, RpEnumerable<
         }
         return Objects.equals(this.possibleValues, other.possibleValues);
     }
-    
-    
+
+
     @Override
     public final String getId()
     {
         return id;
     }
-    
+
     @Override
     public final Set<String> getDefaultValue()
     {
@@ -204,7 +205,7 @@ public class RP_StringSet implements RhythmParameter<Set<String>>, RpEnumerable<
     {
         if (p < 0 || p > 1)
         {
-            throw new IllegalArgumentException("p=" + p);            
+            throw new IllegalArgumentException("p=" + p);
         }
         HashSet<String> set = new HashSet<>();
         long pBin = Math.round(10000 * p);
@@ -215,7 +216,7 @@ public class RP_StringSet implements RhythmParameter<Set<String>>, RpEnumerable<
                 set.add(possibleValues.get(i));
             }
             pBin >>= 1;
-            
+
             if (pBin == 0)
             {
                 // No need to loop further
@@ -240,23 +241,23 @@ public class RP_StringSet implements RhythmParameter<Set<String>>, RpEnumerable<
     {
         if (!isValidValue(value))
         {
-            throw new IllegalArgumentException("value=" + value + " possibleValues=" + possibleValues);            
+            throw new IllegalArgumentException("value=" + value + " possibleValues=" + possibleValues);
         }
         double p = 0;
         for (String s : value)
         {
             int index = possibleValues.indexOf(s);
-            assert index != -1 : "s=" + s;            
+            assert index != -1 : "s=" + s;
             p += Math.pow(2, index);
         }
         if (p > 10000)
         {
-            throw new IllegalStateException("p=" + p + " value=" + value);            
+            throw new IllegalStateException("p=" + p + " value=" + value);
         }
 //      LOGGER.severe("calculatePercentage() value="+value+" p="+p);
         return p / 10000;
     }
-    
+
     @Override
     public final String getDescription()
     {
@@ -280,19 +281,19 @@ public class RP_StringSet implements RhythmParameter<Set<String>>, RpEnumerable<
     {
         return minValue;
     }
-    
+
     @Override
     public final String getDisplayName()
     {
         return displayName;
     }
-    
+
     @Override
     public final Set<String> getNextValue(Set<String> value)
     {
         if (!isValidValue(value))
         {
-            throw new IllegalArgumentException("value=" + value + " this=" + this);            
+            throw new IllegalArgumentException("value=" + value + " this=" + this);
         }
         double maxPercentage = (Math.pow(2, possibleValues.size()) - 1) / 10000d;
         double p = calculatePercentage(value);
@@ -304,13 +305,13 @@ public class RP_StringSet implements RhythmParameter<Set<String>>, RpEnumerable<
         Set<String> nextValue = calculateValue(p);
         return nextValue;
     }
-    
+
     @Override
     public final Set<String> getPreviousValue(Set<String> value)
     {
         if (!isValidValue(value))
         {
-            throw new IllegalArgumentException("value=" + value + " this=" + this);            
+            throw new IllegalArgumentException("value=" + value + " this=" + this);
         }
         double maxPercentage = (Math.pow(2, possibleValues.size()) - 1) / 10000d;
         double p = this.calculatePercentage(value);
@@ -353,9 +354,9 @@ public class RP_StringSet implements RhythmParameter<Set<String>>, RpEnumerable<
         }
         return res;
     }
-    
+
     @Override
-    public Set<String> loadFromString(String s)
+    public Set<String> loadFromString(String s) throws ParseException
     {
         Set<String> res = null;
         if (s != null && "[]".equals(s.trim()))
@@ -375,36 +376,42 @@ public class RP_StringSet implements RhythmParameter<Set<String>>, RpEnumerable<
                 res.add(str);
             }
         }
-        return res == null ? null : Collections.unmodifiableSet(res);
+        
+        if (res == null)
+        {
+            throw new ParseException(displayName + ": invalid String value=" + s, 0);
+        }
+        
+        return Collections.unmodifiableSet(res);
     }
-    
+
     @Override
     public String getValueDescription(Set<String> value)
     {
         return null;
     }
-    
+
     @Override
     public String toString()
     {
         return getDisplayName();
     }
-    
+
     @Override
     public boolean isCompatibleWith(RhythmParameter<?> rp)
     {
         return rp instanceof RP_StringSet && rp.getId().equals(getId());
     }
-    
+
     @Override
     public <T> Set<String> convertValue(RhythmParameter<T> rp, T value)
     {
         Preconditions.checkArgument(isCompatibleWith(rp), "rp=%s is not compatible with this=%s", rp, this);
         Preconditions.checkNotNull(value);
-        
+
         Set<String> res = new HashSet<>();
         Set<String> setValue = (Set<String>) value;
-        
+
         for (String s : setValue)
         {
             if (possibleValues.contains(s))
@@ -412,10 +419,10 @@ public class RP_StringSet implements RhythmParameter<Set<String>>, RpEnumerable<
                 res.add(s);
             }
         }
-        
+
         return Collections.unmodifiableSet(res);
     }
-    
+
     @Override
     public String getDisplayValue(Set<String> value)
     {

@@ -373,10 +373,11 @@ public interface RhythmDatabase
     default String toStatsString()
     {
         StringBuilder sb = new StringBuilder();
-        sb.append(String.format("-------- Rhythm Database stats - total=%d\n", size()));
+        sb.append(String.format("Rhythm Database stats - total=%d :", size()));
 
         for (RhythmProvider rp : getRhythmProviders())
         {
+            sb.append("\n");
             var rhythms = getRhythms(rp);
 
             long nbBuiltins = rhythms.stream()
@@ -386,7 +387,7 @@ public interface RhythmDatabase
             long nbFiles = rhythms.size() - nbBuiltins;
             String firstRhythm = rhythms.isEmpty() ? "" : "first=" + rhythms.get(0).toString() + "...";
 
-            String s = String.format("  > %s: total=%d builtin=%d file=%d %s\n", rp.getInfo().getName(), rhythms.size(), nbBuiltins, nbFiles, firstRhythm);
+            String s = String.format("  > %s: total=%d builtin=%d file=%d %s", rp.getInfo().getName(), rhythms.size(), nbBuiltins, nbFiles, firstRhythm);
             sb.append(s);
         }
 

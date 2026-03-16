@@ -3,6 +3,7 @@ package org.jjazz.phrasetransform.api.rps;
 import com.google.common.base.Preconditions;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import java.text.ParseException;
 import java.util.logging.Logger;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
@@ -102,7 +103,7 @@ public class RP_SYS_DrumsTransform implements RhythmParameter<RP_SYS_DrumsTransf
     }
 
     @Override
-    public RP_SYS_DrumsTransformValue loadFromString(String s)
+    public RP_SYS_DrumsTransformValue loadFromString(String s) throws ParseException
     {
         return RP_SYS_DrumsTransformValue.loadFromString(rhythmVoice, s);
     }

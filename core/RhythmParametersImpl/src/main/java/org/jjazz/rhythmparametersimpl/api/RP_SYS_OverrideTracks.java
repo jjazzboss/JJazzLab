@@ -24,6 +24,7 @@ package org.jjazz.rhythmparametersimpl.api;
 
 import com.google.common.base.Preconditions;
 import static com.google.common.base.Preconditions.checkNotNull;
+import java.text.ParseException;
 import java.util.Objects;
 import java.util.logging.Logger;
 import org.jjazz.rhythm.api.Rhythm;

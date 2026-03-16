@@ -52,6 +52,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.TestInfo;
 
 /**
  * Integration tests for songs with multiple different rhythm instances (multi-rhythm songs).
@@ -63,8 +64,8 @@ import static org.junit.jupiter.api.Assertions.*;
  * </ul>
  * After setUp: mapTsLastRhythm = {4/4: r44bis}.
  * <p>
- * Using only two distinct source rhythms keeps the MidiMix within the 16-channel MIDI limit (2 × 6 voices = 12).
- * AdaptedRhythms reuse their source rhythm's channels and do not count toward the limit.
+ * Using only two distinct source rhythms keeps the MidiMix within the 16-channel MIDI limit (2 × 6 voices = 12). AdaptedRhythms reuse their source rhythm's
+ * channels and do not count toward the limit.
  * <p>
  * Tests verify that CLS operations (add/remove section, insert/delete bars, move section, change time signature) correctly consult mapTsLastRhythm when
  * assigning rhythms to new or modified song parts, and that existing song parts retain their rhythms when they are not directly affected. Each test also
@@ -93,8 +94,9 @@ public class SongMultiRhythmTest
     }
 
     @BeforeAll
-    public static void setUpClass()
+    public static void setUpClass(TestInfo testInfo) throws Exception
     {
+        System.out.println("\n" + testInfo.getDisplayName() + "     ########################\n");
         rdb = (DefaultRhythmDatabase) RhythmDatabase.getDefault();
         rdb.addRhythmsFromRhythmProviders(false, true, false);
         System.out.println(rdb.toStatsString());
@@ -110,8 +112,10 @@ public class SongMultiRhythmTest
      * undo listeners are registered, so the setUp operations are not undoable.
      */
     @BeforeEach
-    public void setUp() throws ParseException, UnsupportedEditException, UnavailableRhythmException
+    public void setUp(TestInfo testInfo) throws UnsupportedEditException, ParseException, UnavailableRhythmException
     {
+        System.out.println(testInfo.getDisplayName() + " ------");
+
         // CLS: 8 bars
         // bar 0: SectionA 4/4 (4 bars)
         // bar 4: SectionB 4/4 (4 bars)
@@ -136,7 +140,7 @@ public class SongMultiRhythmTest
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("Need at least 2 distinct 4/4 rhythms in the test database"));
         r44bis = rdb.getRhythmInstance(ri44bis);
-        System.out.println("r44=" + r44 + "  r44bis=" + r44bis);
+        // System.out.println("r44=" + r44 + "  r44bis=" + r44bis);
 
         // Assign r44bis to spt_B *before* any undo listeners are registered, so this change is not undoable.
         // After this call: mapTsLastRhythm = {4/4: r44bis}
@@ -223,7 +227,6 @@ public class SongMultiRhythmTest
     @Test
     public void testAddSection5_4AdaptsFromAdjacentRhythm() throws UnsupportedEditException
     {
-        System.out.println("testAddSection5_4AdaptsFromAdjacentRhythm ==");
         // Add a 5/4 section at bar 6 (within SectionB's bars 4-7).
         // No 5/4 in mapTsLastRhythm → getRecommendedRhythm looks at the song part at sptInsertionBar-1,
         // which resolves to spt_B (r44bis). The database adapts r44bis to 5/4; if that fails it falls
@@ -258,8 +261,8 @@ public class SongMultiRhythmTest
         // spt_A must be unaffected
         assertSame(r44, sgs.getSongPart(0).getRhythm(), "spt_A must remain r44");
 
-        System.out.println("sgs=");
-        System.out.println(Utilities.toMultilineString(sgs.getSongParts(), "  "));
+//        System.out.println("sgs=");
+//        System.out.println(Utilities.toMultilineString(sgs.getSongParts(), "  "));
     }
 
     // =============================================================================================

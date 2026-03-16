@@ -46,6 +46,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.TestInfo;
 import org.openide.util.Exceptions;
 
 public class ChordLeadSheetImplConcurrencyTest
@@ -74,8 +75,9 @@ public class ChordLeadSheetImplConcurrencyTest
     }
 
     @BeforeAll
-    public static void setUpClass() throws Exception
+    public static void setUpClass(TestInfo testInfo) throws Exception
     {
+        System.out.println("\n" + testInfo.getDisplayName() + "     ########################\n");
     }
 
     @AfterAll
@@ -84,8 +86,10 @@ public class ChordLeadSheetImplConcurrencyTest
     }
 
     @BeforeEach
-    public void setUp()
+    public void setUp(TestInfo testInfo) throws UnsupportedEditException, ParseException
     {
+        System.out.println(testInfo.getDisplayName() + " ------");
+
         // System.out.println("setUp()");
         undoManager = new JJazzUndoManager();
 
@@ -174,8 +178,6 @@ public class ChordLeadSheetImplConcurrencyTest
     @Timeout(50)
     public void testConcurrentDeepCopyWhileMutating() throws InterruptedException
     {
-        System.out.println("=== testConcurrentDeepCopyWhileMutating");
-        System.out.println("BEFORE cls1=" + cls1.toDebugString());
         final int DEEP_COPY_ITERATIONS = 2000;
         final int MUTATION_ITERATIONS = DEEP_COPY_ITERATIONS - 503;
         final AtomicInteger deepCopyCount = new AtomicInteger(0);
@@ -248,7 +250,7 @@ public class ChordLeadSheetImplConcurrencyTest
         readerThread.join();
         writerThread.join();
 
-        System.out.println("AFTER cls1=" + cls1.toDebugString());
+        // System.out.println("AFTER cls1=" + cls1.toDebugString());
 
         // Check for exceptions
         if (readerException.get() != null)

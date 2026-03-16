@@ -63,6 +63,7 @@ import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.event.SptAddedEvent;
 import org.jjazz.utilities.api.Utilities;
+import org.junit.jupiter.api.TestInfo;
 
 public class SongInternalUpdaterTest
 {
@@ -71,8 +72,8 @@ public class SongInternalUpdaterTest
     Song song;
     ChordLeadSheet cls1, u_cls1;
     CLI_ChordSymbol newChord;
-    CLI_Section newSection1, newSection2, newSection3;
-    CLI_Section section1, section2, section3;
+    CLI_Section newSection1_44, newSection2_34, newSection3_54;
+    CLI_Section section1_44, section2_34, section3_44;
     SongStructure sgs;
     SongStructure u_sgs;
     static DefaultRhythmDatabase rdb;
@@ -94,8 +95,9 @@ public class SongInternalUpdaterTest
     }
 
     @BeforeAll
-    public static void setUpClass() throws Exception
+    public static void setUpClass(TestInfo testInfo) throws Exception
     {
+        System.out.println("\n" + testInfo.getDisplayName() + "     ########################\n");
         rdb = (DefaultRhythmDatabase) RhythmDatabase.getDefault();
         rdb.addRhythmsFromRhythmProviders(false, false, false);
         System.out.println(rdb.toStatsString());
@@ -106,11 +108,14 @@ public class SongInternalUpdaterTest
     {
     }
 
+
     @BeforeEach
-    public void setUp()
+    public void setUp(TestInfo testInfo) throws UnsupportedEditException, ParseException
     {
+        System.out.println(testInfo.getDisplayName() + " ------");
+
         cls1 = new ChordLeadSheetImpl("Section1", TimeSignature.FOUR_FOUR, 8);
-        section1 = (CLI_SectionImpl) cls1.getSection(0);
+        section1_44 = (CLI_SectionImpl) cls1.getSection(0);
         undoManager = new JJazzUndoManager();
         try
         {
@@ -118,12 +123,12 @@ public class SongInternalUpdaterTest
             cls1.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("Dm7"), new Position(0)));
             cls1.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("F#7"), new Position(1)));
             cls1.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("Bbmaj7#5"), new Position(1, 3)));
-            section2 = new CLI_SectionImpl("Section2", TimeSignature.THREE_FOUR, 2);
-            cls1.addSection(section2);
+            section2_34 = new CLI_SectionImpl("Section2", TimeSignature.THREE_FOUR, 2);
+            cls1.addSection(section2_34);
             cls1.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("D7b9b5"), new Position(2)));
             cls1.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("FM7#11"), new Position(4, 1)));
-            section3 = new CLI_SectionImpl("Section3", TimeSignature.FOUR_FOUR, 5);
-            cls1.addSection(section3);
+            section3_44 = new CLI_SectionImpl("Section3", TimeSignature.FOUR_FOUR, 5);
+            cls1.addSection(section3_44);
             cls1.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("Eb7b9#5"), new Position(5, 0.75f)));
             cls1.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("Db"), new Position(7, 3f)));
 
@@ -135,9 +140,9 @@ public class SongInternalUpdaterTest
 
             // Extra items to play with
             newChord = new CLI_ChordSymbolImpl(ExtChordSymbol.get("A"), new Position(2, 1));
-            newSection1 = new CLI_SectionImpl("NewSECTION1", TimeSignature.FOUR_FOUR, 4);
-            newSection2 = new CLI_SectionImpl("NewSECTION2", TimeSignature.THREE_FOUR, 6);
-            newSection3 = new CLI_SectionImpl("NewSECTION3", TimeSignature.FIVE_FOUR, 7);
+            newSection1_44 = new CLI_SectionImpl("NewSECTION1", TimeSignature.FOUR_FOUR, 4);
+            newSection2_34 = new CLI_SectionImpl("NewSECTION2", TimeSignature.THREE_FOUR, 6);
+            newSection3_54 = new CLI_SectionImpl("NewSECTION3", TimeSignature.FIVE_FOUR, 7);
 
 
             // Song structure
@@ -147,7 +152,7 @@ public class SongInternalUpdaterTest
 
             sgs = song.getSongStructure();
             Rhythm r34 = sgs.getSongParts().get(1).getRhythm();
-            spt0 = sgs.createSongPart(r34, null, 8, section2, true);
+            spt0 = sgs.createSongPart(r34, null, 8, section2_34, true);
             sgs.addSongParts(List.of(spt0));
 
 
@@ -174,7 +179,7 @@ public class SongInternalUpdaterTest
     }
 
     @AfterEach
-    public void tearDown()
+    public void tearDown(TestInfo testInfo)
     {
         if (undoManager.getCurrentCEditName() == null)
         {
@@ -188,13 +193,15 @@ public class SongInternalUpdaterTest
         boolean b2 = sgs.equals(u_sgs);
         if (!b1)
         {
-            System.out.println("\nUNDO MISMATCH u_cls1=" + u_cls1.toDebugString());
-            System.out.println("cls1 after Undo ALL=" + cls1.toDebugString());
+            System.out.println("UNDO MISMATCH CLS");
+            System.out.println("  u_cls1=" + u_cls1.toDebugString());
+            System.out.println("    cls1=" + cls1.toDebugString());
         }
         if (!b2)
         {
-            System.out.println("\nUNDO MISMATCH  u_sgs=" + u_sgs);
-            System.out.println("sgs after Undo ALL =" + sgs);
+            System.out.println("UNDO MISMATCH SGS");
+            System.out.println("  u_sgs=" + u_sgs.toString());
+            System.out.println("    sgs=" + sgs.toString());
         }
         assertTrue(b1);
         assertTrue(b2);
@@ -203,16 +210,16 @@ public class SongInternalUpdaterTest
     @Test
     public void testInsertAtBar0() throws UnsupportedEditException
     {
-        System.out.println("\n============ testInsertAtBar0");
-        cls1.deleteBars(0, 1);      // So that section2, which is used by 2 song parts, becomes the init section
-        assertEquals(section2, cls1.getSection(0));
+
+        cls1.deleteBars(0, 1);      // So that section2_34, which is used by 2 song parts, becomes the init section
+        assertEquals(section2_34, cls1.getSection(0));
         assertEquals(9, sgs.getSizeInBars());
         var saveSptSection2 = sgs.getSongPart(0);
-        String saveSection2Name = section2.getData().getName();
-        var saveSection2ChordSymbols = cls1.getItems(section2, CLI_ChordSymbol.class);
+        String saveSection2Name = section2_34.getData().getName();
+        var saveSection2ChordSymbols = cls1.getItems(section2_34, CLI_ChordSymbol.class);
 
         cls1.insertBars(0, 1);
-        System.out.println(" sgs after=" + sgs);
+        // System.out.println(" sgs after=" + sgs);
 
         var s0 = cls1.getSection(0);
         var s1 = cls1.getSection(1);
@@ -231,33 +238,33 @@ public class SongInternalUpdaterTest
     @Test
     public void testAddAndRemove()
     {
-        System.out.println("\n============ Test testAddAndRemove add chord symbol");
+
         assertEquals(11, sgs.getSizeInBars());
         cls1.addItem(newChord);
-        System.out.println(" sgs after=" + sgs);
+        // System.out.println(" sgs after=" + sgs);
         assertEquals(11, sgs.getSizeInBars());
         assertEquals(3, sgs.getSongParts().get(1).getNbBars());
-        System.out.println("\n== Test testAddAndRemove add section");
+        // System.out.println("\n== Test testAddAndRemove add section");
         try
         {
-            cls1.addSection(newSection1);
+            cls1.addSection(newSection1_44);
         } catch (UnsupportedEditException ex)
         {
             Exceptions.printStackTrace(ex);
         }
-        System.out.println(" sgs after=" + sgs);
-        assertNotEquals(null, cls1.getSection(newSection1.getData().getName()));
-        assertSame(newSection1, sgs.getSongParts().get(2).getParentSection());
+        // System.out.println(" sgs after=" + sgs);
+        assertNotEquals(null, cls1.getSection(newSection1_44.getData().getName()));
+        assertSame(newSection1_44, sgs.getSongParts().get(2).getParentSection());
         assertEquals(1, sgs.getSongParts().get(2).getNbBars());
         assertEquals(2, sgs.getSongParts().get(1).getNbBars());
         assertEquals(2, sgs.getSongParts().get(4).getNbBars());
-        System.out.println("\n== Test testAddAndRemove removeSection");
+        // System.out.println("\n== Test testAddAndRemove removeSection");
         assertEquals(10, sgs.getSizeInBars());
-        cls1.removeSection(section2);
-        System.out.println(" sgs after=" + sgs);
+        cls1.removeSection(section2_34);
+        // System.out.println(" sgs after=" + sgs);
         assertEquals(8, sgs.getSizeInBars());
         assertEquals(3, sgs.getSongParts().size());
-        assertNotSame(section2, sgs.getSongParts().get(1).getParentSection());
+        assertNotSame(section2_34, sgs.getSongParts().get(1).getParentSection());
         assertEquals(4, sgs.getSongParts().get(1).getStartBarIndex());
         assertEquals(5, sgs.getSongParts().get(2).getStartBarIndex());
     }
@@ -265,59 +272,59 @@ public class SongInternalUpdaterTest
     @Test
     public void testAdd2()
     {
-        System.out.println("\n============ testAdd2");
+
         assertTrue(sgs.getSizeInBars() == 11);
         sgs.removeSongParts(List.of(sgs.getSongParts().get(1)));
-        System.out.println(" sgs after(1)=" + sgs);
+        // System.out.println(" sgs after(1)=" + sgs);
         try
         {
-            cls1.addSection(newSection1);
+            cls1.addSection(newSection1_44);
         } catch (UnsupportedEditException ex)
         {
             Exceptions.printStackTrace(ex);
         }
-        System.out.println(" sgs after(2)=" + sgs);
+        // System.out.println(" sgs after(2)=" + sgs);
         assertEquals(8, sgs.getSizeInBars());
-        assertSame(newSection1, sgs.getSongParts().get(3).getParentSection());
+        assertSame(newSection1_44, sgs.getSongParts().get(3).getParentSection());
         assertEquals(7, sgs.getSongParts().get(3).getStartBarIndex());
     }
 
     @Test
     public void testAdd3()
     {
-        System.out.println("\n============ testAdd3 after absent section");
+
         assertTrue(sgs.getSizeInBars() == 11);
         sgs.removeSongParts(List.of(sgs.getSongParts().get(2)));
-        System.out.println(" sgs after(1)=" + sgs);
+        // System.out.println(" sgs after(1)=" + sgs);
         try
         {
-            cls1.addSection(newSection2);
+            cls1.addSection(newSection2_34);
         } catch (UnsupportedEditException ex)
         {
             Exceptions.printStackTrace(ex);
         }
-        System.out.println(" sgs after(2)=" + sgs);
+        // System.out.println(" sgs after(2)=" + sgs);
         assertEquals(10, sgs.getSizeInBars());
-        assertSame(newSection2, sgs.getSongParts().get(3).getParentSection());
+        assertSame(newSection2_34, sgs.getSongParts().get(3).getParentSection());
         assertEquals(8, sgs.getSongParts().get(3).getStartBarIndex());
     }
 
     @Test
     public void testAddAdaptedRhythm()
     {
-        System.out.println("\n============ testAddAdaptedRhythm add section with new time signature => adapted rhythm");
+
         assertTrue(sgs.getSizeInBars() == 11);
         try
         {
-            cls1.addSection(newSection3);
+            cls1.addSection(newSection3_54);
         } catch (UnsupportedEditException ex)
         {
             Exceptions.printStackTrace(ex);
         }
         // System.out.println("rdb=" + RhythmDatabase.getDefault().toString());
-        System.out.println(" sgs after(1)=" + Utilities.toMultilineString(sgs.getSongParts()));
+        // System.out.println(" sgs after(1)=" + Utilities.toMultilineString(sgs.getSongParts()));
         assertTrue(sgs.getSizeInBars() == 11);
-        assertTrue(sgs.getSongParts().get(3).getParentSection() == newSection3);
+        assertTrue(sgs.getSongParts().get(3).getParentSection() == newSection3_54);
         Rhythm r = sgs.getSongParts().get(3).getRhythm();
         assertTrue(r instanceof AdaptedRhythm);
         assertTrue(((AdaptedRhythm) r).getSourceRhythm() == sgs.getSongParts().get(2).getRhythm());
@@ -326,16 +333,14 @@ public class SongInternalUpdaterTest
     @Test
     public void testChangeTimeSignature()
     {
-        System.out.println("\n============ testChangeTimeSignature");
-
         try
         {
-            cls1.setSectionTimeSignature(section2, TimeSignature.FOUR_FOUR);
+            cls1.setSectionTimeSignature(section2_34, TimeSignature.FOUR_FOUR);
         } catch (UnsupportedEditException ex)
         {
             Exceptions.printStackTrace(ex);
         }
-        System.out.println(" sgs after=" + sgs);
+        // System.out.println(" sgs after=" + Utilities.toMultilineString(sgs.getSongParts()));
         assertSame(TimeSignature.FOUR_FOUR, sgs.getSongParts().get(1).getRhythm().getTimeSignature());
         undoManager.endCEdit(UT_EDIT_NAME);
         undoManager.undo();
@@ -348,15 +353,14 @@ public class SongInternalUpdaterTest
     @Test
     public void testRhythmDivisionChange() throws ParseException, UnsupportedEditException, UnavailableRhythmException
     {
-        System.out.println("\n============ testRhythmDivisionChange");
 
 
-//            section3 = new CLI_SectionImpl("Section3", TimeSignature.FOUR_FOUR, 5);
-//            cls1.addSection(section3);
+//            section3_44 = new CLI_SectionImpl("Section3", TimeSignature.FOUR_FOUR, 5);
+//            cls1.addSection(section3_44);
 //            cls1.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("Eb7b9#5"), new Position(5, 0.75f)));
 //            cls1.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("Db"), new Position(7, 3f)));
         var spt = sgs.getSongPart(5);
-        assertSame(section3, spt.getParentSection());       // Section 4/4 bar 5
+        assertSame(section3_44, spt.getParentSection());       // Section 4/4 bar 5
         var rBinary = spt.getRhythm();
         assertTrue(rBinary.getFeatures().division().isBinary());
         Rhythm rTernary = getRhythm(TimeSignature.FOUR_FOUR, Division.EIGHTH_SHUFFLE);
@@ -395,30 +399,30 @@ public class SongInternalUpdaterTest
         undoManager.undo();
         undoManager.startCEdit(UT_EDIT_NAME);
 
-        System.out.println(" sgs after=" + sgs);
+        // System.out.println(" sgs after=" + sgs);
     }
 
 
     @Test
     public void testChangeTimeSignaturePlusDivisionChange() throws UnavailableRhythmException, UnsupportedEditException
     {
-        System.out.println("\n============ testChangeTimeSignaturePlusDivisionChange");
+
 
         // spt0 (bar 8, r34) must be removed first: with 6-voice rhythms, having r44+r34+rWaltzSwing would exceed the 16-channel MIDI limit.
         sgs.removeSongParts(List.of(spt0));
 
         var rWaltzSwing = getRhythm(TimeSignature.THREE_FOUR, Division.EIGHTH_SHUFFLE);
 
-        // Use waltz swing for the existing 3/4 section, so that changing section3 to 3/4 will reuse the same rhythm
+        // Use waltz swing for the existing 3/4 section, so that changing section3_44 to 3/4 will reuse the same rhythm
         var spt = sgs.getSongParts().get(1);
         sgs.setSongPartsRhythm(List.of(spt), rWaltzSwing, null);
 
 
         var chord1 = cls1.getBarFirstItem(5, CLI_ChordSymbol.class, cli -> true);   // bar 5 beat 0.75
-        // Now we can change section3, it should switch also to rWaltzSwing, then adjust position of chord1
+        // Now we can change section3_44, it should switch also to rWaltzSwing, then adjust position of chord1
         try
         {
-            cls1.setSectionTimeSignature(section3, TimeSignature.THREE_FOUR);
+            cls1.setSectionTimeSignature(section3_44, TimeSignature.THREE_FOUR);
         } catch (UnsupportedEditException ex)
         {
             Exceptions.printStackTrace(ex);
@@ -427,15 +431,15 @@ public class SongInternalUpdaterTest
         assertSame(rWaltzSwing, sgs.getSongParts().get(2).getRhythm());
         assertEquals(0.666f, chord1.getPosition().getBeat(), 0.001f);
 
-        System.out.println(" sgs after=" + sgs);
+        // System.out.println(" sgs after=" + sgs);
     }
 
     @Test
     public void testMoveSection()
     {
-        System.out.println("\n============ testMoveSection");
-        cls1.moveSection(section2, 1);
-        System.out.println(" sgs after=" + sgs);
+
+        cls1.moveSection(section2_34, 1);
+        // System.out.println(" sgs after=" + sgs);
         assertTrue(sgs.getSongParts().get(1).getStartBarIndex() == 1);
         assertTrue(sgs.getSongParts().get(1).getNbBars() == 4);
         assertTrue(sgs.getSongParts().get(3).getNbBars() == 4);
@@ -444,13 +448,13 @@ public class SongInternalUpdaterTest
     @Test
     public void testMoveSectionBig()
     {
-        System.out.println("\n============ testMoveSectionBig");
+
         var lastChord = cls1.getItems(CLI_ChordSymbol.class).getLast();
         assertEquals(3, lastChord.getPosition().getBeat());
 
-        cls1.moveSection(section2, 6);
-        System.out.println(" sgs after=" + sgs);
-        assertEquals(6, section2.getPosition().getBar());
+        cls1.moveSection(section2_34, 6);
+        // System.out.println(" sgs after=" + sgs);
+        assertEquals(6, section2_34.getPosition().getBar());
         assertEquals(2, lastChord.getPosition().getBeat(), "chord symbol was beat 3 in 4/4, now we're in 3/4");
 
         assertTrue(sgs.getSongParts().size() == 3);
@@ -462,9 +466,9 @@ public class SongInternalUpdaterTest
     @Test
     public void testResize()
     {
-        System.out.println("\n============ TestResize");
+
         cls1.setSizeInBars(10);
-        System.out.println(" sgs after=" + sgs);
+        // System.out.println(" sgs after=" + sgs);
         assertTrue(sgs.getSizeInBars() == 13);
         assertTrue(sgs.getSongParts().get(2).getNbBars() == 5);
         assertTrue(sgs.getSongParts().get(3).getStartBarIndex() == 10);
@@ -473,22 +477,22 @@ public class SongInternalUpdaterTest
     @Test
     public void testRemoveSection()
     {
-        System.out.println("\n============ Test testRemoveOneSection");
-        cls1.removeSection(section2);
-        System.out.println(" sgs after=" + sgs);
+
+        cls1.removeSection(section2_34);
+        // System.out.println(" sgs after=" + sgs);
         assertTrue(sgs.getSongParts().size() == 2);
         assertTrue(sgs.getSongParts().get(0).getNbBars() == 5);
-        assertTrue(sgs.getSongParts().get(1).getParentSection() == section3);
+        assertTrue(sgs.getSongParts().get(1).getParentSection() == section3_44);
         assertTrue(sgs.getSizeInBars() == 8);
     }
 
     @Test
     public void testRemoveBars()
     {
-        System.out.println("\n============ testRemoveBars");
+
         cls1.deleteBars(4, 5);
-        System.out.println(" cls1 after=" + cls1.toDebugString());
-        System.out.println(" sgs after=" + sgs);
+        // System.out.println(" cls1 after=" + cls1.toDebugString());
+        // System.out.println(" sgs after=" + sgs);
         assertTrue(sgs.getSizeInBars() == 10);
         assertTrue(sgs.getSongParts().get(1).getNbBars() == 4);
         assertTrue(sgs.getSongParts().get(2).getStartBarIndex() == 6);
@@ -498,7 +502,7 @@ public class SongInternalUpdaterTest
     @Test
     public void testRemoveInitialBarWithSectionOnBar1()
     {
-        System.out.println("\n============ testRemoveInitialBarWithSectionOnBar1");
+
         CLI_Section newSection = new CLI_SectionImpl("NewSection", TimeSignature.THREE_FOUR, 1);
         try
         {
@@ -512,8 +516,8 @@ public class SongInternalUpdaterTest
         {
             Exceptions.printStackTrace(ex);
         }
-        System.out.println(" cls1 after=" + cls1.toDebugString());
-        System.out.println(" sgs after=" + sgs);
+        // System.out.println(" cls1 after=" + cls1.toDebugString());
+        // System.out.println(" sgs after=" + sgs);
         assertTrue(sgs.getSongParts().size() == 4 && sgs.getSizeInBars() == 10);
         assertTrue(sgs.getSongParts().get(0).getParentSection() == newSection);
     }
@@ -521,18 +525,18 @@ public class SongInternalUpdaterTest
     @Test
     public void testRemoveAdaptedRhythm()
     {
-        System.out.println("\n============ testRemoveAdaptedRhythm");
+
         try
         {
-            cls1.addSection(newSection3);
+            cls1.addSection(newSection3_54);
         } catch (UnsupportedEditException ex)
         {
             Exceptions.printStackTrace(ex);
         }
         assertTrue(sgs.getSongParts().size() == 5);
         cls1.deleteBars(6, 7);
-        System.out.println(" cls1 after=" + cls1.toDebugString());
-        System.out.println(" sgs after=" + sgs);
+        // System.out.println(" cls1 after=" + cls1.toDebugString());
+        // System.out.println(" sgs after=" + sgs);
         assertTrue(sgs.getSongParts().size() == 4);
         assertTrue(sgs.getSongParts().get(2).getNbBars() == 1);
     }
@@ -540,7 +544,7 @@ public class SongInternalUpdaterTest
     @Test
     public void testUserPhraseAddRemoveUpdatesMidiMixUserChannel() throws UnsupportedEditException
     {
-        System.out.println("\n============ testUserPhraseAddRemoveUpdatesMidiMixUserChannel");
+
         MidiMix midiMix = MidiMixManager.getDefault().findMix(song);
 
         String name = "phrase1";
@@ -556,7 +560,7 @@ public class SongInternalUpdaterTest
     @Test
     public void testUserPhraseRenameUpdatesMidiMixUserChannel() throws UnsupportedEditException
     {
-        System.out.println("\n============ testUserPhraseRenameUpdatesMidiMixUserChannel");
+
         MidiMix midiMix = MidiMixManager.getDefault().findMix(song);
 
         String oldName = "phrase1";
@@ -578,7 +582,7 @@ public class SongInternalUpdaterTest
     @Test
     public void testUserPhrasePreCheckVetoesIfNoMidiChannelAvailable() throws UnsupportedEditException
     {
-        System.out.println("\n============ testUserPhrasePreCheckVetoesIfNoMidiChannelAvailable");
+
         MidiMix midiMix = MidiMixManager.getDefault().findMix(song);
 
         int i = 0;
@@ -593,7 +597,7 @@ public class SongInternalUpdaterTest
     @Test
     public void testUserPhrasePreCheckVetoesIfSameNameUserChannelExists() throws UnsupportedEditException
     {
-        System.out.println("\n============ testUserPhrasePreCheckVetoesIfSameNameUserChannelExists");
+
         MidiMix midiMix = MidiMixManager.getDefault().findMix(song);
 
         midiMix.addUserChannel("phrase1", false);
@@ -603,12 +607,12 @@ public class SongInternalUpdaterTest
     @Test
     public void testSptAddedAndRemovedUpdatesMidiMixRhythms() throws UnavailableRhythmException, UnsupportedEditException
     {
-        System.out.println("\n============ testSptAddedAndRemovedUpdatesMidiMixRhythms");
+
         MidiMix midiMix = MidiMixManager.getDefault().findMix(song);
 
         // With 6-voice rhythms, r44(6)+r34(6)=12 channels leaves only 4 free — not enough to add a new 6-voice rhythm.
         // Remove both r34 song parts so the MidiMix has only r44 (6 channels), giving 10 free slots.
-        var sptSection2 = sgs.getSongParts().get(1);  // section2 spt at bar 2 (r34)
+        var sptSection2 = sgs.getSongParts().get(1);  // section2_34 spt at bar 2 (r34)
         sgs.removeSongParts(List.of(sptSection2));
         sgs.removeSongParts(List.of(spt0));           // spt0 also uses r34 (bar index shifted after previous removal)
 
@@ -617,7 +621,7 @@ public class SongInternalUpdaterTest
         Rhythm newRhythm = findAdditionalRhythm(TimeSignature.FOUR_FOUR, midiMix);
         assertFalse(midiMix.getUniqueRhythms().contains(newRhythm));
 
-        SongPart sptNew = sgs.createSongPart(newRhythm, null, sgs.getSizeInBars(), section1, true);
+        SongPart sptNew = sgs.createSongPart(newRhythm, null, sgs.getSizeInBars(), section1_44, true);
         sgs.addSongParts(List.of(sptNew));
         assertTrue(midiMix.getUniqueRhythms().contains(newRhythm));
 
@@ -628,7 +632,7 @@ public class SongInternalUpdaterTest
     @Test
     public void testGetDerivedOperationsNoForwardDuringUndoRedo()
     {
-        System.out.println("\n============ testGetDerivedOperationsNoForwardDuringUndoRedo");
+
         SongInternalUpdater updater = new SongInternalUpdater(song);
 
         SongPropertyChangeEvent evt = new SongPropertyChangeEvent(song, Song.PROP_USER_PHRASE, new Phrase(0), "phrase1");
@@ -651,18 +655,18 @@ public class SongInternalUpdaterTest
     @Test
     public void testReplaceSectionSameBarRenamesOnlyDefaultNamedSongParts() throws UnsupportedEditException
     {
-        System.out.println("\n============ testReplaceSectionSameBarRenamesOnlyDefaultNamedSongParts");
-        var sptsSection2 = sgs.getSongParts(spt -> spt.getParentSection() == section2);
+
+        var sptsSection2 = sgs.getSongParts(spt -> spt.getParentSection() == section2_34);
         assertFalse(sptsSection2.isEmpty());
 
         SongPart customizedSpt = sptsSection2.get(0);
         sgs.setSongPartsName(List.of(customizedSpt), "custom");
 
-        CLI_Section replaced = new CLI_SectionImpl("ReplacedSection2", TimeSignature.THREE_FOUR, section2.getPosition().getBar());
+        CLI_Section replaced = new CLI_SectionImpl("ReplacedSection2", TimeSignature.THREE_FOUR, section2_34.getPosition().getBar());
         cls1.addSection(replaced);
 
-        assertSame(replaced, cls1.getSection(section2.getPosition().getBar()));
-        assertTrue(sgs.getSongParts(spt -> spt.getParentSection() == section2).isEmpty());
+        assertSame(replaced, cls1.getSection(section2_34.getPosition().getBar()));
+        assertTrue(sgs.getSongParts(spt -> spt.getParentSection() == section2_34).isEmpty());
 
         var newParentSpts = sgs.getSongParts(spt -> spt.getParentSection() == replaced);
         assertEquals(sptsSection2.size(), newParentSpts.size());

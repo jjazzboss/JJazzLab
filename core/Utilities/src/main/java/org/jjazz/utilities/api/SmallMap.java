@@ -30,18 +30,16 @@ import java.util.*;
  *
  * @param <K>
  * @param <V>
- * @deprecated
  */
 public class SmallMap<K, V> implements Serializable
 {
-
     private static final long serialVersionUID = 7816259002201L;
     private final int VERSION = 1;
     protected List<K> keys = new ArrayList<>();
     protected List<V> values = new ArrayList<>();
 
     /**
-     * Create an empty SillyMap.
+     * Create an empty SmallMap.
      */
     public SmallMap()
     {
@@ -49,7 +47,7 @@ public class SmallMap<K, V> implements Serializable
     }
 
     /**
-     * Create a SillyMap initialized with a single key/value pair.
+     * Create a SmallMap initialized with a single key/value pair.
      *
      * @param key
      * @param value
@@ -185,11 +183,11 @@ public class SmallMap<K, V> implements Serializable
     @Override
     public String toString()
     {
-        StringBuilder sb = new StringBuilder();
+        StringJoiner joiner = new StringJoiner(",", "{", "}");
         for (K key : keys)
         {
-            sb.append("[").append(key).append("]=").append(getValue(key)).append(" ");
+            joiner.add("["+key+"]="+Objects.toString(getValue(key)));
         }
-        return sb.toString();
+        return joiner.toString();
     }
 }

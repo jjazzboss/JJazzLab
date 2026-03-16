@@ -41,7 +41,7 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
 import org.jjazz.rhythmdatabase.api.DefaultRhythmDatabase;
-import org.jjazz.rhythmdatabase.api.RhythmDatabase;
+import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.song.SongImpl;
 import org.jjazz.song.api.SongPropertyChangeEvent;
 import org.jjazz.song.spi.SongFactory;
@@ -57,6 +57,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 import static org.junit.jupiter.api.Assertions.*;
+import org.openide.util.Exceptions;
+import org.openide.util.NbPreferences;
 
 public class MidiMixImplTest
 {
@@ -66,9 +68,13 @@ public class MidiMixImplTest
     SongImpl song;
     ChordLeadSheet cls;
     SongStructure sgs;
+    Rhythm r44sgs;
+    /**
+     * All 4/4 rhythms sorted by decrescending number of rhythm voices.
+     */
+    static List<Rhythm> r44s;
     static DefaultRhythmDatabase rdb;
     JJazzUndoManager undoManager;
-    private TestInfo testInfo;
     private List<RhythmVoice> baselineRhythmVoices;
 
     static
@@ -78,11 +84,28 @@ public class MidiMixImplTest
     }
 
     @BeforeAll
-    public static void setUpClass() throws Exception
+    public static void setUpClass(TestInfo testInfo) throws Exception
     {
-        rdb = (DefaultRhythmDatabase) RhythmDatabase.getDefault();
+        System.out.println("\n" + testInfo.getDisplayName() + "     ########################\n");
+        rdb = DefaultRhythmDatabase.getInstance(NbPreferences.forModule(MidiMixImplTest.class));
         rdb.addRhythmsFromRhythmProviders(false, true, false);
         System.out.println(rdb.toStatsString());
+        assert !rdb.getRhythms().isEmpty();
+
+        r44s = new ArrayList<>();
+        var ri44s = rdb.getRhythms(TimeSignature.FOUR_FOUR);
+        ri44s.sort((ri1, ri2) -> Integer.compare(ri2.rvInfos().size(), ri1.rvInfos().size()));
+        for (var ri44 : ri44s)
+        {
+            try
+            {
+                r44s.add(rdb.getRhythmInstance(ri44));
+            } catch (UnavailableRhythmException ex)
+            {
+                Exceptions.printStackTrace(ex);
+                assert false;
+            }
+        }
     }
 
     @AfterAll
@@ -93,13 +116,13 @@ public class MidiMixImplTest
     @BeforeEach
     public void setUp(TestInfo testInfo) throws UnsupportedEditException, ParseException
     {
-        this.testInfo = testInfo;
-
+        System.out.println(testInfo.getDisplayName() + " ------");
 
         var sf = SongFactory.getDefault();
         cls = new ChordLeadSheetImpl("section1", TimeSignature.FOUR_FOUR, 12);
         sgs = sf.createSongStructure(cls);
         song = (SongImpl) sf.createSong("Test-Song", sgs);      // No user phrase
+        r44sgs = sgs.getSongPart(0).getRhythm();
 
         midiMix = (MidiMixImpl) MidiMixManager.getDefault().findMix(song);
         baselineRhythmVoices = midiMix.getRhythmVoices();
@@ -164,17 +187,50 @@ public class MidiMixImplTest
         assertEquals(expectedNbVoices, midiMix.getUsedChannels(r).size(), "Unexpected number of used channels for rhythm");
     }
 
+    @Test
+    public void testAddRhythmWithNotEnoughMidiChannels() throws Exception
+    {
+        var events = new ArrayList<PropertyChangeEvent>();
+        midiMix.addPropertyChangeListener(events::add);
+
+        int count = 0;
+        for (var r : r44s)
+        {
+            if (r == r44sgs)
+            {
+                continue;
+            }
+            if (midiMix.getUnusedChannels().size() < r.getRhythmVoices().size())
+            {
+                assertThrows(UnsupportedEditException.class, () -> midiMix.addRhythm(r));
+                break;
+            } else
+            {
+                midiMix.addRhythm(r);
+                count++;
+            }
+        }
+
+        var mixEvents = events.stream()
+                .filter(e -> MidiMix.PROP_CHANNEL_INSTRUMENT_MIXES.equals(e.getPropertyName()))
+                .toList();
+
+        assertEquals(count, mixEvents.size());
+    }
+
 
     @Test
     public void testAddRhythm_UndoRedo_FiresPropChannelInstrumentMixes() throws Exception
     {
         var events = new ArrayList<PropertyChangeEvent>();
         midiMix.addPropertyChangeListener(events::add);
+        // System.out.println("   midiMix before=" + midiMix.toDumpString());
 
-        var r = getTestRhythm(2);
+        var r = r44s.getLast();
         var expectedNbVoices = r.getRhythmVoices().size();
 
         midiMix.addRhythm(r);
+        // System.out.println("   midiMix after=" + midiMix.toDumpString());
 
         // Close compound edit so undo/redo works
         undoManager.endCEdit(UNDO_EDIT);

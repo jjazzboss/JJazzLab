@@ -22,6 +22,7 @@
  */
 package org.jjazz.rhythm.api;
 
+import java.text.ParseException;
 import java.util.List;
 
 /**
@@ -104,10 +105,11 @@ public interface RhythmParameter<E>
      * Try to convert the specified string to a RhythmParameter value.
      *
      * @param s A string produced by valueToString().
-     * @return Can be null if conversion failed.
+     * @return 
+     * @throws java.text.ParseException
      * @see saveAsString(E)
      */
-    E loadFromString(String s);
+    E loadFromString(String s) throws ParseException;
 
     /**
      * @param value

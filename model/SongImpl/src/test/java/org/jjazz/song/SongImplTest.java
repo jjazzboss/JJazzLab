@@ -68,8 +68,9 @@ public class SongImplTest
     }
 
     @BeforeAll
-    public static void setUpClass() throws Exception
+    public static void setUpClass(TestInfo testInfo) throws Exception
     {
+        System.out.println("\n" + testInfo.getDisplayName() + "     ########################\n");
         rdb = (DefaultRhythmDatabase) RhythmDatabase.getDefault();
         rdb.addRhythmsFromRhythmProviders(false, true, false);
         System.out.println(rdb.toStatsString());
@@ -83,7 +84,7 @@ public class SongImplTest
     @BeforeEach
     public void setUp(TestInfo testInfo) throws UnsupportedEditException, ParseException
     {
-        this.testInfo = testInfo;
+        System.out.println(testInfo.getDisplayName() + " ------");
 
 
         var sf = SongFactory.getDefault();
@@ -243,13 +244,10 @@ public class SongImplTest
         assertEquals("phrase1", modifyEvent.getNewValue());
     }
 
-    
-    
-    
+
     // =========================================================================================================
     // Helper methods
     // =========================================================================================================
-
     private void redoAll()
     {
         while (undoManager.canRedo())

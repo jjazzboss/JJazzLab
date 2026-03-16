@@ -33,6 +33,7 @@ import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
+import java.text.ParseException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Objects;
@@ -62,6 +63,7 @@ import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_LOAD;
 import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_SAVE;
 import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_LOAD;
 import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_SAVE;
+import org.openide.util.Exceptions;
 import org.openide.util.lookup.ServiceProvider;
 
 
@@ -208,6 +210,9 @@ public class SongPartImpl implements SongPart, Serializable
         record TmpRecord(int start, int nbBars, String name, Rhythm rhythm, CLI_Section section, SmallMap<RhythmParameter<?>, Object> map)
                 {
 
+            /**
+             * Use identity equality for rhythm and section, equals() for other parameters.
+             */
             @Override
             public boolean equals(Object obj)
             {
@@ -774,28 +779,25 @@ public class SongPartImpl implements SongPart, Serializable
             String errRhythm = null;
             RhythmDatabase rdb = RhythmDatabase.getDefault();
             Rhythm r;
-            int rhythmIsUnavailable; // 0=available, 1=first time unavailable, 2=was already marked unavailable
+            boolean firstUnavailableOccurrence = false;
 
             try
             {
                 r = rdb.getRhythmInstance(spRhythmId);      // throws UnavailableRhythmException
-                rhythmIsUnavailable = 0;
                 saveUnavailableRhythmIds.remove(spRhythmId);    // Rhythm is now available
 
             } catch (UnavailableRhythmException ex1)
             {
                 // Problem ! The saved rhythm does not exist on the system, need to find another one
+                firstUnavailableOccurrence = saveUnavailableRhythmIds.add(spRhythmId);
 
-                rhythmIsUnavailable = saveUnavailableRhythmIds.add(spRhythmId) ? 1 : 2;
-
-                if (rhythmIsUnavailable == 1)
+                if (firstUnavailableOccurrence)
                 {
-                    LOGGER.log(Level.WARNING, "readResolve() spt={0}[{1}] Could not get rhythm instance for rhythm id={2}. ex1={3}", new Object[]
+                    LOGGER.log(Level.FINE, "readResolve() spt={0}[{1}] Could not find rhythm instance for id={2}.", new Object[]
                     {
                         spName,
                         spStartBarIndex,
-                        spRhythmId,
-                        ex1.getMessage()
+                        spRhythmId
                     });
                 }
 
@@ -814,15 +816,26 @@ public class SongPartImpl implements SongPart, Serializable
                 }
                 try
                 {
-                    LOGGER.log(Level.INFO, "readResolve() Using {0} as replacement", ri.name());
                     r = rdb.getRhythmInstance(ri);
+                    if (firstUnavailableOccurrence)
+                    {
+                        LOGGER.log(Level.WARNING, "readResolve() Using {0} as replacement for id={1} (some rhythm parameter values might be lost)", new Object[]
+                        {
+                            ri.name(), spRhythmId
+                        });
+                    }
                 } catch (UnavailableRhythmException ex2)
                 {
-                    LOGGER.log(Level.WARNING, "readResolve() Could not get rhythm instance for {0}. ex2={1}", new Object[]
+                    LOGGER.log(Level.SEVERE, "readResolve() Could not get rhythm instance of {0}, the replacement rhythm for id={1}.", new Object[]
                     {
-                        ri, ex2.getMessage()
+                        ri, spRhythmId
                     });
                     r = rdb.getDefaultStubRhythmInstance(spRhythmTs);    // Can't be null
+                    assert r != null;
+                    LOGGER.log(Level.WARNING, "readResolve() Using {0} as replacement for id={1} (some rhythm parameter values might be lost)", new Object[]
+                    {
+                        ri.name(), spRhythmId
+                    });
                 }
                 errRhythm = ResUtil.getString(getClass(), "ERR_RhythmNotFound") + ": " + spRhythmName + ". "
                         + ResUtil.getString(getClass(), "ERR_UsingReplacementRhythm") + ": " + r.getName();
@@ -861,14 +874,20 @@ public class SongPartImpl implements SongPart, Serializable
                     String savedRpStringValue = spHashMapRpIdValue.get(rpId);
                     if (savedRpStringValue != null)
                     {
-                        newValue = newRp.loadFromString(savedRpStringValue);      // newValue can still be null after this
+                        try
+                        {
+                            newValue = newRp.loadFromString(savedRpStringValue);      // throws ParseException
+                        } catch (ParseException ex)
+                        {
+                            // Nothing
+                        }
                     }
 
                     if (newValue == null)
                     {
-                        if (rhythmIsUnavailable == 1)
+                        if (firstUnavailableOccurrence)
                         {
-                            LOGGER.log(Level.WARNING,
+                            LOGGER.log(Level.FINE,
                                     "readResolve() Could not restore value of rhythm parameter {0} from savedRpStringValue=''{1}''. Using default value instead.",
                                     new Object[]
                                     {
@@ -880,13 +899,12 @@ public class SongPartImpl implements SongPart, Serializable
                     }
 
                     // Assign the value
-
                     newSpt.setRPValue(newRp, newValue);
 
-                } else if (rhythmIsUnavailable == 1)
+                } else if (firstUnavailableOccurrence)
                 {
-                    String msg = "readResolve() Saved rhythm parameter " + rpId + " not found in rhythm " + r.getName();
-                    LOGGER.log(Level.WARNING, msg);
+                    String msg = "readResolve() rhythm parameter " + rpId + " not found in rhythm " + r.getName();
+                    LOGGER.log(Level.FINE, msg);
                 }
             }
 
@@ -904,13 +922,11 @@ public class SongPartImpl implements SongPart, Serializable
             }
 
 
-            if (rhythmIsUnavailable == 1)
+            if (firstUnavailableOccurrence)
             {
-                LOGGER.warning(errRhythm);
-                LOGGER.log(Level.WARNING, "Warnings for missing {0} are turned off from now on", spRhythmName);
+                assert errRhythm != null;
                 NotifyDescriptor nd = new NotifyDescriptor.Message(errRhythm, NotifyDescriptor.WARNING_MESSAGE);
                 DialogDisplayer.getDefault().notify(nd);
-                saveUnavailableRhythmIds.add(spRhythmId);
             }
 
             return newSpt;

@@ -87,15 +87,9 @@ public class RP_SYS_CustomPhrase implements RhythmParameter<RP_SYS_CustomPhraseV
     }
 
     @Override
-    public RP_SYS_CustomPhraseValue loadFromString(String s)
+    public RP_SYS_CustomPhraseValue loadFromString(String s) throws ParseException
     {
-        try
-        {
-            return RP_SYS_CustomPhraseValue.loadFromString(rhythm, s);
-        } catch (ParseException ex)
-        {
-            return null;
-        }
+        return RP_SYS_CustomPhraseValue.loadFromString(rhythm, s);
     }
 
     @Override

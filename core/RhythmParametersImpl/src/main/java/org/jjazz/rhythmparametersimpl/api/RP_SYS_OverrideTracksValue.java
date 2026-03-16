@@ -26,6 +26,7 @@ package org.jjazz.rhythmparametersimpl.api;
 
 import com.google.common.base.Preconditions;
 import static com.google.common.base.Preconditions.checkNotNull;
+import java.text.ParseException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -152,6 +153,46 @@ public class RP_SYS_OverrideTracksValue
     }
 
 
+    /**
+     * RhythmParameter value classes must have equals()/hashCode() defined.
+     *
+     * @param obj
+     * @return
+     */
+    @java.lang.Override
+    public boolean equals(Object obj)
+    {
+        if (this == obj)
+        {
+            return true;
+        }
+        if (obj == null)
+        {
+            return false;
+        }
+        if (getClass() != obj.getClass())
+        {
+            return false;
+        }
+        final RP_SYS_OverrideTracksValue other = (RP_SYS_OverrideTracksValue) obj;
+        if (this.baseRhythm != other.baseRhythm)
+        {
+            return false;
+        }
+        boolean res = Objects.equals(this.mapRvOverride, other.mapRvOverride);
+        return res;
+    }
+
+    @java.lang.Override
+    public int hashCode()
+    {
+        int hash = 5;
+        hash = 79 * hash + Objects.hashCode(this.mapRvOverride);
+        hash = 79 * hash + Objects.hashCode(this.baseRhythm);
+        return hash;
+    }
+
+
     public Rhythm getBaseRhythm()
     {
         return baseRhythm;
@@ -256,7 +297,7 @@ public class RP_SYS_OverrideTracksValue
      * @return Can not be null. If an error occured, returns the default value
      * @see #saveAsString(org.jjazz.rhythmmusicgeneration.api.RP_SYS_OverrideTracksValue)
      */
-    static public RP_SYS_OverrideTracksValue loadFromString(Rhythm baseRhythm, String s)
+    static public RP_SYS_OverrideTracksValue loadFromString(Rhythm baseRhythm, String s) 
     {
         checkNotNull(baseRhythm);
         checkNotNull(s);
