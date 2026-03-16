@@ -24,7 +24,6 @@
  */
 package org.jjazz.midi.api.sequencer;
 
-import java.security.AccessController;
 
 /**
  * Printer allows you to set up global debugging status and print messages accordingly.
@@ -78,7 +77,7 @@ final class Printer
         String prepend = "";
         if (SHOW_THREADID)
         {
-            prepend = "thread " + Thread.currentThread().getId() + " " + prepend;
+            prepend = "thread " + Thread.currentThread().getName() + " " + prepend;
         }
         if (SHOW_TIMESTAMP)
         {

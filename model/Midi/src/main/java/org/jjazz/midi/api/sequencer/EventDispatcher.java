@@ -35,7 +35,9 @@ import javax.sound.sampled.LineEvent;
 import javax.sound.sampled.LineListener;
 
 /**
- * EventDispatcher. Used by various classes in the Java Sound implementation to send events.
+ * EventDispatcher.
+ * <p>
+ * Used by various classes in the Java Sound implementation to send events.
  *
  * @author David Rivas
  * @author Kara Kytle
@@ -79,14 +81,11 @@ final class EventDispatcher implements Runnable
      */
     synchronized void start()
     {
-
         if (thread == null)
         {
-            thread = JSSecurityManager.createThread(this,
-                    "Java Sound Event Dispatcher", // name
-                    true, // daemon
-                    -1, // priority
-                    true); // doStart
+            thread = new Thread(this, "JJazzLab-EventDispatcher");
+            thread.setDaemon(true);
+            thread.start();
         }
     }
 
@@ -168,9 +167,9 @@ final class EventDispatcher implements Runnable
     }
 
     /**
-     * Wait until there is something in the event queue to process. Then dispatch the event to the listeners.The entire method
-     * does not need to be synchronized since this includes taking the event out from the queue and processing the event. We only
-     * need to provide exclusive access over the code where an event is removed from the queue.
+     * Wait until there is something in the event queue to process. Then dispatch the event to the listeners.The entire method does not need to be synchronized
+     * since this includes taking the event out from the queue and processing the event. We only need to provide exclusive access over the code where an event
+     * is removed from the queue.
      */
     void dispatchEvents()
     {
@@ -428,7 +427,7 @@ final class EventDispatcher implements Runnable
         /**
          * Create a new instance of this event Info class
          *
-         * @param event the event to be dispatched
+         * @param event     the event to be dispatched
          * @param listeners listener list; will be copied
          */
         EventInfo(Object event, List<Object> listeners)

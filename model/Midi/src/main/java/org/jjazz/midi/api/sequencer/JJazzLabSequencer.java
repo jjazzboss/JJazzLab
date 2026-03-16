@@ -1095,8 +1095,8 @@ final class JJazzLabSequencer extends AbstractMidiDevice implements Sequencer, A
     }
 
     /**
-     * return the data pump instance, owned by play thread if playthread is null, return null. This method is guaranteed to return
-     * non-null if needCaching returns false
+     * return the data pump instance, owned by play thread if playthread is null, return null. This method is guaranteed to return non-null if needCaching
+     * returns false
      */
     private DataPump getDataPump()
     {
@@ -1451,11 +1451,12 @@ final class JJazzLabSequencer extends AbstractMidiDevice implements Sequencer, A
             // nearly MAX_PRIORITY
             int priority = Thread.NORM_PRIORITY
                     + ((Thread.MAX_PRIORITY - Thread.NORM_PRIORITY) * 3) / 4;
-            thread = JSSecurityManager.createThread(this,
-                    "Java Sound Sequencer", // name
-                    false, // daemon
-                    priority, // priority
-                    true);                  // doStart
+
+            thread = new Thread(this, "Java Sound Sequencer");
+            thread.setDaemon(false);
+            thread.setPriority(priority);
+            thread.start();
+
         }
 
         DataPump getDataPump()
@@ -1863,8 +1864,7 @@ final class JJazzLabSequencer extends AbstractMidiDevice implements Sequencer, A
         /**
          * chase all events from beginning of Track and send note off for those events that are active in noteOnCache array.
          * <p>
-         * It is possible, of course, to catch notes from other tracks, but better than more complicated logic to detect which
-         * notes are really from this track
+         * It is possible, of course, to catch notes from other tracks, but better than more complicated logic to detect which notes are really from this track
          */
         private void sendNoteOffIfOn(Track track, long endTick)
         {
@@ -1924,8 +1924,7 @@ final class JJazzLabSequencer extends AbstractMidiDevice implements Sequencer, A
         }
 
         /**
-         * Runtime application of mute/solo: if a track is muted that was previously playing, send note off events for all
-         * currently playing notes.
+         * Runtime application of mute/solo: if a track is muted that was previously playing, send note off events for all currently playing notes.
          */
         private void applyDisabledTracks(boolean[] oldDisabled, boolean[] newDisabled)
         {
@@ -1965,8 +1964,7 @@ final class JJazzLabSequencer extends AbstractMidiDevice implements Sequencer, A
         }
 
         /**
-         * go through all events from startTick to endTick chase the controller state and program change state and then set the
-         * end-states at once.
+         * go through all events from startTick to endTick chase the controller state and program change state and then set the end-states at once.
          * <p>
          * needs to be called in synchronized state
          *

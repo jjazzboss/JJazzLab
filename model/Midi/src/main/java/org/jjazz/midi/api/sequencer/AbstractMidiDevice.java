@@ -97,9 +97,8 @@ abstract class AbstractMidiDevice implements MidiDevice, ReferenceCountingDevice
     }
 
     /**
-     * Open the device from an application program. Setting the open reference count to -1 here prevents Transmitters and
-     * Receivers that opened the device implicitly from closing it. The only way to close the device after this call is a call to
-     * close().
+     * Open the device from an application program. Setting the open reference count to -1 here prevents Transmitters and Receivers that opened the device
+     * implicitly from closing it. The only way to close the device after this call is a call to close().
      */
     @Override
     public final void open() throws MidiUnavailableException
@@ -112,11 +111,12 @@ abstract class AbstractMidiDevice implements MidiDevice, ReferenceCountingDevice
     }
 
     /**
-     * Open the device implicitly. This method is intended to be used by AbstractReceiver and BasicTransmitter. Actually, it is
-     * called by getReceiverReferenceCounting() and getTransmitterReferenceCounting(). These, in turn, are called by MidiSytem on
-     * calls to getReceiver() and getTransmitter(). The former methods should pass the Receiver or Transmitter just created as the
-     * object parameter to this method. Storing references to these objects is necessary to be able to decide later (when it comes
-     * to closing) if R/T's are ones that opened the device implicitly.
+     * Open the device implicitly.
+     * <p>
+     * This method is intended to be used by AbstractReceiver and BasicTransmitter. Actually, it is called by getReceiverReferenceCounting() and
+     * getTransmitterReferenceCounting(). These, in turn, are called by MidiSytem on calls to getReceiver() and getTransmitter(). The former methods should pass
+     * the Receiver or Transmitter just created as the object parameter to this method. Storing references to these objects is necessary to be able to decide
+     * later (when it comes to closing) if R/T's are ones that opened the device implicitly.
      *
      * @object The Receiver or Transmitter instance that triggered this implicit open.
      */
@@ -157,14 +157,14 @@ abstract class AbstractMidiDevice implements MidiDevice, ReferenceCountingDevice
     }
 
     /**
-     * Close the device for an object that implicitely opened it. This method is intended to be used by Transmitter.close() and
-     * Receiver.close(). Those methods should pass this for the object parameter. Since Transmitters or Receivers do not know if
-     * their device has been opened implicitely because of them, they call this method in any case. This method now is able to
-     * seperate Receivers/Transmitters that opened the device implicitely from those that didn't by looking up the R/T in the
-     * openKeepingObjects list. Only if the R/T is contained there, the reference count is reduced.
+     * Close the device for an object that implicitely opened it.
+     * <p>
+     * This method is intended to be used by Transmitter.close() and Receiver.close(). Those methods should pass this for the object parameter. Since
+     * Transmitters or Receivers do not know if their device has been opened implicitely because of them, they call this method in any case. This method now is
+     * able to seperate Receivers/Transmitters that opened the device implicitely from those that didn't by looking up the R/T in the openKeepingObjects list.
+     * Only if the R/T is contained there, the reference count is reduced.
      *
-     * @param object The object that might have been opening the device implicitely (for now, this may be a Transmitter or
-     * receiver).
+     * @param object The object that might have been opening the device implicitely (for now, this may be a Transmitter or receiver).
      */
     public final void closeInternal(Object object)
     {
@@ -233,8 +233,8 @@ abstract class AbstractMidiDevice implements MidiDevice, ReferenceCountingDevice
     }
 
     /**
-     * Return the maximum number of Receivers supported by this device. Depending on the return value of hasReceivers(), this
-     * method returns either 0 or -1. Subclasses should rather override hasReceivers() than override this method.
+     * Return the maximum number of Receivers supported by this device. Depending on the return value of hasReceivers(), this method returns either 0 or -1.
+     * Subclasses should rather override hasReceivers() than override this method.
      */
     @Override
     public final int getMaxReceivers()
@@ -249,8 +249,8 @@ abstract class AbstractMidiDevice implements MidiDevice, ReferenceCountingDevice
     }
 
     /**
-     * Return the maximum number of Transmitters supported by this device. Depending on the return value of hasTransmitters(),
-     * this method returns either 0 or -1. Subclasses should override hasTransmitters().
+     * Return the maximum number of Transmitters supported by this device. Depending on the return value of hasTransmitters(), this method returns either 0 or
+     * -1. Subclasses should override hasTransmitters().
      */
     @Override
     public final int getMaxTransmitters()
@@ -265,9 +265,9 @@ abstract class AbstractMidiDevice implements MidiDevice, ReferenceCountingDevice
     }
 
     /**
-     * Retrieve a Receiver for this device. This method returns the value returned by createReceiver(), if it doesn't throw an
-     * exception. Subclasses should rather override createReceiver() than override this method. If createReceiver returns a
-     * Receiver, it is added to the internal list of Receivers (see getReceiversList)
+     * Retrieve a Receiver for this device. This method returns the value returned by createReceiver(), if it doesn't throw an exception. Subclasses should
+     * rather override createReceiver() than override this method. If createReceiver returns a Receiver, it is added to the internal list of Receivers (see
+     * getReceiversList)
      */
     @Override
     public final Receiver getReceiver() throws MidiUnavailableException
@@ -300,8 +300,8 @@ abstract class AbstractMidiDevice implements MidiDevice, ReferenceCountingDevice
     }
 
     /**
-     * This implementation uses createTransmitter, which may throw an exception. If a transmitter is returned in
-     * createTransmitter, it is added to the internal TransmitterList
+     * This implementation uses createTransmitter, which may throw an exception. If a transmitter is returned in createTransmitter, it is added to the internal
+     * TransmitterList
      */
     @Override
     public final Transmitter getTransmitter() throws MidiUnavailableException
@@ -407,8 +407,8 @@ abstract class AbstractMidiDevice implements MidiDevice, ReferenceCountingDevice
     }
 
     /**
-     * Returns if this device supports Receivers. Subclasses that use Receivers should override this method to return true. They
-     * also should override createReceiver().
+     * Returns if this device supports Receivers. Subclasses that use Receivers should override this method to return true. They also should override
+     * createReceiver().
      *
      * @return true, if the device supports Receivers, false otherwise.
      */
@@ -418,9 +418,8 @@ abstract class AbstractMidiDevice implements MidiDevice, ReferenceCountingDevice
     }
 
     /**
-     * Create a Receiver object. throwing an exception here means that Receivers aren't enabled. Subclasses that use Receivers
-     * should override this method with one that returns objects implementing Receiver. Classes overriding this method should also
-     * override hasReceivers() to return true.
+     * Create a Receiver object. throwing an exception here means that Receivers aren't enabled. Subclasses that use Receivers should override this method with
+     * one that returns objects implementing Receiver. Classes overriding this method should also override hasReceivers() to return true.
      */
     protected Receiver createReceiver() throws MidiUnavailableException
     {
@@ -444,8 +443,8 @@ abstract class AbstractMidiDevice implements MidiDevice, ReferenceCountingDevice
     }
 
     /**
-     * Returns if this device supports Transmitters. Subclasses that use Transmitters should override this method to return true.
-     * They also should override createTransmitter().
+     * Returns if this device supports Transmitters. Subclasses that use Transmitters should override this method to return true. They also should override
+     * createTransmitter().
      *
      * @return true, if the device supports Transmitters, false otherwise.
      */
@@ -455,9 +454,11 @@ abstract class AbstractMidiDevice implements MidiDevice, ReferenceCountingDevice
     }
 
     /**
-     * Create a Transmitter object. throwing an exception here means that Transmitters aren't enabled. Subclasses that use
-     * Transmitters should override this method with one that returns objects implementing Transmitters. Classes overriding this
-     * method should also override hasTransmitters() to return true.
+     * Create a Transmitter object. throwing an exception here means that Transmitters aren't enabled. Subclasses that use Transmitters should override this
+     * method with one that returns objects implementing Transmitters. Classes overriding this method should also override hasTransmitters() to return true.
+     *
+     * @return
+     * @throws javax.sound.midi.MidiUnavailableException
      */
     protected Transmitter createTransmitter() throws MidiUnavailableException
     {
@@ -469,17 +470,18 @@ abstract class AbstractMidiDevice implements MidiDevice, ReferenceCountingDevice
     /**
      * close this device if discarded by the garbage collector.
      */
-    @Override
-    @SuppressWarnings("deprecation")
-    protected final void finalize()
-    {
-        close();
-    }
+//    @Override
+//    @SuppressWarnings("deprecation")
+//    protected final void finalize()
+//    {
+//        close();
+//    }
 
     /**
-     * Base class for Receivers. Subclasses that use Receivers must use this base class, since it contains magic necessary to
-     * manage implicit closing the device. This is necessary for Receivers retrieved via MidiSystem.getReceiver() (which opens the
-     * device implicitely).
+     * Base class for Receivers.
+     * <p>
+     * Subclasses that use Receivers must use this base class, since it contains magic necessary to manage implicit closing the device. This is necessary for
+     * Receivers retrieved via MidiSystem.getReceiver() (which opens the device implicitely).
      */
     abstract class AbstractReceiver implements MidiDeviceReceiver
     {
@@ -487,8 +489,8 @@ abstract class AbstractMidiDevice implements MidiDevice, ReferenceCountingDevice
         private volatile boolean open = true;
 
         /**
-         * Deliver a MidiMessage. This method contains magic related to the closed state of a Receiver. Therefore, subclasses
-         * should not override this method. Instead, they should implement implSend().
+         * Deliver a MidiMessage. This method contains magic related to the closed state of a Receiver. Therefore, subclasses should not override this method.
+         * Instead, they should implement implSend().
          */
         @Override
         public final synchronized void send(final MidiMessage message,
@@ -504,8 +506,8 @@ abstract class AbstractMidiDevice implements MidiDevice, ReferenceCountingDevice
         abstract void implSend(MidiMessage message, long timeStamp);
 
         /**
-         * Close the Receiver. Here, the call to the magic method closeInternal() takes place. Therefore, subclasses that override
-         * this method must call 'super.close()'.
+         * Close the Receiver. Here, the call to the magic method closeInternal() takes place. Therefore, subclasses that override this method must call
+         * 'super.close()'.
          */
         @Override
         public final void close()
@@ -536,11 +538,10 @@ abstract class AbstractMidiDevice implements MidiDevice, ReferenceCountingDevice
     } // class AbstractReceiver
 
     /**
-     * Transmitter base class. This class especially makes sure the device is closed if it has been opened implicitly by a call to
-     * MidiSystem.getTransmitter(). The logic of doing so is actually in closeInternal().
+     * Transmitter base class. This class especially makes sure the device is closed if it has been opened implicitly by a call to MidiSystem.getTransmitter().
+     * The logic of doing so is actually in closeInternal().
      * <p>
-     * Also, it has some optimizations regarding sending to the Receivers, for known Receivers, and managing itself in the
-     * TransmitterList.
+     * Also, it has some optimizations regarding sending to the Receivers, for known Receivers, and managing itself in the TransmitterList.
      */
     class BasicTransmitter implements MidiDeviceTransmitter
     {
@@ -574,8 +575,8 @@ abstract class AbstractMidiDevice implements MidiDevice, ReferenceCountingDevice
         }
 
         /**
-         * Close the Transmitter. Here, the call to the magic method closeInternal() takes place. Therefore, subclasses that
-         * override this method must call 'super.close()'.
+         * Close the Transmitter. Here, the call to the magic method closeInternal() takes place. Therefore, subclasses that override this method must call
+         * 'super.close()'.
          */
         @Override
         public final void close()
@@ -675,8 +676,7 @@ abstract class AbstractMidiDevice implements MidiDevice, ReferenceCountingDevice
         }
 
         /**
-         * Send this message to all receivers status = packedMessage & 0xFF data1 = (packedMessage & 0xFF00) >> 8; data1 =
-         * (packedMessage & 0xFF0000) >> 16;
+         * Send this message to all receivers status = packedMessage & 0xFF data1 = (packedMessage & 0xFF00) >> 8; data1 = (packedMessage & 0xFF0000) >> 16;
          */
         void sendMessage(int packedMessage, long timeStamp)
         {

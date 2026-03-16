@@ -24,9 +24,6 @@
  */
 package org.jjazz.midi.api.sequencer;
 
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-import java.util.StringTokenizer;
 
 /**
  * Audio configuration class for exposing attributes specific to the platform or system.
@@ -68,6 +65,7 @@ final class Platform
 
     /**
      * Determine whether the system is big-endian.
+     * @return 
      */
     static boolean isBigEndian()
     {
@@ -83,11 +81,7 @@ final class Platform
         isNativeLibLoaded = true;
         try
         {
-            AccessController.doPrivileged((PrivilegedAction<Void>) () ->
-            {
                 System.loadLibrary(libName);
-                return null;
-            });
         } catch (Throwable t)
         {
             if (Printer.err)
