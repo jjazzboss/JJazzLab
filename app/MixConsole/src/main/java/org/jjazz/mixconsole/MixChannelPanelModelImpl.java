@@ -30,7 +30,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import java.beans.PropertyChangeSupport;
 import org.jjazz.midi.api.DrumKit;
@@ -57,8 +56,6 @@ import org.jjazz.rhythm.api.RhythmVoice;
 import static org.jjazz.rhythm.api.RhythmVoice.Type.DRUMS;
 import static org.jjazz.rhythm.api.RhythmVoice.Type.PERCUSSION;
 import org.jjazz.mixconsole.api.MixConsoleTopComponent;
-import org.jjazz.uisettings.api.GeneralUISettings;
-import org.jjazz.uiutilities.api.HSLColor;
 import org.jjazz.utilities.api.ResUtil;
 import org.netbeans.api.annotations.common.StaticResource;
 

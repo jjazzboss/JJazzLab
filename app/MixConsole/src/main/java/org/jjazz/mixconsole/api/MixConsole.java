@@ -533,7 +533,6 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
                     {
                         setVisibleRhythm(null);     // Make all rhythms visible
                     }
-                    updateChannelColors();
 
                 }
 
@@ -714,7 +713,8 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         mcp.setTransferHandler(th);
         pvp.setTransferHandler(th);
 
-
+        updateChannelColors();
+        
         panel_mixChannels.revalidate();
         panel_mixChannels.repaint();
     }

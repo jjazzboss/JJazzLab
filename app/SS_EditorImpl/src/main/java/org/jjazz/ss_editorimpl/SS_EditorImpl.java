@@ -458,7 +458,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         // Find the component within this editor which is under this editorPoint
         Component c = SwingUtilities.getDeepestComponentAt(this, editorPoint.x, editorPoint.y);
 
-        // Simple case: check if we're on known components. Recurse the hiearchy
+        // Simple case: check if we're on known components. Recurse the hierarchy
         // Assume RpViewer bounds are WITHIN SptViewer bounds
         while (c != null)
         {
@@ -512,6 +512,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
             }
             if (spt == null && !sgsModel.getSongParts().isEmpty())
             {
+                assert i > 0;
                 // We're after the last SongPart, use the last SongPart
                 spt = sgsModel.getSongParts().get(i - 1);
                 sptLeft.set(false);

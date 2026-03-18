@@ -224,7 +224,7 @@ public class SS_EditorController implements SS_EditorMouseListener
         if (e.getClickCount() == 1 && SwingUtilities.isLeftMouseButton(e))
         {
             if (selection.isRhythmParameterSelected() || selection.isEmpty()
-                || (e.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0)
+                    || (e.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0)
             {
                 // SIMPLE CLICK, or no previous selection set on a similar item
                 LOGGER.log(Level.FINE, "    simple click");
@@ -274,6 +274,7 @@ public class SS_EditorController implements SS_EditorMouseListener
                 List<SongPart> spts = editor.getModel().getSongParts();
                 int minIndex = Math.min(spts.indexOf(focusedSpt), spts.indexOf(spt));
                 int maxIndex = Math.max(spts.indexOf(focusedSpt), spts.indexOf(spt));
+                assert minIndex != -1;
                 for (int i = minIndex; i <= maxIndex; i++)
                 {
                     editor.selectSongPart(spts.get(i), true);
@@ -365,8 +366,8 @@ public class SS_EditorController implements SS_EditorMouseListener
         ssTc.requestActive();
 
         int factor = e.isShiftDown()
-            ? SS_EditorClientProperties.getZoomYFactor(editor.getSongModel())
-            : SS_EditorClientProperties.getZoomXFactor(editor.getSongModel());
+                ? SS_EditorClientProperties.getZoomYFactor(editor.getSongModel())
+                : SS_EditorClientProperties.getZoomXFactor(editor.getSongModel());
         if (e.getWheelRotation() < 0)
         {
             factor = Math.min(100, factor + STEP);
@@ -376,7 +377,7 @@ public class SS_EditorController implements SS_EditorMouseListener
         }
         LOGGER.log(Level.FINE, "editorWheelMoved() factor={0}", factor);
         var factor2 = factor;
-        SwingUtilities.invokeLater(() ->
+        SwingUtilities.invokeLater(() -> 
         {
             // Give time for TopComponent to become active
             if (e.isShiftDown())
@@ -412,8 +413,8 @@ public class SS_EditorController implements SS_EditorMouseListener
         if (e.getClickCount() == 1 && SwingUtilities.isLeftMouseButton(e))
         {
             if (selection.isSongPartSelected() || selection.isEmpty() || focusedRp == null
-                || !rp.isCompatibleWith(focusedRp)
-                || (e.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0)
+                    || !rp.isCompatibleWith(focusedRp)
+                    || (e.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0)
             {
                 // SIMPLE CLICK, or no previous selection set on a similar item
                 LOGGER.log(Level.FINE, "   simple click()");
@@ -472,9 +473,9 @@ public class SS_EditorController implements SS_EditorMouseListener
     }
 
     @SuppressWarnings(
-        {
-            "unchecked", "rawtypes"
-        })
+            {
+                "unchecked", "rawtypes"
+            })
     @Override
     public void rhythmParameterWheelMoved(MouseWheelEvent e, SongPart spt, RhythmParameter rp)
     {
@@ -492,19 +493,19 @@ public class SS_EditorController implements SS_EditorMouseListener
             Container parent = source.getParent();
             MouseEvent parentEvent = SwingUtilities.convertMouseEvent(source, e, parent);
             MouseWheelEvent parentMouseWheelEvent = new MouseWheelEvent(parent,
-                e.getID(),
-                e.getWhen(),
-                e.getModifiersEx(),
-                parentEvent.getX(),
-                parentEvent.getY(),
-                e.getXOnScreen(),
-                e.getYOnScreen(),
-                e.getClickCount(),
-                e.isPopupTrigger(),
-                e.getScrollType(),
-                e.getScrollAmount(),
-                e.getWheelRotation(),
-                e.getPreciseWheelRotation());
+                    e.getID(),
+                    e.getWhen(),
+                    e.getModifiersEx(),
+                    parentEvent.getX(),
+                    parentEvent.getY(),
+                    e.getXOnScreen(),
+                    e.getYOnScreen(),
+                    e.getClickCount(),
+                    e.isPopupTrigger(),
+                    e.getScrollType(),
+                    e.getScrollAmount(),
+                    e.getWheelRotation(),
+                    e.getPreciseWheelRotation());
             parent.dispatchEvent(parentMouseWheelEvent);
             return;
         }
@@ -550,7 +551,7 @@ public class SS_EditorController implements SS_EditorMouseListener
 
 
         // Fix Issue #347: need to give time for TopComponent to become active if it was not the case
-        SwingUtilities.invokeLater(() ->
+        SwingUtilities.invokeLater(() -> 
         {
             // Next or previous actions            
             if (e.getWheelRotation() < 0)
@@ -591,7 +592,7 @@ public class SS_EditorController implements SS_EditorMouseListener
             Point editorPoint = SwingUtilities.convertPoint((Component) e.getSource(), e.getPoint(), editor);
             AtomicBoolean leftSpt = new AtomicBoolean();
             SongPartParameter sptp = editor.getSongPartParameterFromPoint(editorPoint, leftSpt);
-            if (sptp.rp() == null)
+            if (sptp.rp() == null || sptp.spt() == null)
             {
                 return;
             }
@@ -618,6 +619,7 @@ public class SS_EditorController implements SS_EditorMouseListener
             spt, rp
         });
         dragStartSpt = null;
+        dragStartRp = null;
     }
 
     @Override
@@ -664,6 +666,7 @@ public class SS_EditorController implements SS_EditorMouseListener
         List<SongPart> res = new ArrayList<>();
         List<SongPart> spts = sgs.getSongParts();
         int index = spts.indexOf(spt);
+        assert index != -1;
         for (int i = (index + 1); i < spts.size(); i++)
         {
             SongPart spti = spts.get(i);
