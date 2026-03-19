@@ -59,6 +59,7 @@ import org.jjazz.cl_editor.itemrenderer.api.IR_Type;
 import org.jjazz.cl_editor.itemrenderer.api.ItemRenderer;
 import org.jjazz.cl_editor.itemrenderer.api.ItemRendererFactory;
 import org.jjazz.uisettings.api.ColorSetManager;
+import org.jjazz.utilities.api.ResUtil;
 
 /**
  * A BarRenderer to show section names.
@@ -302,9 +303,7 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
             // Directly renderered by BR_Sections paintComponent(). Layout is impacted.
             if (getBarIndex() > 0)
             {
-                showLoopRestart = true;
-                repaint();
-                revalidate();
+                setLoopRestart(true);
             }
             return null;
         }
@@ -330,9 +329,7 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
     {
         if (item instanceof CLI_LoopRestartBar)
         {
-            showLoopRestart = false;
-            repaint();
-            revalidate();
+            setLoopRestart(false);
         }
         return super.removeItemRenderer(item);
     }
@@ -419,6 +416,15 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
         {
             irSection.setSectionColor(sectionColor);
         }
+    }
+
+    private void setLoopRestart(boolean b)
+    {
+        showLoopRestart = b;
+        String text = b ? ResUtil.getString(getClass(), "BarRendererIsRestartLoopBar"): null;
+        setToolTipText(text);
+        repaint();
+        revalidate();
     }
 
     /**
