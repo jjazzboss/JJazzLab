@@ -39,6 +39,7 @@ import org.jjazz.rhythm.api.RhythmFeatures;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.spi.RhythmProvider;
+import org.jjazz.rhythmdatabase.spi.SharedRdbInstanceProvider;
 
 
 /**
@@ -156,7 +157,7 @@ public class RhythmInfo implements Serializable
             LOGGER.log(Level.WARNING, "checkConsistency() r={0}: rhythmProviderId mismatch. rhythmProviderId={1} rdb.rp.uniqueId={2}", new Object[]
             {
                 r,
-                rhythmProviderId, RhythmDatabase.getDefault().getRhythmProvider(r).getInfo().getUniqueId()
+                rhythmProviderId, RhythmDatabase.getSharedInstance().getRhythmProvider(r).getInfo().getUniqueId()
             });
             b = false;
         }

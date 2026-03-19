@@ -34,7 +34,7 @@ import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.song.api.Song;
-import org.jjazz.rhythmdatabase.api.DefaultRhythmDatabase;
+import org.jjazz.rhythmdatabase.api.DefaultRhythmDatabaseImpl;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.song.spi.SongFactory;
 import org.jjazz.songstructure.api.SongStructure;
@@ -57,7 +57,7 @@ public class SongImplTest
     SongImpl song;
     ChordLeadSheet cls;
     SongStructure sgs;
-    static DefaultRhythmDatabase rdb;
+    RhythmDatabase rdb;
     JJazzUndoManager undoManager;
     private TestInfo testInfo;
 
@@ -71,9 +71,6 @@ public class SongImplTest
     public static void setUpClass(TestInfo testInfo) throws Exception
     {
         System.out.println("\n" + testInfo.getDisplayName() + "     ########################\n");
-        rdb = (DefaultRhythmDatabase) RhythmDatabase.getDefault();
-        rdb.addRhythmsFromRhythmProviders(false, true, false);
-        System.out.println(rdb.toStatsString());
     }
 
     @AfterAll
@@ -86,7 +83,7 @@ public class SongImplTest
     {
         System.out.println(testInfo.getDisplayName() + " ------");
 
-
+        rdb = RhythmDatabase.getSharedInstance();
         var sf = SongFactory.getDefault();
         cls = sf.createSampleChordLeadSheet("section1", 12);
         sgs = sf.createSongStructure(cls);

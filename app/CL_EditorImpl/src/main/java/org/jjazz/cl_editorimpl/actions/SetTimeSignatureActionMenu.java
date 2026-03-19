@@ -175,7 +175,7 @@ public final class SetTimeSignatureActionMenu extends AbstractAction implements 
     // =============================================================================================    
     private void prepareMenu(JMenu menu, CL_Selection selection)
     {
-        var rdb = RhythmDatabase.getDefault();
+        var rdb = RhythmDatabase.getSharedInstance();
         var sortedTs = new ArrayList<>(rdb.getTimeSignatures());
         sortedTs.sort((ts1, ts2) -> Integer.compare(ts1.getUpper(), ts2.getUpper()));
         for (var ts : sortedTs)

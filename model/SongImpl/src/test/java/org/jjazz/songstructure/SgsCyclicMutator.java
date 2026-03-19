@@ -25,7 +25,6 @@
 package org.jjazz.songstructure;
 
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.harmony.api.TimeSignature;
@@ -61,7 +60,7 @@ public class SgsCyclicMutator
         r34_1 = spt1.getRhythm();
         assert r34_1.getTimeSignature() == TimeSignature.THREE_FOUR : "r34_1=" + r34_1;
 
-        var rdb = RhythmDatabase.getDefault();
+        var rdb = RhythmDatabase.getSharedInstance();
         var ri34All = rdb.getRhythms(TimeSignature.THREE_FOUR);
         var ri34bis = ri34All.stream()
                 .filter(ri -> !ri.rhythmUniqueId().equals(r34_1.getUniqueId()))

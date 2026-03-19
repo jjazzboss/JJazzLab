@@ -969,7 +969,7 @@ public class SongStructureImpl implements SongStructure, Serializable
         });
 
 
-        RhythmDatabase rdb = RhythmDatabase.getDefault();
+        RhythmDatabase rdb = RhythmDatabase.getSharedInstance();
 
 
         record TmpRecord(Rhythm rhythm, SongPart songPart)
@@ -1234,7 +1234,7 @@ public class SongStructureImpl implements SongStructure, Serializable
             List<Rhythm> uniqueRhythms = tmp.rhythmList();
 
 
-            RhythmDatabase rdb = RhythmDatabase.getDefault();
+            RhythmDatabase rdb = RhythmDatabase.getSharedInstance();
             for (Rhythm r : uniqueRhythms)         // No adapted rhythms
             {
                 for (TimeSignature ts : timeSignatures)

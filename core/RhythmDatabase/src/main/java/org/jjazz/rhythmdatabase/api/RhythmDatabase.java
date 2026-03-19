@@ -22,7 +22,6 @@
  */
 package org.jjazz.rhythmdatabase.api;
 
-import org.jjazz.rhythmdatabase.spi.RhythmDatabaseFactory;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -37,26 +36,27 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmFeatures;
 import org.jjazz.rhythm.spi.RhythmProvider;
 import org.jjazz.rhythm.spi.StubRhythmProvider;
+import org.jjazz.rhythmdatabase.spi.SharedRdbInstanceProvider;
 
 /**
  * A RhythmDatabase is a collection of rhythms.
  * <p>
- * RhythmInfo instances are used to describe the available rhythms. Use getRhythmInstance(RhythmInfo) to get the Rhythm instance from a RhythmInfo instance.
+ * RhythmInfo instances are used to describe the available rhythms. Use getRhythmInstance(RhythmInfo) to get the Rhythm instance from a RhythmInfo instance.<p>
+ * Once added a rhythm can not be removed from the database during a session, but implementation should provide a way to force a refresh of the database.
  */
 public interface RhythmDatabase
 {
 
     /**
-     * A helper method which just calls RhythmDatabaseFactory.getDefault().get().
+     * Helper method which just delegates to SharedRdbInstanceProvider.get().
      *
-     * @return
+     * @return Cannot be null
+     * @see SharedRdbInstanceProvider
      */
-    static public RhythmDatabase getDefault()
+    static public RhythmDatabase getSharedInstance()
     {
-        var res = RhythmDatabaseFactory.getDefault().get();
-        return res;
+        return SharedRdbInstanceProvider.getDefault().get();
     }
-
 
     /**
      * Get a rhythm instance from its id.

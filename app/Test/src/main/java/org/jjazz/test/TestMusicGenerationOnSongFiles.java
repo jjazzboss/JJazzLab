@@ -96,7 +96,7 @@ public final class TestMusicGenerationOnSongFiles implements ActionListener
 
         var songFiles = chooser.getSelectedFiles();
 
-        var rdb = RhythmDatabase.getDefault();
+        var rdb = RhythmDatabase.getSharedInstance();
         Rhythm r;
         try
         {

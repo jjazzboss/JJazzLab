@@ -245,7 +245,7 @@ public class RP_SYS_OverrideTracksComp extends RealTimeRpEditorComponent<RP_SYS_
         // Select default rhythm to show in the rhythm selection dialog
         var oldOverride = uiValue.getOverride(rvSrc);
         var rId = oldOverride == null ? rvSrc.getContainer().getUniqueId() : oldOverride.rvDest().getContainer().getUniqueId();
-        var rdb = RhythmDatabase.getDefault();
+        var rdb = RhythmDatabase.getSharedInstance();
         var ri = rdb.getRhythm(rId);
 
 

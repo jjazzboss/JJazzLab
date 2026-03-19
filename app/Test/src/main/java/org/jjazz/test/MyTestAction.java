@@ -177,7 +177,7 @@ public final class MyTestAction implements ActionListener
             Exceptions.printStackTrace(ex);
             return true;
         }
-        var rdb = RhythmDatabase.getDefault();
+        var rdb = RhythmDatabase.getSharedInstance();
         RhythmInfo ri = rdb.getDefaultRhythm(TimeSignature.FOUR_FOUR);
         var list = new ArrayList<RhythmInfo>();
         list.add(ri);

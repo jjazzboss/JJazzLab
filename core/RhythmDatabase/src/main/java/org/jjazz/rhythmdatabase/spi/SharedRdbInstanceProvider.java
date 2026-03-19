@@ -25,30 +25,23 @@
 package org.jjazz.rhythmdatabase.spi;
 
 import java.util.concurrent.Future;
-import org.jjazz.rhythmdatabase.api.DefaultRhythmDatabase;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.openide.util.Lookup;
 
 /**
- * A factory for a RhythmDatabase instance.
+ * Provide a shared RhythmDatabase instance.
  */
-public interface RhythmDatabaseFactory
+public interface SharedRdbInstanceProvider
 {
 
     /**
-     * Get the default implementation available in the global lookup or, if nothing found, return a factory which just provides the DefaultRhythmDatabase
-     * instance.
+     * Get the default implementation available in the global lookup.
      *
-     * @return
+     * @return Can be null
      */
-    public static RhythmDatabaseFactory getDefault()
+    public static SharedRdbInstanceProvider getDefault()
     {
-        RhythmDatabaseFactory res = Lookup.getDefault().lookup(RhythmDatabaseFactory.class);
-        if (res == null)
-        {
-            res = DefaultRhythmDatabase.getFactoryInstance();
-        }
-        return res;
+        return Lookup.getDefault().lookup(SharedRdbInstanceProvider.class);
     }
 
     /**
@@ -69,26 +62,28 @@ public interface RhythmDatabaseFactory
     boolean isInitialized();
 
     /**
-     * Get the initialized instance.
+     * Get the initialized shared instance.
      * <p>
      * If initialization is not done, call initialize(). If initialization is not complete, wait for its completion.
      *
-     * @return
+     * @return cannot be null
      */
     RhythmDatabase get();
 
 
     /**
-     * Request or cancel a full rescan upon next startup.
+     * Request or cancel a full refresh of the shared database upon next startup.
      *
-     * @param b
+     * @param b Request if true, cancel if false
      */
-    public void markForStartupRescan(boolean b);
+    public void markForStartupRefresh(boolean b);
 
     /**
-     * Check if a full rescan s planned for next startup.
+     * Check if a full refresh is planned for next startup.
      *
      * @return
      */
-    public boolean isMarkedForStartupRescan();
+    public boolean isMarkedForStartupRefresh();
+
+
 }

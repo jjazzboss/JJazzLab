@@ -24,7 +24,6 @@ package org.jjazz.rhythmdatabase.api;
 
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
-import org.jjazz.rhythmdatabase.spi.RhythmDatabaseFactory;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -34,8 +33,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -48,18 +45,14 @@ import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.spi.RhythmProvider;
 import org.jjazz.rhythm.spi.StubRhythmProvider;
 import org.jjazz.utilities.api.MultipleErrorsReport;
-import org.openide.util.NbPreferences;
 
 /**
  * RhythmDatabase default implementation.
  * <p>
  * Default rhythms are stored as Preferences.
  */
-public class DefaultRhythmDatabase implements RhythmDatabase
+public class DefaultRhythmDatabaseImpl implements RhythmDatabase
 {
-
-    private static DefaultRhythmDatabase INSTANCE;
-    private static DefaultFactory INSTANCE_FACTORY;
     private static final String PREF_DEFAULT_RHYTHM = "DefaultRhythm";
 
     /**
@@ -81,43 +74,15 @@ public class DefaultRhythmDatabase implements RhythmDatabase
      */
     private final Preferences prefs;
     private final CopyOnWriteArrayList<ChangeListener> listeners = new CopyOnWriteArrayList<>();
-    private static final Logger LOGGER = Logger.getLogger(DefaultRhythmDatabase.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(DefaultRhythmDatabaseImpl.class.getSimpleName());
+
 
     /**
+     * Create a database.
      *
-     * @param prefs The preferences to store the default rhythms (per time signature)
-     * @return
+     * @param prefs Required to store the default Rhythm per TimeSignature
      */
-    public static DefaultRhythmDatabase getInstance(Preferences prefs)
-    {
-        synchronized (DefaultRhythmDatabase.class)
-        {
-            if (INSTANCE == null)
-            {
-                INSTANCE = new DefaultRhythmDatabase(prefs);
-            }
-        }
-        return INSTANCE;
-    }
-
-    /**
-     * Get a factory which just provides the DefaultRhythmDatabase instance.
-     *
-     * @return
-     */
-    public static RhythmDatabaseFactory getFactoryInstance()
-    {
-        synchronized (DefaultFactory.class)
-        {
-            if (INSTANCE_FACTORY == null)
-            {
-                INSTANCE_FACTORY = new DefaultFactory();
-            }
-        }
-        return INSTANCE_FACTORY;
-    }
-
-    private DefaultRhythmDatabase(Preferences prefs)
+    public DefaultRhythmDatabaseImpl(Preferences prefs)
     {
         Objects.requireNonNull(prefs);
         this.prefs = prefs;
@@ -453,16 +418,17 @@ public class DefaultRhythmDatabase implements RhythmDatabase
      * @param excludeBuiltinRhythms
      * @param excludeFileRhythms
      * @param forceFileRhythmsRescan Unused when excludedFileRhythms is true
-     * @param rhythmProviderIds The accepted RhythmProvider Ids. If no id provided, accept all instances found in the lookup.
+     * @param rhythmProviderIds      The accepted RhythmProvider Ids. If no id provided, accept all instances found in the lookup.
      * @return
      * @see RhythmProvider
      */
-    public MultipleErrorsReport addRhythmsFromRhythmProviders(boolean excludeBuiltinRhythms, boolean excludeFileRhythms, boolean forceFileRhythmsRescan, String... rhythmProviderIds)
+    public MultipleErrorsReport addRhythmsFromRhythmProviders(boolean excludeBuiltinRhythms, boolean excludeFileRhythms, boolean forceFileRhythmsRescan,
+            String... rhythmProviderIds)
     {
         var allRps = RhythmProvider.getRhythmProviders();
         var rpIdList = Arrays.asList(rhythmProviderIds);
         var rps = rpIdList.isEmpty() ? allRps : allRps.stream().filter(rp -> rpIdList.contains(rp.getInfo().getUniqueId())).toList();
-        
+
         final MultipleErrorsReport errReport = new MultipleErrorsReport();
 
         int n = 0;
@@ -536,41 +502,5 @@ public class DefaultRhythmDatabase implements RhythmDatabase
     // ================================================================================================
     // Inner classes
     // ================================================================================================  
-    private static class DefaultFactory implements RhythmDatabaseFactory
-    {
-
-        @Override
-        public Future<?> initialize()
-        {
-            return new FutureTask(() -> 
-            {
-            }, null);
-        }
-
-        @Override
-        public boolean isInitialized()
-        {
-            return true;
-        }
-
-        @Override
-        public RhythmDatabase get()
-        {
-            return getInstance(NbPreferences.forModule(DefaultRhythmDatabase.class));
-        }
-
-        @Override
-        public void markForStartupRescan(boolean b)
-        {
-            // Nothing
-        }
-
-        @Override
-        public boolean isMarkedForStartupRescan()
-        {
-            return false;
-        }
-
-    }
 
 }

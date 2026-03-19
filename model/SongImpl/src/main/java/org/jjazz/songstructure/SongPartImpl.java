@@ -63,7 +63,6 @@ import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_LOAD;
 import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.MIDIMIX_SAVE;
 import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_LOAD;
 import static org.jjazz.xstream.spi.XStreamConfigurator.InstanceId.SONG_SAVE;
-import org.openide.util.Exceptions;
 import org.openide.util.lookup.ServiceProvider;
 
 
@@ -777,7 +776,7 @@ public class SongPartImpl implements SongPart, Serializable
         {
             // Restore the rhythm
             String errRhythm = null;
-            RhythmDatabase rdb = RhythmDatabase.getDefault();
+            RhythmDatabase rdb = RhythmDatabase.getSharedInstance();
             Rhythm r;
             boolean firstUnavailableOccurrence = false;
 

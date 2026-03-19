@@ -145,7 +145,7 @@ public class FavoriteRhythms
         {
             throw new NullPointerException("rp");
         }
-        RhythmDatabase rdb = RhythmDatabase.getDefault();
+        RhythmDatabase rdb = RhythmDatabase.getSharedInstance();
         ArrayList<RhythmInfo> res = new ArrayList<>();
         for (RhythmInfo ri : rhythms)
         {
@@ -223,7 +223,7 @@ public class FavoriteRhythms
             {
                 continue;
             }
-            RhythmDatabase rdb = RhythmDatabase.getDefault();
+            RhythmDatabase rdb = RhythmDatabase.getSharedInstance();
             RhythmInfo ri = rdb.getRhythm(rId);
             if (ri != null)
             {

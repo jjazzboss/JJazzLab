@@ -244,7 +244,7 @@ public final class YjzCreatorWizardAction implements ActionListener
 
 
         // Add the new style in the rhythm database
-        var rdb = RhythmDatabase.getDefault();
+        var rdb = RhythmDatabase.getSharedInstance();
         RhythmProvider rp = RhythmProvider.getRhythmProvider(YamJJazzRhythmProvider.RP_ID);
         assert rp != null;   //NOI18N
         try

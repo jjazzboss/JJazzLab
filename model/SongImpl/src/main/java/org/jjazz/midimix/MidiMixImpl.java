@@ -2119,7 +2119,7 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
                 } else
                 {
                     // Normal RhythmVoice
-                    RhythmDatabase rdb = RhythmDatabase.getDefault();
+                    RhythmDatabase rdb = RhythmDatabase.getSharedInstance();
                     Rhythm r;
                     try
                     {

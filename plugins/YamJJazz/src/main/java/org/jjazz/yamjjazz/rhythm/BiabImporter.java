@@ -234,7 +234,7 @@ public class BiabImporter implements SongImporter
     
     private Rhythm guessRhythm(RhythmFeatures rf, TimeSignature ts)
     {
-        var rdb = RhythmDatabase.getDefault();
+        var rdb = RhythmDatabase.getSharedInstance();
         var ri = rdb.findRhythm(rf, rii -> rii.timeSignature() == ts);
         if (ri == null)
         {

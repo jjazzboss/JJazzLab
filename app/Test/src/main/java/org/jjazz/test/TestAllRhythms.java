@@ -95,7 +95,7 @@ public final class TestAllRhythms implements ActionListener
             SongStructure sgs = song.getSongStructure();
             JJazzUndoManager um = JJazzUndoManagerFinder.getDefault().get(sgs);
             um.setLimit(1);      // to not use too much memory with all rhythms instances...
-            RhythmDatabase rdb = RhythmDatabase.getDefault();
+            RhythmDatabase rdb = RhythmDatabase.getSharedInstance();
             TimeSignature ts0 = sgs.getSongPart(0).getRhythm().getTimeSignature();
             for (RhythmInfo ri : rdb.getRhythms(ts0))
             {

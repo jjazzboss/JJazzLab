@@ -111,7 +111,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
 
 
         // Register for rhythmdatabase changes
-        RhythmDatabase rdb = RhythmDatabase.getDefault();
+        RhythmDatabase rdb = RhythmDatabase.getSharedInstance();
         rdb.addChangeListener(ce -> UIUtilities.invokeLaterIfNeeded(() -> rhythmDatabaseChanged()));
 
 
@@ -272,7 +272,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
                 // Should not happen since cmb_variation should be disabled when not previewing...
                 return;
             }
-            RhythmInfo ri = RhythmDatabase.getDefault().getRhythm(r.getUniqueId());
+            RhythmInfo ri = RhythmDatabase.getSharedInstance().getRhythm(r.getUniqueId());
             previewRhythm(ri);
 
             // previewRhythm will first stop => endAction=>previewComplete() is executed and cmb_variation is disabled
@@ -326,7 +326,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
                 if (pr != null)
                 {
                     // RhythmPreview is ON
-                    RhythmInfo pri = RhythmDatabase.getDefault().getRhythm(pr.getUniqueId());
+                    RhythmInfo pri = RhythmDatabase.getSharedInstance().getRhythm(pr.getUniqueId());
                     LOGGER.log(Level.FINE, "valueChanged() pri={0}", pri);
                     if (fbtn_autoPreviewMode.isSelected())
                     {
@@ -398,7 +398,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
 
     private List<RhythmProvider> buildRhythmProviderList()
     {
-        RhythmDatabase rdb = RhythmDatabase.getDefault();
+        RhythmDatabase rdb = RhythmDatabase.getSharedInstance();
         List<RhythmProvider> rps = new ArrayList<>();
         rps.addAll(rdb.getRhythmProviders());
         rps.sort((rp1, rp2) -> rp1.getInfo().getName().compareTo(rp2.getInfo().getName()));     // alphabetical sort
@@ -433,7 +433,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
 
 
         // Refresh the list of rhythms
-        RhythmDatabase rdb = RhythmDatabase.getDefault();
+        RhythmDatabase rdb = RhythmDatabase.getSharedInstance();
         var frp = FavoriteRhythmProvider.getInstance();
         List<RhythmInfo> rhythms = (rp == frp) ? frp.getBuiltinRhythmInfos() : rdb.getRhythms(rp);
         rhythms = rhythms
@@ -561,7 +561,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
 
 
         // Get the Rhythm instance
-        RhythmDatabase rdb = RhythmDatabase.getDefault();
+        RhythmDatabase rdb = RhythmDatabase.getSharedInstance();
         Rhythm r;
         try
         {
@@ -661,14 +661,14 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
             rp = frp;
         } else
         {
-            rp = RhythmDatabase.getDefault().getRhythmProvider(ri);
+            rp = RhythmDatabase.getSharedInstance().getRhythmProvider(ri);
         }
         return rp;
     }
 
     private void rhythmPreviewComplete(Rhythm r)
     {
-        rhythmTable.getModel().setHighlighted(RhythmDatabase.getDefault().getRhythm(r.getUniqueId()), false);
+        rhythmTable.getModel().setHighlighted(RhythmDatabase.getSharedInstance().getRhythm(r.getUniqueId()), false);
         cmb_variation.setEnabled(false);
     }
 
@@ -1040,7 +1040,7 @@ public class RhythmSelectionDialogImpl extends RhythmSelectionDialog implements 
         var ri = addRhythmsAction.getLastRhythmAdded();
         if (ri != null)
         {
-            var rp = RhythmDatabase.getDefault().getRhythmProvider(ri);
+            var rp = RhythmDatabase.getSharedInstance().getRhythmProvider(ri);
             // rhythmTable will be updated later on the EDT, so we also need a task on the EDT
             SwingUtilities.invokeLater(() -> 
             {

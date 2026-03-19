@@ -22,7 +22,6 @@
  */
 package org.jjazz.song;
 
-import java.text.ParseException;
 import java.time.Duration;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -34,9 +33,8 @@ import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
-import org.jjazz.rhythmdatabase.api.DefaultRhythmDatabase;
+import org.jjazz.rhythmdatabase.api.DefaultRhythmDatabaseImpl;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
-import static org.jjazz.song.SongMultiRhythmTest.rdb;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.spi.SongFactory;
 import org.jjazz.songstructure.SgsCyclicMutator;
@@ -55,7 +53,7 @@ public class SongCopyDeadlockTest
 {
 
     private static final Logger LOGGER = Logger.getLogger(SongCopyDeadlockTest.class.getSimpleName());
-    private static DefaultRhythmDatabase rdb;
+    private RhythmDatabase rdb;
 
     static
     {
@@ -67,16 +65,13 @@ public class SongCopyDeadlockTest
     public static void setUpClass(TestInfo testInfo) throws Exception
     {
         System.out.println("\n" + testInfo.getDisplayName() + "     ########################\n");
-        rdb = (DefaultRhythmDatabase) RhythmDatabase.getDefault();
-        rdb.addRhythmsFromRhythmProviders(false, true, false);
-        System.out.println(rdb.toStatsString());
-        assert !rdb.getRhythms().isEmpty();
     }
 
     @BeforeEach
     public void setUp(TestInfo testInfo)
     {
         System.out.println(testInfo.getDisplayName() + " ------");
+        rdb = RhythmDatabase.getSharedInstance();
     }
 
     @Test

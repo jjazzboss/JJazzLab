@@ -39,7 +39,7 @@ import org.jjazz.harmony.api.Position;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
-import org.jjazz.rhythmdatabase.api.DefaultRhythmDatabase;
+import org.jjazz.rhythmdatabase.api.DefaultRhythmDatabaseImpl;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.rhythmparametersimpl.api.RP_SYS_Variation;
@@ -73,7 +73,7 @@ public class SongStructureImplTest
     CLI_ChordSymbol cs1, cs2;
     SongStructure sgs;
     SongStructure u_sgs;
-    static DefaultRhythmDatabase rdb;
+    RhythmDatabase rdb;
     SongPart spt0;
     SongPart spt1, spt2;
     JJazzUndoManager undoManager;
@@ -86,11 +86,9 @@ public class SongStructureImplTest
     }
 
     @BeforeAll
-    public static void setUpClass() throws Exception
+    public static void setUpClass(TestInfo testInfo) throws Exception
     {
-        rdb = (DefaultRhythmDatabase) RhythmDatabase.getDefault();
-        rdb.addRhythmsFromRhythmProviders(false, true, false);
-        System.out.println(rdb.toStatsString());
+        System.out.println("\n" + testInfo.getDisplayName() + "     ########################\n");
     }
 
     @AfterAll
@@ -101,9 +99,12 @@ public class SongStructureImplTest
     @BeforeEach
     public void setUp(TestInfo testInfo) throws UnsupportedEditException, ParseException
     {
+        System.out.println(testInfo.getDisplayName() + " ------");
         this.testInfo = testInfo;
         undoManager = new JJazzUndoManager();
 
+        rdb = RhythmDatabase.getSharedInstance();
+        
         // Build a 16 bars chordleadsheet [0-15]
         // bar 0: SectionA 4/4
         // bar 4: SectionB 3/4

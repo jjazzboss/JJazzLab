@@ -63,7 +63,7 @@ public class RestoreSettingsTask implements UpgradeTask
         }
 
         // Make sure rhythm database is rebuilt when upgrading
-        prefs.remove(RhythmDatabaseFactoryImpl.PREF_NEED_RESCAN);
+        prefs.remove(CacheBasedSharedRdbInstanceProvider.PREF_NEED_RESCAN);
 
     }
 

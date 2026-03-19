@@ -40,7 +40,7 @@ import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythm.api.RhythmVoiceDelegate;
-import org.jjazz.rhythmdatabase.api.DefaultRhythmDatabase;
+import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.song.SongImpl;
 import org.jjazz.song.api.SongPropertyChangeEvent;
@@ -51,14 +51,13 @@ import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.jjazz.utilities.api.Utilities;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeAll;
 import org.openide.util.Exceptions;
-import org.openide.util.NbPreferences;
 
 public class MidiMixImplTest
 {
@@ -73,7 +72,7 @@ public class MidiMixImplTest
      * All 4/4 rhythms sorted by decrescending number of rhythm voices.
      */
     static List<Rhythm> r44s;
-    static DefaultRhythmDatabase rdb;
+    RhythmDatabase rdb;
     JJazzUndoManager undoManager;
     private List<RhythmVoice> baselineRhythmVoices;
 
@@ -87,10 +86,18 @@ public class MidiMixImplTest
     public static void setUpClass(TestInfo testInfo) throws Exception
     {
         System.out.println("\n" + testInfo.getDisplayName() + "     ########################\n");
-        rdb = DefaultRhythmDatabase.getInstance(NbPreferences.forModule(MidiMixImplTest.class));
-        rdb.addRhythmsFromRhythmProviders(false, true, false);
-        System.out.println(rdb.toStatsString());
-        assert !rdb.getRhythms().isEmpty();
+    }
+
+    @AfterAll
+    public static void tearDownClass() throws Exception
+    {
+    }
+
+    @BeforeEach
+    public void setUp(TestInfo testInfo) throws UnsupportedEditException, ParseException
+    {
+        System.out.println(testInfo.getDisplayName() + " ------");
+        rdb = RhythmDatabase.getSharedInstance();
 
         r44s = new ArrayList<>();
         var ri44s = rdb.getRhythms(TimeSignature.FOUR_FOUR);
@@ -106,17 +113,7 @@ public class MidiMixImplTest
                 assert false;
             }
         }
-    }
 
-    @AfterAll
-    public static void tearDownClass() throws Exception
-    {
-    }
-
-    @BeforeEach
-    public void setUp(TestInfo testInfo) throws UnsupportedEditException, ParseException
-    {
-        System.out.println(testInfo.getDisplayName() + " ------");
 
         var sf = SongFactory.getDefault();
         cls = new ChordLeadSheetImpl("section1", TimeSignature.FOUR_FOUR, 12);

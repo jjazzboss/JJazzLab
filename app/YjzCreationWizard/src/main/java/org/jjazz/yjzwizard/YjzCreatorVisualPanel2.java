@@ -120,7 +120,7 @@ public final class YjzCreatorVisualPanel2 extends JPanel implements ActionListen
     private void updateRhythmTable(TimeSignature ts)
     {
         // Refresh the list of rhythms        
-        RhythmDatabase rdb = RhythmDatabase.getDefault();
+        RhythmDatabase rdb = RhythmDatabase.getSharedInstance();
         List<RhythmInfo> rhythms = rdb.getRhythms(stdYamahaRhythmProvider)
                 .stream()
                 .filter(r -> r.timeSignature().equals(ts))

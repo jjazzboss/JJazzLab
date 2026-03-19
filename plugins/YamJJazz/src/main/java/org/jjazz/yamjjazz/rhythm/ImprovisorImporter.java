@@ -219,7 +219,7 @@ public class ImprovisorImporter implements SongImporter
 
     private Rhythm guessRhythm(String text, TimeSignature ts, int tempo)
     {
-        var rdb = RhythmDatabase.getDefault();
+        var rdb = RhythmDatabase.getSharedInstance();
         var rf = RhythmFeatures.guessFeatures(text, tempo);
         var ri = rdb.findRhythm(rf, rii -> rii.timeSignature() == ts && isYamJJazz(rii));
         if (ri == null)

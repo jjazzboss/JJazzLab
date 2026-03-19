@@ -50,14 +50,14 @@ import org.jjazz.utilities.api.MultipleErrorsReport;
 import org.jjazz.coreuicomponents.api.MultipleErrorsReportDialog;
 import org.jjazz.rhythm.spi.RhythmDirsLocator;
 import org.jjazz.rhythmdatabase.api.RhythmInfo;
-import org.jjazz.rhythmdatabase.spi.RhythmDatabaseFactory;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.windows.WindowManager;
+import org.jjazz.rhythmdatabase.spi.SharedRdbInstanceProvider;
 
 /**
- * An action to let users add rhythms, permanently of for the current session.
+ * An action to let users add rhythms, permanently or for the current session.
  */
 public class AddRhythmsAction extends AbstractAction
 {
@@ -83,7 +83,7 @@ public class AddRhythmsAction extends AbstractAction
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        RhythmDatabase rdb = RhythmDatabase.getDefault();
+        RhythmDatabase rdb = RhythmDatabase.getSharedInstance();
 
 
         // Show filechooser
@@ -195,7 +195,7 @@ public class AddRhythmsAction extends AbstractAction
                     DialogDisplayer.getDefault().notify(nd);
                 }
 
-                RhythmDatabaseFactory.getDefault().markForStartupRescan(true);
+                SharedRdbInstanceProvider.getDefault().markForStartupRefresh(true);
             }
         }
     }
@@ -222,7 +222,7 @@ public class AddRhythmsAction extends AbstractAction
         }
 
         // Prepare FileChooser
-        RhythmDatabase rdb = RhythmDatabase.getDefault();
+        RhythmDatabase rdb = RhythmDatabase.getSharedInstance();
         FILE_CHOOSER = new JFileChooser();
         FILE_CHOOSER.resetChoosableFileFilters();
         FILE_CHOOSER.setFileSelectionMode(JFileChooser.FILES_ONLY);

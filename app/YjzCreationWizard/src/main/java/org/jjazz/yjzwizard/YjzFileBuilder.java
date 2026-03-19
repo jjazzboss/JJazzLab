@@ -83,7 +83,7 @@ public class YjzFileBuilder
 
 
         // Get the base rhythm & style
-        var r = RhythmDatabase.getDefault().getRhythmInstance(baseRhythmInfo);
+        var r = RhythmDatabase.getSharedInstance().getRhythmInstance(baseRhythmInfo);
         assert r instanceof YamJJazzRhythm : "r.getClass()=" + r.getClass();   //NOI18N
         r.loadResources();  // Make source phrases are loaded
         baseRhythmInstance = (YamJJazzRhythm) r;

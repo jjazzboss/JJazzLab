@@ -177,7 +177,7 @@ public class EditRhythm extends AbstractAction implements ContextAwareAction, SS
                 previewer = null;
             }
         }
-        var rdb = RhythmDatabase.getDefault();
+        var rdb = RhythmDatabase.getSharedInstance();
         RhythmInfo ri = rdb.getRhythm(rSelSpt0.getUniqueId());
         dlg.preset(ri, previewer, () -> customComp.isUseRhythmTempo());
         dlg.setTitleText("Select a " + ri.timeSignature() + " rhythm");

@@ -29,11 +29,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
-import org.jjazz.rhythmdatabase.spi.RhythmDatabaseFactory;
 import org.jjazz.startup.spi.OnShowingTask;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.openide.util.Exceptions;
 import org.openide.util.lookup.ServiceProvider;
+import org.jjazz.rhythmdatabase.spi.SharedRdbInstanceProvider;
 
 /**
  * Initialize the RhythmDatabase and set default rhythms on first run.
@@ -53,7 +53,7 @@ public class InitRhythmDatabaseOnShowingTask implements OnShowingTask
     @Override
     public void run()
     {
-        var future = RhythmDatabaseFactory.getDefault().initialize();
+        var future = SharedRdbInstanceProvider.getDefault().initialize();
 
         try
         {
@@ -64,7 +64,7 @@ public class InitRhythmDatabaseOnShowingTask implements OnShowingTask
                     setDefaultRhythms();
                 }
 
-                var rdb = RhythmDatabase.getDefault();
+                var rdb = RhythmDatabase.getSharedInstance();
                 LOGGER.log(Level.INFO, "run() Default 4/4 rhythm: {0}", rdb.getDefaultRhythm(TimeSignature.FOUR_FOUR).name());
                 LOGGER.log(Level.INFO, "run() Default 3/4 rhythm: {0}", rdb.getDefaultRhythm(TimeSignature.THREE_FOUR).name());
             }
@@ -78,7 +78,7 @@ public class InitRhythmDatabaseOnShowingTask implements OnShowingTask
     {
         LOGGER.log(Level.INFO, "setDefaultRhythms() Setting default 4/4 and 3/4 rhythms upon fresh start");
 
-        var rdb = RhythmDatabase.getDefault();
+        var rdb = RhythmDatabase.getSharedInstance();
         String rId = "jjSwing-ID";
         var ri44 = rdb.getRhythm(rId);
         if (ri44 != null)

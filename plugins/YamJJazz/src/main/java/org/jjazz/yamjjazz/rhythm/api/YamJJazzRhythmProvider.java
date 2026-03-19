@@ -238,7 +238,7 @@ public class YamJJazzRhythmProvider implements RhythmProvider
         {
             throw new IllegalArgumentException("r=" + r + " ts=" + ts);   //NOI18N
         }
-        if (RhythmDatabase.getDefault().getRhythmProvider(r) == this)
+        if (RhythmDatabase.getSharedInstance().getRhythmProvider(r) == this)
         {
             return new YamJJazzAdaptedRhythmImpl(getInfo().getUniqueId(), (YamJJazzRhythm) r, ts);
         }

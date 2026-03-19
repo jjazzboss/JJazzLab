@@ -44,7 +44,6 @@ import org.jjazz.phrase.api.Phrase;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Division;
 import org.jjazz.rhythm.api.Rhythm;
-import org.jjazz.rhythmdatabase.api.DefaultRhythmDatabase;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.song.api.Song;
@@ -76,7 +75,7 @@ public class SongInternalUpdaterTest
     CLI_Section section1_44, section2_34, section3_44;
     SongStructure sgs;
     SongStructure u_sgs;
-    static DefaultRhythmDatabase rdb;
+    RhythmDatabase rdb;
     SongPart spt0, spt1, spt2, spt3, spt4;
     SongPart u_spt0;
     SongPart u_spt1, u_spt2, u_spt3, u_spt4;
@@ -98,9 +97,6 @@ public class SongInternalUpdaterTest
     public static void setUpClass(TestInfo testInfo) throws Exception
     {
         System.out.println("\n" + testInfo.getDisplayName() + "     ########################\n");
-        rdb = (DefaultRhythmDatabase) RhythmDatabase.getDefault();
-        rdb.addRhythmsFromRhythmProviders(false, false, false);
-        System.out.println(rdb.toStatsString());
     }
 
     @AfterAll
@@ -113,6 +109,8 @@ public class SongInternalUpdaterTest
     public void setUp(TestInfo testInfo) throws UnsupportedEditException, ParseException
     {
         System.out.println(testInfo.getDisplayName() + " ------");
+        rdb = RhythmDatabase.getSharedInstance();
+
 
         cls1 = new ChordLeadSheetImpl("Section1", TimeSignature.FOUR_FOUR, 8);
         section1_44 = (CLI_SectionImpl) cls1.getSection(0);
@@ -321,7 +319,7 @@ public class SongInternalUpdaterTest
         {
             Exceptions.printStackTrace(ex);
         }
-        // System.out.println("rdb=" + RhythmDatabase.getDefault().toString());
+        // System.out.println("rdb=" + RhythmDatabase.getSharedInstance().toString());
         // System.out.println(" sgs after(1)=" + Utilities.toMultilineString(sgs.getSongParts()));
         assertTrue(sgs.getSizeInBars() == 11);
         assertTrue(sgs.getSongParts().get(3).getParentSection() == newSection3_54);

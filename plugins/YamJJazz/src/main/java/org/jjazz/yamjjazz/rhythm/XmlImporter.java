@@ -188,7 +188,7 @@ public class XmlImporter implements SongImporter
 
 
         // Compute the initial rhythm
-        var rdb = RhythmDatabase.getDefault();
+        var rdb = RhythmDatabase.getSharedInstance();
         Rhythm rOrig = spts.get(0).getRhythm();            // The rhythm by default when song was first created, might be a stub rhythm (eg if rare timesignature)
         var ts0 = rOrig.getTimeSignature();
 
@@ -228,10 +228,10 @@ public class XmlImporter implements SongImporter
                 if (yjr0 instanceof AdaptedRhythm ayjr0)
                 {
                     var rSource = ayjr0.getSourceRhythm();
-                    r = (YamJJazzRhythm) (rSource.getTimeSignature().equals(ts) ? rSource : RhythmDatabase.getDefault().getAdaptedRhythmInstance(rSource, ts));
+                    r = (YamJJazzRhythm) (rSource.getTimeSignature().equals(ts) ? rSource : RhythmDatabase.getSharedInstance().getAdaptedRhythmInstance(rSource, ts));
                 } else
                 {
-                    r = (YamJJazzRhythm) RhythmDatabase.getDefault().getAdaptedRhythmInstance(yjr0, ts);
+                    r = (YamJJazzRhythm) RhythmDatabase.getSharedInstance().getAdaptedRhythmInstance(yjr0, ts);
                 }
             }
             if (r == null)
@@ -294,7 +294,7 @@ public class XmlImporter implements SongImporter
      */
     protected YamJJazzRhythm guessYamJJazzRhythm(String text, TimeSignature ts)
     {
-        var rdb = RhythmDatabase.getDefault();
+        var rdb = RhythmDatabase.getSharedInstance();
         var rf = RhythmFeatures.guessFeatures(text, -1);
         var ri = rdb.findRhythm(rf, rii -> rii.timeSignature() == ts && isYamJJazz(rii) && !rii.isAdaptedRhythm());
         if (ri == null)
@@ -327,7 +327,7 @@ public class XmlImporter implements SongImporter
     private YamJJazzRhythm findDefaultYamJJazzRhythm(TimeSignature ts)
     {
         YamJJazzRhythm res = null;
-        var rdb = RhythmDatabase.getDefault();
+        var rdb = RhythmDatabase.getSharedInstance();
 
 
         var yjri = rdb.getDefaultRhythm(ts);

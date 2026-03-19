@@ -52,7 +52,7 @@ public final class DumpRdbAction implements ActionListener
     @Override
     public void actionPerformed(ActionEvent ae)
     {
-        RhythmDatabase rdb = RhythmDatabase.getDefault();
+        RhythmDatabase rdb = RhythmDatabase.getSharedInstance();
         LOGGER.info("Dumping rhythm database ----------");   
         for (RhythmProvider rp : rdb.getRhythmProviders())
         {

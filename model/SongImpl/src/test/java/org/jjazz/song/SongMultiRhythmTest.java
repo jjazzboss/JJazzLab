@@ -36,7 +36,7 @@ import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
-import org.jjazz.rhythmdatabase.api.DefaultRhythmDatabase;
+import org.jjazz.rhythmdatabase.api.DefaultRhythmDatabaseImpl;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.song.api.Song;
@@ -84,7 +84,7 @@ public class SongMultiRhythmTest
     SongStructure u_sgs;
     Rhythm r44, r44bis;
     SongPart spt_A, spt_B;
-    static DefaultRhythmDatabase rdb;
+    RhythmDatabase rdb;
     JJazzUndoManager undoManager;
 
     static
@@ -97,9 +97,6 @@ public class SongMultiRhythmTest
     public static void setUpClass(TestInfo testInfo) throws Exception
     {
         System.out.println("\n" + testInfo.getDisplayName() + "     ########################\n");
-        rdb = (DefaultRhythmDatabase) RhythmDatabase.getDefault();
-        rdb.addRhythmsFromRhythmProviders(false, true, false);
-        System.out.println(rdb.toStatsString());
     }
 
     @AfterAll
@@ -116,6 +113,8 @@ public class SongMultiRhythmTest
     {
         System.out.println(testInfo.getDisplayName() + " ------");
 
+        rdb = RhythmDatabase.getSharedInstance();
+        
         // CLS: 8 bars
         // bar 0: SectionA 4/4 (4 bars)
         // bar 4: SectionB 4/4 (4 bars)

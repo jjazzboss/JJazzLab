@@ -28,10 +28,10 @@ import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import org.jjazz.rhythmdatabase.api.RhythmInfo;
 import static javax.swing.Action.NAME;
-import org.jjazz.rhythmdatabase.spi.RhythmDatabaseFactory;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
+import org.jjazz.rhythmdatabase.spi.SharedRdbInstanceProvider;
 
 /**
  * An action to delete a rhythm file.
@@ -73,7 +73,7 @@ public class DeleteRhythmFile extends AbstractAction
         if (NotifyDescriptor.YES_OPTION == result)
         {
             ri.file().deleteOnExit();
-            RhythmDatabaseFactory.getDefault().markForStartupRescan(true);
+            SharedRdbInstanceProvider.getDefault().markForStartupRefresh(true);
         }
     }
 

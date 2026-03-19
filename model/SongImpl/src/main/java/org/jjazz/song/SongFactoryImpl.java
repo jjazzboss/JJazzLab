@@ -280,7 +280,7 @@ public class SongFactoryImpl implements SongFactory
 
         SongStructureImpl sgs = new SongStructureImpl(cls);
 
-        var rdb = RhythmDatabase.getDefault();
+        var rdb = RhythmDatabase.getSharedInstance();
 
         var newSpts = new ArrayList<SongPart>();
         for (var section : cls.getItems(CLI_Section.class))

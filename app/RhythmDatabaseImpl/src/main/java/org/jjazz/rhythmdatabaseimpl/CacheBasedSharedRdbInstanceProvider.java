@@ -36,9 +36,8 @@ import java.util.prefs.Preferences;
 import javax.swing.SwingUtilities;
 import org.jjazz.coreuicomponents.api.MultipleErrorsReportDialog;
 import org.jjazz.rhythm.spi.RhythmDirsLocator;
-import org.jjazz.rhythmdatabase.api.DefaultRhythmDatabase;
+import org.jjazz.rhythmdatabase.api.DefaultRhythmDatabaseImpl;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
-import org.jjazz.rhythmdatabase.spi.RhythmDatabaseFactory;
 import org.jjazz.uiutilities.api.PleaseWaitDialog;
 import org.jjazz.upgrade.api.UpgradeManager;
 import org.jjazz.utilities.api.CheckedRunnable;
@@ -52,8 +51,8 @@ import org.netbeans.api.progress.ProgressHandle;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.Exceptions;
-import org.openide.util.Lookup;
 import org.openide.util.NbPreferences;
+import org.jjazz.rhythmdatabase.spi.SharedRdbInstanceProvider;
 
 /**
  * Create and initialize the RhythmDatabase instance via a cache file.
@@ -68,59 +67,34 @@ import org.openide.util.NbPreferences;
  * - load additional file-based RhythmInfos from the cache file<br>
  * - create Rhythm instances only when required.<p>
  */
-@ServiceProvider(service = RhythmDatabaseFactory.class)
-public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory, PropertyChangeListener
+@ServiceProvider(service = SharedRdbInstanceProvider.class)
+public class CacheBasedSharedRdbInstanceProvider implements SharedRdbInstanceProvider, PropertyChangeListener
 {
 
     @StaticResource(relative = true)
     public static final String ZIP_RESOURCE_PATH = "resources/Rhythms.zip";
 
     public static final String PREF_NEED_RESCAN = "NeedRescan";
-    private static RhythmDatabaseFactoryImpl INSTANCE;
-    private final DefaultRhythmDatabase dbInstance;
+    private final DefaultRhythmDatabaseImpl dbInstance;
     private Future<?> initFuture;
     /**
      * Stores PREF_NEED_RESCAN
      */
-    private static final Preferences prefs = NbPreferences.forModule(RhythmDatabaseFactoryImpl.class);
-    private static final Logger LOGGER = Logger.getLogger(RhythmDatabaseFactoryImpl.class.getSimpleName());
+    private static final Preferences prefs = NbPreferences.forModule(CacheBasedSharedRdbInstanceProvider.class);
+    private static final Logger LOGGER = Logger.getLogger(CacheBasedSharedRdbInstanceProvider.class.getSimpleName());
 
-    static public RhythmDatabaseFactoryImpl getInstance()
+
+    public CacheBasedSharedRdbInstanceProvider()
     {
-        synchronized (RhythmDatabaseFactoryImpl.class)
-        {
-            if (INSTANCE == null)
-            {
-                INSTANCE = Lookup.getDefault().lookup(RhythmDatabaseFactoryImpl.class);
-                assert INSTANCE != null;
-            }
-        }
-        return INSTANCE;
-    }
-
-    /**
-     * Do not use, use getInstance() instead.
-     * <p>
-     * This was made public because of ServiceProvider.
-     */
-    public RhythmDatabaseFactoryImpl()
-    {
-        if (INSTANCE != null)
-        {
-            throw new IllegalStateException("INSTANCE is not null");
-        }
-
-        dbInstance = DefaultRhythmDatabase.getInstance(prefs);
+        dbInstance = new DefaultRhythmDatabaseImpl(prefs);
 
         // Be notified of user rhythm directory location changes
         RhythmDirsLocator rdl = RhythmDirsLocator.getDefault();
         rdl.addPropertyChangeListener(this);
-
-        INSTANCE = this;
     }
 
     @Override
-    public synchronized Future<?> initialize()
+    public Future<?> initialize()
     {
         if (initFuture == null)
         {
@@ -160,7 +134,7 @@ public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory, Propert
             }
 
             // Show a "please wait" dialog until initialization's complete
-            String msg = ResUtil.getString(RhythmDatabaseFactoryImpl.class, "CTL_PleaseWait");
+            String msg = ResUtil.getString(CacheBasedSharedRdbInstanceProvider.class, "CTL_PleaseWait");
             PleaseWaitDialog.show(msg, initFuture);
         }
         return dbInstance;
@@ -172,9 +146,9 @@ public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory, Propert
      * @param b
      */
     @Override
-    public void markForStartupRescan(boolean b)
+    public void markForStartupRefresh(boolean b)
     {
-        LOGGER.log(Level.INFO, "markForStartupRescan() b={0}", b);
+        LOGGER.log(Level.INFO, "markForStartupRefresh() b={0}", b);
         prefs.putBoolean(PREF_NEED_RESCAN, b);
     }
 
@@ -184,7 +158,7 @@ public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory, Propert
      * @return
      */
     @Override
-    public boolean isMarkedForStartupRescan()
+    public boolean isMarkedForStartupRefresh()
     {
         return prefs.getBoolean(PREF_NEED_RESCAN, true);
     }
@@ -201,7 +175,7 @@ public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory, Propert
             if (evt.getPropertyName().equals(RhythmDirsLocator.PROP_RHYTHM_USER_DIRECTORY))
             {
                 // Directory has changed, plan a rescan
-                markForStartupRescan(true);
+                markForStartupRefresh(true);
             }
         }
     }
@@ -216,7 +190,7 @@ public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory, Propert
     private void doInitialization()
     {
         boolean isFreshStart = UpgradeManager.getInstance().isFreshStart();
-        boolean markedForRescan = isMarkedForStartupRescan();
+        boolean markedForRescan = isMarkedForStartupRefresh();
         boolean cacheFilePresent = RhythmDbCache.getDefaultFile().isFile();
         LOGGER.log(Level.INFO, "doInitialization() isFreshStart={0} markedForRescan={1} cacheFilePresent={2}", new Object[]
         {
@@ -329,7 +303,7 @@ public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory, Propert
             try
             {
                 cache.saveToFile(file);
-                markForStartupRescan(false);
+                markForStartupRefresh(false);
                 LOGGER.log(Level.INFO, "writeCacheInSeparateThread() cache file created, size={0}", cache.getSize());
             } catch (IOException ex)
             {
@@ -339,7 +313,7 @@ public class RhythmDatabaseFactoryImpl implements RhythmDatabaseFactory, Propert
                     ex.getMessage()
                 });
 
-                markForStartupRescan(true);
+                markForStartupRefresh(true);
             }
         };
 

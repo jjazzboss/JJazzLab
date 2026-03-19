@@ -73,7 +73,7 @@ public class SimpleRhythmSelectionDialog extends RhythmSelectionDialog implement
         updateRhythmInfo(selectedRhythm);
 
         // Populate the list of rhythms for this TimeSignature
-        RhythmDatabase rdb = RhythmDatabase.getDefault();
+        RhythmDatabase rdb = RhythmDatabase.getSharedInstance();
         RhythmInfo[] rInfos = rdb.getRhythms(timeSignature).toArray(new RhythmInfo[0]);
         list_Rhythms.setListData(rInfos);
         list_Rhythms.setSelectedValue(selectedRhythm, true);

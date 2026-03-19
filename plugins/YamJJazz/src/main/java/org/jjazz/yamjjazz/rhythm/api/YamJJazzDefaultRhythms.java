@@ -191,7 +191,7 @@ public class YamJJazzDefaultRhythms
         @Override
         public void run()
         {
-            var rdb = RhythmDatabase.getDefault();
+            var rdb = RhythmDatabase.getSharedInstance();
             var names = YamJJazzDefaultRhythms.getInstance().getDefaultRhythmNames();
             for (var name : names)
             {

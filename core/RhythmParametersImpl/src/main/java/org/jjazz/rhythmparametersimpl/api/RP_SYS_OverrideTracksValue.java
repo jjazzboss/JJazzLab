@@ -349,7 +349,7 @@ public class RP_SYS_OverrideTracksValue
                 Rhythm destRhythm;
                 try
                 {
-                    destRhythm = RhythmDatabase.getDefault().getRhythmInstance(strDestRhythmId);
+                    destRhythm = RhythmDatabase.getSharedInstance().getRhythmInstance(strDestRhythmId);
                 } catch (UnavailableRhythmException ex)
                 {
                     LOGGER.log(Level.WARNING, "loadFromString() Ignoring unknown rhythm on this system. strDestRhythmId={0}", strDestRhythmId);
@@ -463,7 +463,7 @@ public class RP_SYS_OverrideTracksValue
                 Rhythm destRhythm;
                 try
                 {
-                    destRhythm = RhythmDatabase.getDefault().getRhythmInstance(strDestRhythmId);
+                    destRhythm = RhythmDatabase.getSharedInstance().getRhythmInstance(strDestRhythmId);
                 } catch (UnavailableRhythmException ex)
                 {
                     LOGGER.log(Level.WARNING, "loadFromStringBefore5_0_2() Ignoring unknown rhythm on this system. rhythmId={0}", strDestRhythmId);
