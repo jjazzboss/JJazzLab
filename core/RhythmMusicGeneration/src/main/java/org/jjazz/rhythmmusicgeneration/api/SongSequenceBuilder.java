@@ -457,7 +457,7 @@ public class SongSequenceBuilder
         {
             Track track = tracks[songSequence.mapRvTrackId.get(rv)];
             int channel = midiMix.getChannel(rv);
-            assert channel != -1 : "rv=" + rv + " midiMix=" + midiMix + " songSequence.mapRvTrackId=" + songSequence.mapRvTrackId;
+            assert channel != -1 : "rv=" + rv + " midiMix=" + midiMix.toDebugString() + " songSequence.mapRvTrackId=" + songSequence.mapRvTrackId;
 
             // Reset all controllers
             MidiMessage mmReset = MidiUtilities.getResetAllControllersMessage(channel);

@@ -282,6 +282,15 @@ public interface MidiMix
      */
     List<RhythmVoice> getRhythmVoices();
 
+    /**
+     * An optional Song associated to the MidiMix.
+     * <p>
+     * If set, the implementation should use the Song to:<br>
+     * - perform consistency checks when adding an InstrumentMix<br>
+     * - reuse its synchronization mechanism to guarantee global change consistency
+     *
+     * @return Can be null
+     */
     Song getSong();
 
     /**
@@ -432,6 +441,35 @@ public interface MidiMix
      */
     void setRhythmVoice(RhythmVoice oldRv, RhythmVoice newRv);
 
+
+    /**
+     * A multiline String describing the MidiMix state.
+     *
+     * @return
+     */
+    default String toDebugString()
+    {
+        StringBuilder sb = new StringBuilder();
+        var reroutedChannels = getDrumsReroutedChannels();
+        String name = getSong()==null ? "" : getSong().getName();
+        sb.append("MidiMix[").append(name).append("]=\n");
+        for (int i = MidiConst.CHANNEL_MIN; i <= MidiConst.CHANNEL_MAX; i++)
+        {
+            var rv = getRhythmVoice(i);
+            var insMix = getInstrumentMix(i);
+            if (insMix != null)
+            {
+                assert rv!=null;
+                sb.append(" ").append(i).append(" - ").append(rv.getName()).append(" = ").append(insMix);
+                if (reroutedChannels.contains(i))
+                {
+                    sb.append(" REROUTED");
+                }
+                sb.append("\n");
+            }
+        }
+        return sb.toString();
+    }
 
     /**
      * Get the song mix File object for a specified song file.

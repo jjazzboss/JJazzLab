@@ -1309,7 +1309,8 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
                 }
                 yield false;
             }
-            case PROP_DRUMS_INSTRUMENT_KEYMAP, PROP_INSTRUMENT_TRANSPOSITION, PROP_INSTRUMENT_VELOCITY_SHIFT, PROP_CHANNEL_DRUMS_REROUTED ->
+            // Need also PROP_RHYTHM_VOICE to fix issue #707 Exception when dragging from MixConsole PhraseViewer after a user channel name was changed
+            case PROP_DRUMS_INSTRUMENT_KEYMAP, PROP_INSTRUMENT_TRANSPOSITION, PROP_INSTRUMENT_VELOCITY_SHIFT, PROP_CHANNEL_DRUMS_REROUTED, PROP_RHYTHM_VOICE ->
                 true;
             default ->
                 false;
@@ -1320,28 +1321,6 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
             pcs.firePropertyChange(mEvent);
         }
 
-    }
-
-
-    public String toDumpString()
-    {
-        StringBuilder sb = new StringBuilder();
-        var reroutedChannels = getDrumsReroutedChannels();
-        sb.append(toString()).append(":\n");
-        for (int i = MidiConst.CHANNEL_MIN; i <= MidiConst.CHANNEL_MAX; i++)
-        {
-            InstrumentMix insMix = instrumentMixes[i];
-            if (insMix != null)
-            {
-                sb.append(" ").append(i).append(": ").append(insMix);
-                if (reroutedChannels.contains(i))
-                {
-                    sb.append(" REROUTED");
-                }
-                sb.append("\n");
-            }
-        }
-        return sb.toString();
     }
 
     static public void throwNotEnoughMidiChannelException() throws UnsupportedEditException

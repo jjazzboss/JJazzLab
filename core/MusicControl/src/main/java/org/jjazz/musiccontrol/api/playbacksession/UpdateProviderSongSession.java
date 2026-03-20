@@ -309,9 +309,8 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
         boolean doDisableUpdates = false;
 
 
-        // Analyze the PROP_MUSIC_GENERATION_COMBINED change event origin
+        // Analyze the PROP_MUSIC_GENERATION_COMBINED source event
         Object sourceEvent = e.getOldValue();
-
 
         LOGGER.log(Level.FINE, "propertyChange() -- sourceEvent={0}", new Object[]
         {
@@ -390,14 +389,14 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
             }
 
 
-            case SongPropertyChangeEvent spce ->
+            case PropertyChangeEvent pce when pce.getSource() instanceof Song song ->
             {
-                var propName = spce.getPropertyName();
+                var propName = pce.getPropertyName();
                 switch (propName)
                 {
                     case Song.PROP_USER_PHRASE ->
                     {
-                        if (spce.getOldValue() instanceof String)
+                        if (pce.getOldValue() instanceof String)
                         {
                             // A user phrase was removed: this is supported by the UpdatableSongSession
                             doUpdate = true;
@@ -419,52 +418,50 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
             }
 
 
-            case PropertyChangeEvent pce ->             // must be AFTER case SongPropertyChangeEvent
+            case PropertyChangeEvent pce when pce.getSource() instanceof MidiMix midiMix ->
             {
-                MidiMix midiMix = getSongContext().getMidiMix();
-
-                if (pce.getSource() == midiMix)
+                switch (pce.getPropertyName())
                 {
-                    switch (pce.getPropertyName())
+                    case MidiMix.PROP_RHYTHM_VOICE_CHANNEL, MidiMix.PROP_RHYTHM_VOICE ->
                     {
-                        case MidiMix.PROP_RHYTHM_VOICE_CHANNEL, MidiMix.PROP_RHYTHM_VOICE ->
+                        doDisableUpdates = true;
+                    }
+                    case MidiMix.PROP_CHANNEL_INSTRUMENT_MIXES ->
+                    {
+                        List<InsMixChange> insMixChanges = (List<InsMixChange>) pce.getOldValue();
+                        InsMixChange insMixChange = insMixChanges.size() == 1 ? insMixChanges.getFirst() : null;
+                        if (insMixChange != null && insMixChange.newInsMix() == null && insMixChange.rv() instanceof UserRhythmVoice)
+                        {
+                            // We can only manage user channel removal                    
+                            doUpdate = true;
+                        } else
                         {
                             doDisableUpdates = true;
                         }
-                        case MidiMix.PROP_CHANNEL_INSTRUMENT_MIXES ->
-                        {
-                            List<InsMixChange> insMixChanges = (List<InsMixChange>) pce.getOldValue();
-                            InsMixChange insMixChange = insMixChanges.size() == 1 ? insMixChanges.getFirst() : null;
-                            if (insMixChange != null && insMixChange.newInsMix() == null && insMixChange.rv() instanceof UserRhythmVoice)
-                            {
-                                // We can only manage user channel removal                    
-                                doUpdate = true;
-                            } else
-                            {
-                                doDisableUpdates = true;
-                            }
-                        }
-                        case MidiMix.PROP_CHANNEL_DRUMS_REROUTED, MidiMix.PROP_DRUMS_INSTRUMENT_KEYMAP, MidiMix.PROP_INSTRUMENT_TRANSPOSITION, MidiMix.PROP_INSTRUMENT_VELOCITY_SHIFT ->
-                        {
-                            doUpdate = true;
-                        }
                     }
-
-                } else if (pce.getSource() == PlaybackSettings.getInstance())
-                {
-                    switch (pce.getPropertyName())
+                    case MidiMix.PROP_CHANNEL_DRUMS_REROUTED, MidiMix.PROP_DRUMS_INSTRUMENT_KEYMAP, MidiMix.PROP_INSTRUMENT_TRANSPOSITION, MidiMix.PROP_INSTRUMENT_VELOCITY_SHIFT ->
                     {
-                        case PlaybackSettings.PROP_CLICK_PITCH_HIGH, PlaybackSettings.PROP_CLICK_PITCH_LOW, PlaybackSettings.PROP_CLICK_PREFERRED_CHANNEL, PlaybackSettings.PROP_CLICK_VELOCITY_HIGH, PlaybackSettings.PROP_CLICK_VELOCITY_LOW, PlaybackSettings.PROP_CLICK_PRECOUNT_MODE, PlaybackSettings.PROP_CLICK_PRECOUNT_ENABLED ->
-                        {
-                            dirty = true;
-                        }
-                        case PlaybackSettings.PROP_PLAYBACK_CLICK_ENABLED ->
-                        {
-                            doUpdate = true;
-                        }
+                        doUpdate = true;
+                    }
+                }
+
+            }
+
+            case PropertyChangeEvent pce when pce.getSource() instanceof PlaybackSettings ps ->
+            {
+                switch (pce.getPropertyName())
+                {
+                    case PlaybackSettings.PROP_CLICK_PITCH_HIGH, PlaybackSettings.PROP_CLICK_PITCH_LOW, PlaybackSettings.PROP_CLICK_PREFERRED_CHANNEL, PlaybackSettings.PROP_CLICK_VELOCITY_HIGH, PlaybackSettings.PROP_CLICK_VELOCITY_LOW, PlaybackSettings.PROP_CLICK_PRECOUNT_MODE, PlaybackSettings.PROP_CLICK_PRECOUNT_ENABLED ->
+                    {
+                        dirty = true;
+                    }
+                    case PlaybackSettings.PROP_PLAYBACK_CLICK_ENABLED ->
+                    {
+                        doUpdate = true;
                     }
                 }
             }
+
 
             default -> throw new IllegalStateException("Unexpected value: " + sourceEvent);
         }

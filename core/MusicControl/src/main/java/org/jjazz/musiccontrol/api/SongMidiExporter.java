@@ -68,7 +68,7 @@ public class SongMidiExporter
         Preconditions.checkNotNull(midiMix);
 
 
-        // Playback must be stopped, otherwise seems to have side effects on the generated Midi file (missing tracks...?)
+        // Stop playback just for safety
         MusicController.getInstance().stop();
 
 
