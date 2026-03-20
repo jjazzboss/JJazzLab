@@ -37,6 +37,7 @@ import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.InstrumentSettings;
 import org.jjazz.midi.api.JJazzMidiSystem;
 import org.jjazz.midi.api.FluidSynthUtils;
+import org.jjazz.mixconsole.api.MixConsole;
 import org.jjazz.song.api.Song;
 import org.jjazz.mixconsole.api.MixConsoleTopComponent;
 import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
@@ -45,6 +46,7 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
+import org.openide.awt.StatusDisplayer;
 
 @ActionID(category = "MixConsole", id = "org.jjazz.mixconsole.actions.DisableAllMidiParameters")
 @ActionRegistration(displayName = "#CTL_DisableAllMidiParameters", lazy = false)
@@ -54,38 +56,41 @@ import org.openide.awt.ActionRegistration;
         })
 public class DisableAllMidiParameters extends AbstractAction implements PropertyChangeListener
 {
-    private final MidiMix songMidiMix;
+
     private final String undoText = ResUtil.getString(getClass(), "CTL_DisableAllMidiParameters");
     private static final Logger LOGGER = Logger.getLogger(DisableAllMidiParameters.class.getSimpleName());
 
     public DisableAllMidiParameters()
     {
-        ActiveSongManager asm = ActiveSongManager.getDefault();
-        songMidiMix = asm.getActiveMidiMix();
-
         putValue(NAME, undoText);
         putValue(SHORT_DESCRIPTION, ResUtil.getString(getClass(), "CTL_DisableAllMidiParametersDescription"));
 
         this.setEnabled(!FluidSynthUtils.IS_FLUID_SYNTH_IN_USE());
 
-        JJazzMidiSystem jms =  JJazzMidiSystem.getInstance();
+        JJazzMidiSystem jms = JJazzMidiSystem.getInstance();
         jms.addPropertyChangeListener(JJazzMidiSystem.PROP_MIDI_OUT, this);
     }
 
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        LOGGER.log(Level.FINE, "actionPerformed() songMidiMix={0}", songMidiMix);   
-
-        Song song = MixConsoleTopComponent.getInstance().getEditor().getSong();
+        MixConsole mixConsole = MixConsoleTopComponent.getInstance().getEditor();
+        MidiMix songMidiMix = mixConsole.getMidiMix();
+        if (songMidiMix == null || songMidiMix.getSong() == null)
+        {
+            return;
+        }
+        LOGGER.log(Level.FINE, "actionPerformed() songMidiMix={0}", songMidiMix);
+        Song song = songMidiMix.getSong();
 
         JJazzUndoManagerFinder.getDefault().get(song).startCEdit(undoText);
 
         setAllMidiParametersEnabled(false, songMidiMix);
 
         JJazzUndoManagerFinder.getDefault().get(song).endCEdit(undoText);
-        
-        Analytics.logEvent("Disable All Midi Parameters");           
+
+        StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "DisabledAllMidiParameters"));
+        Analytics.logEvent("Disable All Midi Parameters");
     }
 
     static public void setAllMidiParametersEnabled(boolean b, MidiMix mm)
@@ -109,7 +114,8 @@ public class DisableAllMidiParameters extends AbstractAction implements Property
     }
 
     @Override
-    public void propertyChange(PropertyChangeEvent evt) {
+    public void propertyChange(PropertyChangeEvent evt)
+    {
         this.setEnabled(!FluidSynthUtils.IS_FLUID_SYNTH((MidiDevice) evt.getNewValue()));
     }
 }
