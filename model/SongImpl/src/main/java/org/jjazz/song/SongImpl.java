@@ -30,7 +30,6 @@ import com.thoughtworks.xstream.XStreamException;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.beans.VetoableChangeSupport;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -1024,7 +1023,7 @@ public class SongImpl implements Serializable, PropertyChangeListener, Song
         private Object readResolve() throws ObjectStreamException
         {
             assert spChordLeadSheet == spSongStructure.getParentChordLeadSheet();
-            Song newSong = new SongImpl(spName, spSongStructure, false);
+            SongImpl newSong = new SongImpl(spName, spSongStructure, false);
             newSong.setComments(spComments);
             newSong.setTags(spTags);
             newSong.setTempo(spTempo);

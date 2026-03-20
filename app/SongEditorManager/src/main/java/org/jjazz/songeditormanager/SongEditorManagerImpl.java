@@ -278,7 +278,14 @@ public class SongEditorManagerImpl implements SongEditorManager, PropertyChangeL
 
         // Read song from file
         // Fix the MidiMix if needed
-        var mm = MidiMixManager.getDefault().findRegisteredMix(song);
+        MidiMix mm;
+        try
+        {
+            mm = MidiMixManager.getDefault().findMix(song);
+        } catch (UnsupportedEditException ex)
+        {
+            throw new SongCreationException(ex.getMessage());
+        }
         OutputSynthManager.getDefault().getDefaultOutputSynth().fixInstruments(mm, true);
 
         // Update last song directory

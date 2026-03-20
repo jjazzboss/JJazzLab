@@ -209,12 +209,12 @@ class SongInternalUpdater
         } else
         {
             var event = results.pChangeEvent();
-            if (event.getSource() == getMidiMix())
+            if (event.getSource() == song)
             {
-                return getMidiMixDerivedOperations(results.pChangeEvent());
-            } else if (event.getSource() == song)
+                return getSongDerivedOperations(event);
+            } else if (event.getSource() instanceof MidiMix)    
             {
-                return getSongDerivedOperations(results.pChangeEvent());
+                return getMidiMixDerivedOperations(event);
             } else
             {
                 throw new IllegalStateException("Unexpected event source. sourceClass="
@@ -1081,8 +1081,7 @@ class SongInternalUpdater
     /**
      * Compute where to insert a new SongPart for newSection.
      * <p>
-     * This method assumes that {@link #getSongParts(org.jjazz.chordleadsheet.api.item.CLI_Section)} returns SongParts
-     * ordered by increasing start bar index.
+     * This method assumes that {@link #getSongParts(org.jjazz.chordleadsheet.api.item.CLI_Section)} returns SongParts ordered by increasing start bar index.
      *
      * @param newSection
      * @param prevSection The section before cliSection. Can be null.
