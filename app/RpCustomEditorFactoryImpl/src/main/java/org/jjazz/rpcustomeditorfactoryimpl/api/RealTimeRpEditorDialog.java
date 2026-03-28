@@ -270,7 +270,7 @@ public class RealTimeRpEditorDialog<E> extends RpCustomEditorDialog<E> implement
 
 
         // UpdateProviderSongSession automatically generates updates if a RhythmParameter value changes
-        SessionConfig config = new SessionConfig(false, false, true, Sequencer.LOOP_CONTINUOUSLY, 0, null);
+        SessionConfig config = new SessionConfig(false, false, true, Sequencer.LOOP_CONTINUOUSLY, songPartContextpreview.getBarRange().from, null);
         var dynSession = UpdateProviderSongSession.getSession(songPartContextpreview, config, false, PlaybackSession.Context.RP_VALUE_PREVIEW);
         session = UpdatableSongSession.getSession(dynSession);
 

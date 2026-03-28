@@ -41,7 +41,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.beans.PropertyChangeSupport;
 import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.phrasetransform.api.rps.RP_SYS_DrumsTransform;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_DrumsTransform;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmFeatures;

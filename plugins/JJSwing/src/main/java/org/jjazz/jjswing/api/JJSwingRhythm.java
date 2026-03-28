@@ -41,7 +41,7 @@ import javax.swing.SwingUtilities;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.jjswing.drums.DrumsGenerator;
 import org.jjazz.jjswing.drums.db.DpSourceDatabase;
-import org.jjazz.phrasetransform.api.rps.RP_SYS_DrumsTransform;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_DrumsTransform;
 import org.jjazz.jjswing.bass.db.WbpSourceDatabase;
 import org.jjazz.jjswing.bass.BassGenerator;
 import org.jjazz.jjswing.bass.BassGeneratorSettings;

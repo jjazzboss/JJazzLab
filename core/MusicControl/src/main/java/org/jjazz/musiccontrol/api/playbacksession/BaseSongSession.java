@@ -247,7 +247,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     /**
      * The tick position of the music start, taking into account possible 1 or 2 precount bars.
      *
-     * @return
+     * @return -1 if no meaningful value can be returned
      */
     public long getMusicStartTick()
     {

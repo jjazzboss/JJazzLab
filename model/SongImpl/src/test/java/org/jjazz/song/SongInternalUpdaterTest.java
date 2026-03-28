@@ -76,6 +76,7 @@ public class SongInternalUpdaterTest
     SongStructure sgs;
     SongStructure u_sgs;
     RhythmDatabase rdb;
+    Rhythm r44, r44bis;
     SongPart spt0, spt1, spt2, spt3, spt4;
     SongPart u_spt0;
     SongPart u_spt1, u_spt2, u_spt3, u_spt4;
@@ -149,10 +150,23 @@ public class SongInternalUpdaterTest
             JJazzUndoManagerFinder.getDefault().put(song, undoManager);
 
             sgs = song.getSongStructure();
+            r44 = sgs.getSongParts().getFirst().getRhythm();   // bossa mock
             Rhythm r34 = sgs.getSongParts().get(1).getRhythm();
             spt0 = sgs.createSongPart(r34, null, 8, section2_34, true);
             sgs.addSongParts(List.of(spt0));
 
+
+            // Other rhythm instance
+            try
+            {
+                var r44All = rdb.getRhythms(TimeSignature.FOUR_FOUR);
+                var ri44bis = r44All.stream().filter(ri -> ri != rdb.getRhythm(r44.getUniqueId())).toList().get(0);
+                r44bis = rdb.getRhythmInstance(ri44bis);            // jazz mock
+            } catch (UnavailableRhythmException ex)
+            {
+                Exceptions.printStackTrace(ex);
+            }
+            
 
             // Copy for undo/redo test
             u_sgs = SongFactory.getDefault().createSongStructure(cls1);
@@ -351,15 +365,9 @@ public class SongInternalUpdaterTest
     @Test
     public void testRhythmDivisionChange() throws ParseException, UnsupportedEditException, UnavailableRhythmException
     {
-
-
-//            section3_44 = new CLI_SectionImpl("Section3", TimeSignature.FOUR_FOUR, 5);
-//            cls1.addSection(section3_44);
-//            cls1.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("Eb7b9#5"), new Position(5, 0.75f)));
-//            cls1.addItem(new CLI_ChordSymbolImpl(ExtChordSymbol.get("Db"), new Position(7, 3f)));
         var spt = sgs.getSongPart(5);
         assertSame(section3_44, spt.getParentSection());       // Section 4/4 bar 5
-        var rBinary = spt.getRhythm();
+        var rBinary = spt.getRhythm(); 
         assertTrue(rBinary.getFeatures().division().isBinary());
         Rhythm rTernary = getRhythm(TimeSignature.FOUR_FOUR, Division.EIGHTH_SHUFFLE);
 
@@ -608,8 +616,7 @@ public class SongInternalUpdaterTest
 
         MidiMix midiMix = MidiMixManager.getDefault().findMix(song);
 
-        // With 6-voice rhythms, r44(6)+r34(6)=12 channels leaves only 4 free — not enough to add a new 6-voice rhythm.
-        // Remove both r34 song parts so the MidiMix has only r44 (6 channels), giving 10 free slots.
+        // Remove both r34 song parts so the MidiMix has only r44
         var sptSection2 = sgs.getSongParts().get(1);  // section2_34 spt at bar 2 (r34)
         sgs.removeSongParts(List.of(sptSection2));
         sgs.removeSongParts(List.of(spt0));           // spt0 also uses r34 (bar index shifted after previous removal)
@@ -625,6 +632,21 @@ public class SongInternalUpdaterTest
 
         sgs.removeSongParts(List.of(sptNew));
         assertEquals(initialRhythms, midiMix.getUniqueRhythms());
+    }
+
+    @Test
+    public void testChangeSptRhythm() throws UnavailableRhythmException, UnsupportedEditException
+    {
+        // Remove all 3/4 SongParts
+        var spts34 = sgs.getSongParts(spt -> spt.getRhythm().getTimeSignature() == TimeSignature.THREE_FOUR);
+        sgs.removeSongParts(spts34);
+
+        MidiMix midiMix = MidiMixManager.getDefault().findMix(song);
+        assertFalse(midiMix.getUniqueRhythms().contains(r44bis));
+
+        var spt = sgs.getSongPart(0);
+        sgs.setSongPartsRhythm(List.of(spt), r44bis, null);
+        assertTrue(midiMix.getUniqueRhythms().contains(r44bis));
     }
 
     @Test

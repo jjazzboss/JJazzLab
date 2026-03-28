@@ -36,7 +36,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.jjswing.JJSwingRhythmProvider;
+import org.jjazz.jjswing.api.JJSwingRhythmProvider;
 import org.jjazz.jjswing.api.DrumsStyle;
 import org.jjazz.jjswing.api.JJSwingRhythm;
 import org.jjazz.jjswing.bass.db.WbpSourceDatabase;

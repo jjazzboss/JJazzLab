@@ -98,9 +98,10 @@ public class MidiMixManagerImpl implements MidiMixManager, PropertyChangeListene
                 try
                 {
                     // Try to get it from the song mix file
-                    mm = MidiMix.loadFromFile(mixFile);
+                    mm = MidiMix.loadFromFile(mixFile);         // throws IOException
+                    checkConsistency(mm, s, true);              // throws UnsupportedEditException
+                    registerMidiMix(mm, s);
                     StatusDisplayer.getDefault().setStatusText(ResUtil.getString(getClass(), "LoadedSongMix", mixFile.getAbsolutePath()));
-
                 } catch (IOException ex)
                 {
                     LOGGER.log(Level.WARNING, "findMix(Song) Problem reading mix file: {0} : {1}", new Object[]
@@ -108,34 +109,22 @@ public class MidiMixManagerImpl implements MidiMixManager, PropertyChangeListene
                         mixFile.getAbsolutePath(),
                         ex.getMessage()
                     });
-                }
-
-                if (mm != null)
+                } catch (UnsupportedEditException ex)
                 {
-                    try
+                    mm = null;
+                    LOGGER.log(Level.WARNING, "findMix(Song) song mix file: {0} not consistent with song, ignored. ex={1}", new Object[]
                     {
-                        // Robustness - file may have been corrupted
-                        checkConsistency(mm, s, true);
-                    } catch (UnsupportedEditException ex)
-                    {
-                        LOGGER.log(Level.WARNING, "findMix(Song) song mix file: {0} not consistent with song, ignored. ex={1}", new Object[]
-                        {
-                            mixFile.getAbsolutePath(),
-                            ex.getMessage()
-                        });
-                        mm = null;
-                    }
+                        mixFile.getAbsolutePath(),
+                        ex.getMessage()
+                    });
                 }
             }
-
 
             if (mm == null)
             {
                 // If mix could not be created from file, create one from scratch
                 mm = createMix(s);          // throws UnsupportedEditException
             }
-
-            registerMidiMix(mm, s);
         }
         return mm;
     }
@@ -228,7 +217,6 @@ public class MidiMixManagerImpl implements MidiMixManager, PropertyChangeListene
         }
 
         checkConsistency(mm, sg, true);
-        mm.setSong((SongImpl) sg);
         registerMidiMix(mm, sg);
 
         return mm;
@@ -455,22 +443,6 @@ public class MidiMixManagerImpl implements MidiMixManager, PropertyChangeListene
         return mmRhythm;
     }
 
-    @Override
-    public void registerMidiMix(MidiMix mm, Song song)
-    {
-        if (!mapSongMix.containsKey(song))
-        {
-            song.addPropertyChangeListener(Song.PROP_CLOSED, this);
-        }
-        mapSongMix.put(song, mm);
-    }
-
-    @Override
-    public void unregisterMidiMix(Song song)
-    {
-        song.removePropertyChangeListener(Song.PROP_CLOSED, this);
-        mapSongMix.remove(song);
-    }
 
     // =================================================================================
     // PropertyChangeListener methods
@@ -642,5 +614,21 @@ public class MidiMixManagerImpl implements MidiMixManager, PropertyChangeListene
                 throw new UnsupportedEditException(msg);
             }
         }
+    }
+
+    private void registerMidiMix(MidiMix mm, Song song)
+    {
+        if (!mapSongMix.containsKey(song))
+        {
+            song.addPropertyChangeListener(Song.PROP_CLOSED, this);
+        }
+        ((MidiMixImpl) mm).setSong((SongImpl) song);
+        mapSongMix.put(song, mm);
+    }
+
+    private void unregisterMidiMix(Song song)
+    {
+        song.removePropertyChangeListener(Song.PROP_CLOSED, this);
+        mapSongMix.remove(song);
     }
 }

@@ -17,9 +17,8 @@
                 <groupId>org.apache.netbeans.utilities</groupId>
                 <artifactId>nbm-maven-plugin</artifactId>
                 <configuration>
-                    <publicPackages>                      
+                    <publicPackages>
                         <publicPackage>org.jjazz.phrasetransform.api</publicPackage>
-                        <publicPackage>org.jjazz.phrasetransform.api.rps</publicPackage>
                         <publicPackage>org.jjazz.phrasetransform.api.ui</publicPackage>
                         <publicPackage>org.jjazz.phrasetransform.spi</publicPackage>
                     </publicPackages>

@@ -1,4 +1,4 @@
-package org.jjazz.phrasetransform.api.rps;
+package org.jjazz.rhythmparametersimpl.api;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -6,7 +6,6 @@ import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.StringJoiner;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.phrasetransform.api.DrumsMixTransform;
 import org.jjazz.phrasetransform.api.PhraseTransformChain;

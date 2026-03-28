@@ -427,7 +427,7 @@ public class SongStructureImplConcurrencyTest
         {
             listenerCount.incrementAndGet();
             // Verify lock is NOT held
-            assertFalse(getLock().isWriteLockedByCurrentThread(), "listener must be called without write lock");
+            assertFalse(getExecutionManager().isWriteLockedByCurrentThread(), "listener must be called without write lock");
         });
 
         // Mutating thread
@@ -509,11 +509,6 @@ public class SongStructureImplConcurrencyTest
     private ExecutionManager getExecutionManager()
     {
         return ((SongStructureImpl) sgs).getExecutionManager();
-    }
-
-    private ReentrantReadWriteLock getLock()
-    {
-        return getExecutionManager().getLock();
     }
 
     private void redoAll()

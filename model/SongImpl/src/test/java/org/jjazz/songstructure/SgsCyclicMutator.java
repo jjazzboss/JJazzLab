@@ -108,7 +108,13 @@ public class SgsCyclicMutator
                 if (sgs.getSongParts().contains(spt1) && spt1.getRhythm().getTimeSignature() == TimeSignature.THREE_FOUR)
                 {
                     newRhythm = spt1.getRhythm() == r34_1 ? r34_2 : r34_1;
-                    sgs.setSongPartsRhythm(List.of(spt1), newRhythm, null);
+                    try
+                    {
+                        sgs.setSongPartsRhythm(List.of(spt1), newRhythm, null);
+                    } catch (UnsupportedEditException ex)
+                    {
+                        // Can happen if not enough Midi channel available
+                    }
                 }
             }
 

@@ -43,7 +43,7 @@ import org.jjazz.midi.api.Instrument;
 import org.jjazz.midi.api.InstrumentMix;
 import org.jjazz.midi.api.InstrumentSettings;
 import org.jjazz.midi.api.synths.GMSynth;
-import org.jjazz.phrasetransform.api.rps.RP_SYS_DrumsTransform;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_DrumsTransform;
 import org.jjazz.rhythm.api.Genre;
 import org.jjazz.rhythm.api.MusicGenerationException;
 import org.jjazz.rhythm.api.RhythmFeatures;

@@ -28,7 +28,6 @@ import java.text.ParseException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.Section;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
@@ -39,7 +38,6 @@ import org.jjazz.harmony.api.Position;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
-import org.jjazz.rhythmdatabase.api.DefaultRhythmDatabaseImpl;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.rhythmparametersimpl.api.RP_SYS_Variation;
@@ -104,7 +102,7 @@ public class SongStructureImplTest
         undoManager = new JJazzUndoManager();
 
         rdb = RhythmDatabase.getSharedInstance();
-        
+
         // Build a 16 bars chordleadsheet [0-15]
         // bar 0: SectionA 4/4
         // bar 4: SectionB 3/4
@@ -312,6 +310,7 @@ public class SongStructureImplTest
     public void testGetUniqueAdaptedRhythms() throws UnsupportedEditException
     {
         Rhythm adapted34 = rdb.getAdaptedRhythmInstance(r44, TimeSignature.THREE_FOUR);
+        assert adapted34 != null;
         SongPart adaptedSpt = sgs.createSongPart(adapted34, "Adapted", sgs.getSizeInBars(), sectionB_34, true);
         sgs.addSongParts(List.of(adaptedSpt));
 
@@ -636,7 +635,7 @@ public class SongStructureImplTest
 
         sgs.addSgsChangeListener((SgsChangeEvent e) -> 
         {
-            lockHeldDuringCallback[0] = getLock().isWriteLockedByCurrentThread();
+            lockHeldDuringCallback[0] = getExecutionManager().isWriteLockedByCurrentThread();
         });
 
         sgs.removeSongParts(List.of(spt0));
@@ -678,9 +677,8 @@ public class SongStructureImplTest
     public void testGetUniqueRhythmsExcludeAdaptedRhythms()
     {
         // Add an adapted rhythm
-        var rOrig = spt0.getRhythm();
-        Rhythm adapted = rdb.getAdaptedRhythmInstance(rOrig, TimeSignature.THREE_FOUR);
-        assert adapted != null : "rOrig=" + rOrig;
+        Rhythm adapted = rdb.getAdaptedRhythmInstance(r44, TimeSignature.THREE_FOUR);
+        assert adapted != null : "r44=" + r44;
         SongPart adaptedSpt = sgs.createSongPart(adapted, "Adapted", sgs.getSizeInBars(), sectionB_34, true);
         try
         {
@@ -936,8 +934,4 @@ public class SongStructureImplTest
         return ((SongStructureImpl) sgs).getExecutionManager();
     }
 
-    private ReentrantReadWriteLock getLock()
-    {
-        return getExecutionManager().getLock();
-    }
 }

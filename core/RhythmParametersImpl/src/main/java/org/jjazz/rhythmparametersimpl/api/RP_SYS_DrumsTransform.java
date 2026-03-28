@@ -1,4 +1,4 @@
-package org.jjazz.phrasetransform.api.rps;
+package org.jjazz.rhythmparametersimpl.api;
 
 import com.google.common.base.Preconditions;
 import static com.google.common.base.Preconditions.checkArgument;

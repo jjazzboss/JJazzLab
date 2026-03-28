@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.chordleadsheet.ChordLeadSheetImpl;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
@@ -76,11 +77,6 @@ public class ExecutionManager
     {
         this.lock = new ReentrantReadWriteLock();
         this.songInternalUpdater = disableInternalUpdates ? null : new SongInternalUpdater(song);
-    }
-
-    public ReentrantReadWriteLock getLock()
-    {
-        return lock;
     }
 
     public MidiMix getMidiMix()
@@ -170,6 +166,7 @@ public class ExecutionManager
         List<WriteOperationResults> allOperationResults = new ArrayList<>();
         WriteOperationResults<R> operationResults = null;
 
+        LOGGER.fine("executeWriteOperations() LOCKING");
         lock.writeLock().lock();
         try
         {
@@ -185,6 +182,7 @@ public class ExecutionManager
             throw new IllegalStateException("executeWriteOperation() ex=" + ex);
         } finally
         {
+            LOGGER.fine("executeWriteOperations() UNLOCKING");
             lock.writeLock().unlock();
         }
 
@@ -215,12 +213,19 @@ public class ExecutionManager
         List<WriteOperationResults> allOperationResults = new ArrayList<>();
         WriteOperationResults<R> operationResults = null;
 
+        LOGGER.fine("executeWriteOperationThrowing() LOCKING");
         lock.writeLock().lock();
         try
         {
             operationResults = executeOperationChain(throwingOperation, allOperationResults);    // throws UnsupportedEditException
+        } catch (UnsupportedEditException ex)
+        {
+            // Catched only for logging purpose
+            LOGGER.log(Level.FINE, "executeWriteOperationThrowing() ex={0}", ex);
+            throw ex;
         } finally
         {
+            LOGGER.fine("executeWriteOperationThrowing() UNLOCKING");
             lock.writeLock().unlock();
         }
 
@@ -357,7 +362,7 @@ public class ExecutionManager
                     case SongImpl sgImpl ->
                     {
                         sgImpl.firePropertyChangeEvent(spce);
-                        
+
                         // Possible associated changes
                         for (var propEvent : spce.getRelatedPropertyChanges())
                         {
@@ -367,8 +372,8 @@ public class ExecutionManager
                     case MidiMixImpl mmImpl ->
                     {
                         mmImpl.firePropertyChangeEvent(spce);
-                        
-                         // Possible associated changes
+
+                        // Possible associated changes
                         for (var propEvent : spce.getRelatedPropertyChanges())
                         {
                             mmImpl.firePropertyChangeEvent(propEvent);

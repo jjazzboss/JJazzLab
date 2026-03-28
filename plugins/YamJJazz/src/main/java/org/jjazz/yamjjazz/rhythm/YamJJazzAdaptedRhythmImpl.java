@@ -44,7 +44,7 @@ import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.rhythmmusicgeneration.api.SourcePhrase;
 import org.jjazz.rhythmmusicgeneration.api.SourcePhraseSet;
-import org.jjazz.phrasetransform.api.rps.RP_SYS_DrumsTransform;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_DrumsTransform;
 import org.jjazz.rhythmparametersimpl.api.*;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.yamjjazz.rhythm.api.AccType;

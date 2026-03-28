@@ -99,7 +99,13 @@ public class ClsCyclicMutator
                 // Change timesignature of init section
                 var ts = cliSection0.getData().getTimeSignature();
                 var newTs = ts == TimeSignature.FOUR_FOUR ? TimeSignature.TWO_FOUR : TimeSignature.FOUR_FOUR;
-                cls.setSectionTimeSignature(cliSection0, newTs);
+                try
+                {
+                    cls.setSectionTimeSignature(cliSection0, newTs);
+                } catch (UnsupportedEditException ex)
+                {
+                    // Nothing. Can happen if not enough Midi channels
+                }
             }
 
             case 5 ->

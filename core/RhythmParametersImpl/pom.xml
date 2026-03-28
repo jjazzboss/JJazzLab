@@ -71,6 +71,11 @@
             <artifactId>rhythmmusicgenerationspi</artifactId> 
             <version>${project.version}</version>  
         </dependency>  
+        <dependency>
+            <groupId>org.jjazzlab.core</groupId>
+            <artifactId>phrasetransform</artifactId>
+            <version>${project.version}</version>
+        </dependency>        
         <dependency> 
             <groupId>org.jjazzlab.core</groupId> 
             <artifactId>utilities</artifactId> 
@@ -91,6 +96,7 @@
             <artifactId>xstream</artifactId>
             <version>${project.version}</version>
         </dependency>
+
     </dependencies>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

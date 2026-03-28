@@ -20,7 +20,7 @@
  * 
  *  Contributor(s): 
  */
-package org.jjazz.jjswing;
+package org.jjazz.jjswing.api;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jjazz.harmony.api.TimeSignature;
-import org.jjazz.jjswing.api.JJSwingRhythm;
+import org.jjazz.jjswing.JJSwingRhythmProviderSettingsDialog;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;

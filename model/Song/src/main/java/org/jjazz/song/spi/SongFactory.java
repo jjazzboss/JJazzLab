@@ -107,6 +107,7 @@ public interface SongFactory
 
     /**
      * Create a ChordLeadSheet with a fixed set of sections and chord symbols in the first 12 bars.
+     * <p>
      *
      * @param sectionName
      * @param size        Must be &gt;= 12

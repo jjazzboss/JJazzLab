@@ -221,13 +221,14 @@ public class MidiMixImplTest
     {
         var events = new ArrayList<PropertyChangeEvent>();
         midiMix.addPropertyChangeListener(events::add);
-        // System.out.println("   midiMix before=" + midiMix.toDumpString());
+        System.out.println("   midiMix before=" + midiMix.toDebugString());
 
         var r = r44s.getLast();
+        assert sgs.getSongPart(0).getRhythm() != r : "sgs.getSongPart(0).getRhythm()=" + sgs.getSongPart(0).getRhythm() + " r=" + r;
         var expectedNbVoices = r.getRhythmVoices().size();
 
         midiMix.addRhythm(r);
-        // System.out.println("   midiMix after=" + midiMix.toDumpString());
+        System.out.println("   midiMix after=" + midiMix.toDebugString());
 
         // Close compound edit so undo/redo works
         undoManager.endCEdit(UNDO_EDIT);

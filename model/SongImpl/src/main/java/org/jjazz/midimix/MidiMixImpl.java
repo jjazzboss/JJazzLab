@@ -180,16 +180,15 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
             // Update data
             List<InsMixChange> insMixChanges = new ArrayList<>();
             List<InsMixChange> insMixChangesUndo = new ArrayList<>();
-            for (int i = MidiConst.CHANNEL_MIN; i <= MidiConst.CHANNEL_MAX; i++)
+            for (int channel = MidiConst.CHANNEL_MIN; channel <= MidiConst.CHANNEL_MAX; channel++)
             {
-                if (rhythmVoices[i] != null && rhythmVoices[i].getContainer() == r)
+                if (rhythmVoices[channel] != null && rhythmVoices[channel].getContainer() == r)
                 {
-                    insMixChanges.add(new InsMixChange(i, rhythmVoices[i], instrumentMixes[i], null));
-                    insMixChangesUndo.add(new InsMixChange(i, rhythmVoices[i], null, instrumentMixes[i]));
-
-                    prepareRemove(i);
-                    rhythmVoices[i] = null;
-                    instrumentMixes[i] = null;
+                    insMixChanges.add(new InsMixChange(channel, rhythmVoices[channel], instrumentMixes[channel], null));
+                    insMixChangesUndo.add(new InsMixChange(channel, rhythmVoices[channel], null, instrumentMixes[channel]));
+                    prepareRemove(channel);
+                    rhythmVoices[channel] = null;
+                    instrumentMixes[channel] = null;
                 }
             }
 
@@ -1232,6 +1231,7 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
     protected void setSong(SongImpl song)
     {
         Objects.requireNonNull(song);
+        LOGGER.log(Level.FINE, "setSong() song={0}", song);
         this.song = song;
         executionManager = song.getExecutionManager();
     }
@@ -1884,7 +1884,9 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
                         // From 3.0: <MidiMix resolves-to="org.jjazz.midimix.api.MidiMix$SerializationProxy">                         
                         // Before 3.0 : <MidiMix resolves-to="org.jjazz.midimix.MidiMix$SerializationProxy">
                         xstream.alias("org.jjazz.midimix.api.MidiMix$SerializationProxy", MidiMixImpl.SerializationProxy.class);
+                        xstream.alias("org.jjazz.midimix.api.MidiMix$SerializationProxy$RvStorage", MidiMixImpl.SerializationProxy.RvStorage.class);
                         xstream.alias("org.jjazz.midimix.MidiMix$SerializationProxy", MidiMixImpl.SerializationProxy.class);
+                        xstream.alias("org.jjazz.midimix.MidiMix$SerializationProxy$RvStorage", MidiMixImpl.SerializationProxy.RvStorage.class);
 
 
                         // From 3.0 all public packages were renamed with api or spi somewhere in the path
@@ -1902,11 +1904,6 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
                     // Making RvStorage class static + its 2 fields public solves the issue for the future, but this does not let us read old .mix files
                     // which contain the "outer-class reference=..." tag. So we just ignore this element.
                     xstream.ignoreUnknownElements("outer-class");
-
-                    // From 4.1.0 new aliases to get rid of fully qualified class names in .sng files
-                    // xstream.alias("MidiMix", MidiMix.class);
-                    // xstream.alias("MidiMixSP", MidiMix.SerializationProxy.class);
-                    // xstream.alias("RvStorage", MidiMix.SerializationProxy.RvStorage.class);
 
                 }
                 default ->
@@ -2001,7 +1998,6 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
             assert spKeys.length == this.spInsMixes.length :
                     "spKeys=" + Arrays.asList(spKeys) + " spInsMixes=" + Arrays.asList(spInsMixes);
             MidiMixImpl mm = new MidiMixImpl();
-            StringBuilder msg = new StringBuilder();
 
 
             for (int channel = 0; channel < spKeys.length; channel++)
@@ -2012,27 +2008,32 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
 
                 if (insMix == null && rvs == null)
                 {
-                    // Normal case: no instrument
+                    // No instrument, skip
                     continue;
                 }
 
 
-                if (insMix == null || rvs == null)
+                if (insMix == null)
                 {
-                    msg.append("Mix file error, unexpected null value for channel ").append(channel)
-                            .append(":  rvs=").append(rvs).append(" insMix=").append(insMix);
+                    String msg = "Unexpected null value for insMix for channel=" + channel;
+                    throw new XStreamException(msg.toString());
+                } else if (rvs == null)
+                {
+                    String msg = "Unexpected null value for rvs for channel=" + channel;
                     throw new XStreamException(msg.toString());
                 }
 
 
                 // Retrieve the RhythmVoice
-                RhythmVoice rv = rvs.rebuildRhythmVoice(insMix.getInstrument());
-                if (rv == null)
+                RhythmVoice rv;
+                try
                 {
-                    msg.append("Mix file error, can't rebuild RhythmVoice for channel=").append(channel)
-                            .append(", rhythmId=").append(rvs.rhythmId).append(" and RhythmVoiceName=").append(rvs.rvName);
-                    throw new XStreamException(msg.toString());
+                    rv = rvs.rebuildRhythmVoice(insMix.getInstrument());
+                } catch (UnavailableRhythmException ex)
+                {
+                    throw new XStreamException(ex.getMessage());
                 }
+
 
                 // Need a copy of insMix because setInstrumentMix() will make modifications on the object (e.g. setMute(false))
                 // and we can not modify spInsMixes during the deserialization process.
@@ -2081,9 +2082,10 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
              * Rebuild a RhythmVoice or a UserRhythmVoice
              *
              * @param ins
-             * @return Can be null
+             * @return Cannot be null
+             * @throws org.jjazz.rhythmdatabase.api.UnavailableRhythmException RhythmVoice could not be retrieved
              */
-            public RhythmVoice rebuildRhythmVoice(Instrument ins)
+            public RhythmVoice rebuildRhythmVoice(Instrument ins) throws UnavailableRhythmException
             {
                 Objects.requireNonNull(ins);
                 RhythmVoice rv = null;
@@ -2103,11 +2105,14 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
                     try
                     {
                         r = rdb.getRhythmInstance(rhythmId);    // Possible exception here
-                        rv = r.getRhythmVoices().stream().filter(rhv -> rhv.getName().equals(rvName)).findAny().orElse(null);
                     } catch (UnavailableRhythmException ex)
                     {
-                        // Nothing
+                        throw new UnavailableRhythmException("No rhythm found in RhythmDatabase for rhythmId=" + rhythmId);
                     }
+                    rv = r.getRhythmVoices().stream()
+                            .filter(rhv -> rhv.getName().equals(rvName))
+                            .findAny()
+                            .orElseThrow(() -> new UnavailableRhythmException("No " + r.getName() + " RhythmVoice found for rvName=" + rvName));
                 }
                 return rv;
             }

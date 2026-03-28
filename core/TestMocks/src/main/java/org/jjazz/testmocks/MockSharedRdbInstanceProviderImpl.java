@@ -26,6 +26,8 @@ package org.jjazz.testmocks;
 
 import java.util.concurrent.Future;
 import java.util.logging.Logger;
+import org.jjazz.harmony.api.TimeSignature;
+import org.jjazz.jjswing.api.JJSwingRhythmProvider;
 import org.jjazz.rhythmdatabase.api.DefaultRhythmDatabaseImpl;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.spi.SharedRdbInstanceProvider;
@@ -35,7 +37,7 @@ import org.openide.util.NbPreferences;
 /**
  * An implementation for unit tests.
  * <p>
- * Provide a RhythmDatabase which only contains RhythmMocks.
+ * Provide a RhythmDatabase which only contains RhythmMocks and jjSwing. Default 4/4 rhythm is "BossaMockID-4/4".
  */
 @ServiceProvider(service = SharedRdbInstanceProvider.class, position = -100000)
 public class MockSharedRdbInstanceProviderImpl implements SharedRdbInstanceProvider
@@ -54,7 +56,8 @@ public class MockSharedRdbInstanceProviderImpl implements SharedRdbInstanceProvi
     {
         LOGGER.info("initialize() --");
         rdb = new DefaultRhythmDatabaseImpl(NbPreferences.forModule(getClass()));
-        rdb.addRhythmsFromRhythmProviders(false, true, false, RhythmMocksProviderImpl.ID);
+        rdb.addRhythmsFromRhythmProviders(false, true, false, RhythmMocksProviderImpl.ID, JJSwingRhythmProvider.RP_ID);
+        rdb.setDefaultRhythm(TimeSignature.FOUR_FOUR, rdb.getRhythm("BossaMockID-4/4"));
         System.out.println(rdb.toStatsString());
         assert !rdb.getRhythms().isEmpty();
         return null;

@@ -34,7 +34,6 @@ import org.jjazz.chordleadsheet.api.UnsupportedEditException;
 import org.jjazz.phrase.api.NoteEvent;
 import org.jjazz.phrase.api.Phrase;
 import org.jjazz.song.api.Song;
-import org.jjazz.rhythmdatabase.api.DefaultRhythmDatabaseImpl;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.song.spi.SongFactory;
 import org.jjazz.songstructure.api.SongStructure;

@@ -160,21 +160,4 @@ public interface MidiMixManager
      */
     MidiMix getDeepCopy(MidiMix midiMix, Song song);
 
-    /**
-     * Register a MidiMix to a song, so that it can be found by {@link #findMix(org.jjazz.song.api.Song)}.
-     * <p>
-     * MidiMix will be automatically unregistered when song is closed.
-     *
-     * @param mm
-     * @param song
-     */
-    void registerMidiMix(MidiMix mm, Song song);
-
-    /**
-     * Unregister the MidiMix associated to a song.
-     *
-     * @param song
-     */
-    public void unregisterMidiMix(Song song);
-
 }

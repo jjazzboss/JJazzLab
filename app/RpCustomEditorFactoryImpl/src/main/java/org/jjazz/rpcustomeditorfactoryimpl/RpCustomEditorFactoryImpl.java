@@ -22,7 +22,7 @@
  */
 package org.jjazz.rpcustomeditorfactoryimpl;
 
-import org.jjazz.phrasetransform.api.rps.RP_SYS_DrumsTransform;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_DrumsTransform;
 import org.jjazz.rpcustomeditorfactoryimpl.api.RealTimeRpEditorDialog;
 import org.jjazz.rhythm.api.RhythmParameter;
 import org.jjazz.rhythmparametersimpl.api.RP_SYS_CustomPhrase;

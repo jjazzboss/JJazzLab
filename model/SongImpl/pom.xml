@@ -144,5 +144,12 @@
             <version>5.10.2</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.github.secretx33</groupId>
+            <artifactId>path-matching-resource-pattern-resolver</artifactId>
+            <version>0.1</version>
+            <scope>test</scope>
+            <type>jar</type>
+        </dependency>
     </dependencies>
 </project>

@@ -227,7 +227,13 @@ public class SongCopyDeadlockTest
             {
                 Phrase p = new Phrase(0);
                 p.add(new NoteEvent(64, 1, 60, 5));
-                song.setUserPhrase(PHRASE_NAME, p);
+                try
+                {
+                    song.setUserPhrase(PHRASE_NAME, p);
+                } catch (UnsupportedEditException ex)
+                {
+                    // Might happen if not enough Midi channels
+                }
                 p.add(new NoteEvent(60, 1, 60, 1));
             }
             case 1 -> song.removeUserPhrase(PHRASE_NAME);

@@ -41,6 +41,7 @@ import org.jjazz.rhythm.api.RhythmVoice;
 import org.jjazz.rhythmmusicgeneration.spi.ConfigurableMusicGeneratorProvider;
 import org.jjazz.rhythmmusicgeneration.spi.MusicGenerator;
 import org.jjazz.rhythmparametersimpl.api.RP_SYS_CustomPhrase;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_DrumsTransform;
 import org.jjazz.rhythmparametersimpl.api.RP_SYS_Fill;
 import org.jjazz.rhythmparametersimpl.api.RP_SYS_Intensity;
 import org.jjazz.rhythmparametersimpl.api.RP_SYS_Marker;
@@ -87,27 +88,31 @@ public class RhythmMock implements Rhythm, ConfigurableMusicGeneratorProvider
         this.timeSignature = ts;
         this.features = fs;
 
-        // Rhythm voices
+        // Use all classical Rhythm voices from a Yamaha style
         GM1Bank gmb = GMSynth.getInstance().getGM1Bank();
-        rhythmVoices.add(new RhythmVoice(new DrumKit(Type.STANDARD, KeyMapGM.getInstance()), this, RhythmVoice.Type.PERCUSSION, "Perc",
+        rhythmVoices.add(new RhythmVoice(new DrumKit(Type.STANDARD, KeyMapGM.getInstance()), this, RhythmVoice.Type.PERCUSSION, "SubRhythm",
                 GMSynth.getInstance().getVoidInstrument(), 8));
-        rhythmVoices.add(new RhythmVoice(new DrumKit(Type.STANDARD, KeyMapGM.getInstance()), this, RhythmVoice.Type.DRUMS, "Drums",
-                GMSynth.getInstance().getVoidInstrument(), 9));
+        RhythmVoice rvDrums = new RhythmVoice(new DrumKit(Type.STANDARD, KeyMapGM.getInstance()), this, RhythmVoice.Type.DRUMS, "Rhythm",
+                GMSynth.getInstance().getVoidInstrument(), 9);
+        rhythmVoices.add(rvDrums);
         rhythmVoices.add(new RhythmVoice(this, RhythmVoice.Type.BASS, "Bass", gmb.getDefaultInstrument(InstrumentFamily.Bass), 10));
-        rhythmVoices.add(new RhythmVoice(this, RhythmVoice.Type.CHORD1, "Guitar", gmb.getDefaultInstrument(InstrumentFamily.Guitar), 11));
-        rhythmVoices.add(new RhythmVoice(this, RhythmVoice.Type.CHORD2, "Piano", gmb.getDefaultInstrument(InstrumentFamily.Piano), 12));
+        rhythmVoices.add(new RhythmVoice(this, RhythmVoice.Type.CHORD1, "Chord1", gmb.getDefaultInstrument(InstrumentFamily.Guitar), 11));
+        rhythmVoices.add(new RhythmVoice(this, RhythmVoice.Type.CHORD2, "Chord2", gmb.getDefaultInstrument(InstrumentFamily.Piano), 12));
         rhythmVoices.add(new RhythmVoice(this, RhythmVoice.Type.PAD, "Pad", gmb.getDefaultInstrument(InstrumentFamily.Strings), 13));
+        rhythmVoices.add(new RhythmVoice(this, RhythmVoice.Type.PHRASE1, "Phrase1", gmb.getDefaultInstrument(InstrumentFamily.Brass), 14));
 
 
         // Our Rhythm Parameters
-        rhythmParameters.add(new RP_SYS_Variation(true, "Main A-1", "Intro A-1", "Ending A-1", "Main A-1", "Main A-2", "Main B-1", "Main B-1", "Main C-1", "Main C-2", "Main D-1", "Main D-2"));
-        rhythmParameters.add(new RP_SYS_Intensity(true));        
+        rhythmParameters.add(new RP_SYS_Variation(true, "Main A-1", "Intro A-1", "Intro B-1", "Ending A-1", "Ending B-1", "Main A-1", "Main A-2", "Main B-1",
+                "Main B-1", "Main C-1", "Main C-2", "Main D-1", "Main D-2"));
+        rhythmParameters.add(new RP_SYS_Intensity(true));
         rhythmParameters.add(new RP_SYS_Fill(true));
         rhythmParameters.add(RP_SYS_Mute.createMuteRp(this, true));
         rhythmParameters.add(RP_SYS_Marker.getInstance());
-        rhythmParameters.add(RP_SYS_TempoFactor.getInstance());        
+        rhythmParameters.add(RP_SYS_TempoFactor.getInstance());
         rhythmParameters.add(new RP_SYS_CustomPhrase(this, true));
         rhythmParameters.add(new RP_SYS_OverrideTracks(this, true));
+        rhythmParameters.add(new RP_SYS_DrumsTransform(rvDrums, true));
 
     }
 
@@ -216,7 +221,7 @@ public class RhythmMock implements Rhythm, ConfigurableMusicGeneratorProvider
     @Override
     public String getName()
     {
-        return "RhythmMock" + getTimeSignature().toString();
+        return getUniqueId();
     }
 
     @Override

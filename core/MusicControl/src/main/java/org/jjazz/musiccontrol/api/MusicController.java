@@ -350,7 +350,15 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             // Try to pre-generate the sequence
             if (playbackSession.getState().equals(PlaybackSession.State.NEW))
             {
-                playbackSession.generate(silent);         // Throws MusicGenerationException
+                try
+                {
+                    playbackSession.generate(silent);         // throws MusicGenerationException
+                } catch (MusicGenerationException ex)
+                {
+                    playbackSession.removePropertyChangeListener(this);
+                    playbackSession = null;
+                    throw ex;
+                }
             }
         }
 
@@ -1127,7 +1135,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
             // Most of the listeners use events to update the UI, so safer to fire on EDT.
             SharedExecutorServices.getScheduledExecutor().schedule(
                     () -> SwingUtilities.invokeLater(r),
-                     audioLatency,
+                    audioLatency,
                     TimeUnit.MILLISECONDS);
         }
     }
