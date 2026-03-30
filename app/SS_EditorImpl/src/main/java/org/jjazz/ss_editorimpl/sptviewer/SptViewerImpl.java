@@ -748,13 +748,13 @@ public class SptViewerImpl extends SptViewer implements FocusListener, PropertyC
         Color c = settings.getRhythmFontColor();
         if (!showRhythm)
         {
-            c = new Color(c.getRed(), c.getGreen(), c.getBlue(), 64);       // semi-transparent
+            c = new Color(c.getRed(), c.getGreen(), c.getBlue(), 120);       // semi-transparent
         }
         fbtn_rhythm.setForeground(c);
         Rhythm r = sptModel.getRhythm();
         fbtn_rhythm.setText(r.getName());
-        String fileName = r.getFile() == null ? "" : " - " + r.getFile().getName();
-        fbtn_rhythm.setToolTipText(r.getDescription() + fileName);
+        String fileName = r.getFile() == null ? "" : r.getFile().getName();
+        fbtn_rhythm.setToolTipText(fileName + " " + r.getDescription());
 
         // Name button
         fbtn_sptName.setFont(settings.getNameFont());
