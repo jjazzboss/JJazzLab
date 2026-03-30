@@ -22,84 +22,599 @@
  */
 package org.jjazz.ss_editor.sptviewer.api;
 
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Point;
 import java.awt.Rectangle;
-import org.jjazz.ss_editor.sptviewer.spi.SptViewerSettings;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import javax.swing.TransferHandler;
+import javax.swing.border.Border;
+import org.jjazz.chordleadsheet.api.Section;
+import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.harmony.api.Position;
+import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
+import org.jjazz.ss_editor.sptviewer.spi.SptViewerSettings;
+import org.jjazz.ss_editor.rpviewer.api.RpViewer;
 import org.jjazz.songstructure.api.SongPart;
-import org.jjazz.ss_editor.rpviewer.spi.DefaultRpViewerRendererFactory;
+import org.jjazz.cl_editor.api.CL_EditorClientProperties;
+import org.jjazz.ss_editor.api.SS_Editor;
+import org.jjazz.utilities.api.ResUtil;
+import org.jjazz.uisettings.api.ColorSetManager;
 
 /**
- * A base class for SongPart viewers.
+ * A base implementation of a SptViewer.
  * <p>
- * Must keep itself updated by listening to model changes. User actions are sent to the controller.
+ * Handle preferred size, zooming, selection/focused state rendering, mouse events capture to call controller.
  */
-public abstract class SptViewer extends JPanel
+abstract public class SptViewer extends JPanel implements FocusListener, PropertyChangeListener, MouseListener, MouseMotionListener, MouseWheelListener
 {
 
-    public abstract SongPart getModel();
+    private static final int ONE_BAR_EXTRA_SIZE = 60;
+    private static final int MIN_WIDTH = 40;
 
-    public abstract SptViewerSettings getSettings();
-
-    public abstract DefaultRpViewerRendererFactory getDefaultRpRendererFactory();
-
-    public abstract void setController(SptViewerMouseListener controller);
-
-    public abstract void setSelected(boolean b);
-
-    public abstract void setSelected(RhythmParameter<?> rp, boolean b);
+    protected SptViewerMouseListener controller;
+    private SongPart sptModel;
+    private final SS_Editor editor;
+    private boolean isSelected;
+    private int zoomHFactor;
+    protected int zoomVFactor;
+    private Color sptColor;
 
     /**
-     * Horizontal zoom factor.
-     *
-     * @param factor 0=min zoom (bird's view), 100=max zoom
+     * Our graphical settings.
      */
-    public abstract void setZoomHFactor(int factor);
+    protected final SptViewerSettings settings;
+    private static final Logger LOGGER = Logger.getLogger(SptViewer.class.getSimpleName());
 
-    public abstract int getZoomHFactor();
 
     /**
-     * Vertical zoom factor.
      *
-     * @param factor 0=min zoom (bird's view), 100=max zoom
+     * @param ssEditor
+     * @param spt
+     * @param settings
      */
-    public abstract void setZoomVFactor(int factor);
+    public SptViewer(SS_Editor ssEditor, SongPart spt, SptViewerSettings settings)
+    {
+        Objects.requireNonNull(ssEditor);
+        Objects.requireNonNull(spt);
+        Objects.requireNonNull(settings);
 
-    public abstract int getZoomVFactor();
+        this.editor = ssEditor;
+        sptModel = spt;
+        sptModel.addPropertyChangeListener(this);
+        zoomHFactor = 50;
+        zoomVFactor = 50;
 
-    public abstract void setFocusOnRpViewer(RhythmParameter<?> rp);
 
-    public abstract void setVisibleRps(List<RhythmParameter<?>> rps);
-    
-    public abstract Rectangle getRpViewerRectangle(RhythmParameter<?> rp);
+        // Register settings changes
+        this.settings = settings;
+        settings.addPropertyChangeListener(this);
+
+
+        // Keep track if section colors change
+        var cliSection = sptModel.getParentSection();
+        sptColor = Color.LIGHT_GRAY.brighter().brighter();
+        if (cliSection != null)
+        {
+            cliSection.addPropertyChangeListener(this);
+            cliSection.getClientProperties().addPropertyChangeListener(this);
+            sptColor = CL_EditorClientProperties.getSectionColor(sptModel.getParentSection());
+            if (sptColor == null)
+            {
+                sptColor = ColorSetManager.getDefault().getColor(cliSection);
+            }
+        }
+
+
+        addFocusListener(this);
+        addMouseListener(this);
+        addMouseMotionListener(this);
+
+
+        updateGlobalUIComponents();
+        updateToolTip();
+    }
+
+    public void setController(SptViewerMouseListener controller)
+    {
+        this.controller = controller;
+        getRpViewers().forEach(rpv -> rpv.setController(controller));
+    }
+
+    public SptViewerSettings getSettings()
+    {
+        return settings;
+    }
+
+    public SongPart getModel()
+    {
+        return sptModel;
+    }
+
+    public void setSelected(boolean b)
+    {
+        isSelected = b;
+        refreshBackground();
+    }
+
+    public void setZoomHFactor(int factor)
+    {
+        if (factor < 0 || factor > 100)
+        {
+            throw new IllegalArgumentException("factor=" + factor);
+        }
+        zoomHFactor = factor;
+        revalidate();
+        repaint();
+    }
+
+    public int getZoomHFactor()
+    {
+        return zoomHFactor;
+    }
+
+    public void setZoomVFactor(int factor)
+    {
+        if (factor < 0 || factor > 100)
+        {
+            throw new IllegalArgumentException("factor=" + factor);
+        }
+        zoomVFactor = factor;
+
+        // Only RpViewers height is impacted
+        for (RpViewer rpv : this.getRpViewers())
+        {
+            rpv.setZoomVFactor(factor);
+        }
+    }
+
+    public int getZoomVFactor()
+    {
+        return zoomHFactor;
+    }
 
     /**
-     * True by default.
+     * Overridden to enable SptViewers to be aligned on their baseline (for example by FlowLayout).
      *
+     * @param width
+     * @param height
+     * @return 0 Means these components are aligned on the top.
+     */
+    @Override
+    public int getBaseline(int width, int height)
+    {
+        return 0;
+    }
+
+    /**
+     * Overridden to be consistent with getBaseline override
+     *
+     * @return
+     */
+    @Override
+    public Component.BaselineResizeBehavior getBaselineResizeBehavior()
+    {
+        return Component.BaselineResizeBehavior.CONSTANT_ASCENT;
+    }
+
+    /**
+     * PreferredSize is proportional to the SongPart length.
+     *
+     * @return
+     */
+    @Override
+    public Dimension getPreferredSize()
+    {
+        int nbBars = (sptModel == null) ? 0 : sptModel.getNbBars();
+        float width = MIN_WIDTH + nbBars * ONE_BAR_EXTRA_SIZE * (zoomHFactor / 100f);
+        Dimension pd = getLayout().preferredLayoutSize(this);
+        return new Dimension((int) width, pd.height);
+    }
+
+    /**
+     * Select/unselect the specified RhythmParameter.
+     *
+     * @param rp
      * @param b
      */
-    public abstract void setRhythmVisible(boolean b);
+    public void setSelected(RhythmParameter<?> rp, boolean b)
+    {
+        RpViewer rpv = getRpViewer(rp);
+        if (rpv != null)
+        {
+            rpv.setSelected(b);
+        }
+    }
 
     /**
+     * Set the focus on the rp's RpViewer.
      *
-     * @param b True if this SptViewer is this Spt is part of a multi-selection
-     * @param first True if this SptViewer is the first Spt of a multi-selection
+     * @param rp
      */
-    public abstract void setMultiSelectMode(boolean b, boolean first);
+    public void setFocusOnRpViewer(RhythmParameter<?> rp)
+    {
+        RpViewer rpv = getRpViewer(rp);
+        if (rpv != null)
+        {
+            rpv.requestFocusInWindow();
+        }
+    }
 
-    public abstract void setNameVisible(boolean b);
+    /**
+     * Get the specified RpViewer bounds.
+     *
+     * @param rp
+     * @return Can be null if rp is not used by this SongPart.
+     */
+    public Rectangle getRpViewerRectangle(RhythmParameter<?> rp)
+    {
+        Rectangle r = null;
+        RpViewer rpv = getRpViewer(rp);
+        if (rpv != null)
+        {
+            Point p = rpv.getLocationOnScreen();
+            r = new Rectangle(p);
+            r.width = rpv.getWidth();
+            r.height = rpv.getHeight();
+        }
+        return r;
+    }
 
-    public abstract void setTimeSignatureVisible(boolean b);
+    public Color getSptColor()
+    {
+        return this.sptColor;
+    }
 
-    public abstract void cleanup();
+    /**
+     * Set the default color.
+     *
+     * @param c
+     */
+    public void setSptColor(Color c)
+    {
+        this.sptColor = c;
+        refreshBackground();
+    }
+
+
+    public void cleanup()
+    {
+        setVisibleRps(Collections.emptyList());
+        var cliSection = sptModel.getParentSection();
+        if (cliSection != null)
+        {
+            cliSection.getClientProperties().removePropertyChangeListener(this);
+            cliSection.removePropertyChangeListener(this);
+        }
+        sptModel.removePropertyChangeListener(this);
+        settings.removePropertyChangeListener(this);
+        removeFocusListener(this);
+        sptModel = null;
+        controller = null;
+    }
+
+
+    /**
+     * Model has changed, UI might need to be updated.
+     */
+    abstract public void modelChanged();
+
+    /**
+     * Settings have changed, UI might need to be updated.
+     */
+    abstract public void settingsChanged();
+
+    /**
+     * Get the UI config of this SptViewer.
+     *
+     * @return
+     */
+    abstract public SptViewerConfig getConfig();
+
+    /**
+     * Set the UI config of this SptViewer.
+     * <p>
+     * Default implementation does nothing.
+     *
+     * @param uiConfig
+     */
+    public void setConfig(SptViewerConfig uiConfig)
+    {
+        // Nothing
+    }
+
+
+    /**
+     * Set which RpViewers are visible.
+     * <p>
+     * Default implementation does nothing.
+     *
+     * @param rps
+     */
+    public void setVisibleRps(List<RhythmParameter<?>> rps)
+    {
+        // Nothing
+    }
 
     /**
      * Show a playback point in the editor at specified position.
+     * <p>
+     * Default implementation does nothing.
      *
      * @param show Show/hide the playback point.
-     * @param pos The position within the SongStructure model. Not used if b==false.
+     * @param pos  The position within the SongStructure model. Not used if b==false.
      */
-    public abstract void showPlaybackPoint(boolean show, Position pos);
+    public void showPlaybackPoint(boolean show, Position pos)
+    {
+        // Nothing
+    }
+
+    /**
+     * Get the RpViewers used by this SptViewer.
+     * <p>
+     * Default implementation returns an empty list.
+     *
+     * @return
+     */
+    public List<RpViewer> getRpViewers()
+    {
+        return Collections.emptyList();
+    }
+
+    /**
+     * Get the RpViewer for the specified RhythmParameter.
+     * <p>
+     * Default implementation returns an empty list.
+     *
+     * @param rp
+     * @return Can be null
+     */
+    public RpViewer getRpViewer(RhythmParameter<?> rp)
+    {
+        return null;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "SptViewer(" + sptModel + ")";
+    }
+
+    //-----------------------------------------------------------------------
+    // Implementation of the MouseListener interface
+    //-----------------------------------------------------------------------
+    @Override
+    public void mouseClicked(MouseEvent e)
+    {
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent e)
+    {
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e)
+    {
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e)
+    {
+        if (controller == null)
+        {
+            return;
+        }
+        Component c = (Component) e.getSource();
+        LOGGER.log(Level.FINE, "mousePressed() c={0}", c);
+        if (c instanceof SptViewer)
+        {
+            controller.songPartClicked(e, sptModel, false);
+        } else if (c instanceof RpViewer rpv)
+        {
+            controller.rhythmParameterClicked(e, rpv.getSptModel(), rpv.getRpModel());
+        }
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e)
+    {
+        if (controller == null)
+        {
+            return;
+        }
+        Component c = (Component) e.getSource();
+        if (c == this)
+        {
+            controller.songPartReleased(e, sptModel);
+        } else if (c instanceof RpViewer rpv)
+        {
+            controller.rhythmParameterReleased(e, rpv.getSptModel(), rpv.getRpModel());
+        }
+    }
+
+    //------------------------------------------------------------------
+    // Implement the MouseMotionListener interface
+    //------------------------------------------------------------------
+    @Override
+    public void mouseDragged(MouseEvent e)
+    {
+        if (!SwingUtilities.isLeftMouseButton(e) || controller == null)
+        {
+            return;
+        }
+        Component c = (Component) e.getSource();
+        if (c == this)
+        {
+            // Since JPanel does not normally support drag-and-drop, start drag if a transfer handler is set
+            TransferHandler th = getTransferHandler();
+            if (th != null)
+            {
+                th.exportAsDrag(SptViewer.this, e, TransferHandler.COPY);
+            }
+            controller.songPartDragged(e, sptModel);
+        } else if (c instanceof RpViewer rpv)
+        {
+            controller.rhythmParameterDragged(e, rpv.getSptModel(), rpv.getRpModel());
+        }
+    }
+
+    @Override
+    public void mouseMoved(MouseEvent e)
+    {
+        // Nothing
+    }
+
+// ---------------------------------------------------------------
+// Implements MouseWheelListener interface
+// ---------------------------------------------------------------
+    @Override
+    public void mouseWheelMoved(MouseWheelEvent e)
+    {
+        if (controller == null)
+        {
+            return;
+        }
+        Component c = (Component) e.getSource();
+        if (c instanceof RpViewer rpv)
+        {
+            controller.rhythmParameterWheelMoved(e, rpv.getSptModel(), rpv.getRpModel());
+        }
+    }
+
+    //-----------------------------------------------------------------------
+    // Implementation of the PropertiesListener interface
+    //-----------------------------------------------------------------------
+    @Override
+    public void propertyChange(PropertyChangeEvent e)
+    {
+        if (e.getSource() == settings)
+        {
+            settingsChanged();
+        } else if (e.getSource() == sptModel)
+        {
+            updateToolTip();
+
+            switch (e.getPropertyName())
+            {
+                case SongPart.PROP_NAME ->
+                {
+                    modelChanged();
+                }
+                case SongPart.PROP_RHYTHM_PARENT_SECTION ->
+                {
+                    Rhythm oldRhythm = (Rhythm) e.getOldValue();
+                    Rhythm newRhythm = sptModel.getRhythm();
+                    if (oldRhythm != newRhythm)
+                    {
+                        // Rhythm has changed, need to update the RpViewers
+                        setVisibleRps(editor.getVisibleRps(newRhythm));
+                    }
+                    modelChanged();
+                }
+                case SongPart.PROP_NB_BARS ->
+                {
+                    revalidate(); // our overridden getPreferredSize() could return a different value
+                }
+                default ->
+                {
+                    // Nothing
+                }
+            }
+        } else if (e.getSource() == sptModel.getParentSection())
+        {
+            if (e.getPropertyName().equals(CLI_Section.PROP_ITEM_DATA))
+            {
+                modelChanged();
+            }
+        } else if (e.getSource() == sptModel.getParentSection().getClientProperties())
+        {
+            // Check if our parent section color has changed in CL_Editor
+            if (CL_EditorClientProperties.PROP_SECTION_COLOR.equals(e.getPropertyName()))
+            {
+                setSptColor(CL_EditorClientProperties.getSectionColor(getModel().getParentSection()));
+            }
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // Implements the FocusListener interface
+    // ---------------------------------------------------------------
+    @Override
+    public void focusGained(FocusEvent e
+    )
+    {
+        Border border = settings.getFocusedBorder();
+        if (border != null)
+        {
+            setBorder(border);
+        }
+    }
+
+    @Override
+    public void focusLost(FocusEvent e
+    )
+    {
+        Border border = settings.getDefaultBorder();
+        if (border != null)
+        {
+            setBorder(border);
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // Private methods
+    // ---------------------------------------------------------------
+
+    private void updateToolTip()
+    {
+        Section section = sptModel.getParentSection().getData();
+        String strSongPart = ResUtil.getString(SptViewer.class, "SongPart");
+        String strParentSection = ResUtil.getString(SptViewer.class, "ParentSection");
+        String tt = strSongPart + "=" + sptModel.getName() + " (" + strParentSection + "=" + section.getName() + " " + section.getTimeSignature() + ")";
+        setToolTipText(tt);
+    }
+
+    private void refreshBackground()
+    {
+        if (isSelected)
+        {
+            setBackground(settings.getSelectedBackgroundColor());
+        } else
+        {
+            setBackground(sptColor);
+        }
+    }
+
+    private void updateGlobalUIComponents()
+    {
+        if (hasFocus())
+        {
+            setBorder(settings.getFocusedBorder());
+        } else
+        {
+            setBorder(settings.getDefaultBorder());
+        }
+
+        refreshBackground();
+    }
+
+
 }

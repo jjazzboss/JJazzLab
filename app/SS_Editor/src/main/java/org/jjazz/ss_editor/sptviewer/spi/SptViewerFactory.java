@@ -29,7 +29,7 @@ import org.jjazz.ss_editor.sptviewer.api.SptViewer;
 import org.jjazz.ss_editor.rpviewer.spi.DefaultRpViewerRendererFactory;
 
 /**
- * A factory for SongPartEditors.
+ * A factory for SongPart editors (SptViewers).
  */
 public interface SptViewerFactory
 {
@@ -59,5 +59,24 @@ public interface SptViewerFactory
         return SptViewerSettings.getDefault();
     }
 
-    SptViewer createSptViewer(SS_Editor ssEditor, SongPart spt, SptViewerSettings settings, DefaultRpViewerRendererFactory factory);
+    /**
+     * Create a SptViewer which contains the RpViewers.
+     *
+     * @param ssEditor
+     * @param spt
+     * @param settings
+     * @param factory
+     * @return
+     */
+    SptViewer createLowSptViewer(SS_Editor ssEditor, SongPart spt, SptViewerSettings settings, DefaultRpViewerRendererFactory factory);
+
+    /**
+     * Create a top SptViewer for name etc.
+     *
+     * @param ssEditor
+     * @param spt
+     * @param settings
+     * @return
+     */
+    SptViewer createTopSptViewer(SS_Editor ssEditor, SongPart spt, SptViewerSettings settings);
 }

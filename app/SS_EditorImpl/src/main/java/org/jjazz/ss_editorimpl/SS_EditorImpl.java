@@ -22,7 +22,10 @@
  */
 package org.jjazz.ss_editorimpl;
 
+import com.google.common.base.Preconditions;
 import static com.google.common.base.Preconditions.checkNotNull;
+import java.awt.BorderLayout;
+import java.awt.Color;
 import org.jjazz.ss_editor.api.SS_Selection;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -53,6 +56,9 @@ import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import java.beans.PropertyChangeSupport;
+import java.util.function.Consumer;
+import javax.swing.BorderFactory;
+import javax.swing.JScrollPane;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.rhythm.api.Rhythm;
@@ -91,6 +97,10 @@ import static org.jjazz.ss_editor.api.SS_EditorClientProperties.getViewMode;
 import static org.jjazz.ss_editor.api.SS_EditorClientProperties.setCompactViewModeVisibleRPs;
 import org.jjazz.ss_editor.api.SS_EditorMouseListener;
 import org.jjazz.ss_editor.api.SelectedSongPart;
+import org.jjazz.ss_editor.sptviewer.api.SptViewerConfig;
+import org.jjazz.ss_editor.sptviewer.api.SptViewerConfig.MultiSelect;
+import org.jjazz.ss_editorimpl.sptviewer.SptViewerLow;
+import org.jjazz.ss_editorimpl.sptviewer.SptViewerTop;
 import org.jjazz.utilities.api.IdentityBasedInstanceContent;
 
 /**
@@ -102,7 +112,9 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
 
 
     // UI variables
-    private javax.swing.JPanel panel_SongParts;
+    private JScrollPane scrollPane;
+    private JPanel panel_Top;
+    private JPanel panel_SongParts;
     private InsertionSptMark insertionMark;
     /**
      * Our sgsModel.
@@ -253,7 +265,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         updateUIComponents();
 
         panel_SongParts.addMouseListener(this);       // for editor popup menu
-        addMouseWheelListener(this);                    // For zoom operations
+        scrollPane.addMouseWheelListener(this);                    // For zoom operations
 
         // Listen to our models
         sgsModel.addSgsChangeListener(this);
@@ -364,9 +376,10 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         {
             return;
         }
-        SptViewer rpe = getSptViewer(spt);
-        assert rpe != null;
-        rpe.setSelected(b);
+
+        runTaskOnBothSptViewers(spt, sptv -> sptv.setSelected(b));
+
+
         var selSpt = new SelectedSongPart(spt);
         if (b)
         {
@@ -390,8 +403,11 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         {
             return;
         }
-        SptViewer spte = this.getSptViewer(spt);
-        spte.setSelected(rp, b);
+
+
+        runTaskOnBothSptViewers(spt, sptv -> sptv.setSelected(rp, b));
+
+
         SongPartParameter sptp = new SongPartParameter(spt, rp);
         if (b)
         {
@@ -414,27 +430,22 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     public void setFocusOnSongPart(SongPart spt)
     {
         assert spt != null;
-        SptViewer rpe = getSptViewer(spt);
-        rpe.requestFocusInWindow();
+        getSptViewerTop(spt).requestFocusInWindow();
     }
 
     @Override
     public void setFocusOnRhythmParameter(SongPart spt, RhythmParameter<?> rp)
     {
         assert spt != null;
-        SptViewer rpe = getSptViewer(spt);
-        rpe.setFocusOnRpViewer(rp);
+        getSptViewerLow(spt).setFocusOnRpViewer(rp);
     }
 
     @Override
     public Rectangle getSptViewerRectangle(SongPart spt)
     {
-        if (!sgsModel.getSongParts().contains(spt))
-        {
-            throw new IllegalArgumentException("spt=" + spt + " model=" + sgsModel);
-        }
+        Preconditions.checkArgument(sgsModel.getSongParts().contains(spt), "spt=%s sgsModel=%s", spt, sgsModel);
 
-        SptViewer sptv = getSptViewer(spt);
+        SptViewer sptv = getSptViewerTop(spt);
         Point p = sptv.getLocationOnScreen();
         Rectangle r = new Rectangle(p);
         r.width = sptv.getWidth();
@@ -445,7 +456,8 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     @Override
     public Rectangle getRpViewerRectangle(SongPart spt, RhythmParameter<?> rp)
     {
-        SptViewer sptv = getSptViewer(spt);
+        Preconditions.checkArgument(sgsModel.getSongParts().contains(spt), "spt=%s sgsModel=%s", spt, sgsModel);
+        SptViewer sptv = getSptViewerLow(spt);
         return sptv.getRpViewerRectangle(rp);
     }
 
@@ -592,7 +604,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         if (lastPlaybackSpt != null)
         {
             // Playback point was already shown
-            SptViewer lastSptv = getSptViewer(lastPlaybackSpt);
+            SptViewer lastSptv = getSptViewerTop(lastPlaybackSpt);
             if (lastSptv == null)
             {
                 // Viewer was removed (e.g. editor was cleaned up)
@@ -605,7 +617,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
             {
                 // Playback point changed SptViewer, switch off old location and switch on new location
                 lastSptv.showPlaybackPoint(false, null);
-                SptViewer newSptv = getSptViewer(newSpt);
+                SptViewer newSptv = getSptViewerTop(newSpt);
                 if (newSptv != null)
                 {
                     newSptv.showPlaybackPoint(true, pos);
@@ -616,7 +628,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         } else if (show && newSpt != null)
         {
             // First show of playback point
-            SptViewer sptv = getSptViewer(newSpt); // Can be null if editor was cleaned up.
+            SptViewer sptv = getSptViewerTop(newSpt); // Can be null if editor was cleaned up.
             if (sptv != null)
             {
                 sptv.showPlaybackPoint(true, pos);
@@ -629,7 +641,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     @Override
     public void makeSptViewerVisible(SongPart spt)
     {
-        SptViewer sptv = getSptViewer(spt);
+        SptViewer sptv = getSptViewerLow(spt);
         if (sptv == null)
         {
             throw new IllegalStateException("spt=" + spt);
@@ -666,6 +678,10 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         return spt;
     }
 
+    public String toString()
+    {
+        return "SS_EditorImpl[" + songModel.getName() + "]";
+    }
 
     //------------------------------------------------------------------------------
     // LookupProvider interface
@@ -821,11 +837,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         {
             return;
         }
-        Component c = (Component) e.getSource();
-        if (c == this)
-        {
-            controller.editorWheelMoved(e);
-        }
+        controller.editorWheelMoved(e);
     }
 
     //------------------------------------------------------------------------------
@@ -837,10 +849,9 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         {
             for (SongPart spt : e.getSongParts())
             {
-                SptViewer rpe = getSptViewer(spt);
-                if (rpe != null)
+                for (var sptv : getSptViewers(spt))
                 {
-                    removeSptViewer(rpe);
+                    removeSptViewer(sptv);
                 }
             }
         } else
@@ -871,10 +882,9 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         {
             for (SongPart spt : e.getSongParts())
             {
-                SptViewer rpe = getSptViewer(spt);
-                if (rpe != null)
+                for (var sptv : getSptViewers(spt))
                 {
-                    removeSptViewer(rpe);
+                    removeSptViewer(sptv);
                 }
             }
         }
@@ -889,11 +899,16 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     {
         insertionMark = new InsertionSptMark();
 
-//        panel_Top = new JPanel();
-//        panel_Top.setPreferredSize(new Dimension(0, 25));
-//        panel_Top.setOpaque(true);
-//        panel_Top.setBackground(settings.getTopBackgroundColor());
-//        panel_Top.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+
+        panel_Top = new JPanel();
+//        var border = BorderFactory.createLineBorder(Color.LIGHT_GRAY);
+//        panel_Top.setBorder(border);
+        panel_Top.setOpaque(false);
+        FlowLayout flowLayout = new FlowLayout(FlowLayout.LEFT, 1, 1);
+        flowLayout.setAlignOnBaseline(true); // Used to get the songparts aligned on the top line.
+        panel_Top.setLayout(flowLayout);
+
+
         panel_SongParts = new JPanel()
         {
             // Leave a small space at the right of the last SongPart
@@ -905,16 +920,20 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
                 return new Dimension(pd.width + EXTRA, pd.height);
             }
         };
-        java.awt.FlowLayout flowLayout = new java.awt.FlowLayout(FlowLayout.LEFT, 1, 5);
+        flowLayout = new FlowLayout(FlowLayout.LEFT, 1, 5);
         flowLayout.setAlignOnBaseline(true); // Used to get the songparts aligned on the top line.
-        panel_SongParts.setOpaque(false);
         panel_SongParts.setLayout(flowLayout);
+        panel_SongParts.setOpaque(false);
         panel_SongParts.setMinimumSize(new java.awt.Dimension(800, 50));
 
-        BoxLayout boxLayout = new BoxLayout(this, BoxLayout.Y_AXIS);
-        setLayout(boxLayout); // So that panel_SongParts uses all the available space        
-        // add(panel_Top);
-        add(panel_SongParts);
+
+        scrollPane = new JScrollPane();
+        scrollPane.setViewportView(panel_SongParts);
+        scrollPane.setColumnHeaderView(panel_Top);
+
+
+        setLayout(new BorderLayout()); // So that scrollPane uses all the available space        
+        add(scrollPane);
     }
 
     private void updateUIComponents()
@@ -924,23 +943,12 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     }
 
 
-    private List<SptViewer> getSptViewers()
-    {
-        ArrayList<SptViewer> res = new ArrayList<>();
-        for (Component c : this.panel_SongParts.getComponents())
-        {
-            if (c instanceof SptViewer sptViewer)
-            {
-                res.add(sptViewer);
-            }
-        }
-        return res;
-    }
-
     private void addSptViewer(SongPart spt)
     {
         assert spt != null;
-        SptViewer sptv = sptViewerFactory.createSptViewer(this, spt, sptViewerFactory.getDefaultSptViewerSettings(),
+
+        // Main SptViewer
+        SptViewer sptv = sptViewerFactory.createLowSptViewer(this, spt, sptViewerFactory.getDefaultSptViewerSettings(),
                 sptViewerFactory.getDefaultRpViewerFactory());
         registerSptViewer(sptv);
         sptv.setZoomHFactor(getZoomXFactor(songModel));
@@ -956,6 +964,14 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
             getComponentCount()
         });
         panel_SongParts.add(sptv, index);
+
+
+        // Top SptViewer
+        SptViewer sptvTop = sptViewerFactory.createTopSptViewer(this, spt, sptViewerFactory.getDefaultSptViewerSettings());
+        registerSptViewer(sptvTop);
+        sptvTop.setZoomHFactor(getZoomXFactor(songModel));
+        sptvTop.setZoomVFactor(getZoomYFactor(songModel));
+        panel_Top.add(sptvTop, index);
     }
 
     private void removeSptViewer(SptViewer sptv)
@@ -973,16 +989,67 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         sptv.cleanup();
     }
 
-    private SptViewer getSptViewer(SongPart spt)
+    private List<SptViewer> getSptViewers()
     {
-        for (SptViewer rpe : this.getSptViewers())
+        ArrayList<SptViewer> res = new ArrayList<>();
+        for (Component c : this.panel_Top.getComponents())
         {
-            if (rpe.getModel() == spt)
+            if (c instanceof SptViewer sptViewer)
             {
-                return rpe;
+                res.add(sptViewer);
             }
         }
-        return null;
+        for (Component c : this.panel_SongParts.getComponents())
+        {
+            if (c instanceof SptViewer sptViewer)
+            {
+                res.add(sptViewer);
+            }
+        }
+        return res;
+    }
+
+    private List<SptViewer> getSptViewers(SongPart spt)
+    {
+        return getSptViewers().stream()
+                .filter(sptv -> sptv.getModel() == spt)
+                .toList();
+    }
+
+    private SptViewer getSptViewerTop(SongPart spt)
+    {
+        for (var sptv : getSptViewers())
+        {
+            if (sptv.getModel() == spt && sptv.getClass() == SptViewerTop.class)
+            {
+                return sptv;
+            }
+        }
+        throw new IllegalStateException("spt=" + spt);
+    }
+
+    private SptViewer getSptViewerLow(SongPart spt)
+    {
+        for (var sptv : getSptViewers())
+        {
+            if (sptv.getModel() == spt && sptv.getClass() == SptViewerLow.class)
+            {
+                return sptv;
+            }
+        }
+        throw new IllegalStateException("spt=" + spt);
+    }
+
+    /**
+     * Run an identical task on the SptViewers of spt.
+     *
+     * @param spt
+     * @param task
+     */
+    private void runTaskOnBothSptViewers(SongPart spt, Consumer<SptViewer> task)
+    {
+        task.accept(getSptViewerTop(spt));
+        task.accept(getSptViewerLow(spt));
     }
 
     /**
@@ -1029,7 +1096,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     }
 
     /**
-     * Show/Hide the rhythm and the time signature of all SongParts.
+     * Show/hide the rhythm and the time signature of all SongParts.
      */
     private void updateSptsVisibleRhythmAndTimeSignature()
     {
@@ -1038,8 +1105,10 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         {
             Rhythm rhythm = sptv.getModel().getRhythm();
             TimeSignature ts = rhythm.getTimeSignature();
-            sptv.setRhythmVisible(!rhythm.equals(lastRhythm));
-            sptv.setTimeSignatureVisible(lastRhythm == null ? true : !ts.equals(lastRhythm.getTimeSignature()));
+            var uiConfig = sptv.getConfig();
+            uiConfig = uiConfig.setShowRhythm(!rhythm.equals(lastRhythm));
+            uiConfig = uiConfig.setShowTimeSignature(!rhythm.equals(lastRhythm == null ? true : !ts.equals(lastRhythm.getTimeSignature())));
+            sptv.setConfig(uiConfig);
             lastRhythm = rhythm;
         }
     }
@@ -1049,7 +1118,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
      */
     private void updateSptMultiSelectMode()
     {
-        ArrayList<SptViewer> buffer = new ArrayList<>();
+        List<SptViewer> buffer = new ArrayList<>();
         String prevName = null;
         for (SptViewer sptv : getSptViewers())
         {
@@ -1057,12 +1126,17 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
             if (prevName != null && !name.equals(prevName))
             {
                 // Names differ, flush buffer
-                buffer.get(0).setNameVisible(true);
-                buffer.get(0).setMultiSelectMode(buffer.size() > 1, true);
+                var uiConfig = buffer.get(0).getConfig();
+                uiConfig = uiConfig.setShowName(true);
+                uiConfig = uiConfig.setMultiSelect(buffer.size() > 1 ? MultiSelect.ON_FIRST : MultiSelect.OFF);
+                buffer.get(0).setConfig(uiConfig);
+
                 for (int i = 1; i < buffer.size(); i++)
                 {
-                    buffer.get(i).setNameVisible(false);
-                    buffer.get(i).setMultiSelectMode(true, false);
+                    uiConfig = buffer.get(i).getConfig();
+                    uiConfig = uiConfig.setShowName(false);
+                    uiConfig = uiConfig.setMultiSelect(MultiSelect.ON);
+                    buffer.get(i).setConfig(uiConfig);
                 }
                 buffer.clear();
             }
@@ -1070,15 +1144,20 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
             buffer.add(sptv);
             prevName = name;
         }
+
         // Flush buffer if required
         if (!buffer.isEmpty())
         {
-            buffer.get(0).setNameVisible(true);
-            buffer.get(0).setMultiSelectMode(buffer.size() > 1, true);
+            var uiConfig = buffer.get(0).getConfig();
+            uiConfig = uiConfig.setShowName(true);
+            uiConfig = uiConfig.setMultiSelect(buffer.size() > 1 ? MultiSelect.ON_FIRST : MultiSelect.OFF);
+            buffer.get(0).setConfig(uiConfig);
             for (int i = 1; i < buffer.size(); i++)
             {
-                buffer.get(i).setNameVisible(false);
-                buffer.get(i).setMultiSelectMode(true, false);
+                uiConfig = buffer.get(i).getConfig();
+                uiConfig = uiConfig.setShowName(false);
+                uiConfig = uiConfig.setMultiSelect(MultiSelect.ON);
+                buffer.get(i).setConfig(uiConfig);
             }
         }
     }

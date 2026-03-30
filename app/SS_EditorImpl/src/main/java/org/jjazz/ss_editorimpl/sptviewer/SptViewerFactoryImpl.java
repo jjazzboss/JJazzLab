@@ -36,10 +36,16 @@ public class SptViewerFactoryImpl implements SptViewerFactory
 {
   
     @Override
-    public SptViewer createSptViewer(SS_Editor ssEditor, SongPart spt, SptViewerSettings settings, DefaultRpViewerRendererFactory factory)
+    public SptViewer createLowSptViewer(SS_Editor ssEditor, SongPart spt, SptViewerSettings settings, DefaultRpViewerRendererFactory factory)
     {
-        SptViewer sptv = new SptViewerImpl(ssEditor, spt, settings, factory);
+        SptViewer sptv = new SptViewerLow(ssEditor, spt, settings, factory);
         return sptv;
     }
 
+    @Override
+    public SptViewer createTopSptViewer(SS_Editor ssEditor, SongPart spt, SptViewerSettings settings)
+    {
+        SptViewer sptv = new SptViewerTop(ssEditor, spt, settings);
+        return sptv;
+    }
 }
