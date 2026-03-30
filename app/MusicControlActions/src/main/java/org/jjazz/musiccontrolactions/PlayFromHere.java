@@ -33,7 +33,6 @@ import javax.swing.Action;
 import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.chordleadsheet.api.ChordLeadSheet;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
-import org.jjazz.chordleadsheet.api.item.CLI_LoopRestartBar;
 import org.jjazz.chordleadsheet.api.item.CLI_Section;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.spi.MidiMixManager;
@@ -184,13 +183,13 @@ public class PlayFromHere extends AbstractAction
         try
         {
             MidiMix midiMix = MidiMixManager.getDefault().findMix(song);      // throws UnsupportedEditException
-            SongContext context = SongContextFactory.getDefault().of(song, midiMix);
+            int restartBar = song.getSongStructure().getLoopRestartBar();            
+            SongContext context = SongContextFactory.getDefault().of(song, midiMix, null, restartBar);
 
             new FixMissingSectionStartChord(context).autofix();
             FixMidiMix.checkAndPossiblyFix(midiMix, true);
 
-            int restartBar = context.getSong().getSongStructure().getLoopRestartBar();
-            UpdateProviderSongSession dynSession = UpdateProviderSongSession.getSession(context, PlaybackSession.Context.SONG, restartBar);
+            UpdateProviderSongSession dynSession = UpdateProviderSongSession.getSession(context, PlaybackSession.Context.SONG);
             
             session = UpdatableSongSession.getSession(dynSession);            
             mc.setPlaybackSession(session, false);  // Can generate MusicGenerationException

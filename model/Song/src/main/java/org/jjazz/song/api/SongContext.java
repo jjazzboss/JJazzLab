@@ -72,6 +72,13 @@ public interface SongContext
     IntRange getBarRange();
 
     /**
+     * The bar to restart from after last bar was played, when playback is in loop mode.
+     *
+     * @return A value within getBarRange(). By default returns getBarRange().from.
+     */
+    int getLoopRestartBar();
+
+    /**
      * Deep copy the Song and the MidiMix.
      *
      * @param disableInternalUpdates If true the returned Song instance will have internal consistency updates disabled, e.g. changing a section in the

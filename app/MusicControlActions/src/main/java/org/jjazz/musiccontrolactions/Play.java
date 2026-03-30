@@ -35,7 +35,6 @@ import javax.swing.ImageIcon;
 import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.analytics.api.Analytics;
 import org.jjazz.chordleadsheet.api.UnsupportedEditException;
-import org.jjazz.chordleadsheet.api.item.CLI_LoopRestartBar;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.musiccontrol.api.MusicController;
@@ -164,16 +163,16 @@ public class Play extends BooleanStateAction implements PropertyChangeListener, 
                     UpdatableSongSession session = null;
                     try
                     {
-                        MidiMix midiMix = MidiMixManager.getDefault().findMix(currentSong);      // Can raise U
-                        SongContext context = SongContextFactory.getDefault().of(currentSong, midiMix);
+                        MidiMix midiMix = MidiMixManager.getDefault().findMix(currentSong);      // throws UnsupportedEditException
+                        int restartBar = currentSong.getSongStructure().getLoopRestartBar();
+                        SongContext context = SongContextFactory.getDefault().of(currentSong, midiMix, null, restartBar);
 
                         new FixMissingSectionStartChord(context).autofix();
                         FixMidiMix.checkAndPossiblyFix(midiMix, true);
 
 
                         // Prepare the session
-                        int restartBar = context.getSong().getSongStructure().getLoopRestartBar();
-                        UpdateProviderSongSession dynSession = UpdateProviderSongSession.getSession(context, PlaybackSession.Context.SONG, restartBar);
+                        UpdateProviderSongSession dynSession = UpdateProviderSongSession.getSession(context, PlaybackSession.Context.SONG);
 
                         // Start sequencer
                         session = UpdatableSongSession.getSession(dynSession);

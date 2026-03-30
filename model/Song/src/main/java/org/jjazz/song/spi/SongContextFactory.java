@@ -52,6 +52,7 @@ public interface SongContextFactory
     /**
      * Create a SongContext for the whole song.
      * <p>
+     * Loop restart bar is set to 0.
      *
      * @param song
      * @param midiMix
@@ -61,16 +62,32 @@ public interface SongContextFactory
 
     /**
      * Create a SongContext for a whole or part of the song.
+     * <p>
+     * Loop restart bar is set to barRange.from.
      *
      * @param s
      * @param mm
-     * @param barRange
+     * @param barRange If null uses the whole song bar range. Must be within Song bar range.
      * @return
      */
     SongContext of(Song s, MidiMix mm, IntRange barRange);
 
     /**
+     * Create a SongContext for a whole or part of the song, with the specified loop restart bar.
+     * <p>
+     *
+     * @param s
+     * @param mm
+     * @param barRange       If null uses the whole song bar range. Must be within Song bar range.
+     * @param loopRestartBar Must be within barRange
+     * @return
+     */
+    SongContext of(Song s, MidiMix mm, IntRange barRange, int loopRestartBar);
+
+    /**
      * Create a copy using a part of the song.
+     * <p>
+     * If sgContext.getLoopRestartBar() is outside of newBarRange, returned value will use newBarRange.from as LoopRestartBar.
      *
      * @param sgContext
      * @param newBarRange
@@ -80,6 +97,8 @@ public interface SongContextFactory
 
     /**
      * Create a SongPartContext for one SongPart.
+     * <p>
+     * Loop restart bar is set to spt.getBarRange().from.
      *
      * @param s
      * @param mm
@@ -89,12 +108,15 @@ public interface SongContextFactory
     SongPartContext of(Song s, MidiMix mm, SongPart spt);
 
     /**
-     * Create a SongPartContext for a part of the song's unique SongPart.
+     * Create a SongPartContext for a part of the SongPart.
      *
-     * @param s        Must contain only one SongPart
+     * Loop restart bar is set to barRange.from.
+     * 
+     * @param s 
      * @param mix
-     * @param barRange
+     * @param spt
+     * @param barRange Must be within spt barRange
      * @return
      */
-    SongPartContext ofSongPartContext(Song s, MidiMix mix, IntRange barRange);
+    SongPartContext of(Song s, MidiMix mix, SongPart spt, IntRange barRange);
 }

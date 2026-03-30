@@ -89,10 +89,8 @@ public class RhythmPreviewerImpl implements RhythmPreviewer
     @Override
     public void setContext(Song sg, SongPart spt) throws MidiUnavailableException
     {
-        if (sg == null || spt == null)
-        {
-            throw new IllegalArgumentException("sg=" + sg + " spt=" + spt);
-        }
+        Objects.requireNonNull(sg);
+        Objects.requireNonNull(spt);
         originalSong = sg;
         originalSpt = spt;
         previouslyActivatedSong = ActiveSongManager.getDefault().getActiveSong();
@@ -134,11 +132,8 @@ public class RhythmPreviewerImpl implements RhythmPreviewer
     @Override
     public void previewRhythm(Rhythm r, Map<RhythmParameter<?>, Object> rpValues, boolean useRhythmTempo, boolean loopCount, ActionListener endListener) throws MusicGenerationException
     {
-        if (r == null)
-        {
-            throw new IllegalArgumentException(
-                    "r=" + r + " rpValues=" + rpValues + " useRhythmTempo=" + useRhythmTempo + " loopCount=" + loopCount);
-        }
+        Objects.requireNonNull(r);
+        Objects.requireNonNull(rpValues);
 
         LOGGER.log(Level.FINE, "previewRhythm() -- r={0} rpValues={1} useRhythmTempo={2} loop={3} endListener={4}", new Object[]
         {
@@ -223,7 +218,7 @@ public class RhythmPreviewerImpl implements RhythmPreviewer
         {
             Song song = buildPreviewSong(originalSong, originalSpt, r, rpValues);
             song.setTempo(useRhythmTempo ? r.getPreferredTempo() : originalSong.getTempo());
-            MidiMix mm = MidiMixManager.getDefault().findMix(song);        // Possible exception here
+            MidiMix mm = MidiMixManager.getDefault().findMix(song);        // throws UnsupportedEditException
             OutputSynth outputSynth = OutputSynthManager.getDefault().getDefaultOutputSynth();
             outputSynth.fixInstruments(mm, true);
             sgContext = SongContextFactory.getDefault().of(song, mm);
@@ -315,7 +310,7 @@ public class RhythmPreviewerImpl implements RhythmPreviewer
 
         private PreviewSession(SongContext sgContext, int loopCount, ActionListener endOfPlaybackAction)
         {
-            super(sgContext, new SessionConfig(false, false, true, loopCount, 0, endOfPlaybackAction), false, PlaybackSession.Context.RHYTHM_PREVIEW);
+            super(sgContext, new SessionConfig(false, false, true, loopCount, endOfPlaybackAction), false, PlaybackSession.Context.RHYTHM_PREVIEW);
         }
 
         @Override

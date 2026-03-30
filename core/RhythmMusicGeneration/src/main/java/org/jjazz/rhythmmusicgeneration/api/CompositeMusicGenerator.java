@@ -56,7 +56,6 @@ import org.jjazz.songstructure.api.SongPart;
 import org.jjazz.songstructure.api.SongStructure;
 import org.jjazz.utilities.api.IntRange;
 import org.jjazz.utilities.api.MatrixGroupsRemover;
-import org.jjazz.utilities.api.ResUtil;
 import org.jjazz.utilities.api.Utilities;
 
 /**
@@ -177,7 +176,6 @@ public class CompositeMusicGenerator implements MusicGenerator
         }
     }
 
-    
 
     private final RvToDelegateUnitMapper baseRvToDelegateUnitMapper;
     private final Rhythm baseRhythm;
@@ -523,7 +521,7 @@ public class CompositeMusicGenerator implements MusicGenerator
                 }
             }
         }
-        return res;     
+        return res;
     }
 
     /**
@@ -657,7 +655,7 @@ public class CompositeMusicGenerator implements MusicGenerator
      * - baseRhythm is replaced by the delegateRhythm in the impacted SongParts, possibly with a rpVariation value update<br>
      *
      * @param context                The original context
-     * @param delegateRhythm
+     * @param delegateRhythm         Might be identical to baseRhythm if only variation is changed
      * @param mapSptRpVariationValue The destination rpVariationValue for each base SongPart
      * @return
      * @throws org.jjazz.rhythm.api.MusicGenerationException
@@ -666,14 +664,13 @@ public class CompositeMusicGenerator implements MusicGenerator
     {
         Preconditions.checkArgument(!mapSptRpVariationValue.isEmpty(), "context=%s delegateRhythm=%s", context, delegateRhythm);
 
-
-        RP_SYS_Variation delegateRhythmRpVariation = RP_SYS_Variation.getVariationRp(delegateRhythm);
         var baseSpts = toOrderedSongPartList(mapSptRpVariationValue.keySet());
         IntRange br = context.getBarRange().getIntersection(new IntRange(baseSpts.getFirst().getStartBarIndex(), baseSpts.getLast().getBarRange().to));
 
         SongContext res;
 
         // Special case: delegateRhythm is baseRhythm and mapSptRpVariationValue does not bring any RpVariationValue change
+        RP_SYS_Variation delegateRhythmRpVariation = RP_SYS_Variation.getVariationRp(delegateRhythm);
         if (delegateRhythmRpVariation != null
                 && baseSpts.stream()
                         .allMatch(spt -> spt.getRhythm() == delegateRhythm && spt.getRPValue(delegateRhythmRpVariation).equals(mapSptRpVariationValue.get(spt))))
@@ -684,41 +681,32 @@ public class CompositeMusicGenerator implements MusicGenerator
         {
             // Need to change the SongStructure, create a getCopy context
             var context2 = SongContextFactory.getDefault().of(context, br);
-            res =  context2.getDeepCopy(false);     // Important to get the MidiMix updated by the rhythm change below
+            res = context2.getDeepCopy(false);     // false to get the MidiMix updated by the rhythm changes below
 
 
+            // Update all SongParts matching our time signature in order to try to avoid the "not enough Midi channel" from MidiMix as much as possible
+            // It still can happen in a multi-signature song
             SongStructure sgsCopy = res.getSong().getSongStructure();
-            var spts = toOrderedSongPartList(mapSptRpVariationValue.keySet());
-
-
-            // Replace base rhythm by delegateRhythm               
-            var sptsCopy = spts.stream()
-                    .map(spt -> sgsCopy.getSongPart(spt.getStartBarIndex()))
-                    .toList();
             try
             {
-                sgsCopy.setSongPartsRhythm(sptsCopy, delegateRhythm, null);     // exception possible if not enough Midi channel
+                var spts = sgsCopy.getSongParts(spt -> spt.getRhythm().getTimeSignature() == baseRhythm.getTimeSignature());
+                sgsCopy.setSongPartsRhythm(spts, delegateRhythm, null);     // throws UnsupportedEditException
             } catch (UnsupportedEditException ex)
             {
-                LOGGER.log(Level.WARNING, "createDelegateContext() Can not use delegate rhythm. context={0}, baseRhythm={1}, delegateRhythm={2}. ex={3}",
-                        new Object[]
-                        {
-                            context, baseRhythm, delegateRhythm, ex.getMessage()
-                        });
-                String msg = ResUtil.getString(getClass(), "NotEnoughMidiChannelForDelegate", delegateRhythm.getName());
+                String msg = "Can not use override track for delegate rhythm=" + delegateRhythm.getName() + ": " + ex.getMessage();
                 throw new MusicGenerationException(msg);
             }
 
-            
+
             // Possibly update rpVariationValue of some SongParts
             if (delegateRhythmRpVariation != null)
             {
-                for (int i = 0; i < sptsCopy.size(); i++)
+                for (int i = 0; i < baseSpts.size(); i++)
                 {
-                    var sptCopy = sptsCopy.get(i);
+                    var baseSpt = baseSpts.get(i);
+                    var sptCopy = sgsCopy.getSongPart(baseSpt.getStartBarIndex());
                     var rpVariationValue = sptCopy.getRPValue(delegateRhythmRpVariation);
-                    var mapSpt = spts.get(i);
-                    var destVariationValue = mapSptRpVariationValue.get(mapSpt);
+                    var destVariationValue = mapSptRpVariationValue.get(baseSpt);
                     if (!rpVariationValue.equals(destVariationValue))
                     {
                         LOGGER.log(LogLevel, "createDelegateContext() targetSpt={0}: setting delegate variation value to {1}",

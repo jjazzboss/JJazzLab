@@ -40,16 +40,18 @@ public class SongContextImpl implements SongContext
     private final Song song;
     private final MidiMix midiMix;
     private final IntRange barRange;
+    private final int loopRestartBar;
 
 
     /**
      * Create a SongContext object for whole or part of a song.
      *
-     * @param s        Should be effectively immutable
-     * @param mm       Should be effectively immutable
-     * @param barRange If null, the range will represent the whole song from first to last bar.
+     * @param s              Should be effectively immutable
+     * @param mm             Should be effectively immutable
+     * @param barRange       If null, the used bar range will represent the whole song from first to last bar.
+     * @param loopRestartBar Must be within barRange
      */
-    public SongContextImpl(Song s, MidiMix mm, IntRange barRange)
+    public SongContextImpl(Song s, MidiMix mm, IntRange barRange, int loopRestartBar)
     {
         Objects.requireNonNull(s);
         Objects.requireNonNull(mm);
@@ -66,22 +68,18 @@ public class SongContextImpl implements SongContext
             this.barRange = new IntRange(0, sizeInBars - 1);
         } else if (barRange.to > sizeInBars - 1)
         {
-            throw new IllegalArgumentException("s=" + s + " sizeInBars=" + sizeInBars + " mix=" + mm + " barRange=" + barRange);
+            throw new IllegalArgumentException(
+                    "s=" + s + " sizeInBars=" + sizeInBars + " mix=" + mm + " barRange=" + barRange + " loopRestartBar=" + loopRestartBar);
         } else
         {
             this.barRange = barRange;
         }
-    }
-
-    /**
-     * Create a SongContext which reuse sgContext's Song and MidiMix, but with the specified range.
-     *
-     * @param sgContext Should be effectively immutable
-     * @param newRange
-     */
-    public SongContextImpl(SongContext sgContext, IntRange newRange)
-    {
-        this(sgContext.getSong(), sgContext.getMidiMix(), newRange);
+        if (!this.barRange.contains(loopRestartBar))
+        {
+            throw new IllegalArgumentException(
+                    "s=" + s + " sizeInBars=" + sizeInBars + " mix=" + mm + " barRange=" + barRange + " loopRestartBar=" + loopRestartBar);
+        }
+        this.loopRestartBar = loopRestartBar;
     }
 
 
@@ -105,9 +103,15 @@ public class SongContextImpl implements SongContext
 
 
     @Override
+    public int getLoopRestartBar()
+    {
+        return loopRestartBar;
+    }
+
+    @Override
     public SongContext clone()
     {
-        return new SongContextImpl(this, getBarRange());
+        return new SongContextImpl(this.getSong(), this.getMidiMix(), this.getBarRange(), this.getLoopRestartBar());
     }
 
     /**
@@ -123,17 +127,18 @@ public class SongContextImpl implements SongContext
         {
             Song songCopy = song.getDeepCopy(disableInternalUpdates);
             MidiMix mixCopy = MidiMixManager.getDefault().getDeepCopy(midiMix, disableInternalUpdates ? null : songCopy);
-            return new SongContextImpl(songCopy, mixCopy, barRange);
+            return new SongContextImpl(songCopy, mixCopy, barRange, loopRestartBar);
         });
     }
 
     @Override
     public int hashCode()
     {
-        int hash = 5;
-        hash = 97 * hash + System.identityHashCode(this.song);
-        hash = 97 * hash + Objects.hashCode(this.midiMix);
-        hash = 97 * hash + Objects.hashCode(this.barRange);
+        int hash = 7;
+        hash = 71 * hash + System.identityHashCode(this.song);
+        hash = 71 * hash + System.identityHashCode(this.midiMix);
+        hash = 71 * hash + Objects.hashCode(this.barRange);
+        hash = 71 * hash + this.loopRestartBar;
         return hash;
     }
 
@@ -150,7 +155,7 @@ public class SongContextImpl implements SongContext
             {
                 return false;
             }
-            if (!Objects.equals(this.midiMix, other.midiMix))
+            if (this.midiMix != other.midiMix)
             {
                 return false;
             }
@@ -158,7 +163,7 @@ public class SongContextImpl implements SongContext
             {
                 return false;
             }
-            return true;
+            return this.loopRestartBar == other.loopRestartBar;
         } else
         {
             return false;
@@ -168,7 +173,9 @@ public class SongContextImpl implements SongContext
     @Override
     public String toString()
     {
-        return "SongContext[song=" + song.getName() + ", " + midiMix + ", range=" + barRange + "]";
+        var s1 = "SongContext[song=" + song.getName() + ", " + midiMix + ", barRange=" + barRange;
+        String s2 = loopRestartBar == barRange.from ? "" : ", loopRestartBar=" + loopRestartBar;
+        return s1 + s2 + "]";
     }
 
 

@@ -190,7 +190,7 @@ public class TestPlayerImpl implements TestPlayer
         }
 
         @Override
-        public long getLoopStartTick()
+        public long getLoopRestartTick()
         {
             return 0;
         }
@@ -253,6 +253,12 @@ public class TestPlayerImpl implements TestPlayer
         public Context getContext()
         {
             return PlaybackSession.Context.AUDITIONING;
+        }
+
+        @Override
+        public long getMusicStartTick()
+        {
+            return 0;
         }
 
     }

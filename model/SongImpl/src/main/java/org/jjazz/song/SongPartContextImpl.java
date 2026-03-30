@@ -25,6 +25,7 @@
 package org.jjazz.song;
 
 import com.google.common.base.Preconditions;
+import java.util.Objects;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongPartContext;
@@ -39,15 +40,17 @@ public class SongPartContextImpl extends SongContextImpl implements SongPartCont
 
     public SongPartContextImpl(Song s, MidiMix mix, SongPart spt)
     {
-        super(s, mix, spt.getBarRange());
+        this(s, mix, spt, spt.getBarRange());
     }
 
 
-    public SongPartContextImpl(Song s, MidiMix mix, IntRange br)
+    public SongPartContextImpl(Song s, MidiMix mix, SongPart spt, IntRange br)
     {
-        super(s, mix, br);
-        Preconditions.checkArgument(getSongParts().size() == 1, "s=%s", s);
-        Preconditions.checkArgument(getSongParts().get(0).getBarRange().contains(br), "s=%s br=%s", s, br);
+        Objects.requireNonNull(spt);
+        Objects.requireNonNull(br);
+        Preconditions.checkArgument(s.getSongStructure().getSongParts().contains(spt), "s=%s spt=%s", s, spt);
+        Preconditions.checkArgument(spt.getBarRange().contains(br), "spt=%s br=%s", spt, br);
+        super(s, mix, br, br.from);
     }
 
 

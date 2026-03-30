@@ -69,6 +69,7 @@ import org.jjazz.utilities.api.ResUtil;
  */
 public class BaseSongSession implements PropertyChangeListener, PlaybackSession, ControlTrackProvider, SongContextProvider, EndOfPlaybackActionProvider
 {
+
     public static final int PLAYBACK_SETTINGS_LOOP_COUNT = -1298;
     private State state = State.NEW;
     private boolean isDirty;
@@ -80,7 +81,7 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
     private int playbackClickTrackId = -1;
     private int precountClickTrackId = -1;
     private long musicStartTick = 0;                    // by default if no precount
-    private long loopStartTick = 0;                     // By default if restart bar is 0
+    private long loopRestartTick = 0;                     // By default if restart bar is 0
     private long loopEndTick = -1;
     private final Context context;
     private Map<RhythmVoice, Integer> mapRvTrackId;
@@ -207,9 +208,11 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
             mapTrackIdMuted.put(precountClickTrackId, false);
         }
         loopEndTick = musicStartTick + Math.round(songContext.getBeatRange().size() * MidiConst.PPQ_RESOLUTION);
-        loopStartTick = musicStartTick + songContext.toRelativeTick(new Position(sessionConfig.loopRestartBar()));
-
-
+        long restartTick = songContext.toRelativeTick(new Position(songContext.getLoopRestartBar()));
+        assert restartTick >= 0 : "sessionConfig=" + sessionConfig + " songContext=" + songContext;
+        loopRestartTick = musicStartTick + restartTick;
+        
+        
         // Listen to changes that can be handled without going dirty
         this.songContext.getSong().addPropertyChangeListener(this); // tempo changes + closing
         this.songContext.getMidiMix().addPropertyChangeListener(this);      // muted changes
@@ -244,20 +247,16 @@ public class BaseSongSession implements PropertyChangeListener, PlaybackSession,
         return state == State.GENERATED ? sequence : null;
     }
 
-    /**
-     * The tick position of the music start, taking into account possible 1 or 2 precount bars.
-     *
-     * @return -1 if no meaningful value can be returned
-     */
+    @Override
     public long getMusicStartTick()
     {
         return state == State.GENERATED ? musicStartTick : -1;
     }
 
     @Override
-    public long getLoopStartTick()
+    public long getLoopRestartTick()
     {
-        return state == State.GENERATED ? loopStartTick : -1;
+        return state == State.GENERATED ? loopRestartTick : -1;
     }
 
     @Override
