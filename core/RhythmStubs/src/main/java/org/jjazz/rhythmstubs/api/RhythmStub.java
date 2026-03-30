@@ -210,7 +210,7 @@ public class RhythmStub implements Rhythm, MusicGeneratorProvider
     @Override
     public String getName()
     {
-        return "DummyName-" + getTimeSignature().toString();
+        return uniqueId;
     }
 
     @Override
