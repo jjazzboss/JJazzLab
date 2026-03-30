@@ -160,6 +160,7 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
         updateSectionColor();
     }
 
+
     @Override
     public void showInsertionPoint(boolean b, ChordLeadSheetItem<?> item, Position pos, boolean copyMode)
     {
@@ -334,6 +335,20 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
         return super.removeItemRenderer(item);
     }
 
+    /**
+     * Overridden to update loop restart (required because we don't have an ItemRenderer for CLI_LoopRestartBar).
+     *
+     * @param bar
+     * @return
+     */
+    @Override
+    public int setModelBarIndex(int bar)
+    {
+        int res = super.setModelBarIndex(bar);
+        setLoopRestart(bar >= 0 && !getModel().getItems(bar, bar, CLI_LoopRestartBar.class).isEmpty());
+        return res;
+    }
+
     //-----------------------------------------------------------------------
     // Implementation of the ComponentListener interface
     //-----------------------------------------------------------------------
@@ -421,7 +436,7 @@ public class BR_Sections extends BarRenderer implements ComponentListener, Prope
     private void setLoopRestart(boolean b)
     {
         showLoopRestart = b;
-        String text = b ? ResUtil.getString(getClass(), "BarRendererIsRestartLoopBar"): null;
+        String text = b ? ResUtil.getString(getClass(), "BarRendererIsRestartLoopBar") : null;
         setToolTipText(text);
         repaint();
         revalidate();
