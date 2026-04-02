@@ -245,7 +245,7 @@ public class SptViewerSettingsImpl implements SptViewerSettings, FontColorUserSe
     @Override
     public Font getRhythmFont()
     {
-        Font defFont = GeneralUISettings.getInstance().getStdCondensedFont().deriveFont(11f);
+        Font defFont = GeneralUISettings.getInstance().getStdCondensedFont().deriveFont(11.2f);
         String strFont = prefs.get(PROP_RHYTHM_FONT, null);
         return strFont != null ? Font.decode(strFont) : defFont;
     }
@@ -253,7 +253,8 @@ public class SptViewerSettingsImpl implements SptViewerSettings, FontColorUserSe
     @Override
     public Color getRhythmFontColor()
     {
-        return new Color(prefs.getInt(PROP_RHYTHM_FONT_COLOR, new Color(0, 0, 102).getRGB()));     // Deep blue
+        // return new Color(prefs.getInt(PROP_RHYTHM_FONT_COLOR, new Color(0, 0, 102).getRGB()));     // Deep blue
+        return new Color(prefs.getInt(PROP_RHYTHM_FONT_COLOR, Color.BLACK.getRGB()));   
     }
 
     @Override

@@ -25,7 +25,6 @@ package org.jjazz.ss_editorimpl;
 import com.google.common.base.Preconditions;
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.awt.BorderLayout;
-import java.awt.Color;
 import org.jjazz.ss_editor.api.SS_Selection;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -52,14 +51,12 @@ import java.util.TooManyListenersException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import java.beans.PropertyChangeSupport;
 import java.util.function.Consumer;
 import javax.swing.BorderFactory;
 import javax.swing.JScrollPane;
-import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.harmony.api.Position;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.rhythm.api.RhythmParameter;
@@ -174,7 +171,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     /**
      * Store the visible RPs for each rhythm.
      */
-    private Map<Rhythm, List<RhythmParameter<?>>> mapRhythmVisibleRps;
+    private final Map<Rhythm, List<RhythmParameter<?>>> mapRhythmVisibleRps;
     /**
      * Editor settings.
      */
@@ -215,10 +212,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
 
         songModel.getClientProperties().addPropertyChangeListener(this);
 
-
-        // Listen to settings changes
-        this.settings.addPropertyChangeListener(this);
-
+        
         // The lookup for selection
         selectionLookupContent = new InstanceContent();
         selectionLookup = new AbstractLookup(selectionLookupContent);
@@ -262,10 +256,9 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
 
         // Graphical init
         initUIComponents();
-        updateUIComponents();
 
-        panel_SongParts.addMouseListener(this);       // for editor popup menu
-        scrollPane.addMouseWheelListener(this);                    // For zoom operations
+        panel_SongParts.addMouseListener(this);         // for editor popup menu
+        panel_SongParts.addMouseWheelListener(this);                    // For zoom operations
 
         // Listen to our models
         sgsModel.addSgsChangeListener(this);
@@ -295,8 +288,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         {
             addSptViewer(spt);
         }
-        updateSptsVisibleRhythmAndTimeSignature();
-        updateSptMultiSelectMode();
+        updateSptConfigs();
     }
 
     @Override
@@ -346,8 +338,6 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         // Unselect everything
         SS_Selection selection = new SS_Selection(selectionLookup);
         selection.unselectAll(this);
-
-        settings.removePropertyChangeListener(this);
 
         // Unregister the objects we were listening to
         songModel.getClientProperties().removePropertyChangeListener(this);
@@ -698,11 +688,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     @Override
     public void propertyChange(final PropertyChangeEvent evt)
     {
-        if (evt.getSource() == settings)
-        {
-            updateUIComponents();
-
-        } else if (evt.getSource() == songModel.getClientProperties())
+        if (evt.getSource() == songModel.getClientProperties())
         {
             switch (evt.getPropertyName())
             {
@@ -771,15 +757,14 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         {
             case SptRemovedEvent e -> handleSptRemoved(e);
             case SptAddedEvent e -> handleSptAdded(e);
-            case SptRenamedEvent e -> updateSptMultiSelectMode();   // Update the MultiSelectBar on/off state on each SptViewer
+            case SptRenamedEvent e -> updateSptConfigs();
             case SptRhythmParentSectionChangedEvent e ->
             {
                 // Event is directly managed by each SptViewer, here we only do stuff which impacts all SptViewers
                 storeVisibleRPsInCompactModeIfRequired(e.getSongParts().stream()
                         .map(spt -> spt.getRhythm())
                         .toList());
-                updateSptsVisibleRhythmAndTimeSignature();
-                updateSptMultiSelectMode();
+                updateSptConfigs();
             }
             default ->
             {
@@ -863,8 +848,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         }
         panel_SongParts.revalidate();
         panel_SongParts.repaint();     // Needed if removed Spt was the last one
-        updateSptsVisibleRhythmAndTimeSignature();
-        updateSptMultiSelectMode();
+        updateSptConfigs();
     }
 
     private void handleSptAdded(final SptAddedEvent e)
@@ -890,21 +874,22 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         }
         panel_SongParts.revalidate();  // Needed to get immediate UI update
         panel_SongParts.repaint();     // Needed if removed Spt was the last one                
-        updateSptsVisibleRhythmAndTimeSignature();
-        updateSptMultiSelectMode();
+        updateSptConfigs();
     }
 
 
     private void initUIComponents()
     {
+        setOpaque(false);       // To reuse LAF default background
+
         insertionMark = new InsertionSptMark();
 
 
         panel_Top = new JPanel();
-//        var border = BorderFactory.createLineBorder(Color.LIGHT_GRAY);
-//        panel_Top.setBorder(border);
+        var border = BorderFactory.createEmptyBorder(0, 0, 2, 0);       // leave small space on bottom to clearly separate panel_Top from panel_SongParts
+        panel_Top.setBorder(border);
         panel_Top.setOpaque(false);
-        FlowLayout flowLayout = new FlowLayout(FlowLayout.LEFT, 1, 1);
+        FlowLayout flowLayout = new FlowLayout(FlowLayout.LEFT, 1, 0);
         flowLayout.setAlignOnBaseline(true); // Used to get the songparts aligned on the top line.
         panel_Top.setLayout(flowLayout);
 
@@ -920,7 +905,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
                 return new Dimension(pd.width + EXTRA, pd.height);
             }
         };
-        flowLayout = new FlowLayout(FlowLayout.LEFT, 1, 5);
+        flowLayout = new FlowLayout(FlowLayout.LEFT, 1, 0);
         flowLayout.setAlignOnBaseline(true); // Used to get the songparts aligned on the top line.
         panel_SongParts.setLayout(flowLayout);
         panel_SongParts.setOpaque(false);
@@ -936,12 +921,6 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         add(scrollPane);
     }
 
-    private void updateUIComponents()
-    {
-        // setBackground(settings.getBackgroundColor());
-        setOpaque(false);       // To reuse LAF default background
-    }
-
 
     private void addSptViewer(SongPart spt)
     {
@@ -953,8 +932,8 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         registerSptViewer(sptv);
         sptv.setZoomHFactor(getZoomXFactor(songModel));
         sptv.setZoomVFactor(getZoomYFactor(songModel));
-        List<RhythmParameter<?>> rps = this.getVisibleRps(spt.getRhythm());
-        sptv.setVisibleRps(rps);
+        List<RhythmParameter<?>> rps = getVisibleRps(spt.getRhythm());
+        sptv.setConfig(sptv.getConfig().setVisibleRPs(rps));
         int index = sgsModel.getSongParts().indexOf(spt);
         assert index >= 0 : "spt=" + spt + " model.getSongParts()=" + sgsModel.getSongParts();
         LOGGER.log(Level.FINE, "addSptViewer() spt={0} +index={1} panel_SongParts.size={2}", new Object[]
@@ -1096,70 +1075,72 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     }
 
     /**
-     * Show/hide the rhythm and the time signature of all SongParts.
+     * Update the SptViewerConfig of all SptViewers.
      */
-    private void updateSptsVisibleRhythmAndTimeSignature()
+    private void updateSptConfigs()
     {
-        Rhythm lastRhythm = null;
-        for (SptViewer sptv : getSptViewers())
+        Map<SptViewer, SptViewerConfig> mapViewerConfig = new HashMap<>();
+        Map<SptViewer, Integer> mapViewerNameRepeatCount = new HashMap<>();
+
+        SptViewer lastSptv = null;
+        SptViewer firstSptvNameRepeat = null;
+        var sptvs = getSptViewers();
+        for (SptViewer sptv : sptvs)
         {
-            Rhythm rhythm = sptv.getModel().getRhythm();
-            TimeSignature ts = rhythm.getTimeSignature();
+            SongPart spt = sptv.getModel();
+            var r = spt.getRhythm();
             var uiConfig = sptv.getConfig();
-            uiConfig = uiConfig.setShowRhythm(!rhythm.equals(lastRhythm));
-            uiConfig = uiConfig.setShowTimeSignature(!rhythm.equals(lastRhythm == null ? true : !ts.equals(lastRhythm.getTimeSignature())));
-            sptv.setConfig(uiConfig);
-            lastRhythm = rhythm;
-        }
-    }
 
-    /**
-     * Update the MultiSelectMode visibility of each spt.
-     */
-    private void updateSptMultiSelectMode()
-    {
-        List<SptViewer> buffer = new ArrayList<>();
-        String prevName = null;
-        for (SptViewer sptv : getSptViewers())
-        {
-            String name = sptv.getModel().getName();
-            if (prevName != null && !name.equals(prevName))
+
+            boolean isNameRepeat = lastSptv != null && spt.getName().equals(lastSptv.getModel().getName());
+            if (isNameRepeat)
             {
-                // Names differ, flush buffer
-                var uiConfig = buffer.get(0).getConfig();
-                uiConfig = uiConfig.setShowName(true);
-                uiConfig = uiConfig.setMultiSelect(buffer.size() > 1 ? MultiSelect.ON_FIRST : MultiSelect.OFF);
-                buffer.get(0).setConfig(uiConfig);
-
-                for (int i = 1; i < buffer.size(); i++)
+                if (firstSptvNameRepeat == null)
                 {
-                    uiConfig = buffer.get(i).getConfig();
-                    uiConfig = uiConfig.setShowName(false);
-                    uiConfig = uiConfig.setMultiSelect(MultiSelect.ON);
-                    buffer.get(i).setConfig(uiConfig);
+                    firstSptvNameRepeat = lastSptv;
+                    mapViewerNameRepeatCount.put(firstSptvNameRepeat, 0);
                 }
-                buffer.clear();
-            }
-
-            buffer.add(sptv);
-            prevName = name;
-        }
-
-        // Flush buffer if required
-        if (!buffer.isEmpty())
-        {
-            var uiConfig = buffer.get(0).getConfig();
-            uiConfig = uiConfig.setShowName(true);
-            uiConfig = uiConfig.setMultiSelect(buffer.size() > 1 ? MultiSelect.ON_FIRST : MultiSelect.OFF);
-            buffer.get(0).setConfig(uiConfig);
-            for (int i = 1; i < buffer.size(); i++)
+                mapViewerNameRepeatCount.compute(firstSptvNameRepeat, (key, value) -> value + 1);
+            } else
             {
-                uiConfig = buffer.get(i).getConfig();
-                uiConfig = uiConfig.setShowName(false);
-                uiConfig = uiConfig.setMultiSelect(MultiSelect.ON);
-                buffer.get(i).setConfig(uiConfig);
+                firstSptvNameRepeat = null;
+            }
+
+
+            uiConfig = uiConfig.setShowName(!isNameRepeat);
+            uiConfig = uiConfig.setShowTimeSignature(lastSptv == null || !r.getTimeSignature().equals(lastSptv.getModel().getRhythm().getTimeSignature()));
+            uiConfig = uiConfig.setShowParentSection(!spt.getName().equals(spt.getParentSection().getData().getName()));
+            uiConfig = uiConfig.setShowRhythm(lastSptv == null || r != lastSptv.getModel().getRhythm());
+            uiConfig = uiConfig.setMultiSelect(MultiSelect.OFF);
+            mapViewerConfig.put(sptv, uiConfig);
+
+            lastSptv = sptv;
+        }
+
+
+        // Update MultiSelect
+        for (var sptv : mapViewerNameRepeatCount.keySet())
+        {
+            int nbRepeats = mapViewerNameRepeatCount.get(sptv);
+            int index = sptvs.indexOf(sptv);
+            var config = mapViewerConfig.get(sptv);
+            mapViewerConfig.put(sptv, config.setMultiSelect(MultiSelect.ON_FIRST));
+
+            for (int i = index + 1; i <= index + nbRepeats; i++)
+            {
+                var sptvi = sptvs.get(i);
+                config = mapViewerConfig.get(sptvi);
+                mapViewerConfig.put(sptvi, config.setMultiSelect(MultiSelect.ON));
             }
         }
+
+
+        // Apply the UI configs
+        for (var sptv : mapViewerConfig.keySet())
+        {
+            sptv.setConfig(mapViewerConfig.get(sptv));
+        }
+
     }
 
     /**
@@ -1213,7 +1194,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         {
             if (sptv.getModel().getRhythm() == r)
             {
-                sptv.setVisibleRps(newRpsSorted);
+                sptv.setConfig(sptv.getConfig().setVisibleRPs(newRpsSorted));
             }
         }
 

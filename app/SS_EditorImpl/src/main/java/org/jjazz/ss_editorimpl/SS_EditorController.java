@@ -387,8 +387,7 @@ public class SS_EditorController implements SS_EditorMouseListener
             {
                 SS_EditorClientProperties.setZoomXFactor(editor.getSongModel(), factor2);
             }
-        }
-        );
+        });
     }
 
     @Override
@@ -484,10 +483,10 @@ public class SS_EditorController implements SS_EditorMouseListener
             spt, rp
         });
 
-        boolean shift = (e.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) == InputEvent.SHIFT_DOWN_MASK;
-        if ((e.getModifiersEx() & InputEvent.CTRL_DOWN_MASK) == InputEvent.CTRL_DOWN_MASK)
+
+        if (e.isControlDown())
         {
-            // We dont't manage ctrl-wheel 
+            // We dont't manage ctrl-wheel here
             // but we don't want to lose the event, it may need to be processed by the above hierarchy, i.e. enclosing JScrollPane
             Container source = (Container) e.getSource();
             Container parent = source.getParent();
@@ -529,7 +528,7 @@ public class SS_EditorController implements SS_EditorMouseListener
 
 
         // If shift is pressed we first align the values on the first selected RP
-        if (shift)
+        if (e.isShiftDown())
         {
             double dValue = ((RpEnumerable) rp).calculatePercentage(spt.getRPValue(rp));
             String editName = ResUtil.getString(getClass(), "CTL_SetRpValue");

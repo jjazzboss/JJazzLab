@@ -24,10 +24,14 @@ package org.jjazz.ss_editorimpl.sptviewer;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.LayoutManager;
 import java.awt.event.MouseEvent;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JComponent;
 import org.jjazz.chordleadsheet.api.Section;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.ss_editor.sptviewer.spi.SptViewerSettings;
@@ -36,6 +40,7 @@ import org.jjazz.ss_editor.api.SS_Editor;
 import org.jjazz.ss_editor.sptviewer.api.SptViewer;
 import org.jjazz.ss_editor.sptviewer.api.SptViewerConfig;
 import org.jjazz.ss_editor.sptviewer.api.SptViewerConfig.MultiSelect;
+import org.jjazz.uiutilities.api.UIUtilities;
 
 /**
  * A SptViewer that shows everything except the RpViewers.
@@ -53,22 +58,25 @@ public class SptViewerTop extends SptViewer
 
         uiConfig = new SptViewerConfig();
 
-        initComponents();
 
-        updateUIComponents();
+        initComponents();
+        setLayout(new MyLayoutManager());
+
+
+        updateUIComponents(uiConfig);
 
     }
 
     @Override
     public void modelChanged()
     {
-        updateUIComponents();
+        updateUIComponents(uiConfig);
     }
 
     @Override
     public void settingsChanged()
     {
-        updateUIComponents();
+        updateUIComponents(uiConfig);
     }
 
     @Override
@@ -78,14 +86,14 @@ public class SptViewerTop extends SptViewer
     }
 
     @Override
-    public void setConfig(SptViewerConfig uiConfig)
+    public void setConfig(SptViewerConfig newConfig)
     {
-        Objects.requireNonNull(uiConfig);
-        if (!this.uiConfig.equals(uiConfig))
+        Objects.requireNonNull(newConfig);
+        if (!uiConfig.equals(newConfig))
         {
-            this.uiConfig = uiConfig;
-            updateUIComponents();
+            updateUIComponents(newConfig);
         }
+        uiConfig = newConfig;
     }
 
     /**
@@ -112,32 +120,38 @@ public class SptViewerTop extends SptViewer
     // ---------------------------------------------------------------
     // Private methods
     // ---------------------------------------------------------------
-    private void updateUIComponents()
+    private void updateUIComponents(SptViewerConfig config)
     {
-        // Name button
+        // Name 
         fbtn_sptName.setFont(settings.getNameFont());
         Color c = settings.getNameFontColor();
-        if (!uiConfig.showName())
+        if (!config.showName())
         {
-            c = makeSemiTransparent(c);
+            c = makeSemiTransparent(c, 70);
         }
         fbtn_sptName.setForeground(c);
         fbtn_sptName.setText(getModel().getName());
         fbtn_sptName.setToolTipText(getToolTipText());
 
 
-        // Multi select bar
-        multiSelectBar.setOn(uiConfig.multiSelect()!= MultiSelect.OFF);
-        multiSelectBar.setMultiSelectFirst(uiConfig.multiSelect() == MultiSelect.ON_FIRST);
+        // Bars
+        lbl_bars.setFont(settings.getParentSectionFont());
+        c = makeSemiTransparent(settings.getNameFontColor(), 80);
+        lbl_bars.setForeground(c);
+        var br = getModel().getBarRange().getTransformed(1);
+        lbl_bars.setText(br.from + "-" + br.to);
 
 
-        // Parent section        
+        // Parent section & time signature
         Section section = getModel().getParentSection().getData();
-        String strParent = section.getName().equals(getModel().getName()) ? "    " : "(" + section.getName() + ")";
-        if (uiConfig.showTimeSignature())
+        String strParent = "     ";
+        if (config.showParentSection())
         {
-            strParent = strParent.isBlank() ? section.getTimeSignature().toString()
-                    : strParent + " " + section.getTimeSignature().toString();
+            String strTs = config.showTimeSignature() ? section.getTimeSignature().toString() + " " : "";
+            strParent = strTs + "(" + section.getName() + ")";
+        } else if (config.showTimeSignature())
+        {
+            strParent = section.getTimeSignature().toString();
         }
         lbl_parentSection.setText(strParent);
         lbl_parentSection.setToolTipText(getToolTipText());
@@ -145,12 +159,17 @@ public class SptViewerTop extends SptViewer
         lbl_parentSection.setForeground(settings.getParentSectionFontColor());
 
 
+        // Multi select bar
+        multiSelectBar.setOn(config.multiSelect() != MultiSelect.OFF);
+        multiSelectBar.setMultiSelectFirst(config.multiSelect() == MultiSelect.ON_FIRST);
+
+
         // Rhythm button
         fbtn_rhythm.setFont(settings.getRhythmFont());
         c = settings.getRhythmFontColor();
-        if (!uiConfig.showRhythm())
+        if (!config.showRhythm())
         {
-            c = new Color(c.getRed(), c.getGreen(), c.getBlue(), 120);       // semi-transparent
+            c = makeSemiTransparent(c, 70);
         }
         fbtn_rhythm.setForeground(c);
         Rhythm r = getModel().getRhythm();
@@ -158,13 +177,11 @@ public class SptViewerTop extends SptViewer
         String fileName = r.getFile() == null ? "" : r.getFile().getName();
         fbtn_rhythm.setToolTipText(fileName + " " + r.getDescription());
 
-
     }
 
-
-    private Color makeSemiTransparent(Color c)
+    private Color makeSemiTransparent(Color c, int transparency)
     {
-        return new Color(c.getRed(), c.getGreen(), c.getBlue(), 60);       // semi-transparent
+        return new Color(c.getRed(), c.getGreen(), c.getBlue(), transparency);       // semi-transparent
     }
 
     /**
@@ -195,7 +212,7 @@ public class SptViewerTop extends SptViewer
             }
         });
 
-        multiSelectBar.setLineColor(new java.awt.Color(0, 51, 51));
+        multiSelectBar.setLineColor(new java.awt.Color(71, 91, 125));
         multiSelectBar.setOn(true);
 
         fbtn_rhythm.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
@@ -211,23 +228,23 @@ public class SptViewerTop extends SptViewer
 
         org.openide.awt.Mnemonics.setLocalizedText(lbl_bars, "22-28"); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(lbl_parentSection, "(A)  4/4"); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(lbl_parentSection, "(A)"); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
+                .addGap(2, 2, 2)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(multiSelectBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(fbtn_sptName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 254, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 287, Short.MAX_VALUE)
                                 .addComponent(lbl_bars)))
-                        .addContainerGap())
+                        .addGap(2, 2, 2))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(lbl_parentSection)
@@ -237,13 +254,13 @@ public class SptViewerTop extends SptViewer
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
+                .addGap(2, 2, 2)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(fbtn_sptName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(lbl_bars))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(multiSelectBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGap(2, 2, 2)
                 .addComponent(lbl_parentSection)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(fbtn_rhythm, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -275,5 +292,93 @@ public class SptViewerTop extends SptViewer
     private org.jjazz.ss_editorimpl.sptviewer.MultiSelectBar multiSelectBar;
     // End of variables declaration//GEN-END:variables
 
+
+    // =================================================================================================================
+    // Inner classes
+    // =================================================================================================================
+    private class MyLayoutManager implements LayoutManager
+    {
+
+        final static int PADDING = 2;
+
+        @Override
+        public void layoutContainer(Container parent)
+        {
+            var r = UIUtilities.getUsableArea((JComponent) parent);
+            int xRightLimit = r.x + r.width;
+            int yBottomLimit = r.y + r.height;
+
+
+            fbtn_sptName.setSize(fbtn_sptName.getPreferredSize());
+            int x = r.x + PADDING;
+            int y = r.y + PADDING;
+            fbtn_sptName.setLocation(x, y);
+            y += fbtn_sptName.getHeight();
+            int extraWidth = r.width - fbtn_sptName.getWidth() - PADDING;
+
+
+            lbl_bars.setSize(lbl_bars.getPreferredSize());
+            int w = lbl_bars.getWidth();
+            x = extraWidth < w ? -1000 : xRightLimit - PADDING - w;           // Hide if not enough room
+            lbl_bars.setLocation(x, PADDING);
+
+
+            y += PADDING;
+            multiSelectBar.setSize(r.width - 2 * PADDING, multiSelectBar.getPreferredSize().height);
+            multiSelectBar.setLocation(r.x + PADDING, y);
+            y += multiSelectBar.getHeight();
+
+
+            y += PADDING;
+            lbl_parentSection.setSize(lbl_parentSection.getPreferredSize());
+            x = r.x + PADDING;
+            lbl_parentSection.setLocation(x, y);
+            y += lbl_parentSection.getHeight();
+
+
+            y += PADDING;
+            fbtn_rhythm.setSize(fbtn_rhythm.getPreferredSize());
+            fbtn_rhythm.setLocation(r.x, y);
+
+        }
+
+        @Override
+        public Dimension preferredLayoutSize(Container parent)
+        {
+            var in = parent.getInsets();
+            int h = in.top
+                    + PADDING
+                    + fbtn_sptName.getPreferredSize().height
+                    + PADDING
+                    + lbl_parentSection.getPreferredSize().height
+                    + PADDING
+                    + multiSelectBar.getPreferredSize().height
+                    + PADDING
+                    + fbtn_rhythm.getPreferredSize().height
+                    + PADDING
+                    + in.bottom;
+            return new Dimension(1000, h);
+        }
+
+        @Override
+        public Dimension minimumLayoutSize(Container parent)
+        {
+            return preferredLayoutSize(parent);
+        }
+
+        @Override
+        public void addLayoutComponent(String name, Component comp)
+        {
+            // Nothing
+        }
+
+        @Override
+        public void removeLayoutComponent(Component comp)
+        {
+            // Nothing
+        }
+
+
+    }
 
 }

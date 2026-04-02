@@ -296,7 +296,9 @@ abstract public class SptViewer extends JPanel implements FocusListener, Propert
 
     public void cleanup()
     {
-        setVisibleRps(Collections.emptyList());
+        var uiConfig = getConfig();
+        uiConfig = uiConfig.setVisibleRPs(Collections.emptyList());
+        setConfig(uiConfig);
         var cliSection = sptModel.getParentSection();
         if (cliSection != null)
         {
@@ -331,27 +333,10 @@ abstract public class SptViewer extends JPanel implements FocusListener, Propert
     /**
      * Set the UI config of this SptViewer.
      * <p>
-     * Default implementation does nothing.
      *
      * @param uiConfig
      */
-    public void setConfig(SptViewerConfig uiConfig)
-    {
-        // Nothing
-    }
-
-
-    /**
-     * Set which RpViewers are visible.
-     * <p>
-     * Default implementation does nothing.
-     *
-     * @param rps
-     */
-    public void setVisibleRps(List<RhythmParameter<?>> rps)
-    {
-        // Nothing
-    }
+    abstract public void setConfig(SptViewerConfig uiConfig);
 
     /**
      * Show a playback point in the editor at specified position.
@@ -525,7 +510,8 @@ abstract public class SptViewer extends JPanel implements FocusListener, Propert
                     if (oldRhythm != newRhythm)
                     {
                         // Rhythm has changed, need to update the RpViewers
-                        setVisibleRps(editor.getVisibleRps(newRhythm));
+                        var uiConfig = getConfig().setVisibleRPs(editor.getVisibleRps(newRhythm));
+                        setConfig(uiConfig);
                     }
                     modelChanged();
                 }
@@ -588,7 +574,9 @@ abstract public class SptViewer extends JPanel implements FocusListener, Propert
         Section section = sptModel.getParentSection().getData();
         String strSongPart = ResUtil.getString(SptViewer.class, "SongPart");
         String strParentSection = ResUtil.getString(SptViewer.class, "ParentSection");
-        String tt = strSongPart + "=" + sptModel.getName() + " (" + strParentSection + "=" + section.getName() + " " + section.getTimeSignature() + ")";
+        var br = sptModel.getBarRange().getTransformed(1);
+        String strBars = "bars " + br.from + "-" + br.to;
+        String tt = strSongPart + ": '" + sptModel.getName() + "' " + strBars + " (" + strParentSection + ": " + section.getName() + " " + section.getTimeSignature() + ")";
         setToolTipText(tt);
     }
 

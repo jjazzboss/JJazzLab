@@ -53,6 +53,7 @@ public class SptViewerLow extends SptViewer
 
     private final DefaultRpViewerRendererFactory defaultRpRendererFactory;
     private static final Logger LOGGER = Logger.getLogger(SptViewerLow.class.getSimpleName());
+    private SptViewerConfig uiConfig;
 
 
     public SptViewerLow(SS_Editor ssEditor, SongPart spt, SptViewerSettings settings, DefaultRpViewerRendererFactory factory)
@@ -61,7 +62,7 @@ public class SptViewerLow extends SptViewer
         super(ssEditor, spt, settings);
 
         defaultRpRendererFactory = factory;
-
+        uiConfig = new SptViewerConfig();
 
         initComponents();
 
@@ -86,58 +87,20 @@ public class SptViewerLow extends SptViewer
     @Override
     public SptViewerConfig getConfig()
     {
-        return new SptViewerConfig();
+        return uiConfig;
     }
 
     @Override
-    public void setVisibleRps(List<RhythmParameter<?>> rps)
+    public void setConfig(SptViewerConfig newConfig)
     {
-        var sptModel = getModel();
-        var songModel = sptModel.getContainer().getSong();
-
-
-        // Remove all RpViewers
-        for (RpViewer rpv : getRpViewers())
+        Objects.requireNonNull(newConfig);
+        if (!uiConfig.visibleRPs().equals(newConfig.visibleRPs()))
         {
-            unregisterRpViewer(rpv);
-            rpv.cleanup();
+            setVisibleRps(newConfig.visibleRPs());
         }
-        pnl_RpEditors.removeAll();
 
-
-        // Re-add RpViewers
-        for (RhythmParameter<?> rp : rps)
-        {
-            if (sptModel.getRhythm().getRhythmParameters().contains(rp))
-            {
-                // Try to get first a specific factory for this rp
-                RpViewerRendererFactory factory = RpViewerRendererFactory.findFactory(rp);
-                if (factory == null)
-                {
-                    // Use default
-                    factory = defaultRpRendererFactory;
-                }
-                assert factory != null;
-                RpViewerRenderer renderer = factory.getRpViewerRenderer(songModel, sptModel, rp, settings.getRpViewerSettings());
-                RpViewer rpv = new RpViewer(sptModel, rp, settings.getRpViewerSettings(), renderer);
-                rpv.setController(controller);
-                renderer.setRpViewer(rpv);
-
-
-                registerRpViewer(rpv);
-                rpv.setZoomVFactor(zoomVFactor);
-                pnl_RpEditors.add((Component) rpv);
-                pnl_RpEditors.add(Box.createRigidArea(new Dimension(0, 4)));
-            } else
-            {
-                throw new IllegalArgumentException(
-                        "rp=" + rp + " sptModel.getRhythm().getRhythmParameters()=" + sptModel.getRhythm().getRhythmParameters());
-            }
-        }
-        pnl_RpEditors.revalidate();
-        pnl_RpEditors.repaint();
+        uiConfig = newConfig;
     }
-
 
     @Override
     public List<RpViewer> getRpViewers()
@@ -178,14 +141,12 @@ public class SptViewerLow extends SptViewer
     private void initComponents()
     {
 
-        filler3 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 4), new java.awt.Dimension(0, 4), new java.awt.Dimension(32767, 4));
         pnl_RpEditors = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
 
         setBorder(settings.getDefaultBorder());
         setLayout(new java.awt.BorderLayout());
-        add(filler3, java.awt.BorderLayout.NORTH);
 
         pnl_RpEditors.setOpaque(false);
         pnl_RpEditors.setLayout(new javax.swing.BoxLayout(pnl_RpEditors, javax.swing.BoxLayout.Y_AXIS));
@@ -200,7 +161,6 @@ public class SptViewerLow extends SptViewer
     }// </editor-fold>//GEN-END:initComponents
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.Box.Filler filler3;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel pnl_RpEditors;
@@ -210,6 +170,54 @@ public class SptViewerLow extends SptViewer
     // ---------------------------------------------------------------
     // Private methods
     // ---------------------------------------------------------------
+    private void setVisibleRps(List<RhythmParameter<?>> rps)
+    {
+        var sptModel = getModel();
+        var songModel = sptModel.getContainer().getSong();
+
+
+        // Remove all RpViewers
+        for (RpViewer rpv : getRpViewers())
+        {
+            unregisterRpViewer(rpv);
+            rpv.cleanup();
+        }
+        pnl_RpEditors.removeAll();
+
+
+        // Re-add RpViewers
+        for (RhythmParameter<?> rp : rps)
+        {
+            if (sptModel.getRhythm().getRhythmParameters().contains(rp))
+            {
+                // Try to get first a specific factory for this rp
+                RpViewerRendererFactory factory = RpViewerRendererFactory.findFactory(rp);
+                if (factory == null)
+                {
+                    // Use default
+                    factory = defaultRpRendererFactory;
+                }
+                assert factory != null;
+                RpViewerRenderer renderer = factory.getRpViewerRenderer(songModel, sptModel, rp, settings.getRpViewerSettings());
+                RpViewer rpv = new RpViewer(sptModel, rp, settings.getRpViewerSettings(), renderer);
+                rpv.setController(controller);
+                renderer.setRpViewer(rpv);
+
+
+                registerRpViewer(rpv);
+                rpv.setZoomVFactor(zoomVFactor);
+                pnl_RpEditors.add((Component) rpv);
+                pnl_RpEditors.add(Box.createRigidArea(new Dimension(0, 2)));
+            } else
+            {
+                throw new IllegalArgumentException(
+                        "rp=" + rp + " sptModel.getRhythm().getRhythmParameters()=" + sptModel.getRhythm().getRhythmParameters());
+            }
+        }
+        pnl_RpEditors.revalidate();
+        pnl_RpEditors.repaint();
+    }
+
     private void registerRpViewer(RpViewer rpv)
     {
         rpv.addMouseListener(this);

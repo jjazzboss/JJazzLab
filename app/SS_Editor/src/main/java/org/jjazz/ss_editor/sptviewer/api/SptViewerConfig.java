@@ -24,12 +24,16 @@
  */
 package org.jjazz.ss_editor.sptviewer.api;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
+import org.jjazz.rhythm.api.RhythmParameter;
 
 /**
  * The UI config of a SptViewer.
  */
-public record SptViewerConfig(boolean showName, boolean showRhythm, boolean showTimeSignature, MultiSelect multiSelect)
+public record SptViewerConfig(boolean showName, boolean showRhythm, boolean showParentSection, boolean showTimeSignature, MultiSelect multiSelect,
+        List<RhythmParameter<?>> visibleRPs)
         {
 
     public enum MultiSelect
@@ -39,7 +43,7 @@ public record SptViewerConfig(boolean showName, boolean showRhythm, boolean show
 
     public SptViewerConfig()
     {
-        this(true, true, true, MultiSelect.OFF);
+        this(true, true, true, true, MultiSelect.OFF, Collections.emptyList());
     }
 
     public SptViewerConfig
@@ -49,22 +53,33 @@ public record SptViewerConfig(boolean showName, boolean showRhythm, boolean show
 
     public SptViewerConfig setShowName(boolean b)
     {
-        return new SptViewerConfig(b, showRhythm, showTimeSignature, multiSelect);
+        return new SptViewerConfig(b, showRhythm, showParentSection, showTimeSignature, multiSelect, visibleRPs);
     }
 
     public SptViewerConfig setShowRhythm(boolean b)
     {
-        return new SptViewerConfig(showName, b, showTimeSignature, multiSelect);
+        return new SptViewerConfig(showName, b, showParentSection, showTimeSignature, multiSelect, visibleRPs);
+    }
+
+    public SptViewerConfig setShowParentSection(boolean b)
+    {
+        return new SptViewerConfig(showName, showRhythm, b, showTimeSignature, multiSelect, visibleRPs);
     }
 
     public SptViewerConfig setShowTimeSignature(boolean b)
     {
-        return new SptViewerConfig(showName, showRhythm, b, multiSelect);
+        return new SptViewerConfig(showName, showRhythm, showParentSection, b, multiSelect, visibleRPs);
     }
 
     public SptViewerConfig setMultiSelect(MultiSelect ms)
     {
         Objects.requireNonNull(ms);
-        return new SptViewerConfig(showName, showRhythm, showTimeSignature, ms);
+        return new SptViewerConfig(showName, showRhythm, showParentSection, showTimeSignature, ms, visibleRPs);
+    }
+
+    public SptViewerConfig setVisibleRPs(List<RhythmParameter<?>> rps)
+    {
+        Objects.requireNonNull(rps);
+        return new SptViewerConfig(showName, showRhythm, showParentSection, showTimeSignature, multiSelect, rps);
     }
 }

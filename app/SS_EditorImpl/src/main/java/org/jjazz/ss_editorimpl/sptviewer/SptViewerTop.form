@@ -22,18 +22,18 @@
     <DimensionLayout dim="0">
       <Group type="103" groupAlignment="0" attributes="0">
           <Group type="102" attributes="0">
-              <EmptySpace max="-2" attributes="0"/>
+              <EmptySpace min="-2" pref="2" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" attributes="0">
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Component id="multiSelectBar" max="32767" attributes="0"/>
                           <Group type="102" attributes="0">
                               <Component id="fbtn_sptName" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace pref="254" max="32767" attributes="0"/>
+                              <EmptySpace pref="287" max="32767" attributes="0"/>
                               <Component id="lbl_bars" min="-2" max="-2" attributes="0"/>
                           </Group>
                       </Group>
-                      <EmptySpace max="-2" attributes="0"/>
+                      <EmptySpace min="-2" pref="2" max="-2" attributes="0"/>
                   </Group>
                   <Group type="102" attributes="0">
                       <Group type="103" groupAlignment="0" attributes="0">
@@ -49,14 +49,14 @@
     <DimensionLayout dim="1">
       <Group type="103" groupAlignment="0" attributes="0">
           <Group type="102" attributes="0">
-              <EmptySpace max="-2" attributes="0"/>
+              <EmptySpace min="-2" pref="2" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="fbtn_sptName" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="lbl_bars" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="multiSelectBar" min="-2" max="-2" attributes="0"/>
-              <EmptySpace max="-2" attributes="0"/>
+              <EmptySpace min="-2" pref="2" max="-2" attributes="0"/>
               <Component id="lbl_parentSection" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="32767" attributes="0"/>
               <Component id="fbtn_rhythm" min="-2" max="-2" attributes="0"/>
@@ -85,7 +85,7 @@
     <Container class="org.jjazz.ss_editorimpl.sptviewer.MultiSelectBar" name="multiSelectBar">
       <Properties>
         <Property name="lineColor" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-          <Color blue="33" green="33" red="0" type="rgb"/>
+          <Color blue="7d" green="5b" red="47" type="rgb"/>
         </Property>
         <Property name="on" type="boolean" value="true"/>
       </Properties>
@@ -117,7 +117,7 @@
     </Component>
     <Component class="javax.swing.JLabel" name="lbl_parentSection">
       <Properties>
-        <Property name="text" type="java.lang.String" value="(A)  4/4" noResource="true"/>
+        <Property name="text" type="java.lang.String" value="(A)" noResource="true"/>
       </Properties>
     </Component>
   </SubComponents>
