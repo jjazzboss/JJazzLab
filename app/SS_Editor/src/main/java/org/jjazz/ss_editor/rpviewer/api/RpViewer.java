@@ -347,7 +347,7 @@ public class RpViewer extends JPanel implements PropertyChangeListener, FocusLis
     private void initUIComponents()
     {
 
-        var mouseRedispatcherToThis = new RedispatchingMouseAdapter(this);
+        var mouseRedispatcherToThis = new RedispatchingMouseAdapter(this, false);
 
         // RhythmParameter name
         lbl_RpName = new JLabel();

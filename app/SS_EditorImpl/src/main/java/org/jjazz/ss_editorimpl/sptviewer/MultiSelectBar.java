@@ -28,19 +28,19 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.RenderingHints;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.awt.event.MouseAdapter;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.border.Border;
+import org.jjazz.uiutilities.api.RedispatchingMouseAdapter;
 import org.jjazz.utilities.api.ResUtil;
 
 /**
  * The component used for the "multi-selection" of song parts in the SptViewer.
  * <p>
- * Component is painted only if opaque.
+ * Component is painted only if "on".
  */
-public class MultiSelectBar extends JComponent implements MouseListener
+public class MultiSelectBar extends JComponent 
 {
 
     private static final int V_BORDER = 2;
@@ -51,6 +51,7 @@ public class MultiSelectBar extends JComponent implements MouseListener
     private final Border borderEntered;
     private boolean on;
     private boolean multiSelectFirst;
+    private String offTooltip;
 
     public MultiSelectBar()
     {
@@ -59,7 +60,32 @@ public class MultiSelectBar extends JComponent implements MouseListener
         setBorder(borderDefault);
         setLineThickness(1);
         setLineColor(Color.GRAY);
-        addMouseListener(this);
+
+        // We need a mouselistener to show the border when hovering
+        var borderMouseListener = new MouseAdapter()
+        {
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent evt)
+            {
+                if (isEnabled() && isOn())
+                {
+                    setBorder(borderDefault);
+                }
+            }
+
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent evt)
+            {
+                if (isEnabled() && isOn())
+                {
+                    setBorder(borderEntered);
+                }
+            }
+        };
+        addMouseListener(borderMouseListener);
+        // The above listener will eat all mouse events, we don't want this, redispatch
+        addMouseListener(new RedispatchingMouseAdapter(null, true));              // Do not update the event source, because of SptViewer MouseListener
+        addMouseMotionListener(new RedispatchingMouseAdapter(null, true));        
     }
 
     @Override
@@ -101,6 +127,11 @@ public class MultiSelectBar extends JComponent implements MouseListener
         return on;
     }
 
+    public void setOffTooltipText(String text)
+    {
+        this.offTooltip = text;
+    }
+    
     /**
      *
      * @param on If true make the component "active"
@@ -108,7 +139,7 @@ public class MultiSelectBar extends JComponent implements MouseListener
     public void setOn(boolean on)
     {
         this.on = on;
-        String s = on ? ResUtil.getString(getClass(), "CTL_MultiSelectBarToolTip") : null;
+        String s = on ? ResUtil.getString(getClass(), "CTL_MultiSelectBarToolTip") : offTooltip;
         setToolTipText(s);
         repaint();
     }
@@ -138,51 +169,4 @@ public class MultiSelectBar extends JComponent implements MouseListener
     {
         this.lineColor = lineColor;
     }
-
-    // ================================================================================
-    // MouseListener interface
-    // ================================================================================
-    @Override
-    public void mouseClicked(java.awt.event.MouseEvent evt)
-    {
-        // Nothing
-    }
-
-    @Override
-    public void mouseExited(java.awt.event.MouseEvent evt)
-    {
-        if (isEnabled() && isOn())
-        {
-            setBorder(borderDefault);
-        }
-    }
-
-    @Override
-    public void mouseEntered(java.awt.event.MouseEvent evt)
-    {
-        if (isEnabled() && isOn())
-        {
-            setBorder(borderEntered);
-        }
-    }
-
-    @Override
-    public void mousePressed(MouseEvent e)
-    {
-//        if (isEnabled())
-//        {
-//            setBorder(borderPressed);
-//            fireChanged(e);
-//        }
-    }
-
-    @Override
-    public void mouseReleased(MouseEvent e)
-    {
-//        if (isEnabled() && getBorder() == borderPressed)
-//        {
-//            setBorder(borderEntered);
-//        }
-    }
-
 }

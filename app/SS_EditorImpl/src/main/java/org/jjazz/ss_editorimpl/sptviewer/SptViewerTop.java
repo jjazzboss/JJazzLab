@@ -32,6 +32,7 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JComponent;
+import javax.swing.SwingUtilities;
 import org.jjazz.chordleadsheet.api.Section;
 import org.jjazz.rhythm.api.Rhythm;
 import org.jjazz.ss_editor.sptviewer.spi.SptViewerSettings;
@@ -61,7 +62,6 @@ public class SptViewerTop extends SptViewer
 
         initComponents();
         setLayout(new MyLayoutManager());
-
 
         updateUIComponents(uiConfig);
 
@@ -104,16 +104,19 @@ public class SptViewerTop extends SptViewer
     @Override
     public void mousePressed(MouseEvent e)
     {
-        if (controller == null)
+        if (!SwingUtilities.isLeftMouseButton(e) || controller == null)
         {
             return;
         }
-        super.mousePressed(e);
+
         Component c = (Component) e.getSource();
         LOGGER.log(Level.FINE, "mousePressed() c={0}", c);
         if (c == multiSelectBar)
         {
             controller.songPartClicked(e, getModel(), true);
+        } else
+        {
+            super.mousePressed(e);
         }
     }
 
@@ -124,19 +127,19 @@ public class SptViewerTop extends SptViewer
     {
         // Name 
         fbtn_sptName.setFont(settings.getNameFont());
+        fbtn_sptName.setToolTipText(getToolTipText());       // required because there is a mouse listener attached to it, so it won't display parent's tooltip
         Color c = settings.getNameFontColor();
         if (!config.showName())
         {
-            c = makeSemiTransparent(c, 70);
+            c = makeSemiTransparent(c, 65);
         }
         fbtn_sptName.setForeground(c);
         fbtn_sptName.setText(getModel().getName());
-        fbtn_sptName.setToolTipText(getToolTipText());
 
 
         // Bars
         lbl_bars.setFont(settings.getParentSectionFont());
-        c = makeSemiTransparent(settings.getNameFontColor(), 80);
+        c = makeSemiTransparent(settings.getNameFontColor(), 65);
         lbl_bars.setForeground(c);
         var br = getModel().getBarRange().getTransformed(1);
         lbl_bars.setText(br.from + "-" + br.to);
@@ -154,12 +157,12 @@ public class SptViewerTop extends SptViewer
             strParent = section.getTimeSignature().toString();
         }
         lbl_parentSection.setText(strParent);
-        lbl_parentSection.setToolTipText(getToolTipText());
         lbl_parentSection.setFont(settings.getParentSectionFont());
         lbl_parentSection.setForeground(settings.getParentSectionFontColor());
 
 
         // Multi select bar
+        multiSelectBar.setOffTooltipText(getToolTipText());
         multiSelectBar.setOn(config.multiSelect() != MultiSelect.OFF);
         multiSelectBar.setMultiSelectFirst(config.multiSelect() == MultiSelect.ON_FIRST);
 
@@ -169,7 +172,7 @@ public class SptViewerTop extends SptViewer
         c = settings.getRhythmFontColor();
         if (!config.showRhythm())
         {
-            c = makeSemiTransparent(c, 70);
+            c = makeSemiTransparent(c, 65);
         }
         fbtn_rhythm.setForeground(c);
         Rhythm r = getModel().getRhythm();
@@ -314,7 +317,7 @@ public class SptViewerTop extends SptViewer
             int y = r.y + PADDING;
             fbtn_sptName.setLocation(x, y);
             y += fbtn_sptName.getHeight();
-            int extraWidth = r.width - fbtn_sptName.getWidth() - PADDING;
+            int extraWidth = r.width - fbtn_sptName.getWidth() - 2 * PADDING;
 
 
             lbl_bars.setSize(lbl_bars.getPreferredSize());

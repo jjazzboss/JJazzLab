@@ -124,7 +124,7 @@ abstract public class SptViewer extends JPanel implements FocusListener, Propert
 
 
         addFocusListener(this);
-        addMouseListener(this);
+        addMouseListener(this);     // We'll also get the MouseEvents from children which has not mouselistener attached (note that just setting a tooltip implicitly adds a mouselistener)
         addMouseMotionListener(this);
 
 
@@ -446,7 +446,10 @@ abstract public class SptViewer extends JPanel implements FocusListener, Propert
             return;
         }
         Component c = (Component) e.getSource();
-        if (c == this)
+        if (c instanceof RpViewer rpv)
+        {
+            controller.rhythmParameterDragged(e, rpv.getSptModel(), rpv.getRpModel());
+        } else
         {
             // Since JPanel does not normally support drag-and-drop, start drag if a transfer handler is set
             TransferHandler th = getTransferHandler();
@@ -455,9 +458,6 @@ abstract public class SptViewer extends JPanel implements FocusListener, Propert
                 th.exportAsDrag(SptViewer.this, e, TransferHandler.COPY);
             }
             controller.songPartDragged(e, sptModel);
-        } else if (c instanceof RpViewer rpv)
-        {
-            controller.rhythmParameterDragged(e, rpv.getSptModel(), rpv.getRpModel());
         }
     }
 
@@ -575,8 +575,9 @@ abstract public class SptViewer extends JPanel implements FocusListener, Propert
         String strSongPart = ResUtil.getString(SptViewer.class, "SongPart");
         String strParentSection = ResUtil.getString(SptViewer.class, "ParentSection");
         var br = sptModel.getBarRange().getTransformed(1);
-        String strBars = "bars " + br.from + "-" + br.to;
-        String tt = strSongPart + ": '" + sptModel.getName() + "' " + strBars + " (" + strParentSection + ": " + section.getName() + " " + section.getTimeSignature() + ")";
+        String strBars = ResUtil.getString(SptViewer.class, "Bars");
+        strBars += ": " + br.from + "-" + br.to;
+        String tt = strSongPart + ": '" + sptModel.getName() + "'  (" + strParentSection + ": '" + section.getName() + "' " + section.getTimeSignature() + ")  " + strBars;
         setToolTipText(tt);
     }
 

@@ -484,30 +484,16 @@ public class SS_EditorController implements SS_EditorMouseListener
         });
 
 
-        if (e.isControlDown())
+        if (e.isControlDown() || e.isShiftDown() || e.isAltDown())
         {
-            // We dont't manage ctrl-wheel here
-            // but we don't want to lose the event, it may need to be processed by the above hierarchy, i.e. enclosing JScrollPane
+            // We dont't manage modifier-wheel here
+            // but we don't want to lose the event, it may need to be processed by the container hierarchy, i.e. the enclosing JScrollPane
             Container source = (Container) e.getSource();
             Container parent = source.getParent();
-            MouseEvent parentEvent = SwingUtilities.convertMouseEvent(source, e, parent);
-            MouseWheelEvent parentMouseWheelEvent = new MouseWheelEvent(parent,
-                    e.getID(),
-                    e.getWhen(),
-                    e.getModifiersEx(),
-                    parentEvent.getX(),
-                    parentEvent.getY(),
-                    e.getXOnScreen(),
-                    e.getYOnScreen(),
-                    e.getClickCount(),
-                    e.isPopupTrigger(),
-                    e.getScrollType(),
-                    e.getScrollAmount(),
-                    e.getWheelRotation(),
-                    e.getPreciseWheelRotation());
+            MouseWheelEvent parentMouseWheelEvent = (MouseWheelEvent) SwingUtilities.convertMouseEvent(source, e, parent);
             parent.dispatchEvent(parentMouseWheelEvent);
             return;
-        }
+        } 
 
         SS_Selection selection = new SS_Selection(editor.getLookup());
         if (!selection.isRhythmParameterSelected(spt, rp) || !(rp instanceof RpEnumerable))
@@ -525,28 +511,6 @@ public class SS_EditorController implements SS_EditorMouseListener
         SongStructure sgs = editor.getModel();
         SS_EditorTopComponent ssTc = SS_EditorTopComponent.get(sgs);
         ssTc.requestActive();
-
-
-        // If shift is pressed we first align the values on the first selected RP
-        if (e.isShiftDown())
-        {
-            double dValue = ((RpEnumerable) rp).calculatePercentage(spt.getRPValue(rp));
-            String editName = ResUtil.getString(getClass(), "CTL_SetRpValue");
-
-
-            JJazzUndoManagerFinder.getDefault().get(sgs).startCEdit(editName);
-            for (SongPartParameter sptp : selection.getSelectedSongPartParameters())
-            {
-                SongPart spti = sptp.spt();
-                RhythmParameter rpi = sptp.rp();
-                if (spti != spt)
-                {
-                    Object compatibleValue = ((RpEnumerable) rpi).calculateValue(dValue); // selected RPs might be different types (but compatible)
-                    editor.getModel().setRhythmParameterValue(spti, rpi, compatibleValue);
-                }
-            }
-            JJazzUndoManagerFinder.getDefault().get(sgs).endCEdit(editName);
-        }
 
 
         // Fix Issue #347: need to give time for TopComponent to become active if it was not the case

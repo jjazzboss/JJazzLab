@@ -48,6 +48,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
 import java.awt.event.WindowEvent;
 import java.awt.font.FontRenderContext;
 import java.awt.font.LineBreakMeasurer;
@@ -65,7 +66,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javax.swing.AbstractAction;
@@ -90,6 +90,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.MenuDragMouseEvent;
 import javax.swing.plaf.LayerUI;
 import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
@@ -778,6 +779,70 @@ public class UIUtilities
         }
 
         return count;
+    }
+
+
+    /**
+     * This is a copy of SwingUtilities.convertMouseEvent() except it does not update the returned event source.
+     *
+     * @param source
+     * @param sourceEvent
+     * @param destination
+     * @return
+     */
+    public static MouseEvent convertMouseEventKeepEventSource(Component source, MouseEvent sourceEvent, Component destination)
+    {
+        Point p = SwingUtilities.convertPoint(source, new Point(sourceEvent.getX(), sourceEvent.getY()), destination);
+        Component newSource = source;
+
+        MouseEvent newEvent;
+        switch (sourceEvent)
+        {
+            case MouseWheelEvent sourceWheelEvent -> newEvent = new MouseWheelEvent(newSource,
+                        sourceWheelEvent.getID(),
+                        sourceWheelEvent.getWhen(),
+                        sourceWheelEvent.getModifiers()
+                        | sourceWheelEvent.getModifiersEx(),
+                        p.x, p.y,
+                        sourceWheelEvent.getXOnScreen(),
+                        sourceWheelEvent.getYOnScreen(),
+                        sourceWheelEvent.getClickCount(),
+                        sourceWheelEvent.isPopupTrigger(),
+                        sourceWheelEvent.getScrollType(),
+                        sourceWheelEvent.getScrollAmount(),
+                        sourceWheelEvent.getWheelRotation(),
+                        sourceWheelEvent.getPreciseWheelRotation());
+            case MenuDragMouseEvent sourceMenuDragEvent -> newEvent = new MenuDragMouseEvent(newSource,
+                        sourceMenuDragEvent.getID(),
+                        sourceMenuDragEvent.getWhen(),
+                        sourceMenuDragEvent.getModifiers()
+                        | sourceMenuDragEvent.getModifiersEx(),
+                        p.x, p.y,
+                        sourceMenuDragEvent.getXOnScreen(),
+                        sourceMenuDragEvent.getYOnScreen(),
+                        sourceMenuDragEvent.getClickCount(),
+                        sourceMenuDragEvent.isPopupTrigger(),
+                        sourceMenuDragEvent.getPath(),
+                        sourceMenuDragEvent.getMenuSelectionManager());
+            default ->
+            {
+                newEvent = new MouseEvent(newSource,
+                        sourceEvent.getID(),
+                        sourceEvent.getWhen(),
+                        sourceEvent.getModifiers()
+                        | sourceEvent.getModifiersEx(),
+                        p.x, p.y,
+                        sourceEvent.getXOnScreen(),
+                        sourceEvent.getYOnScreen(),
+                        sourceEvent.getClickCount(),
+                        sourceEvent.isPopupTrigger(),
+                        sourceEvent.getButton());
+//                sun.awt.AWTAccessor.MouseEventAccessor meAccessor = sun.awt.AWTAccessor.getMouseEventAccessor();
+//                meAccessor.setCausedByTouchEvent(newEvent,
+//                        meAccessor.isCausedByTouchEvent(sourceEvent));
+            }
+        }
+        return newEvent;
     }
 
 

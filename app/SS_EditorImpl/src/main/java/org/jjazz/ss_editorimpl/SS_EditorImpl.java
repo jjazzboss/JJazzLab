@@ -54,7 +54,6 @@ import java.util.logging.Logger;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import java.beans.PropertyChangeSupport;
-import java.util.function.Consumer;
 import javax.swing.BorderFactory;
 import javax.swing.JScrollPane;
 import org.jjazz.harmony.api.Position;
@@ -111,8 +110,9 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     // UI variables
     private JScrollPane scrollPane;
     private JPanel panel_Top;
-    private JPanel panel_SongParts;
-    private InsertionSptMark insertionMark;
+    private JPanel panel_Low;
+    private InsertionSptMark insertionMarkTop;
+    private InsertionSptMark insertionMarkLow;
     /**
      * Our sgsModel.
      */
@@ -212,7 +212,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
 
         songModel.getClientProperties().addPropertyChangeListener(this);
 
-        
+
         // The lookup for selection
         selectionLookupContent = new InstanceContent();
         selectionLookup = new AbstractLookup(selectionLookupContent);
@@ -257,8 +257,10 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         // Graphical init
         initUIComponents();
 
-        panel_SongParts.addMouseListener(this);         // for editor popup menu
-        panel_SongParts.addMouseWheelListener(this);                    // For zoom operations
+        panel_Top.addMouseListener(this);         // for editor popup menu
+        panel_Top.addMouseWheelListener(this);                    // For zoom operations
+        panel_Low.addMouseListener(this);         
+        panel_Low.addMouseWheelListener(this);                   
 
         // Listen to our models
         sgsModel.addSgsChangeListener(this);
@@ -367,7 +369,8 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
             return;
         }
 
-        runTaskOnBothSptViewers(spt, sptv -> sptv.setSelected(b));
+        getSptViewerLow(spt).setSelected(b);
+        getSptViewerTop(spt).setSelected(b);
 
 
         var selSpt = new SelectedSongPart(spt);
@@ -394,8 +397,8 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
             return;
         }
 
-
-        runTaskOnBothSptViewers(spt, sptv -> sptv.setSelected(rp, b));
+        getSptViewerLow(spt).setSelected(rp, b);
+        getSptViewerTop(spt).setSelected(rp, b);
 
 
         SongPartParameter sptp = new SongPartParameter(spt, rp);
@@ -469,14 +472,19 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
                 rp = rpViewer.getRpModel();
                 spt = rpViewer.getSptModel();
                 break;
-            }
-            if (c instanceof SptViewer sptViewer)
+            } else if (c instanceof SptViewer sptViewer)
             {
                 spt = sptViewer.getModel();
+                break;
+            } else if (c == scrollPane)
+            {
+                c = null;
                 break;
             }
             c = c.getParent();
         }
+
+
         if (c != null)
         {
             // We're on a SongPart or a RhythmParameter
@@ -490,15 +498,16 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
                 sptLeft.set(true);
             }
             return new SongPartParameter(spt, rp);
+
         } else
         {
             // We're somewhere on the editor, use a different method to find at least a SongPart
             Rectangle r = new Rectangle();
             int i = 0;
-            for (SptViewer sptv : getSptViewers())
+            for (SptViewer sptv : getSptViewersLow())
             {
                 sptv.getBounds(r);
-                SwingUtilities.convertRectangle(panel_SongParts, r, this);
+                SwingUtilities.convertRectangle(panel_Low, r, this);
                 if (editorPoint.x <= r.x + r.width / 2)
                 {
                     spt = sgsModel.getSongParts().get(i);
@@ -533,25 +542,38 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         });
         if (!b)
         {
-            panel_SongParts.remove(insertionMark);
+            panel_Top.remove(insertionMarkTop);
+            panel_Low.remove(insertionMarkLow);
             insertionMarkSptIndex = -1;
-            panel_SongParts.revalidate();
-            panel_SongParts.repaint(); // Needed to erase the insertionMark if it was at last index position
+            panel_Top.revalidate();
+            panel_Top.repaint(); // Needed to erase the insertionMark if it was at last index position
+            panel_Low.revalidate();
+            panel_Low.repaint(); // Needed to erase the insertionMark if it was at last index position
             return;
         }
         if (insertionMarkSptIndex == -1)
         {
             // First display, adjust size
-            insertionMark.setPreferredSize(new Dimension(insertionMark.getPreferredSize().width, 50));
+            insertionMarkTop.setPreferredSize(new Dimension(insertionMarkTop.getPreferredSize().width, 50));
+            insertionMarkLow.setPreferredSize(insertionMarkTop.getPreferredSize());
         }
-        insertionMark.setCopyMode(copyMode);
+        insertionMarkTop.setCopyMode(copyMode);
+        insertionMarkLow.setCopyMode(copyMode);
+
         if (insertionMarkSptIndex != sptIndex)
         {
-            panel_SongParts.remove(insertionMark);
             insertionMarkSptIndex = sptIndex;
-            panel_SongParts.add(insertionMark, insertionMarkSptIndex);
-            panel_SongParts.revalidate();
-            panel_SongParts.repaint(); // If added in last position
+
+            panel_Top.remove(insertionMarkTop);
+            panel_Top.add(insertionMarkTop, insertionMarkSptIndex);
+            panel_Top.revalidate();
+            panel_Top.repaint(); // If added in last position
+
+            panel_Low.remove(insertionMarkLow);
+            panel_Low.add(insertionMarkLow, insertionMarkSptIndex);
+            panel_Low.revalidate();
+            panel_Low.repaint(); // If added in last position
+
         }
     }
 
@@ -801,7 +823,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         }
         Component c = (Component) e.getSource();
         LOGGER.log(Level.FINE, "mousePressed() c={0}", c);
-        if (c == panel_SongParts)
+        if (c == panel_Low)
         {
             controller.editorClicked(e);
         }
@@ -846,9 +868,13 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
                 addSptViewer(spt);
             }
         }
-        panel_SongParts.revalidate();
-        panel_SongParts.repaint();     // Needed if removed Spt was the last one
+
         updateSptConfigs();
+
+        panel_Low.revalidate();
+        panel_Low.repaint();     // Needed if removed Spt was the last one
+        panel_Top.revalidate();
+        panel_Top.repaint();
     }
 
     private void handleSptAdded(final SptAddedEvent e)
@@ -872,9 +898,14 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
                 }
             }
         }
-        panel_SongParts.revalidate();  // Needed to get immediate UI update
-        panel_SongParts.repaint();     // Needed if removed Spt was the last one                
+
         updateSptConfigs();
+
+        panel_Low.revalidate();  // Needed to get immediate UI update
+        panel_Low.repaint();     // Needed if removed Spt was the last one                
+        panel_Top.revalidate();
+        panel_Top.repaint();
+
     }
 
 
@@ -882,38 +913,23 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     {
         setOpaque(false);       // To reuse LAF default background
 
-        insertionMark = new InsertionSptMark();
+
+        insertionMarkTop = new InsertionSptMark();
+        insertionMarkLow = new InsertionSptMark();
+        insertionMarkLow.setEnabled(false);
 
 
-        panel_Top = new JPanel();
+        panel_Top = new SptViewerPanel();
         var border = BorderFactory.createEmptyBorder(0, 0, 2, 0);       // leave small space on bottom to clearly separate panel_Top from panel_SongParts
         panel_Top.setBorder(border);
-        panel_Top.setOpaque(false);
-        FlowLayout flowLayout = new FlowLayout(FlowLayout.LEFT, 1, 0);
-        flowLayout.setAlignOnBaseline(true); // Used to get the songparts aligned on the top line.
-        panel_Top.setLayout(flowLayout);
 
 
-        panel_SongParts = new JPanel()
-        {
-            // Leave a small space at the right of the last SongPart
-            @Override
-            public Dimension getPreferredSize()
-            {
-                final int EXTRA = 50;
-                Dimension pd = getLayout().preferredLayoutSize(this);
-                return new Dimension(pd.width + EXTRA, pd.height);
-            }
-        };
-        flowLayout = new FlowLayout(FlowLayout.LEFT, 1, 0);
-        flowLayout.setAlignOnBaseline(true); // Used to get the songparts aligned on the top line.
-        panel_SongParts.setLayout(flowLayout);
-        panel_SongParts.setOpaque(false);
-        panel_SongParts.setMinimumSize(new java.awt.Dimension(800, 50));
+        panel_Low = new SptViewerPanel();
+        panel_Low.setMinimumSize(new java.awt.Dimension(800, 50));
 
 
         scrollPane = new JScrollPane();
-        scrollPane.setViewportView(panel_SongParts);
+        scrollPane.setViewportView(panel_Low);
         scrollPane.setColumnHeaderView(panel_Top);
 
 
@@ -926,8 +942,10 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
     {
         assert spt != null;
 
-        // Main SptViewer
-        SptViewer sptv = sptViewerFactory.createLowSptViewer(this, spt, sptViewerFactory.getDefaultSptViewerSettings(),
+        // Low SptViewer
+        SptViewer sptv = sptViewerFactory.createLowSptViewer(this,
+                spt,
+                sptViewerFactory.getDefaultSptViewerSettings(),
                 sptViewerFactory.getDefaultRpViewerFactory());
         registerSptViewer(sptv);
         sptv.setZoomHFactor(getZoomXFactor(songModel));
@@ -939,10 +957,10 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         LOGGER.log(Level.FINE, "addSptViewer() spt={0} +index={1} panel_SongParts.size={2}", new Object[]
         {
             spt, index,
-            panel_SongParts.
+            panel_Low.
             getComponentCount()
         });
-        panel_SongParts.add(sptv, index);
+        panel_Low.add(sptv, index);
 
 
         // Top SptViewer
@@ -964,13 +982,14 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
             selectRhythmParameter(spt, rp, false);
         }
         unregisterSptViewer(sptv);
-        panel_SongParts.remove(sptv);
+        panel_Low.remove(sptv);
+        panel_Top.remove(sptv);
         sptv.cleanup();
     }
 
-    private List<SptViewer> getSptViewers()
+    private List<SptViewer> getSptViewersTop()
     {
-        ArrayList<SptViewer> res = new ArrayList<>();
+        List<SptViewer> res = new ArrayList<>();
         for (Component c : this.panel_Top.getComponents())
         {
             if (c instanceof SptViewer sptViewer)
@@ -978,13 +997,27 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
                 res.add(sptViewer);
             }
         }
-        for (Component c : this.panel_SongParts.getComponents())
+        return res;
+    }
+
+    private List<SptViewer> getSptViewersLow()
+    {
+        List<SptViewer> res = new ArrayList<>();
+        for (Component c : this.panel_Low.getComponents())
         {
             if (c instanceof SptViewer sptViewer)
             {
                 res.add(sptViewer);
             }
         }
+        return res;
+    }
+
+    private List<SptViewer> getSptViewers()
+    {
+        ArrayList<SptViewer> res = new ArrayList<>();
+        res.addAll(getSptViewersTop());
+        res.addAll(getSptViewersLow());
         return res;
     }
 
@@ -1019,17 +1052,6 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         throw new IllegalStateException("spt=" + spt);
     }
 
-    /**
-     * Run an identical task on the SptViewers of spt.
-     *
-     * @param spt
-     * @param task
-     */
-    private void runTaskOnBothSptViewers(SongPart spt, Consumer<SptViewer> task)
-    {
-        task.accept(getSptViewerTop(spt));
-        task.accept(getSptViewerLow(spt));
-    }
 
     /**
      * Register a SongPart
@@ -1042,7 +1064,7 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
         sptv.setTransferHandler(transferHandler);
         // transferHandler does not manage the case where a CL_Editor section is dragged into the SS_Editor
         // and there is a focus change (ALT-TAB) => drop is not done but insertionPoint is not removed !
-        // Here we listen to dropTarget events, if it exists the SptViewier's bound, make sure
+        // Here we listen to dropTarget events, if it exists the SptViewer's bound, make sure
         // insertionPoint is turned off.
         try
         {
@@ -1391,4 +1413,34 @@ public class SS_EditorImpl extends SS_Editor implements PropertyChangeListener, 
             // Nothing
         }
     }
+
+
+    /**
+     * Panel to hold SptViewers.
+     * <p>
+     */
+    private static class SptViewerPanel extends JPanel
+    {
+
+        public SptViewerPanel()
+        {
+            var flowLayout = new FlowLayout(FlowLayout.LEFT, 2, 0);
+            flowLayout.setAlignOnBaseline(true);        // Used to get the songparts aligned on the top line.
+            setLayout(flowLayout);
+            setOpaque(false);
+        }
+
+        /**
+         * Overridden to always leave a small space at the right of the last SongPart.
+         *
+         * @return
+         */
+        @Override
+        public Dimension getPreferredSize()
+        {
+            final int EXTRA = 50;
+            Dimension pd = getLayout().preferredLayoutSize(this);
+            return new Dimension(pd.width + EXTRA, pd.height);
+        }
+    };
 }
