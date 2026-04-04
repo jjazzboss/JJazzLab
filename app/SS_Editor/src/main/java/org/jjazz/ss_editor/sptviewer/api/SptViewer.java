@@ -61,7 +61,7 @@ import org.jjazz.uisettings.api.ColorSetManager;
 /**
  * A base implementation of a SptViewer.
  * <p>
- * Handle preferred size, zooming, selection/focused state rendering, mouse events capture to call controller.
+ * Handle preferred size computing, zooming, selection/focused state rendering, mouse events.
  */
 abstract public class SptViewer extends JPanel implements FocusListener, PropertyChangeListener, MouseListener, MouseMotionListener, MouseWheelListener
 {
@@ -124,7 +124,7 @@ abstract public class SptViewer extends JPanel implements FocusListener, Propert
 
 
         addFocusListener(this);
-        addMouseListener(this);     // We'll also get the MouseEvents from children which has not mouselistener attached (note that just setting a tooltip implicitly adds a mouselistener)
+        addMouseListener(this);     // We'll also get the MouseEvents from children which have not mouselistener attached (note that just setting a tooltip implicitly adds a mouselistener)
         addMouseMotionListener(this);
 
 

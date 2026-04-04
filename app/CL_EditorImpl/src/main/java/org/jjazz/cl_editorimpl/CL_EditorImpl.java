@@ -253,8 +253,8 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
         }
 
         // Fill our lookup
-        generalLookupContent.add(clsModel);    
-        generalLookupContent.add(songModel);   
+        generalLookupContent.add(clsModel);
+        generalLookupContent.add(songModel);
 
         // Add or remove barboxes at the end if required
         int newSizeInBars = computeNbBarBoxes(NB_EXTRA_LINES, clsModel.getSizeInBars());
@@ -608,10 +608,10 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
             var selItem = new SelectedCLI(item);
             if (b)
             {
-                selectionLookupContent.add(selItem);  
+                selectionLookupContent.add(selItem);
             } else
             {
-                selectionLookupContent.remove(selItem);  
+                selectionLookupContent.remove(selItem);
             }
         }
 
@@ -1072,10 +1072,10 @@ public class CL_EditorImpl extends CL_Editor implements PropertyChangeListener, 
 
         if (orientation == SwingConstants.VERTICAL)
         {
-            unit = 10;
+            unit = getBarBox(0).getHeight() / 2;
         } else
         {
-            unit = 10;
+            unit = 35;
         }
 
         return unit;

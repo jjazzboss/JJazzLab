@@ -71,6 +71,7 @@ import org.jjazz.ss_editorimpl.actions.PreviousRpValue;
 import org.jjazz.ss_editorimpl.actions.PasteAppend;
 import org.jjazz.ss_editorimpl.actions.ResetRpValue;
 import org.jjazz.ss_editorimpl.actions.ToggleCompactView;
+import org.jjazz.uiutilities.api.Zoomable;
 import org.openide.util.Lookup;
 
 /**
@@ -223,8 +224,7 @@ public class SS_EditorController implements SS_EditorMouseListener
 
         if (e.getClickCount() == 1 && SwingUtilities.isLeftMouseButton(e))
         {
-            if (selection.isRhythmParameterSelected() || selection.isEmpty()
-                    || (e.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0)
+            if (selection.isRhythmParameterSelected() || selection.isEmpty() || (!e.isShiftDown() && !e.isControlDown()))
             {
                 // SIMPLE CLICK, or no previous selection set on a similar item
                 LOGGER.log(Level.FINE, "    simple click");
@@ -240,7 +240,7 @@ public class SS_EditorController implements SS_EditorMouseListener
                         editor.selectSongPart(msSpt, true);
                     }
                 }
-            } else if ((e.getModifiersEx() & (InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK)) == InputEvent.CTRL_DOWN_MASK)
+            } else if (e.isControlDown() && !e.isShiftDown())
             {
                 // CTRL CLICK
                 // Just add selection, don't change focus
@@ -265,7 +265,7 @@ public class SS_EditorController implements SS_EditorMouseListener
                         editor.selectSongPart(msSpt, b);
                     }
                 }
-            } else if (focusedSpt != null && (e.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == InputEvent.SHIFT_DOWN_MASK)
+            } else if (focusedSpt != null && !e.isControlDown() && e.isShiftDown())
             {
                 // SHIFT CLICK
                 LOGGER.log(Level.FINE, "    SHIFT click");
@@ -288,7 +288,7 @@ public class SS_EditorController implements SS_EditorMouseListener
                     }
                 }
             }
-        } else if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e) && (e.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) == 0)
+        } else if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e) && !e.isControlDown() && !e.isShiftDown())
         {
             // DOUBLE CLICK
             // Don't assume the first click was on a SongPart, it can be on something else !
@@ -347,7 +347,6 @@ public class SS_EditorController implements SS_EditorMouseListener
     @Override
     public void editorWheelMoved(MouseWheelEvent e)
     {
-        final int STEP = 5;
         if (!e.isControlDown())
         {
             // We manage only ctrl-wheel and ctrl-shift-wheel
@@ -359,15 +358,22 @@ public class SS_EditorController implements SS_EditorMouseListener
             return;
         }
 
+
+        Zoomable zoomable = editor.getLookup().lookup(Zoomable.class);
+        if (zoomable == null)
+        {
+            return;
+        }
+
+
         // Because wheel action can be enabled even if the TopComponent is inactive, make sure to make our TopComponent active 
         // to avoid possible problems with the global selection 
         SongStructure sgs = editor.getModel();
         SS_EditorTopComponent ssTc = SS_EditorTopComponent.get(sgs);
         ssTc.requestActive();
 
-        int factor = e.isShiftDown()
-                ? SS_EditorClientProperties.getZoomYFactor(editor.getSongModel())
-                : SS_EditorClientProperties.getZoomXFactor(editor.getSongModel());
+        final int STEP = 10;
+        int factor = e.isShiftDown() ? zoomable.getZoomYFactor() : zoomable.getZoomXFactor();
         if (e.getWheelRotation() < 0)
         {
             factor = Math.min(100, factor + STEP);
@@ -382,10 +388,10 @@ public class SS_EditorController implements SS_EditorMouseListener
             // Give time for TopComponent to become active
             if (e.isShiftDown())
             {
-                SS_EditorClientProperties.setZoomYFactor(editor.getSongModel(), factor2);
+                zoomable.setZoomYFactor(factor2, false);
             } else
             {
-                SS_EditorClientProperties.setZoomXFactor(editor.getSongModel(), factor2);
+                zoomable.setZoomXFactor(factor2, false);
             }
         });
     }
@@ -493,7 +499,7 @@ public class SS_EditorController implements SS_EditorMouseListener
             MouseWheelEvent parentMouseWheelEvent = (MouseWheelEvent) SwingUtilities.convertMouseEvent(source, e, parent);
             parent.dispatchEvent(parentMouseWheelEvent);
             return;
-        } 
+        }
 
         SS_Selection selection = new SS_Selection(editor.getLookup());
         if (!selection.isRhythmParameterSelected(spt, rp) || !(rp instanceof RpEnumerable))

@@ -104,14 +104,9 @@ public class SptViewerTop extends SptViewer
     @Override
     public void mousePressed(MouseEvent e)
     {
-        if (!SwingUtilities.isLeftMouseButton(e) || controller == null)
-        {
-            return;
-        }
-
         Component c = (Component) e.getSource();
         LOGGER.log(Level.FINE, "mousePressed() c={0}", c);
-        if (c == multiSelectBar)
+        if (c == multiSelectBar && controller != null)
         {
             controller.songPartClicked(e, getModel(), true);
         } else
@@ -119,6 +114,7 @@ public class SptViewerTop extends SptViewer
             super.mousePressed(e);
         }
     }
+
 
     // ---------------------------------------------------------------
     // Private methods
@@ -142,7 +138,8 @@ public class SptViewerTop extends SptViewer
         c = makeSemiTransparent(settings.getNameFontColor(), 65);
         lbl_bars.setForeground(c);
         var br = getModel().getBarRange().getTransformed(1);
-        lbl_bars.setText(br.from + "-" + br.to);
+        var strBars = br.size() == 1 ? String.valueOf(br.from) : br.from + "-" + br.to;
+        lbl_bars.setText(strBars);
 
 
         // Parent section & time signature
