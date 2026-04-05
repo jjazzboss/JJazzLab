@@ -23,7 +23,6 @@
 package org.jjazz.musiccontrolactions;
 
 import java.awt.event.ActionEvent;
-import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -59,14 +58,11 @@ import org.jjazz.cl_editor.api.CL_Editor;
 import org.jjazz.mixconsole.api.MixConsoleTopComponent;
 import org.jjazz.musiccontrol.api.playbacksession.PlaybackSession;
 import org.jjazz.musiccontrolactions.api.FixMissingSectionStartChord;
-import org.jjazz.musiccontrolactions.api.RemoteAction;
-import org.jjazz.musiccontrolactions.spi.RemoteActionProvider;
 import org.jjazz.outputsynth.api.FixMidiMix;
 import org.jjazz.song.spi.SongContextFactory;
 import org.jjazz.ss_editor.api.SS_Editor;
 import org.jjazz.utilities.api.IntRange;
 import org.jjazz.utilities.api.ResUtil;
-import org.openide.util.lookup.ServiceProvider;
 import org.openide.windows.TopComponent;
 
 /**
@@ -206,29 +202,7 @@ public class PlaySelection extends AbstractAction
             }
         }
     }
-// ======================================================================
-    // Inner classes
-    // ======================================================================   
 
-    @ServiceProvider(service = RemoteActionProvider.class)
-    public static class PlaySelectionRemoteActionProvider implements RemoteActionProvider
-    {
-
-        @Override
-        public List<RemoteAction> getRemoteActions()
-        {
-            RemoteAction ra = RemoteAction.loadFromPreference("MusicControls", "org.jjazz.musiccontrolactions.playselection");
-            if (ra == null)
-            {
-                ra = new RemoteAction("MusicControls", "org.jjazz.musiccontrolactions.playselection");
-                ra.setMidiMessages(RemoteAction.noteOnMidiMessages(0, 32));
-            }
-            ra.setDefaultMidiMessages(RemoteAction.noteOnMidiMessages(0, 32));
-            return Arrays.asList(ra);
-        }
-    }
-
-    // ======================================================================
     //=====================================================================================
     // Private methods
     //=====================================================================================     
