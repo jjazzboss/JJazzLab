@@ -192,6 +192,10 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable, Display
     public void setZoomFactor(int factor)
     {
         zoomFactor = factor;
+        
+        // The AttributedString used by getPreferredSize() and paintComponent() to represent the chord symbol
+        attChordString = createAttrString(getPossiblyTransposedModel(), dislayTransposition > 0);
+        
         revalidate();
         repaint();
     }
@@ -498,7 +502,7 @@ public class IR_ChordSymbol extends ItemRenderer implements IR_Copiable, Display
         // The fonts to be used, depends on the zoom factor
         Font font = getFont();
         Font musicFont = settings.getMusicFont();
-        float factor = 0.5f + (getZoomFactor() / 100f);
+        float factor = 0.5f + (zoomFactor / 100f);
         float zFontSize = factor * font.getSize2D();
         zFontSize = Math.max(zFontSize, 12);
 
