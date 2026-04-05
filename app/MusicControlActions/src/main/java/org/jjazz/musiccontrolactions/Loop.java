@@ -26,8 +26,6 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.Arrays;
-import java.util.List;
 import java.util.logging.Logger;
 import javax.sound.midi.Sequencer;
 import javax.swing.Action;
@@ -37,8 +35,6 @@ import org.jjazz.musiccontrol.api.MusicController;
 import org.jjazz.musiccontrol.api.PlaybackSettings;
 import org.jjazz.song.api.Song;
 import org.jjazz.flatcomponents.api.FlatToggleButton;
-import org.jjazz.musiccontrolactions.api.RemoteAction;
-import org.jjazz.musiccontrolactions.spi.RemoteActionProvider;
 import org.jjazz.utilities.api.ResUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -50,7 +46,6 @@ import org.openide.util.LookupEvent;
 import org.openide.util.LookupListener;
 import org.openide.util.Utilities;
 import org.openide.util.actions.BooleanStateAction;
-import org.openide.util.lookup.ServiceProvider;
 
 /**
  * Toggle loop sound during playback.
@@ -71,7 +66,6 @@ public class Loop extends BooleanStateAction implements PropertyChangeListener, 
     public Loop()
     {
         setBooleanState(PlaybackSettings.getInstance().getLoopCount() == Sequencer.LOOP_CONTINUOUSLY);
-         putValue(Action.NAME, "Loop");        // For our RemoteActionProvider
         putValue(Action.SMALL_ICON, new ImageIcon(getClass().getResource("/org/jjazz/musiccontrolactions/resources/Loop-OFF-24x24.png")));
         putValue(Action.LARGE_ICON_KEY, new ImageIcon(getClass().getResource("/org/jjazz/musiccontrolactions/resources/Loop-ON-24x24.png")));
         putValue("JJazzDisabledIcon", new ImageIcon(getClass().getResource("/org/jjazz/musiccontrolactions/resources/LoopDisabled-24x24.png")));                   
@@ -187,29 +181,7 @@ public class Loop extends BooleanStateAction implements PropertyChangeListener, 
             }
         }
     }
-// ======================================================================
-    // Inner classes
-    // ======================================================================   
 
-    @ServiceProvider(service = RemoteActionProvider.class)
-    public static class LoopRemoteActionProvider implements RemoteActionProvider
-    {
-
-        @Override
-        public List<RemoteAction> getRemoteActions()
-        {
-            RemoteAction ra = RemoteAction.loadFromPreference("MusicControls", "org.jjazz.musiccontrolactions.loop");
-            if (ra == null)
-            {
-                ra = new RemoteAction("MusicControls", "org.jjazz.musiccontrolactions.loop");
-                ra.setMidiMessages(RemoteAction.noteOnMidiMessages(0, 33));
-            }
-            ra.setDefaultMidiMessages(RemoteAction.noteOnMidiMessages(0, 33));
-            return Arrays.asList(ra);
-        }
-    }
-
-    // ======================================================================
     // ======================================================================
     // Private methods
     // ======================================================================   
