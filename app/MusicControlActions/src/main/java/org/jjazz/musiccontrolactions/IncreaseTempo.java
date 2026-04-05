@@ -27,8 +27,6 @@ import java.awt.event.ActionListener;
 import org.jjazz.activesong.spi.ActiveSongManager;
 import org.jjazz.rhythm.api.TempoRange;
 import org.jjazz.song.api.Song;
-import org.jjazz.undomanager.api.JJazzUndoManager;
-import org.jjazz.undomanager.api.JJazzUndoManagerFinder;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
