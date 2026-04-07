@@ -136,9 +136,8 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
     }
 
     /**
-     * Get a session using the default config with update control enabled.
+     * Get a session using a default SessionConfig starting at sgContext.getBarRange().from, with update control enabled.
      * <p>
-     *
      * @param sgContext
      * @param context
      * @return A targetSession in the NEW or GENERATED state.
@@ -146,20 +145,6 @@ public class UpdateProviderSongSession extends BaseSongSession implements Updata
     static public UpdateProviderSongSession getSession(SongContext sgContext, Context context)
     {
         return getSession(sgContext, new SessionConfig(), true, context);
-    }
-
-    /**
-     * Get a session using the default config with the specific restartBar, with update control enabled.
-     * <p>
-     *
-     * @param sgContext
-     * @param context
-     * @param restartBar
-     * @return A targetSession in the NEW or GENERATED state.
-     */
-    static public UpdateProviderSongSession getSession(SongContext sgContext, Context context, int restartBar)
-    {
-        return getSession(sgContext, new SessionConfig(restartBar), true, context);
     }
 
 

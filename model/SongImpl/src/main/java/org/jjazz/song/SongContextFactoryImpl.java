@@ -24,6 +24,7 @@
  */
 package org.jjazz.song;
 
+import java.util.Objects;
 import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.song.api.Song;
 import org.jjazz.song.api.SongContext;
@@ -43,19 +44,32 @@ public class SongContextFactoryImpl implements SongContextFactory
     @Override
     public SongContext of(Song s, MidiMix mm)
     {
-        return new SongContextImpl(s, mm, null);
+        return new SongContextImpl(s, mm, null, 0);
     }
 
     @Override
     public SongContext of(Song s, MidiMix mm, IntRange barRange)
     {
-        return new SongContextImpl(s, mm, barRange);
+        return new SongContextImpl(s, mm, barRange, barRange.from);
+    }
+
+    @Override
+    public SongContext of(Song s, MidiMix mm, IntRange barRange, int loopRestartBar)
+    {
+        return new SongContextImpl(s, mm, barRange, loopRestartBar);
     }
 
     @Override
     public SongContext of(SongContext sgContext, IntRange newBarRange)
     {
-        return new SongContextImpl(sgContext, newBarRange);
+        Objects.requireNonNull(sgContext);
+        Objects.requireNonNull(newBarRange);
+        int restartBar = sgContext.getLoopRestartBar();
+        if (!newBarRange.contains(restartBar))
+        {
+            restartBar = newBarRange.from;
+        }
+        return new SongContextImpl(sgContext.getSong(), sgContext.getMidiMix(), newBarRange, restartBar);
     }
 
     @Override
@@ -65,9 +79,10 @@ public class SongContextFactoryImpl implements SongContextFactory
     }
 
     @Override
-    public SongPartContext ofSongPartContext(Song s, MidiMix mix, IntRange barRange)
+    public SongPartContext of(Song s, MidiMix mix, SongPart spt, IntRange barRange)
     {
-        return new SongPartContextImpl(s, mix, barRange);
+        return new SongPartContextImpl(s, mix, spt, barRange);
     }
+
 
 }

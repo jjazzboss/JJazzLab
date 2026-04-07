@@ -178,7 +178,7 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
         mapPosTs.put(0f, r.getTimeSignature());
 
         editor.setModel(p, beatRange0, spt.getStartBarIndex(), channel, mapPosTs, keyMap);
-        
+
         var q = getQuantization(r);
         editor.setQuantization(q);
 
@@ -212,10 +212,10 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 
 
         editor.setModel(p, getBeatRange(), 0, channel, mapPosTs, keyMap);
-        
+
         var q = getQuantization(spts.get(0).getRhythm());
         editor.setQuantization(q);
-        
+
 
         refreshToolbarTitle();
 
@@ -285,6 +285,8 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 
     /**
      * The edited beat range.
+     * <p>
+     * May not start at 0 if isRP_SYS_CustomPhraseMode() is true.
      *
      * @return
      */
@@ -296,6 +298,8 @@ public final class PianoRollEditorTopComponent extends TopComponent implements P
 
     /**
      * The edited bar range.
+     * <p>
+     * May not start at 0 if isRP_SYS_CustomPhraseMode() is true.
      *
      * @return
      */

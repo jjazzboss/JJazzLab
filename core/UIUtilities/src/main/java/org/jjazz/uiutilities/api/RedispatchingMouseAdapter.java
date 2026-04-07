@@ -23,6 +23,7 @@
 package org.jjazz.uiutilities.api;
 
 import java.awt.Container;
+import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -31,29 +32,32 @@ import java.awt.event.MouseWheelListener;
 import javax.swing.SwingUtilities;
 
 /**
- * A MouseAdapter that transmits everything to a parent.
+ * A MouseAdapter that transmits MouseEvents to a parent.
  */
 public class RedispatchingMouseAdapter implements MouseListener, MouseWheelListener, MouseMotionListener
 {
 
     private Container toParent;
+    private final boolean keepEventSource;
 
     /**
-     * Will dispatch to his direct parent.
+     * Will dispatch to the direct parent with event source changed to direct parent.
      */
     public RedispatchingMouseAdapter()
     {
-        this.toParent = null;
+        this(null, false);
     }
 
     /**
-     * Dispatch to a specific parent
+     * Dispatch to a specific parent.
      *
-     * @param toParent Must be in the parent hierarchy. If null redirect to direct parent.
+     * @param toParent        Must be in the parent hierarchy. If null redirect to direct parent.
+     * @param keepEventSource If true, redispatched event source is not set to toParent
      */
-    public RedispatchingMouseAdapter(Container toParent)
+    public RedispatchingMouseAdapter(Container toParent, boolean keepEventSource)
     {
         this.toParent = toParent;
+        this.keepEventSource = keepEventSource;
     }
 
     @Override
@@ -111,8 +115,10 @@ public class RedispatchingMouseAdapter implements MouseListener, MouseWheelListe
         {
             toParent = source.getParent();
         }
-        MouseEvent parentEvent = SwingUtilities.convertMouseEvent(source, e, toParent);
-        toParent.dispatchEvent(parentEvent);
+
+        MouseEvent event = keepEventSource ? UIUtilities.convertMouseEventKeepEventSource(source, e, toParent)
+                : SwingUtilities.convertMouseEvent(source, e, toParent);
+        toParent.dispatchEvent(event);
     }
 
 }

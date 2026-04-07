@@ -437,7 +437,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
 
 
         // Loop settings
-        sequencer.setLoopStartPoint(playbackSession.getLoopStartTick());
+        sequencer.setLoopStartPoint(playbackSession.getLoopRestartTick());
         sequencer.setLoopEndPoint(playbackSession.getLoopEndTick());
         sequencer.setLoopCount(playbackSession.getLoopCount());
 
@@ -807,13 +807,16 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                 if (playbackSession instanceof ControlTrackProvider ctProvider)
                 {
                     ControlTrack controlTrack = ctProvider.getControlTrack(); // Might be null for a specific BaseSongSession instance
-                    if (controlTrack != null && playbackSession.getLoopStartTick() != -1)
+                    if (controlTrack != null && playbackSession.getMusicStartTick() != -1)
                     {
                         Position pos = controlTrack.getPosition(meta);
                         float posInBeats = controlTrack.getPositionInBeats(meta);
                         if (pos != null)
                         {
-                            // LOGGER.severe("meta() position received pos=" + pos + " posInBeats=" + posInBeats);
+//                            LOGGER.log(Level.FINE, "meta() position received pos={0} posInBeats={1}", new Object[]
+//                            {
+//                                pos, posInBeats
+//                            });
                             updateCurrentPosition(pos.getBar(), pos.getBeat(), posInBeats);
                         } else
                         {
@@ -960,7 +963,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
         if (playbackSession instanceof SongContextProvider scp)
         {
             var sgContext = scp.getSongContext();
-            long relativeTick = getRelativeTickFromLoopStart(tick);
+            long relativeTick = getRelativeTickFromMusicStart(tick);
             posInBeats = sgContext.toPositionInBeats(relativeTick);
             LOGGER.log(Level.FINE, "setPosition()   > song session: relativeTick={0} posInBeats={1}", new Object[]
             {
@@ -1176,7 +1179,7 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
                         SongChordSequence cSeq = controlTrack.getContextChordGetSequence();
                         // Fire chord symbol change if no chord symbol at current position (current chord symbol is the previous one)
                         // Fire a song part change event
-                        long relativeTick = getRelativeTickFromLoopStart(sequencer.getTickPosition());      // Can be negative in some cases
+                        long relativeTick = getRelativeTickFromMusicStart(sequencer.getTickPosition());      // Can be negative in some cases
                         Position posStart = sgContext.toPosition(relativeTick);
                         if (posStart != null)
                         {
@@ -1321,16 +1324,16 @@ public class MusicController implements PropertyChangeListener, MetaEventListene
     }
 
     /**
-     * Convert an absolute sequence tick to a relative tick from loop start (whose tick position may be greater than 0 if precount bars are used).
+     * Convert an absolute sequence tick to a relative tick from music start.
      * <p>
      *
      * @param sequenceTick
      * @return
      */
-    private long getRelativeTickFromLoopStart(long sequenceTick)
+    private long getRelativeTickFromMusicStart(long sequenceTick)
     {
         assert playbackSession != null;
-        return sequenceTick - playbackSession.getLoopStartTick();
+        return sequenceTick - playbackSession.getMusicStartTick();
     }
 
     /**

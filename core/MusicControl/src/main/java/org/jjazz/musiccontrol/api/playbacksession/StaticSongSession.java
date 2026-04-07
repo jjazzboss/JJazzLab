@@ -71,7 +71,7 @@ public class StaticSongSession extends BaseSongSession
     }
 
     /**
-     * Get a session with a default SessionConfig.
+     * Get a session with a default SessionConfig starting at sgContext.getBarRange().from.
      * <p>
      *
      * @param sgContext

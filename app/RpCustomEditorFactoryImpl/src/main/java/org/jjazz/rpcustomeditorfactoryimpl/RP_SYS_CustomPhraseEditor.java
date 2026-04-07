@@ -69,7 +69,7 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditorDialog<RP_SYS_Custo
         this.rp = rp;
 
         initComponents();
-        coalescingTaskScheduler = new CoalescingTaskScheduler(PHRASE_CHANGE_COALESCING_DELAY_MS);     
+        coalescingTaskScheduler = new CoalescingTaskScheduler(PHRASE_CHANGE_COALESCING_DELAY_MS);
         list_rhythmVoices.setCellRenderer(new RhythmVoiceRenderer());
 
         UIUtilities.installEscapeKeyAction(this, () -> btn_cancelActionPerformed(null));
@@ -135,7 +135,7 @@ public class RP_SYS_CustomPhraseEditor extends RpCustomEditorDialog<RP_SYS_Custo
         // Start a task to generate the phrases 
         Runnable task = () -> 
         {
-            SessionConfig config = new SessionConfig(false, false, false, 0, 0, null);
+            SessionConfig config = new SessionConfig(false, false, false, 0, null);
             BaseSongSession tmpSession = new BaseSongSession(songPartContext, config, false, PlaybackSession.Context.RP_VALUE_PREVIEW);
             try
             {

@@ -37,7 +37,6 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.SwingUtilities;
 import org.jjazz.harmony.api.TimeSignature;
 import org.jjazz.jjswing.drums.DrumsGenerator;
 import org.jjazz.jjswing.drums.db.DpSourceDatabase;

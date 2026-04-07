@@ -518,9 +518,15 @@ public class UpdatableSongSession implements PropertyChangeListener, PlaybackSes
     }
 
     @Override
-    public long getLoopStartTick()
+    public long getLoopRestartTick()
     {
-        return baseSongSession.getLoopStartTick();
+        return baseSongSession.getLoopRestartTick();
+    }
+
+    @Override
+    public long getMusicStartTick()
+    {
+        return baseSongSession.getMusicStartTick();
     }
 
     @Override

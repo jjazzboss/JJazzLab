@@ -224,18 +224,18 @@ public final class SS_EditorTopComponent extends TopComponent implements Propert
     private void initComponents()
     {
 
-        scrollPane_SS_Editor = new javax.swing.JScrollPane(ssEditor);
+        pnl_editor = ssEditor;
         toolbar = ssToolBar;
 
         setLayout(new java.awt.BorderLayout());
-        add(scrollPane_SS_Editor, java.awt.BorderLayout.CENTER);
+        add(pnl_editor, java.awt.BorderLayout.CENTER);
 
         toolbar.setOrientation(javax.swing.SwingConstants.VERTICAL);
         toolbar.setRollover(true);
         add(toolbar, java.awt.BorderLayout.EAST);
     }// </editor-fold>//GEN-END:initComponents
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JScrollPane scrollPane_SS_Editor;
+    private javax.swing.JPanel pnl_editor;
     private javax.swing.JToolBar toolbar;
     // End of variables declaration//GEN-END:variables
 

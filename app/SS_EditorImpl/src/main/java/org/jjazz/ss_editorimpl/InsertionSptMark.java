@@ -34,9 +34,9 @@ import javax.swing.JPanel;
 import org.jjazz.flatcomponents.api.CrossShape;
 
 /**
- * The component used to show the insertion mark in copy or move mode.
- *
- * @author Jerome
+ * A component used to show the insertion mark in copy or move mode.
+ * <p>
+ * If disabled component is transparent.
  */
 public class InsertionSptMark extends JPanel
 {
@@ -64,6 +64,10 @@ public class InsertionSptMark extends JPanel
     @Override
     public void paintComponent(Graphics g)
     {
+        if (!isEnabled())
+        {
+            return;
+        }
         super.paintComponent(g);
 
         Insets in = getInsets();

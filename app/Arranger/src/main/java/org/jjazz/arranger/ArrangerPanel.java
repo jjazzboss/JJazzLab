@@ -317,8 +317,8 @@ public class ArrangerPanel extends javax.swing.JPanel implements PropertyChangeL
             {
                 // Use first selected song part
                 songPart = selection.isRhythmParameterSelected()
-                        ? selection.getSelectedSongPartParameters().get(0).spt()
-                        : selection.getSelectedSongParts().get(0);
+                        ? selection.getSelectedSongPartParameters().getFirst().spt()
+                        : selection.getSelectedSongParts().getFirst();
             }
 
 

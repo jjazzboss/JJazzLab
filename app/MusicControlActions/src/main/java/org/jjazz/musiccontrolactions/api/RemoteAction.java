@@ -293,7 +293,7 @@ public class RemoteAction
      * Check if this MidiMessage should trigger this RemoteAction.
      * <p>
      * Comparison is done according to the following rules:<br>
-     * - The number and the order of messages order must match.<br>
+     * - The number and the order of messages must match.<br>
      * - Velocity is ignored on Note_ON/OFF messages comparison.<br>
      * <p>
      * Return false if RemoteAction is not enabled.
@@ -367,10 +367,8 @@ public class RemoteAction
      */
     private boolean compare(MidiMessage mmRef, MidiMessage mm)
     {
-        if (mmRef instanceof ShortMessage && mm instanceof ShortMessage)          // Can't just compare with == classes, because both JJazzLab and JDK use their own ShortMessage subclasses
+        if (mmRef instanceof ShortMessage smRef && mm instanceof ShortMessage sm)          // Can't just compare with == classes, because both JJazzLab and JDK use their own ShortMessage subclasses
         {
-            ShortMessage smRef = (ShortMessage) mmRef;
-            ShortMessage sm = (ShortMessage) mm;
             int refCommand = smRef.getCommand();
             int refStatus = smRef.getStatus();
             int refChannel = smRef.getChannel();

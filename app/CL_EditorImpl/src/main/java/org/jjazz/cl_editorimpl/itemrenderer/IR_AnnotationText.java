@@ -22,7 +22,6 @@
  */
 package org.jjazz.cl_editorimpl.itemrenderer;
 
-import com.google.common.base.CharMatcher;
 import com.google.common.base.Preconditions;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -97,7 +96,7 @@ public class IR_AnnotationText extends ItemRenderer implements IR_Copiable
 
 
         // Redispatch mouse events for selection and drag to work
-        var mouseRedispatcher = new RedispatchingMouseAdapter(this);
+        var mouseRedispatcher = new RedispatchingMouseAdapter(this, false);
         textArea.addMouseListener(mouseRedispatcher);
         textArea.addMouseMotionListener(mouseRedispatcher);
 

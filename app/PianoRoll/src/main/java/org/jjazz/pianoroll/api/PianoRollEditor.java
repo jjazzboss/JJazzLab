@@ -134,7 +134,6 @@ import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.Lookup;
 import org.openide.util.lookup.AbstractLookup;
-import org.openide.util.lookup.InstanceContent;
 
 /**
  * A piano roll editor of a musical phrase.
@@ -377,7 +376,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
         this.song = song;
         updateChordSequence();
 
-        generalLookupContent.add(song);    
+        generalLookupContent.add(song);
         rulerPanel.setSong(song);
         scorePanel.setSong(song);
         setUndoManager(JJazzUndoManagerFinder.getDefault().get(getSong()));
@@ -878,9 +877,10 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
     }
 
     /**
-     * Set the loop zone.
+     * Set the loop zone within the phrase bar range.
      *
-     * @param barRange If null there is no loop zone. If not null must be contained in the phrase bar range.
+     * @param barRange Must be contained in the phrase bar range. If null there is no loop zone.
+     * @see #getPhraseBarRange()
      */
     public void setLoopZone(IntRange barRange)
     {
@@ -896,7 +896,7 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
     }
 
     /**
-     * Get the loop zone.
+     * Get the loop zone within the phrase bar range.
      *
      * @return Can be null if no loop zone is set
      */

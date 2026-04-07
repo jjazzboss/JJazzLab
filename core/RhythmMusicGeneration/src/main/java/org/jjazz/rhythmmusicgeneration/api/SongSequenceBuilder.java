@@ -133,7 +133,7 @@ public class SongSequenceBuilder
     /**
      * Create an instance to generate music for the specified SongContext.
      * <p>
-     * Note that sgContext is not modified, the instance works on a deep copy of sgContext.
+     * Note that sgContext is not modified, the instance works on a deep copy snapshot of sgContext.
      *
      * @param sgContext
      */
@@ -569,9 +569,9 @@ public class SongSequenceBuilder
         {
             // Generate the phrases
             MusicGenerator mg = processRP_SYS_OverrideTracks(r, songContextWork);
-            Map<RhythmVoice, Phrase> rMap = generateRhythmPhrases(r, mg, songContextWork);                       // Possible MusicGenerationException here
+            Map<RhythmVoice, Phrase> rMap = generateRhythmPhrases(r, mg, songContextWork);                       // throws MusicGenerationException
 
-            checkPhrasesScope(songContextWork, r, rMap);                              // Possible MusicGenerationException here
+            checkPhrasesScope(songContextWork, r, rMap);                              // throws MusicGenerationException
 
             // Merge into the final result
             res.putAll(rMap);
@@ -740,16 +740,16 @@ public class SongSequenceBuilder
 
 
         // Make sure all Rhythm resources are loaded
-        r.loadResources();          // Throws MusicGenerationException      
+        r.loadResources();          // throws MusicGenerationException      
         var substituteRhythms = getOverrideTracksRhythms(r, sgContext);
         if (!substituteRhythms.isEmpty())
         {
-            for (var cr : substituteRhythms)
+            for (var sr : substituteRhythms)
             {
-                cr.loadResources();     // Throws MusicGenerationException
+                sr.loadResources();     // throws MusicGenerationException
 
                 // Not ideal but it must be done somewhere
-                releaseSubstitutetrackRhythmResourcesUponSongClose(cr);
+                releaseSubstitutetrackRhythmResourcesUponSongClose(sr);
             }
         }
 
@@ -1065,7 +1065,7 @@ public class SongSequenceBuilder
         {
             FloatRange sptBeatRange = context.getSptBeatRange(spt);     // Might be smaller than songPart.toBeatRange()
             IntRange sptBarRange = context.getSptBarRange(spt);         // Might be smaller than songPart.getBarRange()
-            SongPartContext sptContext = SongContextFactory.getDefault().ofSongPartContext(context.getSong(), context.getMidiMix(), sptBarRange);
+            SongPartContext sptContext = SongContextFactory.getDefault().of(context.getSong(), context.getMidiMix(), spt, sptBarRange);
 
 
             // Get the RhythmParameter

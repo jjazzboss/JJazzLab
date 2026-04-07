@@ -2008,7 +2008,11 @@ final class JJazzLabSequencer extends AbstractMidiDevice implements Sequencer, A
                     {
                         if (doReindex && (trackNum < trackReadPos.length))
                         {
-                            trackReadPos[trackNum] = (i > 0) ? (i - 1) : 0;
+                            // JJazzLab fix: when endTick falls exactly on an event, use i directly so that event
+                            // is not skipped on the next pump() iteration. Only back up by 1 when endTick falls between events.
+                            // Without this fix, in loop mode, restart loop point had to be increased by +1 tick to work correctly
+                            trackReadPos[trackNum] = (event.getTick() > endTick && i > 0) ? (i - 1) : i;
+                            // END JJazzLab fix
                         }
                         break;
                     }

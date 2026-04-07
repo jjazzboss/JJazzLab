@@ -97,7 +97,7 @@ public final class TransposeUp extends CL_ContextAction
             if (ra == null)
             {
                 ra = new RemoteAction("JJazz", "org.jjazz.cl_editor.actions.transposeupremote");
-                ra.setMidiMessages(RemoteAction.noteOnMidiMessages(0, 31));
+                 ra.setMidiMessages(RemoteAction.noteOnMidiMessages(0, 31));
             }
             ra.setDefaultMidiMessages(RemoteAction.noteOnMidiMessages(0, 31));
             return List.of(ra);

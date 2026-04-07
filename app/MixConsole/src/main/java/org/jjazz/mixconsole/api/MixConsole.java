@@ -28,6 +28,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -52,6 +53,8 @@ import javax.swing.JList;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.JRootPane;
+import javax.swing.Scrollable;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.TransferHandler;
 import javax.swing.undo.UndoManager;
@@ -173,6 +176,8 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
         // UI initialization
         initComponents();
+        scrollPane_mixChannelsPanel.getVerticalScrollBar().setUnitIncrement(10);
+        scrollPane_mixChannelsPanel.getHorizontalScrollBar().setUnitIncrement(10);
 
 
         // Use our LayoutManager to arranger MixChannelPanels and their extensions
@@ -504,7 +509,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
                             // InstrumentMix was removed
                             LOGGER.fine("propertyChange() InstrumentMix removed");
                             removeChannel(channel);
-                            
+
                         } else if (oldInsMix == null)
                         {
                             // New InstrumentMix was added
@@ -513,7 +518,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
                             {
                                 addChannel(channel);
                             }
-                            
+
                         } else
                         {
                             // InstrumentMix is replacing an existing one
@@ -634,8 +639,8 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
 
 
         // Update our lookup
-        instanceContent.add(songMidiMix);       
-        instanceContent.add(songModel);         
+        instanceContent.add(songMidiMix);
+        instanceContent.add(songModel);
 
 
         // Update the console with MidiMix changes
@@ -714,7 +719,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
         pvp.setTransferHandler(th);
 
         updateChannelColors();
-        
+
         panel_mixChannels.revalidate();
         panel_mixChannels.repaint();
     }
@@ -933,7 +938,7 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
     // Inner classes
     // ========================================================================================================
     // ========================================================================================================
-    // Private classes
+    // Inner classes
     // ========================================================================================================
     private class MyRenderer extends DefaultListCellRenderer
     {
@@ -983,6 +988,5 @@ public class MixConsole extends JPanel implements PropertyChangeListener, Action
             OptionsDisplayer.getDefault().open("MidiPanelId");
         }
     }
-
 
 }

@@ -585,6 +585,7 @@ public class EasyReaderPanel extends JPanel implements PropertyChangeListener, P
         setZoomY(prefs.getInt(PREF_ZOOM_Y, 50));
     }
 
+    
     /**
      * Update the 2 BarBoxes to show songBar and songBar+1.
      *

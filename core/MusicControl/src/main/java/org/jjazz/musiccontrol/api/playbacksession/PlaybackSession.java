@@ -193,13 +193,22 @@ public interface PlaybackSession
      */
     long getLoopEndTick();
 
+
     /**
      * The tick position to restart from in loop mode once end tick is reached.
      * <p>
      *
      * @return -1 if no meaningful value can be returned.
      */
-    long getLoopStartTick();
+    long getLoopRestartTick();
+
+    /**
+     * The tick position where music actually starts, after possible precount bars.
+     * <p>
+     *
+     * @return -1 if no meaningful value can be returned.
+     */
+    long getMusicStartTick();
 
     /**
      * The sequencer loop count (see Java Sequencer setLoopCount()).
