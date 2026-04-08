@@ -59,6 +59,8 @@ public class MockSharedRdbInstanceProviderImpl implements SharedRdbInstanceProvi
         rdb.addRhythmsFromRhythmProviders(false, true, false, RhythmMocksProviderImpl.ID, JJSwingRhythmProvider.RP_ID);
         rdb.setDefaultRhythm(TimeSignature.FOUR_FOUR, rdb.getRhythm("BossaMockID-4/4"));
         System.out.println(rdb.toStatsString());
+        System.out.println("MockSharedRdbInstanceProviderImpl.initialize() Default 4/4 rhythm="+ rdb.getDefaultRhythm(TimeSignature.FOUR_FOUR));
+        System.out.println("MockSharedRdbInstanceProviderImpl.initialize() Default 3/4 rhythm="+ rdb.getDefaultRhythm(TimeSignature.THREE_FOUR));
         assert !rdb.getRhythms().isEmpty();
         return null;
     }

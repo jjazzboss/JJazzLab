@@ -36,7 +36,6 @@ import org.jjazz.midimix.api.MidiMix;
 import org.jjazz.midimix.spi.MidiMixManager;
 import org.jjazz.rhythm.api.AdaptedRhythm;
 import org.jjazz.rhythm.api.Rhythm;
-import org.jjazz.rhythmdatabase.api.DefaultRhythmDatabaseImpl;
 import org.jjazz.rhythmdatabase.api.RhythmDatabase;
 import org.jjazz.rhythmdatabase.api.UnavailableRhythmException;
 import org.jjazz.song.api.Song;
@@ -139,7 +138,7 @@ public class SongMultiRhythmTest
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("Need at least 2 distinct 4/4 rhythms in the test database"));
         r44bis = rdb.getRhythmInstance(ri44bis);
-        // System.out.println("r44=" + r44 + "  r44bis=" + r44bis);
+
 
         // Assign r44bis to spt_B *before* any undo listeners are registered, so this change is not undoable.
         // After this call: mapTsLastRhythm = {4/4: r44bis}
