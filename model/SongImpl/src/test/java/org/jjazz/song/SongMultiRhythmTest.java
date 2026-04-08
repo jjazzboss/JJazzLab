@@ -63,12 +63,12 @@ import org.junit.jupiter.api.TestInfo;
  * </ul>
  * After setUp: mapTsLastRhythm = {4/4: r44bis}.
  * <p>
- * Using only two distinct source rhythms keeps the MidiMix within the 16-channel MIDI limit (2 × 6 voices = 12). AdaptedRhythms reuse their source rhythm's
- * channels and do not count toward the limit.
+ * Using only two distinct source rhythms keeps the MidiMix within the 16-channel MIDI limit (2 × 6 voices = 12). AdaptedRhythms
+ * reuse their source rhythm's channels and do not count toward the limit.
  * <p>
- * Tests verify that CLS operations (add/remove section, insert/delete bars, move section, change time signature) correctly consult mapTsLastRhythm when
- * assigning rhythms to new or modified song parts, and that existing song parts retain their rhythms when they are not directly affected. Each test also
- * verifies full undo/redo correctness via the tearDown check.
+ * Tests verify that CLS operations (add/remove section, insert/delete bars, move section, change time signature) correctly
+ * consult mapTsLastRhythm when assigning rhythms to new or modified song parts, and that existing song parts retain their rhythms
+ * when they are not directly affected. Each test also verifies full undo/redo correctness via the tearDown check.
  */
 public class SongMultiRhythmTest
 {
@@ -86,8 +86,7 @@ public class SongMultiRhythmTest
     RhythmDatabase rdb;
     JJazzUndoManager undoManager;
 
-    static
-    {
+    static {
         Utilities.setLoggingFormat(null);
         Locale.setDefault(Locale.ENGLISH);
     }
@@ -104,8 +103,8 @@ public class SongMultiRhythmTest
     }
 
     /**
-     * Build an 8-bar song with two 4/4 sections, then override SectionB's rhythm to r44bis so that both sections use distinct rhythms. State is captured BEFORE
-     * undo listeners are registered, so the setUp operations are not undoable.
+     * Build an 8-bar song with two 4/4 sections, then override SectionB's rhythm to r44bis so that both sections use distinct
+     * rhythms. State is captured BEFORE undo listeners are registered, so the setUp operations are not undoable.
      */
     @BeforeEach
     public void setUp(TestInfo testInfo) throws UnsupportedEditException, ParseException, UnavailableRhythmException
@@ -113,7 +112,7 @@ public class SongMultiRhythmTest
         System.out.println(testInfo.getDisplayName() + " ------");
 
         rdb = RhythmDatabase.getSharedInstance();
-        
+
         // CLS: 8 bars
         // bar 0: SectionA 4/4 (4 bars)
         // bar 4: SectionB 4/4 (4 bars)
@@ -130,15 +129,16 @@ public class SongMultiRhythmTest
         // Collect initial song parts and their (default) rhythms.
         spt_A = sgs.getSongPart(0);
         spt_B = sgs.getSongPart(4);
-        r44 = spt_A.getRhythm();    // default 4/4 rhythm
+        r44 = spt_A.getRhythm();    // default 4/4 rhythm mock
+        assert r44.getName().contains("Mock") : "r44=" + r44;
 
-        // Locate a second, distinct 4/4 rhythm instance.
+        // Locate a second, distinct 4/4 rhythm instance amongst the rhythm mocks 
         var ri44bis = rdb.getRhythms(TimeSignature.FOUR_FOUR).stream()
-                .filter(ri -> !ri.equals(rdb.getRhythm(r44.getUniqueId())))
+                .filter(ri -> ri.rhythmProviderId().equals("RhythmTestMocksProviderID") && !ri.equals(rdb.getRhythm(r44.getUniqueId())))
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("Need at least 2 distinct 4/4 rhythms in the test database"));
         r44bis = rdb.getRhythmInstance(ri44bis);
-
+        System.out.println("r44=" + r44 + " r44bis=" + r44bis);
 
         // Assign r44bis to spt_B *before* any undo listeners are registered, so this change is not undoable.
         // After this call: mapTsLastRhythm = {4/4: r44bis}
@@ -163,8 +163,7 @@ public class SongMultiRhythmTest
     @AfterEach
     public void tearDown()
     {
-        if (undoManager.getCurrentCEditName() == null)
-        {
+        if (undoManager.getCurrentCEditName() == null) {
             return;
         }
 
@@ -174,14 +173,12 @@ public class SongMultiRhythmTest
         undoAll();
         boolean b1 = cls.equals(u_cls);
         boolean b2 = sgs.equals(u_sgs);
-        if (!b1)
-        {
+        if (!b1) {
             System.out.println("\nUNDO MISMATCH u_cls=" + u_cls.toDebugString());
             System.out.println("cls after Undo ALL=" + cls.toDebugString());
 
         }
-        if (!b2)
-        {
+        if (!b2) {
             System.out.println("\nUNDO MISMATCH u_sgs=" + u_sgs);
             System.out.println("sgs after Undo ALL=" + sgs);
 
@@ -192,7 +189,6 @@ public class SongMultiRhythmTest
     // =============================================================================================
     // Tests: new section picks up the correct rhythm from mapTsLastRhythm
     // =============================================================================================
-
     /**
      * Adding a 4/4 section must use r44bis (the last-used 4/4 rhythm from mapTsLastRhythm), not the default r44.
      */
@@ -218,9 +214,9 @@ public class SongMultiRhythmTest
     }
 
     /**
-     * Adding a section with an entirely new time signature (5/4, absent from mapTsLastRhythm) falls back to adapting the adjacent song part's rhythm. The
-     * section is added at bar 6 (within SectionB), so the adjacent spt is spt_B (r44bis). Because AdaptedRhythm reuses the source's RhythmVoice instances, it
-     * does not allocate additional MIDI channels.
+     * Adding a section with an entirely new time signature (5/4, absent from mapTsLastRhythm) falls back to adapting the adjacent
+     * song part's rhythm. The section is added at bar 6 (within SectionB), so the adjacent spt is spt_B (r44bis). Because
+     * AdaptedRhythm reuses the source's RhythmVoice instances, it does not allocate additional MIDI channels.
      */
     @Test
     public void testAddSection5_4AdaptsFromAdjacentRhythm() throws UnsupportedEditException
@@ -239,8 +235,7 @@ public class SongMultiRhythmTest
                 "New 5/4 section must have a FIVE_FOUR rhythm");
 
         // If the database produced an AdaptedRhythm, it must be derived from r44bis (not r44).
-        if (newSpt.getRhythm() instanceof AdaptedRhythm ar)
-        {
+        if (newSpt.getRhythm() instanceof AdaptedRhythm ar) {
             assertSame(r44bis, ar.getSourceRhythm(),
                     "The 5/4 AdaptedRhythm must be derived from adjacent spt_B's r44bis, not the default r44");
         }
@@ -266,11 +261,10 @@ public class SongMultiRhythmTest
     // =============================================================================================
     // Tests: changing a section's time signature picks the correct rhythm
     // =============================================================================================
-
     /**
-     * Changing sectionB (4/4, r44bis) to 3/4 must assign a 3/4 rhythm. Since mapTsLastRhythm has no 3/4 entry, the algorithm falls back to the default 3/4
-     * rhythm. This verifies that the section's previous rhythm (r44bis) is NOT reused after the TS change, and that mapTsLastRhythm[4/4] = r44bis is preserved
-     * by the remaining spt_A.
+     * Changing sectionB (4/4, r44bis) to 3/4 must assign a 3/4 rhythm. Since mapTsLastRhythm has no 3/4 entry, the algorithm
+     * falls back to the default 3/4 rhythm. This verifies that the section's previous rhythm (r44bis) is NOT reused after the TS
+     * change, and that mapTsLastRhythm[4/4] = r44bis is preserved by the remaining spt_A.
      */
     @Test
     public void testChangeSectionTimeSig4_4To3_4() throws UnsupportedEditException
@@ -293,7 +287,6 @@ public class SongMultiRhythmTest
     // =============================================================================================
     // Tests: CLS structural operations preserve existing song part rhythms
     // =============================================================================================
-
     /**
      * Deleting bars within one section (sectionA) must not affect the rhythms of other sections.
      */
@@ -325,8 +318,8 @@ public class SongMultiRhythmTest
     }
 
     /**
-     * Removing a section must preserve the rhythm of all remaining song parts. Additionally, mapTsLastRhythm must retain the entry for the removed section's
-     * rhythm.
+     * Removing a section must preserve the rhythm of all remaining song parts. Additionally, mapTsLastRhythm must retain the
+     * entry for the removed section's rhythm.
      */
     @Test
     public void testRemoveSectionPreservesOtherRhythms()
@@ -347,7 +340,8 @@ public class SongMultiRhythmTest
     }
 
     /**
-     * Moving a section (a "small move" that only resizes adjacent song parts, no section boundary crossed) must preserve the moved section's rhythm.
+     * Moving a section (a "small move" that only resizes adjacent song parts, no section boundary crossed) must preserve the
+     * moved section's rhythm.
      */
     @Test
     public void testMoveSectionPreservesRhythm()
@@ -364,10 +358,9 @@ public class SongMultiRhythmTest
     // =============================================================================================
     // Tests: undo/redo correctness with multiple rhythms
     // =============================================================================================
-
     /**
-     * Changing spt_B's rhythm via setSongPartsRhythm and then undoing must restore both the song part's rhythm and the mapTsLastRhythm entry to their
-     * pre-change values.
+     * Changing spt_B's rhythm via setSongPartsRhythm and then undoing must restore both the song part's rhythm and the
+     * mapTsLastRhythm entry to their pre-change values.
      */
     @Test
     public void testSetRhythmUndoRedoRestoresLastUsedRhythm() throws UnsupportedEditException
@@ -397,8 +390,8 @@ public class SongMultiRhythmTest
     }
 
     /**
-     * After changing sectionB's time signature from 4/4 to 3/4 (spt_B gets the default 3/4 rhythm), undo must restore the original r44bis AND redo must
-     * re-apply the 3/4 rhythm.
+     * After changing sectionB's time signature from 4/4 to 3/4 (spt_B gets the default 3/4 rhythm), undo must restore the
+     * original r44bis AND redo must re-apply the 3/4 rhythm.
      */
     @Test
     public void testChangeSectionTimeSigUndoRedoMultiRhythm() throws UnsupportedEditException
@@ -430,19 +423,16 @@ public class SongMultiRhythmTest
     // =============================================================================================
     // Helper methods
     // =============================================================================================
-
     private void redoAll()
     {
-        while (undoManager.canRedo())
-        {
+        while (undoManager.canRedo()) {
             undoManager.redo();
         }
     }
 
     private void undoAll()
     {
-        while (undoManager.canUndo())
-        {
+        while (undoManager.canUndo()) {
             undoManager.undo();
         }
     }
