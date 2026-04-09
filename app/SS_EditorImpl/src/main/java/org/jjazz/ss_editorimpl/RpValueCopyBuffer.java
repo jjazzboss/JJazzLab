@@ -85,7 +85,7 @@ public class RpValueCopyBuffer
         for (E value : values)
         {
             E newValue = rp.cloneValue(value);
-            valueBuffer.add(rp.cloneValue(value));
+            valueBuffer.add(newValue);
         }
         rhythmParameter = rp;
         rhythm = r;

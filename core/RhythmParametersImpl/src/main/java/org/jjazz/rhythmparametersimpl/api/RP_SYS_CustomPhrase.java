@@ -150,7 +150,7 @@ public class RP_SYS_CustomPhrase implements RhythmParameter<RP_SYS_CustomPhraseV
                     .findAny().orElse(null);
             if (rv != null)
             {
-                res.setCustomizedPhrase(rv, rpValue.getCustomizedPhrase(rpRv));
+                res = res.setCustomizedPhrase(rv, rpValue.getCustomizedPhrase(rpRv));
                 rvs.remove(rv);     // Do not reuse this phrase
             }
         }

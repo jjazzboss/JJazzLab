@@ -58,8 +58,8 @@ import org.jjazz.utilities.api.ResUtil;
 /**
  * Paste RpValue action.
  * <p>
- * This action is directly used when triggered by the RhythmParameter menu entry. Ctrl-V keyboard shortcut is handled by the Paste action
- * which reuses some of our methods if needed (when RhythmParameters are selected).
+ * This action is directly used when triggered by the RhythmParameter menu entry. Ctrl-V keyboard shortcut is handled by the Paste action which reuses some of
+ * our methods if needed (when RhythmParameters are selected).
  */
 @ActionID(category = "JJazz", id = "org.jjazz.ss_editorimpl.actions.pasterpvalue")
 @ActionRegistration(displayName = "#CTL_PasteRpValue", lazy = false)
@@ -102,7 +102,7 @@ public class PasteRpValue extends AbstractAction implements ContextAwareAction, 
     {
         SS_Selection selection = cap.getSelection();
         performAction(selection);
-    
+
     }
 
     @Override
@@ -123,15 +123,15 @@ public class PasteRpValue extends AbstractAction implements ContextAwareAction, 
         boolean b = !getPastableSongParts(selection, buffer.getRhythm(), buffer.getRhythmParameter()).isEmpty();
         return b;
     }
-    
-     /**
+
+    /**
      * Make the method accessible to Paste action.
      *
      * @param selection
      */
     static protected void performAction(SS_Selection selection)
     {
-            SongStructure sgs = selection.getModel();
+        SongStructure sgs = selection.getModel();
 
         var buffer = RpValueCopyBuffer.getInstance();
         var r = buffer.getRhythm();
