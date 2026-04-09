@@ -165,9 +165,13 @@ public class RP_SYS_DrumsTransformComp extends RealTimeRpEditorComponent<RP_SYS_
         songPartContext = sptContext;
         timeSignature = songPartContext.getSongPart().getRhythm().getTimeSignature();
         originalPhrase = null;
-        var insMix = songPartContext.getMidiMix().getInstrumentMix(rp.getRhythmVoice());
+        var mm = songPartContext.getMidiMix();
+        var insMix = mm.getInstrumentMix(rp.getRhythmVoice());
+        var channel = mm.getChannel(rp.getRhythmVoice());
         saveDrumsTrackSoloState = insMix.isSolo();
         tbtn_solo.setSelected(insMix.isSolo());
+        String txt = sptContext.getSongPart().getRhythm().getName() + " - " + String.valueOf(channel) + " - " + insMix.getInstrument().getPatchName();
+        lbl_drumsTrack.setText(txt);
 
         uiValue = null;
         setEditedRpValue(rpValue);
