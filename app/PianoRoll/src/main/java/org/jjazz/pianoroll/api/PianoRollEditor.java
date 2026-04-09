@@ -529,7 +529,8 @@ public class PianoRollEditor extends JPanel implements PropertyChangeListener, C
     /**
      * Get the bar index displayed on the ruler corresponding to getBeatRange().from.
      * <p>
-     * Usually identical to getPhraseStartBar(), but it can be different to make the edited range appear at a different bar in the ruler.
+     * Can be different from getPhraseBarRange().from to make the edited range appear at a different bar in the ruler, for example when editing a custom phrase
+     * of a "middle" SongPart.
      *
      * @return
      */

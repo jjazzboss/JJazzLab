@@ -239,7 +239,8 @@ public class ScorePanel extends EditorPanel implements PropertyChangeListener
         if (chordSequence != null)
         {
             // Important: we need all chord symbols from the start for paintNotes()
-            IntRange brClip = xMapper.getBarRange(IntRange.ofX(clip));
+            IntRange brClip = xMapper.getBarRange(IntRange.ofX(clip));  // Phrase-relative bar range (starts at bar 0)
+            brClip = brClip.getTransformed(editor.getRulerStartBar());  // Need an absolute bar range for the ChordSequence
             chordSequence = chordSequence.subSequence(brClip, false);
             paintChordSymbols(g2, chordSequence);
         }
