@@ -1369,6 +1369,7 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
     {
         LOGGER.log(Level.FINE, "propertyChange() e={0}", e);
 
+        boolean needsFireModified = true;
 
         if (e.getSource() instanceof InstrumentMix insMix)
         {
@@ -1419,7 +1420,6 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
                             insMix.setMute(true);
                         }
                     }
-                    fireIsModified();
                 }
 
                 case InstrumentMix.PROP_MUTE ->
@@ -1432,12 +1432,12 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
                     }
                     // Forward the MUTE change event
                     var evt = new PropertyChangeEvent(this, MidiMix.PROP_INSTRUMENT_MUTE, insMix, b);
-                    firePropertyChangeEvent(evt);
+                    firePropertyChangeEvent(evt);       // calls fireIsModified()
+                    needsFireModified = false;
                 }
 
                 case InstrumentMix.PROP_INSTRUMENT ->
                 {
-                    boolean fireModified = true;
 
                     // If drums instrument change with different KeyMap
                     Instrument oldIns = (Instrument) e.getOldValue();
@@ -1454,14 +1454,9 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
                             var evt = new PropertyChangeEvent(this, MidiMix.PROP_DRUMS_INSTRUMENT_KEYMAP, channel, oldKit != null
                                     ? oldKit.getKeyMap()
                                     : null);
-                            firePropertyChangeEvent(evt);
-                            fireModified = false;       // already done by call above
+                            firePropertyChangeEvent(evt);       // calls fireIsModified()
+                            needsFireModified = false;
                         }
-                    }
-
-                    if (fireModified)
-                    {
-                        fireIsModified();
                     }
                 }
                 default ->
@@ -1477,16 +1472,23 @@ public class MidiMixImpl implements PropertyChangeListener, Serializable, MidiMi
             {
                 int value = (Integer) e.getNewValue();
                 var evt = new PropertyChangeEvent(this, MidiMix.PROP_INSTRUMENT_TRANSPOSITION, insMix, value);
-                firePropertyChangeEvent(evt);
+                firePropertyChangeEvent(evt);       // calls fireIsModified()
+                needsFireModified = false;
 
             } else if (e.getPropertyName().equals(InstrumentSettings.PROPERTY_VELOCITY_SHIFT))
             {
                 int value = (Integer) e.getNewValue();
                 var evt = new PropertyChangeEvent(this, MidiMix.PROP_INSTRUMENT_VELOCITY_SHIFT, insMix, value);
-                firePropertyChangeEvent(evt);
+                firePropertyChangeEvent(evt);       // calls fireIsModified()
+                needsFireModified = false;
             }
-
         }
+
+        if (needsFireModified)
+        {
+            fireIsModified();
+        }
+
     }
 
     //-----------------------------------------------------------------------
