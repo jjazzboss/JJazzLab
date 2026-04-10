@@ -1,9 +1,9 @@
-<Song resolves-to="SongSP" spName="SpeakNoEvil" spTempo="138">
+<Song resolves-to="SongSP" spName="SpeakNoEvil - 2026" spTempo="138">
   <spVERSION>4</spVERSION>
   <spComments>Éditez-moi...</spComments>
   <spTags/>
   <spChordLeadSheet class="ChordLeadSheetImpl" resolves-to="ChordLeadSheetImplSP">
-    <spVERSION>2</spVERSION>
+    <spVERSION>3</spVERSION>
     <spItems>
       <CLI__SectionImpl resolves-to="CLI_SectionImplSP" spName="Start" spTs="FOUR_FOUR" spBarIndex="0">
         <spVERSION>4</spVERSION>
@@ -212,7 +212,7 @@
             </spValues>
           </spAltFilter>
         </spChord>
-        <spPos resolves-to="PositionSP" spVERSION="2" spPos="[8:3.67]"/>
+        <spPos resolves-to="PositionSP" spVERSION="2" spPos="[8:3,67]"/>
         <spClientProperties>
           <properties>
             <entry>
@@ -289,7 +289,7 @@
             </spValues>
           </spAltFilter>
         </spChord>
-        <spPos resolves-to="PositionSP" spVERSION="2" spPos="[9:3.67]"/>
+        <spPos resolves-to="PositionSP" spVERSION="2" spPos="[9:3,67]"/>
         <spClientProperties>
           <properties>
             <entry>
@@ -359,7 +359,7 @@
             </ChordRenderingInfoSP>
           </spRenderingInfo>
         </spChord>
-        <spPos resolves-to="PositionSP" spVERSION="2" spPos="[10:3.67]"/>
+        <spPos resolves-to="PositionSP" spVERSION="2" spPos="[10:3,67]"/>
         <spClientProperties>
           <owner class="CLI_ChordSymbolImpl" reference="../.."/>
         </spClientProperties>
@@ -376,7 +376,7 @@
             </ChordRenderingInfoSP>
           </spRenderingInfo>
         </spChord>
-        <spPos resolves-to="PositionSP" spVERSION="2" spPos="[11:3.67]"/>
+        <spPos resolves-to="PositionSP" spVERSION="2" spPos="[11:3,67]"/>
         <spClientProperties>
           <owner class="CLI_ChordSymbolImpl" reference="../.."/>
         </spClientProperties>
@@ -393,7 +393,7 @@
             </ChordRenderingInfoSP>
           </spRenderingInfo>
         </spChord>
-        <spPos resolves-to="PositionSP" spVERSION="2" spPos="[12:3.67]"/>
+        <spPos resolves-to="PositionSP" spVERSION="2" spPos="[12:3,67]"/>
         <spClientProperties>
           <owner class="CLI_ChordSymbolImpl" reference="../.."/>
         </spClientProperties>
@@ -410,7 +410,7 @@
             </ChordRenderingInfoSP>
           </spRenderingInfo>
         </spChord>
-        <spPos resolves-to="PositionSP" spVERSION="2" spPos="[13:3.67]"/>
+        <spPos resolves-to="PositionSP" spVERSION="2" spPos="[13:3,67]"/>
         <spClientProperties>
           <owner class="CLI_ChordSymbolImpl" reference="../.."/>
         </spClientProperties>
@@ -456,7 +456,7 @@
             </ChordRenderingInfoSP>
           </spRenderingInfo>
         </spChord>
-        <spPos resolves-to="PositionSP" spVERSION="2" spPos="[15:3.67]"/>
+        <spPos resolves-to="PositionSP" spVERSION="2" spPos="[15:3,67]"/>
         <spClientProperties>
           <owner class="CLI_ChordSymbolImpl" reference="../.."/>
         </spClientProperties>
@@ -490,7 +490,7 @@
             </ChordRenderingInfoSP>
           </spRenderingInfo>
         </spChord>
-        <spPos resolves-to="PositionSP" spVERSION="2" spPos="[17:3.67]"/>
+        <spPos resolves-to="PositionSP" spVERSION="2" spPos="[17:3,67]"/>
         <spClientProperties>
           <owner class="CLI_ChordSymbolImpl" reference="../.."/>
         </spClientProperties>
@@ -524,7 +524,7 @@
             </ChordRenderingInfoSP>
           </spRenderingInfo>
         </spChord>
-        <spPos resolves-to="PositionSP" spVERSION="2" spPos="[19:3.67]"/>
+        <spPos resolves-to="PositionSP" spVERSION="2" spPos="[19:3,67]"/>
         <spClientProperties>
           <owner class="CLI_ChordSymbolImpl" reference="../.."/>
         </spClientProperties>
@@ -558,7 +558,7 @@
             </ChordRenderingInfoSP>
           </spRenderingInfo>
         </spChord>
-        <spPos resolves-to="PositionSP" spVERSION="2" spPos="[21:1.67]"/>
+        <spPos resolves-to="PositionSP" spVERSION="2" spPos="[21:1,67]"/>
         <spClientProperties>
           <owner class="CLI_ChordSymbolImpl" reference="../.."/>
         </spClientProperties>
@@ -828,7 +828,7 @@
           </entry>
           <entry>
             <string>RP_SYS_OverrideTracksID</string>
-            <string></string>
+            <string>Bass&gt;&gt;16BeatBallad.T547.prs-ID&gt;&gt;Bass&gt;&gt;Main C-1</string>
           </entry>
           <entry>
             <string>RpFillID</string>
@@ -882,7 +882,7 @@
           </entry>
           <entry>
             <string>RP_SYS_OverrideTracksID</string>
-            <string></string>
+            <string>Bass&gt;&gt;jjSwing-ID&gt;&gt;Chord2&gt;&gt;Main A-1</string>
           </entry>
           <entry>
             <string>RpFillID</string>
@@ -978,7 +978,7 @@
           </entry>
           <entry>
             <string>DrumsStyleId</string>
-            <string>hi hat 1</string>
+            <string>auto</string>
           </entry>
           <entry>
             <string>RpSysMuteID</string>
@@ -1002,7 +1002,7 @@
           </entry>
           <entry>
             <string>BassStyleId</string>
-            <string>walking</string>
+            <string>auto</string>
           </entry>
         </spHashMapRpIdValue>
       </SongPartImpl>
@@ -1032,7 +1032,7 @@
           </entry>
           <entry>
             <string>DrumsStyleId</string>
-            <string>ride 1</string>
+            <string>auto</string>
           </entry>
           <entry>
             <string>RpSysMuteID</string>
@@ -1056,7 +1056,7 @@
           </entry>
           <entry>
             <string>BassStyleId</string>
-            <string>2-feel</string>
+            <string>auto</string>
           </entry>
         </spHashMapRpIdValue>
       </SongPartImpl>
@@ -1086,7 +1086,7 @@
           </entry>
           <entry>
             <string>DrumsStyleId</string>
-            <string>ride 2</string>
+            <string>auto</string>
           </entry>
           <entry>
             <string>RpSysMuteID</string>
@@ -1110,7 +1110,7 @@
           </entry>
           <entry>
             <string>BassStyleId</string>
-            <string>walking</string>
+            <string>auto</string>
           </entry>
         </spHashMapRpIdValue>
       </SongPartImpl>
@@ -1140,7 +1140,7 @@
           </entry>
           <entry>
             <string>DrumsStyleId</string>
-            <string>ride 3</string>
+            <string>auto</string>
           </entry>
           <entry>
             <string>RpSysMuteID</string>
@@ -1164,7 +1164,7 @@
           </entry>
           <entry>
             <string>BassStyleId</string>
-            <string>walking</string>
+            <string>auto</string>
           </entry>
         </spHashMapRpIdValue>
       </SongPartImpl>
@@ -1194,7 +1194,7 @@
           </entry>
           <entry>
             <string>DrumsStyleId</string>
-            <string>ride 4</string>
+            <string>auto</string>
           </entry>
           <entry>
             <string>RpSysMuteID</string>
@@ -1218,7 +1218,7 @@
           </entry>
           <entry>
             <string>BassStyleId</string>
-            <string>walking</string>
+            <string>auto</string>
           </entry>
         </spHashMapRpIdValue>
       </SongPartImpl>
@@ -1248,7 +1248,7 @@
           </entry>
           <entry>
             <string>DrumsStyleId</string>
-            <string>brushes 2</string>
+            <string>auto</string>
           </entry>
           <entry>
             <string>RpSysMuteID</string>
@@ -1272,7 +1272,7 @@
           </entry>
           <entry>
             <string>BassStyleId</string>
-            <string>2-feel</string>
+            <string>auto</string>
           </entry>
         </spHashMapRpIdValue>
       </SongPartImpl>
@@ -1302,7 +1302,7 @@
           </entry>
           <entry>
             <string>DrumsStyleId</string>
-            <string>ride 3</string>
+            <string>auto</string>
           </entry>
           <entry>
             <string>RpSysMuteID</string>
@@ -1326,7 +1326,7 @@
           </entry>
           <entry>
             <string>BassStyleId</string>
-            <string>walking</string>
+            <string>auto</string>
           </entry>
         </spHashMapRpIdValue>
       </SongPartImpl>
@@ -1356,7 +1356,7 @@
           </entry>
           <entry>
             <string>DrumsStyleId</string>
-            <string>hi hat 2</string>
+            <string>auto</string>
           </entry>
           <entry>
             <string>RpSysMuteID</string>
@@ -1380,7 +1380,7 @@
           </entry>
           <entry>
             <string>BassStyleId</string>
-            <string>2-feel</string>
+            <string>auto</string>
           </entry>
         </spHashMapRpIdValue>
       </SongPartImpl>
@@ -1471,11 +1471,15 @@
       </entry>
       <entry>
         <string>PropSsEditorZoomFactorX</string>
-        <string>12</string>
+        <string>10</string>
       </entry>
       <entry>
         <string>PropViewMode</string>
-        <string>COMPACT</string>
+        <string>NORMAL</string>
+      </entry>
+      <entry>
+        <string>PropCompactViewModeVisibleRps_16BeatBallad.T547.prs-ID</string>
+        <string>rpVariationID,rpIntensityID,RpFillID,RpSysMuteID,rpSysMarkerID,RP_SYS_DrumsTransformId,RP_SYS_CustomPhraseId</string>
       </entry>
     </properties>
     <owner class="Song" reference="../.."/>

@@ -39,9 +39,14 @@ import org.jjazz.chordleadsheet.api.item.ChordRenderingInfo;
 import org.jjazz.chordleadsheet.api.item.VoidAltExtChordSymbol;
 import org.jjazz.jjswing.api.RP_BassStyle;
 import org.jjazz.midimix.spi.MidiMixManager;
+import org.jjazz.phrase.api.Phrase;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_CustomPhrase;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_CustomPhraseValue;
 import org.jjazz.rhythmparametersimpl.api.RP_SYS_DrumsTransform;
 import org.jjazz.rhythmparametersimpl.api.RP_SYS_DrumsTransformValue;
 import org.jjazz.rhythmparametersimpl.api.RP_SYS_Intensity;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_OverrideTracks;
+import org.jjazz.rhythmparametersimpl.api.RP_SYS_OverrideTracksValue;
 import org.jjazz.rhythmparametersimpl.api.RP_SYS_Variation;
 import org.jjazz.song.spi.SongFactory;
 import org.jjazz.utilities.api.Utilities;
@@ -73,7 +78,7 @@ public class LoadSongTest
     public static void setUpClass(TestInfo testInfo) throws Exception
     {
         System.out.println("\n" + testInfo.getDisplayName() + "     ########################\n");
-        
+
         // Copy resources because we need both .sng and .mix files to be present
         songDir = Paths.get("target/testSongs");
         songDir.toFile().mkdir();
@@ -167,7 +172,7 @@ public class LoadSongTest
         var file = songDir.resolve("SpeakNoEvil - 2026.sng").toFile();
         var song = SongFactory.getDefault().loadFromFile(file);
 
-        // Songt
+        // Song
         assertNotNull(song);
         assertEquals(138, song.getSize());
         assertEquals(138, song.getTempo());
@@ -193,23 +198,74 @@ public class LoadSongTest
         // SongStructure
         var sgs = song.getSongStructure();
         var spts = sgs.getSongParts();
-        var r = spts.getFirst().getRhythm();
+        assertEquals(13, spts.size());
+        var spt0 = spts.get(0);
+        var spt1 = spts.get(1);
+        var spt2 = spts.get(2);
+        var spt3 = spts.get(3);
+        var spt4 = spts.get(4);
+        var spt12Last = spts.getLast();
+
+
+        // Rhythm
+        var r = spt0.getRhythm();
         assertEquals("jjSwing", r.getName());
+        var rvBass = r.getRhythmVoices().stream()
+                .filter(rv -> rv.getName().equals("Bass"))
+                .findAny()
+                .orElseThrow();
+        assertNotNull(rvBass);
+        var rvPhrase1 = r.getRhythmVoices().stream()
+                .filter(rv -> rv.getName().equals("Phrase1"))
+                .findAny()
+                .orElseThrow();
+        assertNotNull(rvPhrase1);
+
+
+        // Variation        
         var rpVariation = RP_SYS_Variation.getVariationRp(r);
-        assertEquals("Ending A-1", spts.getLast().getRPValue(rpVariation));
-        assertEquals("Main B-1", spts.get(3).getRPValue(rpVariation));
+        assertEquals("Ending A-1", spt12Last.getRPValue(rpVariation));
+        assertEquals("Main B-1", spt3.getRPValue(rpVariation));
 
-        var rpIntensity = RP_SYS_Intensity.getIntensityRp(spts.getFirst().getRhythm());
-        assertEquals(1, spts.get(3).getRPValue(rpIntensity));
-        
+        // Intensity
+        var rpIntensity = RP_SYS_Intensity.getIntensityRp(r);
+        assertEquals(1, spt3.getRPValue(rpIntensity));
+
+        // BassStyle
         var rpBass = RP_BassStyle.get(r);
-        assertEquals("walking", spts.get(1).getRPValue(rpBass));
+        assertEquals("walking", spt1.getRPValue(rpBass));
 
-        RP_SYS_DrumsTransform rpDrumsTransform = RP_SYS_DrumsTransform.getDrumsTransformRp(spts.getFirst().getRhythm());
-        RP_SYS_DrumsTransformValue rpDrumsTransformValue = spts.get(3).getRPValue(rpDrumsTransform);
+        // DrumsTransform
+        RP_SYS_DrumsTransform rpDrumsTransform = RP_SYS_DrumsTransform.getDrumsTransformRp(r);
+        RP_SYS_DrumsTransformValue rpDrumsTransformValue = spt3.getRPValue(rpDrumsTransform);
         assertEquals("CR:-24", rpDrumsTransformValue.toString());
-        rpDrumsTransformValue = spts.get(4).getRPValue(rpDrumsTransform);
-        assertEquals("", rpDrumsTransformValue.toString());
+        assertEquals("", spt4.getRPValue(rpDrumsTransform).toString());
+
+        // CustomPhrase
+        RP_SYS_CustomPhrase rpCustomPhrase = RP_SYS_CustomPhrase.getCustomPhraseRp(r);
+        RP_SYS_CustomPhraseValue rpCustomPhraseValue = spt3.getRPValue(rpCustomPhrase);
+        assertEquals(null, rpCustomPhraseValue.getCustomizedPhrase(rvBass));
+        Phrase p = rpCustomPhraseValue.getCustomizedPhrase(rvPhrase1);
+        assertEquals(29, p.size());
+        var lastNote = p.getNotes().getLast();
+        assertEquals(69, lastNote.getPitch());
+        assertEquals(61, lastNote.getVelocity());
+        assertEquals(25, (int)lastNote.getPositionInBeats());
+        assertEquals(null, spt2.getRPValue(rpCustomPhrase).getCustomizedPhrase(rvPhrase1));
+
+
+        // Override track
+        RP_SYS_OverrideTracks rpOverride = RP_SYS_OverrideTracks.getOverrideTracksRp(r);
+        RP_SYS_OverrideTracksValue rpOverrideValue = spt2.getRPValue(rpOverride);
+        RP_SYS_OverrideTracksValue.Override override = rpOverrideValue.getOverride(rvBass);
+        assertNotNull(override);
+        assertEquals("Main A-1", override.variation());
+        assertEquals("Chord2", override.rvDest().getName());
+        assertEquals("jjSwing", override.rvDest().getContainer().getName());
+        assertEquals(null, rpOverrideValue.getOverride(rvPhrase1));
+        // There IS actually an override defined in spt1, but to a rhythm NOT present in the test rhythm database, so it should have been discarded upong song loading        
+        assertEquals(0, spt1.getRPValue(rpOverride).getAllSourceRhythmVoices().size()); 
+        
 
 
         // MidiMix
@@ -243,6 +299,19 @@ public class LoadSongTest
         assertEquals(1, settings.getVelocityShift());
         assertEquals(-1, settings.getTransposition());
 
+
+        var rvGuitar = r.getRhythmVoices().stream()
+                .filter(rv -> rv.getName().equals("Chord2"))
+                .findFirst()
+                .orElseThrow();
+        insMix = mm.getInstrumentMix(rvGuitar);
+        settings = insMix.getSettings();
+        assertTrue(insMix.isMute());
+        assertFalse(insMix.isSolo());
+        assertTrue(settings.isVolumeEnabled());
+        assertFalse(settings.isReverbEnabled());
+        assertEquals(0, settings.getVolume());
+        assertEquals(0, settings.getVolume());
 
     }
     // =========================================================================================================
