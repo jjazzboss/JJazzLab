@@ -263,7 +263,7 @@ public class RP_SYS_CustomPhraseValue
                     p = Phrase.loadAsString(phraseStr);    // throws ParseException
                 }
 
-                res.setCustomizedPhrase(rv, p);
+                res = res.setCustomizedPhrase(rv, p);
 
             } catch (ParseException ex)
             {
