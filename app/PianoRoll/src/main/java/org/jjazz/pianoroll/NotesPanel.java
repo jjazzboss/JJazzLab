@@ -153,16 +153,13 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
             return;
         }
 
-        NoteView nv0 = null;
+        // The NoteViews at first position (approximatively)
+        List<NoteView> nv0s = new ArrayList<>();
 
         if (!editor.isDrums())
         {
             for (NoteView nv : mapNoteViews.values())
             {
-                if (nv0 == null)
-                {
-                    nv0 = nv;
-                }
                 NoteEvent ne = nv.getModel();
                 FloatRange br = ne.getBeatRange();
                 int x = xMapper.getX(br.from);
@@ -170,6 +167,11 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
                 int w = xMapper.getX(br.to - 0.0001f) - x + 1;
                 int h = yMapper.getNoteViewHeight();
                 nv.setBounds(x, y, w, h);
+
+                if (nv0s.isEmpty() || ne.getPositionInBeats() - nv0s.getFirst().getModel().getPositionInBeats() < 0.5f)
+                {
+                    nv0s.add(nv);
+                }
             }
         } else
         {
@@ -181,10 +183,6 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
             }
             for (NoteView nv : mapNoteViews.values())
             {
-                if (nv0 == null)
-                {
-                    nv0 = nv;
-                }
                 NoteEvent ne = nv.getModel();
                 int x = xMapper.getX(ne.getPositionInBeats()) - side / 2;
                 var yRange = yMapper.getNoteViewChannelYRange(ne.getPitch());
@@ -193,6 +191,11 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
                 int h = side;
                 nv.setBounds(x, y, w, h);
                 // LOGGER.severe("doLayout() side=" + side + " yRange=" + yRange + " bounds=" + nv.getBounds());
+
+                if (nv0s.isEmpty() || ne.getPositionInBeats() - nv0s.getFirst().getModel().getPositionInBeats() < 0.5f)
+                {
+                    nv0s.add(nv);
+                }
             }
         }
 
@@ -201,24 +204,26 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
             // Hack needed because a simple SwingUtilities.invokeLater(scrollToFirstNote()) is not enough, we must make sure that all NoteViews are placed            
             scrollToFirstNoteHack = false;
 
-
-            // Adjust the enclosing scrollPane so that the first note is visible. If no note, show middle pitch.
-            Rectangle r;
-            final int SIZE = 400;
-            if (nv0 == null)
+            // Adjust the enclosing scrollPane so that the first notes at same position are visible on the left. If no note, show middle pitch.
+            Rectangle rNotes;
+            final int SIDE = 20;
+            if (nv0s.isEmpty())
             {
-                // Left position, middle pitch
-                r = new Rectangle(0, getHeight() / 2 - SIZE / 2, SIZE, SIZE);
+                rNotes = new Rectangle(0, getHeight() / 2 - SIDE / 2, SIDE, SIDE);
             } else
             {
-                // Center around the first note
-                r = nv0.getBounds();
-                r.x = Math.max(0, r.x - SIZE / 2);
-                r.y = Math.max(0, r.y - SIZE / 2);
-                r.height = SIZE;
-                r.width = SIZE;
+                // Get the rectangle from the first notes
+                rNotes = nv0s.getFirst().getBounds();
+                nv0s.stream()
+                        .skip(1)
+                        .forEach(nv -> rNotes.add(nv.getBounds()));
             }
-            SwingUtilities.invokeLater(() -> scrollRectToVisible(r));
+            int x = Math.max(0, rNotes.x - SIDE);
+            int yCenter = (int) rNotes.getCenterY();            
+            Rectangle visibleRect = getVisibleRect();            
+            int y = yCenter - visibleRect.height / 2;
+            Rectangle r2 = new Rectangle(x, y, visibleRect.width - 1, visibleRect.height - 1);
+            SwingUtilities.invokeLater(() -> scrollRectToVisible(r2));
         }
 
     }
@@ -987,7 +992,7 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
         /**
          * Get the x positions of the first and last pixel of a bar range.
          *
-         * @param barRange 
+         * @param barRange
          * @return Can be empty if barRange is empty
          */
         public IntRange getXRange(IntRange barRange)
