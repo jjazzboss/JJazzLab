@@ -176,6 +176,12 @@ public class LoadSongTest
         assertNotNull(song);
         assertEquals(138, song.getSize());
         assertEquals(138, song.getTempo());
+        var p = song.getUserPhrase("User1");
+        assertNotNull(p);
+        assertEquals(4, p.size());
+        assertEquals(16, p.getLast().getPositionInBeats());
+        assertEquals(71, p.getLast().getPitch());
+        assertEquals(null, song.getUserPhrase("User2"));
 
 
         // ChordLeadSheet
@@ -245,12 +251,12 @@ public class LoadSongTest
         RP_SYS_CustomPhrase rpCustomPhrase = RP_SYS_CustomPhrase.getCustomPhraseRp(r);
         RP_SYS_CustomPhraseValue rpCustomPhraseValue = spt3.getRPValue(rpCustomPhrase);
         assertEquals(null, rpCustomPhraseValue.getCustomizedPhrase(rvBass));
-        Phrase p = rpCustomPhraseValue.getCustomizedPhrase(rvPhrase1);
+        p = rpCustomPhraseValue.getCustomizedPhrase(rvPhrase1);
         assertEquals(29, p.size());
         var lastNote = p.getNotes().getLast();
         assertEquals(69, lastNote.getPitch());
         assertEquals(61, lastNote.getVelocity());
-        assertEquals(25, (int)lastNote.getPositionInBeats());
+        assertEquals(25, (int) lastNote.getPositionInBeats());
         assertEquals(null, spt2.getRPValue(rpCustomPhrase).getCustomizedPhrase(rvPhrase1));
 
 
@@ -264,8 +270,7 @@ public class LoadSongTest
         assertEquals("jjSwing", override.rvDest().getContainer().getName());
         assertEquals(null, rpOverrideValue.getOverride(rvPhrase1));
         // There IS actually an override defined in spt1, but to a rhythm NOT present in the test rhythm database, so it should have been discarded upong song loading        
-        assertEquals(0, spt1.getRPValue(rpOverride).getAllSourceRhythmVoices().size()); 
-        
+        assertEquals(0, spt1.getRPValue(rpOverride).getAllSourceRhythmVoices().size());
 
 
         // MidiMix
@@ -281,6 +286,11 @@ public class LoadSongTest
         assertTrue(settings.isChorusEnabled());
         assertEquals(8, settings.getChorus());
         assertEquals(96, settings.getVolume());
+
+
+        // User rhythm voice
+        assertNotNull(mm.getUserRhythmVoice("User1"));
+        assertEquals(null, mm.getUserRhythmVoice("User2"));
 
 
         var rvPiano = r.getRhythmVoices().stream()

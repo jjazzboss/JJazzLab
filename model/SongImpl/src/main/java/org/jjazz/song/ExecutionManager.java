@@ -64,19 +64,42 @@ public class ExecutionManager
 
     private final ReentrantReadWriteLock lock;
     private MidiMix midiMix;
-    private final SongInternalUpdater songInternalUpdater;
+    private SongInternalUpdater songInternalUpdater;
     private static final Logger LOGGER = Logger.getLogger(ExecutionManager.class.getSimpleName());
 
+    /**
+     * Create an instance with internal updates disabled by default.
+     */
     public ExecutionManager()
     {
         this.lock = new ReentrantReadWriteLock();
         this.songInternalUpdater = null;
     }
 
+    /**
+     * Create an instance with internal updates enabled or disabled.
+     *
+     * @param song
+     * @param disableInternalUpdates
+     */
     public ExecutionManager(Song song, boolean disableInternalUpdates)
     {
+        Objects.requireNonNull(song);
         this.lock = new ReentrantReadWriteLock();
         this.songInternalUpdater = disableInternalUpdates ? null : new SongInternalUpdater(song);
+    }
+
+    /**
+     * Enable the song internal updater if it was not.
+     * <p>
+     * @param song
+     */
+    protected void enableInternalUpdater(Song song)
+    {
+        if (songInternalUpdater == null)
+        {
+            songInternalUpdater = new SongInternalUpdater(song);
+        }
     }
 
     public MidiMix getMidiMix()

@@ -1023,7 +1023,10 @@ public class SongImpl implements Serializable, PropertyChangeListener, Song
         private Object readResolve() throws ObjectStreamException
         {
             assert spChordLeadSheet == spSongStructure.getParentChordLeadSheet();
-            SongImpl newSong = new SongImpl(spName, spSongStructure, false);
+            
+            // Create a song with internal updater disabled because otherwise MidiMix would need to be created but it's not possible before SongImpl is 
+            // fully created with its file set (issue #708)
+            SongImpl newSong = new SongImpl(spName, spSongStructure, true);     
             newSong.setComments(spComments);
             newSong.setTags(spTags);
             newSong.setTempo(spTempo);
@@ -1068,6 +1071,10 @@ public class SongImpl implements Serializable, PropertyChangeListener, Song
             }
 
 
+            // Now we can enable the updater
+            newSong.getExecutionManager().enableInternalUpdater(newSong);
+            
+            
             return newSong;
         }
 

@@ -1442,7 +1442,14 @@
     <spParentCls class="ChordLeadSheetImpl" reference="../../spChordLeadSheet"/>
     <spKeepUpdated>false</spKeepUpdated>
   </spSongStructure>
-  <spMapUserPhrases/>
+  <spMapUserPhrases>
+    <entry>
+      <string>User1</string>
+      <Phrase resolves-to="PhraseSP" spVERSION="2">
+        <spSaveString>[0|73,64,3.0:2.0|63,64,5.0:6.66666|60,64,2.66666:14.33333|71,64,0.33333:16.0]</spSaveString>
+      </Phrase>
+    </entry>
+  </spMapUserPhrases>
   <spClientPropertiesV3>
     <properties>
       <entry>
@@ -1471,7 +1478,7 @@
       </entry>
       <entry>
         <string>PropSsEditorZoomFactorX</string>
-        <string>10</string>
+        <string>2</string>
       </entry>
       <entry>
         <string>PropViewMode</string>
