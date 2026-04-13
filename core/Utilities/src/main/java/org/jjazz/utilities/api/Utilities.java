@@ -187,7 +187,7 @@ public class Utilities
     {
         return Modifier.isStatic(clazz.getModifiers());
     }
-    
+
     /**
      * Get the next gaussian random value between -1 and 1 using a standard deviation of 0.3.
      *
@@ -329,6 +329,22 @@ public class Utilities
                 conn.disconnect();
             }
         }
+    }
+
+    /**
+     * Creates and returns a {@link java.lang.String} from t’s stacktrace.
+     *
+     * @param t Throwable whose stack trace is required
+     * @return String representing the stack trace of the exception
+     */
+    static public String getStackTrace(Throwable t)
+    {
+        StringWriter stringWriter = new StringWriter();
+        PrintWriter printWriter = new PrintWriter(stringWriter, true);
+        t.printStackTrace(printWriter);
+        printWriter.flush();
+        stringWriter.flush();
+        return stringWriter.toString();
     }
 
     /**

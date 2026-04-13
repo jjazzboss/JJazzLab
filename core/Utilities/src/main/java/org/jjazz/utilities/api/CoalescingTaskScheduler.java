@@ -213,13 +213,14 @@ public final class CoalescingTaskScheduler
             } catch (Throwable handlerEx)
             {
                 // If the exception handler itself throws, log both exceptions
-                LOGGER.log(Level.SEVERE, "handleException() Custom exception handler threw an exception while handling task exception: ", handlerEx);
-                LOGGER.log(Level.SEVERE, "handleException() Original task exception: ", ex);
+                LOGGER.log(Level.SEVERE, "handleException() Custom exception handler threw an exception while handling task exception: {0}", handlerEx.toString());
+                LOGGER.log(Level.SEVERE, "handleException() Original task exception: {0}", ex.toString());
             }
         } else
         {
             // Default: log the exception
-            LOGGER.log(Level.WARNING, "handleException() scheduled task exception=", ex);
+            LOGGER.log(Level.WARNING, "handleException() Unhandled scheduled task exception, see line below with stack trace");
+            LOGGER.log(Level.WARNING, Utilities.getStackTrace(ex));
         }
     }
 }
