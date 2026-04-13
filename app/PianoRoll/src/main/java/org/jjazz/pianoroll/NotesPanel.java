@@ -155,9 +155,11 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
 
         // The NoteViews at first position (approximatively)
         List<NoteView> nv0s = new ArrayList<>();
+        final float WINDOW = 0.5f;
 
         if (!editor.isDrums())
         {
+            int nvCount = 0;
             for (NoteView nv : mapNoteViews.values())
             {
                 NoteEvent ne = nv.getModel();
@@ -168,10 +170,11 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
                 int h = yMapper.getNoteViewHeight();
                 nv.setBounds(x, y, w, h);
 
-                if (nv0s.isEmpty() || ne.getPositionInBeats() - nv0s.getFirst().getModel().getPositionInBeats() < 0.5f)
+                if (nv0s.isEmpty() || (nvCount < 5 && ne.getPositionInBeats() - nv0s.getFirst().getModel().getPositionInBeats() < WINDOW))
                 {
                     nv0s.add(nv);
                 }
+                nvCount++;
             }
         } else
         {
@@ -181,6 +184,8 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
             {
                 side++;     // Need an odd value so that NoteView will be perfectly centered
             }
+
+            int nvCount = 0;
             for (NoteView nv : mapNoteViews.values())
             {
                 NoteEvent ne = nv.getModel();
@@ -190,12 +195,13 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
                 int w = side;
                 int h = side;
                 nv.setBounds(x, y, w, h);
-                // LOGGER.severe("doLayout() side=" + side + " yRange=" + yRange + " bounds=" + nv.getBounds());
 
-                if (nv0s.isEmpty() || ne.getPositionInBeats() - nv0s.getFirst().getModel().getPositionInBeats() < 0.5f)
+                if (nv0s.isEmpty() || (nvCount < 5 && ne.getPositionInBeats() - nv0s.getFirst().getModel().getPositionInBeats() < WINDOW))
                 {
                     nv0s.add(nv);
                 }
+
+                nvCount++;
             }
         }
 
@@ -212,15 +218,15 @@ public class NotesPanel extends EditorPanel implements PropertyChangeListener
                 rNotes = new Rectangle(0, getHeight() / 2 - SIDE / 2, SIDE, SIDE);
             } else
             {
-                // Get the rectangle from the first notes
+                // Get the union rectangle from the first notes
                 rNotes = nv0s.getFirst().getBounds();
                 nv0s.stream()
                         .skip(1)
                         .forEach(nv -> rNotes.add(nv.getBounds()));
             }
             int x = Math.max(0, rNotes.x - SIDE);
-            int yCenter = (int) rNotes.getCenterY();            
-            Rectangle visibleRect = getVisibleRect();            
+            int yCenter = (int) rNotes.getCenterY();
+            Rectangle visibleRect = getVisibleRect();
             int y = yCenter - visibleRect.height / 2;
             Rectangle r2 = new Rectangle(x, y, visibleRect.width - 1, visibleRect.height - 1);
             SwingUtilities.invokeLater(() -> scrollRectToVisible(r2));
