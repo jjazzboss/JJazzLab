@@ -629,7 +629,7 @@ public class CompositeMusicGenerator implements MusicGenerator
 
 
         // Save result
-        res.putAll(mapRvPhrases);
+        res.putAll(mapRvPhrases); 
 
         return res;
     }
